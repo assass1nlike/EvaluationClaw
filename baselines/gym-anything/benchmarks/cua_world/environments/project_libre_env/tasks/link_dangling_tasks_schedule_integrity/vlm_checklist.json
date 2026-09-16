@@ -1,0 +1,53 @@
+{
+  "task_id": "link_dangling_tasks_schedule_integrity@1",
+  "task_completion": [
+    {
+      "id": "open_project_file",
+      "description": "Open the project schedule file in a project management application.",
+      "points": 10,
+      "visual_evidence": "A project management GUI application (e.g., ProjectLibre, Planner) is open, displaying the 'Community Center Renovation' project loaded from renovation_project.xml."
+    },
+    {
+      "id": "identify_dangling_tasks",
+      "description": "Locate the dangling tasks that need to be linked.",
+      "points": 10,
+      "visual_evidence": "The agent selects, highlights, or opens the task properties for Task 10 ('Landscaping') and Task 11 ('Security System Install') in the task list or Gantt chart."
+    },
+    {
+      "id": "link_landscaping_task",
+      "description": "Link Task 10 ('Landscaping') to the 'Project Completion' milestone.",
+      "points": 25,
+      "visual_evidence": "The predecessor field for Task 12 ('Project Completion') is updated to include Task 10, or a task dependency dialog shows Task 10 added as a Finish-to-Start predecessor to Task 12."
+    },
+    {
+      "id": "link_security_task",
+      "description": "Link Task 11 ('Security System Install') to the 'Project Completion' milestone.",
+      "points": 25,
+      "visual_evidence": "The predecessor field for Task 12 ('Project Completion') is updated to include Task 11 (e.g., showing '9, 10, 11'), or a task dependency dialog shows Task 11 added as a Finish-to-Start predecessor to Task 12."
+    },
+    {
+      "id": "save_fixed_xml",
+      "description": "Save the corrected project as an XML file to the specified location.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' or 'Export' dialog is visible with the file name 'renovation_fixed.xml' and the path '/home/ga/Projects/', or a file manager shows the newly created 'renovation_fixed.xml' file in the correct directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_app",
+      "description": "The agent used a project management GUI application to modify the schedule.",
+      "visual_evidence": "Screenshots should show a graphical project management tool (like ProjectLibre) being used to edit the tasks, rather than a text editor (like nano, vim, or gedit) opening the XML file."
+    },
+    {
+      "id": "no_terminal_xml_editing",
+      "description": "The agent did not use terminal commands or scripts to directly manipulate the XML file.",
+      "visual_evidence": "The terminal should not show commands like 'sed', 'awk', 'echo', or python scripts being used to inject <PredecessorLink> tags into the XML file."
+    },
+    {
+      "id": "saved_via_gui",
+      "description": "The agent saved the file using the application's interface.",
+      "visual_evidence": "The file saving process should be visible through the GUI application's 'Save As' or 'Export' dialogs, not via terminal commands like 'cp renovation_project.xml renovation_fixed.xml'."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is '/home/ga/Projects/renovation_project.xml'. The target milestone is 'Project Completion' (Task ID/UID 12). The two dangling tasks that need to be linked to it are 'Landscaping' (Task ID/UID 10) and 'Security System Install' (Task ID/UID 11). Before modification, Task 12 only has 'Flooring' (Task ID/UID 9) as a predecessor. The final output must be saved as '/home/ga/Projects/renovation_fixed.xml'."
+}

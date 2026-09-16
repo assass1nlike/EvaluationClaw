@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_apache_api_proxy@1",
+  "task_completion": [
+    {
+      "id": "apache_config_opened",
+      "description": "Agent opens an Apache configuration file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim) open in the terminal showing an Apache virtual host configuration file (such as /etc/apache2/sites-available/000-default.conf or socioboard.conf)."
+    },
+    {
+      "id": "apache_proxy_user_notification",
+      "description": "Agent configures reverse proxy routing for the User and Notification microservices.",
+      "points": 20,
+      "visual_evidence": "The Apache configuration file contains ProxyPass and ProxyPassReverse directives mapping '/proxy/user/' to localhost port 3000 and '/proxy/notification/' to localhost port 3003."
+    },
+    {
+      "id": "apache_proxy_feeds_publish",
+      "description": "Agent configures reverse proxy routing for the Feeds and Publish microservices.",
+      "points": 20,
+      "visual_evidence": "The Apache configuration file contains ProxyPass and ProxyPassReverse directives mapping '/proxy/feeds/' and '/proxy/publish/' to localhost ports 3001 and 3002."
+    },
+    {
+      "id": "env_file_opened",
+      "description": "Agent opens the PHP frontend environment configuration file.",
+      "points": 10,
+      "visual_evidence": "A text editor open in the terminal showing the file /opt/socioboard/socioboard-web-php/.env."
+    },
+    {
+      "id": "env_api_user_notification_updated",
+      "description": "Agent updates the API_URL and API_URL_NOTIFICATION variables in the .env file.",
+      "points": 20,
+      "visual_evidence": "The .env file shows API_URL pointing to the new '/proxy/user/' endpoint and API_URL_NOTIFICATION pointing to the '/proxy/notification/' endpoint on localhost."
+    },
+    {
+      "id": "env_api_feeds_publish_updated",
+      "description": "Agent updates the API_URL_FEEDS and API_URL_PUBLISH variables in the .env file.",
+      "points": 20,
+      "visual_evidence": "The .env file shows API_URL_FEEDS pointing to the new '/proxy/feeds/' endpoint and API_URL_PUBLISH pointing to the '/proxy/publish/' endpoint on localhost."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "real_file_modification",
+      "description": "Agent actually modifies the configuration files using a text editor or valid shell commands.",
+      "visual_evidence": "Screenshots show genuine interaction with a text editor (like nano, vim) or valid sed/echo commands, rather than just printing the expected final text to the console."
+    },
+    {
+      "id": "no_mocked_curl_tests",
+      "description": "If the agent tests the proxy configuration, it uses genuine HTTP requests.",
+      "visual_evidence": "Any curl or browser tests against the new proxy paths show actual responses from the Node.js microservices, not mocked echo outputs or simulated terminal text."
+    },
+    {
+      "id": "consistent_proxy_paths",
+      "description": "The proxy paths configured in Apache match the ones placed in the .env file.",
+      "visual_evidence": "The exact string paths (e.g., /proxy/user/) used in the ProxyPass directives are identical to the URL paths appended to localhost in the .env file."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The expected proxy paths are exactly /proxy/user, /proxy/feeds, /proxy/publish, and /proxy/notification. The PHP frontend environment file is located at /opt/socioboard/socioboard-web-php/.env."
+}

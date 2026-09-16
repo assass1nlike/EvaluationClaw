@@ -1,0 +1,35 @@
+{
+  "id": "chinook_abc_inventory_classification@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Perform an ABC inventory analysis on the Chinook database tracks based on sales revenue using the database at /home/ga/Documents/databases/chinook.db (connection name 'Chinook'). Calculate total revenue for each track with at least one sale and classify them into categories: 'A' (top 70% of total revenue), 'B' (next 20%), and 'C' (bottom 10%) based on cumulative revenue percentage ordered descending. Create a table named 'track_abc_classification' containing TrackId, TrackName, ArtistName, TotalRevenue, RevenueRank, CumulativePct, and ABCCategory. Export the full classification to /home/ga/Documents/exports/abc_classification.csv and a summary report (count, total revenue, and revenue percentage per category) to /home/ga/Documents/exports/abc_summary.csv. Save the SQL analysis script to /home/ga/Documents/scripts/abc_analysis.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_abc_inventory_classification/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_abc_inventory_classification/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "expected_table": "track_abc_classification",
+    "outputs": [
+      "/home/ga/Documents/exports/abc_classification.csv",
+      "/home/ga/Documents/exports/abc_summary.csv",
+      "/home/ga/Documents/scripts/abc_analysis.sql"
+    ],
+    "thresholds": {
+      "A": 70.0,
+      "B": 90.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_abc_inventory_classification"
+    }
+  }
+}

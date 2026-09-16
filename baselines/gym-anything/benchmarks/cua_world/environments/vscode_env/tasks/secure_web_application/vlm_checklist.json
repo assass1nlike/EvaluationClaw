@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_web_application@1",
+  "task_completion": [
+    {
+      "id": "fix_sqli",
+      "description": "Remediate SQL Injection vulnerability",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to database queries, replacing string concatenation with parameterized queries (e.g., using '?' placeholders) or safe ORM methods."
+    },
+    {
+      "id": "fix_stored_xss",
+      "description": "Remediate Stored XSS vulnerability",
+      "points": 20,
+      "visual_evidence": "Code editor showing implementation of input sanitization or output encoding (e.g., using libraries like 'xss', 'escape-html', or proper template engine escaping) for user-submitted content."
+    },
+    {
+      "id": "fix_plaintext_passwords",
+      "description": "Remediate Plaintext Passwords vulnerability",
+      "points": 20,
+      "visual_evidence": "Code editor showing the addition of password hashing logic (e.g., 'bcrypt.hash', 'bcrypt.compare') in the user registration and authentication routes."
+    },
+    {
+      "id": "fix_path_traversal",
+      "description": "Remediate Path Traversal vulnerability",
+      "points": 15,
+      "visual_evidence": "Code editor showing file path sanitization, such as using 'path.basename()' or validating paths to prevent directory escapes (e.g., blocking '../')."
+    },
+    {
+      "id": "fix_insecure_sessions",
+      "description": "Remediate Insecure Sessions vulnerability",
+      "points": 15,
+      "visual_evidence": "Code editor showing updates to the Express session configuration, such as adding 'httpOnly: true', 'secure: true', 'sameSite' attributes, or setting a strong session secret."
+    },
+    {
+      "id": "fix_missing_input_validation",
+      "description": "Remediate Missing Input Validation vulnerability",
+      "points": 10,
+      "visual_evidence": "Code editor showing the addition of input validation logic (e.g., using 'express-validator', explicit type checking, or length limits) on incoming request payloads."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_edits",
+      "description": "Verify the agent genuinely edited the application source files",
+      "visual_evidence": "Screenshots should show the agent opening and modifying the actual .js files in /home/ga/workspace/securenotes/ using a text editor or IDE, rather than just echoing text or running a pre-made patch script."
+    },
+    {
+      "id": "maintained_functionality",
+      "description": "Verify the agent patched the vulnerabilities without deleting the features",
+      "visual_evidence": "The vulnerable endpoints (e.g., file access, note creation, login) should still exist and contain functional logic, rather than being commented out, returning hardcoded 403s, or completely deleted."
+    },
+    {
+      "id": "no_report_tampering",
+      "description": "Verify the agent did not modify the pentest report to claim success",
+      "visual_evidence": "The agent should not be editing /home/ga/workspace/securenotes/pentest_report.md to remove the findings; edits should be strictly in the application source code."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing exactly 6 vulnerabilities in an Express.js app located at /home/ga/workspace/securenotes/. The vulnerabilities are: SQL Injection, Stored XSS, Path Traversal, Plaintext Passwords, Insecure Sessions, and Missing Input Validation. The agent must modify the source code to remediate these issues while keeping the application functional. A passing score requires successfully fixing enough vulnerabilities to reach the 60-point threshold."
+}

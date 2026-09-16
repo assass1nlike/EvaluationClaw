@@ -1,0 +1,35 @@
+{
+  "id": "create_landscape_design_plan@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a backyard landscape design plan for the 'Johnson Residence' using EdrawMax's Garden Design libraries. The layout must include a patio area with stone/paver patterns, a walkway leading to the patio, a dining table with chairs on the patio, a water feature (pond, pool, or fountain), and vegetation consisting of at least three trees and perimeter shrubs or hedges. Include a title 'Johnson Residence - Garden Concept' at the top and add text labels for 'Patio', 'Dining Area', 'Water Feature', and 'Trees'. Save the project as ~/Documents/Johnson_Landscape_Plan.eddx and export the design as a PNG image to ~/Documents/Johnson_Landscape_Plan.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_landscape_design_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_landscape_design_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/Johnson_Landscape_Plan.eddx",
+    "expected_png_path": "/home/ga/Documents/Johnson_Landscape_Plan.png",
+    "min_eddx_size": 5000,
+    "min_png_size": 20000,
+    "required_text": [
+      "Johnson Residence",
+      "Patio",
+      "Dining",
+      "Water",
+      "Tree"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_landscape_design_plan"
+    }
+  }
+}

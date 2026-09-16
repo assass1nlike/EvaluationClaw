@@ -1,0 +1,53 @@
+{
+  "task_id": "edge_kiosk_policy_config@1",
+  "task_completion": [
+    {
+      "id": "read_requirements",
+      "description": "Read the kiosk requirements file",
+      "points": 10,
+      "visual_evidence": "Terminal (e.g., using cat, less) or a text editor displaying the contents of /home/ga/Desktop/kiosk_requirements.txt."
+    },
+    {
+      "id": "create_managed_policy_file",
+      "description": "Create a policy JSON file in the managed policies directory",
+      "points": 20,
+      "visual_evidence": "Terminal or text editor showing a .json file being created or edited specifically in the /etc/microsoft-edge/policies/managed/ directory."
+    },
+    {
+      "id": "configure_navigation_policies",
+      "description": "Configure homepage, new tab, and URL blocklist policies",
+      "points": 25,
+      "visual_evidence": "The policy JSON file contains 'HomepageLocation' set to 'https://www.usa.gov/benefits', 'NewTabPageLocation' set to 'https://www.ssa.gov', and 'URLBlocklist' containing the specified social media domains (facebook.com, twitter.com, youtube.com, tiktok.com, instagram.com, reddit.com)."
+    },
+    {
+      "id": "configure_security_policies",
+      "description": "Configure security and restriction policies",
+      "points": 25,
+      "visual_evidence": "The policy JSON file contains 'DownloadRestrictions': 3, 'DeveloperToolsAvailability': 2, 'InPrivateModeAvailability': 1, 'BrowserSignin': 0, and 'PasswordManagerEnabled': false. (If bookmark bar is configured, it should be 'FavoritesBarEnabled')."
+    },
+    {
+      "id": "create_deployment_report",
+      "description": "Document the applied settings in a deployment report",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal showing the creation and content of /home/ga/Desktop/kiosk_deploy_report.txt, which should summarize the policies that were applied."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "valid_json_format",
+      "description": "The policy file must be formatted as valid JSON",
+      "visual_evidence": "The contents of the policy file in /etc/microsoft-edge/policies/managed/ show proper JSON syntax (curly braces, quoted keys, correct comma placement) without obvious syntax errors."
+    },
+    {
+      "id": "genuine_directory_modification",
+      "description": "The agent used appropriate privileges to write to a system directory",
+      "visual_evidence": "Terminal shows the use of 'sudo' (e.g., sudo nano, sudo tee, sudo cp) or a root shell when creating/modifying the file in /etc/microsoft-edge/policies/managed/, as standard users cannot write there."
+    },
+    {
+      "id": "distinct_report_content",
+      "description": "The deployment report is genuinely authored, not just a copied requirements file",
+      "visual_evidence": "The content of kiosk_deploy_report.txt appears to be a confirmation or summary written by the agent, rather than an exact file copy (cp) of kiosk_requirements.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must configure Edge policies via a JSON file in /etc/microsoft-edge/policies/managed/. Expected policies and values: 'HomepageLocation' (https://www.usa.gov/benefits), 'NewTabPageLocation' (https://www.ssa.gov), 'DownloadRestrictions' (3), 'DeveloperToolsAvailability' (2), 'InPrivateModeAvailability' (1), 'BrowserSignin' (0), 'PasswordManagerEnabled' (false), and 'URLBlocklist' (array containing facebook.com, twitter.com, youtube.com, tiktok.com, instagram.com, reddit.com). Note: If the requirements mention 'BookmarkBarEnabled', the correct Edge policy name is 'FavoritesBarEnabled'. The final step is creating a deployment report at /home/ga/Desktop/kiosk_deploy_report.txt."
+}

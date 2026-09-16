@@ -1,0 +1,42 @@
+{
+  "id": "annotate_surgical_milestones@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Annotate the start and end of the surgical case in Vital Recorder for VitalDB Case #3 based on the respiratory (EtCO2) signal. Identify the clinical 'Start' and 'End' of the case by adding event markers named 'Case Start' at the first valid EtCO2 waveform and 'Case End' at the last valid EtCO2 waveform. Export the event list containing these timestamps and labels to C:\\Users\\Docker\\Documents\\case_milestones.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\annotate_surgical_milestones\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\annotate_surgical_milestones\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "case_milestones.csv",
+    "expected_path": "C:\\Users\\Docker\\Documents\\case_milestones.csv",
+    "case_id": "3",
+    "min_duration_minutes": 60,
+    "expected_events": [
+      "Case Start",
+      "Case End"
+    ],
+    "ground_truth": {
+      "start_window_sec": [
+        100,
+        1200
+      ],
+      "end_window_sec": [
+        7000,
+        12000
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annotate_milestones"
+    }
+  }
+}

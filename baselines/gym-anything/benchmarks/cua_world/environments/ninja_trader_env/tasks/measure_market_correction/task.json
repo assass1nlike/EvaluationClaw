@@ -1,0 +1,31 @@
+{
+  "id": "measure_market_correction@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Measure the 2023 Q3 market correction on an SPY daily chart from the peak on July 27, 2023, to the bottom on October 27, 2023. Label the measurement \"Summer Correction\" and save the workspace.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\measure_market_correction\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\measure_market_correction\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "start_date_approx": "2023-07-27",
+    "end_date_approx": "2023-10-27",
+    "date_tolerance_days": 5,
+    "high_price_min": 455,
+    "low_price_max": 415,
+    "expected_text": "Summer Correction"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_market_correction"
+    }
+  }
+}

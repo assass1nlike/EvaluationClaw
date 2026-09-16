@@ -1,0 +1,34 @@
+{
+  "id": "create_residential_pv_system@1",
+  "version": "1.0",
+  "env_id": "system_advisor_model_env@0.1",
+  "difficulty": "easy",
+  "description": "A homeowner in Phoenix, Arizona is considering installing rooftop solar panels and wants to know how much electricity a typical residential system would produce annually. Design and simulate a 5 kW DC photovoltaic system for a south-facing roof with a slope of approximately 20 degrees using NREL's System Advisor Model (SAM) and Phoenix weather data. Save the simulation results, including configuration parameters, location info, and annual energy production (kWh), to /home/ga/Documents/SAM_Projects/Phoenix_Residential_5kW.json.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_residential_pv_system/setup_task.sh",
+    "post_task": "/workspace/tasks/create_residential_pv_system/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "Phoenix_Residential_5kW.json",
+    "expected_location": "phoenix",
+    "expected_dc_size_min": 4.5,
+    "expected_dc_size_max": 5.5,
+    "expected_tilt_min": 15,
+    "expected_tilt_max": 25,
+    "expected_azimuth_min": 175,
+    "expected_azimuth_max": 185,
+    "expected_annual_kwh_min": 7000,
+    "expected_annual_kwh_max": 9500
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_residential_pv_system"
+    }
+  }
+}

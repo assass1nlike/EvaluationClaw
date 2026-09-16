@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_virustotal_integration@1",
+  "task_completion": [
+    {
+      "id": "access_config_file",
+      "description": "Access the Wazuh manager configuration file",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command to edit /var/ossec/etc/ossec.conf (e.g., using vi/nano via docker exec) OR the Wazuh web interface configuration editor open."
+    },
+    {
+      "id": "add_integration_name",
+      "description": "Add the VirusTotal integration block",
+      "points": 15,
+      "visual_evidence": "An <integration> XML block is visible in the configuration file containing <name>virustotal</name>."
+    },
+    {
+      "id": "configure_api_key",
+      "description": "Configure the VirusTotal API key",
+      "points": 25,
+      "visual_evidence": "The <api_key> tag inside the integration block contains exactly '9c3a5b8e2f1d4a7c6b0e9f8d7c5a3b1e4f2d6a8c0b9e7f5d3a1c4b6e8f0a2d74'."
+    },
+    {
+      "id": "configure_filters_and_format",
+      "description": "Configure the rule group, minimum alert level, and alert format",
+      "points": 30,
+      "visual_evidence": "The integration block contains <group>syscheck</group>, <level>7</level>, and <alert_format>json</alert_format>."
+    },
+    {
+      "id": "restart_wazuh_manager",
+      "description": "Restart the Wazuh manager to apply changes",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like 'docker restart wazuh-wazuh.manager-1' or 'systemctl restart wazuh-manager' inside the container, or a successful restart confirmation in the Wazuh web interface."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_interaction",
+      "description": "Agent interacted with the actual Wazuh container or web interface",
+      "visual_evidence": "Screenshots show a real terminal executing docker commands or the official Wazuh web UI, not a local text editor mocking the file."
+    },
+    {
+      "id": "correct_container_context",
+      "description": "Configuration is applied to the correct container",
+      "visual_evidence": "The terminal prompt, docker command, or UI context clearly indicates interaction with 'wazuh-wazuh.manager-1' and not a local host file."
+    },
+    {
+      "id": "executed_restart",
+      "description": "Restart command was actually executed",
+      "visual_evidence": "The restart command shows standard output confirming execution (e.g., the container name echoed back by Docker), rather than just being typed into the prompt without pressing enter."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration file is /var/ossec/etc/ossec.conf in the wazuh-wazuh.manager-1 container. The integration block must contain: <name>virustotal</name>, <api_key>9c3a5b8e2f1d4a7c6b0e9f8d7c5a3b1e4f2d6a8c0b9e7f5d3a1c4b6e8f0a2d74</api_key>, <group>syscheck</group>, <level>7</level>, and <alert_format>json</alert_format>."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "stage_drift_correction@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Image Stage Drift Correction",
+  "description": "A time-lapse recording of a structure has suffered from camera drift. Stabilize (register) the image stack located at '~/ImageJ_Data/raw/drifting_structure.tif' so the features remain stationary. Save the resulting multi-frame stack to '~/ImageJ_Data/results/stabilized_stack.tif'. The output must be a multi-frame stack where the object is stationary, not a single projection image.",
+  "category": "image-processing",
+  "difficulty": "intermediate",
+  "tags": [
+    "registration",
+    "stabilization",
+    "stack-processing",
+    "microscopy",
+    "time-lapse"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stage_drift_correction/setup_task.sh",
+    "post_task": "/workspace/tasks/stage_drift_correction/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/ImageJ_Data/raw/drifting_structure.tif",
+    "output_path": "/home/ga/ImageJ_Data/results/stabilized_stack.tif",
+    "min_sharpness_ratio": 1.5,
+    "min_frames": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stage_drift_correction"
+    }
+  }
+}

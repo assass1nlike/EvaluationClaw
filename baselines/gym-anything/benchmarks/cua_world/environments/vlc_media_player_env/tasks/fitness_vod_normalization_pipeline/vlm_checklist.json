@@ -1,0 +1,53 @@
+{
+  "task_id": "fitness_vod_normalization_pipeline@1",
+  "task_completion": [
+    {
+      "id": "normalized_files_created",
+      "description": "Verify that the non-conforming files were normalized and saved as MP4s in the normalized directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window or terminal output showing '03_block_A.mp4' and '06_cooldown.mp4' inside the '/home/ga/Videos/normalized/' directory."
+    },
+    {
+      "id": "master_video_stitched",
+      "description": "Verify that all 6 segments were stitched into a single continuous master video.",
+      "points": 25,
+      "visual_evidence": "Look for 'master_class.mp4' in the '/home/ga/Videos/deliverables/' directory. Terminal logs (like ffmpeg concat) or video editor timelines showing 6 clips joined together are strong evidence."
+    },
+    {
+      "id": "audio_extracted",
+      "description": "Verify that an audio-only MP3 version of the master class was extracted.",
+      "points": 20,
+      "visual_evidence": "Look for 'outdoor_audio.mp3' in the '/home/ga/Videos/deliverables/' directory. Terminal commands should ideally show a 192kbps bitrate flag (e.g., -b:a 192k)."
+    },
+    {
+      "id": "playlist_created",
+      "description": "Verify the creation of a standard M3U playlist listing the 6 individual segment files.",
+      "points": 15,
+      "visual_evidence": "Look for 'studio_playlist.m3u' in '/home/ga/Videos/deliverables/'. The contents of the file (visible in a text editor or terminal 'cat' output) must list the 6 segment filenames in order."
+    },
+    {
+      "id": "metadata_json_created",
+      "description": "Verify the creation of the metadata JSON manifest with the correct keys and duration.",
+      "points": 20,
+      "visual_evidence": "Look for 'class_metadata.json' in '/home/ga/Documents/'. The file contents must be visible and contain the keys 'total_duration_sec' (which should be 36) and 'sequence' (containing a list of the 6 filenames)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Ensure the agent actually used media processing tools to encode and stitch the files.",
+      "visual_evidence": "Look for terminal history showing real 'ffmpeg' commands or the use of a GUI video editor. The agent should not just rename file extensions (e.g., using 'mv' to change .mov to .mp4)."
+    },
+    {
+      "id": "valid_media_file_sizes",
+      "description": "Ensure the agent did not just create empty placeholder files for the deliverables.",
+      "visual_evidence": "Look at file sizes in the file manager or terminal 'ls -l' output. 'master_class.mp4' and 'outdoor_audio.mp3' must have realistic file sizes (greater than a few kilobytes), indicating they contain actual media."
+    },
+    {
+      "id": "genuine_file_contents",
+      "description": "Ensure the text-based deliverables (JSON and M3U) contain the actual required data.",
+      "visual_evidence": "Look for the open files in a text editor or terminal output (like 'cat' or 'less'). They must not be empty or contain placeholder text copied directly from the prompt without the actual filenames."
+    }
+  ],
+  "privileged_info_for_vlm": "The non-conforming files that require normalization are '03_block_A.mov' and '06_cooldown.mkv'. The target encoding specification is 1280x720 resolution, 30 fps, H.264 video codec, and AAC audio codec at 44100 Hz. The total expected duration of the stitched master video and the extracted MP3 audio is exactly 36 seconds. The JSON manifest's 'total_duration_sec' should reflect this 36-second duration."
+}

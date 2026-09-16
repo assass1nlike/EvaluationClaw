@@ -1,0 +1,56 @@
+{
+  "id": "evacuation_map_update@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Update the architectural floorplan at /home/ga/Documents/LibreCAD/floorplan.dxf to include safety elements on a new layer named 'SAFETY' (Color: Red, Line Width: 0.50mm). The safety elements must include an evacuation route path from (300, 300) via (300, 600) to (800, 600), a 'You Are Here' circle (radius 25) at (300, 300), and a 50x50 square fire extinguisher symbol centered at (500, 300). Include text labels 'YOU ARE HERE', 'EXIT', and 'FE' near their corresponding symbols. Save the final drawing to /home/ga/Documents/LibreCAD/evacuation_plan.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/evacuation_map_update/setup_task.sh",
+    "post_task": "/workspace/tasks/evacuation_map_update/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/evacuation_plan.dxf",
+    "layer_name": "SAFETY",
+    "layer_color": 1,
+    "route_points": [
+      [
+        300,
+        300
+      ],
+      [
+        300,
+        600
+      ],
+      [
+        800,
+        600
+      ]
+    ],
+    "marker_center": [
+      300,
+      300
+    ],
+    "marker_radius": 25,
+    "fe_center": [
+      500,
+      300
+    ],
+    "fe_size": 50,
+    "required_text": [
+      "YOU ARE HERE",
+      "EXIT",
+      "FE"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_evacuation_map"
+    }
+  }
+}

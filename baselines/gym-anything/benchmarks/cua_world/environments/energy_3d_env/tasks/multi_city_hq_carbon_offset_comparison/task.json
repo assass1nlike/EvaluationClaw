@@ -1,0 +1,30 @@
+{
+  "id": "multi_city_hq_carbon_offset_comparison@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Sustainability Manager comparing potential sites for a new corporate facility. Open the starter file at ~/Documents/Energy3D/solar-rack-array.ng3. You need to simulate the annual solar yield of this standard array in two different cities, calculate the Scope 2 carbon emissions offset based on the specific carbon intensity of each local electrical grid, and report the results.\n\nFirst, set the project location to Seattle, WA. Run the Annual Solar Radiation analysis and record the total annual yield (in kWh) for the array. Calculate the Seattle CO2 offset by multiplying the yield by 0.15 (the grid carbon intensity factor for Seattle is 0.15 kg CO2/kWh).\n\nNext, change the project location to Phoenix, AZ. Run the Annual Solar Radiation analysis again. Record the total annual yield (in kWh). Calculate the Phoenix CO2 offset by multiplying the yield by 0.45.\n\nFinally, create a CSV file at ~/Documents/Energy3D/esg_location_report.csv with the exact format below. Round all numerical values to the nearest whole integer.\n\nRequired CSV Format:\nCity,Yield_kWh,CO2_Offset_kg\nSeattle,[seattle_yield],[seattle_offset]\nPhoenix,[phoenix_yield],[phoenix_offset]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multi_city_hq_carbon_offset_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/multi_city_hq_carbon_offset_comparison/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Sustainability Manager",
+    "industry": "Environmental Consulting",
+    "starter_file": "solar-rack-array.ng3",
+    "expected_output_path": "/home/ga/Documents/Energy3D/esg_location_report.csv",
+    "seattle_factor": 0.15,
+    "phoenix_factor": 0.45
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_carbon_offset_comparison"
+    }
+  }
+}

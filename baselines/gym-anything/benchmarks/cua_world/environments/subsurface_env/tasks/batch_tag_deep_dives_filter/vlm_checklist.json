@@ -1,0 +1,53 @@
+{
+  "task_id": "batch_tag_deep_dives_filter@1",
+  "task_completion": [
+    {
+      "id": "app_opened",
+      "description": "The dive log application (Subsurface) is opened and displays the dive list.",
+      "points": 10,
+      "visual_evidence": "The Subsurface GUI is visible on the screen showing a list of dives."
+    },
+    {
+      "id": "dives_filtered_or_sorted",
+      "description": "Dives are sorted, filtered, or multi-selected based on a maximum depth of 18.0m or greater.",
+      "points": 20,
+      "visual_evidence": "The dive list is sorted by the 'Depth' column, a filter for depth >= 18.0m is applied, or multiple dives with depth >= 18.0m are highlighted/selected."
+    },
+    {
+      "id": "deep_tag_applied",
+      "description": "The tag 'Deep' is added to the dives with a depth of 18.0m or greater.",
+      "points": 30,
+      "visual_evidence": "The word 'Deep' is visible in the 'Tags' input field or tag display area for the selected deep dives."
+    },
+    {
+      "id": "shallow_dives_untagged",
+      "description": "Dives with a depth of less than 18.0m do not have the 'Deep' tag.",
+      "points": 20,
+      "visual_evidence": "When a shallow dive (< 18.0m) is visible or selected, the 'Deep' tag is NOT present in its tags list."
+    },
+    {
+      "id": "file_saved",
+      "description": "The updated dive log is saved to /home/ga/Documents/dives.ssrf.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog is visible with the path '/home/ga/Documents/dives.ssrf', or the main application window title bar updates to show 'dives.ssrf' in the Documents folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the application's GUI to tag the dives.",
+      "visual_evidence": "Screenshots show interaction with the Subsurface application interface (selecting dives, typing in the tags box) rather than editing an XML file in a text editor."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use terminal scripts to bypass the GUI.",
+      "visual_evidence": "The terminal is not used to run Python, bash, or sed/awk commands that automatically modify the .ssrf file."
+    },
+    {
+      "id": "genuine_tag_entry",
+      "description": "The tag was genuinely applied within the application's designated tag field.",
+      "visual_evidence": "The 'Deep' tag is typed into the actual Subsurface 'Tags' field in the Information panel, not just written in notes or a separate document."
+    }
+  ],
+  "privileged_info_for_vlm": "The target logbook contains 29 real dives. Exactly 17 dives have a max depth >= 18.0m and must be tagged 'Deep' (dive numbers: 86, 87, 89, 90, 93, 94, 95, 96, 223, 224, 226, 227, 229, 231, 232, 233, 333). The other 12 dives (dive numbers: 2, 3, 4, 5, 85, 88, 91, 92, 225, 228, 230, 348) are shallower and must NOT be tagged 'Deep'. The final file must be saved to '/home/ga/Documents/dives.ssrf'."
+}

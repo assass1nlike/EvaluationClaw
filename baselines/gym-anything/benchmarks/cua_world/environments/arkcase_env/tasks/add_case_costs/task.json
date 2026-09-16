@@ -1,0 +1,41 @@
+{
+  "id": "add_case_costs@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "A FOIA complaint case titled 'FOIA-2024-00847 - Public Records Request for Environmental Inspection Reports' is open in ArkCase. Record three cost entries for this case: 'Document search and retrieval - 4.5 hours' for $450.00 dated 2025-01-15; 'Legal review of responsive documents - 12.5 hours' for $1250.00 dated 2025-01-22; and 'Redaction and duplication processing' for $325.00 dated 2025-01-28. Save a summary report to ~/Documents/cost_tracking_report.txt containing the case ID, each entry's description and amount, and the total processing cost.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1500,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_case_costs/setup_task.sh",
+    "post_task": "/workspace/tasks/add_case_costs/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "FOIA-2024-00847 - Public Records Request for Environmental Inspection Reports",
+    "expected_total": 2025.0,
+    "expected_entries": [
+      {
+        "description": "Document search and retrieval - 4.5 hours",
+        "amount": 450.0
+      },
+      {
+        "description": "Legal review of responsive documents - 12.5 hours",
+        "amount": 1250.0
+      },
+      {
+        "description": "Redaction and duplication processing",
+        "amount": 325.0
+      }
+    ],
+    "report_path": "/home/ga/Documents/cost_tracking_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_case_costs"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_dns_ops_profile@1",
+  "task_completion": [
+    {
+      "id": "profile_active",
+      "description": "The 'DNS_Ops' profile is active in Wireshark.",
+      "points": 10,
+      "visual_evidence": "Look at the bottom right corner of the Wireshark status bar. It should display 'Profile: DNS_Ops' or similar text indicating the active profile."
+    },
+    {
+      "id": "length_column_excluded",
+      "description": "The default 'Length' column is excluded from the packet list.",
+      "points": 10,
+      "visual_evidence": "Examine the column headers in the Wireshark packet list pane. There should be no column named 'Length'."
+    },
+    {
+      "id": "transid_column_included",
+      "description": "A new column titled 'TransID' is included in the packet list.",
+      "points": 15,
+      "visual_evidence": "Examine the column headers in the Wireshark packet list pane. There must be a column named 'TransID'. The values in this column should look like hexadecimal transaction IDs (e.g., 0x1a2b)."
+    },
+    {
+      "id": "query_column_included",
+      "description": "A new column titled 'Query' is included in the packet list.",
+      "points": 15,
+      "visual_evidence": "Examine the column headers in the Wireshark packet list pane. There must be a column named 'Query'. The values in this column should display domain names (e.g., google.com, www.example.com)."
+    },
+    {
+      "id": "coloring_rule_applied",
+      "description": "The 'DNS_Fail' coloring rule is applied, highlighting DNS errors with a red background.",
+      "points": 25,
+      "visual_evidence": "Look at the rows in the Wireshark packet list pane. Several packets (specifically DNS error responses like NXDOMAIN) must have a distinct red background color."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the configured Wireshark interface is saved to /home/ga/Documents/dns_ops_view.png.",
+      "points": 25,
+      "visual_evidence": "Look for a file manager, terminal window, or image viewer confirming the existence of 'dns_ops_view.png' in the '/home/ga/Documents/' directory, displaying the Wireshark packet list with the new columns and red coloring."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_wireshark_interaction",
+      "description": "The agent used the Wireshark GUI to configure the profile, columns, and coloring rules.",
+      "visual_evidence": "Screenshots should show the Wireshark application windows, preferences, or profile dialogs being interacted with, rather than configuration files being manually edited in a text editor."
+    },
+    {
+      "id": "actual_screenshot_file",
+      "description": "The saved screenshot is a genuine image file of the Wireshark application.",
+      "visual_evidence": "The file 'dns_ops_view.png' should be a valid image showing the Wireshark GUI, not a text file renamed to .png or a generic stock image."
+    },
+    {
+      "id": "dns_cap_loaded",
+      "description": "The correct sample capture file (dns.cap) is loaded in Wireshark.",
+      "visual_evidence": "The Wireshark window title bar or status bar should indicate that 'dns.cap' is the currently loaded capture file."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'Length' column is a default Wireshark column that must be removed. The 'TransID' column maps to 'dns.id' (Transaction ID, showing hex values). The 'Query' column maps to 'dns.qry.name' (Query Name, showing domain names like google.com or www.example.com). The coloring rule 'dns.flags.rcode != 0' will highlight DNS error responses (e.g., NXDOMAIN errors with rcode=3) with a red background. The active profile is typically displayed in the bottom right status bar of the Wireshark window."
+}

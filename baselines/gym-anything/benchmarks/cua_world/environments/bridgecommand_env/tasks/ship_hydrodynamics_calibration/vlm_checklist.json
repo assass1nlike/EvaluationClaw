@@ -1,0 +1,53 @@
+{
+  "task_id": "ship_hydrodynamics_calibration@1",
+  "task_completion": [
+    {
+      "id": "read_input_documents",
+      "description": "Agent opens and reads the provided sea trials and physics technical note documents.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing 'Sea_Trials_Report_2025.txt' and/or 'Sim_Physics_Tech_Note.txt' open in a text editor or their contents displayed in the terminal."
+    },
+    {
+      "id": "update_dimensions",
+      "description": "Agent updates the ship's Length and Beam in the dynamics.ini file to the correct metric values.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing '/opt/bridgecommand/Models/Ship/MV_Gladiator/dynamics.ini' being edited, with 'Length' set to approximately 165.0 and 'Beam' set to approximately 23.0."
+    },
+    {
+      "id": "update_areas",
+      "description": "Agent calculates and updates the RudderArea and DragArea in the dynamics.ini file.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing 'dynamics.ini' being edited, with 'RudderArea' set to approximately 455.7 and 'DragArea' set to approximately 16.5."
+    },
+    {
+      "id": "update_description",
+      "description": "Agent updates the Description field in the dynamics.ini file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing 'dynamics.ini' being edited, with the 'Description' field containing the text 'Calibrated 2025'."
+    },
+    {
+      "id": "create_certificate",
+      "description": "Agent creates a summary calibration certificate with the applied values.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing a new file '/home/ga/Documents/calibration_certificate.txt' being created and edited, containing a summary of the newly calculated metric dimensions and area values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "Agent genuinely calculates the required values rather than magically knowing them.",
+      "visual_evidence": "Look for the agent using a calculator app, writing a Python script, or using terminal math tools (like bc or python -c) to compute the conversions and formulas."
+    },
+    {
+      "id": "actual_file_edits",
+      "description": "Agent actually modifies the target files rather than just printing the expected output to the terminal.",
+      "visual_evidence": "Look for the use of a text editor (nano, vim, gedit) or valid file-writing commands (echo > file, sed -i) targeting the specific file paths."
+    },
+    {
+      "id": "correct_certificate_location",
+      "description": "Agent saves the calibration certificate in the exact requested directory.",
+      "visual_evidence": "Look for file paths in the editor or terminal confirming the certificate is saved to '/home/ga/Documents/calibration_certificate.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file to edit: /opt/bridgecommand/Models/Ship/MV_Gladiator/dynamics.ini. Certificate file to create: /home/ga/Documents/calibration_certificate.txt. Ground truth values to look for in the files (allow ~5% tolerance): Length = 165.0 m, Beam = 23.0 m, RudderArea = 455.7, DragArea = 16.5. The Description field in dynamics.ini must contain 'Calibrated 2025'."
+}

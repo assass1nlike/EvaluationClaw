@@ -1,0 +1,53 @@
+{
+  "task_id": "export_viewport_clipboard@1",
+  "task_completion": [
+    {
+      "id": "weasis_image_loaded",
+      "description": "Weasis is open and a medical image is loaded in the viewport.",
+      "points": 20,
+      "visual_evidence": "The Weasis application window is visible with a medical image (CT or XA) displayed in the main viewing area."
+    },
+    {
+      "id": "image_zoomed_in",
+      "description": "The loaded image is zoomed in to at least 2x magnification.",
+      "points": 30,
+      "visual_evidence": "The image appears significantly enlarged, and the viewport overlay text indicates a zoom level of at least 2.0 or 200%."
+    },
+    {
+      "id": "viewport_copied_to_clipboard",
+      "description": "The viewport image is copied to the system clipboard.",
+      "points": 20,
+      "visual_evidence": "A context menu, top menu (e.g., Export/Copy), or UI button indicating 'Copy to Clipboard' is clicked while the zoomed image is in the viewport."
+    },
+    {
+      "id": "initiate_clipboard_export",
+      "description": "A tool or terminal is used to extract the image from the clipboard.",
+      "points": 10,
+      "visual_evidence": "An image editor (like KolourPaint) is open with the pasted viewport image, or a terminal shows a command (like xclip) being typed to extract the clipboard contents."
+    },
+    {
+      "id": "file_saved_to_target_path",
+      "description": "The clipboard contents are exported to /home/ga/DICOM/exports/clipboard_dump.png.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog shows the exact filename 'clipboard_dump.png' in the '/home/ga/DICOM/exports' directory, or a terminal command executes the save to this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "weasis_gui_used",
+      "description": "The agent interacted with the Weasis graphical interface to load and zoom the image.",
+      "visual_evidence": "Screenshots show the Weasis GUI being actively used with mouse cursor movements or open menus, rather than relying solely on background scripts."
+    },
+    {
+      "id": "genuine_zoom_action",
+      "description": "The zoom was performed within Weasis, not by cropping the image externally.",
+      "visual_evidence": "The Weasis viewport shows the zoomed image with Weasis overlays (text, orientation markers) intact and correctly positioned relative to the viewport."
+    },
+    {
+      "id": "genuine_clipboard_export",
+      "description": "The exported image originates from the zoomed viewport clipboard copy, not a direct file copy of the original DICOM.",
+      "visual_evidence": "The final saved image or the image in the saving tool matches the zoomed-in viewport view from Weasis, rather than the original unzoomed DICOM image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path for the exported image is exactly '/home/ga/DICOM/exports/clipboard_dump.png'. Note that the loaded image might be an X-Ray Angiography (XA) sample instead of a CT image due to environment seeding, which is acceptable."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_quadruped_impedance@1",
+  "task_completion": [
+    {
+      "id": "select_worldinfo",
+      "description": "Select the WorldInfo node to configure simulation physics.",
+      "points": 10,
+      "visual_evidence": "The Webots application is open and the 'WorldInfo' node is selected or expanded in the Scene Tree panel."
+    },
+    {
+      "id": "set_basic_timestep",
+      "description": "Set the basicTimeStep to 8.",
+      "points": 15,
+      "visual_evidence": "The Field Editor (usually below the Scene Tree) or a text editor shows the 'basicTimeStep' field under WorldInfo set to the value '8'."
+    },
+    {
+      "id": "expand_quadruped_knees",
+      "description": "Locate the CUSTOM_QUADRUPED robot and its knee joints.",
+      "points": 10,
+      "visual_evidence": "The Scene Tree shows the 'CUSTOM_QUADRUPED' node expanded, with the knee joints (FL_KNEE, FR_KNEE, RL_KNEE, RR_KNEE) visible."
+    },
+    {
+      "id": "set_spring_constant",
+      "description": "Configure the springConstant for the knee joints to 40.0.",
+      "points": 20,
+      "visual_evidence": "The Field Editor for the selected knee joint's JointParameters shows 'springConstant' set to '40.0', or a text editor shows this value applied specifically to the knee joint nodes."
+    },
+    {
+      "id": "set_damping_constant",
+      "description": "Configure the dampingConstant for the knee joints to 2.0.",
+      "points": 20,
+      "visual_evidence": "The Field Editor for the selected knee joint's JointParameters shows 'dampingConstant' set to '2.0', or a text editor shows this value applied specifically to the knee joint nodes."
+    },
+    {
+      "id": "verify_hips_unmodified",
+      "description": "Ensure the hip joints remain unmodified.",
+      "points": 10,
+      "visual_evidence": "The hip joints (FL_HIP, FR_HIP, RL_HIP, RR_HIP) are visible but their JointParameters do not show the modified spring (40.0) or damping (2.0) constants, or the agent explicitly skips modifying them."
+    },
+    {
+      "id": "save_world_file",
+      "description": "Save the final world configuration to the specified Desktop path.",
+      "points": 15,
+      "visual_evidence": "A 'Save World As' dialog shows the file being saved to '/home/ga/Desktop/quadruped_impedance.wbt', the Webots window title updates to 'quadruped_impedance.wbt', or a terminal/file manager confirms the file exists at the Desktop path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_interaction",
+      "description": "Agent interacted with the Webots GUI or a legitimate text editor to modify the world.",
+      "visual_evidence": "Screenshots show the agent navigating the Webots interface (Scene Tree/Field Editor) or carefully editing the .wbt file in a text editor like VS Code/nano, rather than blindly running a pre-made script."
+    },
+    {
+      "id": "no_blind_text_append",
+      "description": "Agent did not use blind terminal commands to bypass proper configuration.",
+      "visual_evidence": "The agent is not just using 'echo' or 'sed' commands to append text to the end of the file without understanding or verifying the hierarchical structure of the .wbt file."
+    },
+    {
+      "id": "verified_save_operation",
+      "description": "The save operation was genuinely executed and not just typed out.",
+      "visual_evidence": "Visual confirmation that the file was saved, such as clicking 'Save' in the Webots GUI, the window title changing, or running 'ls' in the terminal to verify the file's presence on the Desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output path is exactly '/home/ga/Desktop/quadruped_impedance.wbt'. The target basicTimeStep is 8. The target springConstant for the knee joints is 40.0. The target dampingConstant for the knee joints is 2.0. Hip joints must remain unmodified."
+}

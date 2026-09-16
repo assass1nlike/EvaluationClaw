@@ -1,0 +1,34 @@
+{
+  "id": "sem_feature_measurement@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a nanotechnology engineering technician characterizing a Au-Pb-Sn solder alloy using an SEM micrograph in Fiji. Spatially calibrate the 800-pixel wide image using the provided Horizontal Field Width (HFW) of 256 µm. Measure the width (longest dimension) of at least 10 distinct bright Au-rich grains in µm. Annotate the image with a 50 µm scale bar in the lower right (White, Black background, Font size 14, Bold) and flatten the result. Save the annotated image to ~/Fiji_Data/results/sem/annotated_sem.png and the measurement table to ~/Fiji_Data/results/sem/grain_measurements.csv. Create a summary report at ~/Fiji_Data/results/sem/measurement_summary.txt including the grain count, mean width, standard deviation, and the calibration value used.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sem_feature_measurement/setup_task.sh",
+    "post_task": "/workspace/tasks/sem_feature_measurement/export_result.sh"
+  },
+  "metadata": {
+    "calibration_um_per_px": 0.32,
+    "min_measurements": 10,
+    "expected_min_grain_um": 2.0,
+    "expected_max_grain_um": 150.0,
+    "scale_bar_size_um": 50,
+    "output_paths": {
+      "image": "~/Fiji_Data/results/sem/annotated_sem.png",
+      "csv": "~/Fiji_Data/results/sem/grain_measurements.csv",
+      "report": "~/Fiji_Data/results/sem/measurement_summary.txt"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sem_feature_measurement"
+    }
+  }
+}

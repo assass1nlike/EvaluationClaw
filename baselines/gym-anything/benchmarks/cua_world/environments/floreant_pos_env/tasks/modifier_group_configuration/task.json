@@ -1,0 +1,89 @@
+{
+  "id": "modifier_group_configuration@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Your restaurant needs to configure customer customization options in the POS system. Create a modifier group called 'PIZZA TOPPINGS' and add exactly eight modifiers: 'EXTRA CHEESE' ($1.50), 'MUSHROOMS' ($0.75), 'PEPPERONI' ($1.25), 'ONIONS' ($0.50), 'PEPPERS' ($0.75), 'OLIVES' ($0.50), 'ANCHOVIES' ($0.75), and 'SAUSAGE' ($1.25). Create a second modifier group called 'BURGER ADD-ONS' and add five modifiers: 'AVOCADO' ($1.50), 'BACON' ($1.25), 'FRIED EGG' ($1.00), 'EXTRA PATTY' ($3.00), and 'JALAPENOS' ($0.50). Assign the 'PIZZA TOPPINGS' modifier group to at least one item in the PIZZA menu category. Back Office PIN: 1111. Secret Key: [Empty].",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/modifier_group_configuration/setup_task.sh",
+    "post_task": "/workspace/tasks/modifier_group_configuration/export_result.sh"
+  },
+  "metadata": {
+    "modifier_groups": [
+      {
+        "name": "PIZZA TOPPINGS",
+        "modifiers": [
+          {
+            "name": "EXTRA CHEESE",
+            "price": 1.5
+          },
+          {
+            "name": "MUSHROOMS",
+            "price": 0.75
+          },
+          {
+            "name": "PEPPERONI",
+            "price": 1.25
+          },
+          {
+            "name": "ONIONS",
+            "price": 0.5
+          },
+          {
+            "name": "PEPPERS",
+            "price": 0.75
+          },
+          {
+            "name": "OLIVES",
+            "price": 0.5
+          },
+          {
+            "name": "ANCHOVIES",
+            "price": 0.75
+          },
+          {
+            "name": "SAUSAGE",
+            "price": 1.25
+          }
+        ]
+      },
+      {
+        "name": "BURGER ADD-ONS",
+        "modifiers": [
+          {
+            "name": "AVOCADO",
+            "price": 1.5
+          },
+          {
+            "name": "BACON",
+            "price": 1.25
+          },
+          {
+            "name": "FRIED EGG",
+            "price": 1.0
+          },
+          {
+            "name": "EXTRA PATTY",
+            "price": 3.0
+          },
+          {
+            "name": "JALAPENOS",
+            "price": 0.5
+          }
+        ]
+      }
+    ],
+    "assign_pizza_toppings_to_pizza_category": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_modifier_group_configuration"
+    }
+  }
+}

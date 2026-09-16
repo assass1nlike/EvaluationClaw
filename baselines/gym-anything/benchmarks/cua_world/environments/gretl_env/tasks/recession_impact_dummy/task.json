@@ -1,0 +1,29 @@
+{
+  "id": "recession_impact_dummy@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Analyze the impact of recessions on inflation using the US macroeconomic dataset (usa.gdt). Calculate the quarterly growth rate of real GDP (gdp) using log-differences and define a dummy variable 'recession' for periods where growth is negative. Conduct an Ordinary Least Squares (OLS) regression of Inflation (inf) against the 'recession' dummy and a constant. Save the regression results to /home/ga/Documents/gretl_output/recession_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/recession_impact_dummy/setup_task.sh",
+    "post_task": "/workspace/tasks/recession_impact_dummy/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "output_path": "/home/ga/Documents/gretl_output/recession_results.txt",
+    "dependent_var": "inf",
+    "dummy_var_name": "recession",
+    "expected_coefficient_sign": "negative"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_recession_impact_dummy"
+    }
+  }
+}

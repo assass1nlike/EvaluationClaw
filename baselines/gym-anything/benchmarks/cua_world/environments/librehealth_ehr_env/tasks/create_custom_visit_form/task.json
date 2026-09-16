@@ -1,0 +1,31 @@
+{
+  "id": "create_custom_visit_form@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Create a new Layout Based Visit Form (LBF) in LibreHealth EHR named 'Neurology Intake' with the ID 'LBF_Neuro'. Log in using the credentials admin/password. The form must include a group titled 'Reflexes' with two active text fields: 'Patellar Reflex' and 'Achilles Reflex'. Ensure the form and its fields are active and saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_custom_visit_form/setup_task.sh",
+    "post_task": "/workspace/tasks/create_custom_visit_form/export_result.sh"
+  },
+  "metadata": {
+    "expected_form_id": "LBF_Neuro",
+    "expected_form_title": "Neurology Intake",
+    "expected_group_title": "Reflexes",
+    "expected_fields": [
+      "Patellar Reflex",
+      "Achilles Reflex"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_custom_visit_form"
+    }
+  }
+}

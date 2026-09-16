@@ -1,0 +1,33 @@
+{
+  "id": "paperback_book_layout@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "Format the raw manuscript at '/home/ga/Documents/manuscript_raw.txt' into a professional 6\" x 9\" trade paperback book interior using Apache OpenOffice Writer according to the specifications in '/home/ga/Documents/print_specs.json'. The document requires a 6.00\" x 9.00\" page size with mirrored margins (Inside: 0.8\", Outside: 0.5\", Top/Bottom: 0.75\"). The body text must feature a 0.25\" first-line indent, justified alignment, and no spacing between paragraphs. Configure alternating headers with the author name 'J.R. BLACKWOOD' centered on left (even) pages and the book title 'THE ECHOING VOID' centered on right (odd) pages. Include centered page numbers in the footer and save the result to '/home/ga/Documents/The_Echoing_Void_Formatted.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/paperback_book_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/paperback_book_layout/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/The_Echoing_Void_Formatted.odt",
+    "specs_path": "/home/ga/Documents/print_specs.json",
+    "expected_page_width": "6in",
+    "expected_page_height": "9in",
+    "expected_margin_inner": "0.8in",
+    "expected_margin_outer": "0.5in",
+    "expected_indent": "0.25in",
+    "header_even": "J.R. BLACKWOOD",
+    "header_odd": "THE ECHOING VOID"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_paperback_book_layout"
+    }
+  }
+}

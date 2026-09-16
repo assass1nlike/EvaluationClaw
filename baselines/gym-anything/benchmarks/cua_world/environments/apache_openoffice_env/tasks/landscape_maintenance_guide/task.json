@@ -1,0 +1,69 @@
+{
+  "id": "landscape_maintenance_guide@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Landscape Designer at TerraFirma Design Studio. Create a seasonal maintenance manual for the Sullivan Residence project using the 'project_plants.json' and 'plant_database.json' files located in /home/ga/Documents/. The manual must be saved as /home/ga/Documents/Sullivan_Maintenance_Manual.odt. The document should include a title page with 'Landscape Maintenance Manual' and 'Sullivan Residence', an auto-generated table of contents, and page numbers. Organize the manual by season (Spring, Summer, Fall, and Winter), listing only the plants from the project with their common names and specific seasonal care instructions. Include a 'Service Contacts' section at the end with a table for Irrigation, Lighting, and Arborist contacts (Service, Company, and Phone) based on the project data.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/landscape_maintenance_guide/setup_task.sh",
+    "post_task": "/workspace/tasks/landscape_maintenance_guide/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Sullivan_Maintenance_Manual.odt",
+    "installed_plants": [
+      "Japanese Maple",
+      "Bigleaf Hydrangea",
+      "American Boxwood",
+      "English Lavender",
+      "Giant Hosta",
+      "Kousa Dogwood",
+      "Maiden Grass",
+      "Coneflower",
+      "Arborvitae",
+      "Japanese Spurge",
+      "Catawba Rhododendron",
+      "Coral Bells"
+    ],
+    "distractor_plants": [
+      "Hybrid Tea Rose",
+      "Tulip",
+      "White Oak",
+      "Kentucky Bluegrass",
+      "Azalea"
+    ],
+    "seasons": [
+      "Spring",
+      "Summer",
+      "Fall",
+      "Winter"
+    ],
+    "contacts": [
+      {
+        "service": "Irrigation",
+        "company": "RainRight Systems",
+        "phone": "(555) 010-2233"
+      },
+      {
+        "service": "Lighting",
+        "company": "Lumina Outdoor",
+        "phone": "(555) 012-4455"
+      },
+      {
+        "service": "Arborist",
+        "company": "Valley Tree Care",
+        "phone": "(555) 019-9988"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_landscape_manual"
+    }
+  }
+}

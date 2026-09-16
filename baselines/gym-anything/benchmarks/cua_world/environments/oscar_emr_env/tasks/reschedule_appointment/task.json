@@ -1,0 +1,37 @@
+{
+  "id": "reschedule_appointment@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "A patient, Maria Santos (demographic_no 2), called to reschedule her 'Follow-up' appointment with Dr. Sarah Chen (provider_no 999998) currently set for Tuesday, July 15, 2025 at 10:00 AM. Reschedule this appointment to Thursday, July 17, 2025 at 2:00 PM (14:00) and update the reason to 'Blood Pressure Check'. Log in to OSCAR EMR using username: oscardoc, password: oscar, and PIN: 1117.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 45,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reschedule_appointment/setup_task.sh",
+    "post_task": "/workspace/tasks/reschedule_appointment/export_result.sh"
+  },
+  "metadata": {
+    "patient_demographic_no": 2,
+    "patient_name": "Maria Santos",
+    "provider_no": "999998",
+    "old_date": "2025-07-15",
+    "old_time": "10:00:00",
+    "new_date": "2025-07-17",
+    "new_time": "14:00:00",
+    "new_reason_keyword": "Blood Pressure",
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reschedule_appointment"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "ttl_os_fingerprinting@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Perform passive OS fingerprinting on all packet capture files (.cap, .pcap, .pcapng) in ~/Documents/captures/ by analyzing IP TTL values. For each unique source IP, identify the most frequent observed TTL and map it to the nearest standard initial TTL (32, 64, 128, or 255) to estimate hop counts and classify the OS family (32: Windows-9x; 64: Linux/Unix; 128: Windows; 255: Cisco/Solaris). Export a detailed report to ~/Documents/captures/ttl_fingerprint_report.csv containing the IP, observed TTL, initial TTL, hop count, and OS family, sorted by IP address. Additionally, generate a summary at ~/Documents/captures/ttl_fingerprint_summary.txt that includes the total number of unique IPs, the count of IPs per OS family, and the IP addresses associated with the highest and lowest estimated hop counts.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ttl_os_fingerprinting/setup_task.sh",
+    "post_task": "/workspace/tasks/ttl_os_fingerprinting/export_result.sh"
+  },
+  "metadata": {
+    "capture_dir": "/home/ga/Documents/captures",
+    "report_file": "ttl_fingerprint_report.csv",
+    "summary_file": "ttl_fingerprint_summary.txt",
+    "os_mapping": {
+      "32": "Windows-9x",
+      "64": "Linux/Unix",
+      "128": "Windows",
+      "255": "Cisco/Solaris"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ttl_os_fingerprinting"
+    }
+  }
+}

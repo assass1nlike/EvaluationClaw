@@ -1,0 +1,37 @@
+{
+  "id": "custom_macropad_plate@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Design a mounting plate for a custom 2x3 mechanical keyboard macropad. Create a DXF file at /home/ga/Documents/LibreCAD/macropad_plate.dxf with three layers: SWITCH_CUTS (Red), PLATE_OUTLINE (White), and MOUNTING_HOLES (Cyan). The SWITCH_CUTS layer must contain 6 square cutouts (14.00 mm x 14.00 mm) in a 3x2 arrangement with a 19.05 mm pitch, with the top-left switch center at (40, 80). The PLATE_OUTLINE layer must define the outer boundary with a 6.00 mm margin from the switch cutouts and 3.00 mm radius fillets on all corners. The MOUNTING_HOLES layer must include 4 circular holes (3.20 mm diameter) centered 3.50 mm inward from the theoretical un-filleted corners.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/custom_macropad_plate/setup_task.sh",
+    "post_task": "/workspace/tasks/custom_macropad_plate/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/LibreCAD/macropad_plate.dxf",
+    "switch_size": 14.0,
+    "switch_pitch": 19.05,
+    "grid_cols": 3,
+    "grid_rows": 2,
+    "top_left_center": [
+      40,
+      80
+    ],
+    "margin": 6.0,
+    "corner_radius": 3.0,
+    "hole_diameter": 3.2,
+    "hole_offset": 3.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_macropad_plate"
+    }
+  }
+}

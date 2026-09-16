@@ -1,0 +1,32 @@
+{
+  "id": "vector_drawing_composition@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Create a digital drawing in GCompris Vector Drawing consisting of a house with a square or rectangular body and a triangular roof, and a circular sun in the sky. Use at least two different colors in the composition. Save a screenshot of the final artwork to /home/ga/Documents/drawing_composition.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vector_drawing_composition/setup_task.sh",
+    "post_task": "/workspace/tasks/vector_drawing_composition/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/drawing_composition.png",
+    "min_file_size_kb": 10,
+    "required_elements": [
+      "house",
+      "roof",
+      "sun"
+    ],
+    "min_colors": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vector_drawing_composition"
+    }
+  }
+}

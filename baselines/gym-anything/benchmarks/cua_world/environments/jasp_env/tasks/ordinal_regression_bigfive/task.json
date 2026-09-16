@@ -1,0 +1,32 @@
+{
+  "id": "ordinal_regression_bigfive@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform an Ordinal Logistic Regression analysis using the Big Five Personality Traits dataset (/home/ga/Documents/JASP/BigFivePersonalityTraits.csv) to predict the response to item 'A1' ('Am indifferent to the feelings of others') based on 'Gender' and 'Age'. Ensure 'A1' is treated as an ordinal variable and include the McFadden R² value and the Test of parallel lines (Proportional odds assumption) in the analysis. Save the JASP project to /home/ga/Documents/JASP/Ordinal_A1_Analysis.jasp and create a text report at /home/ga/Documents/JASP/ordinal_report.txt containing the McFadden R² value, the p-value for the Test of parallel lines, and a statement on whether the proportional odds assumption holds.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ordinal_regression_bigfive/setup_task.sh",
+    "post_task": "/workspace/tasks/ordinal_regression_bigfive/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/Ordinal_A1_Analysis.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/ordinal_report.txt",
+    "analysis_type": "Ordinal Logistic Regression",
+    "target_variable": "A1",
+    "predictors": [
+      "Gender",
+      "Age"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ordinal_regression_bigfive"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "compute_cogo_radiation@1",
+  "task_completion": [
+    {
+      "id": "load_control_points",
+      "description": "Verify that the initial control points (Point 1 and Point 2) are loaded or entered into TopoCal.",
+      "points": 10,
+      "visual_evidence": "The TopoCal interface shows Point 1 (E=481500.250, N=4398200.500) and Point 2 (E=481500.250, N=4398700.500) in the point list, coordinate table, or map view."
+    },
+    {
+      "id": "setup_station_backsight",
+      "description": "Verify that the COGO/Radiation tool is configured with the correct Occupied Station and Backsight.",
+      "points": 15,
+      "visual_evidence": "A COGO or Radiation dialog is open in TopoCal with Point 1 set as the Occupied Station (or base) and Point 2 set as the Reference/Backsight with an azimuth of 0 degrees."
+    },
+    {
+      "id": "compute_point_101",
+      "description": "Verify the computation of Point 101 using the specified azimuth and distance.",
+      "points": 15,
+      "visual_evidence": "The COGO tool shows inputs for Point 101 (Azimuth 45\u00b030'00\", Distance 150.000 m), or the TopoCal point list displays Point 101 with coordinates approximately E=481607.2, N=4398305.6."
+    },
+    {
+      "id": "compute_point_102",
+      "description": "Verify the computation of Point 102 using the specified azimuth and distance.",
+      "points": 15,
+      "visual_evidence": "The COGO tool shows inputs for Point 102 (Azimuth 135\u00b015'30\", Distance 210.500 m), or the TopoCal point list displays Point 102 with coordinates approximately E=481648.4, N=4398050.1."
+    },
+    {
+      "id": "compute_point_103",
+      "description": "Verify the computation of Point 103 using the specified azimuth and distance.",
+      "points": 15,
+      "visual_evidence": "The COGO tool shows inputs for Point 103 (Azimuth 270\u00b000'00\", Distance 300.250 m), or the TopoCal point list displays Point 103 with coordinates approximately E=481200.0, N=4398200.5."
+    },
+    {
+      "id": "save_topocal_project",
+      "description": "Verify that the TopoCal project is saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog or the TopoCal application title bar shows the project being saved as 'cogo_project.top' in the 'C:\\Users\\Docker\\Documents\\TopoCal' directory."
+    },
+    {
+      "id": "export_computed_points",
+      "description": "Verify that the updated point list is exported as a CSV file.",
+      "points": 15,
+      "visual_evidence": "An export dialog, success message, or file explorer window shows 'computed_points.csv' being saved in the 'C:\\Users\\Docker\\Documents\\TopoCal' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_topocal_gui",
+      "description": "Verify the agent used the TopoCal application GUI to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with the TopoCal software interface, not just terminal commands or Python scripts calculating the coordinates."
+    },
+    {
+      "id": "genuine_cogo_computation",
+      "description": "Verify the agent used the COGO/Radiation tools rather than manually typing the final coordinates.",
+      "visual_evidence": "The COGO/Radiation tool dialogs should be visible with the azimuth and distance inputs being entered, rather than the agent directly typing the theoretical Easting/Northing values into a table."
+    },
+    {
+      "id": "no_direct_text_editing",
+      "description": "Verify the agent did not simply create the output CSV file using a text editor.",
+      "visual_evidence": "There should be no screenshots of Notepad or other text editors being used to manually type out the 'computed_points.csv' file contents."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected coordinates for the computed points (tolerance \u00b10.05m): Point 101 (E=481607.238, N=4398305.636), Point 102 (E=481648.423, N=4398050.984), Point 103 (E=481200.000, N=4398200.500). The project must be saved to 'C:\\Users\\Docker\\Documents\\TopoCal\\cogo_project.top' and the points exported to 'C:\\Users\\Docker\\Documents\\TopoCal\\computed_points.csv'."
+}

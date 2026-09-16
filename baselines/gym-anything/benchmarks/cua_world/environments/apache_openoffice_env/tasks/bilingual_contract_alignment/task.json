@@ -1,0 +1,34 @@
+{
+  "id": "bilingual_contract_alignment@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "GlobalTech Solutions Inc. is finalizing a master distribution agreement with Schmidt Engineering GmbH. As an administrative assistant, create a professional side-by-side bilingual contract in Apache OpenOffice Writer using the source text provided in /home/ga/Documents/contract_data.json. The document must feature the title 'DISTRIBUTION AGREEMENT / VERTRIEBSVERTRAG' at the top, a centered header 'CONFIDENTIAL / VERTRAULICH', and page numbers in the footer. Use a 2-column layout with hidden borders to align the preamble and 8 clauses side-by-side, with English text in the left column and German text in the right column, ensuring corresponding sections remain perfectly aligned. Save the completed contract as /home/ga/Documents/GlobalTech_Schmidt_Agreement.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bilingual_contract_alignment/setup_task.sh",
+    "post_task": "/workspace/tasks/bilingual_contract_alignment/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/GlobalTech_Schmidt_Agreement.odt",
+    "input_file": "/home/ga/Documents/contract_data.json",
+    "required_clauses": 8,
+    "check_phrases": [
+      "Schmidt Engineering GmbH",
+      "DACH region",
+      "Force Majeure",
+      "HÖHERE GEWALT"
+    ],
+    "header_text": "CONFIDENTIAL / VERTRAULICH"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bilingual_contract"
+    }
+  }
+}

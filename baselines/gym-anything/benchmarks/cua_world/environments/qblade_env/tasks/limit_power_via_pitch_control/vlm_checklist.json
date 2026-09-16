@@ -1,0 +1,59 @@
+{
+  "task_id": "limit_power_via_pitch_control@1",
+  "task_completion": [
+    {
+      "id": "generate_polar",
+      "description": "Generate a 360-degree polar for the NACA 4412 airfoil at Re=1,000,000",
+      "points": 15,
+      "visual_evidence": "QBlade XFoil/Polar analysis module showing NACA 4412 selected, Reynolds number set to 1,000,000, and a 360-degree extrapolated polar graph or table visible."
+    },
+    {
+      "id": "design_rotor",
+      "description": "Design a 3-bladed HAWT rotor with a 10.5m radius",
+      "points": 20,
+      "visual_evidence": "QBlade Rotor Blade Design module showing a 3-bladed configuration and the blade table/geometry ending at a radius (pos) of exactly 10.5m."
+    },
+    {
+      "id": "run_bem_simulation",
+      "description": "Set up and run a BEM simulation at 10 m/s wind speed",
+      "points": 15,
+      "visual_evidence": "QBlade Rotor BEM Simulation module showing the wind speed parameter set to 10 m/s in the simulation definition."
+    },
+    {
+      "id": "achieve_target_power",
+      "description": "Determine the pitch angle to limit mechanical power to 50 kW (\u00b12 kW)",
+      "points": 30,
+      "visual_evidence": "QBlade simulation results (graph or table) showing the mechanical power output is between 48 kW and 52 kW at 10 m/s wind speed, with a non-zero pitch angle applied to de-rate the power."
+    },
+    {
+      "id": "save_project_and_results",
+      "description": "Save the project and export simulation results to the specified paths",
+      "points": 10,
+      "visual_evidence": "File manager, terminal window, or text editor showing 'derating_study.wpa' and 'target_power_result.txt' successfully created in '/home/ga/Documents/projects/'."
+    },
+    {
+      "id": "record_pitch_setting",
+      "description": "Record the final pitch angle in pitch_setting.txt",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat') showing the contents of '/home/ga/Documents/projects/pitch_setting.txt' containing the numerical pitch angle used to achieve the 50 kW target."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the QBlade GUI to perform the design and simulation tasks.",
+      "visual_evidence": "Screenshots must show the QBlade graphical user interface open and being actively interacted with (e.g., rotor design, polar generation, simulation setup)."
+    },
+    {
+      "id": "genuine_simulation",
+      "description": "The exported results come from a genuine BEM simulation rather than being manually typed.",
+      "visual_evidence": "The 'target_power_result.txt' file or QBlade result tables should contain comprehensive simulation data columns (e.g., CP, CT, Power, Thrust, Pitch) typical of QBlade exports, not just a single typed line saying '50 kW'."
+    },
+    {
+      "id": "consistent_pitch",
+      "description": "The pitch angle recorded in the text file matches the simulation.",
+      "visual_evidence": "The numerical value written in 'pitch_setting.txt' must match the pitch angle shown in the QBlade BEM simulation interface that yielded the ~50 kW power output."
+    }
+  ],
+  "privileged_info_for_vlm": "Task requires using QBlade for a HAWT de-rating analysis. Target power: 50 kW (50,000 W) with a \u00b12 kW tolerance. Wind speed: 10 m/s. Rotor radius: 10.5m (21m diameter). Airfoil: NACA 4412. Reynolds number: 1,000,000. Simulation method: BEM. Blade count: 3. The natural power output of this turbine at 10 m/s is typically 75-85 kW (Cp \u2248 0.35-0.40). To de-rate to 50 kW, the agent must use pitch control (feathering the blades) to reduce the power coefficient (Cp) to approximately 0.24. Expected file paths: /home/ga/Documents/projects/derating_study.wpa, /home/ga/Documents/projects/target_power_result.txt, and /home/ga/Documents/projects/pitch_setting.txt."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "implement_lru_cache_mri@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the 'MRISliceCache' class in the 'MedicalImagingSystem' project (~/eclipse-workspace/) to prevent OutOfMemory errors caused by the current HashMap implementation growing indefinitely. Modify 'src/main/java/com/medsys/imaging/MRISliceCache.java' to implement a Least Recently Used (LRU) eviction policy with a maximum capacity of 20 slices. Ensure the 'CacheStabilityTest' passes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_lru_cache_mri/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_lru_cache_mri/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/MedicalImagingSystem",
+    "target_class": "src/main/java/com/medsys/imaging/MRISliceCache.java",
+    "test_class": "src/test/java/com/medsys/imaging/CacheStabilityTest.java",
+    "max_cache_size": 20,
+    "expected_collection": "LinkedHashMap"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_lru_cache_mri"
+    }
+  }
+}

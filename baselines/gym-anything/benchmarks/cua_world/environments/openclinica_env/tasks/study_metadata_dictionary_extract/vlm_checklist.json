@@ -1,0 +1,59 @@
+{
+  "task_id": "study_metadata_dictionary_extract@1",
+  "task_completion": [
+    {
+      "id": "login_openclinica",
+      "description": "Verify the agent successfully logged into OpenClinica.",
+      "points": 10,
+      "visual_evidence": "The OpenClinica dashboard or welcome screen is visible in the web browser, indicating a successful login."
+    },
+    {
+      "id": "select_active_study",
+      "description": "Verify the agent accessed the Phase II Diabetes Trial (DM-TRIAL-2024).",
+      "points": 10,
+      "visual_evidence": "The active study context in the OpenClinica UI (usually at the top or in a study selection menu) shows 'DM-TRIAL-2024' or 'Phase II Diabetes Trial'."
+    },
+    {
+      "id": "download_xml_metadata",
+      "description": "Verify the agent downloaded the CDISC ODM XML Study Metadata.",
+      "points": 20,
+      "visual_evidence": "The OpenClinica interface shows the 'Download Data' or 'Extract Data' screen with ODM XML format selected, or a browser download indicator shows the XML file being downloaded."
+    },
+    {
+      "id": "verify_xml_path",
+      "description": "Verify the XML metadata file is saved to the correct path.",
+      "points": 10,
+      "visual_evidence": "A terminal window or file manager shows the file 'study_metadata.xml' located exactly in the '/home/ga/' directory."
+    },
+    {
+      "id": "verify_json_path",
+      "description": "Verify the JSON codelists file is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A terminal window, file manager, or text editor shows the file 'ae_codelists.json' located exactly in the '/home/ga/' directory."
+    },
+    {
+      "id": "verify_json_content",
+      "description": "Verify the extracted JSON content matches the required structure and ground truth mappings.",
+      "points": 40,
+      "visual_evidence": "A text editor or terminal output (e.g., via 'cat') showing the contents of 'ae_codelists.json'. It must contain 'Severity' (keys 1-5) and 'Relationship' (keys 1-4) with values exactly matching the ground truth provided in the privileged information."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Verify the agent used a web browser to interact with OpenClinica.",
+      "visual_evidence": "Screenshots should show a real web browser (e.g., Firefox, Chromium) navigating the OpenClinica web interface, rather than just terminal curl commands."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "Verify the agent actually inspected or parsed the downloaded XML to extract the codelists.",
+      "visual_evidence": "Screenshots should show the agent opening the 'study_metadata.xml' file in a text editor/viewer, using terminal commands (like grep/cat) to read it, or writing a script to parse it before creating the JSON."
+    },
+    {
+      "id": "no_hallucinated_json",
+      "description": "Verify the agent did not generate the JSON file from external knowledge without downloading the metadata.",
+      "visual_evidence": "The creation of the JSON file should logically follow the successful download and inspection of the XML file. The agent should not instantly echo the final JSON without first looking at the XML."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Study OID is 'S_DM2024'. The XML file must be saved to '/home/ga/study_metadata.xml'. The JSON file must be saved to '/home/ga/ae_codelists.json'. The exact ground truth JSON content must contain Severity mappings: {'1': 'Grade 1 (Mild - No intervention)', '2': 'Grade 2 (Moderate - Local intervention)', '3': 'Grade 3 (Severe - Hospitalization)', '4': 'Grade 4 (Life-threatening)', '5': 'Grade 5 (Fatal)'} and Relationship mappings: {'1': 'Not Related (Unlikely)', '2': 'Possibly Related', '3': 'Probably Related', '4': 'Definitely Related'}."
+}

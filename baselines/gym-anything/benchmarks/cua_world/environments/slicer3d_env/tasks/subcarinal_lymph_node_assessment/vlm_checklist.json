@@ -1,0 +1,59 @@
+{
+  "task_id": "subcarinal_lymph_node_assessment@1",
+  "task_completion": [
+    {
+      "id": "mediastinal_window_applied",
+      "description": "Verify that the CT scan is viewed using a mediastinal window setting to properly assess soft tissue.",
+      "points": 10,
+      "visual_evidence": "The CT image should display soft tissues clearly, with lungs appearing very dark/black and bones appearing bright, which is standard for mediastinal lymph node evaluation."
+    },
+    {
+      "id": "anatomical_location_identified",
+      "description": "Verify that the agent navigated to the correct anatomical location (Station 7 / subcarinal).",
+      "points": 25,
+      "visual_evidence": "The crosshairs or active CT slice should be located just below the tracheal bifurcation (carina), in the space between the right and left main bronchi."
+    },
+    {
+      "id": "short_axis_measured",
+      "description": "Verify that the short-axis diameter of the largest lymph node in the subcarinal region was measured.",
+      "points": 20,
+      "visual_evidence": "A ruler or measurement markup tool should be visible on the CT slice, specifically measuring the shorter dimension (short-axis) of a lymph node in the subcarinal space."
+    },
+    {
+      "id": "measurement_file_saved",
+      "description": "Verify that the measurement markup was saved to the correct file path.",
+      "points": 10,
+      "visual_evidence": "A file named 'subcarinal_measurement.mrk.json' should be visible in a file explorer, terminal, or editor within the '~/Documents/SlicerData/LIDC/' directory."
+    },
+    {
+      "id": "report_completeness",
+      "description": "Verify that the lymph node report JSON file was created with all required fields.",
+      "points": 15,
+      "visual_evidence": "A file named 'lymph_node_report.json' in '~/Documents/SlicerData/LIDC/' is visible and contains the keys: 'station', 'lymph_node_identified', 'short_axis_mm', 'classification', and 'slice_position_mm'."
+    },
+    {
+      "id": "classification_and_consistency",
+      "description": "Verify that the classification is correct based on the measurement and internally consistent with the visual evidence.",
+      "points": 20,
+      "visual_evidence": "The 'short_axis_mm' in the report matches the measurement seen on the CT ruler tool. The 'classification' logically matches the measurement (e.g., normal if < 10 mm, indeterminate/enlarged if 10-14.9 mm, pathological if >= 15 mm), and 'station' is recorded as 7."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_measurement_interaction",
+      "description": "Ensure the agent actually used the medical imaging software to measure the lymph node.",
+      "visual_evidence": "Screenshots should show the medical imaging software (e.g., 3D Slicer) open with the CT loaded and measurement tools actively placed on the image, rather than just a text editor creating a fake JSON file."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Ensure the agent saved the required files to the specified directory.",
+      "visual_evidence": "The file paths '~/Documents/SlicerData/LIDC/subcarinal_measurement.mrk.json' and '~/Documents/SlicerData/LIDC/lymph_node_report.json' are visible in a text editor, IDE, or file explorer, not just printed to a terminal."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Ensure the agent derived the measurement from the image rather than guessing or hardcoding a value.",
+      "visual_evidence": "The 'short_axis_mm' value in the final report exactly matches or closely corresponds to the measurement shown on the GUI ruler tool in earlier screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "Station 7 refers to the subcarinal lymph nodes, located below the tracheal carina between the main bronchi. For classification based on short-axis diameter: < 10 mm is considered normal, 10-14.9 mm is indeterminate/enlarged, and >= 15 mm is pathological/target lesion."
+}

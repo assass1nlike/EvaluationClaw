@@ -1,0 +1,35 @@
+{
+  "id": "robotics_pid_debug@1",
+  "version": "1.0",
+  "env_id": "visual_studio_2022_env@0.1",
+  "description": "You are an embedded software engineer at a medical robotics company. Fix three implementation bugs in the ArmController library within the Visual Studio 2022 solution. The reported failure modes are: PID controller oscillation and divergence, a joint limiter failing to prevent movement past hard stops, and incorrect velocity command scaling. Ensure the project builds with zero errors and all safety-critical issues are resolved.\n\nWindows user: Docker, password: GymAnything123!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 700,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\robotics_pid_debug\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\robotics_pid_debug\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "ArmController",
+    "project_path": "C:\\Users\\Docker\\source\\repos\\ArmController",
+    "target_files": [
+      "PidController.cs",
+      "JointLimiter.cs",
+      "VelocityScaler.cs"
+    ],
+    "bugs": [
+      "PID derivative term uses (error - previousError) instead of (previousError - error), causing positive feedback",
+      "JointLimiter clamps with inverted condition: returns value only when OUTSIDE limits instead of inside",
+      "VelocityScaler multiplies by 1000 (rad/s to mrad/s) when it should divide (mrad/s to rad/s)"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_robotics_pid_debug"
+    }
+  }
+}

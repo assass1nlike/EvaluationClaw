@@ -1,0 +1,25 @@
+{
+  "id": "search_airport@1",
+  "env_id": "example.avare_env@0.1",
+  "difficulty": "easy",
+  "description": "The Avare aviation GPS app is open on the main map screen. Navigate to San Francisco International Airport (KSFO) and center the map on the airport location.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/search_airport/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/search_airport/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_search_airport"
+    }
+  },
+  "metadata": {
+    "target_airport": "KSFO",
+    "airport_name": "San Francisco International Airport"
+  }
+}

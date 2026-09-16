@@ -1,0 +1,53 @@
+{
+  "task_id": "cross_module_integrity_audit@1",
+  "task_completion": [
+    {
+      "id": "verify_opportunity_history",
+      "description": "Verify the agent checks opportunity records to determine which accounts have 'Closed Won' opportunities.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the Opportunities list view, filtered by 'Closed Won' stage, or viewing the Opportunities subpanel within specific Account records."
+    },
+    {
+      "id": "correct_account_types",
+      "description": "Verify the agent updates Account types to align with the opportunity history rules.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the Accounts list view (using inline editing) or Account edit views where the 'Type' field is being changed. Look for accounts being changed to 'Customer' if they have 'Closed Won' opportunities, or changed away from 'Customer' if they do not."
+    },
+    {
+      "id": "identify_orphan_contacts",
+      "description": "Verify the agent identifies contacts that are not linked to any account.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Contacts list view, specifically filtered or sorted to display contacts with an empty 'Account Name' field (e.g., Victor Huang and Laura Fischer)."
+    },
+    {
+      "id": "reassign_orphan_contacts",
+      "description": "Verify the agent assigns the orphaned contacts to the correct accounts based on their email domains.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Contact edit view or inline editing showing an Account Name being assigned to previously orphaned contacts, matching the domain in their email address."
+    },
+    {
+      "id": "fix_misattributed_contacts",
+      "description": "Verify the agent corrects contacts that are assigned to the wrong account based on their email domain.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing a Contact record (specifically James Chen) being edited to change the Account Name from an incorrect one (Microsoft) to the correct one (Apple) that matches their email domain."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "Verify the agent used the SuiteCRM graphical user interface to make changes.",
+      "visual_evidence": "Screenshots should show interaction with the SuiteCRM web interface in a browser. There should be no terminal windows open running SQL queries or PHP scripts to modify the database directly."
+    },
+    {
+      "id": "genuine_data_modification",
+      "description": "Verify the agent actually edited the records using the application's forms.",
+      "visual_evidence": "Look for standard SuiteCRM 'Edit' screens, inline editing fields, and 'Save' buttons being clicked, rather than browser developer tools being used to alter the DOM text."
+    },
+    {
+      "id": "no_direct_url_guessing",
+      "description": "Verify the agent navigated the CRM to find the issues rather than jumping straight to hidden URLs.",
+      "visual_evidence": "Screenshots should show the agent using the search bar, list views, and filters to locate the mismatched accounts and contacts, rather than typing specific record IDs directly into the browser address bar without prior discovery."
+    }
+  ],
+  "privileged_info_for_vlm": "There are exactly 13 account type mismatches that need to be corrected (accounts incorrectly labeled as 'Customer' without 'Closed Won' opportunities, or vice versa). There are exactly 2 orphan contacts (Victor Huang and Laura Fischer) that need to be assigned to accounts matching their email domains. There is exactly 1 misattributed contact (James Chen) currently assigned to Microsoft who needs to be reassigned to Apple based on his email domain."
+}

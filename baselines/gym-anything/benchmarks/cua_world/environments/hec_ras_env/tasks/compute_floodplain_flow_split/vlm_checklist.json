@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_floodplain_flow_split@1",
+  "task_completion": [
+    {
+      "id": "access_hdf_results",
+      "description": "Access the HEC-RAS unsteady simulation results file (Muncie.p04.hdf).",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a Python script, HDFView, or HEC-RAS GUI opening or referencing the 'Muncie.p04.hdf' file."
+    },
+    {
+      "id": "find_peak_timestep",
+      "description": "Identify the timestep with the peak total flow.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code logic (e.g., using max() or argmax() on flow arrays) or GUI inspection to find the specific timestep index where total flow is highest."
+    },
+    {
+      "id": "calculate_flow_percentages",
+      "description": "Calculate the percentage of flow in the Left Overbank (LOB), Main Channel, and Right Overbank (ROB).",
+      "points": 20,
+      "visual_evidence": "Screenshots showing mathematical operations dividing LOB, Channel, and ROB flows by the Total Flow (and multiplying by 100) for the cross-sections."
+    },
+    {
+      "id": "create_flow_distribution_csv",
+      "description": "Export the flow distribution results to a CSV file with the required columns.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the creation or content of 'flow_distribution.csv' at the specified path, containing the headers: CrossSection, Total_Flow_cms, LOB_Flow_Pct, Channel_Flow_Pct, and ROB_Flow_Pct."
+    },
+    {
+      "id": "create_flow_split_summary",
+      "description": "Generate a summary text file containing the peak timestep index and the cross-section with the highest overbank flow percentage.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the creation or content of 'flow_split_summary.txt' at the specified path, explicitly mentioning a timestep index and a cross-section name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_hdf_analysis",
+      "description": "Verify the agent actually extracted data from the Muncie.p04.hdf file.",
+      "visual_evidence": "Look for a script utilizing a library like h5py/pandas to read the .hdf file, or the agent manually inspecting the file in a viewer. The agent should not fabricate the data."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "Verify the agent computed the percentages and peak timestep dynamically.",
+      "visual_evidence": "Look for actual calculation logic in the agent's script or terminal commands. The agent must not hardcode the final answers directly into the output files without computing them."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Verify the output files are saved in the exact requested directory.",
+      "visual_evidence": "Check terminal commands, script output paths, or file explorer to ensure the files are saved in '/home/ga/Documents/hec_ras_results/' and not just the current working directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires analyzing the HEC-RAS results file 'Muncie.p04.hdf' located in the Muncie project directory (/home/ga/Documents/hec_ras_projects/Muncie). The agent must generate two files: a CSV at '/home/ga/Documents/hec_ras_results/flow_distribution.csv' and a text file at '/home/ga/Documents/hec_ras_results/flow_split_summary.txt'."
+}

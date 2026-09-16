@@ -1,0 +1,29 @@
+{
+  "id": "create_temporal_query@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a saved SQL query named 'MonthlyRevenueAnalysis' in the Chinook database to perform a month-by-month revenue analysis on the Invoice table. The query must return the following columns with exact alias names: \"InvoiceYear\" (year from InvoiceDate), \"InvoiceMonth\" (month 1-12 from InvoiceDate), \"InvoiceCount\" (count of invoices), \"MonthlyRevenue\" (sum of Total), and \"AverageInvoiceAmount\" (average of Total). Group the results by year and month, filter using a HAVING clause for months where the sum of Total is greater than 40, and order by year then month in ascending order. Use HSQLDB functions such as YEAR() and MONTH() or EXTRACT() for date processing. Save the query and the database file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_temporal_query/setup_task.sh",
+    "post_task": "/workspace/tasks/create_temporal_query/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "sqlite_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite",
+    "query_name": "MonthlyRevenueAnalysis",
+    "min_expected_rows": 25,
+    "max_expected_rows": 45
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_temporal_query"
+    }
+  }
+}

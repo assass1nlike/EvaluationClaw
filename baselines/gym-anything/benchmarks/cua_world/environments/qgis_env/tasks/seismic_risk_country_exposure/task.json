@@ -1,0 +1,34 @@
+{
+  "id": "seismic_risk_country_exposure@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "You are a seismic risk analyst at a global reinsurance company. Generate a country-level portfolio exposure report based on the past 30 days of seismic activity. Using the USGS earthquake feed (/home/ga/GIS_Data/earthquakes_month.geojson) and Natural Earth country boundaries (/home/ga/GIS_Data/world_countries.geojson), export a GeoJSON FeatureCollection to /home/ga/GIS_Data/exports/country_seismic_exposure.geojson.\n\nThe output must include only countries that experienced at least one earthquake epicenter within their boundary. Each feature must retain the original country geometry and fields (including 'ADMIN' and 'ISO_A3'), plus these computed fields:\n- quake_count: integer count of earthquake epicenters within the country boundary\n- mean",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/seismic_risk_country_exposure/setup_task.sh",
+    "post_task": "/workspace/tasks/seismic_risk_country_exposure/export_result.sh"
+  },
+  "metadata": {
+    "earthquake_source": "/home/ga/GIS_Data/earthquakes_month.geojson",
+    "countries_source": "/home/ga/GIS_Data/world_countries.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/country_seismic_exposure.geojson",
+    "expected_fields": [
+      "quake_count",
+      "mean_mag",
+      "max_mag",
+      "risk_tier"
+    ],
+    "gt_file": "/tmp/gt_seismic.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_seismic_risk_country_exposure"
+    }
+  }
+}

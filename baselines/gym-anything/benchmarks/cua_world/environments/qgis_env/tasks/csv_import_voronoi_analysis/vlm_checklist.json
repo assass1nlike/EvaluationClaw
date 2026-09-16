@@ -1,0 +1,59 @@
+{
+  "task_id": "csv_import_voronoi_analysis@1",
+  "task_completion": [
+    {
+      "id": "csv_layer_loaded",
+      "description": "Checks if the bay_area_water_stations CSV was loaded into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The Layers panel in the GIS software (e.g., QGIS) shows 'bay_area_water_stations' as an active layer."
+    },
+    {
+      "id": "points_rendered",
+      "description": "Checks if the water station points are displayed on the map.",
+      "points": 10,
+      "visual_evidence": "The map canvas displays point features (exactly 8 points) representing the water monitoring stations."
+    },
+    {
+      "id": "voronoi_tool_used",
+      "description": "Checks if the Voronoi/Thiessen polygon tool was accessed and configured.",
+      "points": 15,
+      "visual_evidence": "A processing dialog box for 'Voronoi Polygons' or 'Thiessen Polygons' is open, with the water stations point layer selected as the input."
+    },
+    {
+      "id": "voronoi_polygons_generated",
+      "description": "Checks if the Voronoi polygons were successfully created and rendered.",
+      "points": 20,
+      "visual_evidence": "The map canvas shows a network of adjoining convex polygons (Voronoi cells) that partition the space around the points, and a new polygon layer is visible in the Layers panel."
+    },
+    {
+      "id": "attributes_preserved",
+      "description": "Checks if the original station attributes were preserved in the new polygon layer.",
+      "points": 20,
+      "visual_evidence": "An attribute table or feature identification panel for the newly generated Voronoi polygon layer is open, displaying columns such as 'station_name', 'ph', and 'dissolved_oxygen_mg_l'."
+    },
+    {
+      "id": "geojson_exported",
+      "description": "Checks if the polygon layer was exported to the correct GeoJSON file path.",
+      "points": 25,
+      "visual_evidence": "An export/save dialog shows the format set to GeoJSON and the destination path as '/home/ga/GIS_Data/exports/voronoi_zones.geojson', OR a terminal/file manager shows this specific file was created in the correct directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gis_interaction",
+      "description": "Verifies the agent used appropriate GIS tools rather than faking the output.",
+      "visual_evidence": "Screenshots show interaction with GIS software (e.g., QGIS) menus, processing toolboxes, or a legitimate spatial Python script, not just a text editor creating a mock file."
+    },
+    {
+      "id": "authentic_voronoi_pattern",
+      "description": "Verifies the generated polygons are mathematically genuine Voronoi cells.",
+      "visual_evidence": "The polygons form a continuous tessellation where each cell contains exactly one point, rather than arbitrary hand-drawn shapes, circles, or grids."
+    },
+    {
+      "id": "no_hardcoded_geojson",
+      "description": "Verifies the agent didn't just download or copy-paste a pre-made GeoJSON.",
+      "visual_evidence": "The visual history shows the progression from importing points to generating polygons to exporting, without the sudden appearance of the final file from a web browser or clipboard paste."
+    }
+  ],
+  "privileged_info_for_vlm": "Input CSV is located at '/home/ga/GIS_Data/bay_area_water_stations.csv'. Expected output is a GeoJSON file at '/home/ga/GIS_Data/exports/voronoi_zones.geojson'. The output must contain exactly 8 features with 'Polygon' geometry. The final exported polygons must preserve the attributes from the input CSV, specifically including 'station_name', 'ph', and 'dissolved_oxygen_mg_l'."
+}

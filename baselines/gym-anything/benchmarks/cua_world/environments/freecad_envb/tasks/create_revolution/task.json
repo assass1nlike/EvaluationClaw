@@ -1,0 +1,33 @@
+{
+  "id": "create_revolution@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a stepped shaft by revolving a profile defined by the coordinates (0,0), (15,0), (15,25), (8,25), (8,60), (0,60), and (0,0) (all in mm) 360° around the vertical Z axis. Save the resulting model to /home/ga/Documents/FreeCAD/stepped_shaft.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_revolution/setup_task.sh",
+    "post_task": "/workspace/tasks/create_revolution/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/stepped_shaft.FCStd",
+    "expected_volume_mm3": 24702.0,
+    "volume_tolerance_percent": 15,
+    "bbox_min": [
+      30,
+      30,
+      60
+    ],
+    "bbox_tolerance_mm": 3.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_revolution"
+    }
+  }
+}

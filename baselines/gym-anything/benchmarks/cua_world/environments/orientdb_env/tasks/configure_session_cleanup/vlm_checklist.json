@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_session_cleanup@1",
+  "task_completion": [
+    {
+      "id": "create_class_and_properties",
+      "description": "Create the 'UserSessions' class with 'Token', 'Created', and 'UserEmail' properties",
+      "points": 15,
+      "visual_evidence": "OrientDB Studio Schema tab showing the 'UserSessions' class with properties: 'Token' (String), 'Created' (DateTime), and 'UserEmail' (String)."
+    },
+    {
+      "id": "insert_test_data",
+      "description": "Populate the class with 5 active and 5 expired sessions",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio Browse/Query tab showing a query result of 'UserSessions' with 10 records: 5 with recent 'Created' timestamps (within the last hour) and 5 with older timestamps (approx 48 hours ago), containing real-looking emails."
+    },
+    {
+      "id": "create_cleanup_function",
+      "description": "Create a server-side function named 'cleanup_sessions' to delete records older than 24 hours",
+      "points": 25,
+      "visual_evidence": "OrientDB Studio Functions tab showing a function named 'cleanup_sessions' with code containing a DELETE statement targeting 'UserSessions' where the 'Created' date is older than 24 hours (e.g., using sysdate() - 86400000 or similar logic)."
+    },
+    {
+      "id": "configure_scheduler",
+      "description": "Configure the OrientDB Scheduler to run the cleanup function every hour",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio OScheduler configuration or query showing a scheduled task linked to the 'cleanup_sessions' function with a rule/cron expression set to run every hour (e.g., '0 0 * * * ?' or interval of 3600000 ms)."
+    },
+    {
+      "id": "verify_policy_execution",
+      "description": "Execute the function and verify expired records are removed while active ones remain",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio Browse/Query tab showing the final state of the 'UserSessions' class with exactly 5 records remaining, all having recent 'Created' timestamps (the expired records should be gone)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_gui_usage",
+      "description": "Agent interacted with the OrientDB Studio GUI or a genuine database client",
+      "visual_evidence": "Screenshots show the OrientDB web interface (Studio) or a database terminal client being used, rather than just a text editor with scripts."
+    },
+    {
+      "id": "genuine_function_logic",
+      "description": "The cleanup function contains actual deletion logic",
+      "visual_evidence": "The function body in the screenshots shows a real SQL DELETE command or equivalent JS API call, not just a mock or empty function."
+    },
+    {
+      "id": "real_profile_emails",
+      "description": "Test data uses real emails from the Profiles class",
+      "visual_evidence": "The emails visible in the UserSessions records look like genuine seeded data (e.g., realistic names/domains) rather than placeholder strings like 'test1@test.com'."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: demodb. Class: UserSessions with properties Token (String), Created (DateTime), UserEmail (String). Function: cleanup_sessions containing DELETE logic for records older than 24 hours (often calculated as 86400000 milliseconds). Scheduler must be configured to run this function hourly. Final state should show 0 expired records and 5 active records remaining."
+}

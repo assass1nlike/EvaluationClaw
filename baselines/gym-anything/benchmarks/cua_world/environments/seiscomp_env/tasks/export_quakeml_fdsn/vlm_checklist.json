@@ -1,0 +1,59 @@
+{
+  "task_id": "export_quakeml_fdsn@1",
+  "task_completion": [
+    {
+      "id": "identify_event",
+      "description": "Agent searches for or identifies the 2024 Noto Peninsula earthquake in the SeisComP database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a database query (e.g., using mysql), a SeisComP command (e.g., scevtls), or a GUI listing the Noto Peninsula earthquake event."
+    },
+    {
+      "id": "export_data",
+      "description": "Agent exports the event data to the specified XML file path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command (like scxmldump or a custom script) writing output to ~/exports/noto_quakeml.xml, or a GUI save dialog pointing to this path."
+    },
+    {
+      "id": "verify_xml_structure",
+      "description": "The exported XML file contains the required root and event parameters elements.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the contents of ~/exports/noto_quakeml.xml (via cat, less, or an editor) with a <quakeml> root element containing an <eventParameters> element."
+    },
+    {
+      "id": "verify_namespaces",
+      "description": "The exported XML file utilizes the correct FDSN QuakeML namespaces.",
+      "points": 10,
+      "visual_evidence": "The displayed XML content clearly shows xmlns attributes matching 'http://quakeml.org/xmlns/quakeml/1.2' and 'http://quakeml.org/xmlns/bed/1.2'."
+    },
+    {
+      "id": "verify_origin_data",
+      "description": "The exported XML file includes the event's origin data.",
+      "points": 20,
+      "visual_evidence": "The displayed XML content includes <origin> tags containing <latitude>, <longitude>, and <depth> elements with numerical values."
+    },
+    {
+      "id": "verify_magnitude_data",
+      "description": "The exported XML file includes the event's magnitude data.",
+      "points": 20,
+      "visual_evidence": "The displayed XML content includes <magnitude> tags containing a <mag> element with a numerical value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_export",
+      "description": "The agent extracted the data from the SeisComP database using appropriate tools or scripts.",
+      "visual_evidence": "The agent runs SeisComP utilities (e.g., scxmldump) or database queries rather than manually typing the entire XML structure from scratch in a text editor."
+    },
+    {
+      "id": "no_mocked_data",
+      "description": "The agent did not hardcode dummy values for the earthquake parameters.",
+      "visual_evidence": "The values for latitude, longitude, depth, and magnitude in the XML are derived from the database query/export, not arbitrarily typed by the agent."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually saved the XML file to the correct path.",
+      "visual_evidence": "The agent uses output redirection (>) or a save command to write to ~/exports/noto_quakeml.xml, rather than only printing the XML to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/exports/noto_quakeml.xml'. The target event is the 2024 Noto Peninsula, Japan Earthquake. The exported coordinates must be within 1.0 degrees of the ground truth, and the magnitude must be within 0.5 of the ground truth."
+}

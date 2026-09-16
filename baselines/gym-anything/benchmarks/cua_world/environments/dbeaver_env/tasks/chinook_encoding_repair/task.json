@@ -1,0 +1,51 @@
+{
+  "id": "chinook_encoding_repair@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Database Administrator. A junior colleague restored the Chinook database (/home/ga/Documents/databases/chinook_corrupt.db) using the wrong character encoding, resulting in 'Mojibake' artifacts. Using the 'ChinookRepair' connection in DBeaver, repair the 'artists', 'tracks', 'customers', and 'employees' tables by replacing the following artifacts: 'Ã©' with 'é', 'Ã¡' with 'á', 'Ã£' with 'ã', 'Ã³' with 'ó', 'Ã¶' with 'ö', 'Ã§' with 'ç', and 'Ã¼' with 'ü'. Use SQL UPDATE statements with REPLACE functions without deleting any rows. Save the repair script to /home/ga/Documents/scripts/fix_encoding.sql and export a CSV summary report containing the names of the repaired tables to /home/ga/Documents/exports/repair_summary.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_encoding_repair/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_encoding_repair/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/Documents/databases/chinook_corrupt.db",
+    "artifacts": [
+      "Ã©",
+      "Ã¡",
+      "Ã£",
+      "Ã³",
+      "Ã¶",
+      "Ã§",
+      "Ã¼"
+    ],
+    "corrections": [
+      "é",
+      "á",
+      "ã",
+      "ó",
+      "ö",
+      "ç",
+      "ü"
+    ],
+    "target_tables": [
+      "artists",
+      "tracks",
+      "customers",
+      "employees"
+    ],
+    "report_path": "/home/ga/Documents/exports/repair_summary.csv",
+    "script_path": "/home/ga/Documents/scripts/fix_encoding.sql"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_encoding_repair"
+    }
+  }
+}

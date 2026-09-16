@@ -1,0 +1,53 @@
+{
+  "task_id": "process_bounced_emails@1",
+  "task_completion": [
+    {
+      "id": "bounces_folder_created",
+      "description": "Verify that a new folder named 'Bounces' was created under Local Folders.",
+      "points": 10,
+      "visual_evidence": "A folder named 'Bounces' is visible in the email client's left sidebar/folder pane, specifically nested under 'Local Folders'."
+    },
+    {
+      "id": "emails_identified_in_inbox",
+      "description": "Verify that the agent identified and viewed the bounce notification emails in the Inbox.",
+      "points": 10,
+      "visual_evidence": "The agent is shown viewing the Inbox and has selected, previewed, or opened the bounce notification emails (e.g., subjects like 'Delivery failure' or 'Undelivered Mail...') to read their contents."
+    },
+    {
+      "id": "text_file_created",
+      "description": "Verify that the target text file was created for the extracted addresses.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) is open editing a file named 'bounced_contacts.txt', or the file icon is visible on the Desktop."
+    },
+    {
+      "id": "addresses_extracted_correctly",
+      "description": "Verify that the correct failed recipient addresses were extracted and saved to the text file.",
+      "points": 40,
+      "visual_evidence": "The contents of 'bounced_contacts.txt' are visible and contain exactly the four expected email addresses (j.doe@expired-domain.com, former_employee@corp.example.com, sales-info@invalid-domain.net, admin@old-startup.io), with one address per line."
+    },
+    {
+      "id": "emails_moved_to_bounces",
+      "description": "Verify that the bounce notification emails were moved from the Inbox to the 'Bounces' folder.",
+      "points": 30,
+      "visual_evidence": "The 'Bounces' folder is selected in the email client, and the main view shows the bounce notification emails inside it. Additionally, these emails should no longer appear in the Inbox."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_interaction",
+      "description": "Ensure the agent used the email client's graphical interface to manage emails.",
+      "visual_evidence": "The agent interacts with the Thunderbird GUI to read and move the emails, rather than using terminal commands (like mv or grep) directly on the underlying maildir files."
+    },
+    {
+      "id": "actual_email_inspection",
+      "description": "Ensure the agent actually read the emails to find the addresses.",
+      "visual_evidence": "The agent opens or previews the bodies of the bounce emails to locate the failed recipient addresses, rather than typing them out immediately without looking at the email contents."
+    },
+    {
+      "id": "manual_data_entry",
+      "description": "Ensure the agent manually extracted and entered the data.",
+      "visual_evidence": "The agent manually types or copy-pastes the addresses into the text file using a text editor or standard CLI tools, rather than executing a pre-existing script to bypass the extraction process."
+    }
+  ],
+  "privileged_info_for_vlm": "Target text file: /home/ga/Desktop/bounced_contacts.txt. Expected destination folder: 'Bounces' under Local Folders. Expected failed recipient addresses to extract (must be one per line): j.doe@expired-domain.com, former_employee@corp.example.com, sales-info@invalid-domain.net, and admin@old-startup.io. Expected bounce email subjects include 'Undelivered Mail Returned to Sender', 'Delivery Status Notification (Failure)', 'Delivery failure', and 'Returned mail: see transcript for details'."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "export_menu_usage_report@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Generate a 'Menu Usage' report (also known as 'Product Mix' or 'Item Sales') in Floreant POS for the default period. Use PIN 1111 for Back Office access and export the resulting report as a PDF to /home/ga/Desktop/menu_usage.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_menu_usage_report/setup_task.sh",
+    "post_task": "/workspace/tasks/export_menu_usage_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_file_path": "/home/ga/Desktop/menu_usage.pdf",
+    "expected_mime_type": "application/pdf",
+    "min_size_bytes": 1000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_menu_usage_report"
+    }
+  }
+}

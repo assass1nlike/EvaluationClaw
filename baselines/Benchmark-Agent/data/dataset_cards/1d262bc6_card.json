@@ -1,0 +1,107 @@
+{
+  "dataset_id": "1d262bc6",
+  "name": "Openset Visual Step Matching Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Visual Step Matching Reasoning dataset contains 200 samples of recipe tutorials paired with sequences of step images. The task is to identify the incongruous image in the sequence by aligning the visual steps with the textual recipe instructions and choosing from four candidate images. It evaluates multimodal reasoning and fine-grained step matching.",
+  "card_text": "This dataset evaluates multimodal reasoning over cooking recipes and procedural image sequences. Each sample provides a textual recipe tutorial with numbered steps, an image sequence of eight step photos, and a multiple-choice list of four candidate images (Image A–D). The model must read the recipe, inspect the image sequence, and select the image that is out of place or inconsistent with the recipe steps. The data is sourced from online recipe tutorials and uses textual instructions in English alongside JPEG images. The task requires fine-grained alignment between text and visual steps, temporal ordering, and commonsense understanding of cooking procedures. It is designed for openset evaluation of visual step matching and consistency judgment in general-domain procedural content.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering",
+    "consistency_judgment"
+  ],
+  "domain": "cooking recipe tutorials",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "Main text input containing a recipe tutorial with numbered preparation steps and a task instruction. It supplies the procedural knowledge needed to align the image sequence and identify the out-of-place image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The interrogative instruction embedded in input.prompt asks the model to study the recipe and select the incongruous image from the choice list.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Embedded multiple-choice list of four candidate images labeled Image A through Image D, from which the model must choose the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "objects",
+        "semantics": "Ordered sequence of eight recipe step images, provided as filenames. The model must align these visual steps with the textual recipe and detect which image does not fit the sequence.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Short text label indicating the selected image (e.g., 'Image A'), which is the judged incongruous image in the sequence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a sequence of eight image filenames (input.image_file), a long text prompt (input.prompt) that embeds a recipe tutorial with numbered steps, the task instruction, and a four-option choice list (Image A–D), and a short textual answer (output.text) selecting one of the four image labels as the incongruous image in the sequence. The context, question, and options are all carried within the same prompt field, while images are referenced through the image_file list."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/VisualStepMatchingReasoning/openset_visual_step_matching_reasoning.json",
+    "existing_tags": {
+      "task": "Visual Step Matching Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

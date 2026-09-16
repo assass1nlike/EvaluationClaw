@@ -1,0 +1,65 @@
+{
+  "task_id": "fix_http_api_client@1",
+  "task_completion": [
+    {
+      "id": "open_client_codebase",
+      "description": "Agent navigates to and opens the API client codebase.",
+      "points": 10,
+      "visual_evidence": "A code editor (e.g., VS Code, vim, nano) or terminal showing the contents of the /home/ga/workspace/api_client/client/ directory."
+    },
+    {
+      "id": "fix_malformed_urls",
+      "description": "Agent fixes the malformed request URLs bug.",
+      "points": 15,
+      "visual_evidence": "Code modifications in the editor showing URL encoding implementations (e.g., using urllib.parse, urlencode, or fixing string formatting for URLs)."
+    },
+    {
+      "id": "fix_authentication",
+      "description": "Agent fixes the authentication rejections bug.",
+      "points": 15,
+      "visual_evidence": "Code modifications in the editor showing fixes to HTTP headers, such as properly formatting 'Bearer ' tokens or setting correct API Key headers."
+    },
+    {
+      "id": "fix_retry_storms",
+      "description": "Agent fixes the runaway retry storms bug.",
+      "points": 15,
+      "visual_evidence": "Code modifications in the editor showing the implementation of exponential backoff (e.g., sleep times increasing per attempt) or correcting retry loop conditions."
+    },
+    {
+      "id": "fix_request_timeouts",
+      "description": "Agent fixes the request timeouts on healthy endpoints bug.",
+      "points": 15,
+      "visual_evidence": "Code modifications in the editor showing adjustments to timeout parameters in the HTTP request calls (e.g., adding or correcting a timeout= parameter)."
+    },
+    {
+      "id": "fix_pagination",
+      "description": "Agent fixes the missing pages of data from paginated responses bug.",
+      "points": 15,
+      "visual_evidence": "Code modifications in the editor showing fixes to pagination logic, such as correcting off-by-one errors in page indices, fixing while loop conditions, or properly extracting the next page cursor."
+    },
+    {
+      "id": "run_passing_test_suite",
+      "description": "Agent runs the test suite to verify the fixes.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing a test runner (e.g., pytest, unittest) executing the test suite for the API client and displaying passing results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_editing",
+      "description": "Agent modifies the code using a genuine text editor or IDE.",
+      "visual_evidence": "Screenshots show an actual editor interface (VS Code, vim, nano) being used to edit the Python files, rather than just echoing text directly into files without reviewing them."
+    },
+    {
+      "id": "unmodified_test_suite",
+      "description": "Agent does not cheat by modifying the test suite to force a pass.",
+      "visual_evidence": "The agent's edits are restricted to the client/ module files. There should be no evidence of the agent deleting, commenting out, or altering the assertions in the test files."
+    },
+    {
+      "id": "authentic_test_execution",
+      "description": "Agent runs the actual test suite rather than mocking the output.",
+      "visual_evidence": "Terminal shows standard test framework output (like pytest progress dots and summary) invoked via standard commands, not a script designed to print 'Passed'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in the client module: 1) URL encoding for malformed URLs, 2) Authentication headers (Bearer/API Key), 3) Exponential backoff for retry storms, 4) Request timeouts, and 5) Pagination off-by-one/cursor errors. The agent must modify the code in /home/ga/workspace/api_client/client/ and run the test suite to verify the fixes. A score of 60 or higher is required to pass."
+}

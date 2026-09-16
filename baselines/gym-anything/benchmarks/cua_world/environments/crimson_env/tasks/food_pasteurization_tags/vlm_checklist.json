@@ -1,0 +1,59 @@
+{
+  "task_id": "food_pasteurization_tags@1",
+  "task_completion": [
+    {
+      "id": "open_crimson_and_files",
+      "description": "Open Red Lion Crimson 3.0 and the reference specification files.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show Crimson 3.0 open. The reference files (food_pasteurization_tag_register.csv and fda_pmo_pasteurization_limits.txt) should ideally be seen open in a text editor or spreadsheet viewer to gather the required parameters."
+    },
+    {
+      "id": "create_data_tags",
+      "description": "Create the five required Critical Control Point (CCP) tags.",
+      "points": 20,
+      "visual_evidence": "In the Crimson 3.0 Navigation Pane (left side) under 'Data Tags', the following five tags must be visible: TT_501, FT_501, PT_501, TT_502, and FQ_501."
+    },
+    {
+      "id": "configure_tag_data_properties",
+      "description": "Configure the Data Type and Description for the tags.",
+      "points": 20,
+      "visual_evidence": "In the 'Data' tab for the tags, the Data Type should be set to Floating Point / Real, and the Description field should match the specified descriptions (e.g., 'HTST Holder Temperature - CCP1' for TT_501)."
+    },
+    {
+      "id": "configure_tag_format_scaling",
+      "description": "Configure the scaling limits and units for the tags.",
+      "points": 20,
+      "visual_evidence": "In the 'Format' tab for the tags, the Minimum and Maximum values must be set according to the specs (e.g., 140.0 to 200.0 for TT_501), and the Units/Label should be set (e.g., degF or Degrees Fahrenheit)."
+    },
+    {
+      "id": "configure_tag_alarms",
+      "description": "Configure the FDA PMO low and high alarms for the tags.",
+      "points": 20,
+      "visual_evidence": "In the 'Alarms' tab for the tags, Event 1 and Event 2 should be configured for Low and High absolute alarms with the correct values (e.g., TT_501 Low Alarm at 161.0, High Alarm at 185.0)."
+    },
+    {
+      "id": "save_crimson_project",
+      "description": "Save the project as 'food_pasteurization.c3' in the specified directory.",
+      "points": 10,
+      "visual_evidence": "A 'Save As' dialog or the Crimson 3.0 title bar should show the file saved as 'food_pasteurization.c3' in the path 'C:\\Users\\Docker\\Documents\\CrimsonProjects'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the Crimson 3.0 graphical user interface to create and configure the tags.",
+      "visual_evidence": "Screenshots should show the agent clicking through the Crimson 3.0 menus, Navigation Pane, and Tag Properties tabs (Data, Format, Alarms)."
+    },
+    {
+      "id": "genuine_file_reads",
+      "description": "The agent should read the provided CSV and TXT files rather than hallucinating or hardcoding the values from prior knowledge.",
+      "visual_evidence": "Screenshots should show the agent opening 'food_pasteurization_tag_register.csv' and 'fda_pmo_pasteurization_limits.txt' from the Desktop."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "The agent must not simply create a text file named 'food_pasteurization.c3'.",
+      "visual_evidence": "The save operation must occur within the Crimson 3.0 application's File -> Save/Save As menu, producing a genuine Crimson project file."
+    }
+  ],
+  "privileged_info_for_vlm": "Verify the following tag configurations (2.0% tolerance allowed on numbers):\n1. TT_501: Desc='HTST Holder Temperature - CCP1', Type=Float, Min=140.0, Max=200.0, Unit='degF', Low Alarm=161.0, High Alarm=185.0\n2. FT_501: Desc='HTST Forward Flow Rate', Type=Float, Min=0.0, Max=500.0, Unit='GPM', Low Alarm=5.0, High Alarm=300.0\n3. PT_501: Desc='Pasteurized Product Pressure', Type=Float, Min=0.0, Max=100.0, Unit='psi', Low Alarm=1.0, High Alarm=80.0\n4. TT_502: Desc='Regeneration Balance Temperature', Type=Float, Min=100.0, Max=200.0, Unit='degF', Low Alarm=130.0, High Alarm=185.0\n5. FQ_501: Desc='Daily Batch Total Volume', Type=Float, Min=0.0, Max=999999.0, Unit='gallons', Low Alarm=0.0, High Alarm=900000.0\nSave Path: C:\\Users\\Docker\\Documents\\CrimsonProjects\\food_pasteurization.c3"
+}

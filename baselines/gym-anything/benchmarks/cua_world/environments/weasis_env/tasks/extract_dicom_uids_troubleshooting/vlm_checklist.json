@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_dicom_uids_troubleshooting@1",
+  "task_completion": [
+    {
+      "id": "dicom_metadata_window_opened",
+      "description": "The DICOM metadata window is opened to view the tags.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application is open, and a window or panel displaying DICOM metadata (tags, attributes, and values) is visible on the screen."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the DICOM metadata window is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "A screenshot tool, terminal command, or file manager shows the screenshot being saved specifically to ~/DICOM/exports/dicom_info_screen.png."
+    },
+    {
+      "id": "text_file_created",
+      "description": "The routing_info.txt file is created or opened for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or terminal shows the file ~/DICOM/exports/routing_info.txt being edited or created."
+    },
+    {
+      "id": "patient_id_extracted",
+      "description": "The Patient ID is correctly extracted and formatted in the text file.",
+      "points": 20,
+      "visual_evidence": "The text file contains the line 'PatientID: 556342B' or 'PatientID: 322-292-73-6'."
+    },
+    {
+      "id": "study_uid_extracted",
+      "description": "The Study Instance UID is correctly extracted and formatted in the text file.",
+      "points": 20,
+      "visual_evidence": "The text file contains the line 'StudyUID: [Value]', where the value exactly matches the Study Instance UID (Tag 0020,000D) visible in the DICOM metadata window."
+    },
+    {
+      "id": "series_uid_extracted",
+      "description": "The Series Instance UID is correctly extracted and formatted in the text file.",
+      "points": 20,
+      "visual_evidence": "The text file contains the line 'SeriesUID: [Value]', where the value exactly matches the Series Instance UID (Tag 0020,000E) visible in the DICOM metadata window."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_dicom_viewer_used",
+      "description": "The agent used a graphical DICOM viewer to access the metadata.",
+      "visual_evidence": "The metadata is viewed within a graphical DICOM viewer application, rather than being extracted purely via command-line tools like strings or dcmdump."
+    },
+    {
+      "id": "no_hallucinated_uids",
+      "description": "The extracted UIDs match the actual DICOM metadata.",
+      "visual_evidence": "The UIDs typed into the text file correspond exactly to the ones displayed in the DICOM metadata window, without any hallucinated or fabricated characters."
+    },
+    {
+      "id": "screenshot_is_genuine",
+      "description": "The saved screenshot captures the actual DICOM metadata window.",
+      "visual_evidence": "The screenshot saved to dicom_info_screen.png captures the actual DICOM metadata window, not just the terminal or an empty desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The text file must be saved at /home/ga/DICOM/exports/routing_info.txt and the screenshot at /home/ga/DICOM/exports/dicom_info_screen.png. The PatientID should be either '556342B' (for CT scan) or '322-292-73-6' (for MR scan). The StudyUID and SeriesUID must match the values shown in the DICOM metadata window."
+}

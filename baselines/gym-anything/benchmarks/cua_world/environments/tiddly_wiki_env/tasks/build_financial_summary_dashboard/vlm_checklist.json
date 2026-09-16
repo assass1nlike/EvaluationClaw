@@ -1,0 +1,59 @@
+{
+  "task_id": "build_financial_summary_dashboard@1",
+  "task_completion": [
+    {
+      "id": "create_new_tiddler",
+      "description": "The agent opens the editor to create a new tiddler.",
+      "points": 10,
+      "visual_evidence": "A new tiddler draft is open in the TiddlyWiki interface."
+    },
+    {
+      "id": "set_tiddler_title",
+      "description": "The agent sets the title of the new tiddler to 'Financial Summary Report'.",
+      "points": 10,
+      "visual_evidence": "The title field of the tiddler draft contains exactly 'Financial Summary Report'."
+    },
+    {
+      "id": "write_contributions_filter",
+      "description": "The agent writes wikitext to dynamically calculate Total Contributions.",
+      "points": 20,
+      "visual_evidence": "The tiddler body contains wikitext using filter operators (e.g., `[tag[Contribution]get[amount]sum[]]`) to calculate the sum of contributions."
+    },
+    {
+      "id": "write_expenses_filter",
+      "description": "The agent writes wikitext to dynamically calculate Total Expenses.",
+      "points": 20,
+      "visual_evidence": "The tiddler body contains wikitext using filter operators (e.g., `[tag[Expense]get[amount]sum[]]`) to calculate the sum of expenses."
+    },
+    {
+      "id": "write_net_balance_filter",
+      "description": "The agent writes wikitext to dynamically calculate the Net Balance.",
+      "points": 20,
+      "visual_evidence": "The tiddler body contains wikitext using variables and math operators (e.g., `subtract`) to calculate the net balance (Contributions minus Expenses)."
+    },
+    {
+      "id": "save_and_view_tiddler",
+      "description": "The agent saves the tiddler and the rendered output displays the correct calculated values.",
+      "points": 20,
+      "visual_evidence": "The tiddler is saved (no longer in edit mode) and displays the calculated totals (e.g., Total Contributions: 6150, Total Expenses: 2450, Net Balance: 3700)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_for_tiddler",
+      "description": "The agent interacted with the TiddlyWiki GUI in the browser to create the tiddler.",
+      "visual_evidence": "Screenshots show the browser window with TiddlyWiki open, and the agent clicking the 'New Tiddler' button and typing in the browser, rather than using terminal commands to modify files directly."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "The agent used dynamic wikitext filters rather than hardcoding the expected numeric values.",
+      "visual_evidence": "The edit mode screenshots show wikitext filters (e.g., `sum[]`, `subtract`) and not the raw numbers (6150, 2450, 3700) typed directly into the tiddler body."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "The agent actually typed the content into the TiddlyWiki editor.",
+      "visual_evidence": "Progressive screenshots show the text being typed into the tiddler body field over time, rather than instantly appearing via a script or pasting a complete pre-written file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected title of the tiddler is exactly 'Financial Summary Report'. The initial state of the wiki has Total Contributions of 6150, Total Expenses of 2450, and a Net Balance of 3700. If the agent successfully implements dynamic wikitext, the saved tiddler should display these exact numbers. During the final evaluation phase, a dummy contribution of 10000 is added; if you are evaluating the final post-evaluation state, the dynamic values should be: Total Contributions = 16150, Total Expenses = 2450, Net Balance = 13700."
+}

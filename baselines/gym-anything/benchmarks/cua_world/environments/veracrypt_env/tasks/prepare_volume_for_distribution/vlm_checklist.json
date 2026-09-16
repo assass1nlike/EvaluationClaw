@@ -1,0 +1,59 @@
+{
+  "task_id": "prepare_volume_for_distribution@1",
+  "task_completion": [
+    {
+      "id": "clone_volume_created",
+      "description": "Verify that a copy of the master volume was created with the correct name.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager or terminal window showing the file 'financial_transfer.hc' existing in the '/home/ga/Volumes/' directory alongside 'data_volume.hc'."
+    },
+    {
+      "id": "password_pim_changed",
+      "description": "Verify that the password and PIM of the cloned volume were changed to the specified values.",
+      "points": 20,
+      "visual_evidence": "Look for the VeraCrypt 'Volume Password Change' dialog or a terminal command showing the new password 'Transfer#2024' and PIM '485' being applied specifically to 'financial_transfer.hc'."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Verify that the new cloned volume was successfully mounted.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt main window showing 'financial_transfer.hc' mounted to a drive slot, or a file manager showing the contents of the mounted VeraCrypt volume."
+    },
+    {
+      "id": "notice_file_created",
+      "description": "Verify that the required text file was created inside the mounted volume.",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'transmittal_notice.txt' located inside the mounted volume's directory (e.g., /media/veracrypt1 or similar mount point)."
+    },
+    {
+      "id": "notice_file_content",
+      "description": "Verify that the text file contains the exact required authorization phrase.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the content 'Authorized for transfer to External Auditor' inside 'transmittal_notice.txt'."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Verify that the volume was dismounted after the file operations were completed.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt main window showing no volumes mounted (empty slots), or a terminal command successfully dismounting the volume."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_veracrypt_interaction",
+      "description": "Verify that the agent actually used VeraCrypt to change the password and mount the volume.",
+      "visual_evidence": "Look for genuine VeraCrypt GUI windows or valid 'veracrypt' CLI commands being executed, rather than just renaming files or echoing fake success messages."
+    },
+    {
+      "id": "master_volume_unmodified",
+      "description": "Verify that the original master volume's password was not changed.",
+      "visual_evidence": "Ensure that any password change dialogs or commands are explicitly targeting 'financial_transfer.hc' and NOT 'data_volume.hc'."
+    },
+    {
+      "id": "file_in_correct_location",
+      "description": "Verify that the text file was created inside the mounted volume, not just in a local folder.",
+      "visual_evidence": "Check the file path in the text editor or terminal. It should be in a mount directory (like /media/veracrypt...) and not simply in /home/ga/Volumes/."
+    }
+  ],
+  "privileged_info_for_vlm": "Master volume path: /home/ga/Volumes/data_volume.hc (Original password: MountMe2024). Clone volume path: /home/ga/Volumes/financial_transfer.hc. New password for clone: Transfer#2024. New PIM for clone: 485. Required file inside clone: transmittal_notice.txt. Required content: 'Authorized for transfer to External Auditor'."
+}

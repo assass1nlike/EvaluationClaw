@@ -1,0 +1,53 @@
+{
+  "task_id": "upgrade_deployment@1",
+  "task_completion": [
+    {
+      "id": "edit_deployment_opened",
+      "description": "The agent opens the edit configuration screen for the 'nginx-web' deployment.",
+      "points": 10,
+      "visual_evidence": "The Rancher UI shows an 'Edit Deployment' or 'Edit Config' screen for the 'nginx-web' deployment."
+    },
+    {
+      "id": "image_updated_in_form",
+      "description": "The agent updates the container image to the new version in the edit form.",
+      "points": 20,
+      "visual_evidence": "The container image input field in the Rancher UI is filled with 'nginx:1.26-alpine'."
+    },
+    {
+      "id": "deployment_saved",
+      "description": "The agent saves the deployment configuration.",
+      "points": 20,
+      "visual_evidence": "The agent clicks 'Save' and the UI transitions back to the deployment details or list page, often showing an 'Updating' state."
+    },
+    {
+      "id": "rollout_completed",
+      "description": "The deployment rollout completes successfully.",
+      "points": 20,
+      "visual_evidence": "The deployment status in the Rancher UI shows as 'Active' with the expected number of pods running, and no pods are stuck in a terminating or pending state."
+    },
+    {
+      "id": "new_image_verified",
+      "description": "The deployment or its pods reflect the updated image.",
+      "points": 30,
+      "visual_evidence": "The deployment details page, container specs, or individual pod details explicitly display the image as 'nginx:1.26-alpine'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_ui",
+      "description": "The agent used the Rancher web interface to perform the upgrade.",
+      "visual_evidence": "All actions are performed within the web browser showing the Rancher UI."
+    },
+    {
+      "id": "no_terminal_kubectl",
+      "description": "The agent did not use a terminal to bypass the UI.",
+      "visual_evidence": "No terminal windows or command-line interfaces (like running 'kubectl set image') are visible in the screenshots."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "The agent interacted with the live Rancher application.",
+      "visual_evidence": "The screenshots show realistic UI states, such as dropdowns, form fields, and loading indicators, rather than a text editor or static mockups."
+    }
+  ],
+  "privileged_info_for_vlm": "Target deployment: 'nginx-web' in namespace 'staging'. Initial image: 'nginx:1.25-alpine'. Target image: 'nginx:1.26-alpine'."
+}

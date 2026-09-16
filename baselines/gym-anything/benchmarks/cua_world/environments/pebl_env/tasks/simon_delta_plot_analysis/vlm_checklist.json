@@ -1,0 +1,53 @@
+{
+  "task_id": "simon_delta_plot_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_csv_data",
+      "description": "Load the Simon task CSV dataset.",
+      "points": 10,
+      "visual_evidence": "Code (e.g., Python/pandas) reading the file from ~/pebl/data/simon_task_data.csv."
+    },
+    {
+      "id": "filter_data_and_exclude_s99",
+      "description": "Filter the dataset to exclude participant s99 and keep only correct trials for the analysis.",
+      "points": 15,
+      "visual_evidence": "Code showing explicit exclusion of 's99' (or handling them separately for the exclusion report) and filtering the dataframe for correct == 1."
+    },
+    {
+      "id": "calculate_individual_metrics",
+      "description": "Calculate individual participant metrics including mean RTs, accuracies, and the Simon effect.",
+      "points": 20,
+      "visual_evidence": "Code grouping data by participant and condition to compute mean RTs, accuracy rates, and the Simon effect (mean incongruent RT - mean congruent RT)."
+    },
+    {
+      "id": "calculate_quintile_delta_plot",
+      "description": "Divide correct RTs into five quintiles per participant and calculate the group-level delta plot.",
+      "points": 30,
+      "visual_evidence": "Code using quantiles/binning (e.g., pd.qcut) to divide RTs into 5 bins (Q1-Q5) for each participant, calculating the Simon effect within each bin, and averaging these effects across all valid participants."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the final analysis to the specified JSON report file.",
+      "points": 25,
+      "visual_evidence": "Code writing a JSON object to ~/pebl/analysis/simon_report.json, or the file itself open in an editor showing keys like 'participants', 'group_mean_simon_effect_ms', and 'group_delta_plot'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation_performed",
+      "description": "The agent wrote code to compute the values rather than guessing or hardcoding a mock JSON file.",
+      "visual_evidence": "Presence of a Python script, Jupyter notebook, or R script containing actual data manipulation logic (e.g., pandas/numpy operations) to derive the results."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the final JSON output values.",
+      "visual_evidence": "The JSON generation code uses variables derived from the dataframe calculations rather than hardcoded numbers for the Simon effects and quintiles."
+    },
+    {
+      "id": "correct_file_paths_used",
+      "description": "The agent interacted with the correct directories.",
+      "visual_evidence": "File paths in the code or terminal explicitly reference ~/pebl/data/ and ~/pebl/analysis/."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 25 valid participants (s1 to s25) and one contaminated participant (s99). The output must be saved to /home/ga/pebl/analysis/simon_report.json. The task requires calculating the Simon effect (Incongruent RT - Congruent RT) overall and across 5 quintiles (Q1-Q5) for correct trials only. The JSON must explicitly list s99 with 'excluded: true' and a reason."
+}

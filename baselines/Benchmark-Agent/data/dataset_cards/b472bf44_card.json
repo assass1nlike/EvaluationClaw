@@ -1,0 +1,80 @@
+{
+  "dataset_id": "b472bf44",
+  "name": "Multi-Page Form Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 118,
+  "description": "This dataset evaluates visual question answering over multi-page form documents. Given a set of scanned form pages and a natural-language question, the model must locate and extract the requested information from the images and return a short text answer.",
+  "card_text": "The dataset consists of multi-page form document images paired with questions and short text answers. Each sample provides an array of image files representing consecutive pages of a form, a question asking for specific information (such as numeric values, request items, or field entries), and a free-text answer containing the extracted content. The forms appear to come from varied domains, including legal (e.g., pretrial conditions) and scientific/chemical (e.g., molecular weight values). Questions require cross-page reasoning and precise reading of form fields, tables, and checkboxes. Answers are typically concise strings or numbers, sometimes as a list. The dataset is designed for open-ended document visual question answering, where models must ground their responses in the visual layout and textual content of the provided pages.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "form documents",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "A set of scanned multi-page form document images that serve as the primary context. The pages contain structured fields, tables, and text that the model must read to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question that asks for specific information located within the multi-page form images. It directs the model to find and extract a particular value or item.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short text answer, often a value or phrase extracted from the form images, that directly responds to the question. It may contain numbers, names, or brief entries.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a set of multi-page form document images as the primary context, a natural-language question about information within those pages, and a short free-text answer extracted from the forms. No additional fields such as dialog, options, bounding boxes, or masks are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageFormDocumentVisualQuestionAnswering/multi-page_form_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Form Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "id": "eyes_open_alpha_analysis@1",
+  "name": "Configure Resting-State Eyes-Open Alpha Wave Analysis Environment",
+  "description": "You are a cognitive neuroscientist preparing a resting-state EEG analysis session for a study on alpha wave dynamics. Load the EEG recording (Subject S001, eyes-open, 8 channels, 250 Hz) from ~/Documents/OpenBCI_GUI/Recordings/OpenBCI-EEG-S001-EyesOpen.txt in Playback mode. Configure the analysis environment with both Band Power and FFT Plot widgets, a 1–50 Hz bandpass filter, and a 100 µV vertical scale for the Time Series. Enable Expert Mode, capture a screenshot of the analysis setup, and save the settings configuration.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "application": "OpenBCI GUI v5.2.2",
+    "persona": "Cognitive neuroscientist / sleep researcher",
+    "industry": "Academic Research / Clinical Neuroscience",
+    "data_source": "PLAYBACK",
+    "recording_file": "OpenBCI-EEG-S001-EyesOpen.txt",
+    "recording_source": "PhysioNet EEGMMI Dataset (eegmmidb 1.0.0), Subject S001, Run R01 (eyes open baseline)",
+    "recording_channels": 8,
+    "recording_sample_rate_hz": 250,
+    "channel_order": [
+      "Fp1",
+      "Fp2",
+      "C3",
+      "C4",
+      "P7",
+      "P8",
+      "O1",
+      "O2"
+    ],
+    "required_widgets": [
+      "Band Power",
+      "FFT Plot"
+    ],
+    "required_bandpass_low_hz": 1.0,
+    "required_bandpass_high_hz": 50.0,
+    "required_timeseries_scale_uv": 100,
+    "requires_expert_mode": true,
+    "requires_screenshot": true,
+    "requires_settings_save": true,
+    "difficulty": "very_hard"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/eyes_open_alpha_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/eyes_open_alpha_analysis/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_eyes_open_alpha_analysis"
+    }
+  },
+  "tags": [
+    "openbci",
+    "eyes-open",
+    "alpha",
+    "resting-state",
+    "playback",
+    "physionet",
+    "very-hard",
+    "cognitive-neuroscience"
+  ]
+}

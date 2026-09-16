@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_build_cache_debug@1",
+  "task_completion": [
+    {
+      "id": "dockerignore_created",
+      "description": "A .dockerignore file is created to exclude unnecessary files from the build context.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat .dockerignore') showing a .dockerignore file in /home/ga/build-project that explicitly lists '.git' and '__pycache__'."
+    },
+    {
+      "id": "apt_get_reordered",
+      "description": "System package installations are reordered to prevent cache invalidation from source code changes.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the Dockerfile where the 'RUN apt-get ...' instruction is placed before the main source code copy instruction (e.g., 'COPY . .')."
+    },
+    {
+      "id": "requirements_copied_first",
+      "description": "The requirements.txt file is copied separately before installing Python dependencies.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the Dockerfile where 'COPY requirements.txt ...' appears before the 'RUN pip install ...' instruction."
+    },
+    {
+      "id": "pip_install_reordered",
+      "description": "Python package installations are reordered to prevent cache invalidation from source code changes.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the Dockerfile where the 'RUN pip install ...' instruction is placed before the main source code copy instruction (e.g., 'COPY . .')."
+    },
+    {
+      "id": "image_built",
+      "description": "The optimized Docker image is successfully built with the correct tag.",
+      "points": 10,
+      "visual_evidence": "A terminal showing the execution of 'docker build -t build-project:optimized .' and its successful completion output."
+    },
+    {
+      "id": "container_running",
+      "description": "The built image is run as a container and is accessible on port 5000.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'docker run' with port mapping (e.g., '-p 5000:5000'), 'docker ps' listing the container on port 5000, or a successful 'curl' command to localhost:5000."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modifications",
+      "description": "Files were genuinely modified using an editor or standard terminal commands.",
+      "visual_evidence": "Screenshots show a text editor (like nano, vim, or VS Code) or valid shell commands (echo, sed) being used to edit the Dockerfile and .dockerignore, rather than just printing the final expected text."
+    },
+    {
+      "id": "genuine_build_process",
+      "description": "The Docker build process was actually executed.",
+      "visual_evidence": "Terminal shows genuine Docker build output with layers being cached or executed, not just a typed out success message."
+    },
+    {
+      "id": "genuine_container_test",
+      "description": "The container was genuinely tested or verified.",
+      "visual_evidence": "Terminal shows actual system output from 'docker run', 'docker ps', or 'curl', rather than manually typed mock responses."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/build-project. The target image tag must be exactly 'build-project:optimized'. The container must expose and run on port 5000. The Dockerfile must be optimized by placing 'apt-get' and 'pip install' commands before the main source code copy ('COPY . .'). 'requirements.txt' must be copied before 'pip install'. A '.dockerignore' file must exist and contain '.git' and '__pycache__'."
+}

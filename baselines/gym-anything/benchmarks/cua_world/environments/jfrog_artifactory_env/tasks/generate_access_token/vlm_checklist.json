@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_access_token@1",
+  "task_completion": [
+    {
+      "id": "artifactory_accessed",
+      "description": "The agent opened JFrog Artifactory in a web browser.",
+      "points": 10,
+      "visual_evidence": "A web browser is open showing the JFrog Artifactory login page or dashboard, with 'localhost:8082' in the address bar."
+    },
+    {
+      "id": "logged_in_as_admin",
+      "description": "The agent logged into Artifactory as the 'admin' user.",
+      "points": 20,
+      "visual_evidence": "The Artifactory interface shows the user is logged in as 'admin' (typically visible in the top right corner or user profile section)."
+    },
+    {
+      "id": "token_generation_page",
+      "description": "The agent navigated to the access token generation page.",
+      "points": 20,
+      "visual_evidence": "The 'Access Tokens' or 'Identity and Access' page is open in the Artifactory UI, showing the form or button to generate a new token."
+    },
+    {
+      "id": "token_generated",
+      "description": "The agent successfully generated an access token.",
+      "points": 30,
+      "visual_evidence": "A newly generated access token string (often a long alphanumeric string or JWT) is displayed on the Artifactory screen."
+    },
+    {
+      "id": "token_saved",
+      "description": "The agent saved the token string to the specified file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window is visible showing the generated token string being saved to the file path '/home/ga/ci_access_token.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_generation",
+      "description": "The agent used the Artifactory web UI to generate the token.",
+      "visual_evidence": "Screenshots should show interaction with the Artifactory web interface to create the token, rather than using terminal commands like 'curl' to hit the API directly."
+    },
+    {
+      "id": "authentic_token_saved",
+      "description": "The token saved to the file appears to be the actual token generated from Artifactory.",
+      "visual_evidence": "The string saved in '/home/ga/ci_access_token.txt' should visually match the token generated in the Artifactory UI, or at least appear to be a valid, long token string rather than a placeholder."
+    },
+    {
+      "id": "no_fake_file_creation",
+      "description": "The agent did not bypass the application to just create a fake output file.",
+      "visual_evidence": "There must be evidence of the agent actually logging into Artifactory and generating a token before creating the output file."
+    }
+  ],
+  "privileged_info_for_vlm": "Artifactory URL: http://localhost:8082. Admin credentials: admin / password. Output file path: /home/ga/ci_access_token.txt."
+}

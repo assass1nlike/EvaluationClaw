@@ -1,0 +1,41 @@
+{
+  "id": "business_letter_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Reformat the tenant notification letter at /home/ga/Documents/tenant_notice_draft.docx into a standard full-block business letter. The final document must use 12pt Liberation Serif or Times New Roman font with 1.0-inch margins on all sides. The company name 'Meridian Property Group, LLC' should use the 'Heading 1' paragraph style. The 'Re:' subject line and the signer's name 'Jonathan R. Whitfield' must be bold. Include 12pt of space after each body paragraph while keeping all original text content. Save the result to /home/ga/Documents/tenant_notice_final.docx.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/business_letter_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/business_letter_formatting/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/tenant_notice_draft.docx",
+    "output_path": "/home/ga/Documents/tenant_notice_final.docx",
+    "key_phrases": [
+      "Meridian Property Group",
+      "HVAC System Replacement",
+      "Dominion Mechanical Services",
+      "Ms. Delacroix",
+      "Jonathan R. Whitfield"
+    ],
+    "target_font_names": [
+      "Liberation Serif",
+      "Times New Roman",
+      "Tinos"
+    ],
+    "target_font_size_pt": 12,
+    "target_margin_inches": 1.0,
+    "target_spacing_after_pt": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_business_letter_formatting"
+    }
+  }
+}

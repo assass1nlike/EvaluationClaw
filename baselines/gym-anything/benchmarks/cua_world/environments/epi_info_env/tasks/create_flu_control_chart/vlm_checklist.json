@@ -1,0 +1,59 @@
+{
+  "task_id": "create_flu_control_chart@1",
+  "task_completion": [
+    {
+      "id": "access_flu_data",
+      "description": "Agent opens or reads the flu data CSV file.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening 'flu_data_2019_2020.csv' in a spreadsheet application (like LibreOffice Calc) or writing a script (e.g., Python/pandas) to read the file."
+    },
+    {
+      "id": "calculate_threshold",
+      "description": "Agent calculates the alert threshold using the baseline period.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent calculating the Mean and Standard Deviation for Weeks 40-50 of 2019, and computing Mean + 2*SD. The resulting threshold value should be approximately 48605."
+    },
+    {
+      "id": "generate_line_chart",
+      "description": "Agent generates a line chart plotting Total_ILI and Threshold by Week.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a generated line chart with 'Week' on the x-axis, and two series plotted: 'Total_ILI' (fluctuating line) and 'Threshold' (a straight horizontal line at ~48605)."
+    },
+    {
+      "id": "save_control_chart",
+      "description": "Agent saves the generated chart as 'control_chart.png' in the Documents folder.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a save dialog, file explorer, or script execution confirming the chart is saved to 'Documents/control_chart.png'."
+    },
+    {
+      "id": "document_threshold_value",
+      "description": "Agent documents the calculated threshold in 'alert_report.txt'.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a text editor open with 'Documents/alert_report.txt' containing the text 'Threshold: ' followed by the calculated value (approximately 48605.06)."
+    },
+    {
+      "id": "document_alert_weeks",
+      "description": "Agent documents the list of weeks exceeding the threshold in 'alert_report.txt'.",
+      "points": 20,
+      "visual_evidence": "Screenshots show 'Documents/alert_report.txt' containing the text 'Alert Weeks: ' followed by a comma-separated list of the correct weeks (51, 52, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "Agent actually computed the threshold rather than hardcoding the known answer.",
+      "visual_evidence": "Look for spreadsheet formulas (e.g., AVERAGE, STDEV) or script code (e.g., df.mean(), df.std()) being executed on the data, rather than the agent just typing '48605.06' from memory."
+    },
+    {
+      "id": "genuine_chart_generation",
+      "description": "Agent used a tool to plot the data into a chart.",
+      "visual_evidence": "Look for interaction with a chart wizard in a spreadsheet or a plotting library in code (like matplotlib), ensuring the chart wasn't just downloaded or copied from elsewhere."
+    },
+    {
+      "id": "genuine_file_interaction",
+      "description": "Agent interacted with the file system to save the required files properly.",
+      "visual_evidence": "Look for standard file saving procedures (GUI save dialogs or proper file I/O in scripts) rather than just using terminal commands to echo text into a file without opening it."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline period is weeks 40-50 of 2019. The correct calculated statistics for this period are: Mean = 34,363.64, Standard Deviation = 7,120.71. The Alert Threshold (Mean + 2*SD) is exactly 48,605.06 (accept minor rounding differences). The correct Alert Weeks (where Total_ILI exceeds 48,605.06) are: 51, 52, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12. The final report must be in 'Documents/alert_report.txt' and the chart in 'Documents/control_chart.png'."
+}

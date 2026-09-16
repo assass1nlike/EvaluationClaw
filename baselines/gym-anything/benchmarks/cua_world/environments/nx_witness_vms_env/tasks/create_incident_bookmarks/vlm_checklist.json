@@ -1,0 +1,59 @@
+{
+  "task_id": "create_incident_bookmarks@1",
+  "task_completion": [
+    {
+      "id": "read_incident_time",
+      "description": "Agent reads the base incident timestamp from the specified file.",
+      "points": 10,
+      "visual_evidence": "Terminal shows the agent running `cat /home/ga/incident_start_time.txt` or a script containing code to open and read this file."
+    },
+    {
+      "id": "get_device_ids",
+      "description": "Agent queries the API to retrieve the device IDs for the required cameras.",
+      "points": 15,
+      "visual_evidence": "Terminal shows a GET request (e.g., via curl) to the devices endpoint (like `/rest/v1/devices`) or a script fetching and extracting the device IDs for the Entrance, Lobby, and Parking Lot cameras."
+    },
+    {
+      "id": "create_entrance_bookmark",
+      "description": "Agent sends a request to create the 'Suspect Entry' bookmark on the Entrance Camera.",
+      "points": 20,
+      "visual_evidence": "Terminal shows a POST request to `/rest/v1/bookmarks` (via curl or script payload) with the Entrance Camera's device ID, startTimeMs as T+0, durationMs as 120000, and tags ['theft', 'suspect', 'entrance']."
+    },
+    {
+      "id": "create_lobby_bookmark",
+      "description": "Agent sends a request to create the 'Suspicious Behavior in Lobby' bookmark on the Lobby Camera.",
+      "points": 20,
+      "visual_evidence": "Terminal shows a POST request to `/rest/v1/bookmarks` with the Lobby Camera's device ID, startTimeMs as T+180000, durationMs as 300000, and tags ['theft', 'suspect', 'loitering']."
+    },
+    {
+      "id": "create_parking_bookmark",
+      "description": "Agent sends a request to create the 'Suspect Vehicle Departure' bookmark on the Parking Lot Camera.",
+      "points": 20,
+      "visual_evidence": "Terminal shows a POST request to `/rest/v1/bookmarks` with the Parking Lot Camera's device ID, startTimeMs as T+600000, durationMs as 180000, and tags ['theft', 'suspect', 'vehicle']."
+    },
+    {
+      "id": "verify_success_responses",
+      "description": "Agent receives successful responses from the API for the bookmark creations.",
+      "points": 15,
+      "visual_evidence": "Terminal output shows successful API responses (e.g., HTTP 200 OK, or JSON responses containing bookmark IDs and no errors) after executing the POST requests."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "The agent actually executes the API requests against the local server.",
+      "visual_evidence": "The terminal shows the execution of curl commands or a Python script, not just the text of the commands written in an editor without being run."
+    },
+    {
+      "id": "dynamic_timestamp_used",
+      "description": "The agent uses the dynamic timestamp from the file rather than hardcoding a fake value.",
+      "visual_evidence": "The script or commands show the base timestamp T being read from `/home/ga/incident_start_time.txt` and mathematically added to the offsets (0, 180000, 600000)."
+    },
+    {
+      "id": "authentic_responses",
+      "description": "The API responses appear genuine and are not mocked.",
+      "visual_evidence": "The terminal output displays realistic Nx Witness API JSON responses or standard curl output, indicating real communication with `https://localhost:7001`."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating 3 bookmarks via the Nx Witness REST API (POST https://localhost:7001/rest/v1/bookmarks). The base timestamp T (in milliseconds) is read from /home/ga/incident_start_time.txt. Bookmark 1: Entrance Camera, startTimeMs = T, durationMs = 120000, tags = ['theft', 'suspect', 'entrance']. Bookmark 2: Lobby Camera, startTimeMs = T + 180000, durationMs = 300000, tags = ['theft', 'suspect', 'loitering']. Bookmark 3: Parking Lot Camera, startTimeMs = T + 600000, durationMs = 180000, tags = ['theft', 'suspect', 'vehicle']. The agent must first obtain the deviceId for each camera (e.g., via GET /rest/v1/devices) to include in the POST requests."
+}

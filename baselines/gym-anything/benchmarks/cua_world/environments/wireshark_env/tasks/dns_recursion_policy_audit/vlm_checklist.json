@@ -1,0 +1,53 @@
+{
+  "task_id": "dns_recursion_policy_audit@1",
+  "task_completion": [
+    {
+      "id": "open_capture_file",
+      "description": "Agent opened the dns.cap file for analysis.",
+      "points": 10,
+      "visual_evidence": "Wireshark GUI showing /home/ga/Documents/captures/dns.cap loaded, or a terminal showing a tshark command reading the file."
+    },
+    {
+      "id": "identify_recursion_desired",
+      "description": "Agent identified packets where Recursion Desired is set.",
+      "points": 20,
+      "visual_evidence": "Wireshark display filter like 'dns.flags.recdesired == 1' applied, or a similar tshark filter command executed in the terminal."
+    },
+    {
+      "id": "export_recursive_queries",
+      "description": "Agent exported the recursive queries to recursive_queries.pcap.",
+      "points": 20,
+      "visual_evidence": "Wireshark 'Export Specified Packets' dialog saving to /home/ga/Documents/captures/recursive_queries.pcap, or a tshark command with the '-w' flag writing to that path."
+    },
+    {
+      "id": "identify_recursion_available",
+      "description": "Agent checked for packets where Recursion Available is set.",
+      "points": 20,
+      "visual_evidence": "Wireshark display filter like 'dns.flags.recavail == 1' applied, or a similar tshark filter command executed in the terminal."
+    },
+    {
+      "id": "create_json_report",
+      "description": "Agent created the dns_audit_report.json file with the required structure.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the creation of /home/ga/Documents/captures/dns_audit_report.json containing the keys: total_packets, recursive_queries_count, recursion_available_count, and server_supports_recursion."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "Agent actually analyzed the packets using a tool like Wireshark or tshark.",
+      "visual_evidence": "Screenshots show interaction with Wireshark GUI or execution of tshark commands to find the packet counts, rather than just guessing or hardcoding values."
+    },
+    {
+      "id": "genuine_pcap_export",
+      "description": "Agent genuinely exported the filtered packets to a new pcap file.",
+      "visual_evidence": "The export process is visible (Wireshark export dialog or tshark write command), not just copying the original file or creating an empty file."
+    },
+    {
+      "id": "report_content_matches_analysis",
+      "description": "The values in the JSON report match the findings from the packet analysis.",
+      "visual_evidence": "The numbers entered into the JSON report correspond to the packet counts seen in the Wireshark status bar or tshark terminal output."
+    }
+  ],
+  "privileged_info_for_vlm": "The true correct values for the dns.cap file are: total_packets: 38, recursive_queries_count: 38, recursion_available_count: 19, server_supports_recursion: true. The correct display filters are 'dns.flags.recdesired == 1' and 'dns.flags.recavail == 1'. The agent should find and report these true values, even if programmatic verifiers might have a bug expecting 0s."
+}

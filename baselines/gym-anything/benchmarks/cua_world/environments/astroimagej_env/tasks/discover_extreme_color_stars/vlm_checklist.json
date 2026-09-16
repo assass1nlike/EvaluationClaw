@@ -1,0 +1,53 @@
+{
+  "task_id": "discover_extreme_color_stars@1",
+  "task_completion": [
+    {
+      "id": "access_fits_data",
+      "description": "Verify that the agent accesses the V-band and B-band FITS images.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing Vcomb.fits and Bcomb.fits opened in an image viewer (like AstroImageJ or DS9) or a script being written/executed to read these specific FITS files."
+    },
+    {
+      "id": "locate_candidates",
+      "description": "Verify that the agent identifies stars that are bright in V-band but faint/invisible in B-band.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the agent comparing the V-band and B-band images (e.g., side-by-side GUI windows, blinking images, or script output) and extracting pixel coordinates for candidate stars."
+    },
+    {
+      "id": "create_candidates_file",
+      "description": "Verify that the agent creates or opens the required output text file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a text editor or terminal command creating/editing the file exactly at ~/AstroImages/color_search/red_candidates.txt."
+    },
+    {
+      "id": "format_coordinates",
+      "description": "Verify that the coordinates are formatted correctly in the file.",
+      "points": 10,
+      "visual_evidence": "Screenshots of the text file contents showing coordinates formatted with one star per line, and X and Y values separated by a space or comma."
+    },
+    {
+      "id": "record_three_stars",
+      "description": "Verify that the agent records exactly 3 stars in the output file.",
+      "points": 30,
+      "visual_evidence": "Screenshots of the final text file containing exactly 3 lines of coordinate pairs, representing the 3 discovered extremely red stars."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_discovery",
+      "description": "Ensure the agent actually analyzed the images to find the stars.",
+      "visual_evidence": "The agent actively interacts with the FITS images visually or writes a functional script to analyze the pixel data, rather than instantly typing coordinates without prior inspection."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Ensure the agent saves the results to the specified file.",
+      "visual_evidence": "The agent saves the coordinates to the actual red_candidates.txt file on disk, rather than just leaving them in an unsaved editor buffer or terminal output."
+    },
+    {
+      "id": "no_hallucinated_coordinates",
+      "description": "Ensure the recorded coordinates match the agent's analysis.",
+      "visual_evidence": "The coordinates written to the text file match the ones observed during the agent's image inspection or script execution, proving they were not hallucinated or hardcoded."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/AstroImages/color_search/red_candidates.txt. The task requires finding exactly 3 valid candidates. The data source is real VLT Messier 12 Observation data (V-band and B-band). There are 23 valid extreme color stars in the images that meet the mathematical criteria (>2.5x field median color ratio), making the discovery of 3 stars entirely feasible."
+}

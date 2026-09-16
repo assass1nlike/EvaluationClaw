@@ -1,0 +1,53 @@
+{
+  "task_id": "recover_orphaned_volume_data@1",
+  "task_completion": [
+    {
+      "id": "dangling_volumes_inspected",
+      "description": "Checks if the agent searched for or inspected dangling volumes to locate the target data.",
+      "points": 10,
+      "visual_evidence": "Terminal commands like `docker volume ls -f dangling=true`, inspecting specific volumes with `docker run --rm -v <vol>:/data alpine ls /data`, or viewing the Volumes tab in Docker Desktop."
+    },
+    {
+      "id": "recovery_container_created",
+      "description": "Checks if a new container named 'recovery-env' was created.",
+      "points": 20,
+      "visual_evidence": "Terminal command `docker run ... --name recovery-env ...` or the container 'recovery-env' visible in the Docker Desktop Containers list."
+    },
+    {
+      "id": "recovery_container_running",
+      "description": "Checks if the 'recovery-env' container is persistently running.",
+      "points": 20,
+      "visual_evidence": "Terminal output of `docker ps` showing 'recovery-env' with an 'Up' status, or Docker Desktop showing a 'Running' indicator (e.g., green icon/status) next to 'recovery-env'."
+    },
+    {
+      "id": "volume_mounted_workspace",
+      "description": "Checks if the identified volume is mounted to '/workspace' in the 'recovery-env' container.",
+      "points": 20,
+      "visual_evidence": "A `docker run` command including a volume mount flag like `-v <volume_name>:/workspace`, `docker inspect recovery-env` showing the mount destination as '/workspace', or Docker Desktop container 'Inspect'/'Binds' tab showing the destination '/workspace'."
+    },
+    {
+      "id": "target_file_accessible",
+      "description": "Checks if the target file 'PROJECT_X_BLUEPRINT.md' is successfully recovered and accessible at the root of the mounted '/workspace' directory.",
+      "points": 30,
+      "visual_evidence": "Terminal command like `docker exec recovery-env ls /workspace` listing 'PROJECT_X_BLUEPRINT.md', or the Docker Desktop 'Files' tab for the 'recovery-env' container showing the file inside the '/workspace' folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Verifies that the agent used real Docker commands or the Docker Desktop GUI to perform the task.",
+      "visual_evidence": "Execution of actual `docker` commands in a terminal or interaction with the Docker Desktop application, rather than typing out hypothetical commands in a text editor or echoing fake outputs."
+    },
+    {
+      "id": "no_file_fabrication",
+      "description": "Verifies that the agent did not fabricate the target file to bypass the recovery process.",
+      "visual_evidence": "Absence of commands like `touch /workspace/PROJECT_X_BLUEPRINT.md` or `echo ... > /workspace/PROJECT_X_BLUEPRINT.md`. The file must appear strictly as a result of mounting the existing orphaned volume."
+    },
+    {
+      "id": "genuine_new_container",
+      "description": "Verifies the agent created a genuinely new container rather than renaming an existing one.",
+      "visual_evidence": "Use of `docker run` or `docker create` to instantiate 'recovery-env', rather than using `docker rename` on an unrelated existing container."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file to recover is exactly 'PROJECT_X_BLUEPRINT.md'. The recovery container must be named 'recovery-env' and the recovered volume must be mounted exactly at the path '/workspace'."
+}

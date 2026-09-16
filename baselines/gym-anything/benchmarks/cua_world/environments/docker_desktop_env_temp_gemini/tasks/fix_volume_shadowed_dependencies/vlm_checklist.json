@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_volume_shadowed_dependencies@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "The agent opens the docker-compose.yml file located in /home/ga/projects/shadow-bug/.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) or terminal command (e.g., cat) showing the contents of docker-compose.yml."
+    },
+    {
+      "id": "fix_docker_compose",
+      "description": "The agent modifies docker-compose.yml to include an anonymous volume for /app/node_modules to prevent shadowing.",
+      "points": 30,
+      "visual_evidence": "The docker-compose.yml file is shown with a new volume entry like '- /app/node_modules' under the volumes section for the application service."
+    },
+    {
+      "id": "start_container",
+      "description": "The agent starts the Docker container using docker-compose.",
+      "points": 15,
+      "visual_evidence": "A terminal showing the execution of 'docker-compose up', 'docker compose up', or similar commands, and the container starting."
+    },
+    {
+      "id": "verify_app_running",
+      "description": "The agent verifies the container is running and the application has not crashed.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing 'docker ps' with the container 'shadow-app' running, or docker-compose logs showing the Node.js server successfully listening on port 3000."
+    },
+    {
+      "id": "verify_app_response",
+      "description": "The agent verifies the application responds correctly at http://localhost:3000.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a 'curl http://localhost:3000' command returning 'Hello from Docker!', or a web browser displaying 'Hello from Docker!' at localhost:3000."
+    },
+    {
+      "id": "verify_no_host_node_modules",
+      "description": "The agent ensures that dependencies are not installed on the host machine.",
+      "points": 10,
+      "visual_evidence": "Terminal output of 'ls' or 'tree' in the project directory showing no 'node_modules' folder, or the absence of any 'npm install' command executed on the host."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_host_npm_install",
+      "description": "The agent did not run 'npm install' on the host machine.",
+      "visual_evidence": "No terminal screenshot shows 'npm install' being executed directly in the host's /home/ga/projects/shadow-bug/ directory."
+    },
+    {
+      "id": "genuine_http_response",
+      "description": "The HTTP response is genuine and not faked.",
+      "visual_evidence": "The 'Hello from Docker!' response is the output of a real curl command or browser navigation, not an 'echo' command or manually typed text."
+    },
+    {
+      "id": "actual_docker_compose_edit",
+      "description": "The agent genuinely edited the docker-compose.yml file.",
+      "visual_evidence": "The file is edited using a real text editor or standard shell commands, rather than just claiming it was edited without showing the process."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/projects/shadow-bug'. The container name is 'shadow-app'. The expected port is 3000. A successful GET request to http://localhost:3000 must return 'Hello from Docker!'."
+}

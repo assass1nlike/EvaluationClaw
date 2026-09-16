@@ -1,0 +1,53 @@
+{
+  "task_id": "local_registry_image_workflow@1",
+  "task_completion": [
+    {
+      "id": "registry_running",
+      "description": "Verify that a local Docker registry is running on port 5000 using the registry:2 image.",
+      "points": 15,
+      "visual_evidence": "Terminal output of 'docker ps' showing a container using the 'registry:2' image with port mapping to 5000 (e.g., 0.0.0.0:5000->5000/tcp), or equivalent Docker GUI evidence."
+    },
+    {
+      "id": "images_built_and_tagged",
+      "description": "Verify the Python API service is built and tagged correctly for the local registry.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker images' showing the repository 'localhost:5000/api-service' with both 'v1.0.0' and 'latest' tags."
+    },
+    {
+      "id": "images_pushed",
+      "description": "Verify the tagged images were pushed to the local Docker registry.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing successful 'docker push localhost:5000/api-service:v1.0.0' and 'latest' commands with layer hashes and 'Pushed' status, or a curl command to the registry catalog (localhost:5000/v2/_catalog) showing the api-service repository."
+    },
+    {
+      "id": "docker_compose_configured",
+      "description": "Verify the docker-compose.yml file is configured correctly without a build directive.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal 'cat' output showing the contents of '/home/ga/api-service/docker-compose.yml'. It must contain 'image: localhost:5000/api-service:latest' (or v1.0.0), a port mapping to 7080 (e.g., '7080:80' or similar), and MUST NOT contain a 'build:' directive."
+    },
+    {
+      "id": "service_deployed",
+      "description": "Verify the API service is deployed and accessible on port 7080.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker-compose ps' or 'docker ps' showing the api-service container running and mapped to port 7080, or a successful 'curl localhost:7080' command."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_commands",
+      "description": "Verify the agent actually executed Docker commands rather than printing fake text.",
+      "visual_evidence": "Terminal outputs show standard Docker formatting, progress bars for pushes/pulls, and realistic layer hashes."
+    },
+    {
+      "id": "actual_compose_file",
+      "description": "Verify the docker-compose.yml file was actually created in the correct directory.",
+      "visual_evidence": "The file path '/home/ga/api-service/docker-compose.yml' is visible in the terminal prompt, editor title bar, or 'ls' output."
+    },
+    {
+      "id": "containerized_deployment",
+      "description": "Verify the service on port 7080 is running inside a Docker container, not as a local host process.",
+      "visual_evidence": "The service running on port 7080 appears in 'docker ps' output, rather than being run directly via 'python' or 'uvicorn' in the host terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

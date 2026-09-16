@@ -1,0 +1,59 @@
+{
+  "task_id": "refactor_pojo_to_record@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open the TransactionEvent.java file in an editor or IDE.",
+      "points": 10,
+      "visual_evidence": "A code editor or IDE is open showing the contents of 'TransactionEvent.java'."
+    },
+    {
+      "id": "convert_to_record",
+      "description": "Refactor TransactionEvent to a Java Record.",
+      "points": 20,
+      "visual_evidence": "The class definition in 'TransactionEvent.java' has been changed to use the 'record' keyword (e.g., 'public record TransactionEvent(String id, double amount, String currency, long timestamp)')."
+    },
+    {
+      "id": "preserve_validation",
+      "description": "Preserve the constructor validation logic for the amount.",
+      "points": 20,
+      "visual_evidence": "Inside the 'TransactionEvent' record, there is a compact constructor or explicit constructor containing validation logic (e.g., 'if (amount <= 0) { throw new IllegalArgumentException(...); }')."
+    },
+    {
+      "id": "remove_boilerplate",
+      "description": "Remove explicit getters, equals, hashCode, and toString methods.",
+      "points": 10,
+      "visual_evidence": "The 'TransactionEvent.java' file is visibly shorter and no longer contains explicit methods for 'getId()', 'getAmount()', 'equals()', 'hashCode()', or 'toString()'."
+    },
+    {
+      "id": "update_audit_service",
+      "description": "Update AuditService.java to use record accessors.",
+      "points": 20,
+      "visual_evidence": "The 'AuditService.java' file is open and shows the code using record-style accessors (e.g., 'event.amount()', 'event.currency()') instead of traditional getters (e.g., 'event.getAmount()')."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Ensure the project compiles and all tests pass.",
+      "points": 20,
+      "visual_evidence": "A terminal or IDE test runner shows successful compilation and test execution for 'TransactionEventTest' (e.g., 'BUILD SUCCESS' from Maven, or green checkmarks in an IDE test runner)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_modification",
+      "description": "Verify the agent actually modified the files using a text editor or IDE.",
+      "visual_evidence": "Screenshots should show an editor interface (like IntelliJ, VS Code, nano, or vim) being used to edit the Java files, rather than just echoing text to the terminal."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify that tests were genuinely executed.",
+      "visual_evidence": "The test results should appear in a genuine test runner interface (like IntelliJ's JUnit runner) or via a standard build tool command (like 'mvn test'), not a mocked or echoed output."
+    },
+    {
+      "id": "tests_not_bypassed",
+      "description": "Verify the agent did not cheat by deleting or commenting out the tests.",
+      "visual_evidence": "If the test file ('TransactionEventTest.java') is visible, it should still contain the actual test methods and assertions, not be empty or commented out."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/IdeaProjects/banking-events. Target file: src/main/java/com/bank/events/TransactionEvent.java. Client file: src/main/java/com/bank/service/AuditService.java. Test file: src/test/java/com/bank/events/TransactionEventTest.java. The target file must be converted to a Java 'record' with a compact constructor preserving the 'amount > 0' validation. The client file must be updated to use record accessors (e.g., 'event.amount()') instead of POJO getters ('event.getAmount()')."
+}

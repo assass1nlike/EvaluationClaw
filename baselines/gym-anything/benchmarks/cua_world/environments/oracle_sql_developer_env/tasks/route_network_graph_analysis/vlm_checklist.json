@@ -1,0 +1,59 @@
+{
+  "task_id": "route_network_graph_analysis@1",
+  "task_completion": [
+    {
+      "id": "reachable_from_ord_vw",
+      "description": "Create the REACHABLE_FROM_ORD_VW view for reachability analysis.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL client executing a CREATE VIEW statement for REACHABLE_FROM_ORD_VW, or a success message 'View REACHABLE_FROM_ORD_VW created', or a SELECT query showing columns like dest_iata, min_hops, and full_path."
+    },
+    {
+      "id": "find_shortest_path_func",
+      "description": "Develop the FIND_SHORTEST_PATH PL/SQL function.",
+      "points": 15,
+      "visual_evidence": "Look for a CREATE FUNCTION statement for FIND_SHORTEST_PATH with parameters p_source_iata and p_dest_iata, or a 'Function compiled' success message."
+    },
+    {
+      "id": "hub_centrality_mv",
+      "description": "Create the HUB_CENTRALITY_MV materialized view.",
+      "points": 15,
+      "visual_evidence": "Look for a CREATE MATERIALIZED VIEW statement for HUB_CENTRALITY_MV, or a success message indicating the materialized view was created, or a query showing columns like total_degree and centrality_rank."
+    },
+    {
+      "id": "route_gap_analysis_vw",
+      "description": "Create the ROUTE_GAP_ANALYSIS_VW view.",
+      "points": 15,
+      "visual_evidence": "Look for a CREATE VIEW statement for ROUTE_GAP_ANALYSIS_VW, or a success message, or a query output showing airport1_iata, airport2_iata, and connecting_hub_iata."
+    },
+    {
+      "id": "spatial_distance_objects",
+      "description": "Implement the CALC_GREAT_CIRCLE_KM function and ROUTE_DISTANCE_VW view.",
+      "points": 20,
+      "visual_evidence": "Look for the creation of the CALC_GREAT_CIRCLE_KM function (using math/Haversine logic) AND the ROUTE_DISTANCE_VW view, or success messages for both, or a query showing distance_km and distance_rank."
+    },
+    {
+      "id": "anomaly_detection_objects",
+      "description": "Set up the ROUTE_ANOMALIES table and PROC_DETECT_ASYMMETRIC_ROUTES procedure.",
+      "points": 20,
+      "visual_evidence": "Look for a CREATE TABLE statement for ROUTE_ANOMALIES AND a CREATE PROCEDURE statement for PROC_DETECT_ASYMMETRIC_ROUTES, or their respective success/compilation messages."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with the Oracle database using a valid client.",
+      "visual_evidence": "Screenshots should show a database client (e.g., DBeaver, SQL Developer, SQL*Plus, or terminal) connected to the Oracle database, not just a text editor with unexecuted SQL."
+    },
+    {
+      "id": "execution_success_visible",
+      "description": "The agent actually executed the SQL/PLSQL statements.",
+      "visual_evidence": "Look for execution logs, success messages (e.g., 'View created', 'Procedure compiled'), or query result grids confirming the objects exist in the database."
+    },
+    {
+      "id": "no_hardcoded_logic",
+      "description": "The agent implemented actual logic rather than hardcoding expected outputs.",
+      "visual_evidence": "The SQL scripts should show recursive CTEs (e.g., CONNECT BY or WITH RECURSIVE), mathematical formulas for distance, and actual JOINs, rather than simple INSERT statements with dummy data."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

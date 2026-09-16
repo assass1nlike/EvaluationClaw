@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_automated_backups@1",
+  "task_completion": [
+    {
+      "id": "plugin_installed_activated",
+      "description": "Verify that the UpdraftPlus WordPress Backup Plugin is installed and activated.",
+      "points": 10,
+      "visual_evidence": "The WordPress Plugins page shows 'UpdraftPlus - Backup/Restore' as active, or the UpdraftPlus settings dashboard is visible."
+    },
+    {
+      "id": "file_schedule_configured",
+      "description": "Verify the file backup schedule is set to daily with a retention of 4.",
+      "points": 15,
+      "visual_evidence": "In the UpdraftPlus Settings tab, 'Files backup schedule' is set to 'Daily' and the 'retain this many scheduled backups' input is set to '4'."
+    },
+    {
+      "id": "database_schedule_configured",
+      "description": "Verify the database backup schedule is set to daily with a retention of 4.",
+      "points": 15,
+      "visual_evidence": "In the UpdraftPlus Settings tab, 'Database backup schedule' is set to 'Daily' and the 'retain this many scheduled backups' input is set to '4'."
+    },
+    {
+      "id": "folder_excluded",
+      "description": "Verify the 'temp-video-renders' directory is excluded from the uploads backup.",
+      "points": 20,
+      "visual_evidence": "In the UpdraftPlus Settings tab, under 'Include in files backup', the exclusion text box for 'Uploads' contains 'temp-video-renders'."
+    },
+    {
+      "id": "manual_backup_executed",
+      "description": "Verify an initial manual backup of both files and the database was executed.",
+      "points": 20,
+      "visual_evidence": "A 'Backup Now' modal or progress bar is visible showing the backup process running with both files and database selected, or a success message indicating the backup completed."
+    },
+    {
+      "id": "backup_in_history",
+      "description": "Verify the backup completed successfully and appears in the backup history.",
+      "points": 20,
+      "visual_evidence": "The 'Existing backups' tab shows a completed backup entry with the current date, containing icons/buttons for both Database and Files. If backup size is visible, it should be under 20MB."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the WordPress web GUI to configure the plugin.",
+      "visual_evidence": "Screenshots show the WordPress admin dashboard in a web browser, not terminal commands or WP-CLI."
+    },
+    {
+      "id": "settings_saved",
+      "description": "Verify the settings were actually saved.",
+      "visual_evidence": "A 'Settings saved' notification is visible at the top of the UpdraftPlus settings page, or the agent is shown clicking the 'Save Changes' button at the bottom."
+    },
+    {
+      "id": "genuine_backup_history",
+      "description": "Verify the backup history is genuine.",
+      "visual_evidence": "The backup history shows a realistic timestamp matching the system clock, and the UI elements for the backup (Restore, Delete, View Log buttons) are properly rendered."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected backup schedule is 'daily' with a retention of '4' for both files and database. The folder 'temp-video-renders' must be explicitly excluded from the uploads backup. A successful exclusion will result in a backup size of less than 20MB (20971520 bytes), as a 50MB dummy file is present in the excluded folder. Verify these exact values in the UpdraftPlus settings and backup history."
+}

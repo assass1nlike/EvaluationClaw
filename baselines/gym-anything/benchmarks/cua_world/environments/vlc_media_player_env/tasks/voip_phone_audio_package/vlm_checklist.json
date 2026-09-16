@@ -1,0 +1,59 @@
+{
+  "task_id": "voip_phone_audio_package@1",
+  "task_completion": [
+    {
+      "id": "audio_format_conversion",
+      "description": "The agent configures the conversion of raw audio files to the required 8 kHz, mono, 16-bit PCM WAV format.",
+      "points": 15,
+      "visual_evidence": "Look for ffmpeg commands in the terminal containing flags like '-ar 8000' and '-ac 1', or an audio editor like Audacity with the project rate set to 8000 Hz and tracks mixed down to mono."
+    },
+    {
+      "id": "ivr_menu_concatenated",
+      "description": "The agent concatenates the greeting, sales, support, and billing options in order to create the full IVR menu.",
+      "points": 15,
+      "visual_evidence": "Look for an ffmpeg concat command, a text file listing the files to concatenate, or an audio editor showing the four audio clips placed sequentially on a timeline."
+    },
+    {
+      "id": "hold_music_edited",
+      "description": "The agent loops and trims the hold music to exactly 60.0 seconds.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands (e.g., ffmpeg with '-stream_loop' and '-t 60') or an audio editor where the hold music track is duplicated and cut at exactly the 1:00 (60 seconds) mark."
+    },
+    {
+      "id": "voicemail_edited",
+      "description": "The agent appends a 0.5-second 1000 Hz beep tone and exactly 3 seconds of silence to the end of the voicemail prompt.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands generating a sine wave (e.g., ffmpeg 'sine=f=1000:d=0.5') and silence (e.g., 'anullsrc=d=3'), or an audio editor where a tone and silence are generated and appended to the voicemail track."
+    },
+    {
+      "id": "files_saved_in_directory",
+      "description": "The agent saves all six required deliverables in the /home/ga/Music/phone_system/ directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager window or terminal output (e.g., 'ls -l') showing 'main_greeting.wav', 'ivr_full_menu.wav', 'hold_music.wav', 'voicemail.wav', 'ivr_full_menu.mp3', and 'manifest.json' in the correct directory."
+    },
+    {
+      "id": "manifest_json_correct",
+      "description": "The agent creates a manifest.json file with the required metadata keys for the output files.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., 'cat manifest.json') displaying JSON content that includes keys: 'filename', 'purpose', 'duration_seconds', 'sample_rate', 'channels', and 'format' for the generated audio files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_audio_processing",
+      "description": "Verifies that the agent actually processed the audio using appropriate tools rather than just renaming the raw files or creating empty files.",
+      "visual_evidence": "Look for actual execution of audio processing commands (ffmpeg, sox) or interaction with an audio editor GUI. The final files shown in terminal or file manager should have non-zero file sizes."
+    },
+    {
+      "id": "mp3_conversion_performed",
+      "description": "Verifies that the agent actually encoded the MP3 file at the requested 64 kbps bitrate.",
+      "visual_evidence": "Look for an ffmpeg command with '-b:a 64k' or an audio editor export dialog showing 64 kbps MP3 settings, rather than just changing a file extension to .mp3."
+    },
+    {
+      "id": "no_dummy_manifest",
+      "description": "Verifies that the agent populated the manifest.json with actual data rather than just copying the prompt text.",
+      "visual_evidence": "The manifest.json should contain realistic values for duration, sample rate (8000), channels (1), and format for each of the 5 audio files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output files are 'main_greeting.wav', 'ivr_full_menu.wav', 'hold_music.wav', 'voicemail.wav', 'ivr_full_menu.mp3', and 'manifest.json'. The target sample rate is 8000 Hz, channels is 1 (mono), and codec is pcm_s16le (16-bit PCM WAV). The hold music must be exactly 60.0 seconds long."
+}

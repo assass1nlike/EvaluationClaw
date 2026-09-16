@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_baseball_sabermetrics@1",
+  "task_completion": [
+    {
+      "id": "calculate_new_metrics",
+      "description": "Verify that the 'Raw_Data' sheet contains the newly calculated columns.",
+      "points": 20,
+      "visual_evidence": "Look for the columns '1B', 'TB', 'PA', 'OBP', 'SLG', and 'OPS' added to the 'Raw_Data' sheet with calculated numerical values."
+    },
+    {
+      "id": "format_decimal_places",
+      "description": "Verify that OBP, SLG, and OPS are formatted to three decimal places.",
+      "points": 10,
+      "visual_evidence": "Look at the values in the OBP, SLG, and OPS columns; they should display exactly three digits after the decimal point (e.g., 0.345)."
+    },
+    {
+      "id": "create_qualified_hitters_sheet",
+      "description": "Verify the creation of the 'Qualified_Hitters' sheet with filtered players.",
+      "points": 20,
+      "visual_evidence": "Look for a new sheet tab named 'Qualified_Hitters'. The data in this sheet should include headers and only show players where the 'PA' column value is 300 or greater."
+    },
+    {
+      "id": "sort_by_ops",
+      "description": "Verify that the 'Qualified_Hitters' sheet is sorted by OPS from highest to lowest.",
+      "points": 20,
+      "visual_evidence": "Look at the 'OPS' column in the 'Qualified_Hitters' sheet; the values should be in strictly descending order from top to bottom."
+    },
+    {
+      "id": "highlight_high_ops",
+      "description": "Verify that OPS values greater than 0.800 are highlighted with a background color.",
+      "points": 30,
+      "visual_evidence": "Look at the 'OPS' column in the 'Qualified_Hitters' sheet. Cells containing a value strictly greater than 0.800 must have a distinct background color (fill color) applied."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_usage",
+      "description": "Verify the agent used a spreadsheet GUI application to perform the task.",
+      "visual_evidence": "The screenshots should show a spreadsheet application (like LibreOffice Calc) open and being interacted with, rather than terminal commands or a Python script doing the work."
+    },
+    {
+      "id": "genuine_formulas",
+      "description": "Verify that the agent used spreadsheet formulas for calculations.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar should show a spreadsheet formula (e.g., starting with '=') rather than a hardcoded number pasted from an external script."
+    },
+    {
+      "id": "systematic_highlighting",
+      "description": "Verify that the highlighting of OPS > 0.800 was done systematically.",
+      "visual_evidence": "Look for the conditional formatting dialog box being used, or ensure that the background color is consistently applied only to cells > 0.800 without manual painting errors."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected new columns are exactly: '1B', 'TB', 'PA', 'OBP', 'SLG', and 'OPS'. The 'Qualified_Hitters' sheet must filter for PA >= 300, which results in exactly 288 qualified players out of the original 500. The conditional formatting must highlight OPS values strictly > 0.800, which applies to exactly 115 players in the qualified list."
+}

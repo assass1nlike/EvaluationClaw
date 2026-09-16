@@ -1,0 +1,30 @@
+{
+  "id": "reschedule_visit@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Reschedule the General Checkup for patient 'Cameron Howe' in HospitalRun from October 10, 2026, to October 15, 2026, at 10:00 AM. Update the 'Reason for Visit' to include the text: 'Rescheduled per patient request'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reschedule_visit/setup_task.sh",
+    "post_task": "/workspace/tasks/reschedule_visit/export_result.sh"
+  },
+  "metadata": {
+    "patient_name": "Cameron Howe",
+    "patient_id": "patient_p1_cameron",
+    "visit_id": "visit_p1_cameron_v1",
+    "initial_date": "2026-10-10",
+    "target_date": "2026-10-15",
+    "target_reason_substring": "Rescheduled per patient request"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reschedule_visit"
+    }
+  }
+}

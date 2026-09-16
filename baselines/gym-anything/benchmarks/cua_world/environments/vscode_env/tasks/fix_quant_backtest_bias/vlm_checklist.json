@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_quant_backtest_bias@1",
+  "task_completion": [
+    {
+      "id": "open_backtest_engine",
+      "description": "Open the backtest engine file for editing",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE (like VS Code, nano, or vim) is open showing the contents of /home/ga/workspace/quant_backtester/backtest_engine.py."
+    },
+    {
+      "id": "fix_imputation_leakage",
+      "description": "Fix future leakage in data imputation by using forward-filling",
+      "points": 20,
+      "visual_evidence": "Code in backtest_engine.py is modified to use forward filling for missing data (e.g., using `.ffill()` or `.fillna(method='ffill')`) instead of using a global mean like `.fillna(df.mean())`."
+    },
+    {
+      "id": "fix_signal_lookahead",
+      "description": "Fix signal lookahead bias so today's positions capture tomorrow's returns",
+      "points": 20,
+      "visual_evidence": "Code is modified to shift positions or returns (e.g., `positions.shift(1) * returns`) ensuring that the strategy does not use future data to calculate current returns."
+    },
+    {
+      "id": "fix_transaction_costs",
+      "description": "Correct transaction cost logic to apply costs only on position changes",
+      "points": 20,
+      "visual_evidence": "Code is modified to calculate transaction costs based on the change in positions (e.g., using `positions.diff().abs()`) rather than applying costs to all held positions."
+    },
+    {
+      "id": "fix_drawdown_calculation",
+      "description": "Fix drawdown calculation to use rolling peaks",
+      "points": 20,
+      "visual_evidence": "Code is modified to calculate drawdown using a rolling peak or cumulative maximum (e.g., `cumulative_returns.cummax()`) instead of an absolute global maximum (`.max()`)."
+    },
+    {
+      "id": "run_verification_script",
+      "description": "Run the backtest verification script",
+      "points": 10,
+      "visual_evidence": "A terminal window shows the execution of the command `python run_backtest.py` along with the resulting backtest metrics or output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "Verify the agent used a genuine text editor to modify the Python file",
+      "visual_evidence": "Screenshots show the agent interacting with a standard text editor (e.g., VS Code, vim, nano) rather than just echoing text directly into the file without viewing it."
+    },
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Verify the backtest script was executed in a real terminal",
+      "visual_evidence": "The command `python run_backtest.py` is visible in a standard terminal emulator with standard standard output, not a mocked text file."
+    },
+    {
+      "id": "no_hardcoded_outputs",
+      "description": "Verify the agent did not hardcode the expected output",
+      "visual_evidence": "The agent actually modified the logic in backtest_engine.py rather than writing a script that simply prints a fake success message or hardcoded metrics."
+    }
+  ],
+  "privileged_info_for_vlm": "The pass threshold for this task is 75. The underlying data is historical Apple stock data with ~2% synthetic missing values in the 'Close' column to test the imputation bug. The agent must fix 4 specific bugs in backtest_engine.py: 1) use forward-filling (ffill) for missing data instead of global mean, 2) shift positions (e.g., shift(1)) to capture tomorrow's returns, 3) apply transaction costs only on position changes (e.g., using diff()), and 4) calculate drawdown using rolling peaks (e.g., cummax()) instead of global maximum."
+}

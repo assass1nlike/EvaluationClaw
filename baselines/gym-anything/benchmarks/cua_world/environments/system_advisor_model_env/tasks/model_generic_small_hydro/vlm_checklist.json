@@ -1,0 +1,59 @@
+{
+  "task_id": "model_generic_small_hydro@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "Python script created at the specified path",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the file /home/ga/Documents/SAM_Projects/small_hydro_model.py being created or edited."
+    },
+    {
+      "id": "pysam_models_imported",
+      "description": "PySAM Generic System and Lcoefcr models are imported",
+      "points": 15,
+      "visual_evidence": "Code in the script showing imports for PySAM's GenericSystem and Lcoefcr modules (e.g., 'import PySAM.GenericSystem' or similar)."
+    },
+    {
+      "id": "system_parameters_defined",
+      "description": "System parameters and generation profile logic are correctly defined",
+      "points": 20,
+      "visual_evidence": "Code defining nameplate capacity (500), derate factor (0.95), heat rate (0), and the 12 monthly capacity factors used to generate an 8760-hour array."
+    },
+    {
+      "id": "financial_parameters_defined",
+      "description": "Financial parameters are correctly defined",
+      "points": 15,
+      "visual_evidence": "Code defining installed cost ($2,000,000), fixed O&M ($50,000), variable O&M ($0.005), and fixed charge rate (0.078)."
+    },
+    {
+      "id": "json_export_logic",
+      "description": "Logic to save the required keys to a JSON report is implemented",
+      "points": 20,
+      "visual_evidence": "Code showing a dictionary being constructed with keys: system_nameplate_kw, annual_energy_kwh, annual_capacity_factor_pct, monthly_energy_kwh, lcoe_cents_per_kwh, and total_installed_cost_usd, and saved using the json module."
+    },
+    {
+      "id": "json_results_generated",
+      "description": "JSON results file is generated at the correct path with expected values",
+      "points": 20,
+      "visual_evidence": "Terminal or file explorer showing /home/ga/Documents/SAM_Projects/small_hydro_results.json exists, or a command (like cat) displaying its contents with energy around 2.16M kWh and LCOE around 10.01 cents."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "pysam_execution_not_hardcoded",
+      "description": "The script uses PySAM to calculate results rather than hardcoding the expected outputs",
+      "visual_evidence": "The code calls PySAM execute methods (e.g., model.execute()) and extracts outputs from the model rather than assigning hardcoded values to the JSON dictionary."
+    },
+    {
+      "id": "script_execution_evidence",
+      "description": "The agent actually ran the Python script to generate the JSON file",
+      "visual_evidence": "Terminal history showing the execution of the script (e.g., 'python3 small_hydro_model.py') rather than the agent manually creating the JSON file."
+    },
+    {
+      "id": "parameters_match_prompt",
+      "description": "The parameters in the script match the prompt exactly without arbitrary manipulation",
+      "visual_evidence": "The arrays and constants in the code match the prompt's specifications exactly, with no hidden multipliers or offsets designed to force a specific output."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected total energy is ~2,166,570 kWh (acceptable range: 2,000,000 - 2,300,000). Expected capacity factor is ~49.47% (acceptable range: 45 - 55). Expected LCOE is ~10.01 cents/kWh (acceptable range: 7.0 - 13.0). Script path: /home/ga/Documents/SAM_Projects/small_hydro_model.py. JSON path: /home/ga/Documents/SAM_Projects/small_hydro_results.json."
+}

@@ -1,0 +1,39 @@
+{
+  "id": "film_set_lighting_plot@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create a professional film lighting plot for 'Scene 54: The Interrogation' using Diagrams.net (draw.io) based on the Director of Photography's notes in ~/Desktop/dp_scene_notes.txt. The diagram must include room boundaries (20' x 15') with the specified door and window, shapes for the 'Detective' and 'Suspect' actors, and a legend defining symbols for Fresnel, Leko, LED Panel, and Actor. Place and label the 5 specific lighting fixtures (L1-L5) with their ID, Wattage/Type, and Gel color as described in the notes. Include lines representing power cables connecting all lights to a Distro Box. Save the editable file to ~/Diagrams/lighting_plot_scene54.drawio and export a PDF version to ~/Diagrams/lighting_plot_scene54.pdf.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/film_set_lighting_plot/setup_task.sh",
+    "post_task": "/workspace/tasks/film_set_lighting_plot/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Diagrams/lighting_plot_scene54.drawio",
+    "expected_pdf": "/home/ga/Diagrams/lighting_plot_scene54.pdf",
+    "required_keywords": [
+      "L1",
+      "L2",
+      "L3",
+      "L4",
+      "L5",
+      "Skypanel",
+      "Fresnel",
+      "Source 4",
+      "Detective",
+      "Suspect"
+    ],
+    "min_shapes": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_film_set_lighting_plot"
+    }
+  }
+}

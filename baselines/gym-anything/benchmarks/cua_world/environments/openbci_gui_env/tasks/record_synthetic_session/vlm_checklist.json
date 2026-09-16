@@ -1,0 +1,53 @@
+{
+  "task_id": "record_synthetic_session@1",
+  "task_completion": [
+    {
+      "id": "openbci_gui_opened",
+      "description": "OpenBCI GUI application is launched",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI window is visible on the screen."
+    },
+    {
+      "id": "synthetic_source_selected",
+      "description": "SYNTHETIC (algorithmic) data source is selected",
+      "points": 20,
+      "visual_evidence": "In the OpenBCI GUI setup screen, 'SYNTHETIC' is selected as the data source (often under 'Synthetic' or 'Simulate' options) before starting the system."
+    },
+    {
+      "id": "data_stream_started",
+      "description": "The EEG session is started and data is streaming",
+      "points": 20,
+      "visual_evidence": "The main OpenBCI GUI dashboard is active, showing live scrolling EEG data in the Time Series widget."
+    },
+    {
+      "id": "recording_duration_met",
+      "description": "At least 10 seconds of data is recorded",
+      "points": 20,
+      "visual_evidence": "The recording timer in the OpenBCI GUI shows 00:00:10 or greater, OR a saved file is shown with a size of at least ~167 KB (which corresponds to 10 seconds of 250Hz 8-channel data)."
+    },
+    {
+      "id": "file_saved_default_location",
+      "description": "The recording is saved to the default location",
+      "points": 30,
+      "visual_evidence": "A file explorer or terminal shows a newly created OpenBCI recording file (typically named OpenBCI-RAW-...) located in the ~/Documents/OpenBCI_GUI/Recordings/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Agent interacted with the actual OpenBCI GUI to generate the recording",
+      "visual_evidence": "Screenshots show the agent clicking through the OpenBCI GUI interface rather than just writing a script or text file."
+    },
+    {
+      "id": "genuine_recording_file",
+      "description": "The saved file appears to be a genuine OpenBCI output",
+      "visual_evidence": "The file name in the Recordings directory follows the standard OpenBCI auto-generated naming convention (e.g., OpenBCI-RAW-YYYY-MM-DD_HH-MM-SS.txt) and is not a manually named dummy file."
+    },
+    {
+      "id": "no_terminal_mocking",
+      "description": "Agent did not use terminal commands to fake the file creation",
+      "visual_evidence": "Terminal history does not show commands like 'touch', 'echo', or 'dd' being used to create a fake file of the target size in the Recordings directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The OpenBCI GUI default recording directory is /home/ga/Documents/OpenBCI_GUI/Recordings. The SYNTHETIC data source simulates an 8-channel Cyton board at a 250 Hz sample rate. A genuine 10-second recording will produce approximately 2500 data rows and result in a file size of approximately 167 KB. Use this file size (~167 KB or larger) as a heuristic to verify the 10-second duration if the GUI timer is not clearly visible."
+}

@@ -1,0 +1,36 @@
+{
+  "id": "configure_manual_preview_campaign@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure the 'VIP_DIAL' campaign with Dial Method: MANUAL, Manual Dial Preview: YES, List Order: DOWN COUNT, Auto Alt Dial: NONE, and Active: Y. Import the vendor file from '~/Documents/VicidialData/vendor_senators_vip.csv' into a new active list with List ID 9500. Map the file headers as follows: 'Gov_ID' to 'Vendor Lead Code', 'Official_Name' to 'First Name', 'Contact_Number' to 'Phone', and 'Home_State' to 'State'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_manual_preview_campaign/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_manual_preview_campaign/export_result.sh"
+  },
+  "metadata": {
+    "campaign_id": "VIP_DIAL",
+    "list_id": "9500",
+    "expected_dial_method": "MANUAL",
+    "expected_preview": "YES",
+    "expected_lead_order": "DOWN COUNT",
+    "source_file": "/home/ga/Documents/VicidialData/vendor_senators_vip.csv",
+    "mapping_checks": {
+      "phone_number": "Contact_Number",
+      "first_name": "Official_Name",
+      "vendor_lead_code": "Gov_ID",
+      "state": "Home_State"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_manual_preview_campaign"
+    }
+  }
+}

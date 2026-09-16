@@ -1,0 +1,50 @@
+{
+  "id": "cluster_partitioning@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Partition the 'Hotels' data in the 'demodb' database into three geographic clusters for performance optimization. Using OrientDB Studio (http://localhost:2480/studio/index.html) with database credentials (admin/admin) and server credentials (root/GymAnything123!), create and add three clusters to the 'Hotels' class: 'hotels_europe', 'hotels_americas', and 'hotels_asiapacific'. Move all existing Hotel vertices into these clusters based on their 'Country' field: 'hotels_europe' (Italy, Germany, France, United Kingdom, Spain, Greece, Netherlands), 'hotels_americas' (United States, Canada, Brazil), and 'hotels_asiapacific' (Japan, Australia). Generate a report at /home/ga/partitioning_report.txt containing the hotel count for each new cluster and the total count.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cluster_partitioning/setup_task.sh",
+    "post_task": "/workspace/tasks/cluster_partitioning/export_result.sh"
+  },
+  "metadata": {
+    "expected_clusters": [
+      "hotels_europe",
+      "hotels_americas",
+      "hotels_asiapacific"
+    ],
+    "report_path": "/home/ga/partitioning_report.txt",
+    "regions": {
+      "europe": [
+        "Italy",
+        "Germany",
+        "France",
+        "United Kingdom",
+        "Spain",
+        "Greece",
+        "Netherlands"
+      ],
+      "americas": [
+        "United States",
+        "Canada",
+        "Brazil"
+      ],
+      "asiapacific": [
+        "Japan",
+        "Australia"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cluster_partitioning"
+    }
+  }
+}

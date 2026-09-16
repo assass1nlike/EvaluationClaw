@@ -1,0 +1,60 @@
+{
+  "id": "product_catalog_reorganization@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are an e-commerce content manager reorganizing the product catalog for better navigation and discoverability. Create a parent product category called 'Outdoor & Recreation' with two subcategories, 'Camping Gear' and 'Fitness Equipment'. Reassign the 'Portable Camping Hammock' to the 'Camping Gear' subcategory, and move 'Yoga Mat Premium' and 'Resistance Band Set' into the 'Fitness Equipment' subcategory. Create and assign the following product tags: 'bestseller' for Wireless Bluetooth Headphones and Yoga Mat Premium; 'eco-friendly' for Organic Cotton T-Shirt and Bamboo Cutting Board Set; and 'gift-idea' for LED Desk Lamp and Ceramic Plant Pot Set. Mark both Wireless Bluetooth Headphones and Yoga Mat Premium as 'Featured' products. Finally, update the short description of 'Portable Camping Hammock' to exactly: 'Ultralight double hammock perfect for backpacking and outdoor adventures. Supports up to 500 lbs.'",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/product_catalog_reorganization/setup_task.sh",
+    "post_task": "/workspace/tasks/product_catalog_reorganization/export_result.sh"
+  },
+  "metadata": {
+    "parent_category": "Outdoor & Recreation",
+    "subcategories": [
+      "Camping Gear",
+      "Fitness Equipment"
+    ],
+    "category_assignments": {
+      "Camping Gear": [
+        "PCH-DUO"
+      ],
+      "Fitness Equipment": [
+        "YMP-001",
+        "RBS-005"
+      ]
+    },
+    "tags": {
+      "bestseller": [
+        "WBH-001",
+        "YMP-001"
+      ],
+      "eco-friendly": [
+        "OCT-BLK-M",
+        "BCB-SET2"
+      ],
+      "gift-idea": [
+        "LED-DL-01",
+        "CPP-SET3"
+      ]
+    },
+    "featured_products": [
+      "WBH-001",
+      "YMP-001"
+    ],
+    "short_description_update": {
+      "sku": "PCH-DUO",
+      "text": "Ultralight double hammock perfect for backpacking and outdoor adventures. Supports up to 500 lbs."
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_product_catalog_reorganization"
+    }
+  }
+}

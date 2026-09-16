@@ -1,0 +1,59 @@
+{
+  "task_id": "industrial_water_contamination_response@1",
+  "task_completion": [
+    {
+      "id": "patient_condition_entry",
+      "description": "Verify that the agent selected the correct patient and entered the required condition.",
+      "points": 20,
+      "visual_evidence": "Look for a GNU Health screen showing the patient 'Bonifacio Caput' with an active condition or diagnosis of Giardiasis (ICD-10 A07.x) or Infectious gastroenteritis (ICD-10 A09)."
+    },
+    {
+      "id": "clinical_evaluation_vitals",
+      "description": "Verify that the clinical evaluation includes the required dehydration vitals.",
+      "points": 20,
+      "visual_evidence": "Look for a patient evaluation or vitals screen showing Heart Rate (HR) of 100 bpm or higher, and Systolic Blood Pressure (Sys BP) of 100 mmHg or lower."
+    },
+    {
+      "id": "prescription_metronidazole",
+      "description": "Verify that Metronidazole was prescribed.",
+      "points": 20,
+      "visual_evidence": "Look for a prescription order screen for the patient containing 'Metronidazole'."
+    },
+    {
+      "id": "prescription_additional_medication",
+      "description": "Verify that an additional medication was prescribed alongside Metronidazole.",
+      "points": 10,
+      "visual_evidence": "Look for the prescription screen showing at least two distinct medication lines (e.g., Metronidazole and Sodium Chloride or Oral Rehydration Salts)."
+    },
+    {
+      "id": "lab_test_order",
+      "description": "Verify that a diagnostic laboratory test was ordered.",
+      "points": 15,
+      "visual_evidence": "Look for a laboratory request or order screen showing at least one test ordered for the patient (e.g., Stool analysis, CMP)."
+    },
+    {
+      "id": "followup_appointment",
+      "description": "Verify that a follow-up appointment was scheduled for 1 to 3 days from the current date.",
+      "points": 15,
+      "visual_evidence": "Look for an appointment scheduling screen showing a booked appointment for Bonifacio Caput with a date set 1 to 3 days in the future."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the GNU Health graphical user interface.",
+      "visual_evidence": "Screenshots should show the GNU Health desktop client being actively used, rather than terminal commands or direct database queries (e.g., psql)."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Ensure the agent actually entered the data into the application.",
+      "visual_evidence": "Look for filled input fields, selected dropdowns, and saved records within the GNU Health interface, not just text written in a notepad or terminal."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "Ensure the agent did not use scripts to bypass the UI.",
+      "visual_evidence": "The terminal (if visible) should not show execution of python scripts or SQL commands designed to insert the medical records directly into the database."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Patient: Bonifacio Caput. Required ICD-10 codes: A07.x or A09. Required Vitals: Heart Rate >= 100, Systolic BP <= 100. Required Prescription: Metronidazole plus at least one other medication (minimum 2 prescription lines). Required Lab Orders: At least 1. Required Follow-up: 1 to 3 days from the current date."
+}

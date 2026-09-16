@@ -1,0 +1,49 @@
+{
+  "id": "establish_work_item_traceability@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "The TailwindTraders project has a disjointed backlog. Several work items exist but lack hierarchy and traceability. Organize these items into a proper structure starting at http://localhost/DefaultCollection/TailwindTraders/_boards/board/t_. Create a Feature titled 'Product Inventory Management' and link the User Stories 'Implement product inventory search' and 'Design REST API rate limiting' as its children. Establish 'Related' links between the 'Product price calculation bug' and 'Inventory count goes negative' bugs to the 'Implement product inventory search' story, and link the 'API 500 error on special chars' bug to the 'Design REST API rate limiting' story. Additionally, decompose the 'Implement product inventory search' story into two child tasks: 'Set up Elasticsearch index for products' (Remaining Work: 8) and 'Build search API endpoint' (Remaining Work: 12).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\establish_work_item_traceability\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\establish_work_item_traceability\\export_result.ps1"
+  },
+  "metadata": {
+    "project": "TailwindTraders",
+    "feature_title": "Product Inventory Management",
+    "story_titles": [
+      "Implement product inventory search",
+      "Design REST API rate limiting"
+    ],
+    "bug_map": {
+      "Implement product inventory search": [
+        "Product price calculation bug",
+        "Inventory count goes negative"
+      ],
+      "Design REST API rate limiting": [
+        "API 500 error on special chars"
+      ]
+    },
+    "new_tasks": [
+      {
+        "title": "Set up Elasticsearch index for products",
+        "remaining_work": 8
+      },
+      {
+        "title": "Build search API endpoint",
+        "remaining_work": 12
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_traceability"
+    }
+  }
+}

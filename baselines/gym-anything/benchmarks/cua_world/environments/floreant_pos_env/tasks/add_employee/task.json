@@ -1,0 +1,36 @@
+{
+  "id": "add_employee@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "As a restaurant manager, add a newly hired cashier to the Floreant POS system. Create a new user record for Maria Santos with the Secret Key 2345 and the user type CASHIER. Use the manager PIN 1111 to access the necessary administrative areas.",
+  "category": "user_management",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_employee/setup_task.sh",
+    "post_task": "/workspace/tasks/add_employee/export_result.sh"
+  },
+  "metadata": {
+    "target_first_name": "Maria",
+    "target_last_name": "Santos",
+    "target_pin": "2345",
+    "target_type": "CASHIER",
+    "manager_pin": "1111"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_employee"
+    }
+  },
+  "tags": [
+    "back_office",
+    "employee",
+    "user_management",
+    "form_entry"
+  ]
+}

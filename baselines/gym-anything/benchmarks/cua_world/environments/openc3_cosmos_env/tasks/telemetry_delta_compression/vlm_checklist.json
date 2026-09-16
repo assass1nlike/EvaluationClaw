@@ -1,0 +1,53 @@
+{
+  "task_id": "telemetry_delta_compression@1",
+  "task_completion": [
+    {
+      "id": "openc3_cosmos_opened",
+      "description": "OpenC3 COSMOS is opened and logged into.",
+      "points": 10,
+      "visual_evidence": "The OpenC3 COSMOS web interface is visible in the browser, indicating successful login."
+    },
+    {
+      "id": "telemetry_item_accessed",
+      "description": "The specific telemetry item 'INST HEALTH_STATUS TEMP1' is accessed or queried.",
+      "points": 20,
+      "visual_evidence": "The OpenC3 interface (e.g., Telemetry Viewer, Packet Viewer) or a script explicitly references the target 'INST', packet 'HEALTH_STATUS', and item 'TEMP1'."
+    },
+    {
+      "id": "data_collection_executed",
+      "description": "25 sequential time-series samples are collected with a delay between readings.",
+      "points": 20,
+      "visual_evidence": "A script (e.g., Python, Ruby) or terminal output showing a loop collecting 25 samples, ideally with a sleep/wait command of 0.5 to 1.0 seconds, or a manual log of 25 distinct readings."
+    },
+    {
+      "id": "statistics_calculated",
+      "description": "Deltas and summary statistics are computed.",
+      "points": 20,
+      "visual_evidence": "Code logic, terminal output, or a spreadsheet showing the calculation of 24 sequential deltas, 'max_abs_delta', 'mean_abs_delta', and 'zero_delta_count'."
+    },
+    {
+      "id": "output_json_created",
+      "description": "The results are saved to compression_analysis.json with all required keys.",
+      "points": 30,
+      "visual_evidence": "A file named 'compression_analysis.json' is visible in a text editor or terminal cat output, containing the keys: 'target', 'packet', 'item', 'sample_count', 'raw_samples', 'deltas', 'statistics', and 'compression_recommended'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_openc3_usage",
+      "description": "The agent interacted with the actual OpenC3 COSMOS application or its API to get real data.",
+      "visual_evidence": "Screenshots must show the OpenC3 COSMOS interface or terminal logs of successful API requests to OpenC3, rather than the agent just writing a script with mocked data without ever connecting to the system."
+    },
+    {
+      "id": "data_authenticity",
+      "description": "The collected telemetry samples appear to be genuine readings.",
+      "visual_evidence": "The 'raw_samples' array in the JSON or script output should contain realistic floating-point numbers that fluctuate slightly, not a trivial mocked sequence like [1, 2, 3, 4] or an array of identical hardcoded numbers."
+    },
+    {
+      "id": "derived_statistics",
+      "description": "The statistics and deltas are genuinely derived from the raw samples.",
+      "visual_evidence": "The agent uses a script or systematic method to compute the deltas and statistics from the collected samples, rather than hardcoding arbitrary dummy values into the final JSON file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target must be 'INST', the packet must be 'HEALTH_STATUS', and the item must be 'TEMP1'. The expected sample count is exactly 25. The final output file must be located at '/home/ga/Desktop/compression_analysis.json'."
+}

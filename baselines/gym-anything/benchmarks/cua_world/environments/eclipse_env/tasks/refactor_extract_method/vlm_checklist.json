@@ -1,0 +1,59 @@
+{
+  "task_id": "refactor_extract_method@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "The agent opened the ReportService.java file.",
+      "points": 10,
+      "visual_evidence": "An editor or IDE window showing the contents of src/main/java/com/corp/reporting/ReportService.java."
+    },
+    {
+      "id": "create_extracted_method",
+      "description": "The agent created a new method named 'appendReportHeader'.",
+      "points": 20,
+      "visual_evidence": "The code editor shows a new method signature for 'appendReportHeader' within the ReportService class."
+    },
+    {
+      "id": "move_duplicated_logic",
+      "description": "The new 'appendReportHeader' method contains the duplicated header generation logic.",
+      "points": 20,
+      "visual_evidence": "The body of the 'appendReportHeader' method contains the strings 'ACME CORP - INTERNAL REPORT' and 'Confidentiality: RESTRICTED ACCESS'."
+    },
+    {
+      "id": "update_daily_report_method",
+      "description": "The 'generateDailyReport' method is updated to call the new extracted method.",
+      "points": 15,
+      "visual_evidence": "The 'generateDailyReport' method body shows a method call to 'appendReportHeader' and no longer contains the hardcoded header strings."
+    },
+    {
+      "id": "update_weekly_report_method",
+      "description": "The 'generateWeeklyReport' method is updated to call the new extracted method.",
+      "points": 15,
+      "visual_evidence": "The 'generateWeeklyReport' method body shows a method call to 'appendReportHeader' and no longer contains the hardcoded header strings."
+    },
+    {
+      "id": "run_junit_tests",
+      "description": "The agent runs the project's JUnit tests to verify the changes.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a test command (e.g., 'mvn test') or an IDE test runner panel showing the execution and results of JUnit tests for the project."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_actual_editor",
+      "description": "The agent used a real text editor or IDE to modify the code.",
+      "visual_evidence": "Screenshots show the GUI of an editor/IDE (like Eclipse or VS Code) or an interactive terminal editor (like nano or vim) with the file open, rather than just echoing text into the file."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The agent actually ran the JUnit tests using a test runner or build tool.",
+      "visual_evidence": "The test output shows standard Maven/JUnit formatting, execution times, and test counts, rather than a manually typed or echoed fake success message."
+    },
+    {
+      "id": "no_scripted_overwrite",
+      "description": "The agent manually refactored the code or used IDE refactoring tools rather than running a pre-written script to overwrite the file.",
+      "visual_evidence": "Intermediate screenshots show the agent navigating the file, selecting code, typing, or using IDE refactoring menus, rather than a single terminal command that replaces the entire file content."
+    }
+  ],
+  "privileged_info_for_vlm": "The target project is located at /home/ga/eclipse-workspace/CorporateReporting. The target file to modify is src/main/java/com/corp/reporting/ReportService.java. The new extracted method MUST be named 'appendReportHeader'. The extracted method must contain the exact strings 'ACME CORP - INTERNAL REPORT' and 'Confidentiality: RESTRICTED ACCESS', which should be removed from both 'generateDailyReport' and 'generateWeeklyReport'."
+}

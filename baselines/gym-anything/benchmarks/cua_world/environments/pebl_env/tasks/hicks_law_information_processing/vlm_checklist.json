@@ -1,0 +1,48 @@
+{
+  "task_id": "hicks_law_information_processing@1",
+  "task_completion": [
+    {
+      "id": "load_csv_data",
+      "description": "Agent loads the choice reaction time data from the CSV file.",
+      "points": 10,
+      "visual_evidence": "Code or terminal commands showing the agent reading '~/pebl/data/hicks_law_data.csv' (e.g., using pandas.read_csv or csv module)."
+    },
+    {
+      "id": "implement_filtering_logic",
+      "description": "Agent implements logic to filter participants and trials according to the task rules.",
+      "points": 20,
+      "visual_evidence": "Code showing calculations for overall accuracy per participant with a < 60% exclusion threshold, and filtering for correct == 1 and reaction times between 150 and 3000 ms inclusive."
+    },
+    {
+      "id": "implement_hicks_law_regression",
+      "description": "Agent implements logic to calculate Information Entropy and fit a linear regression for Hick's Law.",
+      "points": 30,
+      "visual_evidence": "Code showing the calculation of H = log2(N) and a linear regression fit (e.g., using scipy.stats.linregress, numpy.polyfit, or sklearn) to find the slope and intercept for each valid participant."
+    },
+    {
+      "id": "format_json_output",
+      "description": "Agent structures the output data with the required JSON keys.",
+      "points": 20,
+      "visual_evidence": "Code showing the construction of a dictionary/JSON object containing group means and a 'participants' list with keys 'id', 'mean_rt_by_n', 'hicks_slope_ms_per_bit', 'hicks_intercept_ms' for valid participants, and 'excluded', 'reason' for excluded ones."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent saves the final JSON report to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Code or terminal output showing the final JSON file being written to '~/pebl/analysis/hicks_report.json' or the script executing successfully to produce this file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_computation",
+      "description": "The agent calculates the regression, means, and accuracy dynamically.",
+      "visual_evidence": "The script contains actual mathematical/statistical operations and logic rather than hardcoded output values or hardcoded exclusion of 'sub-99'."
+    },
+    {
+      "id": "script_execution",
+      "description": "The agent executes the script to generate the output file.",
+      "visual_evidence": "Terminal output showing the agent running the Python (or other language) script, rather than just manually typing out a JSON file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 20 valid participants and exactly 1 contaminated participant ('sub-99') with an overall accuracy of ~22%. The agent's logic must correctly identify and exclude 'sub-99' based on the < 60% accuracy rule. The final output must be saved exactly to /home/ga/pebl/analysis/hicks_report.json."
+}

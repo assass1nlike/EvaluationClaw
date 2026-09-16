@@ -1,0 +1,53 @@
+{
+  "task_id": "bootstrap_birthwt_inference@1",
+  "task_completion": [
+    {
+      "id": "script_implementation",
+      "description": "Implement the bootstrap and permutation analysis in the specified R script.",
+      "points": 10,
+      "visual_evidence": "An editor (like RStudio, VSCode, or nano) showing the file `/home/ga/RProjects/bootstrap_analysis.R` containing R code that loads the `boot` and `MASS` packages and performs resampling."
+    },
+    {
+      "id": "bootstrap_ci_csv",
+      "description": "Generate the bootstrap confidence intervals CSV file.",
+      "points": 20,
+      "visual_evidence": "A file named `bootstrap_ci.csv` visible in `/home/ga/RProjects/output/`. If contents are shown, it should contain rows for statistics like `diff_smoke` and `or_smoke`, and columns for Normal, Percentile, and BCa confidence intervals."
+    },
+    {
+      "id": "permutation_tests_csv",
+      "description": "Generate the permutation tests CSV file.",
+      "points": 20,
+      "visual_evidence": "A file named `permutation_tests.csv` visible in `/home/ga/RProjects/output/`. If contents are shown, it should contain rows for tests like `smoke_bwt` and `ht_bwt`, and columns for permutation and classical p-values."
+    },
+    {
+      "id": "parametric_vs_bootstrap_csv",
+      "description": "Generate the comparison table between classical and bootstrap confidence intervals.",
+      "points": 20,
+      "visual_evidence": "A file named `parametric_vs_bootstrap.csv` visible in `/home/ga/RProjects/output/`. If contents are shown, it should contain columns comparing CI widths (e.g., `ci_width_classical`, `ci_width_bca`, `relative_width`)."
+    },
+    {
+      "id": "bootstrap_figures_png",
+      "description": "Generate the multi-panel plot visualizing the distributions and CI comparisons.",
+      "points": 30,
+      "visual_evidence": "A file named `bootstrap_figures.png` visible in `/home/ga/RProjects/output/`. If opened, the image must show a multi-panel layout with 4 distinct plots (bootstrap distributions for diff_smoke and or_smoke, permutation null distribution for smoke_bwt, and a Classical vs Bootstrap CI comparison)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent wrote actual resampling logic rather than hardcoding the expected output files.",
+      "visual_evidence": "The R script should contain functions like `boot()`, `sample()`, or loops for permutations, rather than directly writing hardcoded dataframes to CSV."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Ensure the R script was actually executed to generate the outputs.",
+      "visual_evidence": "Terminal or R console showing the execution of the script (e.g., `Rscript bootstrap_analysis.R` or running cells in RStudio) without fatal errors."
+    },
+    {
+      "id": "plausible_statistics",
+      "description": "Ensure the calculated statistics are derived from the actual dataset.",
+      "visual_evidence": "If the contents of `bootstrap_ci.csv` are visible, the `observed` value for `diff_smoke` should be between 150 and 400, and `or_smoke` should be between 1.5 and 3.5."
+    }
+  ],
+  "privileged_info_for_vlm": "The output directory is /home/ga/RProjects/output. The R script must be at /home/ga/RProjects/bootstrap_analysis.R. Expected statistics in bootstrap_ci.csv: mean_bwt_smoke, mean_bwt_nosmoke, diff_smoke, or_smoke, median_bwt, cor_age_bwt. Expected tests in permutation_tests.csv: smoke_bwt, ht_bwt, ui_bwt, race_bwt. Valid ranges for observed statistics: diff_smoke should be between 150 and 400 (empirically ~283.78), and or_smoke should be between 1.5 and 3.5 (empirically ~2.02)."
+}

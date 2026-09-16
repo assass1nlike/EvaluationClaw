@@ -1,0 +1,65 @@
+{
+  "task_id": "scenario_quality_audit@1",
+  "task_completion": [
+    {
+      "id": "environment_ini_corrected",
+      "description": "Verify the agent corrected the 3 errors in environment.ini.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a text editor (e.g., nano, vim) or terminal commands modifying 'environment.ini'. StartTime should be changed from 25.5 to a value between 0-24, StartMonth from 15 to 1-12, and Weather from 200.0 to 0-12."
+    },
+    {
+      "id": "ownship_ini_corrected",
+      "description": "Verify the agent corrected the 2 errors in ownship.ini.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing modification of 'ownship.ini'. The Latitude should be changed from 42.3601 to the Humber region (53.0-54.0), and Speed changed from 85.0 to a realistic cargo speed (0-25)."
+    },
+    {
+      "id": "othership_ini_corrected",
+      "description": "Verify the agent corrected the 3 errors in othership.ini.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing modification of 'othership.ini'. Vessel 2's coordinates (53.6350, -0.0500) must be changed to avoid collision, Vessel 2's Legs changed from 0 to >= 1, and Vessel 3's InitialSpeed changed from 45.0 to a realistic VLCC speed (0-20)."
+    },
+    {
+      "id": "audit_report_created",
+      "description": "Verify the QA audit report file was created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal commands showing the creation or editing of '/home/ga/Documents/scenario_audit_report.txt' (e.g., using nano, vim, or echo redirects)."
+    },
+    {
+      "id": "report_environment_faults",
+      "description": "Verify the audit report documents the environment.ini faults.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the contents of the audit report. It must explicitly list 'environment.ini' and document the original invalid values (StartTime 25.5, StartMonth 15, Weather 200.0) alongside their corrections."
+    },
+    {
+      "id": "report_ownship_faults",
+      "description": "Verify the audit report documents the ownship.ini faults.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the contents of the audit report. It must explicitly list 'ownship.ini' and document the original invalid values (Latitude 42.3601, Speed 85.0) alongside their corrections."
+    },
+    {
+      "id": "report_othership_faults",
+      "description": "Verify the audit report documents the othership.ini faults.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the contents of the audit report. It must explicitly list 'othership.ini' and document the original invalid values (Vessel 2 position 53.6350/-0.0500, Legs 0, VLCC Speed 45.0) alongside their corrections."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the agent actually edited the INI files in the specified scenario directory.",
+      "visual_evidence": "Look for terminal commands like 'nano', 'vim', or 'sed' targeting files in '/opt/bridgecommand/Scenarios/h) Humber Approach Training/'."
+    },
+    {
+      "id": "genuine_inspection",
+      "description": "Verify the agent inspected the files to find the errors rather than magically knowing them.",
+      "visual_evidence": "Look for commands like 'cat', 'grep', 'less', or opening the files in an editor before making corrections or writing the report."
+    },
+    {
+      "id": "report_not_hardcoded",
+      "description": "Verify the agent constructed the report manually or via a script based on findings, rather than pasting a pre-baked response.",
+      "visual_evidence": "The report generation should involve typing in an editor or echoing multiple lines, rather than a single massive copy-pasted block of text without prior file inspection."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario is located at '/opt/bridgecommand/Scenarios/h) Humber Approach Training/'. There are exactly 8 deliberate errors to fix and document in '/home/ga/Documents/scenario_audit_report.txt'. 1) environment.ini: StartTime 25.5 (valid: 0-24). 2) environment.ini: StartMonth 15 (valid: 1-12). 3) environment.ini: Weather 200.0 (valid: 0-12 Beaufort scale). 4) ownship.ini: Latitude 42.3601 (Boston, valid: 53.0-54.0 for Humber). 5) ownship.ini: Speed 85.0 (valid: 0-25 knots). 6) othership.ini: Vessel 2 position is 53.6350, -0.0500 (identical to Vessel 1, causing collision). 7) othership.ini: Vessel 2 Legs is 0 (valid: >= 1). 8) othership.ini: Vessel 3 (VLCC) InitialSpeed is 45.0 (valid: 0-20 knots). The report must contain the file name, original invalid value, and the correction for each fault."
+}

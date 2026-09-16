@@ -1,0 +1,53 @@
+{
+  "task_id": "centroid_extraction_csv_export@1",
+  "task_completion": [
+    {
+      "id": "load_source_layer",
+      "description": "Load the natural earth countries shapefile",
+      "points": 10,
+      "visual_evidence": "The layer 'ne_110m_admin_0_countries' is visible in the Layers panel or the map canvas shows the global country polygons."
+    },
+    {
+      "id": "filter_south_america",
+      "description": "Filter or select only the countries in South America",
+      "points": 20,
+      "visual_evidence": "The map canvas shows only South American countries selected (usually highlighted in yellow) or the attribute table is filtered to show only features where the continent is South America (approx 13 features)."
+    },
+    {
+      "id": "extract_centroids",
+      "description": "Extract the centroids of the South American countries",
+      "points": 20,
+      "visual_evidence": "A new point layer is visible in the Layers panel (e.g., 'Centroids') and point markers are visible on the map canvas located at the center of the South American countries."
+    },
+    {
+      "id": "add_coordinate_fields",
+      "description": "Add decimal fields for longitude and latitude",
+      "points": 30,
+      "visual_evidence": "The attribute table for the centroids layer or the Field Calculator dialog shows new columns named 'longitude' and 'latitude' (or similar) populated with decimal coordinate values."
+    },
+    {
+      "id": "export_to_csv",
+      "description": "Export the final results to the specified CSV path",
+      "points": 20,
+      "visual_evidence": "A 'Save Vector Layer as...' dialog, export confirmation message, or file manager showing the file being saved as 'south_america_centroids.csv' in the '/home/ga/GIS_Data/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gis_gui",
+      "description": "The agent used the GIS software GUI to perform the tasks rather than bypassing it with terminal commands.",
+      "visual_evidence": "Screenshots show interaction with QGIS (or similar GIS software) menus, processing toolboxes, and dialogs, rather than just a terminal window running ogr2ogr or Python scripts."
+    },
+    {
+      "id": "genuine_spatial_operation",
+      "description": "The agent actually generated centroids from the polygons rather than manually creating a mock file.",
+      "visual_evidence": "The map canvas displays the intermediate steps: the original polygons and the generated centroid points overlaid on top of them."
+    },
+    {
+      "id": "authentic_coordinate_values",
+      "description": "The generated coordinates are authentic and not manually typed dummy values.",
+      "visual_evidence": "The attribute table or export preview shows realistic decimal values for South America (Longitude between -78 and -53, Latitude between -51 and 7), not placeholder values like 0.0 or 1.0."
+    }
+  ],
+  "privileged_info_for_vlm": "The source shapefile is located at /home/ga/GIS_Data/natural_earth/ne_110m_admin_0_countries.shp. The dataset contains exactly 13 South American features (including Falkland Islands). The expected output is a CSV file at /home/ga/GIS_Data/exports/south_america_centroids.csv containing exactly 13 rows. The calculated centroid coordinates for these features should fall within the range of approximately -78.38 to -53.05 for longitude and -51.71 to 7.16 for latitude."
+}

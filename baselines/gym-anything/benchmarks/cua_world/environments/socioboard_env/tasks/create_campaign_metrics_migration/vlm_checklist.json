@@ -1,0 +1,53 @@
+{
+  "task_id": "create_campaign_metrics_migration@1",
+  "task_completion": [
+    {
+      "id": "create_migration_file",
+      "description": "Create a new Sequelize migration file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'sequelize migration:generate' or a text editor open with a newly created JavaScript migration file."
+    },
+    {
+      "id": "define_up_function",
+      "description": "Define the 'up' function to create the 'campaign_metrics' table.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the 'up' function containing 'queryInterface.createTable('campaign_metrics', { ... })'."
+    },
+    {
+      "id": "define_table_columns",
+      "description": "Define the 11 required columns with their specific types and constraints.",
+      "points": 30,
+      "visual_evidence": "Code editor showing the columns: id (INTEGER, primaryKey, autoIncrement), campaign_name (STRING, allowNull: false), platform (STRING, allowNull: false), impressions (BIGINT, defaultValue: 0), clicks (BIGINT, defaultValue: 0), engagement_rate (FLOAT, defaultValue: 0.0), spend_cents (INTEGER, defaultValue: 0), start_date (DATEONLY), end_date (DATEONLY), createdAt (DATE), and updatedAt (DATE)."
+    },
+    {
+      "id": "define_down_function",
+      "description": "Define the 'down' function to make the migration reversible.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the 'down' function containing 'queryInterface.dropTable('campaign_metrics')'."
+    },
+    {
+      "id": "execute_migration",
+      "description": "Execute the migration using the Sequelize CLI with the development environment.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the migration command (e.g., 'npx sequelize-cli db:migrate' or similar) prefixed with 'NODE_ENV=development', and a success message indicating the migration ran."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_direct_sql_bypass",
+      "description": "The agent must use Sequelize migrations to create the table, not direct SQL commands.",
+      "visual_evidence": "Ensure there are no screenshots showing the agent logging directly into the MariaDB console to run a 'CREATE TABLE campaign_metrics' SQL query."
+    },
+    {
+      "id": "correct_cli_directory",
+      "description": "The agent must use the Sequelize CLI from the specified directory.",
+      "visual_evidence": "Terminal commands should show the agent navigating to or executing commands from '/opt/socioboard/socioboard-api/library/sequelize-cli/'."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "The migration file should be genuinely edited in a text editor.",
+      "visual_evidence": "Screenshots should show a text editor (like nano, vim, or VS Code) open with the migration code, rather than just echoing a large block of text blindly into a file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target table name must be exactly 'campaign_metrics'. The migration must define exactly 11 columns: id, campaign_name, platform, impressions, clicks, engagement_rate, spend_cents, start_date, end_date, createdAt, and updatedAt. The correct Sequelize CLI directory is '/opt/socioboard/socioboard-api/library/sequelize-cli/'."
+}

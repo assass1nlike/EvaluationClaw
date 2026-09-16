@@ -1,0 +1,49 @@
+{
+  "id": "schema_constraints@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "You are a database administrator for a travel agency using OrientDB's DemoDB. Data quality issues have been reported: hotels without names, invalid star ratings, profiles missing email addresses, and orders with negative prices. In the 'demodb' database (server credentials: root / GymAnything123!), configure the schema to enforce the following constraints:\n\n- Hotels.Name: MANDATORY and NOTNULL\n- Hotels.Stars: MIN 1 and MAX 5\n- Profiles.Email: MANDATORY and NOTNULL\n- Orders.Price: MIN 0\n- Restaurants.Name: MANDATORY and NOTNULL\n- Reviews class: STRICTMODE enabled",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/schema_constraints/setup_task.sh",
+    "post_task": "/workspace/tasks/schema_constraints/export_result.sh"
+  },
+  "metadata": {
+    "database": "demodb",
+    "constraints": {
+      "Hotels.Name": {
+        "mandatory": true,
+        "notNull": true
+      },
+      "Hotels.Stars": {
+        "min": "1",
+        "max": "5"
+      },
+      "Profiles.Email": {
+        "mandatory": true,
+        "notNull": true
+      },
+      "Orders.Price": {
+        "min": "0"
+      },
+      "Restaurants.Name": {
+        "mandatory": true,
+        "notNull": true
+      },
+      "Reviews": {
+        "strictMode": true
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_schema_constraints"
+    }
+  }
+}

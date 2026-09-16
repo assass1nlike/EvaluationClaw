@@ -1,0 +1,59 @@
+{
+  "task_id": "contractor_tax_withholding_thresholds@1",
+  "task_completion": [
+    {
+      "id": "create_tax_category",
+      "description": "Verify the creation of the 'Contractor TDS 15%' Tax Withholding Category.",
+      "points": 10,
+      "visual_evidence": "Look for a screen showing the Tax Withholding Category list or form with the name 'Contractor TDS 15%'."
+    },
+    {
+      "id": "configure_tax_category",
+      "description": "Verify the rate, threshold, and linked account for the Tax Withholding Category.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Contractor TDS 15%' category details showing a 15% rate, a $5,000 single transaction threshold, and 'TDS Payable - WP' set as the account."
+    },
+    {
+      "id": "assign_category_to_supplier",
+      "description": "Verify that the category is assigned to the supplier 'Build-It Construction'.",
+      "points": 15,
+      "visual_evidence": "Look for the Supplier form for 'Build-It Construction' with the 'Tax Withholding Category' field explicitly set to 'Contractor TDS 15%'."
+    },
+    {
+      "id": "create_invoice_below_threshold",
+      "description": "Verify the creation of a $4,000 Purchase Invoice without tax withheld.",
+      "points": 20,
+      "visual_evidence": "Look for a Purchase Invoice for 'Build-It Construction' with an expense row for 'Contractor Fees - WP' amounting to $4,000. Ensure there is NO tax deduction applied in the Taxes and Charges section (Total should remain $4,000)."
+    },
+    {
+      "id": "create_invoice_above_threshold",
+      "description": "Verify the creation of a $6,000 Purchase Invoice with $900 tax withheld.",
+      "points": 25,
+      "visual_evidence": "Look for a Purchase Invoice for 'Build-It Construction' with an expense row for 'Contractor Fees - WP' amounting to $6,000. The Taxes and Charges section must show a deduction of $900 (automatically calculated) linked to 'TDS Payable - WP'."
+    },
+    {
+      "id": "submit_invoices",
+      "description": "Verify that both Purchase Invoices have been submitted.",
+      "points": 10,
+      "visual_evidence": "Look for the Purchase Invoice screens or list view showing the invoices for 'Build-It Construction' with a status indicating they are submitted (e.g., 'Unpaid', 'Overdue', or a red 'Submitted' badge, but NOT 'Draft')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Ensure the agent used the ERPNext web interface to complete the task.",
+      "visual_evidence": "Screenshots should show the ERPNext web interface in a browser, not terminal windows executing API scripts or curl commands."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Ensure the agent actually navigated and filled out forms.",
+      "visual_evidence": "Screenshots should show intermediate steps like filling out forms, selecting dropdowns, or viewing lists, rather than just a final success message or a text file."
+    },
+    {
+      "id": "no_db_manipulation",
+      "description": "Ensure the agent didn't use a database client or python script to insert records directly.",
+      "visual_evidence": "Absence of terminal windows with SQL commands (e.g., mysql, psql) or python scripts running frappe/ERPNext ORM commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Supplier: 'Build-It Construction'. Tax Withholding Category: 'Contractor TDS 15%'. Rate: 15.0%. Single transaction threshold: $5000.0. Linked liability account: 'TDS Payable - WP'. Expense account: 'Contractor Fees - WP'. Invoice 1 amount: $4000.0 (no tax). Invoice 2 amount: $6000.0 (tax withheld: $900.0)."
+}

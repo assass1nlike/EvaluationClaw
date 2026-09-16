@@ -1,0 +1,37 @@
+{
+  "id": "web_attack_investigation@1",
+  "version": "1.0",
+  "env_id": "splunk_env@0.1",
+  "description": "An external threat intelligence report has flagged coordinated attack activity targeting your infrastructure. Your incident response team suspects the same threat actor is simultaneously probing your web application and conducting authentication attacks. Using Splunk (http://localhost:8000, admin/SplunkAdmin1!), identify IP addresses appearing in both web and authentication attack logs. Build a saved report of these common attacker IPs and create a dashboard to visualize and track these attack patterns.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/web_attack_investigation/setup_task.sh",
+    "post_task": "/workspace/tasks/web_attack_investigation/export_result.sh"
+  },
+  "metadata": {
+    "required_indexes": [
+      "web_logs",
+      "security_logs"
+    ],
+    "min_dashboard_panels": 2,
+    "splunk_user": "admin",
+    "splunk_pass": "SplunkAdmin1!",
+    "scoring_breakdown": {
+      "new_report_created": 20,
+      "report_is_cross_index": 20,
+      "new_dashboard_created": 20,
+      "dashboard_has_multiple_panels": 20,
+      "dashboard_references_logs": 20
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_web_attack_investigation"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "chinook_window_analysis@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Perform a monthly revenue trend analysis on the Chinook database (/home/ga/Documents/databases/chinook.db, connection name 'Chinook') using SQL window functions. The analysis must include YearMonth (YYYY-MM), MonthlyRevenue, CumulativeRevenue, PrevMonthRevenue, MoMGrowthPct, MovingAvg3M, and YearRank. Round all decimal values to 2 decimal places and order results by YearMonth ascending. Export the results to /home/ga/Documents/exports/monthly_revenue_trends.csv and save the SQL query script to /home/ga/Documents/scripts/monthly_revenue_analysis.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_window_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_window_analysis/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/Documents/databases/chinook.db",
+    "expected_csv_path": "/home/ga/Documents/exports/monthly_revenue_trends.csv",
+    "expected_sql_path": "/home/ga/Documents/scripts/monthly_revenue_analysis.sql",
+    "required_columns": [
+      "YearMonth",
+      "MonthlyRevenue",
+      "CumulativeRevenue",
+      "PrevMonthRevenue",
+      "MoMGrowthPct",
+      "MovingAvg3M",
+      "YearRank"
+    ],
+    "ground_truth_csv_path": "/tmp/ground_truth_monthly_trends.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_window_analysis"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_polyline_vertices@1",
+  "task_completion": [
+    {
+      "id": "open_topocal_and_dxf",
+      "description": "Open the TopoCal application and attempt to load the specified DXF file.",
+      "points": 15,
+      "visual_evidence": "TopoCal application window is visible. The agent opens the file explorer or open dialog to load 'C:\\Users\\Docker\\Documents\\building_design.dxf' (Note: the file may be missing due to a task defect, so look for the attempt)."
+    },
+    {
+      "id": "select_polyline_tool",
+      "description": "Locate and select the building foundation polyline or the relevant tool for vertex extraction.",
+      "points": 15,
+      "visual_evidence": "The agent selects a polyline in the TopoCal workspace or navigates to the specific menu/tool used for interacting with polylines and vertices."
+    },
+    {
+      "id": "convert_to_survey_points",
+      "description": "Convert the polyline's existing vertices into survey points without interpolating or dividing the segments.",
+      "points": 20,
+      "visual_evidence": "A dialog, menu option, or command in TopoCal is visible for converting a polyline to points. Settings or checkboxes should indicate that interpolation, division, or adding extra points is disabled."
+    },
+    {
+      "id": "export_csv_points",
+      "description": "Export the resulting survey points to the specified CSV file.",
+      "points": 25,
+      "visual_evidence": "An export or save dialog in TopoCal is open, showing the file format set to CSV and the destination path explicitly typed or selected as 'C:\\Users\\Docker\\Documents\\stakeout_points.csv'."
+    },
+    {
+      "id": "save_topocal_workspace",
+      "description": "Save the TopoCal workspace to the specified .top file.",
+      "points": 25,
+      "visual_evidence": "A 'Save As' dialog in TopoCal is open, showing the destination path explicitly typed or selected as 'C:\\Users\\Docker\\Documents\\building_stakeout.top'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verification",
+      "description": "Verify that the agent used the TopoCal graphical user interface to perform the tasks rather than terminal commands or scripts.",
+      "visual_evidence": "Screenshots must show the agent clicking through TopoCal menus, ribbons, and dialog boxes. There should be no evidence of Python scripts or PowerShell commands being used to bypass the application."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "Verify that the agent did not manually type the expected coordinates into a text editor to fake the CSV output.",
+      "visual_evidence": "No text editors (like Notepad or VS Code) should be visible with the agent manually typing out the 8 expected vertex coordinates."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify that the CSV and TOP files were created via TopoCal's native save/export functionality.",
+      "visual_evidence": "Standard Windows save/export dialogs must be triggered directly from within the TopoCal application, rather than files being created via terminal echo commands or file explorers."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected CSV path: C:\\Users\\Docker\\Documents\\stakeout_points.csv. Expected TOP path: C:\\Users\\Docker\\Documents\\building_stakeout.top. Expected vertex count: 8. Ground truth vertices: [[1000.0, 1000.0], [1020.0, 1000.0], [1020.0, 1015.0], [1010.0, 1015.0], [1010.0, 1025.0], [990.0, 1025.0], [990.0, 1010.0], [1000.0, 1010.0]]. Note: The task environment is defective and the input DXF file (building_design.dxf) is never generated. The agent will likely encounter a 'file not found' error when attempting to open the DXF. Score based on the agent's correct attempts to follow the instructions despite the missing file."
+}

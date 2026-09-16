@@ -1,0 +1,34 @@
+{
+  "id": "longitudinal_wave_adaptation@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "A research team is conducting the 'Youth Development Study'. Wave 1 has been completed. Your task is to set up the Wave 2 survey. Login to LimeSurvey (admin/Admin123!). Create and activate a new survey titled 'Youth Development Study - Wave 2' by copying the existing 'Youth Development Study - Wave 1' survey. The new Wave 2 survey must exclude the 'Baseline Demographics' question group while retaining the 'School Experience' and 'Family Context' groups. Additionally, include a new question group named 'Recent Changes' containing a Yes/No question with the code 'moved' and the question text 'Have you moved to a different home in the past 12 months?'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/longitudinal_wave_adaptation/setup_task.sh",
+    "post_task": "/workspace/tasks/longitudinal_wave_adaptation/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Youth Development Study - Wave 2",
+    "forbidden_group": "Baseline Demographics",
+    "required_preserved_groups": [
+      "School Experience",
+      "Family Context"
+    ],
+    "required_preserved_question_code": "gpa",
+    "expected_new_group": "Recent Changes",
+    "expected_new_question_code": "moved",
+    "expected_new_question_type": "Y"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_longitudinal_wave_adaptation"
+    }
+  }
+}

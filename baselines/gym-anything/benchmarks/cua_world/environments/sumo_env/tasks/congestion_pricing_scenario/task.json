@@ -1,0 +1,38 @@
+{
+  "id": "congestion_pricing_scenario@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "You are a transport economist at the Italian Ministry of Infrastructure and Sustainable Mobility (MIMS), evaluating a cordon-based congestion pricing policy for Bologna's Pasubio corridor using the SUMO scenario at /home/ga/SUMO_Scenarios/bologna_pasubio/. Conduct a baseline simulation to extract performance metrics (vehicle count, VKT, average duration, average speed, time loss, and fuel consumption) and save them to /home/ga/SUMO_Output/baseline_traffic_economics.csv with columns: metric, value, unit. Model the congestion pricing effect by creating a modified route file (pasubio_priced.rou.xml) and configuration (run_priced.sumocfg) that reduces private vehicle trips through a core corridor charging zone of at least 5 edges by 15-25%, ensuring public transit is exempt. Execute the pricing simulation and save the corresponding metrics to /home/ga/SUMO_Output/priced_traffic_economics.csv in the same format. Produce a cost-benefit analysis at /home/ga/SUMO_Output/congestion_pricing_cba.csv with columns: category, baseline_value, priced_value, change_pct, annual_monetized_eur. Use economic values of 15 EUR/hour for travel time, 1.80 EUR/liter for fuel, and 100 EUR/tonne for CO2 to calculate travel time savings, fuel savings, emission reductions, and revenue. Finally, document the policy design, demand impacts, and implementation recommendations in an executive brief at /home/ga/SUMO_Output/congestion_pricing_brief.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/congestion_pricing_scenario/setup_task.sh",
+    "post_task": "/workspace/tasks/congestion_pricing_scenario/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Economists (19-3011.00)",
+    "industry": "Government and Public Administration",
+    "scenario": "bologna_pasubio",
+    "demand_reduction_target_pct": "15-25",
+    "min_charging_zone_edges": 5,
+    "value_of_time_eur": 15,
+    "fuel_cost_eur_liter": 1.8,
+    "co2_social_cost_eur_tonne": 100,
+    "baseline_economics_path": "/home/ga/SUMO_Output/baseline_traffic_economics.csv",
+    "priced_economics_path": "/home/ga/SUMO_Output/priced_traffic_economics.csv",
+    "cba_report_path": "/home/ga/SUMO_Output/congestion_pricing_cba.csv",
+    "priced_route_path": "/home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_priced.rou.xml",
+    "priced_cfg_path": "/home/ga/SUMO_Scenarios/bologna_pasubio/run_priced.sumocfg",
+    "brief_path": "/home/ga/SUMO_Output/congestion_pricing_brief.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_congestion_pricing_scenario"
+    }
+  }
+}

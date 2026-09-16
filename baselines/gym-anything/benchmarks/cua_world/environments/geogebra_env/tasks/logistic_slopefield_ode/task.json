@@ -1,0 +1,31 @@
+{
+  "id": "logistic_slopefield_ode@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create an interactive GeoGebra applet to visualize the logistic growth differential equation dy/dx = r * y * (1 - y/K). The applet must include a slider for the growth rate 'r' (0.1 to 2, increment 0.1) and a slider for the carrying capacity 'K' (1 to 20, increment 1). Visualize the vector field for this ODE and plot at least three solution curves with starting values y(0)=1, y(0)=5, and y(0)=15. Include a text annotation explaining the equilibrium behavior at y=K. Save the project as 'logistic_slopefield.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/logistic_slopefield_ode/setup_task.sh",
+    "post_task": "/workspace/tasks/logistic_slopefield_ode/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "logistic_slopefield.ggb",
+    "required_commands": [
+      "SlopeField",
+      "SolveODE"
+    ],
+    "min_solve_ode_count": 2,
+    "min_sliders": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_logistic_slopefield_ode"
+    }
+  }
+}

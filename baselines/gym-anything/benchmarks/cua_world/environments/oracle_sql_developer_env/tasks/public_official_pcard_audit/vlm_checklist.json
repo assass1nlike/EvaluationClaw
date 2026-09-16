@@ -1,0 +1,65 @@
+{
+  "task_id": "public_official_pcard_audit@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database using the provided credentials",
+      "points": 10,
+      "visual_evidence": "A SQL client (like DBeaver, SQL Developer, or sqlplus in terminal) showing an active connection to the XEPDB1 service or state_audit user."
+    },
+    {
+      "id": "create_vw_split_txns",
+      "description": "Create the VW_SPLIT_TXNS view",
+      "points": 15,
+      "visual_evidence": "Execution of a 'CREATE VIEW VW_SPLIT_TXNS...' SQL statement with a success message, or the view appearing in the database schema explorer."
+    },
+    {
+      "id": "create_vw_weekend_violations",
+      "description": "Create the VW_WEEKEND_VIOLATIONS view",
+      "points": 15,
+      "visual_evidence": "Execution of a 'CREATE VIEW VW_WEEKEND_VIOLATIONS...' SQL statement with a success message, or the view appearing in the database schema explorer."
+    },
+    {
+      "id": "create_vw_cross_emp_duplicates",
+      "description": "Create the VW_CROSS_EMP_DUPLICATES view",
+      "points": 15,
+      "visual_evidence": "Execution of a 'CREATE VIEW VW_CROSS_EMP_DUPLICATES...' SQL statement with a success message, or the view appearing in the database schema explorer."
+    },
+    {
+      "id": "create_vw_prohibited_spend",
+      "description": "Create the VW_PROHIBITED_SPEND view",
+      "points": 15,
+      "visual_evidence": "Execution of a 'CREATE VIEW VW_PROHIBITED_SPEND...' SQL statement with a success message, or the view appearing in the database schema explorer."
+    },
+    {
+      "id": "create_mv_agency_risk_summary",
+      "description": "Create the MV_AGENCY_RISK_SUMMARY materialized view",
+      "points": 20,
+      "visual_evidence": "Execution of a 'CREATE MATERIALIZED VIEW MV_AGENCY_RISK_SUMMARY...' SQL statement with a success message, or the materialized view appearing in the database schema explorer."
+    },
+    {
+      "id": "export_csv_summary",
+      "description": "Export the materialized view contents to a CSV file",
+      "points": 10,
+      "visual_evidence": "A terminal command, database client export wizard, or script execution showing the export of data to '/home/ga/Documents/exports/agency_audit_summary.csv', or the file visible in a file manager/editor."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_db_interaction",
+      "description": "The agent interacted with the Oracle database to execute the queries",
+      "visual_evidence": "Queries are executed in a functional SQL client or terminal interface, not just typed into a text editor without being run."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not manually type or hardcode the CSV output",
+      "visual_evidence": "The CSV file is generated via an export command or script from the database, rather than manually typed out in a text editor using guessed or hardcoded values."
+    },
+    {
+      "id": "authentic_view_creation",
+      "description": "The agent actually created the views rather than just writing SELECT statements",
+      "visual_evidence": "The SQL commands explicitly include 'CREATE VIEW' and 'CREATE MATERIALIZED VIEW' syntax, rather than just running standalone SELECT queries to get the answers."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected violators in the database are: Employee 101 for split transactions, Employees 102 and 103 for weekend spend (103 is a valid violation due to a Sunday expense lacking travel authorization), Employees 103 and 104 for duplicates, and Employee 105 for prohibited MCCs. The final CSV export should reflect these specific employees if the views are queried correctly."
+}

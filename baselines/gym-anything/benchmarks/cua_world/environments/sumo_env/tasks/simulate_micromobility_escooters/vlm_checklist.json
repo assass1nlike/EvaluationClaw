@@ -1,0 +1,53 @@
+{
+  "task_id": "simulate_micromobility_escooters@1",
+  "task_completion": [
+    {
+      "id": "escooter_vtype_defined",
+      "description": "Create the e-scooter vehicle type definition file.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing the creation of '/home/ga/SUMO_Output/escooter.add.xml' containing a <vType> element with id='escooter', vClass='bicycle', maxSpeed='5.56', width='0.6', length='1.5', and guiShape='scooter'."
+    },
+    {
+      "id": "escooter_demand_generated",
+      "description": "Generate demand for e-scooter trips.",
+      "points": 20,
+      "visual_evidence": "Terminal commands (e.g., using randomTrips.py or a custom script) or file contents showing the generation of '/home/ga/SUMO_Output/escooter_demand.rou.xml' with approximately 150 trips over a 3600-second period for the bicycle vehicle class."
+    },
+    {
+      "id": "sumocfg_created",
+      "description": "Create the SUMO configuration file integrating all inputs and outputs.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing '/home/ga/SUMO_Output/mixed_mobility.sumocfg' with <input> sections including the baseline network, baseline routes, 'escooter.add.xml', and 'escooter_demand.rou.xml', as well as <output> sections for 'tripinfos.xml' and 'collisions.xml'."
+    },
+    {
+      "id": "simulation_run",
+      "description": "Run the SUMO simulation to generate trip and collision data.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the SUMO simulation (e.g., 'sumo -c /home/ga/SUMO_Output/mixed_mobility.sumocfg') and the successful generation of 'tripinfos.xml' and 'collisions.xml' in the output directory."
+    },
+    {
+      "id": "report_generated",
+      "description": "Calculate and save the average trip duration report.",
+      "points": 25,
+      "visual_evidence": "A script execution or terminal commands parsing 'tripinfos.xml' to calculate average durations, and the contents of '/home/ga/SUMO_Output/micromobility_report.txt' displaying the average trip duration for 'escooter' vehicles compared to other standard vehicles."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_execution",
+      "description": "Ensure the agent actually ran the SUMO simulation.",
+      "visual_evidence": "Look for authentic SUMO terminal output logs showing step progression or summary statistics, rather than just manually creating empty or dummy output XML files."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "Ensure the agent calculated the trip durations from the simulation output.",
+      "visual_evidence": "Look for a Python script, awk command, or similar data processing tool being used to parse 'tripinfos.xml'. The report should not contain guessed or hardcoded numbers without a calculation step."
+    },
+    {
+      "id": "correct_file_locations",
+      "description": "Ensure files are saved in the correct directories.",
+      "visual_evidence": "Check terminal prompts or file paths in editors to confirm that all generated files are placed in '/home/ga/SUMO_Output/' and baseline files are read from '/home/ga/SUMO_Scenarios/bologna_pasubio/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline SUMO scenario is located at /home/ga/SUMO_Scenarios/bologna_pasubio. The designated output directory is /home/ga/SUMO_Output. The expected vType for the micro-mobility vehicle is 'escooter' with a vClass of 'bicycle'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_software_rasterizer@1",
+  "task_completion": [
+    {
+      "id": "open_rasterizer_files",
+      "description": "Agent opens the rasterizer source code files in a text editor or IDE.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE (like VS Code, Vim, or Nano) is open, displaying Python files from the /home/ga/workspace/tiny_rasterizer/ directory (e.g., rasterizer.py, geometry.py, camera.py, or render.py)."
+    },
+    {
+      "id": "modify_rendering_pipeline",
+      "description": "Agent modifies the mathematical or logical code within the rendering pipeline.",
+      "points": 20,
+      "visual_evidence": "The text editor shows active changes, additions, or deletions to the code handling backface culling, Z-buffer depth testing, perspective divide, barycentric coordinates, or viewport transformation."
+    },
+    {
+      "id": "execute_render_script",
+      "description": "Agent executes the render script to generate the 3D image.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the command `python render.py` being executed."
+    },
+    {
+      "id": "verify_output_generation",
+      "description": "The output image file is successfully generated in the workspace.",
+      "points": 20,
+      "visual_evidence": "The terminal or file explorer shows the creation or updating of an output image file (e.g., output.png) after the render script is executed."
+    },
+    {
+      "id": "correct_torus_render",
+      "description": "The generated image displays a correct, undistorted 3D render of a torus.",
+      "points": 30,
+      "visual_evidence": "An image viewer is open showing the final render. The image must depict a solid 3D torus (donut shape) that is right-side up, has correct depth sorting (closer parts occlude farther parts, not inside-out), and lacks geometric distortion."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_modification",
+      "description": "The agent actually modified the Python source code to fix the bugs rather than downloading or copying a pre-rendered image.",
+      "visual_evidence": "Screenshots show the agent interacting with and editing the Python source files before running the render script."
+    },
+    {
+      "id": "actual_script_execution",
+      "description": "The agent generated the image by running the provided script.",
+      "visual_evidence": "The terminal shows the actual execution of `python render.py` resulting in the image creation, rather than the agent renaming an existing file or mocking the output."
+    },
+    {
+      "id": "no_external_renderer",
+      "description": "The agent used the provided lightweight Python software rasterizer without importing heavy external 3D rendering engines.",
+      "visual_evidence": "The code visible in the editor does not show new imports for external rendering libraries like PyOpenGL, Blender (bpy), or matplotlib 3D toolkits used to bypass the manual rasterization process."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific mathematical bugs in the rasterizer: barycentric coordinate miscalculation, perspective divide failure on Z, Y-axis viewport inversion, reversed winding order in normal calculation, and reversed z-buffer depth testing. The final output must be a successfully regenerated output.png file showing a correct 3D torus. A passing score requires fixing at least 3 out of 5 bugs (score >= 60)."
+}

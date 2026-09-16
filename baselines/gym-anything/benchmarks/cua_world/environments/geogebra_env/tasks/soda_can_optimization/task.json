@@ -1,0 +1,34 @@
+{
+  "id": "soda_can_optimization@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are an industrial packaging engineer designing a new 355ml soda can. The goal is to minimize material cost. Because the top and bottom of the can must be thicker to withstand pressure, the material for the lids costs 2.2 times as much per unit area as the material for the sidewalls. Model the can in GeoGebra to find the optimal radius and height that minimize the total material cost for a fixed volume of 355 units. Include a 3D visualization of the cylinder at its optimal dimensions and a text label displaying the calculated radius and height. Save the project as 'soda_can_opt.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/soda_can_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/soda_can_optimization/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "soda_can_opt.ggb",
+    "volume": 355,
+    "cost_ratio_lids": 2.2,
+    "optimal_radius": 2.95,
+    "tolerance_radius": 0.1,
+    "expected_object_types": [
+      "function",
+      "cylinder",
+      "numeric"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_soda_can_optimization"
+    }
+  }
+}

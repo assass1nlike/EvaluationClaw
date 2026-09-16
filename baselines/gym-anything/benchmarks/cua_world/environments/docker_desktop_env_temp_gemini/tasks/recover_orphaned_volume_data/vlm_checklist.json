@@ -1,0 +1,53 @@
+{
+  "task_id": "recover_orphaned_volume_data@1",
+  "task_completion": [
+    {
+      "id": "list_dangling_volumes",
+      "description": "Agent lists the available dangling Docker volumes.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a command like 'docker volume ls -f dangling=true' or 'docker volume ls' displaying a list of anonymous volume hashes."
+    },
+    {
+      "id": "locate_target_volume",
+      "description": "Agent inspects the contents of the dangling volumes to find the one containing the target file.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the agent running temporary containers to list volume contents (e.g., 'docker run --rm -v <volume>:/tmp alpine ls /tmp') and successfully identifying the volume containing 'PROJECT_X_BLUEPRINT.md'."
+    },
+    {
+      "id": "run_recovery_container",
+      "description": "Agent creates and runs a new container named 'recovery-env' with the identified volume mounted to '/workspace'.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a 'docker run' command that includes '--name recovery-env', a volume mount flag like '-v <volume_hash>:/workspace', and a command to keep it running persistently (e.g., '-d', 'tail -f /dev/null', or 'sleep infinity')."
+    },
+    {
+      "id": "verify_container_running",
+      "description": "Agent verifies that the 'recovery-env' container is persistently running.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the output of 'docker ps' with 'recovery-env' listed in the 'NAMES' column and an 'Up' status."
+    },
+    {
+      "id": "verify_mount_contents",
+      "description": "Agent verifies the target file is accessible at the correct mount point inside the new container.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command executed inside the new container (e.g., 'docker exec recovery-env ls /workspace' or 'docker exec recovery-env cat /workspace/PROJECT_X_BLUEPRINT.md') displaying the target file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_commands",
+      "description": "Agent used actual Docker commands to locate and mount the existing volume.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Docker CLI to find the existing volume hash, rather than bypassing the search process."
+    },
+    {
+      "id": "no_file_fabrication",
+      "description": "Agent did not manually create a fake 'PROJECT_X_BLUEPRINT.md' file.",
+      "visual_evidence": "There should be no commands like 'echo ... > PROJECT_X_BLUEPRINT.md' or 'touch PROJECT_X_BLUEPRINT.md' followed by a 'docker cp' to fake the recovery process."
+    },
+    {
+      "id": "persistent_execution",
+      "description": "The recovery container was started in a way that keeps it running persistently, rather than exiting immediately.",
+      "visual_evidence": "The 'docker run' command should include a background flag ('-d') and/or a persistent command (like 'sleep' or 'tail') rather than just an interactive shell that was subsequently exited."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file to recover is exactly 'PROJECT_X_BLUEPRINT.md'. The new container must be named exactly 'recovery-env' and must be persistently running. The orphaned volume must be mounted exactly at '/workspace' inside this new container."
+}

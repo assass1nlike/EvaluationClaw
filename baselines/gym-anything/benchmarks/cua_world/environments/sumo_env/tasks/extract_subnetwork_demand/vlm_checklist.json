@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_subnetwork_demand@1",
+  "task_completion": [
+    {
+      "id": "extract_subnetwork",
+      "description": "Extract the 200x200 meter subnetwork from the original network.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command (like `netconvert`) using the original network `acosta_buslanes.net.xml`, specifying a bounding box (`--bbox` or similar) or center coordinate, and outputting to `/home/ga/SUMO_Output/micro.net.xml`."
+    },
+    {
+      "id": "exclude_isolated_edges",
+      "description": "Exclude isolated edges during the subnetwork extraction.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the extraction command (e.g., `netconvert`) includes a flag to remove isolated edges, such as `--keep-edges.components 1`, `--remove-edges.isolated`, or a similar filtering argument."
+    },
+    {
+      "id": "adapt_traffic_demand",
+      "description": "Adapt the original traffic demand to the new subnetwork.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a command or script (like `cutRoutes.py`, `duarouter`, or a custom Python script) processing the original `acosta.rou.xml` file and generating the adapted routes at `/home/ga/SUMO_Output/micro.rou.xml`."
+    },
+    {
+      "id": "create_sumocfg",
+      "description": "Create a valid SUMO configuration file incorporating the new files.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the creation or editing of `/home/ga/SUMO_Output/micro.sumocfg` (via `nano`, `vim`, `cat`, or `echo`). The file contents should reference `micro.net.xml` and `micro.rou.xml`."
+    },
+    {
+      "id": "verify_simulation_run",
+      "description": "Verify the final configuration runs successfully.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the execution of `sumo -c /home/ga/SUMO_Output/micro.sumocfg` (or `sumo-gui`) and the output displaying successful simulation steps without fatal errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_tool_usage",
+      "description": "Verify the agent used actual SUMO tools or scripts to generate the network and route files, rather than manually creating mock files with arbitrary content.",
+      "visual_evidence": "Look for execution of tools like `netconvert`, Python scripts (e.g., `cutRoutes.py`), or routing tools in the terminal history."
+    },
+    {
+      "id": "dynamic_center_calculation",
+      "description": "Verify the agent determined the geographic center of the network or calculated the bounding box rather than guessing or hardcoding unexplained coordinates.",
+      "visual_evidence": "Look for commands inspecting the original network's boundaries (e.g., using `netinfo`, python scripts parsing XML, or `grep` on `convBoundary`)."
+    },
+    {
+      "id": "actual_verification_run",
+      "description": "Verify the agent actually ran the simulation to test the configuration, rather than just assuming it works.",
+      "visual_evidence": "Look for the `sumo` command being executed and producing standard simulation output logs (e.g., 'Step #...')."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires extracting a 200x200m subnetwork from /home/ga/SUMO_Scenarios/bologna_acosta/acosta_buslanes.net.xml. The output files must be exactly: /home/ga/SUMO_Output/micro.net.xml, /home/ga/SUMO_Output/micro.rou.xml, and /home/ga/SUMO_Output/micro.sumocfg. The agent must adapt the routes from acosta.rou.xml. The final configuration must run successfully in SUMO. Note that due to netconvert's behavior of retaining full edges, the resulting network's convBoundary may exceed 200x200m, which is acceptable within a 150m tolerance."
+}

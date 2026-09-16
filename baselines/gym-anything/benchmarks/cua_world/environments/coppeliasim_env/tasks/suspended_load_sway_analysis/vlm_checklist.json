@@ -1,0 +1,59 @@
+{
+  "task_id": "suspended_load_sway_analysis@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_crane_built",
+      "description": "The agent programmatically built a 1D gantry crane with a suspended pendulum in CoppeliaSim.",
+      "points": 15,
+      "visual_evidence": "The CoppeliaSim GUI is visible showing a scene with a gantry crane structure, a trolley, and a pendulum. A script editor or terminal may also show the code used to generate the scene."
+    },
+    {
+      "id": "simulation_script_executed",
+      "description": "The agent executed a script to run the 'abrupt' and 'smooth' velocity profile trials.",
+      "points": 15,
+      "visual_evidence": "Terminal output or an IDE console showing the execution of a Python script that runs the two distinct trials in CoppeliaSim, likely printing progress or trial names."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The agent created the sway_timeseries.csv file in the correct directory.",
+      "points": 15,
+      "visual_evidence": "A terminal command (e.g., ls, tree) or file explorer showing the file 'sway_timeseries.csv' located in '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "csv_file_contents",
+      "description": "The CSV file contains the correct columns and data for both trials.",
+      "points": 20,
+      "visual_evidence": "A terminal (using cat, head) or text editor displaying the contents of 'sway_timeseries.csv', showing the header 'trial_name, sim_time_s, trolley_x_m, sway_angle_deg' and rows corresponding to both 'abrupt' and 'smooth' trials."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The agent created the sway_report.json file in the correct directory.",
+      "points": 15,
+      "visual_evidence": "A terminal command or file explorer showing the file 'sway_report.json' located in '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "json_file_contents",
+      "description": "The JSON report contains the correct fields and demonstrates a reduction in payload sway.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor displaying 'sway_report.json' with the fields 'pendulum_length_m', 'abrupt_max_sway_deg', 'smooth_max_sway_deg', and 'sway_reduction_pct'. The smooth max sway should be lower than the abrupt max sway."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation",
+      "description": "The agent actually ran the simulation in CoppeliaSim rather than mocking the physics data.",
+      "visual_evidence": "Look for a script utilizing CoppeliaSim APIs (like ZeroMQ Remote API or PyRep) to step the simulation and read joint/object positions, rather than generating sine waves mathematically without a simulator."
+    },
+    {
+      "id": "programmatic_creation",
+      "description": "The agent built the crane programmatically as requested, rather than manually assembling it in the GUI.",
+      "visual_evidence": "Look for Python code containing CoppeliaSim API calls to create shapes and joints (e.g., sim.createPureShape, sim.createJoint) rather than the agent using the CoppeliaSim GUI menus to add primitives."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected sway reduction or period in the JSON/CSV files.",
+      "visual_evidence": "The script should calculate the max sway and reduction dynamically from the recorded simulation data arrays (e.g., using max() and arithmetic operations) before writing to the JSON file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected pendulum length is 1.0m. The target translation distance is 2.0m. The expected oscillation period for a 1.0m pendulum is ~2.006s (with a 0.4s tolerance). The minimum expected sway reduction between the abrupt and smooth profiles is 25.0%."
+}

@@ -1,0 +1,86 @@
+{
+  "dataset_id": "b36ea04a",
+  "name": "Table-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 236,
+  "description": "This dataset contains natural language questions about tabular data, where the model must answer by finding relevant cells in the provided table. It evaluates table question answering over structured tables from various domains.",
+  "card_text": "The dataset consists of text-only samples, each pairing a natural language question with a table encoded as a JSON string. The table includes headers and rows, where each row is an object mapping column names to cell values. Questions are fact-seeking and often require locating a specific value (e.g., a number, name, or date) via one or more table lookups, possibly with light inference. Answers are short text spans, typically a single cell value. The tables cover diverse topics such as networking protocols, sports, and general knowledge, reflecting Wikipedia-style tables. The task assumes the model can parse the stringified table and reason over its structured content. No extra context or dialog is provided.",
+  "tasks": [
+    "table_question_answering"
+  ],
+  "domain": "multi-domain tabular QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.table"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "structured",
+        "semantics": "The main input content is a table serialized as a JSON string, containing headers and rows of structured information. It acts as the knowledge source that the question queries, and its cell values provide the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "table": {
+        "paths": [
+          "input.table"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "structured",
+        "semantics": "Tabular data stored as a JSON string with 'headers' and 'rows' keys; each row maps column names to cell values. It is the structured context for answering the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question asking for specific information contained in the table, often requiring locating a particular row and column.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct response to the question, typically a short text or numeric value extracted from one or more table cells.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three components: a natural language question (input.question), a table (input.table) encoded as a JSON string with headers and rows, and a short answer (output.answer). The table serves as the context, the question queries it, and the answer is derived from the table content. There are no images, dialogs, options, or additional auxiliary fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Table-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Table Question Answering",
+      "type": "OpenQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

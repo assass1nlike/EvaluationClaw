@@ -1,0 +1,53 @@
+{
+  "task_id": "manage_adverse_drug_reaction@1",
+  "task_completion": [
+    {
+      "id": "patient_chart_opened",
+      "description": "Verify the agent has logged into the EHR and opened the chart for the specified patient.",
+      "points": 10,
+      "visual_evidence": "The LibreHealth EHR interface is visible, and the patient dashboard or summary for Patient '[PATIENT_NAME]' is displayed."
+    },
+    {
+      "id": "medication_discontinued",
+      "description": "Verify the 'Lisinopril 10mg' medication has been discontinued.",
+      "points": 30,
+      "visual_evidence": "In the patient's medication list, 'Lisinopril 10mg' has an End Date set to the current date, or is clearly marked as inactive/discontinued."
+    },
+    {
+      "id": "medication_note_added",
+      "description": "Verify the discontinuation reason note was added to the medication record.",
+      "points": 20,
+      "visual_evidence": "The text 'Discontinued due to side effect' is visible in the comments, notes, or details section of the 'Lisinopril 10mg' medication entry."
+    },
+    {
+      "id": "allergy_recorded",
+      "description": "Verify a new allergy has been recorded for the medication.",
+      "points": 20,
+      "visual_evidence": "The patient's Allergies list or section contains a new entry for 'Lisinopril'."
+    },
+    {
+      "id": "allergy_reaction_recorded",
+      "description": "Verify the specific reaction is documented for the new allergy.",
+      "points": 20,
+      "visual_evidence": "The text 'Dry Cough' (or 'Cough') is visible as the reaction, symptom, or note associated with the 'Lisinopril' allergy entry."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the LibreHealth EHR web interface to make changes.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the LibreHealth EHR GUI, not terminal windows executing SQL queries, curl commands, or scripts."
+    },
+    {
+      "id": "correct_patient_context",
+      "description": "Verify the changes were made to the correct patient's record.",
+      "visual_evidence": "The name '[PATIENT_NAME]' should be visible in the patient header or demographic area while the medication and allergy updates are being made."
+    },
+    {
+      "id": "genuine_software_usage",
+      "description": "Verify the agent did not fake the completion using a text editor or mock page.",
+      "visual_evidence": "The interface must clearly be the LibreHealth EHR system with its standard menus, layout, and styling, rather than a generic text document or manipulated HTML."
+    }
+  ],
+  "privileged_info_for_vlm": "The task takes place in LibreHealth EHR. The agent must discontinue 'Lisinopril 10mg' (an FDA-approved ACE inhibitor) by setting its End Date to today and adding the note 'Discontinued due to side effect'. The agent must also add a new allergy for 'Lisinopril' with the reaction 'Dry Cough' (a well-documented class-effect adverse reaction occurring in 4-35% of patients). Verify all clinical updates are made via the EHR's graphical interface."
+}

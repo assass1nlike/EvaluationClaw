@@ -1,0 +1,29 @@
+{
+  "id": "gel_electrophoresis_densitometry@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a biochemist quantifying protein expression levels from a polyacrylamide gel electrophoresis (PAGE) image located at ~/Fiji_Data/raw/gel/protein_gel.tif. Quantify the band intensities for all lanes, applying background subtraction and using Lane 1 as the reference/loading control. Calculate the normalized intensity for each lane as a ratio relative to Lane 1. Save the quantification results including lane ID, raw intensity, normalized intensity, background intensity, and peak area percentage to ~/Fiji_Data/results/gel/band_quantification.csv. Save the lane intensity profile plots to ~/Fiji_Data/results/gel/lane_profiles.png. Generate a summary report at ~/Fiji_Data/results/gel/densitometry_report.txt that identifies the lanes with the highest and lowest expression relative to Lane 1 and lists all normalized values.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/gel_electrophoresis_densitometry/setup_task.sh",
+    "post_task": "/workspace/tasks/gel_electrophoresis_densitometry/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "ImageJ sample gel electrophoresis image (real laboratory gel)",
+    "gel_type": "SDS-PAGE protein gel",
+    "reference_lane": 1,
+    "output_csv": "~/Fiji_Data/results/gel/band_quantification.csv",
+    "output_profiles": "~/Fiji_Data/results/gel/lane_profiles.png",
+    "output_report": "~/Fiji_Data/results/gel/densitometry_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gel_electrophoresis_densitometry"
+    }
+  }
+}

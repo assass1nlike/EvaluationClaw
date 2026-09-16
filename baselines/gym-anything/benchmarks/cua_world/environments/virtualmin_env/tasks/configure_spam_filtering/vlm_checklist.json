@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_spam_filtering@1",
+  "task_completion": [
+    {
+      "id": "access_spam_settings",
+      "description": "Navigate to the SpamAssassin or Spam and Virus Delivery settings for the correct domain.",
+      "points": 10,
+      "visual_evidence": "Virtualmin web interface is open, 'greenfield.test' is selected in the domain dropdown/sidebar, and the 'Spam and Virus Delivery' or 'SpamAssassin Mail Filter' configuration page is visible."
+    },
+    {
+      "id": "set_classification_score",
+      "description": "Set the spam classification score threshold to 4.",
+      "points": 15,
+      "visual_evidence": "The input field for 'Hits required before message is considered spam' (or equivalent classification threshold) is set to the number 4."
+    },
+    {
+      "id": "set_deletion_score",
+      "description": "Set the auto-deletion threshold to 10.",
+      "points": 15,
+      "visual_evidence": "The input field for 'Delete spam if score is above' (or equivalent auto-deletion threshold) is set to the number 10."
+    },
+    {
+      "id": "set_delivery_action",
+      "description": "Configure identified spam to be delivered to the user's spam/junk folder.",
+      "points": 15,
+      "visual_evidence": "The radio button or dropdown for spam destination/action is set to 'Deliver to user's spam folder', 'Write to standard spamdir', or equivalent option that routes to the junk folder."
+    },
+    {
+      "id": "configure_whitelist",
+      "description": "Add the specified trusted partner and alerting system to the whitelist.",
+      "points": 20,
+      "visual_evidence": "The text area for 'Allowed email addresses' (Whitelist) contains exactly '*@trustedpartner.org' and 'admin@important-alerts.net'."
+    },
+    {
+      "id": "configure_blacklist",
+      "description": "Add the specified known spammer and bulk mail sender to the blacklist.",
+      "points": 20,
+      "visual_evidence": "The text area for 'Denied email addresses' (Blacklist) contains exactly '*@known-spammer.example' and 'marketing@bulkmail.example'."
+    },
+    {
+      "id": "save_settings",
+      "description": "Save and apply the SpamAssassin configuration.",
+      "points": 5,
+      "visual_evidence": "A success message, banner, or visual confirmation indicating that the SpamAssassin or Spam and Virus Delivery settings have been successfully saved/applied for greenfield.test."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_virtualmin_gui",
+      "description": "Verify the agent used the Virtualmin web interface to configure the settings.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the Virtualmin GUI, rather than terminal commands editing configuration files like local.cf directly."
+    },
+    {
+      "id": "correct_domain_context",
+      "description": "Verify the settings are being applied specifically to the greenfield.test domain.",
+      "visual_evidence": "The Virtualmin domain selector (usually in the left sidebar or top menu) must show 'greenfield.test' as the active virtual server during the configuration process."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Verify the agent interacted with the actual form fields.",
+      "visual_evidence": "Values should be typed into the appropriate Virtualmin form inputs, text areas, and radio buttons, not just written into a text editor or a generic terminal echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain: greenfield.test. Required classification score: 4. Auto-deletion score: 10. Whitelist entries: *@trustedpartner.org and admin@important-alerts.net. Blacklist entries: *@known-spammer.example and marketing@bulkmail.example. All domains and addresses are synthetic but use valid SpamAssassin syntax."
+}

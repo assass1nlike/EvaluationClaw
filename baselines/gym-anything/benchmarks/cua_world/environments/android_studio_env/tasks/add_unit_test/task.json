@@ -1,0 +1,33 @@
+{
+  "id": "add_unit_test@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Add JUnit unit tests to the NotepadApp Android project to provide test coverage for the NoteValidator, NoteFormatter, and Note classes. Create the following test files in app/src/test/java/com/example/notepad/, ensuring each file contains at least 3 test methods:\n\n- NoteValidatorTest.kt: Test isValidTitle, isValidContent, isNoteComplete, isValidId, and isValidColor with both valid and invalid inputs.\n- NoteFormatterTest.kt: Test formatTitle, formatPreview, formatDate, and formatWordCount.\n- NoteTest.kt: Test the Note data class helper methods wordCount and charCount.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_unit_test/setup_task.sh",
+    "post_task": "/workspace/tasks/add_unit_test/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/NotepadApp",
+    "test_dir": "app/src/test/java/com/example/notepad",
+    "expected_test_files": [
+      "NoteValidatorTest.kt",
+      "NoteFormatterTest.kt",
+      "NoteTest.kt"
+    ],
+    "min_tests_per_file": 3,
+    "data_source": "/workspace/data/NotepadApp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_unit_test"
+    }
+  }
+}

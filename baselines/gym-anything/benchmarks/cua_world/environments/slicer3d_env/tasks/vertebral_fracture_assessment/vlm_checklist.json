@@ -1,0 +1,59 @@
+{
+  "task_id": "vertebral_fracture_assessment@1",
+  "task_completion": [
+    {
+      "id": "identify_l1_vertebra",
+      "description": "Identify the correct vertebral level (L1) for assessment.",
+      "points": 25,
+      "visual_evidence": "The agent is viewing the thoracolumbar spine in a medical imaging viewer (e.g., 3D Slicer) and has focused on, selected, or labeled the L1 vertebra (typically the first non-rib-bearing vertebra below T12)."
+    },
+    {
+      "id": "measure_anterior_height",
+      "description": "Measure the anterior height of the fractured vertebra.",
+      "points": 20,
+      "visual_evidence": "A measurement tool (e.g., ruler or line markup) is placed vertically along the anterior (front) aspect of the L1 vertebral body in the sagittal view. The measured value should be within the physiological range of ~10.8 mm to ~30.0 mm."
+    },
+    {
+      "id": "measure_posterior_height",
+      "description": "Measure the posterior height of the fractured vertebra.",
+      "points": 15,
+      "visual_evidence": "A measurement tool is placed vertically along the posterior (back) aspect of the L1 vertebral body in the sagittal view. The measured value should be within the physiological range of ~10.8 mm to ~30.0 mm."
+    },
+    {
+      "id": "calculate_compression_ratio",
+      "description": "Calculate the compression ratio based on the height measurements.",
+      "points": 15,
+      "visual_evidence": "The agent uses a calculator, terminal, or text editor to compute the compression ratio (1 - anterior/posterior height). The resulting value should be approximately 0.31 (or 31%)."
+    },
+    {
+      "id": "determine_genant_grade",
+      "description": "Apply the Genant classification to grade the fracture.",
+      "points": 15,
+      "visual_evidence": "The agent determines the Genant Grade based on the compression ratio. The grade should be recorded as '2' (moderate), visible in the agent's notes or the final JSON report."
+    },
+    {
+      "id": "save_outputs",
+      "description": "Save the measurements and the fracture report to the specified JSON files.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal shows the creation and saving of 'vertebral_measurements.mrk.json' and 'fracture_report.json' in '~/Documents/SlicerData/Spine/'. The report must include the fields: vertebral_level, anterior_height_mm, posterior_height_mm, compression_ratio, genant_grade, and morphology."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_measurement_used",
+      "description": "The agent used a medical imaging GUI (e.g., 3D Slicer) to view the CT scan and perform measurements.",
+      "visual_evidence": "Screenshots must show the agent interacting with the imaging software's interface, rather than just writing a script to generate the output files blindly."
+    },
+    {
+      "id": "visual_confirmation_of_anatomy",
+      "description": "The agent actually drew measurement lines on the vertebral body.",
+      "visual_evidence": "Measurement markups (lines/rulers) must be visibly overlaid on the sagittal view of the spine in the imaging software, proving the agent didn't hallucinate the numbers."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "The agent populated the report with its own measured values.",
+      "visual_evidence": "The values in the final 'fracture_report.json' should match the measurements taken in the GUI, indicating genuine task execution rather than copy-pasting a pre-computed expected answer."
+    }
+  ],
+  "privileged_info_for_vlm": "The target vertebra is L1. The L1 vertebra has a simulated compression fracture with a 31% height reduction (compression ratio ~0.31). This corresponds to a Genant Grade 2 (moderate) fracture. Physiological vertebral heights for this scan should fall between approximately 10.8 mm and 30.0 mm."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "retire_drug_formulation@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "The Hospital Pharmacy and Therapeutics Committee has issued an urgent recall for the drug 'Rofecoxib 25mg' due to safety concerns. Retire this drug formulation from the system using the reason 'Cardiovascular safety alert'. Use the following credentials: Username: superman, Password: Admin123.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/retire_drug_formulation/setup_task.sh",
+    "post_task": "/workspace/tasks/retire_drug_formulation/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_drug_name": "Rofecoxib 25mg",
+    "required_retire_reason": "Cardiovascular safety alert"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retire_drug_formulation"
+    }
+  }
+}

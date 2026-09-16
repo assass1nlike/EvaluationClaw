@@ -1,0 +1,29 @@
+{
+  "id": "style_points_external_graphic@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Create a custom point style for populated places using an external SVG graphic. Create an SVG file named 'star.svg' containing a star icon with a yellow fill (#FFFF00) and black stroke. In GeoServer, create a new style named 'star_marker' that uses 'star.svg' as an ExternalGraphic for point symbolization with a size between 16-24px. Assign 'star_marker' as the default style for the 'ne_populated_places' layer. \n\nGeoServer Admin: http://localhost:8080/geoserver/web/ (admin / Admin123!)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/style_points_external_graphic/setup_task.sh",
+    "post_task": "/workspace/tasks/style_points_external_graphic/export_result.sh"
+  },
+  "metadata": {
+    "expected_svg_name": "star.svg",
+    "expected_style_name": "star_marker",
+    "expected_layer_name": "ne_populated_places",
+    "expected_fill_color": "yellow",
+    "expected_stroke_color": "black"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_style_points_external_graphic"
+    }
+  }
+}

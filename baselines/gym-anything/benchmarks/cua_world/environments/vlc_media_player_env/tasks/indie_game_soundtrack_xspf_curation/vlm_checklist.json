@@ -1,0 +1,59 @@
+{
+  "task_id": "indie_game_soundtrack_xspf_curation@1",
+  "task_completion": [
+    {
+      "id": "distribution_folders_created",
+      "description": "Create the OST_Distribution folder and its tracks subfolder on the Desktop.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window shows the directory path /home/ga/Desktop/OST_Distribution/tracks exists."
+    },
+    {
+      "id": "tracks_copied",
+      "description": "Copy the 12 specified MP3 tracks into the tracks folder.",
+      "points": 20,
+      "visual_evidence": "The tracks folder is shown containing 12 MP3 files (e.g., 01_main_theme_vFINAL.mp3, 02_city_streets_mix2.mp3, etc.)."
+    },
+    {
+      "id": "xspf_file_created",
+      "description": "Generate the soundtrack.xspf playlist file in the OST_Distribution folder.",
+      "points": 10,
+      "visual_evidence": "The file soundtrack.xspf is visible inside /home/ga/Desktop/OST_Distribution/."
+    },
+    {
+      "id": "xspf_metadata_correct",
+      "description": "Set the XSPF playlist title and creator correctly.",
+      "points": 20,
+      "visual_evidence": "The contents of soundtrack.xspf (visible in a text editor or terminal) show <title>Cyber-Neon: Original Soundtrack</title> and <creator>Neon Syndicate Games</creator>."
+    },
+    {
+      "id": "xspf_relative_paths",
+      "description": "Use relative paths for track locations in the XSPF file.",
+      "points": 20,
+      "visual_evidence": "The <location> tags in the XSPF file show relative paths starting with 'tracks/' (e.g., <location>tracks/01_main_theme_vFINAL.mp3</location>), not absolute paths."
+    },
+    {
+      "id": "xspf_clean_titles",
+      "description": "Use clean song names extracted from ID3 tags for track titles in the XSPF file.",
+      "points": 20,
+      "visual_evidence": "The <title> tags for individual tracks in the XSPF file show clean names like 'Cyber-Neon Main Theme' or 'Neon Skyline', rather than the raw filenames."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_symlinks",
+      "description": "Verify that the copied tracks are actual files, not symlinks.",
+      "visual_evidence": "In a file manager, the MP3 file icons do not have shortcut/symlink arrows, or a terminal `ls -l` command shows them as regular files (starting with '-') rather than links (starting with 'l')."
+    },
+    {
+      "id": "genuine_xspf_generation",
+      "description": "Verify that the agent generated a proper XSPF XML structure.",
+      "visual_evidence": "The XSPF file contents show standard XML tags like <?xml version=\"1.0\"?>, <playlist>, <trackList>, and <track> rather than just a plain text list."
+    },
+    {
+      "id": "id3_extraction_performed",
+      "description": "Verify that the agent extracted ID3 tags rather than hallucinating titles.",
+      "visual_evidence": "The agent is seen using a tool like ffprobe, mutagen, exiftool, a python script, or a media player to read the metadata of the MP3 files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected 12 tracks are: 01_main_theme_vFINAL.mp3 (Cyber-Neon Main Theme), 02_city_streets_mix2.mp3 (Neon Skyline), 03_combat_loop.mp3 (Alleyway Ambush), 04_hacking_minigame.mp3 (Data Breach), 05_stealth_v1.mp3 (Shadow Ops), 06_boss_fight_MASTER.mp3 (Corporate Overlord), 07_shop_theme.mp3 (Black Market), 08_safehouse.mp3 (Neon Dreams), 09_chase_sequence.mp3 (Highway Pursuit), 10_ending_credits.mp3 (Cyber-Neon Finale), 11_bonus_track_1.mp3 (Retro Grade), 12_bonus_track_2.mp3 (Synthwave Nights). The playlist title must be 'Cyber-Neon: Original Soundtrack' and creator 'Neon Syndicate Games'. Paths must be relative (e.g., 'tracks/01_main_theme_vFINAL.mp3')."
+}

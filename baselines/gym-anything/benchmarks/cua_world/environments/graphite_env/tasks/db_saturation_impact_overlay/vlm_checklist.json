@@ -1,0 +1,53 @@
+{
+  "task_id": "db_saturation_impact_overlay@1",
+  "task_completion": [
+    {
+      "id": "graph_1_created",
+      "description": "Create the 'DB Saturation Bands' graph with CPU utilization and red saturation bands.",
+      "points": 25,
+      "visual_evidence": "Look for a graph in the Graphite UI titled 'DB Saturation Bands'. The graph should display a line for CPU utilization and vertical red bands (or a red area) indicating where the value exceeds 90. The legend should include 'DB Saturated'."
+    },
+    {
+      "id": "graph_2_created",
+      "description": "Create the 'Traffic Drop Correlation' graph with LB requests derivative and red saturation bands.",
+      "points": 25,
+      "visual_evidence": "Look for a graph titled 'Traffic Drop Correlation'. It should display a line representing the derivative of load balancer requests (legend 'LB Requests/sec') and the same red 'DB Saturated' bands as the first graph."
+    },
+    {
+      "id": "graph_3_created",
+      "description": "Create the 'DB CPU Velocity' graph with an orange derivative line and a blue zero line.",
+      "points": 25,
+      "visual_evidence": "Look for a graph titled 'DB CPU Velocity'. It should display an orange line (legend 'CPU Velocity') and a straight horizontal blue line at the 0 mark (legend 'Zero Line')."
+    },
+    {
+      "id": "dashboard_named",
+      "description": "Name the dashboard 'DB Saturation Impact'.",
+      "points": 10,
+      "visual_evidence": "Look at the top of the Graphite dashboard UI. The dashboard title should be exactly 'DB Saturation Impact'."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the dashboard.",
+      "points": 15,
+      "visual_evidence": "Look for visual confirmation that the dashboard was saved, such as a 'Dashboard saved' notification, the URL updating to include the dashboard name, or the absence of an 'unsaved changes' asterisk next to the title."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_ui",
+      "description": "The agent used the Graphite web interface to create the dashboard.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Graphite web UI (adding graphs, typing targets into the UI boxes) rather than just writing a JSON file in a terminal."
+    },
+    {
+      "id": "actual_data_rendered",
+      "description": "The graphs successfully render actual metric data.",
+      "visual_evidence": "The graphs in the dashboard should show actual fluctuating data lines and colored bands, not empty grids, broken image icons, or 'No Data' messages."
+    },
+    {
+      "id": "manual_target_entry",
+      "description": "The agent manually entered or constructed the targets rather than loading a pre-existing completed dashboard.",
+      "visual_evidence": "Trajectory screenshots should show the intermediate steps of the agent typing or pasting the specific target functions (like drawAsInfinite, removeBelowValue, derivative) into the Graphite target input fields."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'DB Saturation Impact'. The dashboard must contain exactly three graphs with the titles: 'DB Saturation Bands', 'Traffic Drop Correlation', and 'DB CPU Velocity'. The task operates on real AWS CloudWatch metrics for RDS CPU and Load Balancer requests, so the graphs should display realistic time-series data."
+}

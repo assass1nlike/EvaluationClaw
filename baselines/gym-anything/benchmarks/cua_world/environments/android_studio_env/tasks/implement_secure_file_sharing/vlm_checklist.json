@@ -1,0 +1,54 @@
+{
+  "task_id": "implement_secure_file_sharing@1",
+  "task_completion": [
+    {
+      "id": "file_provider_manifest",
+      "description": "Configure FileProvider in AndroidManifest.xml with the correct authority",
+      "points": 15,
+      "visual_evidence": "Look for AndroidManifest.xml open in the editor with a <provider> tag containing android:name=\"androidx.core.content.FileProvider\" and android:authorities=\"com.example.logshare.fileprovider\"."
+    },
+    {
+      "id": "file_provider_paths_xml",
+      "description": "Expose the internal files directory using the name 'logs' in the XML configuration",
+      "points": 15,
+      "visual_evidence": "Look for an XML file (e.g., provider_paths.xml) open in the editor containing a <files-path> tag with name=\"logs\"."
+    },
+    {
+      "id": "share_log_file_uri",
+      "description": "Update shareLogFile() to use FileProvider to get the URI",
+      "points": 20,
+      "visual_evidence": "Look for MainActivity.kt open in the editor. Inside the shareLogFile() function, there should be a call to FileProvider.getUriForFile(...) instead of Uri.fromFile()."
+    },
+    {
+      "id": "intent_read_permission",
+      "description": "Ensure the intent includes the necessary read permissions",
+      "points": 15,
+      "visual_evidence": "Look for MainActivity.kt open in the editor. The intent used for sharing should have the read permission flag added, such as intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)."
+    },
+    {
+      "id": "intent_mime_type",
+      "description": "Ensure the intent uses the 'text/plain' MIME type",
+      "points": 15,
+      "visual_evidence": "Look for MainActivity.kt open in the editor. The intent should have its type set to 'text/plain', e.g., intent.type = \"text/plain\" or intent.setDataAndType(uri, \"text/plain\")."
+    },
+    {
+      "id": "build_successful",
+      "description": "The project must compile successfully",
+      "points": 20,
+      "visual_evidence": "Look for the 'Build' tool window in Android Studio showing a successful build message, such as 'BUILD SUCCESSFUL' or a green checkmark next to the build task."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_android_studio",
+      "description": "The agent used Android Studio to edit files and build the project",
+      "visual_evidence": "Screenshots should show the Android Studio IDE being used to edit Kotlin and XML files, rather than terminal text editors like nano or vim."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "The agent actually compiled the project",
+      "visual_evidence": "The build output should be visible in the Android Studio Build/Run tool window or via a genuine Gradle command execution in the terminal, not just a mocked text output."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/AndroidStudioProjects/LogShareApp. The expected FileProvider authority is 'com.example.logshare.fileprovider'. The expected XML configuration file path is 'app/src/main/res/xml/provider_paths.xml'."
+}

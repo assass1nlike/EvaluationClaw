@@ -1,0 +1,33 @@
+{
+  "id": "ct_hounsfield_calibration@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a medical physicist calibrating a raw CT scan slice. Calibrate the 16-bit grayscale detector data in '~/Fiji_Data/raw/ct/patient_ct_raw.tif' to Hounsfield Units (HU) using Air (-1000 HU) and Water (0 HU) as reference points. Segment the skull bone tissue using a threshold of 400 HU to create a binary mask. Save the calibrated image as 'calibrated_ct.tif', the binary mask as 'bone_mask.png', and a density report as 'density_report.csv' (including Mean_HU for Air, Water, and Bone) to '~/Fiji_Data/results/ct/'. The calibrated image must preserve the full dynamic range.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ct_hounsfield_calibration/setup_task.sh",
+    "post_task": "/workspace/tasks/ct_hounsfield_calibration/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "~/Fiji_Data/raw/ct/patient_ct_raw.tif",
+    "output_calibrated": "~/Fiji_Data/results/ct/calibrated_ct.tif",
+    "output_mask": "~/Fiji_Data/results/ct/bone_mask.png",
+    "output_report": "~/Fiji_Data/results/ct/density_report.csv",
+    "reference_values": {
+      "air_hu": -1000,
+      "water_hu": 0,
+      "bone_threshold_hu": 400
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ct_calibration"
+    }
+  }
+}

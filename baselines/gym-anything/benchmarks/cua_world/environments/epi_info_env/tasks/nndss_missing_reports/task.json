@@ -1,0 +1,37 @@
+{
+  "id": "nndss_missing_reports@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Perform a surveillance compliance check using Epi Info 7 to identify which US jurisdictions failed to submit their weekly report. Using the master list Jurisdictions.csv and the transaction file Receipts_Week40.csv (located in C:\\Users\\Docker\\Documents\\Data), determine which jurisdictions from the master list are missing from the receipts for Week 40. Create an Epi Info project named NNDSS_Tracking in C:\\Users\\Docker\\Documents with tables named Jurisdictions and Receipts. Compare the datasets using StateCode to find jurisdictions with no matching submission. Save the list of missing StateName values, one per line, to C:\\Users\\Docker\\Documents\\missing_states.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\nndss_missing_reports\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\nndss_missing_reports\\export_result.ps1"
+  },
+  "metadata": {
+    "data_dir": "C:\\Users\\Docker\\Documents\\Data",
+    "output_path": "C:\\Users\\Docker\\Documents\\missing_states.txt",
+    "project_path": "C:\\Users\\Docker\\Documents\\NNDSS_Tracking\\NNDSS_Tracking.prj",
+    "missing_states_ground_truth": [
+      "Alaska",
+      "Delaware",
+      "Hawaii",
+      "Montana",
+      "North Dakota",
+      "Rhode Island",
+      "Vermont",
+      "Wyoming"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nndss_missing_reports"
+    }
+  }
+}

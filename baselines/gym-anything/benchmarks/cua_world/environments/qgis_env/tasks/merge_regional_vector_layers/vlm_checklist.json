@@ -1,0 +1,59 @@
+{
+  "task_id": "merge_regional_vector_layers@1",
+  "task_completion": [
+    {
+      "id": "load_input_layers",
+      "description": "Load the three regional GeoJSON files into QGIS.",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel shows 'europe_countries', 'africa_countries', and 'south_america_countries' loaded."
+    },
+    {
+      "id": "open_merge_tool",
+      "description": "Open the 'Merge vector layers' tool in QGIS.",
+      "points": 10,
+      "visual_evidence": "The 'Merge Vector Layers' dialog box is open on the screen (usually accessed via Vector > Data Management Tools > Merge Vector Layers)."
+    },
+    {
+      "id": "select_input_layers",
+      "description": "Select all three regional layers as inputs for the merge operation.",
+      "points": 20,
+      "visual_evidence": "In the 'Merge Vector Layers' dialog, the 'Input layers' field indicates that 3 inputs are selected, or a multi-select dropdown shows the three specific regional layers checked."
+    },
+    {
+      "id": "set_destination_crs",
+      "description": "Set the Destination CRS to EPSG:4326 (WGS 84).",
+      "points": 20,
+      "visual_evidence": "In the 'Merge Vector Layers' dialog, the 'Destination CRS' field is explicitly set to 'EPSG:4326' or 'WGS 84'."
+    },
+    {
+      "id": "set_output_file_path",
+      "description": "Set the output file path to the specified exports directory.",
+      "points": 20,
+      "visual_evidence": "In the 'Merge Vector Layers' dialog, the 'Merged' output field shows the path '/home/ga/GIS_Data/exports/merged_countries.geojson' instead of a temporary file."
+    },
+    {
+      "id": "execute_and_verify_merge",
+      "description": "Execute the merge tool and display the combined result.",
+      "points": 20,
+      "visual_evidence": "A new merged layer appears in the QGIS Layers panel, and the map canvas displays the combined geometries of Europe, Africa, and South America."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis_gui",
+      "description": "The agent used the QGIS graphical user interface to perform the merge.",
+      "visual_evidence": "Screenshots show interaction with the QGIS application window and its dialog boxes, rather than just terminal windows."
+    },
+    {
+      "id": "no_terminal_ogr2ogr",
+      "description": "The agent did not bypass QGIS by using command-line GIS tools like ogr2ogr.",
+      "visual_evidence": "Absence of terminal windows executing 'ogr2ogr' or similar command-line GDAL/OGR utilities to perform the merge."
+    },
+    {
+      "id": "actual_tool_execution",
+      "description": "The agent actually ran the QGIS merge tool.",
+      "visual_evidence": "The QGIS log or progress bar shows the 'Merge vector layers' algorithm executing or completing successfully."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires merging three specific files (europe_countries.geojson, africa_countries.geojson, south_america_countries.geojson) located in /home/ga/GIS_Data/regions/. The expected output must be saved exactly to /home/ga/GIS_Data/exports/merged_countries.geojson. The Destination CRS must be EPSG:4326 (WGS 84). A successful merge will result in a single layer containing exactly 103 features (39 Europe + 51 Africa + 13 South America) with 'NAME' and 'CONTINENT' attributes preserved."
+}

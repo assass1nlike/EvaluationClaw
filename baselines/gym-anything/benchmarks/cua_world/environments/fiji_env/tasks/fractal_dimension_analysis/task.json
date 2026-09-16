@@ -1,0 +1,29 @@
+{
+  "id": "fractal_dimension_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Calculate the Fractal Dimension (D) of the objects in the 'blobs.gif' sample image using Fiji. Perform the analysis on the single-pixel outlines of the objects to determine the boundary fractal dimension. Save the resulting data table to ~/Fiji_Data/results/fractal/fractal_results.csv and the log-log box count plot to ~/Fiji_Data/results/fractal/fractal_plot.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fractal_dimension_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/fractal_dimension_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Fiji_Data/results/fractal/fractal_results.csv",
+    "expected_plot_path": "/home/ga/Fiji_Data/results/fractal/fractal_plot.png",
+    "min_d": 1.0,
+    "max_d": 1.5,
+    "expected_d_approx": 1.15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fractal_analysis"
+    }
+  }
+}

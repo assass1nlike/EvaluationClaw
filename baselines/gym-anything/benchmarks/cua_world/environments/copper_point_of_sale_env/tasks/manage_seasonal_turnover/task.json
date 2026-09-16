@@ -1,0 +1,42 @@
+{
+  "id": "manage_seasonal_turnover@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Add 'Alpine Ski Gloves' ($45.00), 'Nordic Wool Scarf' ($30.00), and 'Thermal Base Layer' ($50.00) to the Copper POS inventory. Update each item to clearance status by appending ' [CLEARANCE]' to the name and reducing the price by 50%. Export the inventory to C:\\Users\\Docker\\Documents\\inventory_audit.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\manage_seasonal_turnover\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\manage_seasonal_turnover\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_export_path": "C:\\Users\\Docker\\Documents\\inventory_audit.csv",
+    "items": [
+      {
+        "original_name": "Alpine Ski Gloves",
+        "final_name": "Alpine Ski Gloves [CLEARANCE]",
+        "final_price": "22.50"
+      },
+      {
+        "original_name": "Nordic Wool Scarf",
+        "final_name": "Nordic Wool Scarf [CLEARANCE]",
+        "final_price": "15.00"
+      },
+      {
+        "original_name": "Thermal Base Layer",
+        "final_name": "Thermal Base Layer [CLEARANCE]",
+        "final_price": "25.00"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manage_seasonal_turnover"
+    }
+  }
+}

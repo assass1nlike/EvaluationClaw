@@ -1,0 +1,32 @@
+{
+  "id": "redirect_loop_diagnosis@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are a Technical SEO Analyst investigating 'Too Many Redirects' errors reported by users. Your goal is to identify infinite redirect loops on the test site https://crawler-test.com/ using Screaming Frog SEO Spider. Export the list of detected redirect loops to a CSV file at ~/Documents/SEO/exports/redirect_loops.csv. Additionally, create a text report at ~/Documents/SEO/reports/loop_analysis.txt that lists the total number of loops found and provides one example URL that is looping.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/redirect_loop_diagnosis/setup_task.sh",
+    "post_task": "/workspace/tasks/redirect_loop_diagnosis/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "expected_csv_path": "/home/ga/Documents/SEO/exports/redirect_loops.csv",
+    "expected_report_path": "/home/ga/Documents/SEO/reports/loop_analysis.txt",
+    "loop_indicators": [
+      "loop_to_self",
+      "loop_to_other",
+      "Redirect Loop"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_redirect_loop_diagnosis"
+    }
+  }
+}

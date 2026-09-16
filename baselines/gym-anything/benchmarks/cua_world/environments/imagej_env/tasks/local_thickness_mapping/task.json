@@ -1,0 +1,40 @@
+{
+  "id": "local_thickness_mapping@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Local Thickness Mapping and Analysis",
+  "description": "Perform a local thickness analysis on the 'Blobs (25K)' sample image to characterize structural width. Create a binary mask of the objects and compute a 32-bit local thickness map where pixel values represent thickness. Save the thickness map to ~/ImageJ_Data/results/thickness_map.tif. Analyze the thickness distribution and save a CSV file containing the summary statistics (Mean, StdDev, Min, Max) to ~/ImageJ_Data/results/thickness_distribution.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "morphology",
+    "quantification",
+    "local-thickness",
+    "materials-science"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/local_thickness_mapping/setup_task.sh",
+    "post_task": "/workspace/tasks/local_thickness_mapping/export_result.sh"
+  },
+  "metadata": {
+    "image_source": "Blobs (25K)",
+    "expected_map_path": "/home/ga/ImageJ_Data/results/thickness_map.tif",
+    "expected_csv_path": "/home/ga/ImageJ_Data/results/thickness_distribution.csv",
+    "expected_data_type": "float32",
+    "expected_mean_min": 8.0,
+    "expected_mean_max": 20.0,
+    "expected_max_min": 25.0,
+    "expected_max_max": 60.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_local_thickness_mapping"
+    }
+  }
+}

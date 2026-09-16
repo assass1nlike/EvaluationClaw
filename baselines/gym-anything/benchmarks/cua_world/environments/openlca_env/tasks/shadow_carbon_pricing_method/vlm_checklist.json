@@ -1,0 +1,59 @@
+{
+  "task_id": "shadow_carbon_pricing_method@1",
+  "task_completion": [
+    {
+      "id": "create_impact_method",
+      "description": "Verify the creation of the 'Shadow Carbon Price 2026' Impact Assessment Method.",
+      "points": 10,
+      "visual_evidence": "In the OpenLCA navigation pane (usually on the left) under 'Impact assessment methods', or in an active editor tab, the name 'Shadow Carbon Price 2026' should be visible."
+    },
+    {
+      "id": "create_impact_category",
+      "description": "Verify the creation of the 'Carbon Liability' impact category with the correct reference unit.",
+      "points": 10,
+      "visual_evidence": "In the OpenLCA editor for impact categories or within the method setup, 'Carbon Liability' should be listed with its reference unit set to 'USD' (or 'Item'/'Unit')."
+    },
+    {
+      "id": "assign_characterization_factors",
+      "description": "Verify the assignment of correct characterization factors for CO2, CH4, and NOx.",
+      "points": 20,
+      "visual_evidence": "In the 'Characterization factors' tab of the impact category or method, there should be entries for 'Carbon dioxide' (value: 0.10), 'Methane' (value: 2.80), and 'Nitrogen oxides' (value: 0.50), specifically for emissions to air."
+    },
+    {
+      "id": "create_product_system",
+      "description": "Verify the creation of a product system for the specified truck transport process.",
+      "points": 20,
+      "visual_evidence": "In the OpenLCA navigation pane under 'Product systems' or in an active editor tab, a product system based on 'Transport, combination truck, long-haul, diesel powered' should be visible."
+    },
+    {
+      "id": "calculate_lcia_results",
+      "description": "Verify the calculation of LCIA results using the custom method.",
+      "points": 20,
+      "visual_evidence": "A results window or tab in OpenLCA showing 'LCIA Results' for the truck transport product system, specifically evaluated using the 'Shadow Carbon Price 2026' method."
+    },
+    {
+      "id": "export_results_csv",
+      "description": "Verify the export of the LCIA results to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "A file manager window, terminal output (e.g., from an 'ls' command), or an OpenLCA export dialog showing the file 'truck_carbon_liability.csv' located in the '~/LCA_Results/' (or '/home/ga/LCA_Results/') directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "openlca_gui_usage",
+      "description": "Verify that the agent used the OpenLCA graphical user interface to perform the task.",
+      "visual_evidence": "Screenshots should show the OpenLCA application window being interacted with (e.g., clicking through menus, filling out forms), rather than the agent directly modifying database files via scripts or terminal commands."
+    },
+    {
+      "id": "genuine_lcia_calculation",
+      "description": "Verify that the LCIA results were genuinely calculated by the software.",
+      "visual_evidence": "The LCIA results should be visible within the OpenLCA application's native result viewer tabs before being exported, proving the software performed the calculation."
+    },
+    {
+      "id": "no_csv_spoofing",
+      "description": "Verify that the agent did not manually type out the final CSV file to bypass the software export.",
+      "visual_evidence": "There should be no screenshots of the agent using a text editor (like nano, vim, or gedit) or echo commands to manually write the contents of 'truck_carbon_liability.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an Impact Assessment Method named exactly 'Shadow Carbon Price 2026' and an Impact Category named 'Carbon Liability' with reference unit 'USD' (or 'Item'/'Unit'). Characterization factors must be set for emissions to air: Carbon dioxide = 0.10, Methane = 2.80, and Nitrogen oxides = 0.50. The product system must be based on the real USLCI database process 'Transport, combination truck, long-haul, diesel powered'. The final output must be exported to '/home/ga/LCA_Results/truck_carbon_liability.csv'."
+}

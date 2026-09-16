@@ -1,0 +1,53 @@
+{
+  "task_id": "partition_exchange_load_optimization@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Verify that the agent connected to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal or database client showing a successful connection to the 'XEPDB1' service as user 'hr'."
+    },
+    {
+      "id": "exchange_partition_command",
+      "description": "Verify that the agent executed the Exchange Partition command.",
+      "points": 40,
+      "visual_evidence": "Look for the execution of a SQL command similar to 'ALTER TABLE SALES_FACT EXCHANGE PARTITION P_2011_12 WITH TABLE SALES_STAGING_DEC11'. It should show a success message like 'Table altered.'."
+    },
+    {
+      "id": "staging_table_empty",
+      "description": "Verify that the staging table is empty after the exchange.",
+      "points": 15,
+      "visual_evidence": "Look for a query like 'SELECT COUNT(*) FROM SALES_STAGING_DEC11;' returning 0, or a SELECT statement returning no rows."
+    },
+    {
+      "id": "partition_data_loaded",
+      "description": "Verify that the data was successfully moved to the target partition.",
+      "points": 15,
+      "visual_evidence": "Look for a query checking the data in 'SALES_FACT' partition 'P_2011_12' (e.g., 'SELECT COUNT(*) FROM SALES_FACT PARTITION (P_2011_12);') returning a number greater than 0."
+    },
+    {
+      "id": "indexes_valid_state",
+      "description": "Verify that the global and local indexes remain in a VALID state.",
+      "points": 20,
+      "visual_evidence": "Look for a query checking the status of 'IDX_SALES_CUSTOMER' and 'IDX_SALES_INVOICE' (e.g., querying 'USER_INDEXES' or 'USER_IND_PARTITIONS'). The status column should show 'VALID' or 'USABLE'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_client",
+      "description": "Verify that the agent used a genuine database client (e.g., SQL*Plus, SQLcl, DBeaver) to execute the commands.",
+      "visual_evidence": "Look for standard database client interfaces or terminal prompts, rather than a text editor."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "Ensure the agent did not just type the expected output into a text editor or mock the results.",
+      "visual_evidence": "Check that the query results and system messages (like 'Table altered.') are formatted exactly as a real database client would output them."
+    },
+    {
+      "id": "command_execution_visible",
+      "description": "Check that the screenshots show the actual execution of the commands and the database's response.",
+      "visual_evidence": "Look for the presence of execution times, row counts, or success confirmations following the SQL commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Target table: SALES_FACT. Staging table: SALES_STAGING_DEC11. Partition name: P_2011_12. Global index: IDX_SALES_CUSTOMER. Local index: IDX_SALES_INVOICE. The exchange partition command must be executed. To keep the global index valid, the command typically includes 'UPDATE GLOBAL INDEXES' (or 'UPDATE INDEXES'), or the index must be rebuilt afterwards. The staging table must be empty (0 rows) and the partition P_2011_12 must contain the data. Both indexes must show a status of VALID or USABLE."
+}

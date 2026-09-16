@@ -1,0 +1,28 @@
+{
+  "id": "fix_concurrency_race_condition@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "A critical race condition has been detected in the 'inventory-system' project at `~/IdeaProjects/inventory-system`. The `InventoryService` class handles stock reservations, but under high load, it allows overselling (stock goes negative) or loses updates. Modify the `reserveStock` method in `src/main/java/com/store/inventory/InventoryService.java` to make it thread-safe and ensure the project consistently passes the `InventoryConcurrencyTest`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_concurrency_race_condition/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_concurrency_race_condition/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/inventory-system",
+    "service_file": "src/main/java/com/store/inventory/InventoryService.java",
+    "test_file": "src/test/java/com/store/inventory/InventoryConcurrencyTest.java",
+    "expected_test_class": "com.store.inventory.InventoryConcurrencyTest"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_concurrency_race_condition"
+    }
+  }
+}

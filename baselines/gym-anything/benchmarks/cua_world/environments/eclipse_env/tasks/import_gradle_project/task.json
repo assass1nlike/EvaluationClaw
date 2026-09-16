@@ -1,0 +1,33 @@
+{
+  "id": "import_gradle_project@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You have joined a team working on a data processing library. Import the existing Gradle project located at /home/ga/projects/datautils into Eclipse. Add the Google Guava dependency (com.google.guava:guava:33.0.0-jre) to the project's build configuration. In the package com.datautils.util, implement a utility class named CollectionHelper using Guava's ImmutableList and ImmutableMap. The class must include: a static method immutableListOf(T... elements) returning an ImmutableList, a static method immutableMapOf(K k1, V v1, K k2, V v2) returning an ImmutableMap, and a static method concat(List<T> first, List<T> second) that combines two lists using an ImmutableList builder. Verify that the project builds successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_gradle_project/setup_task.sh",
+    "post_task": "/workspace/tasks/import_gradle_project/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/projects/datautils",
+    "workspace_path": "/home/ga/eclipse-workspace",
+    "expected_dependency": "com.google.guava:guava",
+    "class_file_path": "src/main/java/com/datautils/util/CollectionHelper.java",
+    "expected_methods": [
+      "immutableListOf",
+      "immutableMapOf",
+      "concat"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_gradle_project"
+    }
+  }
+}

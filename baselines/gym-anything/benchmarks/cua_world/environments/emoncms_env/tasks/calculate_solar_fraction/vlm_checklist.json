@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_solar_fraction@1",
+  "task_completion": [
+    {
+      "id": "access_emoncms_feeds",
+      "description": "Access the Emoncms feeds page to locate the house consumption and solar generation feeds.",
+      "points": 10,
+      "visual_evidence": "The Emoncms web interface is open in a browser, showing the Feeds list."
+    },
+    {
+      "id": "view_house_consumption_data",
+      "description": "View the historical data for the house consumption feed to determine the first and last values.",
+      "points": 20,
+      "visual_evidence": "A graph or data table in Emoncms showing the history of the house consumption feed (e.g., 'house_energy_kwh' or similar)."
+    },
+    {
+      "id": "view_solar_generation_data",
+      "description": "View the historical data for the solar generation feed to determine the first and last values.",
+      "points": 20,
+      "visual_evidence": "A graph or data table in Emoncms showing the history of the solar generation feed (e.g., 'solar_energy_kwh' or similar)."
+    },
+    {
+      "id": "calculate_solar_fraction",
+      "description": "Calculate the total energy for each feed and the solar fraction percentage.",
+      "points": 20,
+      "visual_evidence": "A calculator app, terminal, or scratchpad showing the subtraction of first/last values and the division/percentage calculation."
+    },
+    {
+      "id": "save_formatted_report",
+      "description": "Write the final report to /home/ga/solar_fraction_report.txt with the correct format.",
+      "points": 30,
+      "visual_evidence": "A text editor showing the file /home/ga/solar_fraction_report.txt containing the three required lines ('Total House Consumption (kWh):', 'Total Solar Generation (kWh):', 'Solar Fraction (%):') with values rounded to 2 decimal places."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_emoncms_usage",
+      "description": "The agent interacted with the Emoncms web interface to retrieve the feed data.",
+      "visual_evidence": "Screenshots show the Emoncms web interface open in a browser, rather than just querying a database directly."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "The agent actually calculated the values rather than hallucinating them.",
+      "visual_evidence": "Screenshots show the agent viewing the start and end values in Emoncms and using a calculator or script to compute the differences and percentage."
+    },
+    {
+      "id": "no_pre_written_report",
+      "description": "The agent wrote the report itself rather than copying a pre-existing file.",
+      "visual_evidence": "The agent is seen typing or pasting the values into an empty text editor for the report."
+    }
+  ],
+  "privileged_info_for_vlm": "The report must be saved to '/home/ga/solar_fraction_report.txt'. The exact feeds 'house_kwh' and 'solar_kwh' mentioned in the prompt are not present in the environment; the agent must use similar feeds (e.g., 'house_energy_kwh' and 'solar_energy_kwh'). The calculation requires subtracting the first value from the last value for each feed over the available history, then computing (Total Solar / Total House) * 100. Tolerances for correctness are 10% for kWh values and 5 points for the fraction percentage."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "report_mesh_statistics@1",
+  "task_completion": [
+    {
+      "id": "load_dicom",
+      "description": "Load the CT Cranium DICOM scan into InVesalius 3",
+      "points": 10,
+      "visual_evidence": "InVesalius 3 interface is open with axial, sagittal, and coronal 2D views displaying the loaded head/skull CT scan."
+    },
+    {
+      "id": "apply_bone_mask",
+      "description": "Apply the 'Bone' mask preset",
+      "points": 15,
+      "visual_evidence": "The mask threshold panel in InVesalius shows the 'Bone' preset selected, or the threshold range is explicitly set to 226 (Min) and 3071 (Max) HU."
+    },
+    {
+      "id": "generate_3d_surface",
+      "description": "Generate the 3D surface of the skull",
+      "points": 20,
+      "visual_evidence": "The 3D viewer pane in InVesalius displays a generated 3D surface model of a skull."
+    },
+    {
+      "id": "view_mesh_statistics",
+      "description": "Access the mesh statistics in InVesalius",
+      "points": 15,
+      "visual_evidence": "A dialog or panel in InVesalius (such as Surface Properties or Advanced options) is open, displaying the calculated number of triangles, volume, and surface area for the generated 3D skull surface."
+    },
+    {
+      "id": "export_stl",
+      "description": "Export the 3D surface as a binary STL file",
+      "points": 20,
+      "visual_evidence": "An 'Export 3D Surface' dialog saving the file as 'skull.stl' in the /home/ga/Documents/ directory, or a file manager/terminal showing the successfully created 'skull.stl' file in that location."
+    },
+    {
+      "id": "record_statistics_report",
+      "description": "Record the mesh statistics in a text report",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/Documents/mesh_stats.txt', which must include recorded values for the number of triangles, volume, and surface area."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_invesalius",
+      "description": "Verify the agent used the InVesalius 3 GUI to process the DICOM and generate the mesh",
+      "visual_evidence": "Screenshots should show the agent clicking through the InVesalius 3 graphical interface, rather than using a terminal script or CLI tool to bypass the application."
+    },
+    {
+      "id": "authentic_statistics",
+      "description": "Verify the statistics in the report match the software's output",
+      "visual_evidence": "The numbers for triangles, volume, and surface area typed into 'mesh_stats.txt' should correspond exactly to the numbers displayed in the InVesalius surface properties window, proving the agent didn't hallucinate or guess the values."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Verify the STL file was exported via the application",
+      "visual_evidence": "Screenshots should show the agent using the 'Export 3D Surface' feature within InVesalius, rather than renaming an existing file or downloading a pre-made STL."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires loading the CT Cranium DICOM scan (case 0051) in InVesalius 3. The bone mask preset must be set to 226-3071 HU. The 3D surface must be exported as an STL file to '/home/ga/Documents/skull.stl'. The mesh statistics (triangles, volume, surface area) must be recorded in '/home/ga/Documents/mesh_stats.txt'. A valid cranial mesh for this dataset typically has over 50,000 triangles."
+}

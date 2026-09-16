@@ -1,0 +1,53 @@
+{
+  "task_id": "congestion_pricing_scenario@1",
+  "task_completion": [
+    {
+      "id": "baseline_csv_created",
+      "description": "Baseline traffic economics CSV is generated with the correct metrics and columns.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the creation or content of /home/ga/SUMO_Output/baseline_traffic_economics.csv with columns 'metric', 'value', 'unit' and rows for vehicle count, VKT, average duration, average speed, time loss, and fuel consumption."
+    },
+    {
+      "id": "priced_scenario_files_created",
+      "description": "Modified route and configuration files for the priced scenario are created.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the existence or editing of /home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_priced.rou.xml and run_priced.sumocfg. Look for scripts or commands that filter out private vehicles while explicitly exempting buses."
+    },
+    {
+      "id": "priced_csv_created",
+      "description": "Priced traffic economics CSV is generated after running the modified simulation.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or content of /home/ga/SUMO_Output/priced_traffic_economics.csv with the same format as the baseline CSV, but with updated values reflecting the reduced traffic."
+    },
+    {
+      "id": "cba_csv_created",
+      "description": "Cost-Benefit Analysis CSV is generated with the correct columns and economic values applied.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing /home/ga/SUMO_Output/congestion_pricing_cba.csv with columns 'category', 'baseline_value', 'priced_value', 'change_pct', 'annual_monetized_eur'. Evidence of calculations using 15 EUR/hr, 1.80 EUR/L, and 100 EUR/tonne should be visible in scripts or the final output."
+    },
+    {
+      "id": "executive_brief_created",
+      "description": "Executive brief text file is created documenting the policy and impacts.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the content of /home/ga/SUMO_Output/congestion_pricing_brief.txt, containing text about policy design, demand impacts (15-25% reduction), and implementation recommendations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "The agent actually executed the SUMO simulations rather than fabricating the output CSVs.",
+      "visual_evidence": "Terminal output showing 'sumo' or 'sumo-gui' commands being run, along with standard SUMO simulation progress logs (e.g., Step: ..., vehicles loaded, etc.)."
+    },
+    {
+      "id": "genuine_cba_calculation",
+      "description": "The agent calculated the Cost-Benefit Analysis using a script or tool rather than hardcoding fabricated numbers.",
+      "visual_evidence": "Presence of a Python script, shell script, or spreadsheet application being used to parse the baseline and priced CSVs, apply the economic multipliers, and compute the differences."
+    },
+    {
+      "id": "baseline_files_unaltered",
+      "description": "The agent created new files for the priced scenario instead of overwriting the original baseline scenario files.",
+      "visual_evidence": "The original pasubio.rou.xml and related baseline config files remain intact, and new files (pasubio_priced.rou.xml, run_priced.sumocfg) are explicitly created and used."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline scenario contains exactly 8,664 private vehicles and 112 buses. To meet the 15-25% reduction target, the agent must remove between 1,300 and 2,166 private vehicles that cross a charging zone of at least 5 contiguous edges. The 112 buses must be fully preserved (exempted). The Cost-Benefit Analysis must strictly use 15 EUR/hr for travel time, 1.80 EUR/liter for fuel, and 100 EUR/tonne for CO2."
+}

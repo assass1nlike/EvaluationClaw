@@ -1,0 +1,51 @@
+{
+  "id": "annotate_extra_field@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a postdoctoral researcher compiling impact metrics for your tenure dossier. Annotate the five specific papers listed below in your Zotero library by adding their Citation Count and Research Area to the 'Extra' field. For each paper, enter exactly two lines in the 'Extra' field using the format:\nCitation Count: [Number]\nArea: [Area Name]\n\nTarget Papers and Data:\n1. 'Attention Is All You Need' (Vaswani et al., 2017) - Citation Count: 130000, Area: NLP\n2. 'Deep Residual Learning for Image Recognition' (He et al., 2016) - Citation Count: 200000, Area: Computer Vision\n3. 'A Mathematical Theory of Communication' (Shannon, 1948) - Citation Count: 160000, Area: Information Theory\n4. 'Computing Machinery and Intelligence' (Turing, 1950) - Citation Count: 25000, Area: Artificial Intelligence\n5. 'Generative Adversarial Nets' (Goodfellow et al., 2014) - Citation Count: 65000, Area: Generative Models\n\nDo not modify any other papers. Do not use commas in the numbers. Ensure the field names 'Citation Count:' and 'Area:' are capitalized exactly as shown.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/annotate_extra_field/setup_task.sh",
+    "post_task": "/workspace/tasks/annotate_extra_field/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title_substring": "Attention Is All You Need",
+        "citation": "130000",
+        "area": "NLP"
+      },
+      {
+        "title_substring": "Deep Residual Learning for Image Recognition",
+        "citation": "200000",
+        "area": "Computer Vision"
+      },
+      {
+        "title_substring": "A Mathematical Theory of Communication",
+        "citation": "160000",
+        "area": "Information Theory"
+      },
+      {
+        "title_substring": "Computing Machinery and Intelligence",
+        "citation": "25000",
+        "area": "Artificial Intelligence"
+      },
+      {
+        "title_substring": "Generative Adversarial Nets",
+        "citation": "65000",
+        "area": "Generative Models"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annotate_extra_field"
+    }
+  }
+}

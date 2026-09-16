@@ -1,0 +1,32 @@
+{
+  "id": "export_rivers_dxf@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Export the river network of Brazil to a DXF file using gvSIG Desktop. Utilize the country shapefile (/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp) and the rivers shapefile (/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp) to identify all river features that intersect the country of Brazil. Save the resulting selection to /home/ga/gvsig_data/exports/brazil_rivers.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_rivers_dxf/setup_task.sh",
+    "post_task": "/workspace/tasks/export_rivers_dxf/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/brazil_rivers.dxf",
+    "min_size_bytes": 10000,
+    "expected_strings": [
+      "SECTION",
+      "HEADER",
+      "ENTITIES",
+      "AcDbLine"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_rivers_dxf"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "duplicate_detection_cleanup@1",
+  "task_completion": [
+    {
+      "id": "login_email_client",
+      "description": "Log into the email client using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the graphical email client interface successfully logged in and displaying the inbox."
+    },
+    {
+      "id": "select_duplicate_emails",
+      "description": "Identify and select the duplicate emails in the inbox.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the inbox with multiple identical emails visible, and the agent selecting or highlighting the duplicate copies."
+    },
+    {
+      "id": "delete_duplicate_emails",
+      "description": "Remove the duplicate emails, preserving exactly one copy of every unique message.",
+      "points": 30,
+      "visual_evidence": "Screenshots show the duplicates being deleted. Evidence includes the inbox message count reducing to 25, or the trash/deleted items folder containing the 8 removed duplicate emails."
+    },
+    {
+      "id": "draft_report_headers",
+      "description": "Draft an incident report email with the correct recipient and subject.",
+      "points": 20,
+      "visual_evidence": "An email composition window is open with the 'To' field set exactly to 'it-infrastructure@company.com' and the 'Subject' field set to 'Duplicate Sync Incident'."
+    },
+    {
+      "id": "draft_report_body",
+      "description": "Include the correct count of removed messages in the drafted email body.",
+      "points": 20,
+      "visual_evidence": "The body of the drafted email states that duplicates were found and removed, and explicitly includes the number '8' as the total count of removed messages."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_email_client",
+      "description": "The agent used the graphical email client to manage emails.",
+      "visual_evidence": "The deletion of emails and drafting of the report occur within a GUI email client (e.g., Thunderbird, Evolution), not via terminal commands manipulating the Maildir directly."
+    },
+    {
+      "id": "genuine_email_composer",
+      "description": "The incident report is drafted in a real email client.",
+      "visual_evidence": "The drafted email is shown in the email client's actual composition window, not in a basic text editor like gedit or nano."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use scripts to bypass manual GUI interaction.",
+      "visual_evidence": "There are no terminal windows showing Python or bash scripts being executed to automatically find/delete duplicates or send the email."
+    }
+  ],
+  "privileged_info_for_vlm": "The inbox initially contains 33 emails: 25 unique emails and 8 duplicates. The agent must delete exactly 8 duplicate emails, leaving 25 unique emails in the inbox. The drafted incident report must be addressed to 'it-infrastructure@company.com', have the subject 'Duplicate Sync Incident', and explicitly state that exactly 8 messages were removed."
+}

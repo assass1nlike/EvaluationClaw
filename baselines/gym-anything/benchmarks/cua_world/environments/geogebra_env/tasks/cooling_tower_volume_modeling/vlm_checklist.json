@@ -1,0 +1,59 @@
+{
+  "task_id": "cooling_tower_volume_modeling@1",
+  "task_completion": [
+    {
+      "id": "plot_profile_points",
+      "description": "Plot the three specified profile points for the cooling tower.",
+      "points": 10,
+      "visual_evidence": "Look for points (0, 46), (85, 26), and (114, 27.5) defined in the GeoGebra Algebra view or visible in the Graphics view."
+    },
+    {
+      "id": "create_polynomial_function",
+      "description": "Create a polynomial function passing through the three profile points.",
+      "points": 15,
+      "visual_evidence": "Look for a polynomial function (e.g., created using FitPoly) in the Algebra view that passes through the three defined points."
+    },
+    {
+      "id": "generate_3d_surface",
+      "description": "Generate a 3D surface of revolution by rotating the function around the x-axis for 0 \u2264 x \u2264 114.",
+      "points": 25,
+      "visual_evidence": "Look for a 3D Graphics view showing a cooling tower shape (hyperboloid-like) and a Surface command in the Algebra view rotating the function around the x-axis (or y=0) restricted to the domain [0, 114]."
+    },
+    {
+      "id": "calculate_volume",
+      "description": "Calculate the internal volume of the cooling tower.",
+      "points": 20,
+      "visual_evidence": "Look for an integral calculation in the Algebra view representing the volume of revolution (e.g., Integral(\u03c0 * f\u00b2, 0, 114)), which should evaluate to approximately 363,137."
+    },
+    {
+      "id": "add_capacity_annotation",
+      "description": "Include a text annotation showing the capacity in Olympic swimming pools.",
+      "points": 15,
+      "visual_evidence": "Look for a text object in the Graphics view formatted exactly as 'Capacity: [number] pools'. The number should be approximately 145 (calculated as volume / 2500)."
+    },
+    {
+      "id": "save_project_file",
+      "description": "Save the project to ~/Documents/GeoGebra/projects/cooling_tower.ggb.",
+      "points": 15,
+      "visual_evidence": "Look for the GeoGebra window title showing 'cooling_tower.ggb' or a terminal/file explorer window confirming the file exists in the ~/Documents/GeoGebra/projects/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GeoGebra GUI to build the model.",
+      "visual_evidence": "Screenshots should show the GeoGebra application open with the model being constructed in the Algebra and Graphics/3D Graphics views, not just terminal commands creating a file."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "The volume and pool capacity are derived from actual mathematical calculations in GeoGebra.",
+      "visual_evidence": "The Algebra view should show the mathematical steps (e.g., Integral command, division by 2500) rather than just a static text box with a hardcoded number."
+    },
+    {
+      "id": "no_hardcoded_incorrect_metadata",
+      "description": "The agent did not blindly copy incorrect metadata values for the pool capacity.",
+      "visual_evidence": "The text annotation should show the mathematically correct value of approximately 145 pools, rather than a hallucinated value between 150-170 pools that might have been leaked from faulty metadata."
+    }
+  ],
+  "privileged_info_for_vlm": "The task models the Drax Power Station cooling tower. Verified points: Base (0, 46), Top (114, 27.5). 1 Olympic swimming pool = 2500 m\u00b3. IMPORTANT: A quadratic polynomial fitted to the three given points yields an actual volume of approximately 363,137 m\u00b3, which equals approximately 145.3 Olympic pools. Accept values around 145 pools for the text annotation. Do not penalize the agent if the value is ~145 instead of the 150-170 range, as the mathematical calculation supersedes any conflicting metadata."
+}

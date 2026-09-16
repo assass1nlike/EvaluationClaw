@@ -1,0 +1,55 @@
+{
+  "id": "manual_data_entry_responses@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "You are a data entry clerk for a community health organization. Enter the following three paper survey responses into the 'Community Health Needs Assessment 2024' survey using the admin data entry interface.\n\nResponse 1:\n- ZIP Code: 02101\n- General Health: Good\n- Physical Health Days (not good): 5\n- Health Coverage: Yes\n- Age: 42\n\nResponse 2:\n- ZIP Code: 90210\n- General Health: Fair\n- Physical Health Days (not good): 12\n- Health Coverage: No\n- Age: 67\n\nResponse 3:\n- ZIP Code: 60601\n- General Health: Very good\n- Physical Health Days (not good): 0\n- Health Coverage: Yes\n- Age: 31",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manual_data_entry_responses/setup_task.sh",
+    "post_task": "/workspace/tasks/manual_data_entry_responses/export_result.sh"
+  },
+  "metadata": {
+    "survey_title": "Community Health Needs Assessment 2024",
+    "expected_responses": [
+      {
+        "zip": "02101",
+        "health": "GD",
+        "days": 5,
+        "insured": "Y",
+        "age": 42
+      },
+      {
+        "zip": "90210",
+        "health": "FR",
+        "days": 12,
+        "insured": "N",
+        "age": 67
+      },
+      {
+        "zip": "60601",
+        "health": "VG",
+        "days": 0,
+        "insured": "Y",
+        "age": 31
+      }
+    ],
+    "answer_codes": {
+      "Good": "GD",
+      "Fair": "FR",
+      "Very good": "VG",
+      "Yes": "Y",
+      "No": "N"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manual_data_entry"
+    }
+  }
+}

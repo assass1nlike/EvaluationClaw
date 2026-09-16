@@ -1,0 +1,53 @@
+{
+  "task_id": "random_sampling_points_export@1",
+  "task_completion": [
+    {
+      "id": "load_input_layer",
+      "description": "Load the european_countries.geojson layer into QGIS",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel shows 'european_countries' loaded, and the map canvas displays the polygons for Austria, Switzerland, and Czechia."
+    },
+    {
+      "id": "generate_random_points",
+      "description": "Generate 5 random sampling points within each country",
+      "points": 20,
+      "visual_evidence": "A new point layer is visible in the Layers panel, and the map canvas shows points distributed inside the country polygons. Alternatively, the 'Random points inside polygons' dialog is visible with the point count set to 5."
+    },
+    {
+      "id": "add_lat_lon_fields",
+      "description": "Add 'longitude' and 'latitude' fields to the points layer",
+      "points": 30,
+      "visual_evidence": "The Attribute Table for the points layer is open showing new columns named 'longitude' and 'latitude', or the Field Calculator dialog is visible configuring these fields (e.g., using $x and $y)."
+    },
+    {
+      "id": "export_geojson",
+      "description": "Export the sampling points as a GeoJSON file",
+      "points": 20,
+      "visual_evidence": "The 'Save Vector Layer as...' dialog is visible with the format set to GeoJSON and the file path set to '/home/ga/GIS_Data/exports/sampling_points.geojson', or a file manager/terminal shows this file was created."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the attribute table as a CSV file",
+      "points": 20,
+      "visual_evidence": "The 'Save Vector Layer as...' dialog is visible with the format set to CSV and the file path set to '/home/ga/GIS_Data/exports/sampling_coordinates.csv', or a file manager/terminal shows this file was created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis_gui",
+      "description": "The agent used the QGIS graphical user interface to perform the tasks",
+      "visual_evidence": "Screenshots show interaction with QGIS menus, toolbars, and dialogs (like Vector > Research Tools or Field Calculator) rather than executing a Python/GDAL script in the terminal to bypass the UI."
+    },
+    {
+      "id": "genuine_coordinate_calculation",
+      "description": "Coordinates were calculated genuinely by the software",
+      "visual_evidence": "If the attribute table is visible, the longitude and latitude values should be realistic decimal degrees for Central Europe (Lon: 5.0-19.0, Lat: 45.0-52.0), not manually typed dummy values like '1, 2, 3'."
+    },
+    {
+      "id": "no_manual_text_creation",
+      "description": "The output files were exported from QGIS, not manually typed",
+      "visual_evidence": "There is no evidence of the agent opening a text editor (like nano or gedit) to manually write the GeoJSON or CSV file contents."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/GIS_Data/european_countries.geojson. Expected outputs: /home/ga/GIS_Data/exports/sampling_points.geojson and /home/ga/GIS_Data/exports/sampling_coordinates.csv. The output must contain exactly 15 point features (5 per country). Valid coordinates for these countries fall within Longitude 5.0 to 19.0 and Latitude 45.0 to 52.0."
+}

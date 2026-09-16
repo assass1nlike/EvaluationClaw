@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_import_historical_data@1",
+  "task_completion": [
+    {
+      "id": "api_key_retrieved",
+      "description": "Retrieve the Emoncms API write key.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of a command like `cat /home/ga/emoncms_apikeys.sh` or a text editor displaying the contents of the file to obtain the API key."
+    },
+    {
+      "id": "bulk_data_imported",
+      "description": "Import the historical data from the CSV file using the input/bulk.json API endpoint.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the execution of a script (e.g., Python or bash) or `curl` commands that read `/home/ga/annex_power_data.csv` and send requests to the Emoncms `input/bulk.json` endpoint."
+    },
+    {
+      "id": "input_configured",
+      "description": "Verify the input is created and configured in Emoncms.",
+      "points": 20,
+      "visual_evidence": "Web browser showing the Emoncms 'Inputs' page with the node `building_annex` and input key `power`. There should be an indication that a process is configured (e.g., a wrench icon or 'Log to feed' in the process list)."
+    },
+    {
+      "id": "feed_created",
+      "description": "Verify the feed is created with the correct settings in Emoncms.",
+      "points": 20,
+      "visual_evidence": "Web browser showing the Emoncms 'Feeds' page with a feed named `annex_power`, using the `PHPFina` engine, and a `10s` interval."
+    },
+    {
+      "id": "result_file_created",
+      "description": "Record the final data point count to the result file.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like `cat /home/ga/annex_import_result.txt` or a text editor showing the file contents matching the format `feed_name:annex_power,datapoints:NNN` (where NNN is around 144)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_usage",
+      "description": "The agent actually sends data to the Emoncms API rather than just faking the result file.",
+      "visual_evidence": "Presence of a script or command history showing actual HTTP requests (e.g., via `requests` in Python or `curl`) being made to the Emoncms server."
+    },
+    {
+      "id": "emoncms_interaction",
+      "description": "The agent interacts with the Emoncms web interface or API to configure the input and create the feed.",
+      "visual_evidence": "Screenshots showing the Emoncms web interface being navigated and configured, or valid API calls for input/feed configuration."
+    },
+    {
+      "id": "genuine_result",
+      "description": "The datapoint count in the result file reflects the actual imported data.",
+      "visual_evidence": "The number in the result file should be exactly 144 (or very close, minimum 140), corresponding to the 144 readings in the CSV file, not a random or hardcoded fake number."
+    }
+  ],
+  "privileged_info_for_vlm": "The CSV file contains exactly 144 synthetic power readings at 10-minute intervals. The expected node name is 'building_annex', input name is 'power', and feed name is 'annex_power'. The feed must use the PHPFina engine (engine 5) with a 10s interval. The final result file must be at '/home/ga/annex_import_result.txt' with the exact format 'feed_name:annex_power,datapoints:NNN', where NNN should be 144 (minimum acceptable is 140)."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "debug_nodejs_collab_server@1",
+  "task_completion": [
+    {
+      "id": "run_initial_load_test",
+      "description": "Navigate to the workspace and run the load test to reproduce the issues.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the agent in '/home/ga/workspace/collab_server/' and executing 'npm run test:load', with output indicating failing tests for the 5 bugs."
+    },
+    {
+      "id": "fix_memory_exhaustion",
+      "description": "Fix the memory exhaustion bug.",
+      "points": 15,
+      "visual_evidence": "Code editor showing fixes to memory leaks (e.g., clearing arrays, removing event listeners) AND/OR terminal showing the memory exhaustion test passing during 'npm run test:load'."
+    },
+    {
+      "id": "fix_ping_timeouts",
+      "description": "Fix the ping timeouts caused by event loop blocks.",
+      "points": 15,
+      "visual_evidence": "Code editor showing removal of synchronous/blocking operations (e.g., replacing synchronous file reads with async, or fixing heavy loops) AND/OR terminal showing the ping timeout test passing."
+    },
+    {
+      "id": "fix_concurrent_saves",
+      "description": "Fix data overwriting on concurrent saves.",
+      "points": 20,
+      "visual_evidence": "Code editor showing implementation of concurrency control (e.g., locks, queues, or versioning) AND/OR terminal showing the concurrent saves test passing."
+    },
+    {
+      "id": "fix_invalid_token_crashes",
+      "description": "Fix process crashes on invalid tokens.",
+      "points": 15,
+      "visual_evidence": "Code editor showing added error handling (e.g., try/catch blocks around token parsing) AND/OR terminal showing the invalid token test passing without crashing the server."
+    },
+    {
+      "id": "fix_chat_mention_freezes",
+      "description": "Fix freezing on specific chat mentions.",
+      "points": 15,
+      "visual_evidence": "Code editor showing fixes to regex (preventing catastrophic backtracking) or infinite loops in chat parsing AND/OR terminal showing the chat mention test passing."
+    },
+    {
+      "id": "verify_all_fixes_pass",
+      "description": "Run the load test to verify all fixes are successful.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'npm run test:load' executing and outputting a success message indicating all tests have passed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the agent actually edited the server source code files.",
+      "visual_evidence": "Screenshots should show a text editor (like VS Code, nano, or vim) or valid command-line text manipulation tools being used to modify the Node.js files."
+    },
+    {
+      "id": "actual_test_execution",
+      "description": "Verify the test output is genuine and not mocked.",
+      "visual_evidence": "Terminal output for 'npm run test:load' should look like standard npm/Node.js test runner output, not manually echoed text."
+    },
+    {
+      "id": "no_test_script_tampering",
+      "description": "Verify the agent did not modify the test files to bypass the requirements.",
+      "visual_evidence": "The agent should be editing the server implementation files (e.g., server.js, utils.js), not modifying 'package.json' test scripts or the test files themselves to force a pass."
+    }
+  ],
+  "privileged_info_for_vlm": "The task operates on synthetically generated Node.js server files in /home/ga/workspace/collab_server/. The verified pass threshold is 60 points out of 100. The agent must fix 5 specific bugs: memory exhaustion, ping timeouts, concurrent save overwrites, invalid token crashes, and chat mention freezes. Success is verified by running 'npm run test:load'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "tpi_landform_classification@1",
+  "task_completion": [
+    {
+      "id": "load_dem_file",
+      "description": "Load the SRTM DEM file into ESA SNAP Desktop.",
+      "points": 10,
+      "visual_evidence": "ESA SNAP Desktop is open and 'srtm_dem.tif' is visible in the Product Explorer window."
+    },
+    {
+      "id": "create_smoothed_elevation",
+      "description": "Create a 'smoothed_elevation' band using a spatial smoothing filter.",
+      "points": 15,
+      "visual_evidence": "A band named 'smoothed_elevation' is visible in the Product Explorer under the DEM product's 'Bands' folder, or a filtering dialog (e.g., Raster > Filter) is shown being applied to the elevation data."
+    },
+    {
+      "id": "create_tpi_band",
+      "description": "Calculate the 'tpi' band as the difference between original and smoothed elevation.",
+      "points": 15,
+      "visual_evidence": "A band named 'tpi' is visible in the Product Explorer, or the Band Math dialog is open showing an expression subtracting the smoothed elevation from the original elevation."
+    },
+    {
+      "id": "create_landform_class",
+      "description": "Create a 'landform_class' band using conditional logic to define three categories (Ridges, Valleys, Slopes).",
+      "points": 20,
+      "visual_evidence": "A band named 'landform_class' is visible in the Product Explorer, or the Band Math dialog is open showing conditional logic (e.g., IF...THEN...ELSE) separating the TPI values into 3 distinct classes."
+    },
+    {
+      "id": "export_beam_dimap",
+      "description": "Save the complete multi-band product in BEAM-DIMAP format to the specified exports folder.",
+      "points": 20,
+      "visual_evidence": "A 'Save Product' dialog showing the path '/home/ga/snap_exports/tpi_analysis' with BEAM-DIMAP format, or a file manager/terminal window showing 'tpi_analysis.dim' and its associated '.data' folder in the snap_exports directory."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the 'landform_class' band as a GeoTIFF to the specified exports folder.",
+      "points": 20,
+      "visual_evidence": "An export dialog (e.g., File > Export > GeoTIFF) saving 'landform_class.tif' to '/home/ga/snap_exports/', or a file manager/terminal window showing 'landform_class.tif' successfully created in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the ESA SNAP Desktop GUI to perform the analysis.",
+      "visual_evidence": "Screenshots show active interaction with the SNAP Desktop interface (menus, Band Math dialogs, Product Explorer) rather than just running a pre-written script in the terminal."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "The agent actually computed the bands rather than renaming files or creating empty bands.",
+      "visual_evidence": "Band Math or Filter dialogs are visible with actual mathematical expressions or parameters being entered."
+    },
+    {
+      "id": "no_mocked_outputs",
+      "description": "The agent did not simply use terminal commands (like 'touch') to create fake output files.",
+      "visual_evidence": "The output files are generated via SNAP's save/export dialogs or progress bars, not via quick terminal commands bypassing the application."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file is located at /home/ga/snap_data/srtm_dem.tif. The final BEAM-DIMAP export must be saved to /home/ga/snap_exports/tpi_analysis.dim. The GeoTIFF export must be saved to /home/ga/snap_exports/landform_class.tif and contain exactly 3 distinct categorical values representing the landform classes."
+}

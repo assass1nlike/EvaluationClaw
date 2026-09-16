@@ -1,0 +1,59 @@
+{
+  "task_id": "javascript_db_upsert@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'Census_Upsert_Processor'",
+      "points": 10,
+      "visual_evidence": "The Mirth Connect Administrator GUI shows a channel named 'Census_Upsert_Processor' in the Channels list or Channel Editor, or a REST API script is shown creating a channel with this name."
+    },
+    {
+      "id": "json_data_type",
+      "description": "Configure the channel to accept JSON data",
+      "points": 10,
+      "visual_evidence": "In the channel's 'Set Data Types' dialog or Summary tab, the Inbound Data Type is set to 'JSON', or the API payload specifies JSON as the inbound data type."
+    },
+    {
+      "id": "http_listener_configured",
+      "description": "Configure the Source connector as an HTTP Listener on port 6665",
+      "points": 15,
+      "visual_evidence": "In the Source tab, the Connector Type is 'HTTP Listener' and the Port field is set to '6665', or the API payload configures an HTTP Listener on port 6665."
+    },
+    {
+      "id": "javascript_writer_selected",
+      "description": "Configure the Destination connector as a JavaScript Writer",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab, the Connector Type is set to 'JavaScript Writer', or the API payload configures a JavaScript Writer destination."
+    },
+    {
+      "id": "db_connection_logic",
+      "description": "Implement database connection logic in the JavaScript Writer",
+      "points": 20,
+      "visual_evidence": "The JavaScript code editor (or script payload) shows a connection string to 'jdbc:postgresql://nextgen-postgres:5432/mirthdb' using credentials 'postgres'/'postgres'."
+    },
+    {
+      "id": "upsert_logic",
+      "description": "Implement conditional upsert logic for the 'current_census' table",
+      "points": 30,
+      "visual_evidence": "The JavaScript code editor contains SQL statements for checking existing records (SELECT) and performing INSERT/UPDATE, or an 'INSERT ... ON CONFLICT' statement, targeting the 'current_census' table and its columns (mrn, patient_name, location, last_updated)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "mirth_connect_interaction",
+      "description": "Agent interacted with Mirth Connect Administrator or REST API",
+      "visual_evidence": "Screenshots show the Mirth Connect Administrator GUI being used, or a script being written and executed to interact with the Mirth Connect REST API."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Agent did not bypass channel creation by directly manipulating the database",
+      "visual_evidence": "The agent is seen configuring the Mirth Connect channel rather than just running psql commands in the terminal to insert test data to pass the evaluation."
+    },
+    {
+      "id": "authentic_code_entry",
+      "description": "Agent actively wrote or pasted the JavaScript code",
+      "visual_evidence": "The JavaScript code in the Destination tab or API script is shown being edited or constructed, not just imported from a pre-existing complete file without explanation."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel Name: Census_Upsert_Processor\nSource: HTTP Listener on port 6665, accepting JSON data\nDestination: JavaScript Writer\nDatabase URL: jdbc:postgresql://nextgen-postgres:5432/mirthdb\nDatabase Credentials: postgres / postgres\nTable: current_census\nColumns: mrn (primary key), patient_name, location, last_updated (CURRENT_TIMESTAMP)\nUpsert Logic: Must insert if MRN is new, or update patient_name, location, and last_updated if MRN exists."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "configure_scale_dependent_labeling@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Create a new SLD style named 'scaled_cities' in the 'ne' workspace for the 'ne:ne_populated_places' layer. The style must render a red circle point marker at all scales and display the 'name' label using a black SansSerif font with a white halo only when the scale denominator is less than 20,000,000. Assign 'scaled_cities' as the default style for the 'ne:ne_populated_places' layer.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_scale_dependent_labeling/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_scale_dependent_labeling/export_result.sh"
+  },
+  "metadata": {
+    "target_style_name": "scaled_cities",
+    "target_layer_name": "ne_populated_places",
+    "target_workspace": "ne",
+    "max_scale_denominator": 20000000,
+    "scale_tolerance": 5000000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_scale_dependent_labeling"
+    }
+  }
+}

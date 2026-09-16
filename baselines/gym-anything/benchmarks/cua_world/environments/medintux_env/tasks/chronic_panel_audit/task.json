@@ -1,0 +1,62 @@
+{
+  "id": "chronic_panel_audit@1",
+  "version": "1.0",
+  "env_id": "medintux_env@0.1",
+  "description": "You are a GP conducting a quarterly clinical audit of your patient panel in MedinTux. Review your patient list to identify and correct clinical management gaps or medication safety issues. Evaluate patient records—including terrain (allergies and antecedents), current prescriptions, and appointment history—to identify problems such as chronic conditions without active prescriptions, medications contraindicated by documented conditions or allergies, or chronic conditions with no follow-up in over 6 months. For each issue identified, take the appropriate corrective action by creating or modifying prescriptions, adding consultation notes, or scheduling appointments. Document your reasoning in a brief consultation note for each case. Credentials: Use any practitioner name to authenticate.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 150
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chronic_panel_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/chronic_panel_audit/export_result.sh"
+  },
+  "metadata": {
+    "issues_planted": {
+      "DUBOIS_Marie-Claire": {
+        "nom": "DUBOIS",
+        "prenom": "Marie-Claire",
+        "dob": "1960-07-21",
+        "issue": "Hypertension + Type 2 diabetes documented in terrain but no active prescription",
+        "expected_action": "New prescription with antihypertensive and/or antidiabetic medication",
+        "correction_type": "prescription"
+      },
+      "LAMBERT_Anne": {
+        "nom": "LAMBERT",
+        "prenom": "Anne",
+        "dob": "1947-10-07",
+        "issue": "Atrial fibrillation (Fibrillation auriculaire) documented but only aspirin prescribed — anticoagulation required per guidelines",
+        "expected_action": "New prescription replacing aspirin with an anticoagulant (e.g., apixaban, rivaroxaban, acenocoumarol)",
+        "correction_type": "prescription"
+      },
+      "PERRIN_Martine": {
+        "nom": "PERRIN",
+        "prenom": "Martine",
+        "dob": "1950-02-02",
+        "issue": "COPD patient with last follow-up 2025-05-15 — over 9 months overdue for review",
+        "expected_action": "Schedule follow-up appointment in agenda",
+        "correction_type": "agenda"
+      },
+      "NICOLAS_Sandrine": {
+        "nom": "NICOLAS",
+        "prenom": "Sandrine",
+        "dob": "1981-09-06",
+        "issue": "Migraine with aura documented in terrain but combined oral contraceptive (ethinylestradiol) prescribed — absolute contraindication",
+        "expected_action": "New prescription removing combined OCP; document reason in consultation note",
+        "correction_type": "prescription"
+      }
+    },
+    "expected_corrections": 4,
+    "pass_threshold": 50,
+    "type_rub_prescription": 20020100,
+    "type_rub_consultation": 20030000,
+    "type_rub_terrain": 20060000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chronic_panel_audit"
+    }
+  }
+}

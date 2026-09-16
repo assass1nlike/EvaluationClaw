@@ -1,0 +1,90 @@
+{
+  "dataset_id": "24aa6474",
+  "name": "Short Expression Visual Grounding",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 360,
+  "description": "Short Expression Visual Grounding is a dataset for locating a specific object in an image given a short referring expression. It evaluates the model's ability to ground natural language phrases to visual regions by predicting bounding boxes.",
+  "card_text": "The dataset contains 360 samples, each pairing a COCO image with a short phrase (e.g., 'right giraffe', 'blue scooter') and a constant instruction prompt. The task is to output a bounding box around the object described by the phrase. Images are everyday scenes with multiple objects, requiring fine-grained visual understanding and spatial reasoning. The annotations provide pixel coordinates in [x, y, width, height] format. This benchmark assesses visual grounding capabilities in open-set scenarios, where the referring expressions are brief and sometimes ambiguous, testing both language comprehension and precise localization.",
+  "tasks": [
+    "localization"
+  ],
+  "domain": "everyday objects and scenes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "The image file path pointing to a natural photograph from the COCO dataset. It depicts the visual scene containing the object that must be localized according to the referring expression.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.sentence"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short noun phrase (e.g., 'right giraffe', 'blue scooter') that refers to a specific object in the image. The model must identify and localize the object described by this expression.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "mixed",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A bounding box annotation [x, y, width, height] in pixel coordinates that specifies the location of the referred object in the image. It is the target output for the visual grounding task.",
+        "path_types": [
+          "list<float>"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A constant instruction prompt that tells the model to 'Ground the object according to the given sentence', providing explicit task context for the grounding request.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a visual context (an image file path), a short referring expression (sentence), a constant instruction prompt, and a bounding box annotation. The image is the scene where the object appears, the sentence identifies the target object, the prompt specifies the grounding task, and the bounding box is the localization answer in pixel coordinates."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/short_expression_visual_grounding/json/annotation.json",
+    "existing_tags": {
+      "task": "short expression visual grounding",
+      "type": "comprehension",
+      "skill": "Image Visual Grounding (Img Vis Grnd)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

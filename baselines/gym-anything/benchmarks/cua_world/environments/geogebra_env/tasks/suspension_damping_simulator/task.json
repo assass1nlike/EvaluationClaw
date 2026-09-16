@@ -1,0 +1,29 @@
+{
+  "id": "suspension_damping_simulator@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are an automotive engineering instructor creating a suspension damping simulator. Create a GeoGebra project that models a 'Quarter Car' suspension system (mass-spring-damper) featuring sliders for mass (m: 20-80, increment 1), spring constant (k: 10000-40000, increment 100), and damping coefficient (c: 0-4000, increment 50). The project must include the displacement function y(x) = 0.1 * exp(-c/(2m) * x) * cos(sqrt(k/m - (c/(2m))^2) * x), decay envelope functions env_top(x) = 0.1 * exp(-c/(2m) * x) and env_bot(x) = -0.1 * exp(-c/(2m) * x), and a dynamic text element displaying the Damping Ratio (c / (2 * sqrt(m * k))). Set the final slider values to simulate a 'Worn Shock' scenario (m = 40, k = 25000, c = 500) and save the project as 'suspension.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/suspension_damping_simulator/setup_task.sh",
+    "post_task": "/workspace/tasks/suspension_damping_simulator/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "suspension.ggb",
+    "target_m": 40.0,
+    "target_k": 25000.0,
+    "target_c": 500.0,
+    "tolerance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_suspension_damping_simulator"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "leaf_skeleton_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Leaf Vein Network Skeleton Analysis",
+  "description": "Perform a morphological skeleton analysis on the 'Leaf' sample image to analyze its vein network. Generate a skeleton of the veins and perform a branch analysis. Export the results, including '# Branches', '# Junctions', and 'Average Branch Length', to ~/ImageJ_Data/results/skeleton_analysis.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "morphology",
+    "skeletonize",
+    "network-analysis",
+    "plant-biology",
+    "binary-processing"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/leaf_skeleton_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/leaf_skeleton_analysis/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "Leaf",
+    "image_source": "Fiji built-in sample (File > Open Samples > Leaf)",
+    "expected_min_branches": 20,
+    "expected_min_junctions": 5,
+    "result_file": "/home/ga/ImageJ_Data/results/skeleton_analysis.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_leaf_skeleton_analysis"
+    }
+  }
+}

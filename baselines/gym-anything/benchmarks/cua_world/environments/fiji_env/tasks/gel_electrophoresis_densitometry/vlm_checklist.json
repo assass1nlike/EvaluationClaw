@@ -1,0 +1,53 @@
+{
+  "task_id": "gel_electrophoresis_densitometry@1",
+  "task_completion": [
+    {
+      "id": "fiji_image_opened",
+      "description": "Verify that the protein gel image is opened in Fiji/ImageJ.",
+      "points": 10,
+      "visual_evidence": "The Fiji/ImageJ interface is visible with the gel image (protein_gel.tif) loaded, showing multiple vertical lanes."
+    },
+    {
+      "id": "lane_profiles_saved",
+      "description": "Verify that the lane intensity profile plots are saved as a PNG.",
+      "points": 20,
+      "visual_evidence": "An image viewer, Fiji plot window, or file explorer showing 'lane_profiles.png', which should display a series of line graphs (peaks and valleys) corresponding to the gel lanes."
+    },
+    {
+      "id": "quantification_csv_saved",
+      "description": "Verify that the band quantification results are saved to a CSV file with all required columns.",
+      "points": 30,
+      "visual_evidence": "A text editor or spreadsheet displaying 'band_quantification.csv' containing columns for: lane ID, raw intensity, normalized intensity, background intensity, and peak area percentage."
+    },
+    {
+      "id": "reference_lane_normalization",
+      "description": "Verify that Lane 1 is used as the reference control for normalization.",
+      "points": 10,
+      "visual_evidence": "In the CSV or text report, the normalized intensity value for Lane 1 must be exactly 1, 1.0, or 100%, with other lanes calculated as relative ratios."
+    },
+    {
+      "id": "summary_report_saved",
+      "description": "Verify that the densitometry summary report is generated with the required insights.",
+      "points": 30,
+      "visual_evidence": "A text editor displaying 'densitometry_report.txt' that explicitly identifies the lanes with the highest and lowest expression relative to Lane 1, and includes a list of all normalized values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fiji_gui_interaction",
+      "description": "Verify the agent actually used Fiji/ImageJ to perform the densitometry analysis.",
+      "visual_evidence": "Screenshots must show the Fiji/ImageJ application open with gel analysis tools being used (e.g., Analyze > Gels menu, bounding boxes around lanes, or Fiji Results table), rather than just a Python script or text editor mocking the results."
+    },
+    {
+      "id": "authentic_plot_generation",
+      "description": "Verify the lane profiles plot is genuinely generated from the gel.",
+      "visual_evidence": "The 'lane_profiles.png' should display the characteristic ImageJ gel profile format (stacked line graphs of peaks) and the number of profiles should match the number of analyzed lanes."
+    },
+    {
+      "id": "consistent_reporting",
+      "description": "Verify the summary report data is logically consistent and not hallucinated.",
+      "visual_evidence": "The highest and lowest expression lanes identified in the report should logically match the numerical data shown in the CSV and the visual peaks in the profile plot."
+    }
+  ],
+  "privileged_info_for_vlm": "The image is an 8-bit grayscale gel containing multiple vertical lanes. Standard ImageJ gel analysis (Analyze > Gels) generates a profile plot of peaks. Background subtraction is typically done by drawing lines at the base of these peaks before measuring. The task requires Lane 1 to be the reference, so its normalized intensity must be 1.0 (or 100%). The output CSV must contain exactly these metrics: lane ID, raw intensity, normalized intensity, background intensity, and peak area percentage."
+}

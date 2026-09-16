@@ -1,0 +1,36 @@
+{
+  "id": "publish_shapefile_directory_store@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Configure GeoServer (admin/Admin123!) to serve Natural Earth shapefiles currently located at /home/ga/natural_earth/. The shapefiles must be accessible to the GeoServer container at /opt/geoserver/data_dir/shp_data/. Establish a workspace named shp_ne (URI: http://shp_ne.example.org) and a directory-based store named shp_directory. Publish the layers ne_110m_admin_0_countries (Title: 'Countries (Shapefile)') and ne_110m_lakes (Title: 'Lakes (Shapefile)') with EPSG:4326 and calculated bounding boxes. Save WMS GetMap images for the countries and lakes layers to /home/ga/countries_map.png and /home/ga/lakes_map.png respectively.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/publish_shapefile_directory_store/setup_task.sh",
+    "post_task": "/workspace/tasks/publish_shapefile_directory_store/export_result.sh"
+  },
+  "metadata": {
+    "expected_workspace": "shp_ne",
+    "expected_store": "shp_directory",
+    "expected_layers": [
+      "ne_110m_admin_0_countries",
+      "ne_110m_lakes"
+    ],
+    "host_data_dir": "/home/ga/natural_earth",
+    "container_target_dir": "/opt/geoserver/data_dir/shp_data",
+    "output_images": [
+      "/home/ga/countries_map.png",
+      "/home/ga/lakes_map.png"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_publish_shapefile_directory_store"
+    }
+  }
+}

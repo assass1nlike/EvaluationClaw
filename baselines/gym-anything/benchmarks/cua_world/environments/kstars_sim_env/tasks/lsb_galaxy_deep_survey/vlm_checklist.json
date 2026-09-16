@@ -1,0 +1,53 @@
+{
+  "task_id": "lsb_galaxy_deep_survey@1",
+  "task_completion": [
+    {
+      "id": "read_targets_file",
+      "description": "Read the target coordinates from the provided text file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window (using cat, less, etc.) displaying the contents of ~/Documents/lsb_targets.txt."
+    },
+    {
+      "id": "capture_light_frames",
+      "description": "Capture 4 LIGHT frames at 25-second exposure for each of the three targets.",
+      "points": 30,
+      "visual_evidence": "The KStars/Ekos Capture module showing a sequence queue configured for 4 LIGHT frames at 25s exposure, OR a file manager/terminal showing the resulting .fits files in /home/ga/Images/LSB_survey/targets/Malin 1/, Malin 2/, and UGC 1382/."
+    },
+    {
+      "id": "generate_sky_views",
+      "description": "Generate a sky view image for each target using the provided bash script.",
+      "points": 20,
+      "visual_evidence": "A terminal window showing the execution of 'bash ~/capture_sky_view.sh /home/ga/Images/LSB_survey/targets/<target_name>/view.png --palette cool' for the targets, OR a file manager/image viewer showing the generated view.png files in the respective target directories."
+    },
+    {
+      "id": "capture_dark_frames",
+      "description": "Capture 5 DARK frames at 25-second exposure for calibration.",
+      "points": 20,
+      "visual_evidence": "The KStars/Ekos Capture module showing a sequence queue configured for 5 DARK frames at 25s exposure, OR a file manager/terminal showing the resulting .fits files in /home/ga/Images/LSB_survey/calibration/darks_25s/."
+    },
+    {
+      "id": "create_survey_report",
+      "description": "Create a survey report containing the names of the three targets.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the creation and saving of 'lsb_survey_report.txt' in ~/Documents/ containing the text 'Malin 1', 'Malin 2', and 'UGC 1382'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "kstars_gui_usage",
+      "description": "Verify that the agent used the KStars/Ekos GUI to capture the LIGHT and DARK frames.",
+      "visual_evidence": "Screenshots should show interaction with the KStars/Ekos application interface (Capture tab, Sequence Queue) rather than using terminal commands like 'touch' or 'cp' to mock the .fits files."
+    },
+    {
+      "id": "script_execution",
+      "description": "Verify that the sky view bash script was genuinely executed.",
+      "visual_evidence": "Screenshots should show the actual terminal command being run with the '--palette cool' argument, rather than the agent manually moving or renaming pre-existing images."
+    },
+    {
+      "id": "report_file_creation",
+      "description": "Verify the survey report was actually saved to the correct file path.",
+      "visual_evidence": "The text editor should show the file saved at '/home/ga/Documents/lsb_survey_report.txt', or a terminal command (like 'echo ... > ...') should explicitly write to this path, rather than just printing the names to stdout."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires capturing exactly 4 LIGHT frames (25s exposure) for targets 'Malin 1', 'Malin 2', and 'UGC 1382' in their respective directories under /home/ga/Images/LSB_survey/targets/. It also requires generating a sky view image (view.png) for each target using the provided bash script with the '--palette cool' flag. Additionally, exactly 5 DARK frames (25s exposure) must be captured in /home/ga/Images/LSB_survey/calibration/darks_25s/. Finally, a report must be saved to /home/ga/Documents/lsb_survey_report.txt containing the three target names."
+}

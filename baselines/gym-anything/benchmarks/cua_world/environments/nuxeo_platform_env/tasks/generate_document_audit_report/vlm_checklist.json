@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_document_audit_report@1",
+  "task_completion": [
+    {
+      "id": "query_workspace_documents",
+      "description": "Agent queries the Nuxeo system to find documents within the Projects workspace.",
+      "points": 15,
+      "visual_evidence": "Terminal showing curl commands, a Python script, or an API client querying the Nuxeo API (e.g., using NXQL) for documents in '/default-domain/workspaces/Projects'."
+    },
+    {
+      "id": "query_audit_endpoint",
+      "description": "Agent retrieves audit trail data for the discovered documents.",
+      "points": 20,
+      "visual_evidence": "Terminal or script showing API requests to the Nuxeo '/@audit' endpoint for specific document IDs."
+    },
+    {
+      "id": "construct_json_structure",
+      "description": "Agent creates the required top-level JSON structure for the report.",
+      "points": 20,
+      "visual_evidence": "A text editor or script showing the creation of a JSON object with keys: 'report_title', 'generated_at', 'workspace_path', 'total_entries', and 'entries'."
+    },
+    {
+      "id": "populate_audit_entries",
+      "description": "Agent populates the JSON report with audit entries for at least 2 distinct documents.",
+      "points": 30,
+      "visual_evidence": "The JSON file contents or script logic showing the 'entries' array being filled with objects containing 'document_title', 'document_path', 'event_id', 'event_date', 'principal', and 'category'. The data must cover at least 2 different documents."
+    },
+    {
+      "id": "save_json_file",
+      "description": "Agent saves the compiled JSON report to the correct file path.",
+      "points": 15,
+      "visual_evidence": "Terminal command (e.g., writing to file), script file, or text editor saving the final JSON output exactly to '/home/ga/audit_report.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "Verifies that the agent actually fetched data from the Nuxeo API.",
+      "visual_evidence": "Presence of actual API calls (curl, Python requests) returning JSON responses from Nuxeo, rather than the agent fabricating the audit data."
+    },
+    {
+      "id": "no_hardcoded_entries",
+      "description": "Verifies that the audit entries are derived from the system.",
+      "visual_evidence": "The script parses API responses to build the JSON, or the agent copies data from actual API responses rather than inventing it."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "Verifies the file is saved exactly where requested.",
+      "visual_evidence": "The path '/home/ga/audit_report.json' is explicitly visible in the save command, script, or file manager."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires querying the Nuxeo REST API (v1). The agent should use NXQL to find documents in '/default-domain/workspaces/Projects' and the '/@audit' web adapter to get their audit trails. The final output must be a JSON file at '/home/ga/audit_report.json' containing audit events for at least 2 distinct documents. The JSON must include the exact keys: report_title, generated_at, workspace_path, total_entries, and an entries array with objects containing document_title, document_path, event_id, event_date, principal, and category. Authentication is typically done with Administrator:Administrator."
+}

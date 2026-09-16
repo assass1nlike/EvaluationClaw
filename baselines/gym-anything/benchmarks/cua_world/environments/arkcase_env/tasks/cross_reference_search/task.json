@@ -1,0 +1,30 @@
+{
+  "id": "cross_reference_search@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Use the ArkCase global search to identify three entities associated with the keyword 'Falcon'. Extract the Website URL from the 'Organization' record, the Email Address from the 'Person' record, and the Case Number from the 'Complaint' case. Compile these values into a JSON file at /home/ga/falcon_report.json with the following structure:\n\n{\n  \"organization_website\": \"...\",\n  \"person_email\": \"...\",\n  \"case_number\": \"...\"\n}",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cross_reference_search/setup_task.sh",
+    "post_task": "/workspace/tasks/cross_reference_search/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/falcon_report.json",
+    "required_keys": [
+      "organization_website",
+      "person_email",
+      "case_number"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cross_reference_search"
+    }
+  }
+}

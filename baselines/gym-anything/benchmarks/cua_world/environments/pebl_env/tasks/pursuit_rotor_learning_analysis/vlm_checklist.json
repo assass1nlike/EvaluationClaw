@@ -1,0 +1,53 @@
+{
+  "task_id": "pursuit_rotor_learning_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_csv",
+      "description": "Agent accesses the input pursuit rotor dataset.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening '~/pebl/data/pursuit_rotor_data.csv' in a text editor, spreadsheet, or writing a script (e.g., Python pandas) to read the file."
+    },
+    {
+      "id": "implement_calculations",
+      "description": "Agent implements the required mathematical calculations for TOT percentage and MLI.",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet formulas showing the calculation of TOT% as '(time_on_target_ms / trial_duration_ms) * 100', averaging this over 5 trials per block, and calculating MLI as 'Block 4 mean - Block 1 mean'."
+    },
+    {
+      "id": "implement_exclusion_logic",
+      "description": "Agent identifies sub-099 and excludes them from group calculations.",
+      "points": 20,
+      "visual_evidence": "Code or logic explicitly checking for 'sub-099' or a Block 1 baseline > 85%, marking their exclusion status/reason, and filtering them out before calculating the group summary means."
+    },
+    {
+      "id": "format_json_structure",
+      "description": "Agent structures the output data according to the requested JSON schema.",
+      "points": 20,
+      "visual_evidence": "Code or text editor view showing the creation of a dictionary/JSON object with a 'participants' list (containing 'id', 'block_means' 1-4, 'mli', exclusion status) and a 'group_summary' object."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Agent saves the final JSON report with rounded values to the correct path.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the file '~/pebl/analysis/pursuit_rotor_report.json' being written or saved. The visible data should show floating-point numbers rounded to 1 decimal place."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_calculation_performed",
+      "description": "Verify the agent actually processed the data rather than hallucinating the output.",
+      "visual_evidence": "Look for execution of a script (e.g., running a Python file in the terminal) or active spreadsheet manipulation. The agent should not just type a complete JSON file from scratch without processing the CSV."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Verify the output is saved as a file, not just printed.",
+      "visual_evidence": "Look for a file creation command or a text editor saving to '~/pebl/analysis/pursuit_rotor_report.json', rather than the JSON just being printed to the terminal stdout."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent didn't hardcode the final statistical results.",
+      "visual_evidence": "The script or formulas should dynamically calculate the means and MLI from the dataset variables, rather than containing hardcoded numeric answers."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

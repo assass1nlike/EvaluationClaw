@@ -1,0 +1,59 @@
+{
+  "task_id": "sequential_db_file_pipeline@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel 'Registration_Pipeline' is created.",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect (Mirth Connect) Administrator GUI shows a channel named 'Registration_Pipeline' in the channels list or channel editor."
+    },
+    {
+      "id": "source_tcp_listener",
+      "description": "Verify the source is configured to listen on TCP port 6665.",
+      "points": 10,
+      "visual_evidence": "In the Source tab of the channel, the connector type is 'TCP Listener' and the port is set to '6665'."
+    },
+    {
+      "id": "db_destination_connection",
+      "description": "Verify the database destination connection settings.",
+      "points": 20,
+      "visual_evidence": "In the Destinations tab, a destination (e.g., Database Writer) is configured with the URL 'jdbc:postgresql://nextgen-postgres:5432/mirthdb' and username 'postgres'."
+    },
+    {
+      "id": "db_destination_query",
+      "description": "Verify the database destination inserts the correct HL7 fields into the billing_log table.",
+      "points": 25,
+      "visual_evidence": "The Database Writer's SQL statement shows an INSERT into the 'billing_log' table, with values mapped from the HL7 message for Visit Number (PV1.19) and Patient Name (PID.5)."
+    },
+    {
+      "id": "file_destination_configured",
+      "description": "Verify the file destination is configured to write to the correct directory.",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab, a File Writer destination is configured with the Directory '/tmp/billing_out/' and writes the raw HL7 message."
+    },
+    {
+      "id": "conditional_file_writing",
+      "description": "Verify the file destination is configured to execute only upon successful database insertion.",
+      "points": 20,
+      "visual_evidence": "The File Writer destination shows evidence of conditional execution based on the Database Writer's success. This could be a Filter checking the previous destination's status, or 'Wait for previous destination' combined with channel error settings."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI.",
+      "visual_evidence": "Screenshots should show the Java-based NextGen Connect (Mirth Connect) Administrator interface being used to configure the channel."
+    },
+    {
+      "id": "no_manual_db_inserts",
+      "description": "Verify the agent didn't manually insert records to bypass the channel.",
+      "visual_evidence": "The database configuration should be done within the NextGen Connect GUI, not just by running psql commands in the terminal to fake the final state."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "Verify the agent didn't manually create the output files.",
+      "visual_evidence": "The file writing configuration should be visible in the NextGen Connect GUI, rather than the agent using 'echo' or 'touch' in the terminal to create files in /tmp/billing_out/."
+    }
+  ],
+  "privileged_info_for_vlm": "NextGen Connect (formerly Mirth Connect) is the integration engine used. Channel Name: Registration_Pipeline. Listen Port: TCP 6665 (MLLP protocol). Database: PostgreSQL at jdbc:postgresql://nextgen-postgres:5432/mirthdb with credentials postgres/postgres. Table: billing_log. HL7 Fields: Visit Number is PV1.19, Patient Name is PID.5. Output Directory: /tmp/billing_out/. The File Writer must only execute if the Database Writer succeeds, ensuring transactional integrity."
+}

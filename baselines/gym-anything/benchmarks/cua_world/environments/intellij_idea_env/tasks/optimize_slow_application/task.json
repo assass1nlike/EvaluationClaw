@@ -1,0 +1,34 @@
+{
+  "id": "optimize_slow_application@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Optimize the Java text analysis application 'text-analyzer' loaded in IntelliJ to improve its performance. Identify and resolve performance bottlenecks within WordCounter.java, ReportGenerator.java, DuplicateDetector.java, TextFileReader.java, and TopWordsFinder.java. Ensure all unit tests pass after your optimizations. Document all changes made in a file named optimization_results.txt located in the project root.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/optimize_slow_application/setup_task.sh",
+    "post_task": "/workspace/tasks/optimize_slow_application/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/text-analyzer",
+    "data_url": "https://www.gutenberg.org/files/2600/2600-0.txt",
+    "required_files": [
+      "src/main/java/com/textanalyzer/WordCounter.java",
+      "src/main/java/com/textanalyzer/ReportGenerator.java",
+      "src/main/java/com/textanalyzer/DuplicateDetector.java",
+      "src/main/java/com/textanalyzer/TextFileReader.java",
+      "src/main/java/com/textanalyzer/TopWordsFinder.java"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_optimize_slow_application"
+    }
+  }
+}

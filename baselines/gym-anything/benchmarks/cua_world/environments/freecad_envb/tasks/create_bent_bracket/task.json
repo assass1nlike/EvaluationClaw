@@ -1,0 +1,30 @@
+{
+  "id": "create_bent_bracket@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a solid 2mm-thick Z-bracket using the 'ProfileSketch'. Extrude the sketch by 50mm and apply a 2mm thickness to create a solid body. Fillet the four sharp corner edges at the ends of the Z-shape with a radius of 5mm. Save the result to /home/ga/Documents/FreeCAD/finished_bracket.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_bent_bracket/setup_task.sh",
+    "post_task": "/workspace/tasks/create_bent_bracket/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "finished_bracket.FCStd",
+    "target_volume": 8000,
+    "volume_tolerance": 0.15,
+    "target_height": 50.0,
+    "target_thickness": 2.0,
+    "fillet_radius": 5.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_bent_bracket"
+    }
+  }
+}

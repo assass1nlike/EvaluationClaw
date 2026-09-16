@@ -1,0 +1,30 @@
+{
+  "id": "switch_market_country@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Switch the active stock market in JStock from 'United States' to 'United Kingdom'. Add 'HSBC Holdings' (Ticker: HSBA) and 'BP plc' (Ticker: BP) to the United Kingdom watchlist.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/switch_market_country/setup_task.sh",
+    "post_task": "/workspace/tasks/switch_market_country/export_result.sh"
+  },
+  "metadata": {
+    "expected_country_dir": "UnitedKingdom",
+    "expected_stocks": [
+      "HSBA",
+      "BP"
+    ],
+    "min_stocks_count": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_switch_market_country"
+    }
+  }
+}

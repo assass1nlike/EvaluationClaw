@@ -1,0 +1,32 @@
+{
+  "id": "create_order_frequency@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Configure a new medication frequency option in the OpenMRS Administration interface. Log in to https://localhost/openmrs/admin with username 'superman' and password 'Admin123'. Create a concept named '5 Times Daily' with Class 'Frequency' (or 'Misc') and Datatype 'N/A'. Add a new Order Frequency for this concept with the Frequency per Day set to '5'. The browser is currently open to the login page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_order_frequency/setup_task.sh",
+    "post_task": "/workspace/tasks/create_order_frequency/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_concept_name": "5 Times Daily",
+    "target_frequency": 5.0,
+    "concept_class_options": [
+      "Frequency",
+      "Misc"
+    ],
+    "concept_datatype": "N/A"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_order_frequency"
+    }
+  }
+}

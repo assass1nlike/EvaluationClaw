@@ -1,0 +1,53 @@
+{
+  "task_id": "temporal_travel_anomaly@1",
+  "task_completion": [
+    {
+      "id": "access_demodb",
+      "description": "Agent accesses the 'demodb' database.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent logging into OrientDB Studio (browser) or using the OrientDB console (terminal) connected to the 'demodb' database with admin credentials."
+    },
+    {
+      "id": "query_teleportation_logic",
+      "description": "Agent formulates a query or script to find overlapping stays in different cities.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a SQL/Gremlin query or a Python script that explicitly checks for intersecting date ranges (using 'CheckIn' and 'Nights') and different cities for the same profile."
+    },
+    {
+      "id": "mark_suspicious_profiles",
+      "description": "Agent sets the 'Suspicious' property to 'true' on the identified Profile vertices.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the execution of an UPDATE command (e.g., `UPDATE Profile SET Suspicious = true WHERE...`) or a script successfully modifying the database records."
+    },
+    {
+      "id": "create_json_file",
+      "description": "Agent creates the required output JSON file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a text editor (like nano, vim, or VS Code) or a terminal command (like echo or a Python script writing to file) targeting the exact path '/home/ga/suspicious_travelers.json'."
+    },
+    {
+      "id": "verify_json_content",
+      "description": "Agent populates the JSON file with a correctly formatted list of email addresses.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the contents of '/home/ga/suspicious_travelers.json' as a valid JSON array containing email strings (e.g., `[\"user1@domain.com\", \"user2@domain.com\"]`)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_snooping",
+      "description": "Agent does not access the ground truth file to cheat.",
+      "visual_evidence": "Ensure there are no terminal commands or editor windows opening '/var/lib/orientdb/ground_truth_anomalies.json'."
+    },
+    {
+      "id": "actual_db_interaction",
+      "description": "Agent genuinely interacts with the database to find the anomalies.",
+      "visual_evidence": "Look for actual query execution results or script outputs interacting with OrientDB, rather than the agent just guessing or hardcoding emails into the output file."
+    },
+    {
+      "id": "no_prompt_copy_paste",
+      "description": "Agent does not just copy the example format from the prompt.",
+      "visual_evidence": "Ensure the JSON file contains actual queried emails, not the literal placeholder strings 'email1@example.com' and 'email2@example.com' from the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'demodb'. The agent must output the final JSON list of emails to '/home/ga/suspicious_travelers.json'. The ground truth anomalies are stored at '/var/lib/orientdb/ground_truth_anomalies.json' (the agent should NOT access this file directly to get the answers)."
+}

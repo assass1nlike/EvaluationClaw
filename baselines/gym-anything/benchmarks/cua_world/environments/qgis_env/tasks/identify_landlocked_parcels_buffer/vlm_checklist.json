@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_landlocked_parcels_buffer@1",
+  "task_completion": [
+    {
+      "id": "load_input_files",
+      "description": "Load the parcels and road network layers into the GIS application",
+      "points": 10,
+      "visual_evidence": "The Layers panel shows both 'subdivision_parcels' and 'road_network' loaded in the GIS application (e.g., QGIS)."
+    },
+    {
+      "id": "identify_landlocked_parcels",
+      "description": "Identify parcels that are isolated from the road network",
+      "points": 30,
+      "visual_evidence": "A spatial selection tool (like 'Select by Location') is configured to find parcels disjoint from roads, OR exactly 2 parcels (the center and top-middle of the 3x3 grid) are highlighted/selected on the map canvas."
+    },
+    {
+      "id": "set_projection",
+      "description": "Reproject the data to EPSG:32610 (WGS 84 / UTM zone 10N)",
+      "points": 20,
+      "visual_evidence": "A reprojection dialog (e.g., 'Reproject Layer' or within 'Save Vector Layer') shows the target CRS set to 'EPSG:32610' or 'WGS 84 / UTM zone 10N'."
+    },
+    {
+      "id": "apply_buffer",
+      "description": "Create a 10-meter buffer around the isolated parcels",
+      "points": 20,
+      "visual_evidence": "The 'Buffer' tool dialog is visible with a distance of '10' (meters) applied to the isolated parcels, OR a new layer showing slightly larger buffered polygons around the 2 isolated parcels is visible on the map."
+    },
+    {
+      "id": "save_output",
+      "description": "Save the final buffered result to the specified path",
+      "points": 20,
+      "visual_evidence": "A 'Save Vector Layer' dialog shows the output file path exactly as '/home/ga/GIS_Data/exports/easement_buffers.geojson', OR this file is visible in the GIS Browser panel or a file manager."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the GIS graphical user interface to perform the tasks",
+      "visual_evidence": "Screenshots show interaction with QGIS or another GIS GUI, rather than using terminal commands or Python scripts to bypass the interface and generate the output."
+    },
+    {
+      "id": "genuine_spatial_analysis",
+      "description": "The agent used actual spatial analysis tools to identify and buffer the parcels",
+      "visual_evidence": "The agent is seen using tools like 'Select by Location' and 'Buffer', rather than manually drawing polygons or faking the output."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The agent saved the output to the exact requested directory",
+      "visual_evidence": "The file path in the save dialog or file explorer strictly matches '/home/ga/GIS_Data/exports/easement_buffers.geojson' without typos."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data consists of a 3x3 grid of 100m x 100m parcels with a U-shaped road network along the left, bottom, and right edges. Exactly 2 parcels (center and top-middle) are landlocked and isolated from the roads. The final output must contain exactly 2 buffered features. A 10m buffer on these parcels results in an area of approximately 14,313.65 m\u00b2 per feature. The output must be saved to /home/ga/GIS_Data/exports/easement_buffers.geojson."
+}

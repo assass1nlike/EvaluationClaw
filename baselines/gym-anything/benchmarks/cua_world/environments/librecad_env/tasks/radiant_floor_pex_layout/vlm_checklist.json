@@ -1,0 +1,59 @@
+{
+  "task_id": "radiant_floor_pex_layout@1",
+  "task_completion": [
+    {
+      "id": "librecad_layers_created",
+      "description": "LibreCAD is open and the required layers are created.",
+      "points": 10,
+      "visual_evidence": "The LibreCAD application window is visible. In the Layer List panel, there should be layers named 'WALLS' (set to White) and 'HEATING' (set to Red)."
+    },
+    {
+      "id": "room_boundary_drawn",
+      "description": "A room boundary rectangle is drawn on the WALLS layer.",
+      "points": 20,
+      "visual_evidence": "A white rectangle is visible in the main drawing area. Its proportions should be slightly wider than it is tall (representing the 3000x2500mm dimensions)."
+    },
+    {
+      "id": "heating_loop_started",
+      "description": "The heating loop is started at the correct relative position.",
+      "points": 15,
+      "visual_evidence": "A red line (on the HEATING layer) begins in the bottom-left corner of the white room boundary, with a visible gap between the start point and the walls (representing the 150mm offset)."
+    },
+    {
+      "id": "serpentine_pattern_drawn",
+      "description": "A continuous serpentine pattern is drawn with consistent spacing and wall offsets.",
+      "points": 30,
+      "visual_evidence": "Red lines form a continuous back-and-forth (serpentine/snake-like) pattern filling the room boundary. There must be a consistent gap between the red lines and the white boundary walls on all sides, and the horizontal runs of the red line must be evenly spaced."
+    },
+    {
+      "id": "heating_loop_ended",
+      "description": "The heating loop ends at the correct relative position.",
+      "points": 15,
+      "visual_evidence": "The continuous red serpentine line terminates in the top-left corner of the room boundary, maintaining the same visible gap from the walls as the start point."
+    },
+    {
+      "id": "file_saved",
+      "description": "The drawing is saved to the specified path.",
+      "points": 10,
+      "visual_evidence": "A 'Save Drawing As' dialog box shows the filename 'radiant_heating_layout.dxf' in the '/home/ga/Documents/LibreCAD' directory, or the LibreCAD window title bar updates to show this filename and path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the LibreCAD graphical user interface to draw the layout.",
+      "visual_evidence": "Screenshots should show the agent clicking on LibreCAD drawing tools (like lines, polylines, rectangles), using the command line input within LibreCAD, or interacting with the layer list, rather than writing a script to generate the DXF file."
+    },
+    {
+      "id": "no_premade_file_opened",
+      "description": "The agent created the drawing from scratch rather than opening a pre-existing file.",
+      "visual_evidence": "The trajectory should show the progressive creation of the layers, boundary, and serpentine lines, not just an 'Open File' dialog loading a completed layout."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not use terminal commands to bypass the GUI task.",
+      "visual_evidence": "The terminal should not show commands like 'wget', 'curl', or 'echo' being used to directly download or write the final .dxf file to the target directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a layout in LibreCAD. The 'WALLS' layer must contain a 3000x2500 white rectangle starting at (0,0). The 'HEATING' layer must contain a continuous red serpentine line representing PEX tubing. The tubing must start at (150, 150) and end at (150, 2350), maintaining a 150mm offset from all walls and 200mm spacing between horizontal runs. A correct serpentine loop will have approximately 22-26 vertices. The final file must be saved as /home/ga/Documents/LibreCAD/radiant_heating_layout.dxf."
+}

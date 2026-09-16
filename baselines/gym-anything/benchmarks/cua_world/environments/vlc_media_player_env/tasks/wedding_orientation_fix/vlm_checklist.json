@@ -1,0 +1,53 @@
+{
+  "task_id": "wedding_orientation_fix@1",
+  "task_completion": [
+    {
+      "id": "corrected_clips_saved",
+      "description": "Verify that the 6 corrected clips have been saved to the correct directory with their original filenames.",
+      "points": 15,
+      "visual_evidence": "A file manager window or terminal output (e.g., 'ls') showing 6 video files located in /home/ga/Videos/corrected/."
+    },
+    {
+      "id": "corrected_clips_properties",
+      "description": "Verify that the corrected clips have a 1280x720 landscape resolution and no rotation metadata.",
+      "points": 25,
+      "visual_evidence": "Terminal output (e.g., ffprobe, ffmpeg logs) or a file properties window showing that at least one clip in the 'corrected' folder has a 1280x720 resolution and lacks rotation/displaymatrix metadata."
+    },
+    {
+      "id": "highlight_reel_exists",
+      "description": "Verify that the final highlight reel has been created in the correct location.",
+      "points": 15,
+      "visual_evidence": "A file manager window or terminal output showing the file 'wedding_highlight.mp4' exists in /home/ga/Videos/."
+    },
+    {
+      "id": "highlight_reel_properties",
+      "description": "Verify that the highlight reel is 1280x720, uses the H.264 codec, and includes audio.",
+      "points": 25,
+      "visual_evidence": "Terminal output (e.g., ffprobe) or a media player/file properties window showing that 'wedding_highlight.mp4' has a 1280x720 resolution, H.264 (or AVC) video codec, and an active audio stream."
+    },
+    {
+      "id": "json_log_created",
+      "description": "Verify that the JSON shot correction log is created with the required 6 entries and specific keys.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat') showing the contents of /home/ga/Documents/shot_correction_log.json. It must be valid JSON containing an array of 6 objects, each with the keys: 'filename', 'original_resolution', 'issue', 'correction', and 'output_resolution'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Ensure the agent actually processed the videos using appropriate tools rather than just renaming files or creating empty mock files.",
+      "visual_evidence": "Look for terminal windows showing FFmpeg commands executing video filters (e.g., -vf scale, transpose) and concatenation, or a video editing GUI actively rendering the files."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Ensure the JSON log was genuinely populated with data corresponding to the clips.",
+      "visual_evidence": "Look for a text editor where the JSON is being actively written with specific values for resolutions and issues, or a script written by the agent to parse the camera log and generate the JSON."
+    },
+    {
+      "id": "correct_source_files_used",
+      "description": "Ensure the agent used the provided raw footage and camera log.",
+      "visual_evidence": "Terminal commands or script contents should reference the specific paths /home/ga/Videos/wedding_raw/ and /home/ga/Documents/camera_log.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves synthetic MP4 video clips with spatial transformations (e.g., 720x1280 vs 1280x720) and embedded rotation metadata. The agent must correct these rotations to a standard 1280x720 landscape format, remove rotation metadata, concatenate them into a single H.264 MP4 with audio, and document the process in a specific JSON format."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_sensor_gains_csv@1",
+  "task_completion": [
+    {
+      "id": "access_seiscomp_inventory",
+      "description": "Access the SeisComP inventory data via MySQL or XML",
+      "points": 15,
+      "visual_evidence": "Terminal showing a MySQL connection command (e.g., mysql -u sysop -p sysop seiscomp), a script connecting to the database, or a command opening/parsing an inventory XML file."
+    },
+    {
+      "id": "target_bhz_channels",
+      "description": "Filter the inventory data specifically for 'BHZ' channels",
+      "points": 20,
+      "visual_evidence": "An SQL query containing a WHERE clause for 'BHZ' (e.g., WHERE channel_code = 'BHZ' or LIKE '%BHZ%'), or a script/grep command filtering for 'BHZ'."
+    },
+    {
+      "id": "extract_gain_data",
+      "description": "Extract the required fields: Network, Station, Location, Channel, Gain, and GainFrequency",
+      "points": 25,
+      "visual_evidence": "An SQL SELECT statement specifying these exact fields, or a script explicitly parsing these attributes from the XML/database."
+    },
+    {
+      "id": "create_csv_header",
+      "description": "Format the output with the exact required CSV header",
+      "points": 15,
+      "visual_evidence": "Terminal output, script, or text editor showing the exact string 'Network,Station,Location,Channel,Gain,GainFrequency' being prepared for the output file."
+    },
+    {
+      "id": "save_to_expected_path",
+      "description": "Save the extracted data to /home/ga/bhz_gains.csv",
+      "points": 25,
+      "visual_evidence": "A command writing to the file (e.g., INTO OUTFILE '/home/ga/bhz_gains.csv', a shell redirection > /home/ga/bhz_gains.csv), or a file manager/editor saving to this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_copying",
+      "description": "The agent did not copy the dynamically generated ground truth file",
+      "visual_evidence": "Ensure there are no commands like 'cp /tmp/ground_truth.csv /home/ga/bhz_gains.csv' or reading directly from /tmp/ground_truth.csv."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "The agent extracted the data from the actual SeisComP database or XML",
+      "visual_evidence": "Look for actual SQL queries being executed or scripts being run to parse the data, rather than manually typing out rows of data."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not hardcode the final output without performing the extraction",
+      "visual_evidence": "The output file should be the result of a query or script execution, not a simple echo or text editor paste of pre-computed data (excluding the header)."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved at '/home/ga/bhz_gains.csv'. The ground truth data used for verification is dynamically generated at '/tmp/ground_truth.csv'. Ensure the agent actually queries the database or XML and does not simply copy the ground truth file."
+}

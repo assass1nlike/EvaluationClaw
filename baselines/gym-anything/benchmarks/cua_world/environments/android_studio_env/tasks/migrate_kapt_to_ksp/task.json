@@ -1,0 +1,28 @@
+{
+  "id": "migrate_kapt_to_ksp@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Migrate the NoteApp project located at ~/AndroidStudioProjects/NoteApp from KAPT to KSP for Room database annotation processing to improve build performance. Use KSP plugin version 1.9.22-1.0.17. The migration requires replacing the KAPT plugin with KSP in the app module, updating Room compiler dependencies to use KSP, and removing all residual KAPT configurations.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_kapt_to_ksp/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_kapt_to_ksp/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/NoteApp",
+    "ksp_version": "1.9.22-1.0.17",
+    "kotlin_version": "1.9.22",
+    "room_version": "2.6.1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_kapt_to_ksp"
+    }
+  }
+}

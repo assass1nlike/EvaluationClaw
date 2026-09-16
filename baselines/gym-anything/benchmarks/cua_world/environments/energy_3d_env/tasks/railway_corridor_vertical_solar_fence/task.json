@@ -1,0 +1,29 @@
+{
+  "id": "railway_corridor_vertical_solar_fence@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a renewable energy engineer working on a constrained railway corridor. The standard south-facing 30-degree solar racks take up too much width. Convert the design into a vertical East-West bifacial solar fence to save space while maximizing peak hour generation. Open the starter file `~/Documents/Energy3D/solar-rack-array-row-spacing.ng3`. Select all existing solar racks and modify their properties: change the 'Tilt Angle' to 90 degrees (completely vertical), change the 'Relative Azimuth' to 90 or -90 degrees (East-West facing), and enable the 'Bifacial' checkbox. Save the new design as `~/Documents/Energy3D/vertical_solar_fence.ng3`. Next, run an Annual Yield Analysis for the entire foundation. Once the simulation completes, create a text file at `~/Documents/Energy3D/fence_yield.txt` and write the total annual yield (in kWh) produced by your new fence configuration.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/railway_corridor_vertical_solar_fence/setup_task.sh",
+    "post_task": "/workspace/tasks/railway_corridor_vertical_solar_fence/export_result.sh"
+  },
+  "metadata": {
+    "starter_file": "solar-rack-array-row-spacing.ng3",
+    "expected_ng3": "/home/ga/Documents/Energy3D/vertical_solar_fence.ng3",
+    "expected_txt": "/home/ga/Documents/Energy3D/fence_yield.txt",
+    "occupation": "Solar Engineer",
+    "industry": "Renewable Energy / Infrastructure"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vertical_solar_fence"
+    }
+  }
+}

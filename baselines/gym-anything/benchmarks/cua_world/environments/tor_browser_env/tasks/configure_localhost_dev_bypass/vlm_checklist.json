@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_localhost_dev_bypass@1",
+  "task_completion": [
+    {
+      "id": "tor_browser_configured",
+      "description": "Tor Browser settings are modified to allow localhost connections",
+      "points": 20,
+      "visual_evidence": "Tor Browser is open, and the 'about:config' page or settings are visible showing modifications to allow localhost connections (e.g., 'network.proxy.allow_hijacking_localhost' set to false, or 'network.proxy.no_proxies_on' modified to include 127.0.0.1)."
+    },
+    {
+      "id": "listener_started",
+      "description": "A listener is started to capture the HTTP request",
+      "points": 15,
+      "visual_evidence": "A terminal window shows a command like 'nc -l -p 8080' or 'nc -l 8080' running to listen for incoming connections on port 8080."
+    },
+    {
+      "id": "browser_request_made",
+      "description": "Tor Browser navigates to the target local URL",
+      "points": 20,
+      "visual_evidence": "Tor Browser's address bar shows 'http://127.0.0.1:8080/tor-dev-test' and an attempt to load the page."
+    },
+    {
+      "id": "headers_captured",
+      "description": "Raw HTTP headers are captured from the browser request",
+      "points": 25,
+      "visual_evidence": "The terminal running the listener displays the incoming raw HTTP request, which must include the line 'GET /tor-dev-test HTTP/1.1' along with other standard browser headers (like Host, User-Agent, Accept)."
+    },
+    {
+      "id": "output_file_saved",
+      "description": "Captured headers are saved to the correct file path",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor shows the captured HTTP headers saved to the file '/home/ga/Documents/tor_headers.txt' (e.g., via a 'cat' command, redirection in the terminal, or an open text editor)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_request",
+      "description": "The captured headers must come from a genuine browser request",
+      "visual_evidence": "The captured text should contain multiple standard HTTP headers (Host, User-Agent, Accept-Language, etc.) typical of a web browser, not just a single manually typed line or a simple 'curl' request."
+    },
+    {
+      "id": "tor_browser_used",
+      "description": "Tor Browser must be used to make the request",
+      "visual_evidence": "The browser shown navigating to the URL must be Tor Browser (identifiable by its UI, onion logo, or specific User-Agent), not standard Firefox or Chrome."
+    },
+    {
+      "id": "no_manual_text_entry",
+      "description": "The agent must not manually type the expected output",
+      "visual_evidence": "The file '/home/ga/Documents/tor_headers.txt' should be populated by redirecting the output of the listener or copying the actual captured terminal output, rather than the agent manually typing 'GET /tor-dev-test HTTP/1.1' into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path for the captured HTTP headers is /home/ga/Documents/tor_headers.txt. The target testing URL is http://127.0.0.1:8080/tor-dev-test, and the expected standard HTTP GET request line is GET /tor-dev-test HTTP/1.1."
+}

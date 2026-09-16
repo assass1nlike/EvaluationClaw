@@ -1,0 +1,54 @@
+{
+  "task_id": "develop_detection_test_framework@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Create the Python script at the specified path",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the creation or existence of the file '/home/ga/validate_detections.py'."
+    },
+    {
+      "id": "docker_command_used",
+      "description": "Script executes wazuh-logtest inside the correct Docker container",
+      "points": 20,
+      "visual_evidence": "Code in the script showing execution of a command like 'docker exec -i wazuh-wazuh.manager-1 /var/ossec/bin/wazuh-logtest' using subprocess or similar."
+    },
+    {
+      "id": "logs_included",
+      "description": "Script includes the three specific log entries to be tested",
+      "points": 15,
+      "visual_evidence": "Code showing the exact log strings provided in the task description (Failed password for admin, Accepted password for ubuntu, and sudo to root)."
+    },
+    {
+      "id": "rule_extraction_and_comparison",
+      "description": "Script parses the output for Rule IDs and compares them to expected values",
+      "points": 25,
+      "visual_evidence": "Code showing parsing logic (e.g., regex or string matching for rule IDs) and comparison against the expected Wazuh Rule IDs (5710 or 5716 for SSH invalid, 5715 for SSH success, 5402 for sudo)."
+    },
+    {
+      "id": "summary_printed",
+      "description": "Script prints a summary of the results",
+      "points": 15,
+      "visual_evidence": "Code showing print statements that output a summary of the test results (e.g., which tests passed or failed), or terminal output showing this summary."
+    },
+    {
+      "id": "exit_codes_handled",
+      "description": "Script exits with appropriate status codes based on test results",
+      "points": 15,
+      "visual_evidence": "Code showing 'sys.exit(0)' if all tests pass and 'sys.exit(1)' if any test fails."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_success",
+      "description": "The script actually parses the wazuh-logtest output rather than printing a hardcoded success message",
+      "visual_evidence": "The script contains logic to read stdout from the subprocess and extract the rule ID dynamically."
+    },
+    {
+      "id": "genuine_docker_interaction",
+      "description": "The script interacts with the actual Docker container",
+      "visual_evidence": "The script uses 'docker exec' or the Docker SDK to run the command in 'wazuh-wazuh.manager-1', rather than mocking the command or running it locally."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Wazuh Rule IDs are: 5710 or 5716 for the SSH invalid log, 5715 for the SSH success log, and 5402 for the sudo success log. The target container is 'wazuh-wazuh.manager-1' and the logtest binary path is '/var/ossec/bin/wazuh-logtest'."
+}

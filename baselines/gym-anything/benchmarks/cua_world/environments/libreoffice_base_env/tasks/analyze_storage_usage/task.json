@@ -1,0 +1,36 @@
+{
+  "id": "analyze_storage_usage@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a query named 'GenreStorageStats' in the Chinook database that joins the 'Genre' and 'Track' tables. The query must display the Genre Name (aliased as 'GenreName'), the track count (aliased as 'TrackCount'), and the total storage size in Megabytes (aliased as 'TotalMB' calculated as the sum of Bytes divided by 1,048,576). Group the results by Genre Name and sort by 'TotalMB' in descending order. Save the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_storage_usage/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_storage_usage/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "GenreStorageStats",
+    "expected_columns": [
+      "GenreName",
+      "TrackCount",
+      "TotalMB"
+    ],
+    "ground_truth": {
+      "largest_genre": "Rock",
+      "rock_count": 1297,
+      "rock_mb_approx": 10800
+    },
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_storage_usage"
+    }
+  }
+}

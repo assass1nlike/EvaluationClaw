@@ -1,0 +1,59 @@
+{
+  "task_id": "ntfs_mft_data_run_mapping@1",
+  "task_completion": [
+    {
+      "id": "create_forensic_case",
+      "description": "Create a forensic case named 'MFT_Data_Run_Analysis' with case number 'INV-MFT-008'",
+      "points": 10,
+      "visual_evidence": "A forensic tool (e.g., Autopsy) is open with the case name 'MFT_Data_Run_Analysis' and/or case number 'INV-MFT-008' visible in the UI (e.g., title bar, case details pane, or new case wizard)."
+    },
+    {
+      "id": "add_disk_image",
+      "description": "Add the disk image /home/ga/evidence/ntfs_undel.dd to the case",
+      "points": 10,
+      "visual_evidence": "The data source tree in the forensic tool shows 'ntfs_undel.dd' loaded and parsed as a data source."
+    },
+    {
+      "id": "analyze_deleted_files",
+      "description": "Locate and analyze deleted files within the NTFS volume, excluding directories and NTFS metadata",
+      "points": 20,
+      "visual_evidence": "The forensic tool's UI showing a view of 'Deleted Files' or files with a deleted status indicator (e.g., a red 'X' or specific icon in Autopsy), with the user actively viewing file lists."
+    },
+    {
+      "id": "extract_mft_data_runs",
+      "description": "Determine residency and extract starting cluster and length of the first data run for the primary unnamed $DATA attribute",
+      "points": 20,
+      "visual_evidence": "The forensic tool's file details/metadata pane (e.g., 'File Metadata' or 'Results' tab) showing MFT entry details, attribute lists ($DATA), residency status (Resident/Non-Resident), and data run cluster mappings for a deleted file."
+    },
+    {
+      "id": "generate_tsv_report",
+      "description": "Generate a tab-delimited report at /home/ga/Reports/data_run_map.tsv with the required header and extracted data",
+      "points": 20,
+      "visual_evidence": "A text editor, spreadsheet tool, or terminal window showing the contents of 'data_run_map.tsv' with the exact header 'FILENAME\\tINODE\\tRESIDENCY\\tSTARTING_CLUSTER\\tCLUSTER_LENGTH' and rows of corresponding data (using 'N/A' for resident files)."
+    },
+    {
+      "id": "generate_summary_txt",
+      "description": "Save a summary to /home/ga/Reports/mft_summary.txt containing the required statistics and investigator notes",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window showing the contents of 'mft_summary.txt' containing the exact required lines: 'TOTAL_DELETED_FILES_ANALYZED: <N>', 'RESIDENT_FILES: <N>', 'NON_RESIDENT_FILES: <N>', and 'INVESTIGATOR_NOTES: Cluster mapping completed for hardware recovery lab.'"
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_forensic_gui",
+      "description": "The agent used a forensic tool GUI (like Autopsy) to analyze the disk image rather than exclusively relying on terminal commands or pre-written scripts.",
+      "visual_evidence": "Screenshots show interaction with the Autopsy GUI (or similar forensic tool), such as navigating the directory tree, viewing file metadata, or using the search/filter features."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "The TSV report contains actual extracted data rather than placeholder or hardcoded dummy values.",
+      "visual_evidence": "The data in data_run_map.tsv shows varied file names, inodes, and cluster lengths that correspond to a real file system analysis, not just a single repeated dummy row."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "The agent saved the reports in the exact requested directory (/home/ga/Reports/).",
+      "visual_evidence": "The file manager, text editor title bar, or terminal prompt shows the files are located in the '/home/ga/Reports/' directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must create a forensic case named 'MFT_Data_Run_Analysis' (Case Number: INV-MFT-008) and process the disk image located at '/home/ga/evidence/ntfs_undel.dd'. The expected outputs are a TSV report at '/home/ga/Reports/data_run_map.tsv' and a summary file at '/home/ga/Reports/mft_summary.txt'. The TSV must have the exact header: FILENAME INODE RESIDENCY STARTING_CLUSTER CLUSTER_LENGTH. The summary file must contain exactly the lines: 'TOTAL_DELETED_FILES_ANALYZED: <N>', 'RESIDENT_FILES: <N>', 'NON_RESIDENT_FILES: <N>', and 'INVESTIGATOR_NOTES: Cluster mapping completed for hardware recovery lab.'"
+}

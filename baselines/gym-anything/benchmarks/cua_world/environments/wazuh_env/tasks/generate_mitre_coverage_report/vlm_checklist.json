@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_mitre_coverage_report@1",
+  "task_completion": [
+    {
+      "id": "query_wazuh_api",
+      "description": "Verify the agent queries the Wazuh API using the provided credentials.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a curl command, Python script, or similar tool making an HTTP request to https://localhost:55000 with the credentials 'wazuh-wui' and 'MyS3cr37P450r.*-'."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Verify the agent creates the report file at the correct path.",
+      "points": 10,
+      "visual_evidence": "A text editor, file explorer, or terminal command (like 'cat' or 'ls') showing the file 'mitre_coverage_report.json' located in '~/reports/' or '/home/ga/reports/'."
+    },
+    {
+      "id": "report_metadata_structure",
+      "description": "Verify the JSON report contains the correct metadata structure.",
+      "points": 20,
+      "visual_evidence": "The JSON file contains a 'report_metadata' object with 'generated_by' set to 'wazuh_mitre_coverage_audit', and integer values for 'total_techniques_covered' and 'total_rules_with_mitre'."
+    },
+    {
+      "id": "report_techniques_structure",
+      "description": "Verify the JSON report contains the correct techniques array structure.",
+      "points": 20,
+      "visual_evidence": "The JSON file contains a 'techniques' array where each object has the keys 'technique_id', 'technique_name', 'tactics' (as an array of strings), and 'rule_count' (as an integer)."
+    },
+    {
+      "id": "techniques_sorting",
+      "description": "Verify the techniques array is sorted by technique_id in ascending order.",
+      "points": 15,
+      "visual_evidence": "Looking at the 'techniques' array in the JSON file, the 'technique_id' values (e.g., 'T1001', 'T1003', 'T1005') strictly increase in alphanumeric order."
+    },
+    {
+      "id": "valid_technique_data",
+      "description": "Verify the report contains realistic technique data extracted from the ruleset.",
+      "points": 15,
+      "visual_evidence": "The JSON file includes specific required techniques like 'T1110', 'T1053', or 'T1059', and the 'total_techniques_covered' is a realistic number between 50 and 500."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "Ensure the agent actually extracted data from the Wazuh API rather than hallucinating the JSON.",
+      "visual_evidence": "Look for a script or terminal history showing actual data processing (e.g., parsing JSON responses from localhost:55000/rules) rather than just writing a hardcoded JSON file."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "Ensure the agent did not manually type a small mock dataset.",
+      "visual_evidence": "The script logic should show dynamic looping/aggregation of rules, or the resulting JSON file should be large enough to represent a real ruleset (50+ techniques), not just a few manually typed entries."
+    },
+    {
+      "id": "authentic_file_path",
+      "description": "Ensure the file is saved in the actual requested directory.",
+      "visual_evidence": "The terminal prompt or file path in the editor should clearly show '/home/ga/reports/' or '~/reports/', not a temporary directory like '/tmp/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct output path is /home/ga/reports/mitre_coverage_report.json. The generated report must contain between 50 and 500 total techniques (the real Wazuh 4.9.2 ruleset has exactly 167 unique techniques). The report must include specific techniques T1110, T1053, and T1059 to be considered valid."
+}

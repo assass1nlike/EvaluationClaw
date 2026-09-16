@@ -1,0 +1,59 @@
+{
+  "task_id": "reformat_optimize_codebase@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Verify the 'inventory-manager' project is open in IntelliJ IDEA.",
+      "points": 10,
+      "visual_evidence": "The IntelliJ IDEA window is visible with 'inventory-manager' loaded in the Project tool window."
+    },
+    {
+      "id": "select_source_directory",
+      "description": "Verify the agent targets the entire source directory for formatting.",
+      "points": 10,
+      "visual_evidence": "The 'src/main/java' or 'com.inventory' directory is selected/highlighted in the Project tool window, or the agent is seen opening and interacting with multiple Java files."
+    },
+    {
+      "id": "execute_reformat_and_optimize",
+      "description": "Verify the agent executes the Reformat Code and Optimize Imports actions.",
+      "points": 20,
+      "visual_evidence": "The 'Reformat Code' dialog is visible with 'Optimize imports' checked, the Code menu is open with these actions selected, or a bottom-right notification confirms code was reformatted."
+    },
+    {
+      "id": "verify_optimized_imports",
+      "description": "Verify wildcard and unused imports are removed.",
+      "points": 15,
+      "visual_evidence": "In an open Java file (e.g., Product.java), the import section shows specific classes (e.g., 'import java.util.List;') instead of wildcards ('java.util.*'), and unused imports like 'java.awt.Color' are absent."
+    },
+    {
+      "id": "verify_reformatted_code",
+      "description": "Verify the code has consistent 4-space indentation and no excessive blank lines.",
+      "points": 15,
+      "visual_evidence": "The code in the editor shows clean, consistent 4-space indentation, without irregular spacing, tabs, or large gaps of blank lines."
+    },
+    {
+      "id": "verify_successful_build",
+      "description": "Verify the project builds successfully after changes.",
+      "points": 30,
+      "visual_evidence": "The IntelliJ Build tool window shows 'Build completed successfully' (or similar success message), or a terminal window shows a successful 'mvn compile' execution with 'BUILD SUCCESS'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_ide_usage",
+      "description": "Check that the agent used the IDE or standard build tools rather than faking the output.",
+      "visual_evidence": "The formatting and build actions should occur within the IntelliJ IDEA interface or a genuine terminal running Maven, not in a text editor simulating output."
+    },
+    {
+      "id": "global_application",
+      "description": "Check that formatting was applied to the whole directory, not just a single file.",
+      "visual_evidence": "The Reformat/Optimize action should be applied to the directory level, or there should be evidence of it being applied to all 5 files, rather than just fixing one file and ignoring the rest."
+    },
+    {
+      "id": "no_fake_build_output",
+      "description": "Check that the build success message is from a real compilation process.",
+      "visual_evidence": "The build output should show actual compilation steps (e.g., parsing java files, writing class files) or standard Maven output, not just an 'echo BUILD SUCCESS' command."
+    }
+  ],
+  "privileged_info_for_vlm": "The project contains 5 Java files in src/main/java/com/inventory/: Product.java, Warehouse.java, InventoryService.java, Category.java, InventoryApp.java. Initially, they contain wildcard imports (java.util.*, java.util.stream.*), unused imports (java.awt.Color, and various java.io classes), mixed tabs/spaces, and excessive blank lines. The .editorconfig enforces 4-space indentation. A successful execution will show these files with specific imports, consistent 4-space indentation, and a successful build output (the project compiles successfully both before and after refactoring)."
+}

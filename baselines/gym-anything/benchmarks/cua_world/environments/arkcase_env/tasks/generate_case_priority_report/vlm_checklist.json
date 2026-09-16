@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_case_priority_report@1",
+  "task_completion": [
+    {
+      "id": "read_input_file",
+      "description": "Read the case numbers from the input text file.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal window (e.g., using 'cat') or a text editor displaying the contents of '/home/ga/priority_audit_list.txt', which should contain three case numbers."
+    },
+    {
+      "id": "login_arkcase",
+      "description": "Log into the ArkCase web application.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser showing the ArkCase login screen being filled with credentials or the ArkCase dashboard indicating a successful login as 'arkcase-admin'."
+    },
+    {
+      "id": "lookup_case_1",
+      "description": "Look up the first case in ArkCase to find its title and priority.",
+      "points": 20,
+      "visual_evidence": "Look for the ArkCase web interface displaying search results or a case details page containing the title 'Environmental Impact Assessment - Project Alpha' and a 'High' priority."
+    },
+    {
+      "id": "lookup_case_2",
+      "description": "Look up the second case in ArkCase to find its title and priority.",
+      "points": 20,
+      "visual_evidence": "Look for the ArkCase web interface displaying search results or a case details page containing the title 'Budget Oversight Inquiry - Q3 2024' and a 'Medium' priority."
+    },
+    {
+      "id": "lookup_case_3",
+      "description": "Look up the third case in ArkCase to find its title and priority.",
+      "points": 20,
+      "visual_evidence": "Look for the ArkCase web interface displaying search results or a case details page containing the title 'Vendor Contract Dispute - Cleaning Services' and a 'Low' priority."
+    },
+    {
+      "id": "create_csv_report",
+      "description": "Create the final CSV report with the correct header and case details.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor, spreadsheet app, or terminal command creating/saving '/home/ga/priority_report.csv'. The visible content must include the header 'Case Number,Title,Priority' followed by the three cases with their respective titles and priorities."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "Verify the agent used a web browser to interact with ArkCase.",
+      "visual_evidence": "Look for a web browser window (like Chromium or Firefox) navigated to 'https://localhost:9443/arkcase' rather than terminal curl commands."
+    },
+    {
+      "id": "actual_case_lookup",
+      "description": "Verify the agent actually searched for or opened the cases in the ArkCase GUI.",
+      "visual_evidence": "Look for screenshots showing the ArkCase search bar being used or individual case detail pages being viewed. The agent should not magically know the titles and priorities without viewing them."
+    },
+    {
+      "id": "genuine_csv_creation",
+      "description": "Verify the agent properly formatted and saved the CSV file.",
+      "visual_evidence": "Look for a text editor (like nano, gedit) or terminal echo/redirect commands actively writing the comma-separated values to '/home/ga/priority_report.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is '/home/ga/priority_audit_list.txt'. The output file must be '/home/ga/priority_report.csv' with the exact header 'Case Number,Title,Priority'. The three cases to be found in ArkCase are: Case 1 Title: 'Environmental Impact Assessment - Project Alpha' (Priority: High), Case 2 Title: 'Budget Oversight Inquiry - Q3 2024' (Priority: Medium), Case 3 Title: 'Vendor Contract Dispute - Cleaning Services' (Priority: Low). Case numbers are generated dynamically and will be found in the input file."
+}

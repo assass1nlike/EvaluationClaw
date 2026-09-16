@@ -1,0 +1,53 @@
+{
+  "task_id": "create_crime_db_voice_query@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Create the crime_query directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "A terminal, file explorer, or IDE file tree showing the 'crime_query' folder exists inside 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\'."
+    },
+    {
+      "id": "python_file_created",
+      "description": "Create the crime_query.py file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the file 'crime_query.py' has been created inside the 'crime_query' directory."
+    },
+    {
+      "id": "talon_file_created",
+      "description": "Create the crime_query.talon file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the file 'crime_query.talon' has been created inside the 'crime_query' directory."
+    },
+    {
+      "id": "python_actions_implemented",
+      "description": "Implement the required Talon actions and SQLite queries in crime_query.py.",
+      "points": 40,
+      "visual_evidence": "Screenshot showing the contents of crime_query.py. The code must define Talon actions (e.g., using @mod.action_class) with functions for 'crime_search_case', 'crime_list_type', 'crime_count_district', and 'crime_recent'. The code must also show an SQLite connection to 'C:\\Users\\Docker\\talon_data\\crime_incidents.db' querying the 'incidents' table."
+    },
+    {
+      "id": "talon_commands_mapped",
+      "description": "Map the voice commands to the actions in crime_query.talon.",
+      "points": 30,
+      "visual_evidence": "Screenshot showing the contents of crime_query.talon. The file must contain the exact voice commands 'search case <user.text>', 'list crimes <user.text>', 'count district <number>', and 'show recent [<number>]' mapped to their respective Python actions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Verify that the files crime_query.py and crime_query.talon were actually saved to the disk in the correct directory.",
+      "visual_evidence": "Look for indicators in the text editor that the file is saved (e.g., no unsaved dot/asterisk in VS Code or Notepad) or terminal commands confirming the file contents were written to disk."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify that the Python code actually uses the sqlite3 library to query the database dynamically.",
+      "visual_evidence": "Check the code in crime_query.py to ensure it contains actual SQL SELECT statements and database execution commands, rather than hardcoded fake responses or print statements."
+    },
+    {
+      "id": "real_editor_used",
+      "description": "Verify that the agent used a genuine text editor or terminal commands to create and edit the files.",
+      "visual_evidence": "The screenshots should show a real application like VS Code, Notepad, Vim, Nano, or PowerShell being used to write the code, not just the agent outputting code blocks into the chat interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The underlying SQLite database (crime_incidents.db) is missing from the environment, making the task impossible for the agent to test successfully. Do not penalize the agent for runtime errors related to the missing database. Score strictly based on whether the agent wrote the correct code in crime_query.py and crime_query.talon and saved them to the correct directory."
+}

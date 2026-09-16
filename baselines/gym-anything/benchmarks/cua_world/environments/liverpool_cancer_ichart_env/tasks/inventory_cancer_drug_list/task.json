@@ -1,0 +1,35 @@
+{
+  "id": "inventory_cancer_drug_list@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "A hospital formulary committee chair needs to document the scope of the Liverpool Cancer iChart Archive database. Inventory the main 'Cancer Drugs' list to identify the first drug, the last drug, and the total count of entries. Save the results to /sdcard/ichart_drug_inventory.txt in the following format:\n\nFirst drug: [Name]\nLast drug: [Name]\nTotal count: [Number]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/inventory_cancer_drug_list/setup_task.sh",
+    "post_task": "/sdcard/tasks/inventory_cancer_drug_list/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/sdcard/ichart_drug_inventory.txt",
+    "expected_min_count": 20,
+    "expected_max_count": 80,
+    "expected_first_letter": "A",
+    "expected_last_letters": [
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inventory_cancer_drug_list"
+    }
+  }
+}

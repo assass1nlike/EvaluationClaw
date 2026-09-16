@@ -1,0 +1,59 @@
+{
+  "task_id": "anonymize_dicom_export@1",
+  "task_completion": [
+    {
+      "id": "dicom_viewer_active",
+      "description": "Verify that a DICOM application is open with the synthetic CT study loaded.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer/application is visible on the screen displaying the loaded CT scan images."
+    },
+    {
+      "id": "export_anonymize_dialog",
+      "description": "Verify that the export or anonymization dialog/tool has been opened.",
+      "points": 10,
+      "visual_evidence": "An active dialog box or panel for exporting, saving, or anonymizing the DICOM study is visible."
+    },
+    {
+      "id": "patient_name_anonymized",
+      "description": "Verify that the PatientName tag is configured to be anonymized or cleared.",
+      "points": 20,
+      "visual_evidence": "In the export/anonymization settings, the PatientName field (originally 'Test^Patient') is checked for removal, left blank, or replaced with a generic/anonymized string."
+    },
+    {
+      "id": "patient_id_anonymized",
+      "description": "Verify that the PatientID tag is configured to be anonymized or cleared.",
+      "points": 20,
+      "visual_evidence": "In the export/anonymization settings, the PatientID field (originally 'TEST001') is checked for removal, left blank, or replaced with a generic/anonymized string."
+    },
+    {
+      "id": "destination_directory_configured",
+      "description": "Verify that the output directory is set correctly.",
+      "points": 20,
+      "visual_evidence": "The destination path in the export dialog is explicitly set to '~/DICOM/anonymized' or '/home/ga/DICOM/anonymized'."
+    },
+    {
+      "id": "files_exported",
+      "description": "Verify that the anonymized DICOM files have been successfully exported to the target directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window shows the newly generated DICOM files present inside the '/home/ga/DICOM/anonymized' directory, or a success message confirms the export to this location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent used the graphical user interface of the DICOM application to perform the task.",
+      "visual_evidence": "Screenshots should show the agent clicking through the DICOM software's menus and dialogs, rather than just running a pre-written script in the terminal to bypass the UI."
+    },
+    {
+      "id": "dicom_format_maintained",
+      "description": "Verify that the exported files are still in DICOM format.",
+      "visual_evidence": "The exported files should have a .dcm extension or be recognized as DICOM files, not standard image formats like .png or .jpg."
+    },
+    {
+      "id": "genuine_anonymization",
+      "description": "Verify that anonymization was actually configured rather than just copying files.",
+      "visual_evidence": "The agent must be seen interacting with anonymization settings or metadata editors, not simply using a 'Save As' or file copy command that leaves original metadata intact."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output directory is exactly '/home/ga/DICOM/anonymized'. The original loaded synthetic DICOM files have hardcoded patient-identifying information: PatientName is 'Test^Patient' and PatientID is 'TEST001'. The image dimensions are 256x256. The VLM should verify that the export settings specifically target and alter/remove 'Test^Patient' and 'TEST001' while keeping the 256x256 image data intact."
+}

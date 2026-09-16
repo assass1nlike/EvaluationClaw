@@ -1,0 +1,33 @@
+{
+  "id": "compute_flood_attenuation@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a flood peak attenuation analysis on the Muncie unsteady flow simulation using the HDF5 results ('Muncie.p04.hdf'). Extract flow hydrographs for the most upstream and most downstream cross-sections to compute the peak flow at both locations (cfs), peak attenuation (cfs and %), peak timing lag (hours), and cumulative flood volumes (acre-ft) with volume difference (%). Save the analysis results to /home/ga/Documents/hec_ras_results/ including 'flood_attenuation_data.csv' with columns [Time_hours, Flow_Upstream_cfs, Flow_Downstream_cfs], a report named 'flood_attenuation_summary.txt' listing all computed metrics, and an image named 'flood_attenuation_plot.png' showing the overlaid hydrographs.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_flood_attenuation/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_flood_attenuation/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "expected_csv": "flood_attenuation_data.csv",
+    "expected_report": "flood_attenuation_summary.txt",
+    "expected_plot": "flood_attenuation_plot.png",
+    "min_peak_flow": 1000,
+    "max_peak_flow": 50000,
+    "min_attenuation_pct": 0,
+    "max_attenuation_pct": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flood_attenuation"
+    }
+  }
+}

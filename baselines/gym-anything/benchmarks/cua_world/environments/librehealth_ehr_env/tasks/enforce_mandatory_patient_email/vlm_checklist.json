@@ -1,0 +1,53 @@
+{
+  "task_id": "enforce_mandatory_patient_email@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verify the agent successfully logged into LibreHealth EHR as admin.",
+      "points": 10,
+      "visual_evidence": "The LibreHealth EHR dashboard or main screen is visible, indicating a successful login (often showing 'admin' or the main navigation menu)."
+    },
+    {
+      "id": "navigate_to_layouts",
+      "description": "Verify the agent navigated to the Layouts administration page.",
+      "points": 20,
+      "visual_evidence": "The screen shows the Administration menu expanded and the 'Layouts' or 'Layout' configuration screen is active."
+    },
+    {
+      "id": "select_demographics_form",
+      "description": "Verify the agent selected the Patient Demographics layout for editing.",
+      "points": 20,
+      "visual_evidence": "The Layout configuration screen shows 'Demographics' (or form ID 'DEM') selected in the layout dropdown or title."
+    },
+    {
+      "id": "set_email_required",
+      "description": "Verify the agent changed the 'Email' field setting to mandatory/required.",
+      "points": 30,
+      "visual_evidence": "In the layout editor table, the row for 'Email' (or 'Contact Email') has its UOR (Unused/Optional/Required) setting changed to 'Required' or '2'."
+    },
+    {
+      "id": "save_layout_changes",
+      "description": "Verify the agent saved the layout configuration.",
+      "points": 20,
+      "visual_evidence": "A 'Save' or 'Save Changes' button is clicked, or a success message/notification is visible indicating the layout was successfully updated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the LibreHealth EHR web interface to make the change.",
+      "visual_evidence": "The agent is interacting with a web browser showing the LibreHealth EHR GUI, not a terminal, database client, or executing SQL scripts directly."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent is interacting with the actual application.",
+      "visual_evidence": "The browser address bar shows a local server URL typical for the EHR application, and the interface matches LibreHealth EHR, rather than a mock HTML file or text editor."
+    },
+    {
+      "id": "no_inspect_element_cheating",
+      "description": "Verify the agent did not use browser developer tools to fake the success state.",
+      "visual_evidence": "The browser developer tools (Inspect Element, Console) are not open and being used to artificially modify the DOM to show 'Required'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target field is 'email' within the 'DEM' (Demographics) form. In LibreHealth EHR, field requirements are controlled by the UOR (Unused/Optional/Required) setting. The UOR mapping is: 0=Unused, 1=Optional, 2=Required. The agent must change the UOR value of the 'email' field from 1 (Optional) to 2 (Required) via the Layouts administration interface."
+}

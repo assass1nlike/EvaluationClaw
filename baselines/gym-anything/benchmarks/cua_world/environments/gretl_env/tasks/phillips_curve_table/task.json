@@ -1,0 +1,30 @@
+{
+  "id": "phillips_curve_table@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a sensitivity analysis of the US Phillips Curve using the 'usa.gdt' dataset by estimating three OLS models with 'inf' as the dependent variable. Model 1 includes const and inf(-1). Model 2 includes const, inf(-1), and 'gdp_growth' (defined as 100 * diff(log(gdp))). Model 3 includes const, inf(-1), gdp_growth, and gdp_growth(-1). Export a combined LaTeX table of these models to /home/ga/Documents/gretl_output/phillips_table.tex.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/phillips_curve_table/setup_task.sh",
+    "post_task": "/workspace/tasks/phillips_curve_table/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "expected_output_path": "/home/ga/Documents/gretl_output/phillips_table.tex",
+    "required_variables": [
+      "gdp_growth"
+    ],
+    "model_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_phillips_curve_table"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "tmt_executive_cost_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_csv",
+      "description": "Read the TMT click log CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for code (e.g., Python pandas `read_csv`) or a spreadsheet application opening the file at `~/pebl/data/tmt_click_log.csv`."
+    },
+    {
+      "id": "calculate_base_metrics",
+      "description": "Calculate Total Time in seconds and Total Errors for Parts A and B.",
+      "points": 20,
+      "visual_evidence": "Look for data manipulation code (e.g., `groupby(['participant_id', 'test_part'])`) summing the `rt_ms` column and dividing by 1000, and summing the `error_flag` column."
+    },
+    {
+      "id": "calculate_derived_metrics",
+      "description": "Calculate B-A Cost and B/A Ratio for the participants.",
+      "points": 15,
+      "visual_evidence": "Look for code or formulas subtracting Part A time from Part B time (Cost) and dividing Part B time by Part A time (Ratio)."
+    },
+    {
+      "id": "exclude_p99",
+      "description": "Identify and exclude participant P99 from the group analysis, marking them as excluded with a reason.",
+      "points": 15,
+      "visual_evidence": "Look for conditional logic (e.g., `if participant == 'P99':`) that sets `\"excluded\": true` and provides a `\"reason\"` string in the output dictionary, and removes P99 from the group mean calculations."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Calculate the group mean for B-A Cost and B/A Ratio across valid participants.",
+      "points": 15,
+      "visual_evidence": "Look for code calculating the average (`mean()`) of the derived metrics (`b_minus_a_cost_s` and `b_over_a_ratio`) specifically excluding P99."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Export the final results to the specified JSON file with the correct structure.",
+      "points": 25,
+      "visual_evidence": "Look for code writing a JSON file to `~/pebl/analysis/tmt_report.json` (e.g., `json.dump()`) or a view of the generated JSON file showing top-level keys `group_mean_b_minus_a_cost_s` and `group_mean_b_over_a_ratio`, and a `participants` list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "computations_not_hardcoded",
+      "description": "Ensure the agent wrote logic to compute the metrics from the data rather than hardcoding the final JSON string.",
+      "visual_evidence": "Check the script or commands used. There should be actual data processing functions (like sum, mean, division) rather than a large block of hardcoded text being written directly to the output file."
+    },
+    {
+      "id": "script_executed",
+      "description": "Ensure the data processing script was actually executed.",
+      "visual_evidence": "Look for terminal prompts showing the script was run (e.g., `python analyze.py`), Jupyter notebook execution numbers next to cells, or the actual created `tmt_report.json` file visible in a file explorer/editor."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Ensure the output file is saved in the exact requested directory.",
+      "visual_evidence": "Check the file path in the save command or file explorer to confirm it is exactly `~/pebl/analysis/tmt_report.json` (or `/home/ga/pebl/analysis/tmt_report.json`)."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant to be excluded is 'P99', which simulates an automated UI macro with impossibly fast 40ms reaction times and 0 errors. The final output must be saved exactly at '/home/ga/pebl/analysis/tmt_report.json'."
+}

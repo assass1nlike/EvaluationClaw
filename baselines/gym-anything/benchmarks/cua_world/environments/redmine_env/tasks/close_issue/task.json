@@ -1,0 +1,26 @@
+{
+  "id": "close_issue@1",
+  "version": "1.0",
+  "env_id": "redmine_env@0.1",
+  "description": "Log in to Redmine (Username: admin, Password: Admin1234!) and close the issue titled 'SSL certificate for api.devlabs.io expires in 14 days' in the 'Infrastructure & DevOps' project. Update the issue status from 'Resolved' to 'Closed' and include the note: 'Certificate renewed successfully. Auto-renewal cron verified working. Monitoring alert added for 30-day expiry warning.' Do not change any other fields.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/close_issue/setup_task.sh"
+  },
+  "metadata": {
+    "issue_subject_fragment": "SSL certificate for api.devlabs.io expires",
+    "expected_status": "Closed",
+    "expected_note_fragment": "Certificate renewed successfully"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_close_issue"
+    }
+  }
+}

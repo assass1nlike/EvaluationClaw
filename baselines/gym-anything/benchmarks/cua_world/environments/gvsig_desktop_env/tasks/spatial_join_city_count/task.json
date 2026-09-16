@@ -1,0 +1,29 @@
+{
+  "id": "spatial_join_city_count@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Perform a spatial join in gvSIG Desktop to count the number of cities per country. Add the populated places layer from /home/ga/gvsig_data/cities/ne_110m_populated_places.shp to the current project. Using the 'ne_110m_admin_0_countries' layer as the target, perform a spatial join that calculates the count of cities within each country. Export the resulting layer to /home/ga/gvsig_data/exports/countries_city_count.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spatial_join_city_count/setup_task.sh",
+    "post_task": "/workspace/tasks/spatial_join_city_count/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/countries_city_count.shp",
+    "cities_path": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "countries_path": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp",
+    "expected_min_features": 100,
+    "expected_max_features": 250
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spatial_join"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "purge_stale_leave_requests@1",
+  "task_completion": [
+    {
+      "id": "open_time_off_module",
+      "description": "Open the Time Off module in the application.",
+      "points": 10,
+      "visual_evidence": "The Odoo Time Off dashboard or main screen is visible in the browser."
+    },
+    {
+      "id": "navigate_to_list_view",
+      "description": "Navigate to a list view showing all time off requests.",
+      "points": 10,
+      "visual_evidence": "A list view of leave requests is displayed, typically accessed via 'Management' -> 'Time Off' or 'All Time Off'."
+    },
+    {
+      "id": "filter_or_group_by_status",
+      "description": "Filter or group the requests to isolate those in the 'To Submit' (Draft) status.",
+      "points": 20,
+      "visual_evidence": "The search bar shows a filter for 'Status: To Submit' or the list is grouped by status with the 'To Submit' section expanded."
+    },
+    {
+      "id": "select_stale_requests",
+      "description": "Select only the draft requests that have a Start Date in the past.",
+      "points": 20,
+      "visual_evidence": "Checkboxes next to the specific 'To Submit' requests with past Start Dates are checked. Future-dated draft requests must NOT be checked."
+    },
+    {
+      "id": "execute_deletion",
+      "description": "Permanently delete the selected stale requests.",
+      "points": 20,
+      "visual_evidence": "The 'Action' menu is opened and 'Delete' is clicked, or a confirmation dialog for deleting the records is visible and accepted."
+    },
+    {
+      "id": "verify_correct_state",
+      "description": "Verify that stale requests are removed while future drafts and non-draft requests remain.",
+      "points": 20,
+      "visual_evidence": "The final list view shows that the past-dated 'To Submit' requests are no longer present, but future-dated 'To Submit' requests and requests in other statuses (Approved, Refused) are still visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_terminal_usage",
+      "description": "The agent used the graphical user interface to delete the records, not terminal commands or scripts.",
+      "visual_evidence": "Screenshots show interaction with the Odoo web interface. No terminal windows executing Python, XML-RPC, or SQL commands are used to bypass the UI."
+    },
+    {
+      "id": "actual_application_used",
+      "description": "The agent interacted with the actual Odoo web application.",
+      "visual_evidence": "The browser address bar shows the correct local or remote Odoo URL, and standard Odoo UI elements are present."
+    },
+    {
+      "id": "no_mass_unfiltered_deletion",
+      "description": "The agent did not indiscriminately select all records for deletion.",
+      "visual_evidence": "The 'Select All' checkbox at the very top of an unfiltered list is not used to delete everything; selection is targeted."
+    }
+  ],
+  "privileged_info_for_vlm": "The target records to be deleted must have the status 'To Submit' (draft) AND a Start Date strictly before today (past). There are exactly 3 such stale draft requests (-30, -15, and -5 days). The agent must NOT delete the 2 future draft requests (+10, +20 days) or any of the 4 confirmed/approved requests (past and future). Success requires the 3 stale drafts to be deleted while all other control records are preserved."
+}

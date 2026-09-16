@@ -1,0 +1,27 @@
+{
+  "id": "educational_latitude_yield_lab@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a high school physics teacher creating an answer key for a solar energy lab. The Energy3D software is open with a sample solar array project loaded. \n\nYour task is to extract solar yield data for three different cities and compile it into a CSV file.\n\nInstructions:\n1. Ensure the loaded project is the solar rack array.\n2. For each of the following three cities (Boston, MA; Miami, FL; Seattle, WA):\n   a. Change the location of the project to the target city using the location/city settings.\n   b. Run the 'Annual Yield Analysis' for the solar array (Analysis > Solar Panels > Annual Yield Analysis).\n   c. From the analysis results window, extract the 'Total Annual Yield' (in kWh) and the yield specifically for the month of 'December' (in kWh).\n3. Compile these values into a CSV file named exactly 'latitude_lab_results.csv' located at '~/Documents/Energy3D/latitude_lab_results.csv'.\n4. The CSV must have exactly these three headers: City, Annual_Yield_kWh, December_Yield_kWh.\n5. Include rows for Boston, Miami, and Seattle with their respective extracted numeric values.\n\nDo not change the physical design of the solar array, only the geographic location.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/educational_latitude_yield_lab/setup_task.sh",
+    "post_task": "/workspace/tasks/educational_latitude_yield_lab/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/Energy3D/latitude_lab_results.csv",
+    "expected_cities": ["boston", "miami", "seattle"],
+    "expected_headers": ["City", "Annual_Yield_kWh", "December_Yield_kWh"]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_latitude_yield_lab"
+    }
+  }
+}

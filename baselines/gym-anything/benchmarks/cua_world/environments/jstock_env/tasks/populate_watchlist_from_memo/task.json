@@ -1,0 +1,37 @@
+{
+  "id": "populate_watchlist_from_memo@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "A new morning memo from the portfolio manager has been saved to ~/Documents/morning_memo.txt regarding a new set of banking stocks to monitor. Create a new watchlist in JStock named 'Big Banks' containing only the stocks requested in the memo, adhering strictly to any exclusion instructions mentioned.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/populate_watchlist_from_memo/setup_task.sh",
+    "post_task": "/workspace/tasks/populate_watchlist_from_memo/export_result.sh"
+  },
+  "metadata": {
+    "watchlist_name": "Big Banks",
+    "required_stocks": [
+      "JPM",
+      "BAC",
+      "WFC",
+      "C"
+    ],
+    "excluded_stocks": [
+      "GS",
+      "MS"
+    ],
+    "memo_path": "/home/ga/Documents/morning_memo.txt",
+    "expected_csv_path": "/home/ga/.jstock/1.0.7/UnitedState/watchlist/Big Banks/realtimestock.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_populate_watchlist_from_memo"
+    }
+  }
+}

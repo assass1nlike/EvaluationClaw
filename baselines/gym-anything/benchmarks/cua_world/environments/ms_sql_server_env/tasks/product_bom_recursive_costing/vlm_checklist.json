@@ -1,0 +1,53 @@
+{
+  "task_id": "product_bom_recursive_costing@1",
+  "task_completion": [
+    {
+      "id": "view_created",
+      "description": "Verify the creation of the recursive view 'dbo.vw_ProductBOMHierarchy'.",
+      "points": 20,
+      "visual_evidence": "Look for SQL code creating 'dbo.vw_ProductBOMHierarchy' using a recursive CTE (with filtering for EndDate IS NULL), or the view visible in the Object Explorer in Azure Data Studio."
+    },
+    {
+      "id": "table_and_index_created",
+      "description": "Verify the creation of the 'Production.LifecycleCostSummary' table and its non-clustered index.",
+      "points": 20,
+      "visual_evidence": "Look for SQL code creating the table 'Production.LifecycleCostSummary' and a non-clustered index on 'AssemblyProductID', or these objects visible in the Object Explorer."
+    },
+    {
+      "id": "stored_procedure_created",
+      "description": "Verify the creation of the stored procedure 'dbo.usp_GenerateBOMCostReport'.",
+      "points": 20,
+      "visual_evidence": "Look for SQL code creating 'dbo.usp_GenerateBOMCostReport' that queries the hierarchy view and populates the summary table, or the procedure visible in the Object Explorer."
+    },
+    {
+      "id": "stored_procedure_executed",
+      "description": "Verify the execution of the stored procedure.",
+      "points": 10,
+      "visual_evidence": "Look for a query tab in Azure Data Studio executing 'EXEC dbo.usp_GenerateBOMCostReport' (or similar) with a 'Commands completed successfully' message or execution confirmation."
+    },
+    {
+      "id": "cost_data_populated",
+      "description": "Verify the summary table contains populated cost data for at least five assemblies.",
+      "points": 30,
+      "visual_evidence": "Look for a SELECT query result grid showing 'Production.LifecycleCostSummary' with at least 5 rows. The columns should include assembly identities, component counts, max depth, direct costs, full costs, and timestamps."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_azure_data_studio",
+      "description": "Verify the agent used Azure Data Studio to perform the database operations.",
+      "visual_evidence": "The screenshots should show the Azure Data Studio interface with SQL query editors and result grids, rather than just a text editor or terminal."
+    },
+    {
+      "id": "genuine_sql_execution",
+      "description": "Verify that the SQL commands were actually executed against the database.",
+      "visual_evidence": "Look for execution times, success messages in the Messages tab, or populated result grids in the Azure Data Studio interface."
+    },
+    {
+      "id": "no_hardcoded_data",
+      "description": "Verify that the agent wrote dynamic SQL rather than hardcoding the final results.",
+      "visual_evidence": "The SQL scripts for the view and stored procedure should contain actual logic (e.g., recursive CTEs, JOINs, GROUP BY) rather than hardcoded INSERT statements for specific assemblies."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the AdventureWorks2022 database. The view 'dbo.vw_ProductBOMHierarchy' must be a recursive CTE returning exactly 7 columns: AssemblyProductID, AssemblyName, ComponentID, ComponentName, BOMLevel, PerAssemblyQty, UnitMeasureCode. The stored procedure 'dbo.usp_GenerateBOMCostReport' must exist and populate 'Production.LifecycleCostSummary'. The data is real, so the populated summary table should reflect actual multi-level bicycle assembly data."
+}

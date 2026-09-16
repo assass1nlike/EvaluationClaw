@@ -1,0 +1,31 @@
+{
+  "id": "download_artifact_from_repo@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Download 'commons-lang3-3.14.0.jar' from the 'example-repo-local' repository (path: org/apache/commons/commons-lang3/3.14.0) in the JFrog Artifactory instance at http://localhost:8082 using credentials admin/password. Save the artifact to /home/ga/Downloads/commons-lang3-3.14.0.jar.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/download_artifact_from_repo/setup_task.sh",
+    "post_task": "/workspace/tasks/download_artifact_from_repo/export_result.sh"
+  },
+  "metadata": {
+    "artifact_name": "commons-lang3-3.14.0.jar",
+    "repo_key": "example-repo-local",
+    "group_id": "org.apache.commons",
+    "artifact_id": "commons-lang3",
+    "version": "3.14.0",
+    "expected_download_path": "/home/ga/Downloads/commons-lang3-3.14.0.jar",
+    "source_artifact_path": "/home/ga/artifacts/commons-lang3/commons-lang3-3.14.0.jar"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_download_artifact"
+    }
+  }
+}

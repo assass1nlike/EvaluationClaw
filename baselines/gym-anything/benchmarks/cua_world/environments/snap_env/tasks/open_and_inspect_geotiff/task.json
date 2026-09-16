@@ -1,0 +1,27 @@
+{
+  "id": "open_and_inspect_geotiff@1",
+  "version": "1.0",
+  "env_id": "snap_env@0.1",
+  "description": "Display one of the bands (Blue, Green, or Red) from the Sentinel-2A GeoTIFF file located at /home/ga/snap_data/sentinel2a_sample.tif in an image window. The file is a Sentinel-2A image with 10m resolution.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/open_and_inspect_geotiff/setup_task.sh"
+  },
+  "metadata": {
+    "data_file": "/home/ga/snap_data/sentinel2a_sample.tif",
+    "data_source": "Copernicus Sentinel-2A, from github.com/mommermi/geotiff_sample",
+    "expected_bands": 3,
+    "expected_resolution": "10m"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_open_and_inspect_geotiff"
+    }
+  }
+}

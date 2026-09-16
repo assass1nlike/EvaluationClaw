@@ -1,0 +1,53 @@
+{
+  "task_id": "assign_camera_logical_ids@1",
+  "task_completion": [
+    {
+      "id": "auth_token_obtained",
+      "description": "Agent authenticated to obtain a Bearer token.",
+      "points": 10,
+      "visual_evidence": "Terminal or API client showing a POST request to https://localhost:7001/rest/v1/login/sessions with the admin credentials, and a successful response returning a token."
+    },
+    {
+      "id": "device_list_retrieved",
+      "description": "Agent retrieved the list of devices to find camera IDs.",
+      "points": 15,
+      "visual_evidence": "Terminal or API client showing a GET request to /rest/v1/devices (with Bearer token in headers) and a response containing the camera names and their respective deviceIds."
+    },
+    {
+      "id": "parking_lot_camera_updated",
+      "description": "Agent assigned logical ID 101 to the Parking Lot Camera.",
+      "points": 25,
+      "visual_evidence": "Terminal or API client showing a PATCH request to /rest/v1/devices/{deviceId} (using the ID for Parking Lot Camera) with a JSON body containing {\"logicalId\": 101} or similar, and a successful HTTP response."
+    },
+    {
+      "id": "entrance_camera_updated",
+      "description": "Agent assigned logical ID 102 to the Entrance Camera.",
+      "points": 25,
+      "visual_evidence": "Terminal or API client showing a PATCH request to /rest/v1/devices/{deviceId} (using the ID for Entrance Camera) with a JSON body containing {\"logicalId\": 102} or similar, and a successful HTTP response."
+    },
+    {
+      "id": "server_room_camera_updated",
+      "description": "Agent assigned logical ID 103 to the Server Room Camera.",
+      "points": 25,
+      "visual_evidence": "Terminal or API client showing a PATCH request to /rest/v1/devices/{deviceId} (using the ID for Server Room Camera) with a JSON body containing {\"logicalId\": 103} or similar, and a successful HTTP response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rest_api",
+      "description": "Agent used the REST API rather than the GUI.",
+      "visual_evidence": "The screenshots should show terminal commands (like curl, python) or an API client (like Postman) being used. The agent must not use the Nx Witness Desktop GUI to set the logical IDs."
+    },
+    {
+      "id": "genuine_network_requests",
+      "description": "Agent actually executed network requests.",
+      "visual_evidence": "Terminal output should show genuine HTTP responses from the Nx Witness server (e.g., JSON responses, status codes), not just text files being edited or echoed to the console."
+    },
+    {
+      "id": "correct_host_port",
+      "description": "Agent targeted the correct server.",
+      "visual_evidence": "The API requests must be explicitly directed to https://localhost:7001."
+    }
+  ],
+  "privileged_info_for_vlm": "Target assignments: Parking Lot Camera -> 101, Entrance Camera -> 102, Server Room Camera -> 103. API Base URL: https://localhost:7001. Admin credentials: admin / Admin1234!. Authentication requires POST to /rest/v1/login/sessions to get a Bearer token. Device listing is at GET /rest/v1/devices. Updates must be sent via PATCH to /rest/v1/devices/{deviceId} with body {\"logicalId\": <number>}."
+}

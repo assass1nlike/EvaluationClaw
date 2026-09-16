@@ -1,0 +1,59 @@
+{
+  "task_id": "schema_documentation_export@1",
+  "task_completion": [
+    {
+      "id": "database_interaction",
+      "description": "Agent interacts with the DrTuxTest database to extract schema information.",
+      "points": 20,
+      "visual_evidence": "Terminal showing direct MySQL queries (e.g., SHOW TABLES, DESCRIBE, SELECT FROM information_schema) against the 'DrTuxTest' database, OR a script (e.g., Python, Bash) being written and executed that connects to the database."
+    },
+    {
+      "id": "json_file_creation",
+      "description": "Agent creates the required JSON output file at the specified path.",
+      "points": 15,
+      "visual_evidence": "A text editor, IDE, or terminal command (like cat or nano) showing the file '/home/ga/Documents/drtuxtest_schema.json' being created or edited."
+    },
+    {
+      "id": "json_basic_structure",
+      "description": "The JSON file contains the correct top-level database name and tables array.",
+      "points": 15,
+      "visual_evidence": "The contents of the JSON file show '\"database\": \"DrTuxTest\"' and a '\"tables\": [...]' array."
+    },
+    {
+      "id": "json_column_definitions",
+      "description": "The JSON file includes the required detailed column definitions for the tables.",
+      "points": 20,
+      "visual_evidence": "Inside the 'tables' array, the objects contain a 'columns' array where individual columns have 'name', 'type', 'nullable', 'key', and 'default' fields."
+    },
+    {
+      "id": "json_key_tables_documented",
+      "description": "The JSON file explicitly documents the required key tables.",
+      "points": 15,
+      "visual_evidence": "The JSON file contents clearly show entries for the tables 'IndexNomPrenom' and 'fchpat' within the 'tables' array."
+    },
+    {
+      "id": "json_summary_and_top5",
+      "description": "The JSON file contains the required summary statistics and top 5 largest tables.",
+      "points": 15,
+      "visual_evidence": "The JSON file contents show a 'top_5_largest_tables' array and a 'summary' object containing 'total_rows_all_tables', 'tables_with_data', and 'empty_tables' with integer values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_extraction",
+      "description": "The agent actually extracted the schema from the database rather than hallucinating it.",
+      "visual_evidence": "Look for executed SQL queries, a running script, or database client output in the terminal that matches the data being written to the JSON file."
+    },
+    {
+      "id": "valid_json_formatting",
+      "description": "The output is a properly formatted JSON file, not just a raw text dump of terminal output.",
+      "visual_evidence": "The file contents use valid JSON syntax (proper use of curly braces, square brackets, double quotes for keys and string values) and strictly follow the requested structure."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The JSON file is saved to the exact requested path.",
+      "visual_evidence": "The file path '/home/ga/Documents/drtuxtest_schema.json' is visible in the text editor's title bar, a terminal prompt, or file explorer, confirming it wasn't just printed to stdout or saved elsewhere."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database is 'DrTuxTest'. The database contains 31 tables (minimum 30 expected). Key tables that must be documented include 'IndexNomPrenom' and 'fchpat'. The final output must be saved exactly at '/home/ga/Documents/drtuxtest_schema.json'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "ultra_faint_dwarf_manual_dither@1",
+  "task_completion": [
+    {
+      "id": "read_dither_plan",
+      "description": "Agent opens and reads the dither plan instructions.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '~/Documents/dither_plan.txt'."
+    },
+    {
+      "id": "slew_to_center",
+      "description": "Agent slews the telescope to the center position of the Leo I Dwarf Galaxy.",
+      "points": 15,
+      "visual_evidence": "Observatory or telescope control software (e.g., KStars, Ekos) showing the active target as 'Leo I' or the coordinates RA ~10.1411h, Dec ~+12.3064\u00b0."
+    },
+    {
+      "id": "capture_center_frames",
+      "description": "Agent captures at least 2 frames at the center position using the Luminance filter.",
+      "points": 15,
+      "visual_evidence": "Camera/CCD control software showing an active or completed exposure sequence with the 'Luminance' (or 'lum', 'L') filter, with a frame count of 2 or more."
+    },
+    {
+      "id": "execute_dither_offsets",
+      "description": "Agent executes the 4-point cross dither offsets (North, South, East, West) and captures frames at each.",
+      "points": 30,
+      "visual_evidence": "Telescope control software showing movement to the offset coordinates (Dec ~12.3897, Dec ~12.2231, RA ~10.1468, RA ~10.1354) and camera software capturing images at these new positions."
+    },
+    {
+      "id": "verify_saved_images",
+      "description": "Agent saves the captured frames into the specified base directory.",
+      "points": 15,
+      "visual_evidence": "A file manager or terminal window listing newly created image files (e.g., .fits) inside the '/home/ga/Images/leo1' directory."
+    },
+    {
+      "id": "create_final_log",
+      "description": "Agent creates a final log detailing the observation.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal window showing the creation or editing of a log file that summarizes the completed dither pattern and captured frames."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_telescope_interaction",
+      "description": "Agent interacted with the actual observatory/telescope control GUI to move the mount.",
+      "visual_evidence": "Screenshots should show the agent clicking or entering coordinates in a telescope control application (like KStars/Ekos), not just writing a script that mocks the output."
+    },
+    {
+      "id": "genuine_camera_interaction",
+      "description": "Agent used the camera control software to capture images.",
+      "visual_evidence": "Screenshots should show the camera exposure sequence running in the GUI, rather than the agent using terminal commands like 'touch' or 'cp' to create fake image files."
+    },
+    {
+      "id": "no_pre_seeded_cheating",
+      "description": "Agent did not simply rename or move pre-existing dummy files to bypass capturing.",
+      "visual_evidence": "The camera software should visibly show the progress of new exposures being taken and downloaded, rather than the agent just manipulating files in the file manager."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: Leo I Dwarf Galaxy. Center coordinates: RA 10.1411h, Dec +12.3064\u00b0. Dither offsets (5 arcmin): North (Dec 12.3897), South (Dec 12.2231), East (RA 10.1468), West (RA 10.1354). Tolerances: RA \u00b10.005, Dec \u00b10.02. Filter: Luminance (lum, 1, l). Minimum 2 frames per position. Base save directory: /home/ga/Images/leo1."
+}

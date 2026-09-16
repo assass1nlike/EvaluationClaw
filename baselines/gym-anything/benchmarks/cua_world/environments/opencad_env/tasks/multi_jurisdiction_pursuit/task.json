@@ -1,0 +1,35 @@
+{
+  "id": "multi_jurisdiction_pursuit@1",
+  "version": "1.0",
+  "env_id": "opencad_env@0.1",
+  "description": "You are the Communications Center Supervisor at the Los Santos Emergency Communications Center overseeing a high-priority multi-jurisdiction pursuit. Blaine County units initiated pursuit of a red Pegassi Infernus (license plate BLC-4491) driven by Trevor Philips, which has crossed into Los Santos jurisdiction near Del Perro Boulevard. Using the system at http://localhost (credentials: admin@opencad.local / Admin123!), document the incident by creating a 10-80 vehicle pursuit call at Del Perro Boulevard with a detailed narrative, issuing a vehicle BOLO for the red Pegassi Infernus (BLC-4491), adding an active warrant for Trevor Philips for 'Evading Police Officer - Felony' issued by San Andreas Highway Patrol, and issuing a $750.00 citation to Trevor Philips for 'Reckless Driving'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multi_jurisdiction_pursuit/setup_task.sh",
+    "post_task": "/workspace/tasks/multi_jurisdiction_pursuit/export_result.sh"
+  },
+  "metadata": {
+    "expected_call_type": "10-80",
+    "expected_street1": "Del Perro Boulevard",
+    "expected_vehicle_plate": "BLC-4491",
+    "expected_warrant_name_id": 3,
+    "expected_warrant_person": "Trevor Philips",
+    "expected_warrant_name": "Evading Police Officer - Felony",
+    "expected_citation_name_id": 3,
+    "expected_citation_person": "Trevor Philips",
+    "expected_citation_name": "Reckless Driving",
+    "expected_fine": 750.0,
+    "profession": "Communications Center Supervisor"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_jurisdiction_pursuit"
+    }
+  }
+}

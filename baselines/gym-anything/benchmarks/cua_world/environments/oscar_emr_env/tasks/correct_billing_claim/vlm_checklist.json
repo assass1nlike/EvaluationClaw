@@ -1,0 +1,59 @@
+{
+  "task_id": "correct_billing_claim@1",
+  "task_completion": [
+    {
+      "id": "login_oscar_emr",
+      "description": "Verify the agent successfully logged into Oscar EMR using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for the Oscar EMR main dashboard, schedule screen, or navigation menu indicating a successful login."
+    },
+    {
+      "id": "locate_patient_claim",
+      "description": "Verify the agent searched for and located the patient Maria Santos.",
+      "points": 10,
+      "visual_evidence": "Look for a patient search result, demographic record, or billing list explicitly displaying the name 'Maria Santos'."
+    },
+    {
+      "id": "open_rejected_claim",
+      "description": "Verify the agent opened the specific rejected billing claim from yesterday.",
+      "points": 20,
+      "visual_evidence": "Look for a billing claim details screen or edit form for Maria Santos with a Service Date corresponding to yesterday."
+    },
+    {
+      "id": "update_diagnosis_code",
+      "description": "Verify the diagnosis code was changed to 250.",
+      "points": 20,
+      "visual_evidence": "Look for the diagnosis code input field in the billing form showing '250' (it should have been changed from '999')."
+    },
+    {
+      "id": "update_claim_status",
+      "description": "Verify the claim status was changed to 'Bill'.",
+      "points": 20,
+      "visual_evidence": "Look for the status dropdown, radio button, or field in the billing form set to 'Bill' or 'B' (it should have been changed from an Error/Rejected state)."
+    },
+    {
+      "id": "save_updated_claim",
+      "description": "Verify the agent saved or submitted the updated claim.",
+      "points": 20,
+      "visual_evidence": "Look for a click on a 'Save', 'Update', or 'Submit' button, a success confirmation message, or a return to the billing list showing the claim for Maria Santos with the updated 'Bill' status and '250' diagnosis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Oscar EMR web interface to make the changes.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the Oscar EMR UI. There should be no terminal windows running SQL commands or direct database updates."
+    },
+    {
+      "id": "genuine_form_modification",
+      "description": "Verify the agent actually interacted with the billing form fields.",
+      "visual_evidence": "Look for visual cues of form interaction, such as dropdown menus being expanded, text being typed into input fields, or cursor focus on the diagnosis and status fields."
+    },
+    {
+      "id": "no_html_tampering",
+      "description": "Verify the results appear in the genuine Oscar EMR application.",
+      "visual_evidence": "The browser URL should match the expected Oscar EMR local address, and the page styling/layout should be consistent with the application, rather than a locally mocked HTML file or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient Name: Maria Santos. Target Diagnosis Code: 250 (Diabetes mellitus). Target Status: 'B' (Bill). Login credentials: username 'oscardoc', password 'oscar', PIN '1117'. The original diagnosis code was '999' and the original status was 'E' (Error)."
+}

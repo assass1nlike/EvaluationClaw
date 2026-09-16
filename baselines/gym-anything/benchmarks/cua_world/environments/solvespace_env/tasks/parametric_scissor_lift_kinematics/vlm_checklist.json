@@ -1,0 +1,59 @@
+{
+  "task_id": "parametric_scissor_lift_kinematics@1",
+  "task_completion": [
+    {
+      "id": "crossed_arms_geometry",
+      "description": "Create the basic geometry of two crossed arms.",
+      "points": 10,
+      "visual_evidence": "The main canvas shows two line segments intersecting each other to form an 'X' shape."
+    },
+    {
+      "id": "base_points_constrained",
+      "description": "Constrain the bottom endpoints to the origin and X-axis.",
+      "points": 15,
+      "visual_evidence": "The bottom-left endpoint of the 'X' is snapped to the origin (intersection of the red and green axes). The bottom-right endpoint lies exactly on the horizontal (X) axis."
+    },
+    {
+      "id": "base_width_100",
+      "description": "Dimension the horizontal base width to 100.0 mm.",
+      "points": 15,
+      "visual_evidence": "A horizontal distance dimension of '100' or '100.00' is visible between the bottom-left and bottom-right endpoints."
+    },
+    {
+      "id": "arm_length_260",
+      "description": "Dimension the arms to a total length of 260.0 mm.",
+      "points": 20,
+      "visual_evidence": "Length dimensions of '260' or '260.00' are visible on both full arms, OR dimensions of '130' or '130.00' are visible on the half-segments from the pivot."
+    },
+    {
+      "id": "midpoint_intersection",
+      "description": "Constrain the arms to pivot exactly at their midpoints.",
+      "points": 20,
+      "visual_evidence": "The intersection of the two lines is perfectly symmetric, indicating a midpoint constraint. This may be evidenced by equal length constraints, '130' dimensions on all four halves, or a midpoint constraint listed in the property browser."
+    },
+    {
+      "id": "zero_dof_and_saved",
+      "description": "Ensure the sketch is fully constrained (0 DOF) and saved correctly.",
+      "points": 20,
+      "visual_evidence": "The text window/property browser explicitly states '0 degrees of freedom' (or 'ok'). The window title bar or a save dialog shows the filename 'scissor_lift.slvs'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the SolveSpace GUI to build the model.",
+      "visual_evidence": "Screenshots show interaction with the SolveSpace graphical interface, toolbars, and canvas, rather than just a text editor writing a .slvs file."
+    },
+    {
+      "id": "no_explicit_height_dimension",
+      "description": "The agent did not explicitly dimension the height to cheat the solver.",
+      "visual_evidence": "There should be NO driving vertical dimension of '240' or '240.00' forcing the top points. If 240 is visible, it must clearly be a reference/driven measurement, not a driving constraint."
+    },
+    {
+      "id": "genuine_solver_result",
+      "description": "The geometric proportions match the mathematical reality.",
+      "visual_evidence": "The drawn 'X' shape should visually appear much taller than it is wide (240mm height vs 100mm width), confirming the solver actually computed the kinematics."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected base width is 100.0 mm. The expected full arm length is 260.0 mm (or 130.0 mm per half-arm). The resulting extended height must be exactly 240.0 mm. The sketch must be fully constrained (0 DOF) without explicitly dimensioning the height. The final file must be saved as scissor_lift.slvs."
+}

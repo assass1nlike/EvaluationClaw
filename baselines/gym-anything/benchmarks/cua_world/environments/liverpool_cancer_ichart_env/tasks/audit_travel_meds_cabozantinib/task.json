@@ -1,0 +1,38 @@
+{
+  "id": "audit_travel_meds_cabozantinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "A patient on Cabozantinib is going on holiday and needs to check their travel medication kit. Using the Liverpool Cancer iChart Archive app, determine the interaction traffic-light colors (Red, Orange, Yellow, Green, or Grey) for Cyclizine, Loperamide, and Codeine when taken with Cabozantinib. Create a report file at /sdcard/travel_safety_report.txt using the following format:\n\nDrug: Cabozantinib\nCyclizine: [Color]\nLoperamide: [Color]\nCodeine: [Color]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/audit_travel_meds_cabozantinib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/audit_travel_meds_cabozantinib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Cabozantinib",
+    "expected_drugs": [
+      "Cyclizine",
+      "Loperamide",
+      "Codeine"
+    ],
+    "valid_colors": [
+      "Red",
+      "Orange",
+      "Yellow",
+      "Green",
+      "Grey"
+    ],
+    "output_file": "/sdcard/travel_safety_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_travel_meds"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "create_snippet_system@1",
+  "task_completion": [
+    {
+      "id": "snippet_directory_created",
+      "description": "Verify the code_snippets directory was created in the correct Talon user path.",
+      "points": 10,
+      "visual_evidence": "File explorer or code editor tree showing a folder named 'code_snippets' inside 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user'."
+    },
+    {
+      "id": "talon_list_file_created",
+      "description": "Verify snippets.talon-list is created with the required user.code_snippet list and voice mappings.",
+      "points": 20,
+      "visual_evidence": "A file named 'snippets.talon-list' open in an editor, containing 'list: user.code_snippet' and mappings like 'python class: python_class', 'html table: html_table', etc., matching the 9 required items."
+    },
+    {
+      "id": "python_dictionary_defined",
+      "description": "Verify snippets.py registers the list and defines a dictionary mapping identifiers to valid code templates.",
+      "points": 25,
+      "visual_evidence": "A file named 'snippets.py' open in an editor, showing Talon Module/Context setup, list registration for 'code_snippet', and a dictionary mapping keys like 'python_class' to actual, syntactically valid code strings (e.g., 'class MyClass:\\n    pass') with no placeholders."
+    },
+    {
+      "id": "python_action_implemented",
+      "description": "Verify snippets.py implements the user.insert_snippet action.",
+      "points": 20,
+      "visual_evidence": "In 'snippets.py', an @mod.action_class block containing a 'def insert_snippet(name: str):' function that looks up the snippet in the dictionary and inserts it."
+    },
+    {
+      "id": "talon_commands_implemented",
+      "description": "Verify snippets.talon implements the voice commands to insert and list snippets.",
+      "points": 25,
+      "visual_evidence": "A file named 'snippets.talon' open in an editor, containing the command 'snippet {user.code_snippet}:' which calls 'user.insert_snippet(...)', and a 'snippet list:' command which prints or logs the available snippets."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "valid_code_templates",
+      "description": "Check that the code templates in snippets.py are realistic and syntactically valid, not just empty strings or literal placeholders.",
+      "visual_evidence": "The dictionary values in snippets.py should look like real Python, JS, or HTML code (e.g., 'def my_func():\\n    pass', '<table>...</table>')."
+    },
+    {
+      "id": "correct_file_locations",
+      "description": "Check that the files are actually saved in the specified directory.",
+      "visual_evidence": "The editor's file path or title bar should indicate the files are saved in C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\code_snippets\\."
+    },
+    {
+      "id": "no_obvious_syntax_errors",
+      "description": "Ensure the code does not have obvious syntax errors that would prevent Talon from loading it.",
+      "visual_evidence": "No red squiggly error lines under the Python or Talon code in the editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\code_snippets\\. Required mappings for snippets.talon-list: 'python class' -> 'python_class', 'python function' -> 'python_function', 'python try except' -> 'python_try_except', 'javascript function' -> 'javascript_function', 'javascript arrow' -> 'javascript_arrow', 'javascript promise' -> 'javascript_promise', 'html table' -> 'html_table', 'html form' -> 'html_form', 'html boilerplate' -> 'html_boilerplate'."
+}

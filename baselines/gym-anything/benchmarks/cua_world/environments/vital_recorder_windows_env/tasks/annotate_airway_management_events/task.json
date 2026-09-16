@@ -1,0 +1,29 @@
+{
+  "id": "annotate_airway_management_events@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Vital Recorder is open with VitalDB Case #6 ('case_0006.vital') loaded. This recording contains physiological data from a general anesthesia surgery. Your task is to identify the precise moments of Intubation and Extubation using the capnography waveform. Add an event marker named 'INTUBATION' at the start of the first valid CO2 breath and an event marker named 'EXTUBATION' at the end of the last valid CO2 breath. Save the annotated recording to C:\\Users\\Docker\\Documents\\annotated_case.vital.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\annotate_airway_management_events\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\annotate_airway_management_events\\export_result.ps1"
+  },
+  "metadata": {
+    "case_id": "6",
+    "track_name": "Primus/CO2",
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\annotated_case.vital",
+    "co2_threshold": 10.0,
+    "time_tolerance_sec": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_airway_events"
+    }
+  }
+}

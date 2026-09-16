@@ -1,0 +1,43 @@
+{
+  "id": "create_spreadsheet_parametric@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a spreadsheet-driven parametric L-bracket in FreeCAD where the geometry is fully controlled by named parameters in a Spreadsheet object. Define the following parameters with aliases: base_length (60 mm), base_width (40 mm), upright_height (50 mm), and thickness (5 mm). All dimensions, including sketch constraints and extrusion lengths, must be linked to these spreadsheet aliases via expressions. After the initial model is created, update the upright_height parameter to 70 mm. Save the document to ~/Documents/FreeCAD/parametric_bracket.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_spreadsheet_parametric/setup_task.sh",
+    "post_task": "/workspace/tasks/create_spreadsheet_parametric/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/FreeCAD/parametric_bracket.FCStd",
+    "required_aliases": [
+      "base_length",
+      "base_width",
+      "upright_height",
+      "thickness"
+    ],
+    "target_values": {
+      "base_length": 60,
+      "base_width": 40,
+      "upright_height": 70,
+      "thickness": 5
+    },
+    "expected_bbox": [
+      60,
+      40,
+      70
+    ],
+    "bbox_tolerance": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_spreadsheet_parametric"
+    }
+  }
+}

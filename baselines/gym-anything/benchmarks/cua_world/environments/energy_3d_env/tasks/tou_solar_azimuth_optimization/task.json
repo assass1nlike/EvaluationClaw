@@ -1,0 +1,30 @@
+{
+  "id": "tou_solar_azimuth_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are optimizing a solar array for Time-of-Use (TOU) electricity rates. Open the project '~/Documents/Energy3D/solar-panel-azimuth-angle.ng3'. Select the existing solar panel array and change its Azimuth angle to exactly 270 degrees (facing West). Change the simulation date to June 21. Run a Daily Yield Analysis (via the Analysis menu or toolbar). Once the graph generates, export the graph data to a CSV file named exactly: '~/Documents/Energy3D/west_facing_yield.csv'. Finally, save the modified scene as a new file named: '~/Documents/Energy3D/tou_optimized.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tou_solar_azimuth_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/tou_solar_azimuth_optimization/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/Energy3D/west_facing_yield.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/tou_optimized.ng3",
+    "target_azimuth": 270,
+    "min_peak_hour": 14,
+    "occupation": "Solar Installer / Consultant",
+    "industry": "Renewable Energy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tou_optimization"
+    }
+  }
+}

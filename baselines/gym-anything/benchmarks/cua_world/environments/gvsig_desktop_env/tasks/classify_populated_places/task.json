@@ -1,0 +1,29 @@
+{
+  "id": "classify_populated_places@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Classify populated places in the shapefile located at /home/ga/gvsig_data/cities/ne_110m_populated_places.shp using gvSIG Desktop. Add a new string field named 'URBAN_CAT' (length 20) to the layer's attribute table. Populate the 'URBAN_CAT' field such that features with a 'POP_MAX' value of 10,000,000 or greater are assigned the value 'Megacity', and all other features are assigned the value 'City'. Save the changes to the shapefile.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/classify_populated_places/setup_task.sh",
+    "post_task": "/workspace/tasks/classify_populated_places/export_result.sh"
+  },
+  "metadata": {
+    "shapefile_path": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "megacity_threshold": 10000000,
+    "field_name": "URBAN_CAT",
+    "cat_large": "Megacity",
+    "cat_small": "City"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_classify_populated_places"
+    }
+  }
+}

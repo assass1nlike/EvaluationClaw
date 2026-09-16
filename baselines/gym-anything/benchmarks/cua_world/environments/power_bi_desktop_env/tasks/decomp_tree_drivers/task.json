@@ -1,0 +1,40 @@
+{
+  "id": "decomp_tree_drivers@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "A supply chain director needs to understand what is driving sales performance. Using the data in C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv, create a Power BI report named Sales_Decomposition.pbix saved to C:\\Users\\Docker\\Desktop\\. The report model must include two DAX measures: Total_Sales (sum of Sales_Amount) and Avg_Order_Value (average of Sales_Amount). The report must contain a page titled 'Sales Drivers' with a Decomposition Tree visual (analyzing Total_Sales explained by Region, Product_Category, Customer_Type, and Sales_Channel) and a Multi-Row Card visual (displaying Total_Sales and Avg_Order_Value). Login as Docker.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\decomp_tree_drivers\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\decomp_tree_drivers\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Sales_Decomposition.pbix",
+    "expected_page_name": "Sales Drivers",
+    "required_visuals": [
+      "decompositionTreeMap",
+      "multiRowCard"
+    ],
+    "required_measures": [
+      "Total_Sales",
+      "Avg_Order_Value"
+    ],
+    "explain_by_fields": [
+      "Region",
+      "Product_Category",
+      "Customer_Type",
+      "Sales_Channel"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_decomp_tree_drivers"
+    }
+  }
+}

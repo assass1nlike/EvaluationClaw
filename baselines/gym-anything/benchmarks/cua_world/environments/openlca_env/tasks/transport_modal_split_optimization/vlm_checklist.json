@@ -1,0 +1,59 @@
+{
+  "task_id": "transport_modal_split_optimization@1",
+  "task_completion": [
+    {
+      "id": "databases_imported",
+      "description": "Verify that the USLCI database and TRACI 2.1 methods have been imported.",
+      "points": 10,
+      "visual_evidence": "The OpenLCA navigation pane shows the USLCI database and TRACI 2.1 LCIA methods available in the active database."
+    },
+    {
+      "id": "parameter_created",
+      "description": "Verify that a parameter named 'rail_share' was created.",
+      "points": 10,
+      "visual_evidence": "A parameter named 'rail_share' is visible in the OpenLCA Parameters tab or within the parameters section of a process."
+    },
+    {
+      "id": "process_created",
+      "description": "Verify that a process named 'freight_route_optimized' was created.",
+      "points": 10,
+      "visual_evidence": "A process tab named 'freight_route_optimized' is open in the OpenLCA editor."
+    },
+    {
+      "id": "process_configured",
+      "description": "Verify that the process distributes 2000 t*km between Truck and Train using the 'rail_share' parameter.",
+      "points": 30,
+      "visual_evidence": "The Inputs/Outputs tab of the 'freight_route_optimized' process shows inputs for diesel combination truck and diesel train, with their amounts defined by formulas using 'rail_share' (e.g., '2000 * rail_share' for train and '2000 * (1 - rail_share)' for truck)."
+    },
+    {
+      "id": "lcia_calculated",
+      "description": "Verify that the agent calculated the LCIA results for the process.",
+      "points": 20,
+      "visual_evidence": "An OpenLCA LCIA results tab is visible, showing the Global Warming Air impact using the TRACI 2.1 method."
+    },
+    {
+      "id": "report_generated",
+      "description": "Verify that the optimization report was created with the correct minimum rail share and resulting GWP.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal displays the contents of '~/LCA_Results/optimization_report.txt', containing a rail share value (approximately 0.33) and a Global Warming Air impact value of 160 kg CO2 eq or slightly less."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "openlca_gui_used",
+      "description": "Verify that the agent used the OpenLCA graphical user interface to perform the modeling.",
+      "visual_evidence": "Screenshots show the OpenLCA application window being actively used, rather than just terminal commands or a python script attempting to bypass the software."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Verify that the agent actually ran the calculation in OpenLCA to find the result.",
+      "visual_evidence": "Screenshots show the OpenLCA calculation setup window or the LCIA results tab, indicating the agent didn't just guess the answer or hallucinate the output file."
+    },
+    {
+      "id": "valid_output_file",
+      "description": "Verify that the output file was genuinely created in the correct location.",
+      "visual_evidence": "A terminal or file explorer shows the file 'optimization_report.txt' actually exists in the '/home/ga/LCA_Results/' directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The target GWP limit is 160.0 kg CO2 eq. The total distance is 2000 km. The required process name is 'freight_route_optimized' and the required parameter name is 'rail_share'. The output file must be located at '/home/ga/LCA_Results/optimization_report.txt'. Based on real USLCI data, a truck-only route yields ~221.8 kg CO2 eq. To meet the 160 kg CO2 eq limit, the minimum rail share required is approximately 0.33 (33%)."
+}

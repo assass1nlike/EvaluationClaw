@@ -1,0 +1,59 @@
+{
+  "task_id": "middle_floor_equip_load_reduction@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the 4StoreyBuilding project in eQUEST.",
+      "points": 5,
+      "visual_evidence": "The eQUEST application window is open, and '4StoreyBuilding' is visible in the title bar or project tree."
+    },
+    {
+      "id": "navigate_equipment_loads",
+      "description": "Navigate to the space properties or spreadsheet view for Equipment loads.",
+      "points": 5,
+      "visual_evidence": "The eQUEST Detailed Data Edit mode or a spreadsheet view is open, displaying Space properties, specifically the 'Equip W/sqft' or 'EQUIPMENT-W/SQFT' column."
+    },
+    {
+      "id": "update_m_spaces_density",
+      "description": "Update the Equipment Power Density to 0.65 W/ft\u00b2 for all Middle Floor occupied spaces.",
+      "points": 50,
+      "visual_evidence": "The value '0.65' is entered in the Equipment Power Density (W/sqft) field for the Middle Floor spaces (M.S21, M.E22, M.N23, M.W24, M.C25)."
+    },
+    {
+      "id": "preserve_other_floors",
+      "description": "Ensure Ground Floor (G.*) and Top Floor (T.*) spaces are not modified.",
+      "points": 20,
+      "visual_evidence": "The Equipment Power Density values for spaces starting with 'G.' and 'T.' remain at their original values (not 0.65), or the agent explicitly filters to only edit 'M.' spaces."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the full annual DOE-2.2 simulation.",
+      "points": 10,
+      "visual_evidence": "The eQUEST simulation dialog, progress bar, or 'Simulation Complete' results window is visible on the screen."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the updated eQUEST project.",
+      "points": 10,
+      "visual_evidence": "The agent clicks 'File -> Save', clicks the save floppy disk icon, or presses Ctrl+S, and no unsaved indicator remains."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the eQUEST GUI to modify the building model.",
+      "visual_evidence": "Changes were made through eQUEST's interface (e.g., Detailed Data Edit or spreadsheet views), not by opening the .inp file in a text editor like Notepad or Vim."
+    },
+    {
+      "id": "genuine_simulation",
+      "description": "The simulation was executed within the eQUEST application.",
+      "visual_evidence": "The standard eQUEST DOE-2.2 simulation dialog/progress window appeared, rather than a mocked terminal command."
+    },
+    {
+      "id": "no_unrelated_changes",
+      "description": "The agent did not modify unrelated building parameters.",
+      "visual_evidence": "Only the Equipment Power Density (EQUIPMENT-W/SQFT) was changed. Lighting, HVAC, or building geometry fields were not altered."
+    }
+  ],
+  "privileged_info_for_vlm": "Project: 4StoreyBuilding. Target occupied spaces to update to 0.65 W/sqft: M.S21, M.E22, M.N23, M.W24, M.C25. Plenums (M.S26, M.E27, M.N28, M.W29, M.C30) do not have equipment loads and should be ignored. Ground (G.*) and Top (T.*) floor spaces must NOT be modified. A full annual DOE-2.2 simulation must be executed in eQUEST."
+}

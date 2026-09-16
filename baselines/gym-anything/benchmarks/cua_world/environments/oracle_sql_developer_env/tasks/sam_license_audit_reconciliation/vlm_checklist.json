@@ -1,0 +1,53 @@
+{
+  "task_id": "sam_license_audit_reconciliation@1",
+  "task_completion": [
+    {
+      "id": "create_normalized_installs_vw",
+      "description": "Create the NORMALIZED_INSTALLS_VW view extracting version, edition, and mapped product names.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL client (like Oracle SQL Developer) showing the execution of a 'CREATE VIEW NORMALIZED_INSTALLS_VW' statement. The query should include string manipulation (e.g., REGEXP_SUBSTR) to extract the version and edition, and logic to map product names."
+    },
+    {
+      "id": "create_licenses_required_vw",
+      "description": "Create the LICENSES_REQUIRED_VW view with specific licensing math rules.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query creating 'LICENSES_REQUIRED_VW'. It must contain CASE statements or similar logic showing: 0 for DEV/TEST, minimums of 4 for SQL Server and 16 for Windows Server, and a 0.5 multiplier (rounded up) for Oracle Database."
+    },
+    {
+      "id": "create_effective_license_position_mv",
+      "description": "Create the EFFECTIVE_LICENSE_POSITION_MV materialized view aggregating requirements and calculating variance.",
+      "points": 20,
+      "visual_evidence": "Look for 'CREATE MATERIALIZED VIEW EFFECTIVE_LICENSE_POSITION_MV'. The query should show JOINs with ENTITLEMENTS and SOFTWARE_CATALOG, and calculations for 'variance' and 'financial exposure'."
+    },
+    {
+      "id": "create_audit_action_log_and_procedure",
+      "description": "Create the AUDIT_ACTION_LOG table and PROC_FLAG_SHORTFALL_HOSTS PL/SQL procedure.",
+      "points": 25,
+      "visual_evidence": "Look for the creation of a table named 'AUDIT_ACTION_LOG' and a PL/SQL block 'CREATE OR REPLACE PROCEDURE PROC_FLAG_SHORTFALL_HOSTS'. The procedure should contain logic to insert records into the log for hosts with negative variance."
+    },
+    {
+      "id": "export_elp_audit_report_csv",
+      "description": "Export the effective license position data to a CSV file at the specified path.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal, file manager, or text/spreadsheet editor showing the file 'elp_audit_report.csv' located in '/home/ga/Documents/exports/'. The file should contain aggregated license data (vendor, consumed, owned, variance, exposure)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent actually executed the SQL commands in an Oracle database client.",
+      "visual_evidence": "Check that SQL commands were run in Oracle SQL Developer, SQL*Plus, or another genuine DB client, showing success messages (e.g., 'View created', 'Procedure compiled'), rather than just typing code in a text editor without executing it."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the CSV file was generated from the database query and not manually faked.",
+      "visual_evidence": "The CSV export should look like a genuine database export (e.g., standard delimiters, headers matching the materialized view columns) rather than a manually typed mock file with placeholder data."
+    },
+    {
+      "id": "no_source_data_tampering",
+      "description": "Verify the agent did not alter the underlying source tables to fake the results.",
+      "visual_evidence": "Ensure there are no UPDATE, INSERT, or DELETE statements modifying RAW_CMDB_DISCOVERY, ENTITLEMENTS, or SOFTWARE_CATALOG to artificially create the expected variances."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV export path is exactly /home/ga/Documents/exports/elp_audit_report.csv. The agent must use Oracle features such as REGEXP_SUBSTR, Materialized Views, PL/SQL, CASE statements, and Analytical Math to accomplish the database tasks. The task involves creating specific views (NORMALIZED_INSTALLS_VW, LICENSES_REQUIRED_VW), a materialized view (EFFECTIVE_LICENSE_POSITION_MV), a table (AUDIT_ACTION_LOG), and a PL/SQL procedure (PROC_FLAG_SHORTFALL_HOSTS)."
+}

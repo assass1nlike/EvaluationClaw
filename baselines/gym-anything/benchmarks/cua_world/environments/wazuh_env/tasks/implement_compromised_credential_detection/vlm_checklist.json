@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_compromised_credential_detection@1",
+  "task_completion": [
+    {
+      "id": "cdb_list_created",
+      "description": "Verify the creation of the compromised users list in the correct path and format.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the content of `/var/ossec/etc/lists/compromised_users` (e.g., via `cat`, `nano`, or `vim`), containing usernames from the breached users file formatted as `key:value` (e.g., `admin:compromised` or `admin:`)."
+    },
+    {
+      "id": "ossec_conf_updated",
+      "description": "Verify the Wazuh manager configuration is updated to utilize the new CDB list.",
+      "points": 20,
+      "visual_evidence": "Terminal showing `/var/ossec/etc/ossec.conf` being edited or viewed, with `<list>etc/lists/compromised_users</list>` added inside the `<ruleset>` block."
+    },
+    {
+      "id": "list_compiled",
+      "description": "Verify the CDB list was compiled into a .cdb file.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the execution of `/var/ossec/bin/ossec-makelists` or an `ls` command displaying the compiled `/var/ossec/etc/lists/compromised_users.cdb` file."
+    },
+    {
+      "id": "custom_rule_created",
+      "description": "Verify the custom detection rule 100050 is created with the correct parameters.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a rule file (e.g., `/var/ossec/etc/rules/local_rules.xml`) being edited or viewed, containing `<rule id=\"100050\" level=\"12\">`, `<if_sid>5715</if_sid>`, and a `<list>` tag referencing `etc/lists/compromised_users`."
+    },
+    {
+      "id": "manager_restarted_or_tested",
+      "description": "Verify the Wazuh manager was restarted to apply changes or the rule was successfully tested.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a restart command like `systemctl restart wazuh-manager`, or the output of `/var/ossec/bin/wazuh-logtest` showing a test event successfully triggering rule 100050."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Check that the agent actually edited the Wazuh configuration and rule files.",
+      "visual_evidence": "Screenshots should show the use of text editors (nano, vim) or valid shell redirection to modify files in `/var/ossec/etc/`, not just printing the expected text to the console."
+    },
+    {
+      "id": "authentic_compilation",
+      "description": "Check that the agent used the official Wazuh tool to compile the CDB list.",
+      "visual_evidence": "The agent should run `ossec-makelists` rather than manually creating a file named `.cdb` with arbitrary content."
+    },
+    {
+      "id": "no_fake_testing",
+      "description": "Check that any testing done uses the actual Wazuh logtest tool or real SSH logins.",
+      "visual_evidence": "If testing is shown, it should be via `/var/ossec/bin/wazuh-logtest` or actual SSH attempts, not by manually appending fake alerts to `/var/ossec/logs/alerts/alerts.log`."
+    }
+  ],
+  "privileged_info_for_vlm": "The breached users list is located at /home/ga/breached_users.txt. The target CDB list must be at /var/ossec/etc/lists/compromised_users. The custom detection rule must have ID 100050, level 12, and trigger on SSH success events (parent rule 5715). The positive test user is 'admin' and the negative test user is 'safe_user'."
+}

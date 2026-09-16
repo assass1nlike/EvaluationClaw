@@ -1,0 +1,29 @@
+{
+  "id": "configure_global_tools@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Configure the global build tools for the Jenkins instance as the admin user. Add a JDK installation named 'JDK-17' with JAVA_HOME set to '/opt/java/openjdk' and automatic installation disabled. Additionally, configure a Maven installation named 'Maven-3.9.6' using version 3.9.6 with automatic installation enabled.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_global_tools/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_global_tools/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "expected_jdk_name": "JDK-17",
+    "expected_jdk_home": "/opt/java/openjdk",
+    "expected_maven_name": "Maven-3.9.6",
+    "expected_maven_version": "3.9.6"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_global_tools"
+    }
+  }
+}

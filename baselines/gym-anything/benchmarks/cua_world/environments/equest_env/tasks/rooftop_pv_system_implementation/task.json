@@ -1,0 +1,29 @@
+{
+  "id": "rooftop_pv_system_implementation@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "Create a 25 kW grid-connected photovoltaic system for the 4StoreyBuilding project located at C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp. Configure the PV generator with a 25.0 kW capacity, 20-degree fixed tilt, 180-degree azimuth (South), and 0.18 efficiency. Ensure the annual simulation results reflect the generated electricity and save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\rooftop_pv_system_implementation\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\rooftop_pv_system_implementation\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp",
+    "target_capacity": 25.0,
+    "target_tilt": 20,
+    "target_azimuth": 180,
+    "target_efficiency": 0.18
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rooftop_pv_system_implementation"
+    }
+  }
+}

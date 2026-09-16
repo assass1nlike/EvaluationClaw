@@ -1,0 +1,32 @@
+{
+  "id": "org_unit_redistricting@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "The Ministry of Local Government has split the 'Tikonko' chiefdom in Bo District. Update the DHIS2 hierarchy (admin/district) by creating a new Organisation Unit named 'Tikonko North' (Short name: 'Tikonko N') as a child of 'Bo' District with an opening date of 2023-01-01. Move the existing facilities 'Tikonko CHC' and 'Gondama MCHP' from their current locations into the new 'Tikonko North' chiefdom.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/org_unit_redistricting/setup_task.sh",
+    "post_task": "/workspace/tasks/org_unit_redistricting/export_result.sh"
+  },
+  "metadata": {
+    "target_new_unit_name": "Tikonko North",
+    "target_new_unit_short_name": "Tikonko N",
+    "target_parent_name": "Bo",
+    "facilities_to_move": [
+      "Tikonko CHC",
+      "Gondama MCHP"
+    ],
+    "expected_opening_date": "2023-01-01"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_org_unit_redistricting"
+    }
+  }
+}

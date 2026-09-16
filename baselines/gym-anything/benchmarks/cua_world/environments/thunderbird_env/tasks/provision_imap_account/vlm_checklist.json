@@ -1,0 +1,53 @@
+{
+  "task_id": "provision_imap_account@1",
+  "task_completion": [
+    {
+      "id": "thunderbird_account_setup_opened",
+      "description": "Verify that the Thunderbird Account Setup screen is opened.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Mozilla Thunderbird application running with the 'Set Up Your Existing Email Address' or 'Account Setup' tab visible."
+    },
+    {
+      "id": "basic_account_info_entered",
+      "description": "Verify that the basic account information (Name, Email, Password) is entered correctly.",
+      "points": 15,
+      "visual_evidence": "The setup form shows 'Helpdesk Agent' in the name field, 'helpdesk@internal.cyber-corp.local' in the email field, and a password entered (usually masked as dots)."
+    },
+    {
+      "id": "imap_settings_configured",
+      "description": "Verify that the incoming (IMAP) server settings are manually configured according to the task description.",
+      "points": 25,
+      "visual_evidence": "In the manual configuration section, the Incoming server is set to IMAP, hostname is 'imap.internal.cyber-corp.local', port is '143', Connection security is 'STARTTLS', Authentication method is 'Normal password', and Username is 'helpdesk_user'."
+    },
+    {
+      "id": "smtp_settings_configured",
+      "description": "Verify that the outgoing (SMTP) server settings are manually configured according to the task description.",
+      "points": 25,
+      "visual_evidence": "In the manual configuration section, the Outgoing server hostname is 'smtp.internal.cyber-corp.local', port is '587', Connection security is 'STARTTLS', Authentication method is 'Normal password', and Username is 'helpdesk_user'."
+    },
+    {
+      "id": "account_force_saved",
+      "description": "Verify that the account configuration is successfully saved to the profile.",
+      "points": 25,
+      "visual_evidence": "The account 'helpdesk@internal.cyber-corp.local' or 'Helpdesk Agent' is visible in Thunderbird's left folder pane or in the Account Settings list, indicating the setup was completed and saved (potentially bypassing connection warnings by clicking 'Done' or 'Confirm Security Exception')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify that the agent used the Thunderbird graphical user interface to configure the account.",
+      "visual_evidence": "Screenshots show interaction with the Thunderbird UI (typing in fields, clicking buttons) rather than terminal commands modifying Thunderbird profile files (like prefs.js)."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify that the application being interacted with is genuine Mozilla Thunderbird.",
+      "visual_evidence": "The window styling, icons, and layout match Mozilla Thunderbird, not a mock UI or a text editor."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "Verify that the agent did not use scripts to bypass the manual configuration process.",
+      "visual_evidence": "The trajectory shows a natural progression of filling out the form fields and clicking through the setup wizard."
+    }
+  ],
+  "privileged_info_for_vlm": "The required email is helpdesk@internal.cyber-corp.local. The incoming server must be IMAP at imap.internal.cyber-corp.local on port 143 with username helpdesk_user. The outgoing server must be SMTP at smtp.internal.cyber-corp.local on port 587 with username helpdesk_user."
+}

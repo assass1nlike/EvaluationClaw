@@ -1,0 +1,53 @@
+{
+  "task_id": "price_sync_merge@1",
+  "task_completion": [
+    {
+      "id": "create_audit_table",
+      "description": "Verify the creation of the Pricing.MergeAuditLog table with the required columns.",
+      "points": 15,
+      "visual_evidence": "SQL script execution or Object Explorer showing the creation of Pricing.MergeAuditLog with columns: AuditID, MergeAction, ProductID, ProductName, OldListPrice, NewListPrice, PriceChangePercent, and AuditTimestamp."
+    },
+    {
+      "id": "write_merge_statement",
+      "description": "Verify a MERGE statement is written to synchronize Pricing.SupplierPriceUpdate into Pricing.PriceMaster.",
+      "points": 20,
+      "visual_evidence": "SQL query editor showing 'MERGE INTO Pricing.PriceMaster ... USING Pricing.SupplierPriceUpdate' with 'WHEN MATCHED' (for differing prices) and 'WHEN NOT MATCHED' clauses."
+    },
+    {
+      "id": "use_output_clause",
+      "description": "Verify the MERGE statement uses the OUTPUT clause to populate the audit log and calculates the price change percentage.",
+      "points": 25,
+      "visual_evidence": "SQL query editor showing an 'OUTPUT' clause within the MERGE statement that inserts into Pricing.MergeAuditLog. It should include the calculation for PriceChangePercent, typically looking like '((inserted.ListPrice - deleted.ListPrice) / deleted.ListPrice * 100)'."
+    },
+    {
+      "id": "execute_merge_statement",
+      "description": "Verify the MERGE statement was successfully executed.",
+      "points": 20,
+      "visual_evidence": "SSMS, Azure Data Studio, or terminal messages tab showing successful execution (e.g., 'Rows affected') for the MERGE query block."
+    },
+    {
+      "id": "create_summary_view",
+      "description": "Verify the creation of the Pricing.vw_MergeSummary view.",
+      "points": 20,
+      "visual_evidence": "SQL script showing 'CREATE VIEW Pricing.vw_MergeSummary' that includes a 'GROUP BY MergeAction' clause and aggregate functions for row count (e.g., COUNT) and average price change percentage (e.g., AVG)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with a real SQL client or terminal to execute commands.",
+      "visual_evidence": "Screenshots show a genuine database management tool (like SSMS, Azure Data Studio, DBeaver) or a terminal executing SQL commands (like sqlcmd), not just a text editor with unexecuted SQL code."
+    },
+    {
+      "id": "dynamic_audit_population",
+      "description": "The audit log was populated dynamically via the MERGE OUTPUT clause, not by manual inserts.",
+      "visual_evidence": "The executed SQL query contains the 'OUTPUT ... INTO Pricing.MergeAuditLog' clause rather than standalone 'INSERT INTO Pricing.MergeAuditLog' statements with hardcoded values."
+    },
+    {
+      "id": "dynamic_view_creation",
+      "description": "The summary view dynamically calculates aggregates rather than selecting hardcoded values.",
+      "visual_evidence": "The view definition contains 'GROUP BY MergeAction' and aggregate functions like COUNT() and AVG(), rather than hardcoded numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: AdventureWorks2022 (Microsoft SQL Server). Target table: Pricing.PriceMaster. Source table: Pricing.SupplierPriceUpdate. Audit table: Pricing.MergeAuditLog (must have exactly 8 columns: AuditID, MergeAction, ProductID, ProductName, OldListPrice, NewListPrice, PriceChangePercent, AuditTimestamp). The source table contains mixed operations: 12% price increases, unchanged prices, and new products. The MERGE statement should handle both MATCHED (updates) and NOT MATCHED (inserts) conditions."
+}

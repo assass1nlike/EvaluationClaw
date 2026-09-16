@@ -1,0 +1,59 @@
+{
+  "task_id": "sar_avalanche_thermal_survey@1",
+  "task_completion": [
+    {
+      "id": "set_weath_enable",
+      "description": "Configure the WEATH_ENABLE parameter for high winds.",
+      "points": 10,
+      "visual_evidence": "In QGroundControl's Vehicle Setup -> Parameters menu, the parameter 'WEATH_ENABLE' is searched and its value is set to 1."
+    },
+    {
+      "id": "set_rtl_speed",
+      "description": "Configure the RTL_SPEED parameter for high winds.",
+      "points": 10,
+      "visual_evidence": "In QGroundControl's Vehicle Setup -> Parameters menu, the parameter 'RTL_SPEED' is searched and its value is set to 1500."
+    },
+    {
+      "id": "create_survey_area",
+      "description": "Create a Survey mission plan east of the launch point.",
+      "points": 15,
+      "visual_evidence": "In QGroundControl's Plan view, a green Survey polygon (grid pattern) is drawn on the map in the area east of the 'H' (launch point) icon."
+    },
+    {
+      "id": "configure_camera_specs",
+      "description": "Configure the Flir Vue Pro 640 custom camera specifications.",
+      "points": 25,
+      "visual_evidence": "In the Survey settings panel on the right side of the screen, the Camera settings show custom values matching the Flir Vue Pro 640: Width 640, Height 512, Sensor Width 10.88mm, Sensor Height 8.16mm, and Focal Length 13.0mm."
+    },
+    {
+      "id": "configure_flight_parameters",
+      "description": "Set the flight altitude and overlap percentages.",
+      "points": 20,
+      "visual_evidence": "In the Survey settings panel, the Altitude is set to 80m, Frontal overlap is set to 80%, and Side overlap is set to 70%."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Save the mission plan to the specified directory.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'File' dialog in QGroundControl showing the mission being saved with the filename 'avalanche_thermal_search.plan' in the '/home/ga/Documents/QGC/' directory, or a terminal window confirming the file exists at this path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgc_gui",
+      "description": "The agent used the QGroundControl GUI to create the mission plan and set parameters.",
+      "visual_evidence": "Screenshots must show the QGroundControl application interface being actively used (menus, map, parameter lists), rather than the agent just writing a JSON .plan file in a text editor or using a python script."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not bypass the application by manually typing the final output file.",
+      "visual_evidence": "There should be no screenshots of a text editor (like nano, vim, or gedit) open with the raw JSON contents of the .plan file being manually typed or pasted."
+    },
+    {
+      "id": "genuine_parameter_search",
+      "description": "The agent genuinely searched for and modified the drone parameters in the application.",
+      "visual_evidence": "Screenshots should show the QGroundControl parameter search bar being used to find 'WEATH_ENABLE' and 'RTL_SPEED', and the parameter modification dialog boxes."
+    }
+  ],
+  "privileged_info_for_vlm": "The following values are verified as correct for this task: WEATH_ENABLE must be 1. RTL_SPEED must be 1500. Camera specs: image_width=640, image_height=512, sensor_width=10.88, sensor_height=8.16, focal_length=13.0. Flight specs: altitude=80, frontal_overlap=80, side_overlap=70. The final plan must be saved to '/home/ga/Documents/QGC/avalanche_thermal_search.plan'."
+}

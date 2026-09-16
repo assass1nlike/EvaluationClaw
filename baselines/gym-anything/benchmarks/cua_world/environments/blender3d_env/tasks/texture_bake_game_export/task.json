@@ -1,0 +1,32 @@
+{
+  "id": "texture_bake_game_export@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a technical artist preparing a 3D asset for export to a real-time game engine. Bake two 1024x1024 PNG texture maps for the 'BaseCube' object: an Ambient Occlusion map saved to /home/ga/BlenderProjects/baked_ao.png and a Diffuse Color map (capturing only the material color without lighting contribution) saved to /home/ga/BlenderProjects/baked_diffuse.png. Save the Blender project to /home/ga/BlenderProjects/bake_project.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/texture_bake_game_export/setup_task.sh",
+    "post_task": "/workspace/tasks/texture_bake_game_export/export_result.sh"
+  },
+  "metadata": {
+    "expected_ao_path": "/home/ga/BlenderProjects/baked_ao.png",
+    "expected_diffuse_path": "/home/ga/BlenderProjects/baked_diffuse.png",
+    "expected_blend_path": "/home/ga/BlenderProjects/bake_project.blend",
+    "image_size": 1024,
+    "min_file_size_bytes": 5000,
+    "target_object": "BaseCube",
+    "ao_min_std_dev": 5.0,
+    "diffuse_min_std_dev": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_texture_bake_game_export"
+    }
+  }
+}

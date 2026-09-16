@@ -1,0 +1,44 @@
+{
+  "id": "cabinet_side_panel_machining@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a CNC-ready 2D drawing of a cabinet side panel based on the specifications in '/home/ga/Documents/cabinet_spec.txt'. The drawing must include a 'PANEL' layer (White/7) for the panel outline and toe kick notch, a 'DADO' layer (Cyan/4) for the back groove, and a 'DRILLING' layer (Red/1) for the shelf pin hole array using System 32 parameters (32mm vertical spacing). Export the final drawing to '/home/ga/Documents/LibreCAD/side_panel_cnc.dxf'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cabinet_side_panel_machining/setup_task.sh",
+    "post_task": "/workspace/tasks/cabinet_side_panel_machining/export_result.sh"
+  },
+  "metadata": {
+    "spec_file_path": "/home/ga/Documents/cabinet_spec.txt",
+    "output_file_path": "/home/ga/Documents/LibreCAD/side_panel_cnc.dxf",
+    "expected_layers": [
+      "PANEL",
+      "DRILLING",
+      "DADO"
+    ],
+    "spec_values": {
+      "height": 720.0,
+      "depth": 560.0,
+      "toe_kick_height": 100.0,
+      "toe_kick_depth": 70.0,
+      "groove_width": 6.0,
+      "groove_x_offset": 20.0,
+      "hole_dia": 5.0,
+      "hole_x_inset": 37.0,
+      "hole_y_pitch": 32.0,
+      "hole_y_start": 192.0,
+      "hole_y_max": 650.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cabinet_side_panel"
+    }
+  }
+}

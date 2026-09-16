@@ -1,0 +1,44 @@
+{
+  "id": "psf_fwhm_measurement@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Characterize the optical resolution of the microscope system by measuring the Point Spread Function (PSF) using the bead image at ~/Fiji_Data/raw/psf_beads/bead_field.tif. Calibrate the image using a pixel size of 0.1625 µm/pixel. Determine the Full Width at Half Maximum (FWHM) for at least five isolated bead-like features. Record the results in ~/Fiji_Data/results/psf/fwhm_measurements.csv including columns for bead_id, fwhm_pixels, fwhm_um, and peak_intensity. Additionally, export a representative line profile plot to ~/Fiji_Data/results/psf/line_profile.png and a summary report containing the mean lateral resolution (mean FWHM in µm) to ~/Fiji_Data/results/psf/resolution_report.txt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/psf_fwhm_measurement/setup_task.sh",
+    "post_task": "/workspace/tasks/psf_fwhm_measurement/export_result.sh"
+  },
+  "metadata": {
+    "pixel_size_um": 0.1625,
+    "min_beads": 5,
+    "expected_fwhm_range_um": [
+      0.2,
+      3.0
+    ],
+    "expected_fwhm_range_px": [
+      1.5,
+      20.0
+    ],
+    "output_csv": "~/Fiji_Data/results/psf/fwhm_measurements.csv",
+    "output_report": "~/Fiji_Data/results/psf/resolution_report.txt",
+    "output_plot": "~/Fiji_Data/results/psf/line_profile.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_psf_measurement"
+    }
+  },
+  "tags": [
+    "microscopy",
+    "resolution",
+    "calibration",
+    "measurement",
+    "fiji"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "rtp_audio_extraction@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the target PCAP file for analysis.",
+      "points": 10,
+      "visual_evidence": "Wireshark main window showing 'sip-rtp-g711.pcap' loaded in the title bar or packet list, or a terminal command actively reading the pcap file."
+    },
+    {
+      "id": "analyze_rtp_streams",
+      "description": "Identify and analyze the RTP streams within the capture.",
+      "points": 20,
+      "visual_evidence": "Wireshark 'RTP Streams' window open showing the stream details (e.g., G.711 PCMU payload), or equivalent terminal output analyzing RTP packets."
+    },
+    {
+      "id": "open_rtp_player",
+      "description": "Access the audio extraction or playback tool.",
+      "points": 20,
+      "visual_evidence": "Wireshark 'RTP Player' window visible showing the audio stream/waveform, or an equivalent command line tool preparing to extract the payload."
+    },
+    {
+      "id": "save_audio_file",
+      "description": "Save the reconstructed audio to the specified file.",
+      "points": 20,
+      "visual_evidence": "A 'Save' or 'Export' dialog box showing the filename 'recovered_call.au' and format set to .au / Sun Audio, or a terminal command actively writing to this file."
+    },
+    {
+      "id": "verify_output_file",
+      "description": "Verify the output file exists in the correct directory.",
+      "points": 30,
+      "visual_evidence": "Terminal showing 'ls' output or a file manager window displaying 'recovered_call.au' inside the '~/Documents/captures/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_tool_usage",
+      "description": "Verify the agent used a genuine network analysis tool (like Wireshark or tshark) to extract the audio.",
+      "visual_evidence": "Screenshots must show actual interaction with Wireshark's GUI or valid tshark/sox commands, not just a text editor or mock script."
+    },
+    {
+      "id": "no_external_download",
+      "description": "Ensure the audio file was extracted from the PCAP, not downloaded from the internet.",
+      "visual_evidence": "Absence of web browser downloads, wget, or curl commands fetching the .au file from external URLs."
+    },
+    {
+      "id": "authentic_file_creation",
+      "description": "Verify the file was genuinely created through extraction, not by creating a dummy file.",
+      "visual_evidence": "The save action should be linked to the RTP extraction tool. Look for the absence of commands like 'touch recovered_call.au' or simply copying/renaming an unrelated file."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is 'sip-rtp-g711.pcap'. The expected output is '/home/ga/Documents/captures/recovered_call.au'. The extracted file must be in Sun/NeXT audio format (.au) and its size should be approximately 144.5 KB (well over the 50KB minimum). The PCAP contains 840 RTP packets encoded in G.711 PCMU."
+}

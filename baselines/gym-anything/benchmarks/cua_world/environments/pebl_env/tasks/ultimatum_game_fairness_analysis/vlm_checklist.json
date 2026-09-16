@@ -1,0 +1,59 @@
+{
+  "task_id": "ultimatum_game_fairness_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Access and read the Ultimatum Game dataset.",
+      "points": 10,
+      "visual_evidence": "A script, terminal command, or application showing the agent opening or reading the contents of ~/pebl/data/ultimatum_data.csv."
+    },
+    {
+      "id": "calculate_tier_rates",
+      "description": "Calculate acceptance rates for unfair (1-3), fair (4-5), and hyper_fair (6-9) tiers.",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet formulas grouping the offers into the three specified tiers and calculating the mean acceptance rate for each tier per participant."
+    },
+    {
+      "id": "calculate_mao",
+      "description": "Determine the Minimum Acceptable Offer (MAO) for each participant.",
+      "points": 20,
+      "visual_evidence": "Code logic or intermediate outputs showing the calculation of the lowest offer (1-9) with an acceptance rate >= 0.5, and setting it to 10 if no offer meets the criteria."
+    },
+    {
+      "id": "apply_exclusion_rule",
+      "description": "Exclude participants with a hyper_fair acceptance rate strictly less than 0.8.",
+      "points": 15,
+      "visual_evidence": "Code logic filtering out participants (specifically checking for hyper_fair < 0.8) or marking them as excluded in the dataset."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Calculate group means for tier acceptance rates and MAOs of valid participants.",
+      "points": 15,
+      "visual_evidence": "Code or calculations averaging the unfair, fair, and hyper_fair acceptance rates, as well as the MAO, across all non-excluded participants."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Produce the final JSON report with the required structure.",
+      "points": 20,
+      "visual_evidence": "A terminal command, script execution, or text editor showing the creation and saving of ~/pebl/analysis/ultimatum_report.json containing a 'participants' list and a 'group_means' object."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_example_json",
+      "description": "Ensure the agent did not simply copy-paste the example JSON from the task description.",
+      "visual_evidence": "The final JSON file or the script generating it should process the full dataset and contain multiple participants, not just 'sub-01' and 'sub-99' with the exact values from the prompt."
+    },
+    {
+      "id": "actual_data_processing",
+      "description": "Ensure the agent wrote logic to dynamically process the CSV data.",
+      "visual_evidence": "The agent's script or workspace should show actual data manipulation (e.g., pandas operations, loops, conditional statements) rather than hardcoding the final calculated values."
+    },
+    {
+      "id": "dynamic_exclusion_logic",
+      "description": "Ensure the exclusion rule was applied programmatically.",
+      "visual_evidence": "The code should show a conditional check for hyper_fair < 0.8 rather than just hardcoding 'sub-99' to be excluded."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be saved at /home/ga/pebl/analysis/ultimatum_report.json. The dataset contains a specific contaminated participant, 'sub-99', who violates the rational actor assumption. The agent must correctly exclude 'sub-99' based on the rule that their hyper_fair acceptance rate is strictly less than 0.8. Verify that 'sub-99' is marked as excluded in the final JSON report."
+}

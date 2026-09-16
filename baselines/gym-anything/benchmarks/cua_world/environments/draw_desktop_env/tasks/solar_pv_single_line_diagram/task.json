@@ -1,0 +1,43 @@
+{
+  "id": "solar_pv_single_line_diagram@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a technical Solar PV Single Line Diagram (SLD) for a residential installation using the specifications provided in '~/Desktop/solar_specifications.txt'. The diagram must illustrate the complete hardware chain from generation to the Utility Grid (including PV Modules, Combiner, Disconnects, Inverter, Service Panel, and Meter), labeling each component with the specific Manufacturer, Model Number, and Electrical Ratings found in the text file. Save the source file to '~/Desktop/solar_sld.drawio' and export the diagram as a PNG image to '~/Desktop/solar_sld.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/solar_pv_single_line_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/solar_pv_single_line_diagram/export_result.sh"
+  },
+  "metadata": {
+    "spec_file": "/home/ga/Desktop/solar_specifications.txt",
+    "output_drawio": "/home/ga/Desktop/solar_sld.drawio",
+    "output_png": "/home/ga/Desktop/solar_sld.png",
+    "required_text": [
+      "Q.PEAK",
+      "400W",
+      "SE7600H",
+      "SolarEdge",
+      "Square D",
+      "60A",
+      "200A",
+      "Main Panel",
+      "Bi-directional",
+      "Meter",
+      "Utility",
+      "Grid"
+    ],
+    "topology_start": "PV",
+    "topology_end": "Grid"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_sld"
+    }
+  }
+}

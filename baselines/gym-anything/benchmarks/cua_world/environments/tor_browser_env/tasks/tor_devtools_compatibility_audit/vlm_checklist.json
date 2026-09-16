@@ -1,0 +1,59 @@
+{
+  "task_id": "tor_devtools_compatibility_audit@1",
+  "task_completion": [
+    {
+      "id": "visit_check_torproject",
+      "description": "Navigate to check.torproject.org using Tor Browser.",
+      "points": 10,
+      "visual_evidence": "Tor Browser window is visible with 'check.torproject.org' in the address bar."
+    },
+    {
+      "id": "visit_torproject_download",
+      "description": "Navigate to www.torproject.org/download/ using Tor Browser.",
+      "points": 10,
+      "visual_evidence": "Tor Browser window is visible with 'www.torproject.org/download/' in the address bar."
+    },
+    {
+      "id": "visit_eff",
+      "description": "Navigate to www.eff.org using Tor Browser.",
+      "points": 10,
+      "visual_evidence": "Tor Browser window is visible with 'www.eff.org' in the address bar."
+    },
+    {
+      "id": "extract_metadata",
+      "description": "Extract technical metadata (link count and image count) from the websites.",
+      "points": 20,
+      "visual_evidence": "Browser Developer Tools (Console/Inspector) or 'View Page Source' is open, showing the agent searching for or counting HTML tags like <a> (links) and <img> (images)."
+    },
+    {
+      "id": "create_report_header_and_ip",
+      "description": "Create the report file with the required header and Tor exit IP.",
+      "points": 20,
+      "visual_evidence": "A text editor is open showing the file '/home/ga/Documents/tor_compatibility_report.txt'. The document contains the exact header 'Tor Browser Compatibility Report' and an extracted IP address."
+    },
+    {
+      "id": "report_contains_all_metadata",
+      "description": "Compile the URL, title, link count, and image count for all three sites into the report.",
+      "points": 30,
+      "visual_evidence": "The text editor shows entries for all three websites (check.torproject.org, torproject.org/download, eff.org), each including a page title, a link count, and an image count."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_tor_browser",
+      "description": "Verify the agent actually used Tor Browser, not a standard web browser or terminal curl commands.",
+      "visual_evidence": "The browser UI must show Tor Browser branding, such as the Onion icon in the toolbar or 'Tor Browser' in the window title."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "Verify the agent actively extracted the counts rather than hallucinating or copying pre-existing text.",
+      "visual_evidence": "Screenshots should show the agent interacting with the DOM (e.g., running document.querySelectorAll('a').length in the console or using Find in Page) before writing the numbers in the report."
+    },
+    {
+      "id": "matching_ip",
+      "description": "Verify the IP address in the report matches the actual Tor exit IP assigned during the session.",
+      "visual_evidence": "The IP address typed into the text report must exactly match the IP address displayed on the screen when the agent visited check.torproject.org."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file path is exactly /home/ga/Documents/tor_compatibility_report.txt. The report must contain the header 'Tor Browser Compatibility Report', the Tor exit IP, and the URL, title, link count, and image count for check.torproject.org, www.torproject.org/download/, and www.eff.org."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "configure_channel_filter@1",
+  "version": "1.0",
+  "env_id": "nextgen_connect_integration_engine_env@0.1",
+  "description": "Create a channel named 'ADT Filter Channel' in NextGen Connect that listens on TCP port 6662 and filters HL7 messages to only accept ADT types (MSH-9), rejecting all other message types. Ensure the channel XML includes a <responseTransformer> element in destination connectors. Verify the filter logic using the test messages at /home/ga/sample_adt_message.hl7 and /home/ga/sample_oru_message.hl7. The REST API is available at https://localhost:8443/api (admin/admin) and requires the 'X-Requested-With: OpenAPI' header. The web dashboard at https://localhost:8443 is monitoring-only. You can use the terminal window to interact with the system. Note: File Writer output files are created inside the Docker container.",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_channel_filter/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_channel_filter/export_result.sh"
+  },
+  "metadata": {
+    "channel_name": "ADT Filter Channel",
+    "filter_type": "message_type",
+    "filter_value": "ADT",
+    "listen_port": "6662"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_channel_filter"
+    }
+  }
+}

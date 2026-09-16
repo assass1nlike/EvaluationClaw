@@ -1,0 +1,34 @@
+{
+  "id": "create_task_template@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Create a Task Template named 'Server Patching Protocol' in ManageEngine ServiceDesk Plus for standardizing server maintenance (Login: administrator/administrator). Set the priority to High and include the following steps in the template description: 1. Stop all application services. 2. Create a VM snapshot/backup. 3. Apply critical security updates. 4. Reboot the server. 5. Verify service connectivity.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_task_template/setup_task.sh",
+    "post_task": "/workspace/tasks/create_task_template/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_title": "Server Patching Protocol",
+    "expected_priority": "High",
+    "required_phrases": [
+      "Stop all application services",
+      "Create a VM snapshot",
+      "Apply critical security updates",
+      "Reboot the server",
+      "Verify service connectivity"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_task_template"
+    }
+  }
+}

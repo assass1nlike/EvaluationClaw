@@ -1,0 +1,59 @@
+{
+  "task_id": "ttfb_bottleneck_analysis@1",
+  "task_completion": [
+    {
+      "id": "screaming_frog_crawling",
+      "description": "Verify that Screaming Frog SEO Spider is open and crawling the target URL.",
+      "points": 10,
+      "visual_evidence": "The Screaming Frog SEO Spider application window is visible. The URL 'https://books.toscrape.com/' is entered in the top URL bar, and the crawl progress bar or populated results table indicates the crawl has started or finished."
+    },
+    {
+      "id": "view_internal_html_data",
+      "description": "Verify that the agent views the Internal HTML data with the Response Time column.",
+      "points": 15,
+      "visual_evidence": "In Screaming Frog, the 'Internal' tab is selected, the filter is set to 'HTML' (or HTML files are visible), and the 'Response Time' column is clearly visible in the main data table."
+    },
+    {
+      "id": "export_csv_data",
+      "description": "Verify that the Internal HTML data is exported to a CSV file in the correct directory.",
+      "points": 20,
+      "visual_evidence": "An 'Export' or 'Save As' dialog box is visible in Screaming Frog, showing the save destination as '~/Documents/SEO/exports/' (or '/home/ga/Documents/SEO/exports/') and the file format as CSV. Alternatively, a file manager or terminal shows a newly created CSV file in this directory."
+    },
+    {
+      "id": "open_report_file",
+      "description": "Verify that a text editor is open to create the TTFB analysis report at the specified path.",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., gedit, nano, VS Code) is open. The window title, tab name, or terminal command indicates the file being edited is 'ttfb_analysis.txt' located in '~/Documents/SEO/reports/' (or '/home/ga/Documents/SEO/reports/')."
+    },
+    {
+      "id": "report_metrics_and_slowest",
+      "description": "Verify that the report contains the total URLs crawled, average response time, and the five slowest URLs.",
+      "points": 20,
+      "visual_evidence": "The text editor displays report content that explicitly lists the 'total URLs crawled', an 'average response time' value, and a section identifying the 'five slowest URLs' (showing actual URLs from the crawl)."
+    },
+    {
+      "id": "report_patterns_and_recs",
+      "description": "Verify that the report includes identified slow URL patterns and at least three optimization recommendations.",
+      "points": 20,
+      "visual_evidence": "The text editor displays report content that describes 'patterns' among the slow URLs and provides a list of at least three distinct 'recommendations' or 'optimizations' for improving server response times."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_crawl",
+      "description": "Ensure the agent used the Screaming Frog GUI to perform the crawl and export.",
+      "visual_evidence": "Screenshots must show the Screaming Frog application interface actively being used to crawl and export data, rather than the agent mocking a CSV file using terminal commands or Python scripts."
+    },
+    {
+      "id": "authentic_report_data",
+      "description": "Ensure the report contains genuine data derived from the target website.",
+      "visual_evidence": "The URLs listed in the 'five slowest URLs' section of the report must belong to the 'books.toscrape.com' domain, and the response times should look like plausible numerical data (e.g., seconds or milliseconds), not placeholder text."
+    },
+    {
+      "id": "manual_report_generation",
+      "description": "Ensure the agent actively composed the report in a text editor.",
+      "visual_evidence": "The report should be visible inside a text editor GUI or terminal editor interface, showing the agent typing or pasting the analysis, rather than just using a single 'echo' command to blindly write a pre-written block of text without looking at the crawl data."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://books.toscrape.com/. The CSV must be exported to exactly /home/ga/Documents/SEO/exports/. The analysis report must be saved to exactly /home/ga/Documents/SEO/reports/ttfb_analysis.txt. To be considered complete, the exported CSV must contain at least 20 rows of data, and the final text report must be at least 400 characters long."
+}

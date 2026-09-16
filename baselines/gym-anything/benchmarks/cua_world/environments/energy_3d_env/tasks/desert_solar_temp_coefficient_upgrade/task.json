@@ -1,0 +1,32 @@
+{
+  "id": "desert_solar_temp_coefficient_upgrade@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Performance Engineer evaluating a utility-scale solar farm layout for a new site in Phoenix, Arizona. The extreme summer temperatures will cause massive voltage drops and power degradation in standard solar panels. The Energy3D project 'solar-rack-array.ng3' is open. You must: 1. Change the project location/city to Phoenix, AZ. 2. Select all solar panels in the array and update their physical properties to match a premium HJT module: Cell Efficiency to 22% (or 0.22), Temperature Coefficient of Pmax to -0.26 %/\u00b0C, and Nominal Operating Cell Temperature (NOCT) to 43\u00b0C. 3. Run an Annual Yield Analysis (or Annual Solar Radiation Analysis) to simulate the total energy production of the upgraded array. 4. Save the modified project as 'hjt_upgrade_phoenix.ng3' in the ~/Documents/Energy3D/ directory. 5. Create a text file at '~/Documents/Energy3D/yield_report.txt' containing the new total annual yield of the array in kWh (e.g., 'Annual Yield: 125000 kWh').",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/desert_solar_temp_coefficient_upgrade/setup_task.sh",
+    "post_task": "/workspace/tasks/desert_solar_temp_coefficient_upgrade/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Performance Engineer",
+    "industry": "Utility-Scale Solar",
+    "expected_city": "Phoenix",
+    "expected_efficiency": 0.22,
+    "expected_temp_coeff": -0.26,
+    "expected_noct": 43,
+    "expected_output_file": "/home/ga/Documents/Energy3D/hjt_upgrade_phoenix.ng3",
+    "expected_report_file": "/home/ga/Documents/Energy3D/yield_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_upgrade"
+    }
+  }
+}

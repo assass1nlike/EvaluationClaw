@@ -1,0 +1,59 @@
+{
+  "task_id": "diagnose_fix_compromised_site@1",
+  "task_completion": [
+    {
+      "id": "restore_general_settings_title_tagline",
+      "description": "Verify the site title and tagline have been restored to their original values.",
+      "points": 15,
+      "visual_evidence": "In the WordPress 'Settings > General' page, the 'Site Title' input field contains exactly 'My WordPress Blog' and the 'Tagline' input field contains exactly 'A WordPress blog for testing and demonstrations'."
+    },
+    {
+      "id": "restore_general_settings_timezone",
+      "description": "Verify the site timezone has been restored to America/Los_Angeles.",
+      "points": 10,
+      "visual_evidence": "In the WordPress 'Settings > General' page, the 'Timezone' dropdown is set to 'Los Angeles' or 'America/Los_Angeles'."
+    },
+    {
+      "id": "fix_registration_settings",
+      "description": "Verify public user registration is disabled or the default role is not administrator.",
+      "points": 15,
+      "visual_evidence": "In the WordPress 'Settings > General' page, either the 'Membership' checkbox ('Anyone can register') is unchecked, OR the 'New User Default Role' dropdown is set to a non-administrator role (e.g., 'Subscriber')."
+    },
+    {
+      "id": "enable_comment_moderation",
+      "description": "Verify that comments require manual moderation.",
+      "points": 20,
+      "visual_evidence": "In the WordPress 'Settings > Discussion' page, under the 'Before a comment appears' section, the checkbox for 'Comment must be manually approved' is checked."
+    },
+    {
+      "id": "fix_permalinks",
+      "description": "Verify the URL structure uses SEO-friendly permalinks instead of plain numeric IDs.",
+      "points": 20,
+      "visual_evidence": "In the WordPress 'Settings > Permalinks' page, a radio button other than 'Plain' is selected (e.g., 'Post name', 'Day and name', 'Month and name', or 'Custom Structure')."
+    },
+    {
+      "id": "remove_rogue_admin",
+      "description": "Verify 'admin' is the only administrator account.",
+      "points": 20,
+      "visual_evidence": "In the WordPress 'Users > All Users' page, the user 'service_worker' is either deleted or no longer has the 'Administrator' role. The user 'admin' should be the only account listed with the 'Administrator' role."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "Verify the agent used the WordPress Admin GUI rather than terminal commands.",
+      "visual_evidence": "Screenshots should show interaction with the WordPress web interface in a browser. There should be no terminal windows showing WP-CLI commands (e.g., `wp option update` or `wp user delete`) being executed."
+    },
+    {
+      "id": "no_external_plugins",
+      "description": "Verify no external security plugins were used to fix the issues.",
+      "visual_evidence": "The WordPress sidebar and Plugins page should not show newly installed third-party security plugins (e.g., Wordfence, Sucuri, Solid Security) being used to manage these settings."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Verify the agent interacted with the actual live application.",
+      "visual_evidence": "Screenshots show a standard web browser rendering the WordPress dashboard with a valid URL (e.g., localhost or an IP address), not a text editor modifying database files directly or mocked HTML pages."
+    }
+  ],
+  "privileged_info_for_vlm": "The original site title is 'My WordPress Blog'. The original tagline is 'A WordPress blog for testing and demonstrations'. The correct timezone is 'America/Los_Angeles'. The rogue administrator account injected during setup is named 'service_worker'. The agent must fix 7 specific issues using only built-in settings: blogname spam, blogdescription spam, rogue admin user, plain permalinks, comment moderation disabled, open registration as admin, and timezone changed."
+}

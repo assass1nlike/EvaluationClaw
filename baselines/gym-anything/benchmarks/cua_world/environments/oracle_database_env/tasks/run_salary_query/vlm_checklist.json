@@ -1,0 +1,53 @@
+{
+  "task_id": "run_salary_query@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Verify the agent connects to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for a database client (like DBeaver, SQL Developer, or sqlplus in terminal) showing a connection to 'localhost:1521/XEPDB1' using the username 'hr'."
+    },
+    {
+      "id": "sql_query_filters",
+      "description": "Verify the SQL query includes the correct filters for department and salary.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query in the editor or terminal containing a WHERE clause with 'department_id = 60' and 'salary > 5000'."
+    },
+    {
+      "id": "sql_query_columns",
+      "description": "Verify the SQL query selects the exact required columns.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query SELECT statement explicitly requesting 'employee_id', 'first_name', 'last_name', 'salary', and 'job_id'."
+    },
+    {
+      "id": "query_results_displayed",
+      "description": "Verify the query executes successfully and returns the correct matching employees.",
+      "points": 20,
+      "visual_evidence": "Look for the query execution results (in a data grid or terminal output) showing exactly two employees: Alexander Hunold and Bruce Ernst."
+    },
+    {
+      "id": "results_exported",
+      "description": "Verify the results are exported to the correct file path with headers and correct formatting.",
+      "points": 30,
+      "visual_evidence": "Look for a terminal command, file explorer, or text editor showing the file '/tmp/query_results.txt' containing the column headers and the two employee records, with one employee per line."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Verify the agent used a genuine database client or CLI tool to execute the query.",
+      "visual_evidence": "Look for the use of tools like DBeaver, DataGrip, or sqlplus, rather than just writing a text file from scratch."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent did not manually type the expected output.",
+      "visual_evidence": "Ensure the output file '/tmp/query_results.txt' is generated via an export function, a script, or redirected output from a genuine query, rather than manually typing 'Alexander Hunold' and 'Bruce Ernst' into a text editor."
+    },
+    {
+      "id": "query_actually_executed",
+      "description": "Verify the query was actually run against the database.",
+      "visual_evidence": "Look for visual confirmation of execution, such as a success message, execution time, or a populated results grid in the database client."
+    }
+  ],
+  "privileged_info_for_vlm": "The Oracle HR database contains exactly two employees matching department_id = 60 and salary > 5000: Alexander Hunold (salary 9000) and Bruce Ernst (salary 6000). The expected output file is /tmp/query_results.txt, which must contain the columns: employee_id, first_name, last_name, salary, and job_id. The connection details are hr/hr123 at localhost:1521/XEPDB1."
+}

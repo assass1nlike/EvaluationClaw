@@ -1,0 +1,59 @@
+{
+  "id": "event_badge_mail_merge@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Create a batch of event badges for the 'Civic Tech Summit 2026' using the attendee list at /home/ga/Documents/attendees.csv as the data source. Use 'Avery Letter Size' brand and '5395 Name Badge Labels' type. The badge layout must include three centered lines: the <First Name> field (Bold, 24pt), the <Last Name> field (Bold, 18pt), and the <Organization> field (Regular, 12pt). Save the final merged document containing all attendee badges to /home/ga/Documents/badges_merged.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/event_badge_mail_merge/setup_task.sh",
+    "post_task": "/workspace/tasks/event_badge_mail_merge/export_result.sh"
+  },
+  "metadata": {
+    "data_source_path": "/home/ga/Documents/attendees.csv",
+    "expected_output_path": "/home/ga/Documents/badges_merged.odt",
+    "min_expected_records": 20,
+    "formatting_rules": {
+      "first_name": {
+        "bold": true,
+        "align": "center",
+        "min_size": 22
+      },
+      "last_name": {
+        "bold": true,
+        "align": "center",
+        "min_size": 16,
+        "max_size": 20
+      },
+      "org": {
+        "bold": false,
+        "align": "center",
+        "max_size": 14
+      }
+    },
+    "attendee_sample": [
+      "Sarah",
+      "Chen",
+      "BioTech Inc.",
+      "Michael",
+      "Ross",
+      "Pearson Legal",
+      "Jessica",
+      "Wong",
+      "City Planning",
+      "David",
+      "Miller",
+      "StartUp Hub"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_event_badge_mail_merge"
+    }
+  }
+}

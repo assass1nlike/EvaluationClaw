@@ -1,0 +1,36 @@
+{
+  "id": "fuel_cell_stability_spc@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a fuel cell engineer monitoring voltage stability from a constant-load durability test. Using the sensor readings (Timestamp and Stack_Voltage) from C:\\Users\\Docker\\Desktop\\PowerBITasks\\fuel_cell_voltage.csv, build a Statistical Process Control (SPC) chart in Power BI. The report must include a page named 'Stability Analysis' featuring a Line Chart that plots Timestamp on the X-axis against Stack_Voltage and four calculated measures: Global_Mean_Voltage (average voltage for the entire dataset ignoring row context), Global_Sigma (standard deviation of the entire dataset), UCL (Mean + 3 * Sigma), and LCL (Mean - 3 * Sigma). Save the completed report to C:\\Users\\Docker\\Desktop\\Voltage_Stability_Report.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fuel_cell_stability_spc/setup_task.sh",
+    "post_task": "/workspace/tasks/fuel_cell_stability_spc/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "Voltage_Stability_Report.pbix",
+    "required_measures": [
+      "Global_Mean_Voltage",
+      "UCL",
+      "LCL"
+    ],
+    "required_visual_type": "lineChart",
+    "dax_keywords": [
+      "ALL",
+      "REMOVEFILTERS",
+      "CALCULATE"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fuel_cell_stability"
+    }
+  }
+}

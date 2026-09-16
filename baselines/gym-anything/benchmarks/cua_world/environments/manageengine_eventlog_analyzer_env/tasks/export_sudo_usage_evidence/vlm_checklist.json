@@ -1,0 +1,53 @@
+{
+  "task_id": "export_sudo_usage_evidence@1",
+  "task_completion": [
+    {
+      "id": "open_eventlog_analyzer",
+      "description": "Open ManageEngine EventLog Analyzer",
+      "points": 10,
+      "visual_evidence": "The ManageEngine EventLog Analyzer web interface is visible in the browser."
+    },
+    {
+      "id": "search_sudo_keyword",
+      "description": "Perform a search for the keyword 'sudo'",
+      "points": 20,
+      "visual_evidence": "The search bar in EventLog Analyzer contains the word 'sudo' and search results (log entries) are displayed on the screen."
+    },
+    {
+      "id": "set_time_filter_last_hour",
+      "description": "Set the search time filter to the last hour",
+      "points": 20,
+      "visual_evidence": "A time filter dropdown, badge, or label in the EventLog Analyzer UI explicitly shows 'Last 1 Hour', 'Last Hour', or an equivalent 60-minute timeframe."
+    },
+    {
+      "id": "export_as_pdf",
+      "description": "Initiate the export of the search results as a PDF",
+      "points": 20,
+      "visual_evidence": "An export menu or dialog is open in EventLog Analyzer with 'PDF' selected as the export format, or a PDF generation loading screen is visible."
+    },
+    {
+      "id": "save_to_correct_path",
+      "description": "Save the exported PDF to /home/ga/Documents/sudo_evidence.pdf",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog shows the directory '/home/ga/Documents' and the filename 'sudo_evidence.pdf', or a file manager/terminal window confirms the file exists at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_actual_application",
+      "description": "The agent interacted with the genuine ManageEngine EventLog Analyzer application",
+      "visual_evidence": "The screenshots show the actual EventLog Analyzer UI being used for searching, not a text editor, mock webpage, or terminal."
+    },
+    {
+      "id": "no_terminal_pdf_generation",
+      "description": "The agent did not use terminal commands to fake the PDF file",
+      "visual_evidence": "The terminal should not show commands like 'echo', 'touch', 'wkhtmltopdf', or 'enscript' being used to manually create or overwrite 'sudo_evidence.pdf'."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "The PDF was generated via the application's built-in export feature",
+      "visual_evidence": "The agent clicks the export/download button within the EventLog Analyzer interface rather than downloading a pre-existing file from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be exactly named 'sudo_evidence.pdf' and saved in '/home/ga/Documents/'. The search keyword is strictly 'sudo'. The underlying injected logs contain the keywords 'sudo', 'COMMAND', and 'root', which should be visible in the EventLog Analyzer search results before export."
+}

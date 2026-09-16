@@ -1,0 +1,42 @@
+{
+  "id": "bayesian_ttest@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Bayesian Independent Samples T-Test on the 'Invisibility Cloak' dataset using 'Mischief' as the dependent variable and 'Cloak' as the grouping variable. Include the 'Prior and posterior plot' and 'Bayes factor robustness check' in the analysis. Save the JASP project to /home/ga/Documents/JASP/InvisibilityCloak_BayesianTTest.jasp. Create a text file at /home/ga/Documents/JASP/bayesian_ttest_results.txt containing the BF10 value and its interpretation on separate lines (e.g., \"BF10: [value]\" and \"Evidence: [interpretation]\").",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bayesian_ttest/setup_task.sh",
+    "post_task": "/workspace/tasks/bayesian_ttest/export_result.sh"
+  },
+  "metadata": {
+    "output_jasp_path": "/home/ga/Documents/JASP/InvisibilityCloak_BayesianTTest.jasp",
+    "output_txt_path": "/home/ga/Documents/JASP/bayesian_ttest_results.txt",
+    "dataset_name": "Invisibility Cloak",
+    "expected_analysis_type": "TTestBayesianIndependentSamples",
+    "expected_dv": "Mischief",
+    "expected_grouping": "Cloak",
+    "bf10_min": 0.3,
+    "bf10_max": 5.0,
+    "scoring": {
+      "jasp_file_exists": 10,
+      "correct_analysis_type": 15,
+      "correct_variables": 15,
+      "plots_enabled": 20,
+      "dataset_integrity": 5,
+      "results_file_exists": 15,
+      "bf10_value_correct": 10,
+      "interpretation_consistent": 10
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bayesian_ttest"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "credit_risk_explainer@1",
+  "task_completion": [
+    {
+      "id": "script_setup",
+      "description": "Create the R script file at the specified path.",
+      "points": 10,
+      "visual_evidence": "Look for an open text editor or IDE (like RStudio or VS Code) editing a file named 'credit_risk_analysis.R' located in '/home/ga/RProjects/'."
+    },
+    {
+      "id": "data_split_and_model_training",
+      "description": "Load data, perform a 70/30 split with set.seed(123), and train a Random Forest model on the 'default' target.",
+      "points": 20,
+      "visual_evidence": "Look for R code containing 'read.csv' for 'german_credit.csv', 'set.seed(123)', logic for a 70/30 train-test split (e.g., using 'sample' or 'createDataPartition'), and a Random Forest training function (e.g., 'randomForest()' or 'ranger()') with 'default' as the target variable."
+    },
+    {
+      "id": "metrics_evaluation_and_save",
+      "description": "Evaluate model performance (Accuracy and AUC) and save to model_metrics.csv.",
+      "points": 20,
+      "visual_evidence": "Look for R code calculating Accuracy and AUC (e.g., using 'predict', 'confusionMatrix', 'roc', or 'auc') and a command like 'write.csv' saving these metrics to '/home/ga/RProjects/output/model_metrics.csv'. Alternatively, look for the generated CSV file in a file explorer or terminal."
+    },
+    {
+      "id": "variable_importance_plot",
+      "description": "Generate and save a variable importance plot for the top 10 predictors.",
+      "points": 25,
+      "visual_evidence": "Look for R code using functions like 'vip()', 'varImpPlot()', or 'importance()' specifically limited to the top 10 predictors, and saving the output to '/home/ga/RProjects/output/variable_importance.png' (using 'png()', 'ggsave()', etc.). Alternatively, look for the actual image file being viewed."
+    },
+    {
+      "id": "partial_dependence_plot",
+      "description": "Generate and save a partial dependence plot for 'months_loan_duration'.",
+      "points": 25,
+      "visual_evidence": "Look for R code using functions like 'partial()', 'pdp::partial()', or 'model_profile()' targeting the feature 'months_loan_duration', and saving the output to '/home/ga/RProjects/output/pdp_duration.png'. Alternatively, look for the actual image file being viewed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_execution",
+      "description": "The agent actually executed the R script to generate the outputs.",
+      "visual_evidence": "Look for signs of execution in the R console or terminal (e.g., output logs, progress bars, or command prompts showing 'Rscript credit_risk_analysis.R'), rather than just writing text into a file without running it."
+    },
+    {
+      "id": "no_hardcoded_metrics",
+      "description": "The agent calculated the metrics dynamically rather than hardcoding fake values.",
+      "visual_evidence": "Ensure the script computes Accuracy and AUC from the model's predictions on the test set. There should be no hardcoded numeric values (e.g., 'Accuracy <- 0.75') written directly to the metrics CSV."
+    },
+    {
+      "id": "no_hardcoded_plots",
+      "description": "The agent generated the plots using R code rather than copying existing images.",
+      "visual_evidence": "Ensure the script contains the actual plotting and saving commands (e.g., 'png(...)', 'ggsave(...)') and does not use shell commands like 'cp' or 'wget' to place pre-existing images into the output directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The R script must be located at '/home/ga/RProjects/credit_risk_analysis.R'. The model must be a Random Forest (using packages like 'ranger' or 'randomForest'). The metrics file '/home/ga/RProjects/output/model_metrics.csv' must contain Accuracy and AUC (expected to be > 0.65). The variable importance plot must be saved to '/home/ga/RProjects/output/variable_importance.png' and the PDP for 'months_loan_duration' to '/home/ga/RProjects/output/pdp_duration.png'. The script should use 'set.seed(123)' for a 70/30 train-test split."
+}

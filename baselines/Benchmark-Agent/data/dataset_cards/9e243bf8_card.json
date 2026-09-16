@@ -1,0 +1,74 @@
+{
+  "dataset_id": "9e243bf8",
+  "name": "Art-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset contains 200 multiple-choice questions about art history, covering art movements, artists, and historical influences on art. It evaluates a model's art-historical knowledge by requiring selection of the correct option from four candidates.",
+  "card_text": "Art-Question-Answering is a text-only multiple-choice QA dataset with 200 samples. Each sample consists of a natural-language question about art history (e.g., movements, artists, historical events), four short candidate answers, and a single-letter gold answer. No supporting passage or image is provided; the task relies on pretrained knowledge. Questions are factual and encyclopedic, written in a direct instruction style, while options are concise phrases. The dataset assumes a closed-world multiple-choice format, where exactly one option is correct and the answer letter maps to option position. It is suitable for evaluating knowledge-grounded question answering in the art domain.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "art history",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question asking about art-historical knowledge, such as art movements, artists, or historical influences. It is paired with a list of four candidate answers and expects exactly one correct choice.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of four short candidate answers, each a possible response to the question. Exactly one option is correct, and the correct option is identified by the answer letter's position in this list.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single uppercase letter (A, B, C, or D) indicating which option is correct. The letter maps positionally to the options list, e.g., 'A' corresponds to the first option.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with a question (natural-language query about art history) and an options array of four short candidate answers, plus an output object with a single answer letter that identifies the correct option by its position (A for the first option, B for the second, and so on). There is no passage, image, or other context; the model must rely on internal art-historical knowledge to select the correct option."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Art-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Art Question Answering",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "compute_flood_volume@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "As a Water Resource Specialist, calculate the total flood storage volume of the White River reach at the peak of the flood event using Python. Using the simulation results in /home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.hdf, write a script at /home/ga/Documents/analysis_scripts/compute_flood_volume.py that identifies the time step with the maximum total flow area across all cross-sections and computes the total water volume in the reach at that peak using the trapezoidal rule: V = Sum((A_i + A_{i+1})/2 * L_i), where L_i is the channel length between sections. Convert the result from cubic feet to cubic meters (1 ft^3 = 0.0283168 m^3). Generate a report at /home/ga/Documents/hec_ras_results/flood_volume_report.txt containing the HDF5 filename, the peak time step index, the cross-section count, and the calculated volume in both cubic feet and cubic meters.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_flood_volume/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_flood_volume/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/Documents/analysis_scripts/compute_flood_volume.py",
+    "report_path": "/home/ga/Documents/hec_ras_results/flood_volume_report.txt",
+    "conversion_factor": 0.0283168,
+    "volume_tolerance": 0.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_flood_volume"
+    }
+  }
+}

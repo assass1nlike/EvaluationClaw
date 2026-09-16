@@ -1,0 +1,53 @@
+{
+  "task_id": "sqlite_financial_artifact_parsing@1",
+  "privileged_info_for_vlm": "Final Result Anchor: The hidden database is 'system_config.sys'. The correct tables to query are singular ('Customer' and 'Invoice'). Leonie K\u00f6hler has CustomerId 2, exactly 7 invoices, and a total lifetime spend of $37.62. The CSV must be pipe-delimited with headers InvoiceId|InvoiceDate|BillingCity|Total. The summary file must contain CUSTOMER_NAME, CUSTOMER_ID, TOTAL_INVOICES, LIFETIME_SPEND, and DATABASE_FILE_FOUND.",
+  "task_completion": [
+    {
+      "id": "initial_context",
+      "description": "Initial logic and parameters are validated.",
+      "points": 10,
+      "visual_evidence": "Case 'Financial_Triage_2024' (INV-FIN-009) is created and visible in the forensic tool or terminal, using the data source /home/ga/evidence/logical_seizure/."
+    },
+    {
+      "id": "middle_step_1",
+      "description": "Standard processing applied.",
+      "points": 10,
+      "visual_evidence": "The hidden SQLite database with a .sys extension (system_config.sys) is identified and opened in a database viewer or queried via CLI."
+    },
+    {
+      "id": "middle_step_2",
+      "description": "Standard processing applied.",
+      "points": 10,
+      "visual_evidence": "A SQL query is executed against the 'Customer' and 'Invoice' tables specifically targeting 'Leonie K\u00f6hler'."
+    },
+    {
+      "id": "middle_step_3",
+      "description": "Standard processing applied.",
+      "points": 10,
+      "visual_evidence": "The agent initiates an export or file writing process for the suspect_transactions.csv file."
+    },
+    {
+      "id": "final_transformation",
+      "description": "Final transformation.",
+      "points": 60,
+      "visual_evidence": "The final CSV report exists at /home/ga/Reports/suspect_transactions.csv with pipe-delimited headers (InvoiceId|InvoiceDate|BillingCity|Total) AND the summary file at /home/ga/Reports/financial_summary.txt contains CUSTOMER_NAME: Leonie K\u00f6hler, CUSTOMER_ID: 2, TOTAL_INVOICES: 7, LIFETIME_SPEND: 37.62, and DATABASE_FILE_FOUND: system_config.sys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Results appear to come from genuine software interaction",
+      "visual_evidence": "The agent used a forensic tool, SQLite browser, or terminal commands to query the database, rather than just creating text files from nowhere."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent didn't copy-paste expected answers from the task description",
+      "visual_evidence": "The agent actually executed a query to find the 7 invoices and $37.62 spend, rather than typing the final text file directly without querying."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Files were actually created in the environment",
+      "visual_evidence": "The file manager or terminal shows the files genuinely exist in /home/ga/Reports/."
+    }
+  ]
+}

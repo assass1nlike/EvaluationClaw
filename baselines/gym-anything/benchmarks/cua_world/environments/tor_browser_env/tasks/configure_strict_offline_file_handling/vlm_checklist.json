@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_strict_offline_file_handling@1",
+  "task_completion": [
+    {
+      "id": "disable_pdf_viewer",
+      "description": "Disable the internal PDF viewer in Tor Browser",
+      "points": 15,
+      "visual_evidence": "Screenshots showing Tor Browser's about:config page with 'pdfjs.disabled' set to 'true', or the Settings page showing PDF handling set to 'Save File' instead of opening in Tor Browser."
+    },
+    {
+      "id": "disable_media_standalone",
+      "description": "Disable standalone media playback in Tor Browser",
+      "points": 15,
+      "visual_evidence": "Screenshots showing Tor Browser's about:config page with 'media.play-stand-alone' set to 'false'."
+    },
+    {
+      "id": "disable_clipboard_events",
+      "description": "Disable clipboard event tracking in Tor Browser",
+      "points": 15,
+      "visual_evidence": "Screenshots showing Tor Browser's about:config page with 'dom.event.clipboardevents.enabled' set to 'false'."
+    },
+    {
+      "id": "prompt_download_location",
+      "description": "Set Tor Browser to always prompt for a download location",
+      "points": 15,
+      "visual_evidence": "Screenshots showing Tor Browser's about:config page with 'browser.download.useDownloadDir' set to 'false', or the Settings page with 'Always ask you where to save files' checked."
+    },
+    {
+      "id": "create_malware_analysis_dir",
+      "description": "Create the /home/ga/Documents/MalwareAnalysis/ directory",
+      "points": 10,
+      "visual_evidence": "Screenshots of a file manager or terminal showing the 'MalwareAnalysis' folder successfully created inside the 'Documents' directory."
+    },
+    {
+      "id": "download_dummy_pdf",
+      "description": "Save the test PDF artifact to the newly created directory",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the file 'dummy.pdf' located exactly inside '/home/ga/Documents/MalwareAnalysis/'. This can be seen in a file manager, terminal output, or a browser download completion dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "Agent used the Tor Browser GUI to configure settings and download the file",
+      "visual_evidence": "Screenshots should show the actual Tor Browser window open with about:config or settings UI, rather than the agent just appending text to prefs.js via terminal commands."
+    },
+    {
+      "id": "genuine_download",
+      "description": "Agent downloaded the file from the specified URL",
+      "visual_evidence": "Screenshots should show the w3.org URL in the browser address bar or download manager, proving the file was fetched from the web and not just created locally as an empty file."
+    },
+    {
+      "id": "genuine_directory_creation",
+      "description": "Agent created a real directory for the file",
+      "visual_evidence": "Screenshots of the file manager or terminal should show 'MalwareAnalysis' as a directory (folder icon or 'd' in ls -l), not just a file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected directory is exactly '/home/ga/Documents/MalwareAnalysis'. The downloaded file must be saved as '/home/ga/Documents/MalwareAnalysis/dummy.pdf'. The required Tor Browser about:config preferences are: 'pdfjs.disabled=true', 'media.play-stand-alone=false', 'dom.event.clipboardevents.enabled=false', and 'browser.download.useDownloadDir=false'."
+}

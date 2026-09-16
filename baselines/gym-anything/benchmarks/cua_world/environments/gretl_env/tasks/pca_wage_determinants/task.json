@@ -1,0 +1,41 @@
+{
+  "id": "pca_wage_determinants@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are a labor economist analyzing wage survey data. Before building wage regression models, you need to assess the dimensionality of worker characteristics using Principal Component Analysis (PCA). Using the dataset at /home/ga/Documents/gretl_data/wage_survey.gdt (containing variables wage, educ, exper, age, hrswk, and tenure), write and execute a Gretl hansl script that performs PCA on all six variables and retains the component scores. Save the PCA text output to /home/ga/Documents/gretl_output/pca_results.txt, the augmented dataset with scores to /home/ga/Documents/gretl_output/wage_survey_pca.gdt, and the script to /home/ga/Documents/gretl_output/pca_analysis.inp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pca_wage_determinants/setup_task.sh",
+    "post_task": "/workspace/tasks/pca_wage_determinants/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/gretl_data/wage_survey.gdt",
+    "output_dir": "/home/ga/Documents/gretl_output",
+    "expected_files": [
+      "pca_analysis.inp",
+      "pca_results.txt",
+      "wage_survey_pca.gdt"
+    ],
+    "variables": [
+      "wage",
+      "educ",
+      "exper",
+      "age",
+      "hrswk",
+      "tenure"
+    ],
+    "min_eigenvalue_sum": 5.9,
+    "max_eigenvalue_sum": 6.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pca_wage_determinants"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "create_shortcuts_guide@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Join the Jitsi Meet session 'TrainingSession' as 'Training Lead'. Document the keyboard shortcuts by saving a screenshot of the shortcuts overlay to /home/ga/shortcuts_evidence.png. Create a text file at /home/ga/shortcuts_reference.txt listing the keys and descriptions for Mute/Unmute Microphone, Start/Stop Camera, and Show/Hide Filmstrip using the format '[Key] - [Description]'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_shortcuts_guide/setup_task.sh",
+    "post_task": "/workspace/tasks/create_shortcuts_guide/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "/home/ga/shortcuts_reference.txt",
+      "/home/ga/shortcuts_evidence.png"
+    ],
+    "target_room": "TrainingSession",
+    "target_name": "Training Lead",
+    "required_shortcuts": {
+      "mute": [
+        "M",
+        "m"
+      ],
+      "camera": [
+        "V",
+        "v"
+      ],
+      "filmstrip": [
+        "F",
+        "f"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_shortcuts_guide"
+    }
+  }
+}

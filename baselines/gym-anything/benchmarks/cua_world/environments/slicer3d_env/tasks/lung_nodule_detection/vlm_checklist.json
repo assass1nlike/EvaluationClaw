@@ -1,0 +1,59 @@
+{
+  "task_id": "lung_nodule_detection@1",
+  "task_completion": [
+    {
+      "id": "adjust_window_level",
+      "description": "Adjust the CT window/level settings to appropriately view lung tissue.",
+      "points": 10,
+      "visual_evidence": "The CT scan is visible in the viewer with a 'lung window' setting applied (typically W: ~1500, L: ~-600), making the dark lung parenchyma and brighter nodules clearly visible rather than washed out or completely black."
+    },
+    {
+      "id": "place_fiducial_markers",
+      "description": "Place fiducial markers on detected lung nodules.",
+      "points": 30,
+      "visual_evidence": "Crosshairs, colored points, or fiducial markers are visibly placed over lung nodules on the CT scan slices in the medical imaging viewer."
+    },
+    {
+      "id": "measure_nodule_diameter",
+      "description": "Measure the longest diameter of the detected nodules to ensure they are >=3mm.",
+      "points": 15,
+      "visual_evidence": "Measurement tools (such as a ruler or line tool) are visible on the CT scan, drawn across the nodules, displaying measurement values in millimeters."
+    },
+    {
+      "id": "identify_lobe_location",
+      "description": "Determine and note the lobe location for the detected nodules.",
+      "points": 10,
+      "visual_evidence": "Text annotations in the viewer, GUI panels, or draft notes in a text editor visible on screen indicating lobe names (RUL, RML, RLL, LUL, LLL) associated with the specific nodules."
+    },
+    {
+      "id": "save_fiducials_file",
+      "description": "Save the fiducial markers to ~/Documents/SlicerData/LIDC/agent_fiducials.fcsv.",
+      "points": 20,
+      "visual_evidence": "A save dialog, terminal command, or file explorer showing the creation or saving of a file named 'agent_fiducials.fcsv' in the '~/Documents/SlicerData/LIDC/' directory."
+    },
+    {
+      "id": "save_nodule_report",
+      "description": "Save the nodule report containing lobe locations and diameters to ~/Documents/SlicerData/LIDC/nodule_report.json.",
+      "points": 15,
+      "visual_evidence": "A text editor, IDE, or terminal showing a JSON structure containing lobe locations and diameter measurements, being saved to 'nodule_report.json' in the '~/Documents/SlicerData/LIDC/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_medical_viewer",
+      "description": "The agent used a medical imaging viewer (e.g., 3D Slicer) to view the CT scan and place markers.",
+      "visual_evidence": "Screenshots show the UI of a medical imaging application with the CT scan loaded and interacted with, not just a terminal or code editor running a hidden script."
+    },
+    {
+      "id": "genuine_measurement_interaction",
+      "description": "The agent actively measured the nodules using the software's tools.",
+      "visual_evidence": "Ruler or caliper tools are actively drawn on the nodules in the viewer, proving the agent didn't just guess or hardcode the diameters."
+    },
+    {
+      "id": "independent_report_generation",
+      "description": "The agent generated the JSON report based on its own findings.",
+      "visual_evidence": "The agent is seen typing, formatting, or running a script to compile its own fiducial and measurement data into the JSON format, rather than copying a pre-existing 'ground_truth' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The minimum nodule diameter to report is 3.0 mm. Nodules smaller than 3.0 mm should not be marked or included in the final report."
+}

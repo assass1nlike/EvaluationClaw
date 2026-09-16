@@ -1,0 +1,53 @@
+{
+  "task_id": "corporate_signage_overlay_deployment@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Verify the agent creates a bash script at the specified Desktop path with VLC commands.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window showing the creation or editing of '/home/ga/Desktop/launch_signage.sh'. The content should include a 'vlc' command referencing the corporate_broll.mp4 video, along with flags for looping, fullscreen, and overlays (e.g., --sub-filter, logo, marq)."
+    },
+    {
+      "id": "vlc_fullscreen_no_ui",
+      "description": "Verify VLC is launched in fullscreen mode with no visible user interface elements.",
+      "points": 20,
+      "visual_evidence": "The video playback occupies the entire screen. There are no window borders, title bars, menu bars, or playback controls (play/pause buttons, timeline) visible."
+    },
+    {
+      "id": "logo_overlay_visible",
+      "description": "Verify the corporate logo is overlaid in the top-left corner of the video.",
+      "points": 20,
+      "visual_evidence": "A blue square logo with white text is clearly visible in the top-left corner of the playing video."
+    },
+    {
+      "id": "marquee_overlay_visible",
+      "description": "Verify the yellow scrolling marquee text is overlaid at the bottom of the video.",
+      "points": 20,
+      "visual_evidence": "Yellow text (representing the ticker text) is visible at the bottom of the playing video, formatted as a scrolling marquee."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify the agent saves a screenshot of the active signage to the specified Documents path.",
+      "points": 20,
+      "visual_evidence": "A terminal command (e.g., using 'scrot', 'import', or 'gnome-screenshot') or a GUI screenshot tool saving an image to '/home/ga/Documents/signage_proof.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_file",
+      "description": "Ensure the agent actually creates and saves the script file rather than just running a one-off terminal command.",
+      "visual_evidence": "Look for evidence of the file existing on the Desktop (e.g., an icon on the desktop GUI or an 'ls' command showing launch_signage.sh) and being made executable (e.g., 'chmod +x')."
+    },
+    {
+      "id": "genuine_vlc_playback",
+      "description": "Ensure the video and overlays are rendered by VLC and not mocked up in an image editor.",
+      "visual_evidence": "The screen should show actual video playback characteristics. Terminal logs or taskbar icons (if visible before going fullscreen) should indicate VLC is the active application."
+    },
+    {
+      "id": "genuine_screenshot_capture",
+      "description": "Ensure the agent captures a real screenshot of the screen rather than copying or renaming an existing image.",
+      "visual_evidence": "Look for the execution of a screenshot utility command in the terminal or the use of a GUI screenshot tool while the VLC video is playing."
+    }
+  ],
+  "privileged_info_for_vlm": "The source video is located at /home/ga/Videos/corporate_broll.mp4. The logo image is a blue square with white text located at /home/ga/Pictures/corp_logo.png. The ticker text is read from /home/ga/Documents/ticker_text.txt. The script must be saved to /home/ga/Desktop/launch_signage.sh. The final screenshot must be saved to /home/ga/Documents/signage_proof.png. The marquee text must be yellow (Hex 0xFFFF00)."
+}

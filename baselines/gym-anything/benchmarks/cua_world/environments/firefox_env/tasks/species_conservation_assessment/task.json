@@ -1,0 +1,87 @@
+{
+  "id": "species_conservation_assessment@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a conservation technician performing a status assessment for five North American species: Red Wolf, California Condor, Black-footed Ferret, Whooping Crane, and Florida Manatee. Research each species using authoritative databases such as the IUCN Red List (iucnredlist.org), US FWS ECOS (ecos.fws.gov), or NatureServe Explorer (explorer.natureserve.org). Create a Firefox bookmark folder named 'Conservation Assessment' containing at least one relevant research page for each species. Compile your findings into a JSON file at '~/Documents/species_assessment.json' using the species names as keys ('red_wolf', 'california_condor', 'black_footed_ferret', 'whooping_crane', and 'florida_manatee'). For each species, include the 'scientific_name', 'iucn_status' (CR, EN, VU, NT, LC), 'esa_status', 'population_trend', and an array of at least two 'primary_threats'.",
+  "difficulty": "hard",
+  "tags": [
+    "firefox",
+    "research",
+    "science",
+    "conservation",
+    "json",
+    "bookmarks"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/species_conservation_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/species_conservation_assessment/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/species_assessment.json",
+    "required_bookmark_folder": "Conservation Assessment",
+    "species_ground_truth": {
+      "red_wolf": {
+        "scientific_name": "Canis rufus",
+        "iucn_status": [
+          "CR",
+          "Critically Endangered"
+        ],
+        "esa_status": [
+          "Endangered"
+        ]
+      },
+      "california_condor": {
+        "scientific_name": "Gymnogyps californianus",
+        "iucn_status": [
+          "CR",
+          "Critically Endangered"
+        ],
+        "esa_status": [
+          "Endangered"
+        ]
+      },
+      "black_footed_ferret": {
+        "scientific_name": "Mustela nigripes",
+        "iucn_status": [
+          "EN",
+          "Endangered"
+        ],
+        "esa_status": [
+          "Endangered"
+        ]
+      },
+      "whooping_crane": {
+        "scientific_name": "Grus americana",
+        "iucn_status": [
+          "EN",
+          "Endangered"
+        ],
+        "esa_status": [
+          "Endangered"
+        ]
+      },
+      "florida_manatee": {
+        "scientific_name": "Trichechus manatus latirostris",
+        "iucn_status": [
+          "VU",
+          "Vulnerable"
+        ],
+        "esa_status": [
+          "Threatened",
+          "Endangered"
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_species_conservation_assessment"
+    }
+  }
+}

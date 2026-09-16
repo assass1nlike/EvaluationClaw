@@ -1,0 +1,53 @@
+{
+  "task_id": "accessible_color_remapping@1",
+  "task_completion": [
+    {
+      "id": "open_fluorescent_cells",
+      "description": "Open the 'Fluorescent Cells' sample image",
+      "points": 15,
+      "visual_evidence": "An image window (likely in ImageJ) displaying the 'Fluorescent Cells' image, which originally features distinct red and green cellular structures."
+    },
+    {
+      "id": "remap_red_to_magenta",
+      "description": "Map the original Red channel to Magenta",
+      "points": 30,
+      "visual_evidence": "The image or a specific channel window shows the previously red cellular structures now appearing magenta (purple-pink). This might be seen via LUT (Lookup Table) adjustments or channel merging."
+    },
+    {
+      "id": "preserve_green_and_blue",
+      "description": "Keep the Green and Blue channels unchanged",
+      "points": 20,
+      "visual_evidence": "The green cellular structures in the image remain green and unchanged in their spatial distribution alongside the newly magenta structures."
+    },
+    {
+      "id": "flatten_to_rgb",
+      "description": "Convert the image to a flattened RGB composite",
+      "points": 15,
+      "visual_evidence": "The image window title or status bar indicates the image type is 'RGB' (e.g., 'RGB' text in the window header), meaning it is no longer a multi-channel composite with separate active sliders."
+    },
+    {
+      "id": "save_accessible_composite",
+      "description": "Save the final image to ~/ImageJ_Data/results/accessible_composite.tif",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing the filename 'accessible_composite.tif' being saved in the '~/ImageJ_Data/results/' directory, or a terminal/file manager verifying the file's creation at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the application's GUI to process the image rather than relying solely on terminal scripts.",
+      "visual_evidence": "Screenshots show interaction with GUI menus (e.g., Image > Color > Merge Channels, or LUT menus) in an application like ImageJ."
+    },
+    {
+      "id": "genuine_manipulation",
+      "description": "The agent actively manipulated the image channels rather than downloading or copying a pre-made solution.",
+      "visual_evidence": "Intermediate steps are visible, such as split channel windows, color assignment dialogs, or the 'Merge Channels' tool being actively used."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The agent saved the file to the genuinely requested directory without spoofing.",
+      "visual_evidence": "The save dialog or file explorer explicitly shows the path /home/ga/ImageJ_Data/results/."
+    }
+  ],
+  "privileged_info_for_vlm": "The ground truth 'Fluorescent Cells' image is a 512x512 JPEG with distinct Red and Green channels and minimal Blue content. The expected output must be saved to /home/ga/ImageJ_Data/results/accessible_composite.tif. The final image should visually show the original red structures as magenta, while the green structures remain unchanged."
+}

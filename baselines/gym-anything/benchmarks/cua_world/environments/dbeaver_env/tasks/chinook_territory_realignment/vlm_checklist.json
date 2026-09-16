@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_territory_realignment@1",
+  "task_completion": [
+    {
+      "id": "territory_map_table_created",
+      "description": "The 'territory_map' table is created in the Chinook database.",
+      "points": 15,
+      "visual_evidence": "Look for evidence that the 'territory_map' table was created in the chinook.db database. This could be a successful CREATE TABLE query in a SQL editor/terminal, or the table appearing in a database GUI navigator (like DBeaver)."
+    },
+    {
+      "id": "csv_data_imported",
+      "description": "Data from the territory mapping CSV is imported into the 'territory_map' table.",
+      "points": 15,
+      "visual_evidence": "Look for evidence that data from territory_assignments.csv was imported into the 'territory_map' table. This could be an import success message/dialog, or a SELECT query showing rows with Country and RepId."
+    },
+    {
+      "id": "customers_table_updated",
+      "description": "The 'customers' table is updated with the new SupportRepId values.",
+      "points": 25,
+      "visual_evidence": "Look for an executed UPDATE query modifying the 'Customer' (or 'customers') table's 'SupportRepId' based on the 'territory_map', or a SELECT query verifying the update (e.g., USA customers now have SupportRepId 4, France has 3)."
+    },
+    {
+      "id": "summary_csv_exported",
+      "description": "A summary CSV is exported with EmployeeName and CustomerCount.",
+      "points": 25,
+      "visual_evidence": "Look for the creation or content of 'reassignment_verification.csv' in the /home/ga/Documents/exports/ folder. The file should contain columns 'EmployeeName' (First and Last name combined) and 'CustomerCount'. This might be visible in a file manager, text editor, or terminal output."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "The SQL script containing the logic is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'update_territories.sql' saved in the /home/ga/Documents/scripts/ folder. The file should be visible in a text editor, IDE, or terminal, and contain the SQL commands used for the task."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_update",
+      "description": "Ensure the agent actually executed the UPDATE query on the database.",
+      "visual_evidence": "Check that the agent ran the SQL commands in a database client (like DBeaver or sqlite3) and didn't just write them in a text editor without executing."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Ensure the summary CSV was generated from query results.",
+      "visual_evidence": "Verify that the reassignment_verification.csv file was exported from the database (e.g., via DBeaver's export tool or sqlite3 command line) and not manually typed out."
+    },
+    {
+      "id": "script_matches_actions",
+      "description": "Ensure the saved SQL script contains the actual logic used.",
+      "visual_evidence": "Check that the update_territories.sql script contains the genuine import, update, and verification SQL statements used by the agent to complete the task."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database is at /home/ga/Documents/databases/chinook.db. The territory mapping CSV is at /home/ga/Documents/territory_assignments.csv. Expected mappings include: USA->4, Canada->4, France->3, UK->3, Australia->5. Rep 3 is Jane Peacock, Rep 4 is Margaret Park, Rep 5 is Steve Johnson. The Customer table has 59 total records across 24 countries. The exported CSV must be saved to /home/ga/Documents/exports/reassignment_verification.csv with columns 'EmployeeName' and 'CustomerCount'. The SQL script must be saved to /home/ga/Documents/scripts/update_territories.sql."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "medicare_opioid_prescriber_anomaly_detection@1",
+  "task_completion": [
+    {
+      "id": "create_prescription_fact",
+      "description": "Cleanse staging data into a new PRESCRIPTION_FACT table.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the execution of a CREATE TABLE or INSERT statement for PRESCRIPTION_FACT, or a SELECT query showing its columns (prescription_id, npi, drug_id, dispense_quarter, total_qty, day_supply)."
+    },
+    {
+      "id": "create_prescription_mme_vw",
+      "description": "Create the PRESCRIPTION_MME_VW view to calculate prescription_mme.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the CREATE VIEW statement for PRESCRIPTION_MME_VW or a query against this view displaying the calculated prescription_mme column."
+    },
+    {
+      "id": "create_prescriber_stats_mv",
+      "description": "Develop the PRESCRIBER_STATS_MV materialized view for annual MME totals and Z-scores.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the CREATE MATERIALIZED VIEW statement for PRESCRIBER_STATS_MV or a query against it displaying the mme_z_score column."
+    },
+    {
+      "id": "create_prescriber_trends_vw",
+      "description": "Create the PRESCRIBER_TRENDS_VW view to calculate q2_growth_pct.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the CREATE VIEW statement for PRESCRIBER_TRENDS_VW or a query against it displaying the q2_growth_pct column."
+    },
+    {
+      "id": "create_flagged_audits",
+      "description": "Identify high-risk prescribers in a FLAGGED_AUDITS table.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or querying of the FLAGGED_AUDITS table, specifically displaying the flag_reason column with values like 'STATISTICAL_OUTLIER', 'RAPID_ACCELERATION', or 'CRITICAL_RISK'."
+    },
+    {
+      "id": "export_flagged_audits_csv",
+      "description": "Export the FLAGGED_AUDITS table to a CSV file at the specified path.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a terminal command (e.g., ls, cat), file manager, or database export wizard confirming the existence of opioid_audit_targets.csv in /home/ga/Documents/exports/ with headers included."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Verify the agent interacted with the database to execute queries.",
+      "visual_evidence": "Screenshots should show a database client (like Oracle SQL Developer, DBeaver, or sqlplus) executing the SQL commands and returning success messages or result grids, not just SQL text written in a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent used actual SQL logic rather than hardcoding the expected output.",
+      "visual_evidence": "The SQL scripts for FLAGGED_AUDITS should contain logic (e.g., CASE statements, WHERE mme_z_score > 3.0) rather than direct INSERT statements of the 6 expected rows."
+    },
+    {
+      "id": "authentic_export",
+      "description": "Verify the CSV file was genuinely exported from the database.",
+      "visual_evidence": "The export should be generated via a database tool's export function or a spool/script command, rather than manually typing the CSV contents into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The FLAGGED_AUDITS table and the exported opioid_audit_targets.csv file should contain exactly 2 records for 'STATISTICAL_OUTLIER', 2 records for 'RAPID_ACCELERATION', and 2 records for 'CRITICAL_RISK'. The final export must be located exactly at /home/ga/Documents/exports/opioid_audit_targets.csv."
+}

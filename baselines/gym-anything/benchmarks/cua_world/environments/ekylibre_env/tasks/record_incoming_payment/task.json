@@ -1,0 +1,29 @@
+{
+  "id": "record_incoming_payment@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "You are managing the finances for GAEC JOULIN, a farm in Charente-Maritime, France. Record an incoming payment of €8,750.00 from 'Coopérative Agricole de Charente' into Ekylibre. Use the following details: Date: 2024-09-15, Reference: CHQ-4721-2024, and any available payment mode. The customer entity already exists in the system. Login credentials: admin@ekylibre.org / 12345678. Ekylibre URL: http://demo.ekylibre.farm:3000",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_incoming_payment/setup_task.sh",
+    "post_task": "/workspace/tasks/record_incoming_payment/export_result.sh"
+  },
+  "metadata": {
+    "expected_payer": "Coopérative Agricole de Charente",
+    "expected_amount": 8750.0,
+    "expected_date": "2024-09-15",
+    "expected_reference": "CHQ-4721-2024",
+    "tenant": "demo"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_incoming_payment"
+    }
+  }
+}

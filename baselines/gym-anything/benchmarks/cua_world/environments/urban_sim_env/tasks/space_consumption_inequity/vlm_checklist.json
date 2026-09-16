@@ -1,0 +1,59 @@
+{
+  "task_id": "space_consumption_inequity@1",
+  "task_completion": [
+    {
+      "id": "notebook_created",
+      "description": "Create the Jupyter notebook for analysis",
+      "points": 10,
+      "visual_evidence": "Look for a Jupyter notebook named 'space_consumption.ipynb' in the '/home/ga/urbansim_projects/notebooks/' directory, either open in the editor or visible in the file explorer."
+    },
+    {
+      "id": "data_processing_code",
+      "description": "Load data and filter for valid households and square footage",
+      "points": 20,
+      "visual_evidence": "Look for code in the notebook that loads 'sanfran_public.h5', filters unit square footage between 100 and 20,000, and segments households into 10 income deciles."
+    },
+    {
+      "id": "decile_csv_exported",
+      "description": "Export space consumption summary by income decile",
+      "points": 15,
+      "visual_evidence": "Look for 'space_by_income_decile.csv' in the '/home/ga/urbansim_projects/output/' directory, or code executing `to_csv` for this specific file path."
+    },
+    {
+      "id": "zone_csv_exported",
+      "description": "Export space consumption summary by geographic zone",
+      "points": 15,
+      "visual_evidence": "Look for 'space_by_zone.csv' in the '/home/ga/urbansim_projects/output/' directory, or code executing `to_csv` for this file, including filtering for zones with >= 50 households."
+    },
+    {
+      "id": "chart_generated",
+      "description": "Generate and save a bar chart of space inequity",
+      "points": 20,
+      "visual_evidence": "Look for a bar chart showing median sqft per person by income decile displayed in the notebook output, or 'space_inequity_chart.png' visible in the output directory."
+    },
+    {
+      "id": "ratio_report_exported",
+      "description": "Calculate and export the Top-to-Bottom Space Ratio",
+      "points": 20,
+      "visual_evidence": "Look for 'space_ratio_report.txt' in the output directory, or code writing the calculated ratio (Decile 10 / Decile 1) to this file. The calculated ratio should be approximately 0.61."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Verify that the notebook contains actual data manipulation code",
+      "visual_evidence": "Check that the agent used pandas or similar libraries to compute the medians and deciles, rather than hardcoding the expected results."
+    },
+    {
+      "id": "no_hardcoded_ratio",
+      "description": "Ensure the Top-to-Bottom Space Ratio is calculated, not hardcoded",
+      "visual_evidence": "Look at the code generating the report text file to ensure the agent did not just write '0.61' or '0.6100' directly without deriving it from the dataset."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Check that output files are generated programmatically",
+      "visual_evidence": "Verify that the output files (.csv, .png, .txt) are created by running the notebook cells (e.g., `to_csv`, `savefig`), not by manually creating empty files in the terminal or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Top-to-Bottom Space Ratio is approximately 0.6100 (Decile 10 median is 476.00 sqft/person, Decile 1 median is 780.34 sqft/person). There should be exactly 183 qualifying zones (>= 50 households) in the zone CSV. The data path is /home/ga/urbansim_projects/data/sanfran_public.h5."
+}

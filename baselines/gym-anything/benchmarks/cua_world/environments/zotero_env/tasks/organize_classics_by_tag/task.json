@@ -1,0 +1,29 @@
+{
+  "id": "organize_classics_by_tag@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Restructure your Zotero library by separating historical papers from modern ones. For all papers published before 1970, add the tag 'classic-era' and move them into a new collection named 'History of Computing'. Do not include any papers published in 1970 or later. Your library has been pre-loaded with a mix of classic CS/physics papers (1900s-1960s) and modern machine learning papers (2010s-2020s).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_classics_by_tag/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_classics_by_tag/export_result.sh"
+  },
+  "metadata": {
+    "target_collection": "History of Computing",
+    "target_tag": "classic-era",
+    "cutoff_year": 1970,
+    "expected_classic_count": 10,
+    "expected_modern_count": 8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_classics"
+    }
+  }
+}

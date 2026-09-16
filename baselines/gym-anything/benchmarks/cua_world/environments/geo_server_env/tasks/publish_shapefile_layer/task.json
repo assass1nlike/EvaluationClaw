@@ -1,0 +1,26 @@
+{
+  "id": "publish_shapefile_layer@1",
+  "env_id": "geo_server_env@0.1",
+  "description": "Publish the 'ne_countries' table from the PostGIS database (host: 'gs-postgis', port: 5432, db: 'gis', user: 'geoserver', pass: 'geoserver123') as a layer in GeoServer (http://localhost:8080/geoserver/web/, credentials: admin/Admin123!). The layer must be published from a new PostGIS data store named 'postgis_natural_earth' within the 'cite' workspace and include computed bounding boxes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/publish_shapefile_layer/setup_task.sh",
+    "post_task": "/workspace/tasks/publish_shapefile_layer/export_result.sh"
+  },
+  "metadata": {
+    "expected_store_name": "postgis_natural_earth",
+    "expected_layer_name": "ne_countries",
+    "expected_workspace": "cite"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_publish_shapefile_layer"
+    }
+  }
+}

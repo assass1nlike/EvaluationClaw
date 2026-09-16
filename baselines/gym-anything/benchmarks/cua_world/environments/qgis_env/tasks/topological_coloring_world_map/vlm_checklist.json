@@ -1,0 +1,53 @@
+{
+  "task_id": "topological_coloring_world_map@1",
+  "task_completion": [
+    {
+      "id": "load_world_shapefile",
+      "description": "Load the ne_110m_admin_0_countries.shp shapefile into QGIS.",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel shows a layer named 'ne_110m_admin_0_countries' and the map canvas displays a map of the world."
+    },
+    {
+      "id": "run_topological_coloring",
+      "description": "Run the topological coloring algorithm to generate a 'color_id' field.",
+      "points": 20,
+      "visual_evidence": "The 'Topological coloring' processing tool dialog is visible and configured with a minimum of 4 colors, or the attribute table for the layer is open showing a newly created 'color_id' column with integer values."
+    },
+    {
+      "id": "apply_categorized_symbology",
+      "description": "Apply categorized symbology to the layer based on the 'color_id' field.",
+      "points": 30,
+      "visual_evidence": "The Layer Properties dialog shows 'Symbology' set to 'Categorized' with the Value field set to 'color_id'. The map canvas should display the world map with countries colored in at least 4 distinct colors, where adjacent countries do not share the same color."
+    },
+    {
+      "id": "export_geojson",
+      "description": "Export the resulting colored layer as a GeoJSON file to the specified path.",
+      "points": 20,
+      "visual_evidence": "A 'Save Vector Layer as...' dialog is visible with the Format set to 'GeoJSON' and the File name set to '/home/ga/GIS_Data/exports/world_colored.geojson', or a file manager/terminal shows this file has been created."
+    },
+    {
+      "id": "save_qgis_project",
+      "description": "Save the QGIS project as world_map_colored.qgz in the specified directory.",
+      "points": 20,
+      "visual_evidence": "The QGIS main window title bar displays 'world_map_colored' or 'world_map_colored.qgz', or a 'Save Project' dialog is visible with the path '/home/ga/GIS_Data/projects/world_map_colored.qgz'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_qgis",
+      "description": "The agent interacted with the QGIS graphical user interface to perform the tasks.",
+      "visual_evidence": "Screenshots show the QGIS application open with menus, dialogs, and panels being actively used, rather than just terminal windows running automated scripts."
+    },
+    {
+      "id": "genuine_topological_coloring",
+      "description": "The map displays a genuine topological coloring rather than random or uniform colors.",
+      "visual_evidence": "The map canvas shows distinct color classes where borders between adjacent countries clearly separate different colors, indicating the algorithm was actually run and applied."
+    },
+    {
+      "id": "correct_file_paths_used",
+      "description": "The agent used the exact file paths requested in the task description.",
+      "visual_evidence": "Save dialogs or terminal outputs explicitly show the paths '/home/ga/GIS_Data/exports/world_colored.geojson' and '/home/ga/GIS_Data/projects/world_map_colored.qgz' being typed or selected."
+    }
+  ],
+  "privileged_info_for_vlm": "The source shapefile is located at /home/ga/GIS_Data/ne_110m_admin_0_countries.shp. The topological coloring algorithm must generate a field named 'color_id' which is used for the categorized symbology. The expected GeoJSON output must be saved exactly to /home/ga/GIS_Data/exports/world_colored.geojson. The QGIS project must be saved exactly to /home/ga/GIS_Data/projects/world_map_colored.qgz."
+}

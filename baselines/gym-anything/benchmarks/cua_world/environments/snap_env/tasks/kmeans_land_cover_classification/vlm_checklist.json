@@ -1,0 +1,53 @@
+{
+  "task_id": "kmeans_land_cover_classification@1",
+  "task_completion": [
+    {
+      "id": "image_loaded_in_snap",
+      "description": "Verify that the Landsat multi-spectral image is loaded into ESA SNAP.",
+      "points": 10,
+      "visual_evidence": "ESA SNAP application is open, and 'landsat_multispectral' is listed in the Product Explorer panel."
+    },
+    {
+      "id": "kmeans_dialog_opened",
+      "description": "Verify that the K-Means Cluster Analysis tool is opened.",
+      "points": 10,
+      "visual_evidence": "A dialog box titled 'K-Means Cluster Analysis' (or similar) is visible on the screen."
+    },
+    {
+      "id": "kmeans_parameters_configured",
+      "description": "Verify that the K-Means parameters are correctly configured.",
+      "points": 30,
+      "visual_evidence": "In the K-Means dialog (Processing Parameters tab), 'Number of clusters' is set to 5, 'Number of iterations' is set to 30, and the source bands are selected."
+    },
+    {
+      "id": "dimap_product_saved",
+      "description": "Verify that the classified product is saved in BEAM-DIMAP format to the correct directory.",
+      "points": 25,
+      "visual_evidence": "A save dialog, the I/O Parameters tab, or the Product Explorer shows the output product named 'landsat_kmeans_classified' being saved to the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "geotiff_exported",
+      "description": "Verify that the product is exported as a GeoTIFF.",
+      "points": 25,
+      "visual_evidence": "An export dialog (e.g., File -> Export -> GeoTIFF) or a file manager window shows 'landsat_kmeans_classified.tif' being saved to or present in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent interacted with the ESA SNAP GUI to perform the analysis.",
+      "visual_evidence": "Screenshots show menus, dialogs, and tool windows within the ESA SNAP application being actively used, rather than a script or command-line tool running the process."
+    },
+    {
+      "id": "actual_analysis_run",
+      "description": "Verify that the K-Means analysis was actually executed.",
+      "visual_evidence": "A progress bar or writing dialog for the K-Means analysis is visible, or the resulting classified image/band is displayed in the SNAP image view."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Verify that the output files were not created using terminal commands.",
+      "visual_evidence": "There are no terminal windows showing commands like 'touch', 'cp', or 'mv' being used to artificially create or rename files to match the expected output paths."
+    }
+  ],
+  "privileged_info_for_vlm": "The K-Means clustering must be configured with exactly 5 clusters. The target outputs must be saved exactly as /home/ga/snap_exports/landsat_kmeans_classified.dim and /home/ga/snap_exports/landsat_kmeans_classified.tif."
+}

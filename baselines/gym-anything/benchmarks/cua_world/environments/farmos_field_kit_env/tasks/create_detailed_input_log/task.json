@@ -1,0 +1,28 @@
+{
+  "id": "create_detailed_input_log@1",
+  "env_id": "example.farmos_field_kit_env@0.1",
+  "difficulty": "hard",
+  "description": "The farmOS Field Kit app is open on the Tasks screen. Create a new 'Input' log named 'Applied fertilizer to north field' scheduled for 08:00 AM. Include the note '10-10-10 fertilizer, 200 lbs per acre' and ensure the log is marked as not done. Verify the map visibility on the MOVEMENT tab during the creation process and ensure the log is saved and visible in the Tasks list.",
+  "init": {
+    "timeout_sec": 200,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/create_detailed_input_log/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/create_detailed_input_log/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_detailed_input_log"
+    }
+  },
+  "metadata": {
+    "log_name": "Applied fertilizer to north field",
+    "log_type": "Input",
+    "time": "08:00 AM",
+    "notes": "10-10-10 fertilizer, 200 lbs per acre",
+    "done": false
+  }
+}

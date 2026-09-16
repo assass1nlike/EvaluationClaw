@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_change_method_signature@1",
+  "task_completion": [
+    {
+      "id": "open_inventory_service",
+      "description": "Open the target file InventoryService.java in IntelliJ IDEA",
+      "points": 10,
+      "visual_evidence": "The IntelliJ IDEA editor shows 'InventoryService.java' as the active tab."
+    },
+    {
+      "id": "change_signature_dialog",
+      "description": "Use the Change Signature refactoring tool to rename the method and add parameters with default values",
+      "points": 20,
+      "visual_evidence": "The 'Change Signature' dialog box is visible, showing the method name changed to 'verifyAndReserve'. The parameters list shows 'String locationId' as the first parameter with default value '\"MAIN\"', and 'boolean strictMode' as the last parameter with default value 'true'."
+    },
+    {
+      "id": "method_signature_updated",
+      "description": "Verify the method signature is correctly updated in InventoryService.java",
+      "points": 20,
+      "visual_evidence": "The code in InventoryService.java shows the method signature exactly as: 'verifyAndReserve(String locationId, String sku, int quantity, boolean strictMode)'."
+    },
+    {
+      "id": "call_site_updated",
+      "description": "Verify the call site in OrderProcessor.java is automatically updated with the default values",
+      "points": 30,
+      "visual_evidence": "The file 'OrderProcessor.java' is visible in the editor, and the method call is updated to 'verifyAndReserve' with '\"MAIN\"' passed as the first argument and 'true' passed as the last argument (e.g., verifyAndReserve(\"MAIN\", item.getSku(), item.getQuantity(), true))."
+    },
+    {
+      "id": "compilation_success",
+      "description": "Ensure the project compiles successfully after the refactoring",
+      "points": 20,
+      "visual_evidence": "The 'Build' tool window at the bottom of the IntelliJ IDEA interface shows a successful build message (e.g., a green checkmark or 'Build completed successfully'), or a successful Maven build output is visible in the terminal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "ide_gui_used",
+      "description": "The agent used the IntelliJ IDEA GUI for refactoring",
+      "visual_evidence": "Modifications and refactoring steps are performed using IntelliJ IDEA's interface and dialogs, rather than terminal-based text editors (like nano/vim) or command-line text replacement tools (like sed)."
+    },
+    {
+      "id": "genuine_build_output",
+      "description": "Compilation success is genuine",
+      "visual_evidence": "The build success is displayed in IntelliJ's native Build tool window or via a legitimate 'mvn compile' command in the terminal, not faked using 'echo' commands."
+    },
+    {
+      "id": "correct_project_structure",
+      "description": "The agent is working in the correct project directory",
+      "visual_evidence": "The Project tool window or editor tabs show the correct path structure: 'warehouse-system/src/main/java/com/logistics/...'."
+    }
+  ],
+  "privileged_info_for_vlm": "Project Directory: /home/ga/IdeaProjects/warehouse-system. Target File: src/main/java/com/logistics/service/InventoryService.java. Caller File: src/main/java/com/logistics/client/OrderProcessor.java. Expected Method Name: 'verifyAndReserve'. Expected Signature: (String locationId, String sku, int quantity, boolean strictMode). Expected Default Values at Call Sites: '\"MAIN\"' (must include quotes) for locationId and 'true' for strictMode."
+}

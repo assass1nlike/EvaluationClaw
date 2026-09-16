@@ -1,0 +1,46 @@
+{
+  "id": "mri_snr_cnr_assessment@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "MRI Image Quality Assessment: SNR and CNR Measurement",
+  "description": "Perform a quantitative image quality assessment on the 'T1 Head (2.4M)' sample MRI brain scan. Measure the Mean Intensity and Standard Deviation for White Matter (WM), Gray Matter (GM), and Background (BG) regions on a mid-brain axial slice. Calculate SNR_WM (Mean_WM / Std_BG), SNR_GM (Mean_GM / Std_BG), and CNR ((Mean_WM - Mean_GM) / Std_BG). Save the raw measurements and computed metrics with clear labels to a CSV file at ~/ImageJ_Data/results/mri_snr_cnr.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "mri",
+    "medical-imaging",
+    "snr",
+    "cnr",
+    "quality-assurance",
+    "roi",
+    "measurement"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mri_snr_cnr_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/mri_snr_cnr_assessment/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "T1 Head (2.4M)",
+    "result_file": "/home/ga/ImageJ_Data/results/mri_snr_cnr.csv",
+    "expected_values": {
+      "wm_mean_min": 100,
+      "wm_mean_max": 250,
+      "gm_mean_min": 50,
+      "gm_mean_max": 200,
+      "bg_mean_max": 30,
+      "bg_std_max": 20,
+      "snr_min": 5,
+      "cnr_min": 1
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mri_snr_cnr"
+    }
+  }
+}

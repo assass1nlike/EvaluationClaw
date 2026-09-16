@@ -1,0 +1,34 @@
+{
+  "id": "rename_watchlist@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "JStock is open showing the default 'My Watchlist' containing 5 US tech stocks (AAPL, MSFT, GOOGL, AMZN, NVDA). Rename this watchlist to 'Tech Giants'. Ensure the capitalization and spacing are exact.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/rename_watchlist/setup_task.sh",
+    "post_task": "/workspace/tasks/rename_watchlist/export_result.sh"
+  },
+  "metadata": {
+    "original_name": "My Watchlist",
+    "target_name": "Tech Giants",
+    "expected_stocks": [
+      "AAPL",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "NVDA"
+    ],
+    "watchlist_base_path": "/home/ga/.jstock/1.0.7/UnitedState/watchlist"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rename_watchlist"
+    }
+  }
+}

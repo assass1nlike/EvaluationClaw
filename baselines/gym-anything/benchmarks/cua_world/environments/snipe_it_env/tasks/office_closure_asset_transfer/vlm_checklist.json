@@ -1,0 +1,59 @@
+{
+  "task_id": "office_closure_asset_transfer@1",
+  "task_completion": [
+    {
+      "id": "assets_checked_in",
+      "description": "Verify that the assets previously in the London Office have been checked in.",
+      "points": 15,
+      "visual_evidence": "Look for asset lists or check-in confirmation screens showing that the transferred assets no longer have an assigned user and are marked as 'Ready to Deploy' or similar unassigned status."
+    },
+    {
+      "id": "assets_relocated_to_nyc",
+      "description": "Verify that the hardware assets from the London Office have their default locations updated to the New York Office.",
+      "points": 25,
+      "visual_evidence": "Look for the Snipe-IT asset list or bulk edit screens showing multiple assets with 'New York Office' listed in the Location or Default Location column."
+    },
+    {
+      "id": "relocation_notes_present",
+      "description": "Verify that the specific relocation note was added to the transferred assets.",
+      "points": 15,
+      "visual_evidence": "Look for asset detail pages, history tabs, or bulk edit confirmation screens displaying the note: 'RELOCATED: London Office closure - transferred to NYC per directive OM-2025-031'."
+    },
+    {
+      "id": "london_office_empty",
+      "description": "Verify that no hardware assets remain assigned to the London Office.",
+      "points": 10,
+      "visual_evidence": "Look for a screenshot where the asset list is filtered by the location 'London Office' and shows 0 results or 'No matching records found'."
+    },
+    {
+      "id": "new_assets_created",
+      "description": "Verify that the two new assets (ASSET-D004 and ASSET-M004) were created with the correct details at the New York Office.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Create Asset' success screens or the asset list showing 'ASSET-D004' (Dell OptiPlex 7010, $899.99) and 'ASSET-M004' (Dell U2723QE Monitor, $549.99) with their respective serial numbers and 'New York Office' as their location."
+    },
+    {
+      "id": "other_assets_untouched",
+      "description": "Verify that assets from locations other than London were not mistakenly moved to New York.",
+      "points": 15,
+      "visual_evidence": "Look at the general asset list to ensure there are still assets belonging to other locations (e.g., not everything in the entire system was bulk-edited to 'New York Office')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Snipe-IT web interface to perform the tasks.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the Snipe-IT GUI (e.g., clicking buttons, filling forms, using bulk actions) rather than a terminal executing database commands or API scripts."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "The agent manually entered or pasted the required data into the application.",
+      "visual_evidence": "Screenshots should show the agent typing or pasting the asset details, tags, and relocation notes into the appropriate Snipe-IT input fields."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The agent did not use browser developer tools to fake the success screens.",
+      "visual_evidence": "The Snipe-IT interface should look consistent and normal, without the browser's 'Inspect Element' or developer console open to manipulate the DOM text."
+    }
+  ],
+  "privileged_info_for_vlm": "The source location is exactly 'London Office' and the target location is 'New York Office'. The required note must contain the substring 'RELOCATED'. The agent must create exactly two new assets with tags 'ASSET-D004' and 'ASSET-M004'. Scoring is distributed as: 25 pts for relocating London assets, 15 pts for checking them in, 15 pts for adding the relocation note, 10 pts for ensuring no assets remain in London, 20 pts for creating the two new assets, and 15 pts for leaving non-London assets unchanged."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "configure_international_settings@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Reconfigure the WooCommerce store for a European expansion to Germany, France, and Italy. Restrict selling locations to Germany, France, and Italy, and set shipping locations to all countries you sell to. Update the store currency to Euro (€) with the currency position set to 'Right with space', using a dot as the thousand separator and a comma as the decimal separator.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_international_settings/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_international_settings/export_result.sh"
+  },
+  "metadata": {
+    "expected_allowed_countries": [
+      "DE",
+      "FR",
+      "IT"
+    ],
+    "expected_currency": "EUR",
+    "expected_currency_pos": "right_space",
+    "expected_thousand_sep": ".",
+    "expected_decimal_sep": ","
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_international_settings"
+    }
+  }
+}

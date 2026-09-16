@@ -1,0 +1,59 @@
+{
+  "task_id": "reset_volume_credentials@1",
+  "task_completion": [
+    {
+      "id": "select_volume",
+      "description": "Select the target volume in VeraCrypt",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt main window is open and the file path '/home/ga/Volumes/DepartedUser.hc' is entered or selected in the Volume path field."
+    },
+    {
+      "id": "open_change_password_dialog",
+      "description": "Open the Change Volume Password dialog",
+      "points": 10,
+      "visual_evidence": "The 'Change Volume Password' (or 'Change Password') dialog box is visible on the screen."
+    },
+    {
+      "id": "enter_current_credentials",
+      "description": "Enter the current volume credentials",
+      "points": 20,
+      "visual_evidence": "In the 'Current' section of the password dialog, the password field contains masked characters, the 'Use PIM' checkbox is checked with '1001' entered, and the 'Use keyfiles' checkbox is checked with '/home/ga/Keyfiles/security_token.key' visible in the keyfiles list."
+    },
+    {
+      "id": "enter_new_credentials",
+      "description": "Enter the new volume credentials",
+      "points": 20,
+      "visual_evidence": "In the 'New' section of the password dialog, the password field contains masked characters (or 'Archive2025' if visible), and both the 'Use PIM' and 'Use keyfiles' checkboxes are explicitly unchecked or left empty."
+    },
+    {
+      "id": "confirm_password_change",
+      "description": "Successfully change the volume password",
+      "points": 20,
+      "visual_evidence": "A VeraCrypt success popup or message box is visible, stating that the volume password and/or header key has been successfully changed."
+    },
+    {
+      "id": "mount_with_new_credentials",
+      "description": "Verify the volume can be mounted with the new credentials",
+      "points": 20,
+      "visual_evidence": "The VeraCrypt main window shows the volume '/home/ga/Volumes/DepartedUser.hc' successfully mounted in one of the drive slots, OR a file manager window shows the mounted volume contents (which may include the file 'Project_Specs.pdf')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_veracrypt_gui",
+      "description": "Agent used the VeraCrypt GUI to perform the task",
+      "visual_evidence": "Screenshots should show interaction with the VeraCrypt graphical interface windows and dialogs, not just terminal commands executing the password change."
+    },
+    {
+      "id": "genuine_dialog_interaction",
+      "description": "Agent genuinely interacted with the password dialog",
+      "visual_evidence": "Screenshots should show the actual VeraCrypt 'Change Volume Password' dialog being filled out with the correct checkboxes toggled, rather than text typed into a text editor or terminal."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Agent did not use a script to bypass the UI",
+      "visual_evidence": "The terminal should not show the execution of a bash script or python script that automatically changes the VeraCrypt volume password behind the scenes."
+    }
+  ],
+  "privileged_info_for_vlm": "Target volume path: '/home/ga/Volumes/DepartedUser.hc'. Target password: 'Archive2025'. Target PIM: 0 (default/unchecked). The volume contains a file named 'Project_Specs.pdf' which proves successful mounting and data integrity."
+}

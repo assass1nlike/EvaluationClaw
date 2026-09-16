@@ -1,0 +1,66 @@
+{
+  "id": "ppe_protection_level_classification@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "A regional hazmat team requires a classification report for five chemicals: Acetone (UN 1090), Chlorine (UN 1017), Hydrogen Cyanide (UN 1051), Toluene (UN 1294), and Phosgene (UN 1076). Using the CAMEO Chemicals database (https://cameochemicals.noaa.gov/), evaluate the 'Protective Clothing' recommendations for each. Classify a chemical as LEVEL_B if structural firefighter's gear 'provides limited protection' and LEVEL_A if it 'will NOT provide adequate protection'. Determine if Positive Pressure SCBA is recommended. Save the report to /home/ga/Documents/protective_clothing_report.txt using the following format:\n\nCHEMICAL: [",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "ppe",
+    "hazmat",
+    "safety",
+    "classification",
+    "level-a",
+    "level-b"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ppe_protection_level_classification/setup_task.sh",
+    "post_task": "/workspace/tasks/ppe_protection_level_classification/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/protective_clothing_report.txt",
+    "ground_truth": {
+      "Acetone": {
+        "un": "1090",
+        "gear_adequate": "YES",
+        "scba": "YES",
+        "level": "LEVEL_B"
+      },
+      "Chlorine": {
+        "un": "1017",
+        "gear_adequate": "NO",
+        "scba": "YES",
+        "level": "LEVEL_A"
+      },
+      "Hydrogen Cyanide": {
+        "un": "1051",
+        "gear_adequate": "NO",
+        "scba": "YES",
+        "level": "LEVEL_A"
+      },
+      "Toluene": {
+        "un": "1294",
+        "gear_adequate": "YES",
+        "scba": "YES",
+        "level": "LEVEL_B"
+      },
+      "Phosgene": {
+        "un": "1076",
+        "gear_adequate": "NO",
+        "scba": "YES",
+        "level": "LEVEL_A"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ppe_classification"
+    }
+  }
+}

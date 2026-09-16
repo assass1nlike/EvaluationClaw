@@ -1,0 +1,53 @@
+{
+  "task_id": "repair_encrypted_filesystem@1",
+  "task_completion": [
+    {
+      "id": "select_volume",
+      "description": "Select the corrupted VeraCrypt volume",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent selecting or specifying the file '/home/ga/Volumes/broken_drive.hc' in the VeraCrypt GUI or via terminal command."
+    },
+    {
+      "id": "mount_without_filesystem",
+      "description": "Mount the volume without mounting the filesystem",
+      "points": 20,
+      "visual_evidence": "Screenshots show the VeraCrypt GUI with the 'Do not mount' option checked under Mount Options, or a terminal command using 'veracrypt' with a flag like '--filesystem=none'."
+    },
+    {
+      "id": "repair_filesystem",
+      "description": "Use Linux system tools to repair the filesystem",
+      "points": 30,
+      "visual_evidence": "Terminal output shows the agent running a filesystem check/repair tool (like 'fsck', 'fsck.ext4', or 'e2fsck') on the decrypted block device (e.g., '/dev/mapper/veracrypt1') and the tool reporting that errors were fixed or the filesystem was modified."
+    },
+    {
+      "id": "mount_repaired_volume",
+      "description": "Mount the repaired volume normally",
+      "points": 20,
+      "visual_evidence": "Screenshots show the VeraCrypt GUI displaying the volume as mounted with a recognized filesystem, or a terminal command successfully mounting the decrypted block device to a directory."
+    },
+    {
+      "id": "copy_recovered_file",
+      "description": "Copy the target file to the recovery path",
+      "points": 20,
+      "visual_evidence": "Terminal shows a 'cp' command copying 'investigation_notes.txt' from the mounted volume to '/home/ga/Documents/recovered/', or a file manager window shows the file successfully placed in the '/home/ga/Documents/recovered/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "Agent genuinely interacted with VeraCrypt to mount the volume",
+      "visual_evidence": "Look for the actual VeraCrypt GUI windows, dialogs, or authentic 'veracrypt' CLI output rather than mocked text or text editors."
+    },
+    {
+      "id": "genuine_fsck_execution",
+      "description": "Agent genuinely executed a filesystem repair tool",
+      "visual_evidence": "Look for standard 'fsck' or 'e2fsck' output in a terminal emulator, showing block/inode checks and repair prompts/confirmations."
+    },
+    {
+      "id": "genuine_file_recovery",
+      "description": "Agent copied the file from the volume rather than fabricating it",
+      "visual_evidence": "Ensure the agent uses 'cp' or a GUI file manager to move the file from the mount point. The agent should not be seen creating the file from scratch using 'echo', 'touch', or a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume path: '/home/ga/Volumes/broken_drive.hc'. Password: 'Journalist2024!'. Target file: 'investigation_notes.txt'. Recovery destination: '/home/ga/Documents/recovered/investigation_notes.txt'. Note: The true MD5 hash of the recovered file is 'cea55e50b912d2f19899dcdac2715bc0', though visual verification should focus on the file being successfully copied from the mounted volume rather than hash verification."
+}

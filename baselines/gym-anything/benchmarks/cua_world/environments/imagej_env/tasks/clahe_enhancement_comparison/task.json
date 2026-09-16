@@ -1,0 +1,38 @@
+{
+  "id": "clahe_enhancement_comparison@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "CLAHE Contrast Enhancement Comparison",
+  "description": "Perform advanced local contrast enhancement on the 'Embryos (42K)' microscopy sample image. Apply Contrast-Limited Adaptive Histogram Equalization (CLAHE) to the image to reveal local details. Create a side-by-side comparison montage showing the original image on the left and the enhanced version on the right. Save the final montage as a PNG file to '~/ImageJ_Data/results/clahe_comparison.png'.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "contrast-enhancement",
+    "visualization",
+    "montage",
+    "CLAHE",
+    "microscopy"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clahe_enhancement_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/clahe_enhancement_comparison/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/clahe_comparison.png",
+    "sample_image": "Embryos (42K)",
+    "min_width": 500,
+    "min_height": 200,
+    "min_entropy_gain": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clahe_comparison"
+    }
+  }
+}

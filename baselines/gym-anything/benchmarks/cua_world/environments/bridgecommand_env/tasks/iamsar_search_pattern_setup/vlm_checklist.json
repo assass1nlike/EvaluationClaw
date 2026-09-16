@@ -1,0 +1,54 @@
+{
+  "task_id": "iamsar_search_pattern_setup@1",
+  "task_completion": [
+    {
+      "id": "scenario_environment_configured",
+      "description": "Verify the scenario directory and environment settings are correctly configured.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal or text editor showing the creation of the directory '/opt/bridgecommand/Scenarios/s) SAR Expanding Square/' and an 'environment.ini' file containing settings for time (06:00 on 15/02/2025), visibility (3.0), and weather (3.0)."
+    },
+    {
+      "id": "ownship_initial_setup",
+      "description": "Verify the own ship is correctly initialized.",
+      "points": 15,
+      "visual_evidence": "Look for an 'ownship.ini' file being edited or viewed, containing the name 'Lifeboat 1', starting coordinates around 50.5833 N, -1.3333 W (or 50\u00b0 35.00' N, 001\u00b0 20.00' W), heading 000, and speed 15.0."
+    },
+    {
+      "id": "ownship_route_programmed",
+      "description": "Verify the 8-leg expanding square pattern is programmed for the own ship.",
+      "points": 20,
+      "visual_evidence": "Look for route waypoints or track legs being added to the 'ownship.ini' file or a corresponding route file in the scenario directory, representing the 8 legs of the search pattern."
+    },
+    {
+      "id": "target_vessel_configured",
+      "description": "Verify the target vessel is positioned at the end of the 8th leg.",
+      "points": 15,
+      "visual_evidence": "Look for an 'othership.ini' file containing the name 'Missing Yacht' with coordinates that represent the calculated end of the 8th leg (different from the starting datum)."
+    },
+    {
+      "id": "action_plan_file_created",
+      "description": "Verify the search action plan text file is created in the correct location.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command (like 'cat', 'nano', or 'echo') or a text editor showing the file '/home/ga/Documents/search_action_plan.txt'."
+    },
+    {
+      "id": "action_plan_waypoints_calculated",
+      "description": "Verify the search action plan contains the 8 calculated waypoints in Degrees Decimal Minutes format.",
+      "points": 25,
+      "visual_evidence": "Look at the contents of 'search_action_plan.txt'. It must contain 8 distinct waypoints formatted in Degrees Decimal Minutes (e.g., 50\u00b0 35.50' N, 001\u00b0 20.00' W), corresponding to the expanding square pattern."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_files_modified",
+      "description": "Ensure the agent actually created and modified the scenario files in the Bridge Command directory.",
+      "visual_evidence": "Check terminal paths or text editor file paths to confirm the files are genuinely located in '/opt/bridgecommand/Scenarios/s) SAR Expanding Square/' and not just in a temporary or mock directory."
+    },
+    {
+      "id": "meaningful_coordinate_calculations",
+      "description": "Ensure the agent calculated the coordinates rather than using placeholders.",
+      "visual_evidence": "Check the waypoints in the text file and scenario files. The minutes or decimal values should change progressively, reflecting an actual expanding square calculation, rather than being identical dummy values."
+    }
+  ],
+  "privileged_info_for_vlm": "The datum position 50\u00b035.00'N, 001\u00b020.00'W converts to decimal coordinates 50.5833, -1.3333. The scenario directory must be exactly '/opt/bridgecommand/Scenarios/s) SAR Expanding Square'. The IAMSAR Expanding Square Search pattern requires 8 legs with distances [0.5, 0.5, 1.0, 1.0, 1.5, 1.5, 2.0, 2.0] nautical miles and bearings [0, 90, 180, 270, 0, 90, 180, 270] degrees."
+}

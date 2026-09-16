@@ -1,0 +1,33 @@
+{
+  "id": "configure_hifi_music_mode@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure the self-hosted Jitsi Meet instance for high-fidelity music instruction by updating the web configuration at /home/ga/.jitsi-meet-cfg/web/custom-config.js. The configuration must enable stereo audio (config.stereo), disable peer-to-peer mode (config.p2p.enabled), set the maximum Opus bitrate to 510kbps (config.opusMaxAverageBitrate), and disable noisy microphone detection (config.enableNoisyMicDetection). Apply the changes to the Jitsi Meet service located at /home/ga/jitsi/. Verify the configuration via the browser console at http://localhost:8080 and save a screenshot showing the enabled stereo setting to /home/ga/music_mode_verification.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_hifi_music_mode/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_hifi_music_mode/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/custom-config.js",
+    "docker_compose_path": "/home/ga/jitsi/docker-compose.yml",
+    "expected_screenshot": "/home/ga/music_mode_verification.png",
+    "expected_settings": {
+      "stereo": "true",
+      "p2p_enabled": "false",
+      "bitrate": "510000",
+      "noisy_mic": "false"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_hifi_music_mode"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "calibrate_science_frames@1",
+  "version": "1.0",
+  "env_id": "astroimagej_env@0.1",
+  "name": "CCD Calibration Pipeline with Real Palomar LFC Data",
+  "description": "Using real CCD data from the Palomar 200-inch Hale Telescope Large Format Camera (LFC) located in ~/AstroImages/calibration_project/, perform a complete image calibration pipeline in AstroImageJ. Calibrate the science frames using the provided bias, dark, and flat frames. Save all generated master frames and the final calibrated science images to the 'reduced/' subdirectory. Login credentials: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "tags": [
+    "real-data",
+    "ccd-calibration",
+    "image-processing",
+    "palomar-lfc"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/calibrate_science_frames/setup_task.sh",
+    "post_task": "/workspace/tasks/calibrate_science_frames/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Palomar 200-inch Hale Telescope, Large Format Camera (LFC)",
+    "data_url": "https://zenodo.org/records/3254683",
+    "data_description": "Cryo-cooled CCD frames from the Astropy CCD Reduction Guide dataset"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calibrate_science_frames"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "create_subquery_analysis@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create three analysis views in the Chinook database using subquery techniques. The 'TracksNotInPlaylists' view should contain TrackId, Name, and Composer for tracks not in any playlist (using NOT EXISTS or NOT IN). The 'GenresAboveAvgTrackCount' view should contain GenreId, Name, and TrackCount for genres with more tracks than the average track count per genre. The 'HighValueCustomers' view should contain CustomerId, FirstName, LastName, Email, and TotalSpent for customers with total spending higher than the average total spending. Save all three views in the database.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_subquery_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/create_subquery_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_queries": [
+      {
+        "name": "TracksNotInPlaylists",
+        "required_patterns": [
+          "SELECT",
+          "FROM",
+          "Track",
+          "PlaylistTrack",
+          "NOT"
+        ],
+        "forbidden_patterns": [
+          "LEFT JOIN.*IS NULL"
+        ]
+      },
+      {
+        "name": "GenresAboveAvgTrackCount",
+        "required_patterns": [
+          "SELECT",
+          "AVG",
+          "GROUP BY",
+          "HAVING"
+        ]
+      },
+      {
+        "name": "HighValueCustomers",
+        "required_patterns": [
+          "SELECT",
+          "AVG",
+          "Invoice",
+          "SUM"
+        ]
+      }
+    ],
+    "database_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_subquery_analysis"
+    }
+  }
+}

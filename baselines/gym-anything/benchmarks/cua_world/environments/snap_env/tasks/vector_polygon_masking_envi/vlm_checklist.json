@@ -1,0 +1,53 @@
+{
+  "task_id": "vector_polygon_masking_envi@1",
+  "task_completion": [
+    {
+      "id": "load_landsat_image",
+      "description": "Load the Landsat multi-spectral TIFF image into SNAP Desktop.",
+      "points": 10,
+      "visual_evidence": "The Product Explorer panel in SNAP Desktop shows 'landsat_multispectral' (or similar) listed as an imported product."
+    },
+    {
+      "id": "import_shapefile",
+      "description": "Import the reserve boundary shapefile into the loaded product.",
+      "points": 15,
+      "visual_evidence": "The 'reserve_boundary' vector is visible under the Vector Data node of the loaded product in the Product Explorer, or a diamond-shaped vector boundary is overlaid on the image view."
+    },
+    {
+      "id": "configure_masking_tool",
+      "description": "Open and configure a masking tool using the imported vector.",
+      "points": 25,
+      "visual_evidence": "A masking dialog (e.g., Raster > Masks > Land/Sea Mask) is open, and the vector 'reserve_boundary' is explicitly selected or checked as the masking geometry/mask."
+    },
+    {
+      "id": "masked_image_generated",
+      "description": "Generate the masked product where the exterior is set to NoData or 0.",
+      "points": 25,
+      "visual_evidence": "A new product is created in the Product Explorer, and its image view displays a diamond-shaped area of valid pixels with the surrounding exterior completely masked out (appearing as solid black, white, or transparent)."
+    },
+    {
+      "id": "export_envi_format",
+      "description": "Export the masked product in ENVI format to the target directory.",
+      "points": 25,
+      "visual_evidence": "An 'Export Product' dialog is visible, specifically set to ENVI format with the destination path '/home/ga/snap_exports/', or a file explorer/terminal shows the exported ENVI files (e.g., .hdr and .img/.data) in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "The agent used the ESA SNAP Desktop GUI to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the SNAP Desktop graphical interface rather than relying solely on terminal commands (like 'gpt') or Python scripts to bypass the UI."
+    },
+    {
+      "id": "genuine_masking",
+      "description": "The masking was performed using SNAP's spatial/vector tools.",
+      "visual_evidence": "The masked diamond shape is a result of SNAP's processing tools (evidenced by tool dialogs and progress bars) and not manually drawn or edited using a basic image painting tool."
+    },
+    {
+      "id": "genuine_envi_export",
+      "description": "The agent genuinely exported to ENVI format.",
+      "visual_evidence": "The agent used SNAP's File > Export > ENVI menu (or similar export function) rather than just renaming a .tif file extension to .hdr or .envi in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The shapefile forms a diamond shape. When applied as a mask, the resulting image should show a valid diamond-shaped area covering exactly 32% of the full image (or 50% if the tool cropped it to the bounding box). The exterior must be completely masked out. The final export must be in ENVI format (which typically produces a .hdr header file) and saved exactly to '/home/ga/snap_exports/'."
+}

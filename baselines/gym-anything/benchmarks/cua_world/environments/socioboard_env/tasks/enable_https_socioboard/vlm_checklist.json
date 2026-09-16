@@ -1,0 +1,53 @@
+{
+  "task_id": "enable_https_socioboard@1",
+  "task_completion": [
+    {
+      "id": "ssl_certificate_created",
+      "description": "Generate a self-signed SSL certificate.",
+      "points": 15,
+      "visual_evidence": "Terminal showing an openssl command generating a certificate, or files like .crt and .key being created."
+    },
+    {
+      "id": "apache_https_configured",
+      "description": "Configure Apache to use HTTPS and point to the Socioboard frontend.",
+      "points": 25,
+      "visual_evidence": "Text editor or terminal showing an Apache configuration file (e.g., default-ssl.conf) with '<VirtualHost *:443>', 'SSLEngine on', and 'DocumentRoot /opt/socioboard/socioboard-web-php/public'."
+    },
+    {
+      "id": "env_file_updated",
+      "description": "Update the APP_URL in the Socioboard .env file.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal showing the file '/opt/socioboard/socioboard-web-php/.env' with the line 'APP_URL=https://localhost'."
+    },
+    {
+      "id": "apache_restarted",
+      "description": "Restart Apache to apply the new configuration.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'sudo systemctl restart apache2' or 'sudo service apache2 restart'."
+    },
+    {
+      "id": "https_accessible",
+      "description": "Verify the Socioboard interface is accessible at https://localhost.",
+      "points": 30,
+      "visual_evidence": "Web browser showing the Socioboard frontend loaded (or an SSL warning being bypassed) with 'https://localhost' in the address bar."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_access",
+      "description": "The agent used a real web browser to verify the HTTPS URL.",
+      "visual_evidence": "A web browser window is visible navigating to https://localhost, not just a curl command or text output."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "The agent edited the actual configuration files rather than creating mock files.",
+      "visual_evidence": "Standard text editors (nano, vim, gedit) or terminal commands (sed, echo) are used on the correct file paths (/opt/socioboard/socioboard-web-php/.env and Apache config directories)."
+    },
+    {
+      "id": "no_mocking_https",
+      "description": "The browser shows a genuine server response for the HTTPS request.",
+      "visual_evidence": "The browser displays a real SSL warning (e.g., 'Your connection is not private') or the actual Socioboard UI, rather than a local file path (file://) or a manually created mock HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "The Socioboard PHP frontend DocumentRoot is /opt/socioboard/socioboard-web-php/public. The environment configuration file is /opt/socioboard/socioboard-web-php/.env. The expected APP_URL value is https://localhost."
+}

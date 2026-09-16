@@ -1,0 +1,28 @@
+{
+  "id": "refactor_infer_generics@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Modernize the legacy 'AdmissionQueue.java' file in the 'LegacyHospitalSystem' project (~/eclipse-workspace/LegacyHospitalSystem) by using the 'Infer Generic Type Arguments' refactoring tool. Convert raw collections to type-safe generics, remove unnecessary casts, and ensure all unit tests pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_infer_generics/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_infer_generics/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/LegacyHospitalSystem",
+    "target_file": "src/com/hospital/core/AdmissionQueue.java",
+    "expected_generic_pattern": "List<Patient>",
+    "forbidden_cast_pattern": "\\(Patient\\)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_infer_generics"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "create_residential_plumbing_plan@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a technical residential plumbing plan for a bathroom renovation using Wondershare EdrawMax. The plan must feature a 10 ft x 8 ft room containing a toilet, shower, and sink, with a water heater positioned nearby. Route color-coded piping lines as follows: blue for cold water connecting the water heater to the toilet, sink, and shower; red for hot water connecting the water heater to the sink and shower only; and black or green for waste/drainage from all three fixtures to a main stack. Include text labels for all fixtures and piping systems. Save the project to /home/ga/Diagrams/bathroom_plumbing_plan.eddx and export the diagram as an image to /home/ga/Diagrams/bathroom_plumbing_plan.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_residential_plumbing_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_residential_plumbing_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/bathroom_plumbing_plan.eddx",
+    "expected_png_path": "/home/ga/Diagrams/bathroom_plumbing_plan.png",
+    "required_labels": [
+      "Toilet",
+      "Shower",
+      "Sink",
+      "Heater",
+      "Hot",
+      "Cold",
+      "Drain"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_residential_plumbing_plan"
+    }
+  }
+}

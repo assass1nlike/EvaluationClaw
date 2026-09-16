@@ -1,0 +1,59 @@
+{
+  "task_id": "rgb_crop_vigor_consensus@1",
+  "task_completion": [
+    {
+      "id": "open_input_image",
+      "description": "Open the Sentinel-2 TCI image in the application.",
+      "points": 10,
+      "visual_evidence": "The file 'sentinel2_tci.tif' is visible in the application's Product Explorer or main viewing area."
+    },
+    {
+      "id": "create_vari_band",
+      "description": "Create a new virtual band named 'VARI' using the specified formula.",
+      "points": 20,
+      "visual_evidence": "A Band Math or Virtual Band dialog showing the target name 'VARI' and the expression '(band_2 - band_1) / (band_2 + band_1 - band_3)' or equivalent using the mapped color names."
+    },
+    {
+      "id": "create_ngrdi_band",
+      "description": "Create a new virtual band named 'NGRDI' using the specified formula.",
+      "points": 20,
+      "visual_evidence": "A Band Math or Virtual Band dialog showing the target name 'NGRDI' and the expression '(band_2 - band_1) / (band_2 + band_1)' or equivalent using the mapped color names."
+    },
+    {
+      "id": "create_high_vigor_mask",
+      "description": "Create a binary mask virtual band named 'high_vigor_mask' using the specified thresholds.",
+      "points": 20,
+      "visual_evidence": "A Band Math or Virtual Band dialog showing the target name 'high_vigor_mask' and the expression 'VARI > 0.15 AND NGRDI > 0.05' (or equivalent logic)."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the resulting product containing all bands in BEAM-DIMAP format.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' dialog or file explorer showing the file 'rgb_vigor.dim' being saved to the '/home/ga/snap_projects/' directory."
+    },
+    {
+      "id": "export_envi_format",
+      "description": "Export the resulting product in ENVI format.",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog or file explorer showing the product being exported as 'rgb_vigor_envi' to the '/home/ga/snap_exports/' directory with the ENVI format selected."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the application's graphical user interface to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with the remote sensing software's GUI (e.g., SNAP menus, dialog boxes, Product Explorer) rather than solely executing terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "The agent actually entered the formulas into the software's expression evaluator.",
+      "visual_evidence": "The Band Math expression editor is visible with the correct formulas typed in, rather than just renaming existing bands or creating empty files."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The agent used the software's save and export functionality to create the final outputs.",
+      "visual_evidence": "Save and Export dialog boxes from the application are visible targeting the correct directories, rather than using terminal commands like 'touch' to create fake output files."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/snap_data/sentinel2_tci.tif. Band mapping: band_1 = Red, band_2 = Green, band_3 = Blue. Expected BEAM-DIMAP output: /home/ga/snap_projects/rgb_vigor.dim. Expected ENVI export: /home/ga/snap_exports/rgb_vigor_envi.hdr. Thresholds for high_vigor_mask: VARI > 0.15 AND NGRDI > 0.05."
+}

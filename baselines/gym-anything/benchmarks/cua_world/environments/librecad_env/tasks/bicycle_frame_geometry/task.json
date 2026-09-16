@@ -1,0 +1,35 @@
+{
+  "id": "bicycle_frame_geometry@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a centerline schematic drawing of a bicycle frame based on 'Stack and Reach' geometry specifications for a Size Medium Gravel Frame. The Bottom Bracket center is at the origin (0,0) and the frame faces right. Use the following geometry specs: Reach 385 mm, Stack 590 mm, Seat Tube Angle 73.5 degrees, Seat Tube Length 540 mm, Head Tube Angle 71.5 degrees, Head Tube Length 160 mm, Chainstay Length 430 mm, and BB Drop 70 mm. The drawing must include a 'FRAME' layer (White) containing the geometry (BB Circle radius 10 at origin, Rear Axle Circle radius 5 at -430, -70, Head Tube Top Center at 385, 590, and connected tubes), a 'DIMENSIONS' layer (Green) showing Chainstay length, Head Tube length, and Head Tube angle, and a 'NOTES' layer (Cyan) with the text 'GRAVEL GEO SIZE M'. Save the final schematic to /home/ga/Documents/LibreCAD/bicycle_geometry.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bicycle_frame_geometry/setup_task.sh",
+    "post_task": "/workspace/tasks/bicycle_frame_geometry/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/bicycle_geometry.dxf",
+    "geometry": {
+      "reach": 385,
+      "stack": 590,
+      "seat_tube_angle": 73.5,
+      "seat_tube_len": 540,
+      "head_tube_angle": 71.5,
+      "head_tube_len": 160,
+      "chainstay": 430,
+      "bb_drop": 70
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bicycle_geometry"
+    }
+  }
+}

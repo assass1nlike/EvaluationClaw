@@ -1,0 +1,53 @@
+{
+  "task_id": "tundra_orbit_longitude_targeting@1",
+  "task_completion": [
+    {
+      "id": "read_mission_spec",
+      "description": "Agent opens and reads the mission specification file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/borealis_mission_spec.txt."
+    },
+    {
+      "id": "gmat_orbit_setup",
+      "description": "Agent configures the spacecraft's initial orbit parameters in GMAT.",
+      "points": 20,
+      "visual_evidence": "GMAT application open with the Spacecraft properties window visible, showing orbit parameters being entered."
+    },
+    {
+      "id": "gmat_target_sequence",
+      "description": "Agent sets up a Differential Corrector (Target sequence) to find the required RAAN for the target longitude.",
+      "points": 30,
+      "visual_evidence": "GMAT Mission Sequence tree showing a Target sequence, with configuration windows indicating RAAN is being varied to achieve a Longitude of -105.0 degrees."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Agent saves the GMAT script to the specified path.",
+      "points": 20,
+      "visual_evidence": "GMAT 'Save As' dialog or a file explorer/terminal showing borealis_tundra.script saved in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "export_report",
+      "description": "Agent configures and generates the apogee target report with Longitude, Latitude, and Altitude.",
+      "points": 20,
+      "visual_evidence": "A ReportFile configuration in GMAT pointing to ~/GMAT_output/apogee_target_report.txt with Longitude, Latitude, and Altitude selected, or the generated text file open showing these values at apoapsis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_usage",
+      "description": "Agent used GMAT to perform the targeting simulation.",
+      "visual_evidence": "Screenshots show the GMAT GUI being actively used to configure the mission, run the simulation, and use the Differential Corrector, rather than just writing a script manually without running it."
+    },
+    {
+      "id": "no_manual_report_creation",
+      "description": "Agent generated the report file through GMAT rather than typing it manually.",
+      "visual_evidence": "The report file apogee_target_report.txt is created as a result of running the GMAT mission (e.g., seen in GMAT output messages or ReportFile setup), not manually typed in a text editor."
+    },
+    {
+      "id": "actual_targeting_performed",
+      "description": "Agent actually used the Differential Corrector to find the RAAN.",
+      "visual_evidence": "The GMAT Mission Sequence explicitly contains a Target sequence (Vary and Achieve commands) rather than the agent hardcoding a pre-calculated RAAN value."
+    }
+  ],
+  "privileged_info_for_vlm": "The script must be saved exactly to /home/ga/GMAT_output/borealis_tundra.script and the report to /home/ga/GMAT_output/apogee_target_report.txt. The target longitude is exactly -105.0 degrees. A correct simulation will yield a latitude at apogee of approximately 63.4 degrees and an altitude between 46000 and 49000 km."
+}

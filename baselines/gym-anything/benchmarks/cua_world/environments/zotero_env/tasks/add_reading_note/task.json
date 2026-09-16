@@ -1,0 +1,33 @@
+{
+  "id": "add_reading_note@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a PhD student in machine learning conducting a literature review. Your Zotero library has been pre-loaded with 18 foundational research papers. Locate the paper 'Attention Is All You Need' by Vaswani et al. (2017) and add a child note documenting its key contributions. The note must be a meaningful summary of at least 2-3 sentences and must include the following three concepts: 'Transformer', 'self-attention', and 'machine translation' (or 'translation').",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_reading_note/setup_task.sh",
+    "post_task": "/workspace/tasks/add_reading_note/export_result.sh"
+  },
+  "metadata": {
+    "target_paper_title": "Attention Is All You Need",
+    "target_author_last": "Vaswani",
+    "target_year": "2017",
+    "required_keywords": [
+      "Transformer",
+      "self-attention",
+      "translation"
+    ],
+    "min_note_length": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_reading_note"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "manual_mitosis_tracking@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Manual Tracking of Mitotic Progression",
+  "description": "Perform manual tracking of a dividing cell in the 'Mitosis' sample image. Create a Max Intensity Z-Projection to produce a 2D time-lapse. Identify the cell near (X=145, Y=130) at Frame 1 and record its X, Y centroid coordinates (in pixels) for Frames 1, 6, 11, 16, and 21. For Frame 21, record the right-most daughter cell. Save the results in CSV format (Frame, X, Y) to ~/ImageJ_Data/results/tracking_trace.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "tracking",
+    "5D-image",
+    "hyperstack",
+    "z-projection",
+    "manual-analysis"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manual_mitosis_tracking/setup_task.sh",
+    "post_task": "/workspace/tasks/manual_mitosis_tracking/export_result.sh"
+  },
+  "metadata": {
+    "sample_name": "Mitosis",
+    "output_path": "/home/ga/ImageJ_Data/results/tracking_trace.csv",
+    "ground_truth": {
+      "1": [
+        145,
+        130
+      ],
+      "6": [
+        146,
+        130
+      ],
+      "11": [
+        145,
+        130
+      ],
+      "16": [
+        155,
+        130
+      ],
+      "21": [
+        170,
+        130
+      ]
+    },
+    "tolerance_px": 25
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mitosis_tracking"
+    }
+  }
+}

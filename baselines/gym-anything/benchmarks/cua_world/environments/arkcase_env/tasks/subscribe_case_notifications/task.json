@@ -1,0 +1,27 @@
+{
+  "id": "subscribe_case_notifications@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Log in to ArkCase as 'arkcase-admin@dev.arkcase.com' (password: 'ArkCase1234!'). Subscribe to the complaint case titled 'Improper Records Retention Complaint' regarding the Office of Administrative Services failing to retain correspondence. Ensure the subscription is active to receive notifications for future updates.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/subscribe_case_notifications/setup_task.sh",
+    "post_task": "/workspace/tasks/subscribe_case_notifications/export_result.sh"
+  },
+  "metadata": {
+    "target_case_title": "Improper Records Retention Complaint",
+    "admin_user": "arkcase-admin@dev.arkcase.com",
+    "admin_pass": "ArkCase1234!"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_subscribe_case_notifications"
+    }
+  }
+}

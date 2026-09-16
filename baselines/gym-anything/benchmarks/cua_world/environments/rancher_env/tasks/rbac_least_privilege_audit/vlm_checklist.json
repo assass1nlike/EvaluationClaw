@@ -1,0 +1,53 @@
+{
+  "task_id": "rbac_least_privilege_audit@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent successfully logs into the Rancher dashboard.",
+      "points": 20,
+      "visual_evidence": "Browser shows the Rancher UI dashboard at https://localhost after successful authentication."
+    },
+    {
+      "id": "remediate_dev_all_access",
+      "description": "Agent remediates the 'dev-all-access' ClusterRoleBinding.",
+      "points": 20,
+      "visual_evidence": "Rancher UI shows the 'dev-all-access' ClusterRoleBinding being deleted, or its configuration screen showing the removal of the 'cluster-admin' role from the 'dev-automation' ServiceAccount."
+    },
+    {
+      "id": "remediate_wildcard_staging_role",
+      "description": "Agent remediates the 'wildcard-staging-role' Role in the staging namespace.",
+      "points": 20,
+      "visual_evidence": "Rancher UI shows the 'wildcard-staging-role' being edited to replace wildcard (*) permissions with specific, restricted verbs and resources."
+    },
+    {
+      "id": "remediate_monitoring_cluster_admin",
+      "description": "Agent remediates the 'monitoring-cluster-admin' ClusterRoleBinding.",
+      "points": 20,
+      "visual_evidence": "Rancher UI shows the 'monitoring-cluster-admin' ClusterRoleBinding being deleted, or edited to remove the 'cluster-admin' role from the 'metrics-collector' ServiceAccount."
+    },
+    {
+      "id": "remediate_ci_elevated_access",
+      "description": "Agent remediates the 'ci-elevated-access' RoleBinding in the staging namespace.",
+      "points": 20,
+      "visual_evidence": "Rancher UI shows the 'ci-elevated-access' RoleBinding being deleted, or edited to remove the 'cluster-admin' role from the 'ci-runner' ServiceAccount."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Rancher GUI to perform the audit and remediations.",
+      "visual_evidence": "Screenshots show navigation, inspection, and form submissions within the Rancher web interface, rather than bypassing the UI requirement entirely."
+    },
+    {
+      "id": "no_direct_text_editing",
+      "description": "Agent did not simply type the expected answers or commands into a text editor to fake completion.",
+      "visual_evidence": "Actions are performed in the actual Rancher application or a genuine terminal, not a text editor."
+    },
+    {
+      "id": "authentic_remediation",
+      "description": "Agent manually identifies and remediates the roles/bindings rather than running a pre-existing solution script.",
+      "visual_evidence": "Trajectory shows the agent browsing RBAC resources, inspecting permissions, and applying changes step-by-step."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires remediating 4 specific injected RBAC violations: 1) ClusterRoleBinding 'dev-all-access' (SA dev-automation in development bound to cluster-admin), 2) Role 'wildcard-staging-role' in staging (uses * for verbs/resources/apiGroups), 3) ClusterRoleBinding 'monitoring-cluster-admin' (SA metrics-collector in monitoring bound to cluster-admin), 4) RoleBinding 'ci-elevated-access' in staging (SA ci-runner bound to cluster-admin). A passing score requires at least 3 of these 4 violations to be successfully remediated."
+}

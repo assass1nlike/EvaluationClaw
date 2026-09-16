@@ -1,0 +1,27 @@
+{
+  "id": "identify_lost_followup_cohort@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are a Data Manager for a longitudinal cohort study. Your goal is to identify participants who completed the baseline assessment but failed to attend their 6-month follow-up visit. Using Epi Info 7, create a project named 'CohortRetention' and process the data from 'Baseline_Jan2024.csv' and 'Followup_Jun2024.csv' (located in 'C:\\Users\\Docker\\Documents\\Data'). Identify participants present in the baseline data who do not have a corresponding record in the follow-up data. Export this list of 'lost' participants, including columns for ParticipantID, FirstName, LastName, and Phone, to 'C:\\Users\\Docker\\Documents\\Output\\CallList.csv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\identify_lost_followup_cohort\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\identify_lost_followup_cohort\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\Output\\CallList.csv",
+    "ground_truth_path": "C:\\Users\\Docker\\Documents\\Data\\ground_truth_ids.txt",
+    "data_dir": "C:\\Users\\Docker\\Documents\\Data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lost_followup"
+    }
+  }
+}

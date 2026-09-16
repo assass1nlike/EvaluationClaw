@@ -1,0 +1,30 @@
+{
+  "id": "age_based_conditional_logic@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create a clinical screening survey titled 'Influenza Vaccine Study Screener 2026' for an influenza vaccine study in LimeSurvey (admin/Admin123!). The survey must capture the participant's Date of Birth (Code: 'DOB') and calculate their age (Code: 'AGE_CALC'). Ensure that a 'Medical History' group, containing at least three medical questions, is only visible if the calculated age is between 18 and 65 years old (inclusive). Activate the survey once configured.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/age_based_conditional_logic/setup_task.sh",
+    "post_task": "/workspace/tasks/age_based_conditional_logic/export_result.sh"
+  },
+  "metadata": {
+    "expected_survey_title": "Influenza Vaccine Study Screener 2026",
+    "expected_dob_code": "DOB",
+    "expected_calc_code": "AGE_CALC",
+    "min_age": 18,
+    "max_age": 65,
+    "context": "Clinical Trial Eligibility Screening"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_age_logic"
+    }
+  }
+}

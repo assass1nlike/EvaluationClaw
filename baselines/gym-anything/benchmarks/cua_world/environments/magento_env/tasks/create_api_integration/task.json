@@ -1,0 +1,30 @@
+{
+  "id": "create_api_integration@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create and activate a REST API integration named 'FastTrack_Logistics' for a third-party logistics provider using the email 'api@fasttrack.com'. Configure the integration with custom resource access limited to Sales > Operations > Orders > Actions > View and Catalog > Inventory > Products. Use the admin password 'Admin1234!' when prompted for authentication.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_api_integration/setup_task.sh",
+    "post_task": "/workspace/tasks/create_api_integration/export_result.sh"
+  },
+  "metadata": {
+    "integration_name": "FastTrack_Logistics",
+    "integration_email": "api@fasttrack.com",
+    "required_resources": [
+      "Magento_Sales::view",
+      "Magento_CatalogInventory::inventory"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_api_integration"
+    }
+  }
+}

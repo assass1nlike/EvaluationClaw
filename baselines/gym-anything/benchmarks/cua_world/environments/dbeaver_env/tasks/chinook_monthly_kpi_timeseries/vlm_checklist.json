@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_monthly_kpi_timeseries@1",
+  "task_completion": [
+    {
+      "id": "dbeaver_connection",
+      "description": "Connect to the Chinook SQLite database in DBeaver",
+      "points": 10,
+      "visual_evidence": "DBeaver is open and the Database Navigator shows a connection named 'Chinook' pointing to the SQLite database."
+    },
+    {
+      "id": "sql_query_written",
+      "description": "Write SQL query for monthly financial KPIs",
+      "points": 20,
+      "visual_evidence": "The SQL editor in DBeaver contains a query referencing the 'invoices' table with logic to calculate Month, Revenue, InvoiceCount, UniqueCustomers, NewCustomers, CumulativeRevenue, and MoMGrowthPct."
+    },
+    {
+      "id": "query_results_displayed",
+      "description": "Execute query and display results",
+      "points": 20,
+      "visual_evidence": "The Data Grid in DBeaver shows the executed query results with the required columns. The first row should show a revenue of 35.64 and a NULL MoMGrowthPct."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "Save the SQL script to the specified path",
+      "points": 20,
+      "visual_evidence": "The SQL editor tab is named 'monthly_kpi.sql' with a tooltip or save dialog indicating the path '/home/ga/Documents/scripts/monthly_kpi.sql', or the file is visible in a file manager at that location."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the results to a CSV file",
+      "points": 30,
+      "visual_evidence": "A DBeaver data transfer/export dialog shows the target file as '/home/ga/Documents/exports/monthly_kpi.csv', or a file manager/terminal confirms the creation of the CSV file at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dbeaver_used",
+      "description": "Agent used DBeaver GUI for database interaction",
+      "visual_evidence": "Screenshots should show the DBeaver application being used to write the query and view results, rather than terminal commands like 'sqlite3'."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent wrote a genuine SQL query",
+      "visual_evidence": "The SQL query must contain actual database logic (e.g., SUM, COUNT, window functions) and not just hardcoded SELECT statements with the final answers."
+    },
+    {
+      "id": "authentic_export",
+      "description": "Agent used genuine export functionality",
+      "visual_evidence": "The CSV export should be performed using DBeaver's export wizard or a valid SQL export command, rather than manually typing out the CSV contents in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The database has 60 distinct invoice months and 59 distinct customers. The first month's total revenue is 35.64, and the total cumulative revenue across all invoices is exactly 2328.60. The required columns are Month, Revenue, InvoiceCount, UniqueCustomers, NewCustomers, CumulativeRevenue, and MoMGrowthPct. The expected CSV path is /home/ga/Documents/exports/monthly_kpi.csv and the expected SQL path is /home/ga/Documents/scripts/monthly_kpi.sql."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "vlt_clinical_scoring_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent loads the required CSV and JSON datasets.",
+      "points": 10,
+      "visual_evidence": "Code in an editor or terminal referencing the loading of 'vlt_raw_data.csv', 'demographics.csv', and 'norms.json'."
+    },
+    {
+      "id": "clean_trial_strings",
+      "description": "Agent cleans the 'trial' strings by trimming whitespace and converting to uppercase.",
+      "points": 10,
+      "visual_evidence": "Code showing string manipulation functions like '.strip()' and '.upper()' being applied to the trial data."
+    },
+    {
+      "id": "implement_exclusions",
+      "description": "Agent implements logic to exclude participants with missing age data or invalid learning patterns.",
+      "points": 20,
+      "visual_evidence": "Code showing filtering conditions for missing/null age values and a mathematical check for an increase of 10 or more between Trial A1 and Trial A2 (e.g., A2 - A1 >= 10)."
+    },
+    {
+      "id": "calculate_metrics",
+      "description": "Agent computes the five required clinical metrics for valid participants.",
+      "points": 30,
+      "visual_evidence": "Code showing the calculation of 'total_acquisition', 'learning_slope', 'retroactive_interference', 'delayed_retention' (handling A6=0), and 'total_acquisition_zscore'."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Agent computes the group means for the five metrics across all valid participants.",
+      "points": 10,
+      "visual_evidence": "Code showing averaging/mean functions applied to the computed metrics and rounding the results to 2 decimal places."
+    },
+    {
+      "id": "save_report_json",
+      "description": "Agent saves the final processed data to the specified JSON report path.",
+      "points": 20,
+      "visual_evidence": "Code writing the final dictionary/dataframe to '~/pebl/analysis/vlt_report.json', or a terminal command/file explorer showing this file has been created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent did not access or copy the ground truth file to bypass the task.",
+      "visual_evidence": "Ensure there are no commands reading or copying from '/root/vlt_ground_truth.json'."
+    },
+    {
+      "id": "script_execution_verified",
+      "description": "Agent actually executed the data processing script rather than just writing it.",
+      "visual_evidence": "Terminal output showing the script running successfully, or a directory listing showing the newly created 'vlt_report.json' file with an updated timestamp."
+    },
+    {
+      "id": "no_hardcoded_exclusions",
+      "description": "Agent dynamically calculated the excluded participants rather than hardcoding the known excluded IDs.",
+      "visual_evidence": "The script should contain the logical conditions for exclusion (age check, A2-A1>=10) rather than a hardcoded list like ['sub-888', 'sub-999']."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved to '/home/ga/pebl/analysis/vlt_report.json'. The required computed fields are: 'total_acquisition', 'learning_slope', 'retroactive_interference', 'delayed_retention', and 'total_acquisition_zscore'. Based on the dataset, the exclusion logic should specifically flag participants 'sub-888' and 'sub-999' as excluded."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "h2_heading_structure_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a comprehensive H2 sub-heading structure audit for the online bookstore 'books.toscrape.com' using Screaming Frog SEO Spider. Export the H2 data and the internal HTML data as CSV files to '~/Documents/SEO/exports/'. Analyze the data and create a text report at '~/Documents/SEO/reports/h2_structure_report.txt' that includes the total number of pages crawled, the count of pages missing H2 headings, observations regarding duplicate or long H2s, and specific recommendations for the content team.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/h2_heading_structure_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/h2_heading_structure_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "target_domain": "books.toscrape.com",
+    "required_columns_h2": [
+      "H2-1",
+      "H2-2",
+      "H2 Length 1"
+    ],
+    "report_path": "/home/ga/Documents/SEO/reports/h2_structure_report.txt",
+    "min_csv_rows": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_h2_heading_structure_audit"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "compressed_log_ingestion_preprocessor@1",
+  "task_completion": [
+    {
+      "id": "working_directory_setup",
+      "description": "Set up the working directory at /home/ga/log_warehouse with permissions for the oracle user.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing commands like 'mkdir /home/ga/log_warehouse' and permission changes such as 'chown oracle' or 'chmod' applied to this directory."
+    },
+    {
+      "id": "oracle_directory_created",
+      "description": "Create an Oracle DIRECTORY object named LOG_DIR.",
+      "points": 10,
+      "visual_evidence": "A SQL client (like SQL*Plus or SQL Developer) showing the execution of 'CREATE [OR REPLACE] DIRECTORY LOG_DIR AS ...'."
+    },
+    {
+      "id": "preprocessor_script_created",
+      "description": "Create a preprocessor script to read the GZIP data.",
+      "points": 15,
+      "visual_evidence": "A terminal or text editor showing a shell script (e.g., containing 'zcat' or 'gunzip -c') being created and made executable, which will be used by the Oracle external table to decompress the file on the fly."
+    },
+    {
+      "id": "external_table_created",
+      "description": "Create the External Table FIREWALL_LOGS_EXT with the required columns and preprocessor.",
+      "points": 25,
+      "visual_evidence": "A SQL client showing the 'CREATE TABLE FIREWALL_LOGS_EXT ... ORGANIZATION EXTERNAL' statement. It must include the columns LOG_ID, TIMESTAMP, SOURCE_IP, DEST_IP, ACTION, BYTES, and specify the ORACLE_LOADER access driver with a PREPROCESSOR clause."
+    },
+    {
+      "id": "view_created",
+      "description": "Create the BLOCKED_TRAFFIC_SUMMARY view.",
+      "points": 20,
+      "visual_evidence": "A SQL client showing the 'CREATE VIEW BLOCKED_TRAFFIC_SUMMARY AS ...' statement, filtering for ACTION = 'BLOCK' or 'DROP' and grouping by SOURCE_IP to count the records."
+    },
+    {
+      "id": "report_exported",
+      "description": "Export the top 5 blocked source IPs and their counts to /home/ga/Desktop/blocked_report.txt.",
+      "points": 20,
+      "visual_evidence": "A terminal, file manager, or text editor showing the contents of '/home/ga/Desktop/blocked_report.txt' containing exactly 5 IP addresses along with their respective block/drop counts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with a real SQL client to execute the database commands.",
+      "visual_evidence": "Screenshots should show a genuine database client (e.g., SQL*Plus, SQLcl, SQL Developer, DBeaver) executing the queries, rather than the agent just typing SQL into a text file without running it."
+    },
+    {
+      "id": "no_manual_extraction",
+      "description": "The agent used the preprocessor feature instead of manually extracting the archive to disk.",
+      "visual_evidence": "The external table definition must explicitly show the 'PREPROCESSOR' clause. The agent should not run 'gunzip' or 'tar' to permanently extract the .csv.gz file to a plain .csv file on disk for the external table to read."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "The final report was generated from actual database query results.",
+      "visual_evidence": "The report file should contain realistic IP addresses and counts derived from a SQL query output (e.g., via spooling or copy-pasting query results), not fabricated placeholder data."
+    }
+  ],
+  "privileged_info_for_vlm": "The compressed log file is located at /workspace/data/firewall_trace.csv.gz and contains exactly 5000 records. The target external table must be named FIREWALL_LOGS_EXT and the view must be named BLOCKED_TRAFFIC_SUMMARY. The final report must be saved to /home/ga/Desktop/blocked_report.txt. The database credentials are user 'hr' and password 'hr123'."
+}

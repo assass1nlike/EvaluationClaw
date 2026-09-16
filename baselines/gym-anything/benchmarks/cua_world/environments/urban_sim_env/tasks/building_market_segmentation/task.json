@@ -1,0 +1,32 @@
+{
+  "id": "building_market_segmentation@1",
+  "version": "1.0",
+  "env_id": "urban_sim_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a senior appraiser at the San Francisco Assessor-Recorder's office tasked with reforming the mass appraisal methodology to address assessment inequity. Perform an unsupervised market segmentation of San Francisco's residential building stock into three structurally distinct segments using the UrbanSim dataset at /home/ga/urbansim_projects/data/sanfran_public.h5. The segmentation must result in a highest-cluster mean price-per-sqft at least 1.5 times the lowest-cluster mean price-per-sqft. Use the Jupyter Lab instance at http://localhost:8888 and the notebook at /home/ga/urbansim_projects/notebooks/market_segmentation.ipynb.\n\nExport the building-level results (building_id, cluster_id, price_per_sqft) for all valid residential units to /home/ga/urbansim_projects/output/building_clusters.csv. Export the cluster profiles (cluster_id, mean_price_per_sqft, mean_age_years, mean_stories, mean_units, building_count) to /home/ga/urbansim_projects/output/cluster_profiles.csv. Save a scatter plot of price_per_sqft vs building age (relative to 2025) colored by cluster to /home/ga/urbansim_projects/output/market_segmentation_chart.png.",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/building_market_segmentation/setup_task.sh",
+    "post_task": "/workspace/tasks/building_market_segmentation/export_result.sh"
+  },
+  "metadata": {
+    "task_name": "building_market_segmentation",
+    "notebook_path": "/home/ga/urbansim_projects/notebooks/market_segmentation.ipynb",
+    "building_clusters_csv": "/home/ga/urbansim_projects/output/building_clusters.csv",
+    "cluster_profiles_csv": "/home/ga/urbansim_projects/output/cluster_profiles.csv",
+    "chart_path": "/home/ga/urbansim_projects/output/market_segmentation_chart.png",
+    "gt_path": "/tmp/building_segmentation_gt.json",
+    "required_clusters": 3,
+    "min_price_ratio": 1.5,
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_building_segmentation"
+    }
+  }
+}

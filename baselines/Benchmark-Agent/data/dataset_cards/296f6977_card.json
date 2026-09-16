@@ -1,0 +1,74 @@
+{
+  "dataset_id": "296f6977",
+  "name": "Bias-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Bias-Detection dataset consists of short text passages labeled for bias. It evaluates whether a model can determine if a given text contains bias, outputting either 'Biased' or 'Not Biased'.",
+  "card_text": "Bias-Detection is a binary text classification dataset of 200 samples. Each sample includes a raw text snippet, often a factual or media-related statement, and a prompt instructing the model to judge whether the text contains bias. The target label is either 'Biased' or 'Not Biased', stored under output.topic. The dataset tests sensitivity to subtle bias in language, including statements about media, groups, or claims. The input texts are short, single-sentence passages; no additional context, rationale, or multiple-choice options are provided. The task is framed as an instruction-following classification: the model must read the raw text through a templated prompt and return only the category name. Assumptions include that bias is a binary property of the text snippet and that the label reflects the annotator's judgment.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "text bias detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw_text field carries the sentence or short passage that the model must analyze for bias. It is the main input context and is referenced by the prompt via a placeholder.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt field is a templated instruction that embeds the raw_text and asks the model to determine whether the text contains bias, specifying the output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.topic"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output.topic field holds the binary bias label, either 'Biased' or 'Not Biased', corresponding to the model's required answer for the input text.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a raw text snippet (input.raw_text), a prompt string (input.prompt) that instructs the model to classify the snippet as 'Biased' or 'Not Biased', and the gold label (output.topic). There are no dialogs, options, images, or additional annotations; the prompt wraps the raw text and the answer is a single categorical label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Bias-Detection/annotation.json",
+    "existing_tags": {
+      "task": "bias_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "reproject_layer_to_mercator@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Reproject the 'ne_110m_admin_0_countries' layer from WGS 84 (EPSG:4326) to Web Mercator (EPSG:3857). Perform a permanent coordinate transformation on the data and save the resulting shapefile to /home/ga/gvsig_data/exports/countries_mercator.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reproject_layer_to_mercator/setup_task.sh",
+    "post_task": "/workspace/tasks/reproject_layer_to_mercator/export_result.sh"
+  },
+  "metadata": {
+    "input_layer": "ne_110m_admin_0_countries",
+    "output_path": "/home/ga/gvsig_data/exports/countries_mercator.shp",
+    "target_crs_code": "EPSG:3857",
+    "target_crs_keywords": [
+      "Mercator",
+      "3857",
+      "Pseudo_Mercator",
+      "Popular Visualisation"
+    ],
+    "expected_feature_count": 177,
+    "min_x_range_meters": 1000000.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reproject_layer_to_mercator"
+    }
+  }
+}

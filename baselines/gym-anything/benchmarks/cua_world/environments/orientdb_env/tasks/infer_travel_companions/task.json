@@ -1,0 +1,29 @@
+{
+  "id": "infer_travel_companions@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Perform a graph inference task in the 'demodb' travel agency database to identify potential travel companions. Seed the scenario with two 5-star reviews for 'Hotel Artemide' on '2023-12-25': one by 'john.smith@example.com' ('Great Xmas!') and one by 'maria.garcia@example.com' ('Lovely holiday!'). Create a 'PotentialCompanion' edge class and populate it by linking all pairs of users who reviewed the same hotel on the same date.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/infer_travel_companions/setup_task.sh",
+    "post_task": "/workspace/tasks/infer_travel_companions/export_result.sh"
+  },
+  "metadata": {
+    "target_hotel": "Hotel Artemide",
+    "target_date": "2023-12-25",
+    "p1_email": "john.smith@example.com",
+    "p2_email": "maria.garcia@example.com",
+    "edge_class": "PotentialCompanion"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_infer_travel_companions"
+    }
+  }
+}

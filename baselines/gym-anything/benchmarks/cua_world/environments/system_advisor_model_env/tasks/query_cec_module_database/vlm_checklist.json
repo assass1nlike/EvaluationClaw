@@ -1,0 +1,53 @@
+{
+  "task_id": "query_cec_module_database@1",
+  "task_completion": [
+    {
+      "id": "locate_database",
+      "description": "Locate the CEC Modules database within the /opt/SAM/ directory.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., find, ls) or a file manager navigating to /opt/SAM/ and identifying the CEC Modules database file (likely a CSV or database file)."
+    },
+    {
+      "id": "apply_filters",
+      "description": "Apply filters for 'Mono' technology, Pmp >= 380 W, and efficiency >= 20.0%.",
+      "points": 20,
+      "visual_evidence": "Python script or spreadsheet showing logic to filter rows where technology contains 'Mono' (case-insensitive), Pmp/STC >= 380, and efficiency >= 20.0 (calculated as Pmp / (Area * 10) if an explicit column is missing)."
+    },
+    {
+      "id": "sort_and_limit",
+      "description": "Sort the filtered modules by efficiency in descending order and limit to the top 15.",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet operations showing sorting by the efficiency value in descending order and slicing or limiting the results to exactly 15 items."
+    },
+    {
+      "id": "format_json",
+      "description": "Format the output to match the required JSON structure.",
+      "points": 20,
+      "visual_evidence": "Code showing the construction of a dictionary/JSON object with keys 'query_criteria', 'total_modules_matching', and 'top_15_modules', matching the requested schema."
+    },
+    {
+      "id": "save_output",
+      "description": "Save the final JSON output to the specified file path.",
+      "points": 30,
+      "visual_evidence": "Code showing a file write operation to '/home/ga/Documents/SAM_Projects/premium_modules_report.json', or a terminal/file manager showing the file exists at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_usage",
+      "description": "The agent reads from the actual CEC Modules database in /opt/SAM/.",
+      "visual_evidence": "File paths in the script or spreadsheet must point to a file within the /opt/SAM/ directory, not a mock file or external source."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The agent programmatically filters and sorts the data rather than hardcoding the results.",
+      "visual_evidence": "The script or spreadsheet contains actual filtering and sorting logic. The top 15 modules are not hardcoded into the script."
+    },
+    {
+      "id": "authentic_output",
+      "description": "The generated JSON contains real module data, not placeholders.",
+      "visual_evidence": "The final JSON file or printed output shows real module names and realistic numerical values, not placeholder text like '<Full module name>'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is /home/ga/Documents/SAM_Projects/premium_modules_report.json. The filtering criteria are: minimum Pmp of 380 W, minimum efficiency of 20.0%, and technology containing 'mono' (case-insensitive). The output must contain exactly 15 modules in the top_15_modules list."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "build_supplier_scorecard@1",
+  "task_completion": [
+    {
+      "id": "create_scorecard_sheet_and_headers",
+      "description": "Create a new sheet named 'Scorecard' with the required headers.",
+      "points": 10,
+      "visual_evidence": "A tab named 'Scorecard' is visible at the bottom of the spreadsheet. The first row contains the headers: Vendor, Total_Shipments, On_Time_Rate, Avg_Unit_Price, Total_Value, Weighted_Score, and Rank."
+    },
+    {
+      "id": "list_unique_vendors",
+      "description": "List exactly 15 unique vendors in the Vendor column.",
+      "points": 10,
+      "visual_evidence": "The Vendor column in the 'Scorecard' sheet is populated with exactly 15 distinct vendor names extracted from the 'Shipments' sheet."
+    },
+    {
+      "id": "calculate_base_metrics",
+      "description": "Calculate Total_Shipments, On_Time_Rate, Avg_Unit_Price, and Total_Value for each vendor.",
+      "points": 20,
+      "visual_evidence": "The columns for Total_Shipments, On_Time_Rate, Avg_Unit_Price, and Total_Value are populated with numerical data or percentages for all 15 vendors."
+    },
+    {
+      "id": "calculate_weighted_score",
+      "description": "Compute the Weighted_Score for each vendor using the specified formula.",
+      "points": 30,
+      "visual_evidence": "The Weighted_Score column is populated with numerical values. If a cell in this column is selected, the formula bar should show a formula combining On_Time_Rate, Avg_Unit_Price, and Total_Value with the weights 0.4, 0.35, and 0.25 respectively."
+    },
+    {
+      "id": "calculate_rank",
+      "description": "Rank the vendors based on the Weighted_Score in descending order.",
+      "points": 20,
+      "visual_evidence": "The Rank column is populated with integer values from 1 to 15. If a cell is selected, the formula bar should ideally show a RANK function."
+    },
+    {
+      "id": "save_updated_file",
+      "description": "Save the updated file to /home/ga/Documents/supplier_shipments.xlsx.",
+      "points": 10,
+      "visual_evidence": "The spreadsheet application title bar shows 'supplier_shipments.xlsx' and there is evidence of the file being saved (e.g., clicking the save icon, no unsaved changes indicator)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_interaction",
+      "description": "The agent used a graphical spreadsheet application (e.g., LibreOffice Calc) to complete the task.",
+      "visual_evidence": "Screenshots show the LibreOffice Calc (or similar) interface being actively used, rather than a terminal window running a Python/pandas script to modify the file in the background."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "The agent used formulas to calculate the metrics rather than hardcoding the final answers.",
+      "visual_evidence": "When cells in the calculated columns are selected, the formula bar shows actual spreadsheet formulas (e.g., COUNTIF, SUMIF, AVERAGEIF, MAX, RANK) rather than static numbers."
+    },
+    {
+      "id": "genuine_data_reference",
+      "description": "The agent references the 'Shipments' sheet for its calculations.",
+      "visual_evidence": "Formulas visible in the formula bar include references to the 'Shipments' sheet (e.g., 'Shipments.A:A' or similar syntax)."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected sheet name is 'Scorecard'. There must be exactly 15 unique vendors listed. The agent is expected to use formulas including COUNTIF, SUMIF, AVERAGEIF, MAX, and RANK to compute the metrics. The dataset is the authentic USAID Supply Chain Shipment Pricing Data."
+}

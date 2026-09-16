@@ -1,0 +1,38 @@
+{
+  "id": "engineering_inspection_report@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "As a licensed structural engineer at Caldwell & Associates, format the field notes from /home/ga/Documents/inspection_draft.docx into a professional report saved to /home/ga/Documents/inspection_report.docx. The report must use Heading 1 for primary sections (Introduction, Scope of Assessment, Building Description, Structural Observations, Structural Calculations, Conclusions and Recommendations, Professional Engineer Certification) and Heading 2 for subsections, following a multi-level numbered outline. Format the seven structural deficiency observations into individual 3-column tables (Location, Deficiency Description, Recommended Action) with bold headers and visible borders, each preceded by a bold label (e.g., 'OBS-001 (Critical):'). Reformat the three load calculations into 4-column tables (Parameter, Value, Unit, Code Reference) with bold headers and visible borders. Apply figure captions to the five figures. The Professional Engineer Certification section must feature a bordered single-cell table containing the certification text, license number TX-78234, and the statement: 'I hereby certify that this structural assessment was prepared by me or under my direct supervision'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/engineering_inspection_report/setup_task.sh",
+    "post_task": "/workspace/tasks/engineering_inspection_report/export_result.sh"
+  },
+  "metadata": {
+    "source_doc": "/home/ga/Documents/inspection_draft.docx",
+    "output_doc": "/home/ga/Documents/inspection_report.docx",
+    "observation_count": 7,
+    "section_headings": [
+      "Introduction",
+      "Scope of Assessment",
+      "Building Description",
+      "Structural Observations",
+      "Structural Calculations",
+      "Conclusions and Recommendations",
+      "Professional Engineer Certification"
+    ],
+    "pe_license": "TX-78234",
+    "certification_fragment": "I hereby certify"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_engineering_inspection_report"
+    }
+  }
+}

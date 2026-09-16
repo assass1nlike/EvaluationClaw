@@ -1,0 +1,59 @@
+{
+  "task_id": "medication_interaction_audit@1",
+  "task_completion": [
+    {
+      "id": "search_patient",
+      "description": "Locate the patient James Kowalski in the OpenEMR system.",
+      "points": 10,
+      "visual_evidence": "OpenEMR patient search screen or patient dashboard clearly showing the name 'James Kowalski' and DOB '1968-04-15'."
+    },
+    {
+      "id": "view_medications",
+      "description": "Navigate to the patient's medication list or prescription section.",
+      "points": 10,
+      "visual_evidence": "The OpenEMR interface displaying the active medications list for James Kowalski."
+    },
+    {
+      "id": "discontinue_metformin",
+      "description": "Discontinue Metformin due to the CKD Stage 3b contraindication.",
+      "points": 20,
+      "visual_evidence": "Metformin is shown with a 'discontinued', 'inactive', or crossed-out status in the patient's medication list."
+    },
+    {
+      "id": "discontinue_ibuprofen",
+      "description": "Discontinue Ibuprofen due to the CKD Stage 3b contraindication.",
+      "points": 20,
+      "visual_evidence": "Ibuprofen is shown with a 'discontinued', 'inactive', or crossed-out status in the patient's medication list."
+    },
+    {
+      "id": "discontinue_nitrofurantoin",
+      "description": "Discontinue Nitrofurantoin due to the CKD Stage 3b contraindication.",
+      "points": 20,
+      "visual_evidence": "Nitrofurantoin is shown with a 'discontinued', 'inactive', or crossed-out status in the patient's medication list."
+    },
+    {
+      "id": "preserve_safe_medications",
+      "description": "Ensure safe medications remain active.",
+      "points": 20,
+      "visual_evidence": "Amlodipine, Atorvastatin, and Lisinopril are still listed as active (not discontinued) in the patient's medication list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the OpenEMR web interface to modify medications rather than using direct database queries.",
+      "visual_evidence": "Screenshots show the OpenEMR web interface being clicked and navigated, not a terminal window executing MySQL commands."
+    },
+    {
+      "id": "genuine_openemr_app",
+      "description": "The agent interacted with the actual OpenEMR application.",
+      "visual_evidence": "The browser address bar shows the OpenEMR URL, and the UI matches standard OpenEMR layouts, rather than a text editor or mock interface."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "The agent did not simply write the expected JSON output directly to the result file.",
+      "visual_evidence": "Absence of terminal windows or text editors (like nano/vim) open with the /tmp/medication_audit_result.json file being manually typed out."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient: James Kowalski (DOB: 1968-04-15). Condition: CKD Stage 3b. The agent must discontinue the contraindicated drugs (Metformin, Ibuprofen, Nitrofurantoin) and keep the safe drugs (Amlodipine, Atorvastatin, Lisinopril) active in the OpenEMR system."
+}

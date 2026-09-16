@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import socket
+import subprocess
+import sys
 import threading
 from pathlib import Path
 
@@ -17,7 +19,7 @@ from evalclaw.runners.environment_actors import (
     ActorSession,
     ActorToolExecutor,
 )
-from evalclaw.runners.harness import ManifestHarness, ManifestHarnessRunner
+from evalclaw.runners.harness import reject_tool_constraints
 from evalclaw.types import (
     AgentEnvironmentSpec,
     BenchmarkConfig,
@@ -231,7 +233,7 @@ def test_actor_history_persists_per_actor_and_is_isolated(
     assert [message["content"] for message in calls[2]["messages"]] == ["hello"]
     assert "You are Alice." in calls[0]["system_prompt"]
     assert "When you return a natural-language message" in calls[0]["system_prompt"]
-    assert 0 < calls[0].get("timeout_s", 0) <= 300
+    assert 0 < calls[0].get("timeout_s", 0) <= _config().actor_timeout_s
     assert runtime.summary()["usage"] == {"prompt_tokens": 9, "completion_tokens": 6}
     assert runtime.summary()["by_actor"] == {
         "alice": {
@@ -430,14 +432,15 @@ def test_actor_session_broker_exposes_only_fixed_interaction(
             response = json.loads(client.makefile().readline())
         assert response == {"ok": True, "reply": "alice received hello"}
         config = json.loads(session.mcp_config)
-        assert config["requestTimeoutMs"] == 300_000
+        assert config["requestTimeoutMs"] == _config().actor_timeout_s * 1000
         assert config["codexApprovalMode"] == "approve"
         assert "secret" not in session.mcp_config
     finally:
         session.close()
 
 
-def test_environment_actors_reject_non_openclaw_harness() -> None:
+@pytest.mark.parametrize("harness", ["openclaw", "codex", "claude-code", "openhands"])
+def test_environment_actors_support_external_harnesses(harness) -> None:
     item = BenchmarkItem(
         id="actor-task",
         dimension_id="d1",
@@ -450,13 +453,19 @@ def test_environment_actors_reject_non_openclaw_harness() -> None:
             }
         },
     )
-    runner = ManifestHarnessRunner(
-        ManifestHarness(name="codex", run="codex {task}", model_env={})
-    )
+    reject_tool_constraints(item, harness)
 
-    with pytest.raises(RuntimeError, match="require the OpenClaw harness"):
-        runner.run(
-            item,
-            TargetModelConfig(provider="openai", model="gpt-5"),
-            BenchmarkConfig(actor_model="actor-model"),
-        )
+
+def test_actor_contact_cli_lists_public_roles_and_sends_stdin(monkeypatch, tmp_path):
+    with ActorSession(
+        actors=[EnvironmentActorSpec(id="alice", description="colleague", system_prompt="PRIVATE ROLE")],
+        toolsets={}, workdir=tmp_path, image="unused", environment={}, config=_config(), artifact_dir=None,
+    ) as session:
+        monkeypatch.setattr(session.runtime, "interact", lambda actor_id, message: f"{actor_id}: {message}")
+        command = [sys.executable, str(session.proxy_path.with_name("contacts.py"))]
+        listing = subprocess.run([*command, "list"], capture_output=True, text=True, check=True)
+        assert json.loads(listing.stdout) == [{"id": "alice", "description": "colleague"}]
+        message = "请确认进度\n第二行 ' \" $(whoami)"
+        reply = subprocess.run([*command, "send", "alice"], input=message, capture_output=True, text=True, check=True)
+        assert reply.stdout == f"alice: {message}\n"
+        assert session.mount.endswith(":ro")

@@ -1,0 +1,53 @@
+{
+  "task_id": "stock_footage_watermark_catalog@1",
+  "task_completion": [
+    {
+      "id": "read_preview_spec",
+      "description": "Agent reads the preview_spec.txt file to understand the requirements.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., cat, less) or a text editor showing the contents of /home/ga/Documents/preview_spec.txt."
+    },
+    {
+      "id": "video_processing_setup",
+      "description": "Agent configures video processing to add watermarks, timecodes, scale to 720p, and trim to 15 seconds.",
+      "points": 30,
+      "visual_evidence": "Terminal commands (e.g., ffmpeg), script contents, or GUI settings showing parameters for scaling (e.g., -s 1280x720 or scale=-1:720), trimming (e.g., -t 15), watermarking (e.g., drawtext), and timecode overlays."
+    },
+    {
+      "id": "thumbnail_extraction_setup",
+      "description": "Agent configures thumbnail extraction at the 5-second mark.",
+      "points": 20,
+      "visual_evidence": "Terminal commands, script contents, or GUI settings showing image extraction at exactly 5 seconds (e.g., -ss 5 or 00:00:05) for the clips."
+    },
+    {
+      "id": "catalog_json_content",
+      "description": "Agent creates the catalog.json file with metadata for all clips.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal output showing a JSON structure containing metadata for the source and output clips, being saved as catalog.json."
+    },
+    {
+      "id": "output_files_present",
+      "description": "All 7 required output files are saved in the correct directory.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal listing (e.g., ls) showing exactly 3 preview videos, 3 thumbnails, and 1 catalog.json file in /home/ga/Videos/previews/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Verifies the agent genuinely transcoded the videos rather than creating dummy files.",
+      "visual_evidence": "Terminal shows ffmpeg or other processing output with progress indicators, or a script is visibly written and executed, rather than just using 'touch' or copying files."
+    },
+    {
+      "id": "genuine_metadata_extraction",
+      "description": "Verifies the agent gathered metadata authentically.",
+      "visual_evidence": "Agent uses tools like ffprobe, file properties, or writes a script to extract metadata, rather than pasting a pre-computed JSON block from an external source."
+    },
+    {
+      "id": "independent_execution",
+      "description": "Verifies the agent performed the steps independently.",
+      "visual_evidence": "Agent constructs the commands or scripts step-by-step, rather than running a pre-existing hidden solution script."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires batch transcoding of mock stock footage. The preview videos must be 1280x720 H.264, approximately 15 seconds long, with a visible text watermark and a burned-in timecode overlay. Thumbnails must be extracted at the 5-second mark and be at least 640px wide. A catalog.json file must be created detailing all source and output metadata. All 7 files (3 videos, 3 thumbnails, 1 JSON) must be saved to /home/ga/Videos/previews/."
+}

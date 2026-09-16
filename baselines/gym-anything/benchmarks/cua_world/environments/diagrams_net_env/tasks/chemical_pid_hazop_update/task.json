@@ -1,0 +1,38 @@
+{
+  "id": "chemical_pid_hazop_update@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a process safety engineer. Based on the HAZOP study in '~/Desktop/hazop_recommendations.txt', update the P&ID diagram '~/Diagrams/methanol_storage.drawio' for Methanol Storage Tank T-100. Add a Pressure Relief Valve (PSV-101) to the tank top, a Centrifugal Pump (P-101) on the outlet line, a Check Valve (V-102) downstream of the pump, and a Shell and Tube Heat Exchanger (E-101) downstream of the check valve. Connect the components to show the flow from the Tank through the Pump, Check Valve, and Heat Exchanger to the Exit. Ensure all components are labeled with their respective tags. Export the updated diagram as a PDF to '~/Diagrams/methanol_storage_rev1.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chemical_pid_hazop_update/setup_task.sh",
+    "post_task": "/workspace/tasks/chemical_pid_hazop_update/export_result.sh"
+  },
+  "metadata": {
+    "diagram_file": "/home/ga/Diagrams/methanol_storage.drawio",
+    "export_file": "/home/ga/Diagrams/methanol_storage_rev1.pdf",
+    "required_tags": [
+      "PSV-101",
+      "P-101",
+      "V-102",
+      "E-101"
+    ],
+    "required_styles": [
+      "valve",
+      "pump",
+      "heat",
+      "exchanger"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chemical_pid_hazop_update"
+    }
+  }
+}

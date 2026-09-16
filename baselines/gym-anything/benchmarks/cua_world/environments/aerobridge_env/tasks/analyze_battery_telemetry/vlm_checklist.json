@@ -1,0 +1,59 @@
+{
+  "task_id": "analyze_battery_telemetry@1",
+  "task_completion": [
+    {
+      "id": "access_aerobridge_data",
+      "description": "Agent accesses the Aerobridge FlightLog data.",
+      "points": 15,
+      "visual_evidence": "Look for a web browser open to localhost:8000, a terminal running sqlite3 on the aerobridge database, or a script (e.g., Python) making requests or queries to the Aerobridge application."
+    },
+    {
+      "id": "identify_raw_log",
+      "description": "Agent targets the 'raw_log' field to extract 'BATT_END' values.",
+      "points": 15,
+      "visual_evidence": "Look for code, SQL queries, or manual inspection specifically referencing the 'raw_log' field and searching for the 'BATT_END' string."
+    },
+    {
+      "id": "filter_critical_battery",
+      "description": "Agent applies logic to filter records where the ending battery level is strictly less than 15.",
+      "points": 20,
+      "visual_evidence": "Look for a conditional statement (e.g., `< 15`), a SQL WHERE clause, or manual filtering logic applied to the extracted battery values."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Agent creates the critical battery report CSV file in the specified directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager, text editor, or terminal command creating or saving a file named 'critical_battery_report.csv' in '/home/ga/Documents/'."
+    },
+    {
+      "id": "write_csv_header",
+      "description": "Agent writes the correct header to the CSV file.",
+      "points": 15,
+      "visual_evidence": "Look for the exact string 'flight_log_id,batt_end_value' being written to the file, either in a text editor or within a script's output logic."
+    },
+    {
+      "id": "write_csv_data",
+      "description": "Agent populates the CSV file with the filtered flight log IDs and their corresponding battery values.",
+      "points": 20,
+      "visual_evidence": "Look for the final CSV file contents showing multiple rows with IDs and battery values (the battery values should be between 1 and 14)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_cheating",
+      "description": "The agent did not access the hidden ground truth file.",
+      "visual_evidence": "Ensure the agent does not open, read, or copy from '/var/lib/aerobridge/battery_ground_truth.csv' at any point."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "The agent extracted real data from the application rather than fabricating it.",
+      "visual_evidence": "Ensure the agent's final CSV data is derived from actual queries or scraping of the Aerobridge application/database, not from hardcoded or randomly generated numbers."
+    },
+    {
+      "id": "strict_threshold_logic",
+      "description": "The agent used the correct strict inequality for the threshold.",
+      "visual_evidence": "Ensure the agent's filtering logic uses strictly less than 15 (`< 15`), and not less than or equal to 15 (`<= 15`)."
+    }
+  ],
+  "privileged_info_for_vlm": "The Aerobridge database contains 50 synthetic FlightLog records. The 'raw_log' field contains multi-line text including 'BATT_END:{value}'. The critical threshold is strictly less than 15 (valid critical values are 1-14). The agent must extract these values and generate a CSV at /home/ga/Documents/critical_battery_report.csv with the exact header 'flight_log_id,batt_end_value'. The agent must not access the ground truth file at /var/lib/aerobridge/battery_ground_truth.csv."
+}

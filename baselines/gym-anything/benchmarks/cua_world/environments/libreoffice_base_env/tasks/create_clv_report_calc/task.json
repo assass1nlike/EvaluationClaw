@@ -1,0 +1,28 @@
+{
+  "id": "create_clv_report_calc@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a Customer Lifetime Value (CLV) report in LibreOffice Calc using data from the Chinook database. The report must include each customer's FirstName, LastName, Country, and TotalSpent (sum of Invoice totals), sorted by TotalSpent in descending order. Include a 'Segment' column where customers are categorized based on TotalSpent: 'Gold' for $45.00 or more, 'Silver' for $40.00 to $44.99, and 'Bronze' for less than $40.00. Save the final spreadsheet to /home/ga/Documents/CLV_Report.ods.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_clv_report_calc/setup_task.sh",
+    "post_task": "/workspace/tasks/create_clv_report_calc/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/CLV_Report.ods",
+    "expected_row_count": 59,
+    "threshold_gold": 45.0,
+    "threshold_silver": 40.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_clv_report_calc"
+    }
+  }
+}

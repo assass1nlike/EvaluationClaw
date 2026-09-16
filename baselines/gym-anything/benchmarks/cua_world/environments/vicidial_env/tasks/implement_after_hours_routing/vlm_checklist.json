@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_after_hours_routing@1",
+  "task_completion": [
+    {
+      "id": "create_call_time_definition",
+      "description": "Verify the creation of the new Call Time definition with the correct ID and description.",
+      "points": 20,
+      "visual_evidence": "A Vicidial 'Call Times' or 'Add A Call Time' screen showing Call Time ID 'PRISUP_HRS' and Call Time Name/Description 'Priority Support M-F 9-6'."
+    },
+    {
+      "id": "configure_weekday_schedule",
+      "description": "Verify the Call Time schedule is set correctly for Monday through Friday.",
+      "points": 20,
+      "visual_evidence": "The Call Time modification screen showing the start times for Monday, Tuesday, Wednesday, Thursday, and Friday set to '0900' and stop times set to '1800'."
+    },
+    {
+      "id": "configure_weekend_schedule",
+      "description": "Verify the Call Time schedule is set to closed for Saturday and Sunday.",
+      "points": 10,
+      "visual_evidence": "The Call Time modification screen showing Saturday and Sunday start/stop times left blank, set to '0000' to '0000', or explicitly marked as closed."
+    },
+    {
+      "id": "assign_call_time_to_group",
+      "description": "Verify the 'PRISUP' inbound group is updated to use the new call time.",
+      "points": 20,
+      "visual_evidence": "The Inbound Group modification screen for group ID 'PRISUP' showing the 'Call Time' dropdown or field set to 'PRISUP_HRS'."
+    },
+    {
+      "id": "configure_after_hours_action",
+      "description": "Verify the after-hours routing action is set to VOICEMAIL.",
+      "points": 15,
+      "visual_evidence": "The Inbound Group modification screen for 'PRISUP' showing the 'After Hours Action' field set to 'VOICEMAIL'."
+    },
+    {
+      "id": "configure_after_hours_voicemail_message",
+      "description": "Verify the after-hours voicemail box and message are configured correctly.",
+      "points": 15,
+      "visual_evidence": "The Inbound Group modification screen for 'PRISUP' showing the Voicemail box/extension field set to '1000' and the After Hours Message/Audio field set to 'vm-goodbye'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Vicidial web administration GUI to make the changes.",
+      "visual_evidence": "Screenshots should show the Vicidial web interface in a browser, not terminal commands or API requests."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Verify the agent did not bypass the UI by using direct database queries.",
+      "visual_evidence": "No terminal windows showing MySQL 'INSERT' or 'UPDATE' commands modifying the 'vicidial_inbound_groups' or 'vicidial_call_times' tables."
+    },
+    {
+      "id": "genuine_configuration_save",
+      "description": "Verify the settings were actually saved in the application.",
+      "visual_evidence": "Presence of a 'SUCCESS' message, 'Record Modified' confirmation, or the settings persisting on a reloaded modification page, rather than just being typed into an unsaved form."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Call Time ID: PRISUP_HRS. Target Inbound Group ID: PRISUP. Expected Schedule: M-F 0900 to 1800 (Sat/Sun closed). Expected After Hours Action: VOICEMAIL. Expected Voicemail Box: 1000. Expected After Hours Message: vm-goodbye."
+}

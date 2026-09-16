@@ -1,0 +1,41 @@
+{
+  "id": "backup_large_artifacts@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "The Artifactory server is running low on disk space. Identify all artifacts in the 'example-repo-local' repository larger than 5 MB (5,242,880 bytes) and download them to /home/ga/large_files_backup. Create a text file named 'manifest.txt' in that directory listing the filenames of the backed-up artifacts, one per line. Do not delete the files from the repository.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/backup_large_artifacts/setup_task.sh",
+    "post_task": "/workspace/tasks/backup_large_artifacts/export_result.sh"
+  },
+  "metadata": {
+    "backup_dir": "/home/ga/large_files_backup",
+    "manifest_file": "manifest.txt",
+    "size_threshold_bytes": 5242880,
+    "target_files": [
+      {
+        "name": "db_dump_2024.sql",
+        "min_size": 6000000
+      },
+      {
+        "name": "marketing_video_raw.mp4",
+        "min_size": 8000000
+      }
+    ],
+    "excluded_files": [
+      "app_config.json",
+      "commons_util.jar"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_backup_large_artifacts"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "export_bordering_countries@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Identify and export the countries that share a land border with Germany using the 'ne_110m_admin_0_countries' layer in the 'countries_base' project. The final output must exclude Germany itself. Export the neighboring countries to /home/ga/gvsig_data/exports/germany_neighbors.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_bordering_countries/setup_task.sh",
+    "post_task": "/workspace/tasks/export_bordering_countries/export_result.sh"
+  },
+  "metadata": {
+    "target_country": "Germany",
+    "expected_neighbors": [
+      "Austria",
+      "Belgium",
+      "Czechia",
+      "Denmark",
+      "France",
+      "Luxembourg",
+      "Netherlands",
+      "Poland",
+      "Switzerland"
+    ],
+    "output_path": "/home/ga/gvsig_data/exports/germany_neighbors.shp",
+    "layer_name": "ne_110m_admin_0_countries"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_bordering_countries"
+    }
+  }
+}

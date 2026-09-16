@@ -1,0 +1,36 @@
+{
+  "id": "bem_characteristic_tsr_sweep@1",
+  "version": "1.0",
+  "env_id": "qblade_env@0.1",
+  "description": "Perform a BEM Characteristic Simulation (TSR Sweep) in QBlade using the pre-loaded wind turbine project to generate a Power Coefficient (Cp) vs Tip Speed Ratio (TSR) curve. Configure the simulation with a fixed wind speed of 10 m/s, a TSR range from 1 to 10 with a step of 0.5, and Prandtl Tip/Root loss corrections enabled. Export the resulting tabular data, including TSR and Cp values, to /home/ga/Documents/projects/cp_tsr_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bem_characteristic_tsr_sweep/setup_task.sh",
+    "post_task": "/workspace/tasks/bem_characteristic_tsr_sweep/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/projects/cp_tsr_results.txt",
+    "min_data_rows": 15,
+    "expected_tsr_min": 1.0,
+    "expected_tsr_max": 10.0,
+    "tsr_tolerance": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bem_characteristic_tsr_sweep"
+    }
+  },
+  "tags": [
+    "qblade",
+    "simulation",
+    "wind-energy",
+    "BEM",
+    "data-export"
+  ]
+}

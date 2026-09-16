@@ -1,0 +1,28 @@
+{
+  "id": "create_appointment_service@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "The clinic has hired a nutritionist and needs to start booking appointments. Log in to Bahmni (Username: `superman`, Password: `Admin123`) and create a new Appointment Service named 'Nutrition Counseling' with a duration of 45 minutes and the description 'Dietary planning and review'. Select any color for the service.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_appointment_service/setup_task.sh",
+    "post_task": "/workspace/tasks/create_appointment_service/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_name": "Nutrition Counseling",
+    "expected_duration_mins": 45,
+    "expected_description": "Dietary planning and review"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_appointment_service"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "dataset_id": "5ff3353e",
+  "name": "Ship Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 248,
+  "description": "Dataset for ship detection from images, where the model must localize ships by predicting bounding boxes given an image and a prompt.",
+  "card_text": "This dataset evaluates object detection capabilities in maritime scenarios. Each sample contains an image of a ship (or ships) and a short text prompt instructing the model to detect the ship. The target output is a structured text representation: a dictionary mapping the category label (e.g., 'boat') to a list of bounding boxes, each specified as [x_min, y_min, x_max, y_max] pixel coordinates. The dataset is small (248 samples), with a consistent format. Images are natural scenes containing a single ship as the primary object, and the prompt is a fixed instruction. Assumptions include that the ship category is always 'boat' and that each image may contain one or more ships.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "maritime",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "The image file containing the scene where a ship is to be detected. It is the primary visual input for the detection task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction prompting the model to detect the ship in the given image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A dictionary mapping object category (e.g., 'boat') to a list of bounding boxes. Each bounding box is a four-element list [x_min, y_min, x_max, y_max] in pixel coordinates.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image file and a prompt, and an output object with a text field that contains a dictionary mapping a ship category to a list of bounding boxes. The image and prompt together form the model input, while the output provides the localization of the ship(s)."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ShipDetection/ship_detection.json",
+    "existing_tags": {
+      "task": "Ship Detection",
+      "type": "image comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

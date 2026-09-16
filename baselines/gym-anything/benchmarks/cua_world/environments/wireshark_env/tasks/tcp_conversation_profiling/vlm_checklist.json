@@ -1,0 +1,53 @@
+{
+  "task_id": "tcp_conversation_profiling@1",
+  "task_completion": [
+    {
+      "id": "report_file_created",
+      "description": "The text report file tcp_conversation_report.txt is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A terminal showing the file exists in ~/Documents/captures/ (e.g., via 'ls') or a text editor open with this file path."
+    },
+    {
+      "id": "report_format_correct",
+      "description": "The text report follows the exact specified format.",
+      "points": 20,
+      "visual_evidence": "The contents of the report show the exact headers: 'TCP Conversation Analysis Report', '=================================', 'Capture File: 200722_tcp_anon.pcapng', followed by the 4 required metric lines."
+    },
+    {
+      "id": "report_values_correct",
+      "description": "The text report contains the correct calculated values for the TCP conversations.",
+      "points": 30,
+      "visual_evidence": "The report shows Total TCP Conversations: 2, Longest Duration: 18.63s (for port 7876), Highest Volume: 11264 (for port 7876), and Average Duration: 10.69s."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The CSV file tcp_conversations.csv is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A terminal showing the file exists in ~/Documents/captures/ or an editor/spreadsheet open with this file path."
+    },
+    {
+      "id": "csv_content_correct",
+      "description": "The CSV file contains the correct headers and data for all TCP conversations.",
+      "points": 30,
+      "visual_evidence": "The CSV contents show the exact required header row (address_a,port_a,address_b,port_b,frames_a_to_b,bytes_a_to_b,frames_b_to_a,bytes_b_to_a,total_frames,total_bytes,duration_seconds) and exactly 2 data rows corresponding to the two TCP conversations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "analysis_tool_used",
+      "description": "The agent used a legitimate tool or script to analyze the pcap file.",
+      "visual_evidence": "Screenshots show Wireshark's Conversations window, tshark command execution, or a Python script (e.g., using pyshark or scapy) being run to extract the data."
+    },
+    {
+      "id": "no_hallucinated_outputs",
+      "description": "The agent derived the answers from the file rather than hallucinating or hardcoding them without analysis.",
+      "visual_evidence": "The agent's terminal history or open windows show the intermediate steps of extracting the data (like viewing the 2 conversations) before creating the final output files."
+    },
+    {
+      "id": "files_saved_correctly",
+      "description": "The agent actually saved the output files to the disk.",
+      "visual_evidence": "The agent uses a text editor and saves the file, or uses output redirection (>) to write the contents to the specified file paths, rather than just printing the text to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The pcap file contains exactly 2 TCP conversations. Conversation 1: 192.168.200.135:7876 <-> 192.168.200.21:2000 (Duration: 18.63s, Total Bytes: 11264). Conversation 2: 192.168.200.135:7875 <-> 192.168.200.21:2000 (Duration: 2.74s, Total Bytes: 480). The text report must show Total: 2, Longest Duration: 18.63s, Highest Volume: 11264, Average Duration: 10.69s. The CSV must have the exact header specified in the prompt and 2 rows of data."
+}

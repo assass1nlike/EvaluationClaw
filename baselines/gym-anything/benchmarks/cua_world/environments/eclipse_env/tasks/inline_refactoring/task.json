@@ -1,0 +1,40 @@
+{
+  "id": "inline_refactoring@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Simplify the 'DataProcessor' project located in `~/eclipse-workspace/DataProcessor` by removing over-abstracted wrapper methods using inline refactoring. Perform inline refactoring for the following methods: `StringProcessor.trimInput`, `StringProcessor.checkEmpty`, `MathHelper.addValues`, `MathHelper.computeAbsolute`, `DataPipeline.invokeValidation`, and `DataPipeline.wrapResult`. Ensure the project remains compilable and all tests pass. Document the removed methods in a text file at `~/eclipse-workspace/DataProcessor/refactoring_report.txt`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/inline_refactoring/setup_task.sh",
+    "post_task": "/workspace/tasks/inline_refactoring/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/DataProcessor",
+    "methods_to_remove": [
+      "trimInput",
+      "checkEmpty",
+      "addValues",
+      "computeAbsolute",
+      "invokeValidation",
+      "wrapResult"
+    ],
+    "expected_replacements": {
+      "trimInput": ".strip()",
+      "checkEmpty": ".isEmpty()",
+      "computeAbsolute": "Math.abs",
+      "invokeValidation": "Validator.isValid",
+      "wrapResult": "\"[\""
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inline_refactoring"
+    }
+  }
+}

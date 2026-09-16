@@ -1,0 +1,33 @@
+{
+  "id": "adjustable_motor_base@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a mechanical base plate drawing in LibreCAD. The drawing must include a 'PLATE' layer (Color: White/7) containing a rectangle from (0,0) to (300,250) and a 'SLOTS' layer (Color: Cyan/4) containing four horizontal obround slots. Each slot consists of two semicircles (Radius 7mm) connected by horizontal lines, with an overall length of 84mm and a center-to-center distance of 70mm. Position the slots using the following center points for the arcs: Slot 1 at (50, 50) and (120, 50); Slot 2 at (50, 200) and (120, 200); Slot 3 at (180, 50) and (250, 50); and Slot 4 at (180, 200) and (250, 200). Save the drawing as /home/ga/Documents/LibreCAD/motor_base_plate.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/adjustable_motor_base/setup_task.sh",
+    "post_task": "/workspace/tasks/adjustable_motor_base/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/LibreCAD/motor_base_plate.dxf",
+    "layer_plate_color": 7,
+    "layer_slots_color": 4,
+    "plate_dims": [
+      300,
+      250
+    ],
+    "slot_radius": 7,
+    "slot_length_cc": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_adjustable_motor_base"
+    }
+  }
+}

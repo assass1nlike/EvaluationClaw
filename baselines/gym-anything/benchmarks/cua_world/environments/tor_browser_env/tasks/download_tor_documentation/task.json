@@ -1,0 +1,38 @@
+{
+  "id": "download_tor_documentation@1",
+  "version": "1.0",
+  "env_id": "tor_browser_env@0.1",
+  "description": "You are a security researcher at a digital rights NGO preparing reference materials for a training workshop on secure communications. Download the 'Tor directory protocol, version 3' specification from https://spec.torproject.org/ and save it to /home/ga/Documents/tor-dir-spec.txt. Navigate to https://www.torproject.org/about/history/ and bookmark the specifications index page (https://spec.torproject.org/) with the title 'Tor Protocol Specifications'. Configure the browser's default download directory to /home/ga/Documents/.",
+  "difficulty": "hard",
+  "tags": [
+    "tor",
+    "download",
+    "documentation",
+    "security-research",
+    "file-management"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/download_tor_documentation/setup_task.sh",
+    "post_task": "/workspace/tasks/download_tor_documentation/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/Documents/tor-dir-spec.txt",
+    "required_history_urls": [
+      "spec.torproject.org",
+      "torproject.org/about/history"
+    ],
+    "required_bookmark_url_contains": "spec.torproject.org",
+    "required_bookmark_title": "Tor Protocol Specifications"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_download_tor_documentation"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_wet_wing_fuel_volume@1",
+  "task_completion": [
+    {
+      "id": "open_model_select_wing",
+      "description": "Open the baseline model and select the Wing component",
+      "points": 10,
+      "visual_evidence": "The OpenVSP window is open showing the eCRM-001 model, and the 'Wing' component is selected in the Geometry Browser."
+    },
+    {
+      "id": "add_tank_subsurface",
+      "description": "Add a new Subsurface and set its type to Tank",
+      "points": 15,
+      "visual_evidence": "The 'Sub' (Subsurface) tab is active in the Wing component dialog, a subsurface has been added, and its Type dropdown is set to 'Tank'."
+    },
+    {
+      "id": "configure_boundaries",
+      "description": "Configure the U and W spanwise/chordwise boundaries",
+      "points": 20,
+      "visual_evidence": "In the Subsurface tab, the U boundaries are set to Start: 0.15, End: 0.70. The W boundaries are set to Start: 0.20, End: 0.65."
+    },
+    {
+      "id": "run_volume_analysis",
+      "description": "Run an analysis to compute the tank volume",
+      "points": 20,
+      "visual_evidence": "An OpenVSP analysis window (such as CompGeom or Mass Properties) is open and displays the computed theoretical internal volume for the tank."
+    },
+    {
+      "id": "save_modified_model",
+      "description": "Save the modified model as eCRM001_wet_wing.vsp3",
+      "points": 10,
+      "visual_evidence": "A 'Save As' dialog or the main OpenVSP window title bar shows the file being saved as 'eCRM001_wet_wing.vsp3' in the /home/ga/Documents/OpenVSP/ directory."
+    },
+    {
+      "id": "write_fuel_report",
+      "description": "Write the formatted fuel capacity report with correct calculations",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output shows the file '/home/ga/Desktop/fuel_capacity_report.txt' containing exactly the requested headers, 'Tank Volume: [value] m^3', and 'Total Fuel Mass: [value] kg'. The mass value must be the volume multiplied by 804."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the OpenVSP GUI to modify the model",
+      "visual_evidence": "Screenshots show active interaction with the OpenVSP graphical interface (clicking tabs, entering values in the Subsurface dialog) rather than just editing the .vsp3 XML file in a text editor."
+    },
+    {
+      "id": "genuine_analysis",
+      "description": "Agent extracted the volume from an actual OpenVSP analysis",
+      "visual_evidence": "The volume value written in the text report matches the volume shown in the OpenVSP CompGeom/Mass Properties results window, proving it was not hallucinated."
+    },
+    {
+      "id": "report_file_creation",
+      "description": "Agent actually created the report file on the Desktop",
+      "visual_evidence": "A text editor save dialog, terminal command (like echo or nano), or file manager shows the report being explicitly saved to /home/ga/Desktop/fuel_capacity_report.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified parameters: U start = 0.15, U end = 0.70, W start = 0.20, W end = 0.65. Fuel density = 804.0 kg/m^3. The VLM must verify that the Total Fuel Mass in the report is mathematically correct by multiplying the extracted Tank Volume by 804.0."
+}

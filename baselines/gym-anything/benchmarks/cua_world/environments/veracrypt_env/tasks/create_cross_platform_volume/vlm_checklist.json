@@ -1,0 +1,65 @@
+{
+  "task_id": "create_cross_platform_volume@1",
+  "task_completion": [
+    {
+      "id": "open_veracrypt_wizard",
+      "description": "Open VeraCrypt and start the Volume Creation Wizard",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt main application window is open and the 'Volume Creation Wizard' dialog is visible on the screen."
+    },
+    {
+      "id": "set_volume_path",
+      "description": "Set the correct path for the new encrypted volume",
+      "points": 10,
+      "visual_evidence": "The Volume Location step in the wizard shows the file path set to '/home/ga/Volumes/dailies_transfer.hc'."
+    },
+    {
+      "id": "configure_encryption_and_size",
+      "description": "Configure AES encryption, SHA-512 hash, and 64 MB volume size",
+      "points": 15,
+      "visual_evidence": "The wizard screens show 'AES' selected for Encryption Algorithm, 'SHA-512' for Hash Algorithm, and the Volume Size explicitly set to '64 MB'."
+    },
+    {
+      "id": "set_password_and_format_exfat",
+      "description": "Enter the password and select the exFAT filesystem for formatting",
+      "points": 20,
+      "visual_evidence": "The password entry screen shows characters entered, and the Volume Format screen clearly shows 'exFAT' selected in the Filesystem dropdown menu."
+    },
+    {
+      "id": "mount_volume",
+      "description": "Mount the newly created volume to a free slot",
+      "points": 15,
+      "visual_evidence": "The VeraCrypt main window shows '/home/ga/Volumes/dailies_transfer.hc' actively mounted to one of the numbered drive slots."
+    },
+    {
+      "id": "copy_manifest_file",
+      "description": "Copy the production manifest file into the mounted volume",
+      "points": 20,
+      "visual_evidence": "A file manager window displays the contents of the mounted VeraCrypt volume, and 'production_manifest.csv' is visible inside it."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Dismount the volume after the file transfer is complete",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt main window shows that the previously used slot is now empty, indicating the volume has been successfully dismounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the VeraCrypt graphical user interface rather than terminal commands",
+      "visual_evidence": "Screenshots should show interaction with the VeraCrypt GUI windows and dialogs, not a terminal window executing 'veracrypt' CLI commands."
+    },
+    {
+      "id": "genuine_format_process",
+      "description": "The agent actually formatted the volume using the wizard",
+      "visual_evidence": "The Volume Format screen should be visible showing the randomness pool collection (mouse movement) or a 'Volume created successfully' confirmation dialog."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "The agent copied the actual manifest file rather than creating a fake text file",
+      "visual_evidence": "A file manager window should be used to copy/paste or drag/drop the file from Documents to the mounted volume, rather than a text editor being used to create a new file named 'production_manifest.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The volume must be created exactly at '/home/ga/Volumes/dailies_transfer.hc'. The volume size must be exactly 64 MB. The encryption must be AES with SHA-512 hash. The filesystem must be formatted as exFAT. The password must be 'ProductionSafe2024!'. The file '/home/ga/Documents/production_manifest.csv' must be copied into the mounted volume before it is dismounted."
+}

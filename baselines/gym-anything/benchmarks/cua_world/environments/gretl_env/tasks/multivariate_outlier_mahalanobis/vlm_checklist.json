@@ -1,0 +1,53 @@
+{
+  "task_id": "multivariate_outlier_mahalanobis@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "The script includes a command to load the food.gdt dataset.",
+      "points": 10,
+      "visual_evidence": "Look for a script file (in a text editor or Gretl script window) containing a command like 'open food.gdt' or 'open ~/Documents/gretl_data/food.gdt'."
+    },
+    {
+      "id": "calculate_m_dist",
+      "description": "The script calculates the squared Mahalanobis distance for 'food_exp' and 'income' and stores it in 'm_dist'.",
+      "points": 30,
+      "visual_evidence": "Look for matrix operations or mathematical formulas in the script calculating the covariance/inverse covariance of 'food_exp' and 'income', and assigning the resulting distance values to a new series named 'm_dist'."
+    },
+    {
+      "id": "create_outlier_flag",
+      "description": "The script creates a binary variable 'is_outlier' using the 5.991 threshold.",
+      "points": 20,
+      "visual_evidence": "Look for a command in the script similar to 'series is_outlier = m_dist > 5.991' or an equivalent conditional statement."
+    },
+    {
+      "id": "save_output_csv",
+      "description": "The script includes a command to save the resulting dataset to the specified CSV path.",
+      "points": 20,
+      "visual_evidence": "Look for a 'store' command in the script targeting exactly '/home/ga/Documents/gretl_output/food_with_outliers.csv'."
+    },
+    {
+      "id": "execute_script",
+      "description": "The script is successfully executed in Gretl.",
+      "points": 20,
+      "visual_evidence": "Look for the Gretl console/output window or a terminal running 'gretlcli' showing that the script was executed without errors. You may see output statistics or a 'Saved data to...' confirmation message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gretl_used",
+      "description": "The agent used Gretl (GUI or gretlcli) to execute the script, rather than bypassing it with Python, R, or another tool.",
+      "visual_evidence": "Check that the execution happens within the Gretl application window or via the 'gretlcli' command in the terminal."
+    },
+    {
+      "id": "no_hardcoded_outliers",
+      "description": "The agent actually calculated the distances rather than hardcoding the outlier flags.",
+      "visual_evidence": "Ensure the script contains the mathematical or matrix operations for Mahalanobis distance and does not simply assign 'is_outlier = 1' to specific observation numbers (like 30 and 37)."
+    },
+    {
+      "id": "genuine_output_path",
+      "description": "The output file was saved to the exact requested directory.",
+      "visual_evidence": "Verify in the script or terminal output that the path '/home/ga/Documents/gretl_output/food_with_outliers.csv' is used exactly, without typos or alternative directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The food.gdt dataset contains 40 observations. The correct squared Mahalanobis distance calculation for 'food_exp' and 'income' will result in exactly 2 outliers (observations 30 and 37) exceeding the 5.991 threshold (their m_dist values are approximately 6.45 and 8.28). The output file must be saved to /home/ga/Documents/gretl_output/food_with_outliers.csv."
+}

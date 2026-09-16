@@ -1,0 +1,53 @@
+{
+  "id": "chinook_analytics_schema@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Data Engineer. Using the SQLite database at /home/ga/Documents/databases/chinook_analytics.db, extend it with analytics objects. Use the connection name 'ChinookAnalytics'. Create a VIEW named 'vw_monthly_revenue' aggregating 'invoices' data with columns Year, Month, TotalRevenue, InvoiceCount, and UniqueCustomers, grouped and ordered chronologically. Create a TABLE named 'customer_lifetime_value' with columns CustomerId (PK), FirstName, LastName, Email, Country, TotalSpent, InvoiceCount, FirstPurchaseDate, LastPurchaseDate, AvgInvoiceValue, and CustomerSegment. Populate this table using 'customers' and 'invoices' data, assigning CustomerSegment as 'High' (TotalSpent >= 40.00), 'Medium' (20.00 <= TotalSpent < 40.00), or 'Low' (TotalSpent < 20.00). Create INDEXES 'idx_clv_segment' on CustomerSegment and 'idx_clv_country' on Country. Save all SQL statements to /home/ga/Documents/scripts/analytics_schema.sql. Use appropriate SQLite syntax for date functions.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_analytics_schema/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_analytics_schema/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_analytics.db",
+    "script_path": "/home/ga/Documents/scripts/analytics_schema.sql",
+    "connection_name": "ChinookAnalytics",
+    "view_name": "vw_monthly_revenue",
+    "table_name": "customer_lifetime_value",
+    "required_columns_view": [
+      "Year",
+      "Month",
+      "TotalRevenue",
+      "InvoiceCount",
+      "UniqueCustomers"
+    ],
+    "required_columns_table": [
+      "CustomerId",
+      "FirstName",
+      "LastName",
+      "Email",
+      "Country",
+      "TotalSpent",
+      "InvoiceCount",
+      "FirstPurchaseDate",
+      "LastPurchaseDate",
+      "AvgInvoiceValue",
+      "CustomerSegment"
+    ],
+    "segment_thresholds": {
+      "high": 40.0,
+      "medium": 20.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_analytics_schema"
+    }
+  }
+}

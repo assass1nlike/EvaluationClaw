@@ -1,0 +1,59 @@
+{
+  "task_id": "document_anesthetic_summary@1",
+  "task_completion": [
+    {
+      "id": "csv_exported",
+      "description": "Verify the vital signs recording was exported to a CSV file on the Desktop.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'case_0002_vitals.csv' visible on the Desktop or in a File Explorer window pointing to C:\\Users\\Docker\\Desktop."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "Verify the anesthetic summary text file was created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'anesthetic_summary_0002.txt' visible on the Desktop, in File Explorer, or open in a text editor like Notepad."
+    },
+    {
+      "id": "summary_case_and_total_duration",
+      "description": "Verify the summary includes the case identification and total recording duration.",
+      "points": 15,
+      "visual_evidence": "Read the contents of 'anesthetic_summary_0002.txt'. It must explicitly mention Case 0002 and a total recording duration of approximately 4 hours 22 minutes (or ~4h 22m 20s)."
+    },
+    {
+      "id": "summary_surgical_duration",
+      "description": "Verify the summary includes the correctly calculated surgical duration.",
+      "points": 20,
+      "visual_evidence": "Read the contents of the text file. It must state the surgical duration is approximately 3 hours 35 minutes (or 215 minutes), calculated from the start and finish events."
+    },
+    {
+      "id": "summary_parameters_listed",
+      "description": "Verify the summary lists all monitored physiological parameters.",
+      "points": 20,
+      "visual_evidence": "Read the contents of the text file. It must list the 9 parameters: ECG_II, ECG_V5, PLETH, HR, ST_V5, PLETH_SPO2, PLETH_HR, VENT_RR, and VENT_MV."
+    },
+    {
+      "id": "summary_clinical_narrative",
+      "description": "Verify the summary includes a brief clinical narrative.",
+      "points": 15,
+      "visual_evidence": "Read the contents of the text file. Look for a descriptive paragraph or sentences summarizing the monitoring data and vital signs patterns, rather than just a list of numbers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "vital_recorder_gui_used",
+      "description": "Verify the agent interacted with the Vital Recorder application GUI to find the information and export the data.",
+      "visual_evidence": "Look for screenshots showing Vital Recorder as the active window, with the agent clicking through menus (like File -> Export) or viewing the event markers."
+    },
+    {
+      "id": "files_saved_to_correct_path",
+      "description": "Verify the files were actually saved to the requested Desktop directory.",
+      "visual_evidence": "Look at the file paths in the text editor title bar, save dialogs, or File Explorer address bar to ensure they are in C:\\Users\\Docker\\Desktop."
+    },
+    {
+      "id": "genuine_narrative_generation",
+      "description": "Verify the agent generated a genuine clinical narrative and didn't just copy-paste the prompt instructions.",
+      "visual_evidence": "The clinical narrative in the text file should read like a medical summary of the data, not a repetition of the task description's requirements."
+    }
+  ],
+  "privileged_info_for_vlm": "Case 0002 total recording duration is approximately 4 hours 22 minutes 20 seconds. Surgery started at 00:28:41 and finished at 04:03:41, making the correct calculated surgical duration ~3 hours 35 minutes (215 minutes). The 9 monitored parameters that must be listed are: ECG_II, ECG_V5, PLETH, HR, ST_V5, PLETH_SPO2, PLETH_HR, VENT_RR, and VENT_MV."
+}

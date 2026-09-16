@@ -1,0 +1,37 @@
+{
+  "id": "classify_channel_shape@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Analyze the channel geometry of the White River (Muncie project) at peak flood stage using the project located in /home/ga/Documents/hec_ras_projects/Muncie/. Run the unsteady flow simulation for Plan 04 and extract the Peak Water Surface Elevation (WSE) and Cross-Section Geometry for every river station from the HDF5 output. For each cross-section, calculate the Shape Factor (SF = Hydraulic Depth / Max Depth) at the peak stage, where Hydraulic Depth is Flow Area / Top Width and Max Depth is Peak WSE minus Minimum Channel Elevation. Classify each cross-section as 'Triangular' (SF < 0.65), 'Parabolic' (0.65 <= SF <= 0.85), or 'Rectangular' (SF > 0.85). Save the results to /home/ga/Documents/hec_ras_results/channel_shape_analysis.csv with columns: River_Station, Peak_WSE, Flow_Area, Top_Width, Hydraulic_Depth, Max_Depth, Shape_Factor, and Classification.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/classify_channel_shape/setup_task.sh",
+    "post_task": "/workspace/tasks/classify_channel_shape/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "expected_csv_path": "/home/ga/Documents/hec_ras_results/channel_shape_analysis.csv",
+    "required_columns": [
+      "River_Station",
+      "Peak_WSE",
+      "Flow_Area",
+      "Top_Width",
+      "Hydraulic_Depth",
+      "Max_Depth",
+      "Shape_Factor",
+      "Classification"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_classify_channel_shape"
+    }
+  }
+}

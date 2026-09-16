@@ -1,0 +1,29 @@
+{
+  "id": "configure_fixed_price_axis@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Configure a SPY Daily chart in NinjaTrader 8 with a fixed vertical price axis. Set the price axis scaling to fixed with a minimum value of 400 and a maximum value of 500. Save the workspace to persist these settings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_fixed_price_axis/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_fixed_price_axis/export_result.sh"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "scaling_mode": "Fixed",
+    "min_value": 400,
+    "max_value": 500,
+    "tolerance": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_fixed_price_axis"
+    }
+  }
+}

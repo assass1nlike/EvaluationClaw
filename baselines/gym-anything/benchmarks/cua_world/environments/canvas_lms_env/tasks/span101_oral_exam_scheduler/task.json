@@ -1,0 +1,29 @@
+{
+  "id": "span101_oral_exam_scheduler@1",
+  "version": "1.0",
+  "env_id": "canvas_lms_env@0.1",
+  "description": "Log in as admin (canvas@example.edu / canvas-docker). Create and publish an appointment group named 'Oral Proficiency Exams' for the SPAN101 (Elementary Spanish I) course. Set the location to 'Language Lab 101'. Configure the slots for 15 minutes each, limited to 1 user per slot, on the date exactly 7 days from today between 14:00 and 16:00.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/span101_oral_exam_scheduler/setup_task.sh",
+    "post_task": "/workspace/tasks/span101_oral_exam_scheduler/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Oral Proficiency Exams",
+    "expected_location": "Language Lab 101",
+    "expected_duration": 15,
+    "expected_limit": 1,
+    "course_code": "SPAN101"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_span101_oral_exam_scheduler"
+    }
+  }
+}

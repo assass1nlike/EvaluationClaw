@@ -1,0 +1,33 @@
+{
+  "id": "chinook_audit_triggers@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Implement a database audit logging system on the 'customers' table in the Chinook database (/home/ga/Documents/databases/chinook_triggers.db) using a DBeaver connection named 'ChinookTriggers'. Create an 'audit_log' table with columns for log_id (INTEGER PRIMARY KEY), table_name (TEXT), operation (TEXT), record_id (INTEGER), old_values (TEXT), new_values (TEXT), and changed_at (TEXT). Configure three AFTER triggers on the 'customers' table to log INSERT (record_id=NEW.CustomerId, new_values=FirstName/Email), UPDATE (record_id=OLD.CustomerId, old_values=OLD.Email, new_values=NEW.Email), and DELETE (record_id=OLD.CustomerId, old_values=OLD.FirstName/Email) operations. Execute test operations by inserting a new customer (Id: 60, Name: Alice Wonderland, Email: alice@wonderland.com, Address: 123 Rabbit Hole), updating CustomerId 1's email to 'luis.goncalves@updated.com', and deleting CustomerId 60. Export the 'audit_log' table to /home/ga/Documents/exports/audit_log.csv and save the SQL script to /home/ga/Documents/scripts/audit_triggers.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_audit_triggers/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_audit_triggers/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_triggers.db",
+    "connection_name": "ChinookTriggers",
+    "required_table": "audit_log",
+    "required_triggers_count": 3,
+    "test_record_id": 60,
+    "update_record_id": 1,
+    "updated_email": "luis.goncalves@updated.com",
+    "export_path": "/home/ga/Documents/exports/audit_log.csv",
+    "script_path": "/home/ga/Documents/scripts/audit_triggers.sql"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_audit_triggers"
+    }
+  }
+}

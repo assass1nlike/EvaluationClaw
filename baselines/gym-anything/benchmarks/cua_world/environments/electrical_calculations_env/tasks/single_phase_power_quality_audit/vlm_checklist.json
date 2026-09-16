@@ -1,0 +1,59 @@
+{
+  "task_id": "single_phase_power_quality_audit@1",
+  "task_completion": [
+    {
+      "id": "open_calculator_app",
+      "description": "Open the electrical calculations app to perform the required power calculations.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows an electrical calculation app (such as com.hsn.electricalcalculations) open on the screen."
+    },
+    {
+      "id": "input_circuit_parameters",
+      "description": "Input the given circuit parameters into the calculation app.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the values 230 (Voltage), 28 (Current), and 0.65 (Power Factor) entered into the respective input fields in the app."
+    },
+    {
+      "id": "calculate_power_values",
+      "description": "Calculate the apparent, real, and reactive power using the app.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the app displaying the calculated results: Apparent Power ~6440 VA, Real Power ~4186 W, and Reactive Power ~4894 VAR."
+    },
+    {
+      "id": "open_text_editor",
+      "description": "Open a text editor to record the findings in the specified file.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows a text editor open, with the file path or title indicating ~/Documents/power_analysis.txt."
+    },
+    {
+      "id": "record_calculated_values",
+      "description": "Record the calculated power values in the text file.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the text editor containing the recorded values for Apparent Power (approx 6440 VA), Real Power (approx 4186 W), and Reactive Power (approx 4894 VAR)."
+    },
+    {
+      "id": "record_violation_status",
+      "description": "Record the violation status regarding the utility's 0.85 threshold.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the text editor containing a statement indicating that the circuit violates the 0.85 threshold (since the 0.65 power factor is lower)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_app",
+      "description": "The agent used the GUI electrical calculations app rather than a terminal script to compute the values.",
+      "visual_evidence": "Screenshots must show the graphical interface of the electrical calculations app being interacted with to generate the numbers."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent used a text editor to create and write the file, rather than just echoing text via terminal.",
+      "visual_evidence": "Screenshots should show a text editor interface being used to write the power_analysis.txt file."
+    },
+    {
+      "id": "no_direct_copy_paste_from_external",
+      "description": "The agent derived the values from the app rather than magically knowing the exact expected answers without calculation.",
+      "visual_evidence": "The presence of the calculation app with the correct inputs and outputs before the text file is written."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected values (with 3% tolerance): Apparent Power = 6440 VA, Real Power = 4186 W, Reactive Power = 4894 VAR. The power factor of 0.65 is below the 0.85 threshold, meaning it violates the utility standard and incurs a penalty. The target file is ~/Documents/power_analysis.txt."
+}

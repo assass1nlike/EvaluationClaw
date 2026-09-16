@@ -1,0 +1,76 @@
+{
+  "dataset_id": "c4f63e62",
+  "name": "Cybersecurity-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Cybersecurity-Ner dataset consists of cybersecurity-related text snippets paired with extraction instructions and labeled outputs. It evaluates a model's ability to identify and classify cybersecurity entities such as Indicators, Malware, Organizations, Systems, and Vulnerabilities from raw text.",
+  "card_text": "Cybersecurity-Ner is a text-only dataset of 200 samples designed for entity recognition in the cybersecurity domain. Each sample contains a raw_text field with a short passage from security reports or blogs, and a prompt instructing the model to extract all cybersecurity entities and their types from a closed set: Indicator, Malware, Organization, System, Vulnerability. The output is a formatted string listing each entity and its type as 'entity => type', separated by commas. The texts are factual and often contain technical terms, quoted speech, and mentions of malware, threat actors, and systems. The dataset evaluates span extraction and entity type classification in noisy, real-world cybersecurity prose.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction",
+    "attribute_extraction"
+  ],
+  "domain": "cybersecurity",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "Contains raw cybersecurity-related text passages, such as excerpts from threat reports or security blogs. The text serves as the source from which entities must be extracted, and it may include quoted speech, technical terms, and references to malware, organizations, and systems.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Provides a task instruction that asks the model to extract all cybersecurity entities and their types from the raw text. It specifies the allowed entity types and the required output format 'entity => type', separated by commas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output listing all extracted cybersecurity entities with their assigned types, formatted as comma-separated 'entity => type' pairs. It represents the expected NER annotations for the corresponding input text and instruction.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with two text fields: raw_text, which holds a cybersecurity-related passage, and prompt, which is an instruction to extract entities and their types. The output object contains a single text field that lists the extracted entities and their types in a formatted string. There are no other components such as options, dialogs, or bounding boxes."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Cybersecurity-NER/annotation.json",
+    "existing_tags": {
+      "task": "cybersecurity_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

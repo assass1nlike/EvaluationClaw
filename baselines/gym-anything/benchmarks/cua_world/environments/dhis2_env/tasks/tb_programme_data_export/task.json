@@ -1,0 +1,30 @@
+{
+  "id": "tb_programme_data_export@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "You are a data officer for the National Tuberculosis Programme of Sierra Leone preparing a quarterly cohort analysis report. Using DHIS2 at http://localhost:8080 (login: admin / district), export the TB programme patient working list for Western Area Urban district to /home/ga/Downloads/. Additionally, generate a bar chart showing TB programme case registrations (new enrollments) by month for Western Area Urban district for the year 2022. Save this visualization as a favorite named 'TB Notifications Western Area Urban 2022' and export its data as a CSV or Excel file to /home/ga/Downloads/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tb_programme_data_export/setup_task.sh",
+    "post_task": "/workspace/tasks/tb_programme_data_export/export_result.sh"
+  },
+  "metadata": {
+    "target_programme": "TB programme",
+    "target_org_unit": "Western Area Urban",
+    "target_period_year": "2022",
+    "required_visualization_name": "TB Notifications Western Area Urban 2022",
+    "downloads_expected": 2,
+    "task_focus": "tracker data export and visualization"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tb_programme_data_export"
+    }
+  }
+}

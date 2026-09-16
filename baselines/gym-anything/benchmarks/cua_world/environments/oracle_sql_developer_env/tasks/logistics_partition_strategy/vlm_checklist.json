@@ -1,0 +1,59 @@
+{
+  "task_id": "logistics_partition_strategy@1",
+  "task_completion": [
+    {
+      "id": "create_basic_partitions",
+      "description": "Create and populate the range-partitioned SHIPMENT_EVENTS_PART and list-partitioned SHIPMENTS_PART tables.",
+      "points": 15,
+      "visual_evidence": "SQL Developer or terminal showing successful execution of CREATE TABLE statements with PARTITION BY RANGE and PARTITION BY LIST clauses, followed by INSERT/migration of data from the original tables."
+    },
+    {
+      "id": "create_composite_partition",
+      "description": "Create and populate the composite-partitioned SHIPMENT_ANALYTICS table.",
+      "points": 20,
+      "visual_evidence": "SQL Developer showing the creation of SHIPMENT_ANALYTICS with PARTITION BY RANGE and SUBPARTITION BY LIST, and an INSERT statement populating it with computed columns 'transit_days' and 'on_time_flag'."
+    },
+    {
+      "id": "create_local_indexes",
+      "description": "Establish local partitioned indexes on the three new tables.",
+      "points": 15,
+      "visual_evidence": "Execution of CREATE INDEX statements with the 'LOCAL' keyword for IDX_EVENTS_PART_SHIPID, IDX_SHIPMENTS_PART_CARRIER, and IDX_ANALYTICS_PART_CREATED, or their presence in the object browser."
+    },
+    {
+      "id": "partition_exchange",
+      "description": "Perform a partition exchange loading operation with the P_FUTURE partition.",
+      "points": 20,
+      "visual_evidence": "SQL execution showing the creation of EVENTS_STAGING, insertion of rows with Jan 2025 dates, and an 'ALTER TABLE SHIPMENT_EVENTS_PART EXCHANGE PARTITION P_FUTURE WITH TABLE EVENTS_STAGING WITHOUT VALIDATION' statement."
+    },
+    {
+      "id": "create_stats_view",
+      "description": "Gather statistics and create the PARTITION_STATS_VW view.",
+      "points": 15,
+      "visual_evidence": "Execution of DBMS_STATS.GATHER_TABLE_STATS and a CREATE VIEW PARTITION_STATS_VW statement querying USER_TAB_PARTITIONS for table_name, partition_name, partition_position, num_rows, and high_value."
+    },
+    {
+      "id": "export_explain_plan",
+      "description": "Generate and save the partition pruning explain plan to the specified text file.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Documents/exports/partition_pruning_plan.txt', which should contain a tabular DBMS_XPLAN output showing partition pruning (Pstart and Pstop columns) for a query on SHIPMENT_EVENTS_PART."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent interacted with the Oracle database using a genuine client.",
+      "visual_evidence": "Screenshots should show Oracle SQL Developer or SQL*Plus being used to execute the commands, not just a text editor with SQL scripts."
+    },
+    {
+      "id": "authentic_explain_plan",
+      "description": "Verify the explain plan output is genuine.",
+      "visual_evidence": "The partition_pruning_plan.txt file must contain the standard Oracle DBMS_XPLAN.DISPLAY tabular format (including Plan Hash Value, Id, Operation, Name, Rows, Bytes, Cost, Pstart, Pstop), not manually typed or summarized text."
+    },
+    {
+      "id": "no_direct_base_table_modification",
+      "description": "Verify the agent created new partitioned tables rather than just altering the original tables.",
+      "visual_evidence": "The SQL commands should explicitly show 'CREATE TABLE ..._PART' rather than attempting to partition the existing SHIPMENT_EVENTS or SHIPMENTS tables in place."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file for the partition pruning explain plan must be exactly at '/home/ga/Documents/exports/partition_pruning_plan.txt'. The task requires specific Oracle features to be utilized: RANGE Partitioning, LIST Partitioning, COMPOSITE Partitioning, Local Indexes, Partition Exchange Loading, and DBMS_XPLAN."
+}

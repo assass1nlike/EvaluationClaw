@@ -1,0 +1,59 @@
+{
+  "task_id": "create_bolo_generator@1",
+  "task_completion": [
+    {
+      "id": "create_module_files",
+      "description": "Create the required Talon module directory and files.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show a file explorer or terminal indicating the creation of 'bolo_manager.py' and 'bolo.talon' inside 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bolo_alert\\'."
+    },
+    {
+      "id": "python_state_initialization",
+      "description": "Maintain state for the six required fields with the correct default value.",
+      "points": 15,
+      "visual_evidence": "In 'bolo_manager.py', look for variables or a dictionary storing 'incident', 'suspect', 'vehicle', 'plate', 'dot', and 'armed', all initialized to the string 'UNSPECIFIED'."
+    },
+    {
+      "id": "python_string_manipulation",
+      "description": "Implement actions to update fields with specific string formatting for plate, dot, and armed.",
+      "points": 20,
+      "visual_evidence": "In 'bolo_manager.py', look for the setter functions. 'bolo_set_plate' must use '.strip().upper()' (or equivalent logic) on the input. 'bolo_set_dot' and 'bolo_set_armed' must use '.upper()'."
+    },
+    {
+      "id": "python_output_formatting",
+      "description": "Implement the exact text formatting in bolo_get_text and the insert/reset logic in bolo_insert.",
+      "points": 20,
+      "visual_evidence": "In 'bolo_manager.py', 'bolo_get_text' must return a string starting with '*** BOLO ALERT ***', followed by the 6 fields in uppercase (INCIDENT:, SUSPECT:, etc.), and ending with '******************'. 'bolo_insert' must call the text generation, insert it, and call 'bolo_reset()'."
+    },
+    {
+      "id": "talon_set_commands",
+      "description": "Map the voice commands for setting the six fields in the Talon file.",
+      "points": 20,
+      "visual_evidence": "In 'bolo.talon', look for the exact voice commands mapped to their actions: 'bolo set incident <user.text>', 'bolo set suspect <user.text>', 'bolo set vehicle <user.text>', 'bolo set plate <user.text>', 'bolo set direction <user.text>' (mapped to dot), and 'bolo set armed <user.text>'."
+    },
+    {
+      "id": "talon_action_commands",
+      "description": "Map the voice commands for clearing and generating the alert.",
+      "points": 15,
+      "visual_evidence": "In 'bolo.talon', look for the commands 'bolo clear all' mapped to 'user.bolo_reset()' and 'bolo generate' mapped to 'user.bolo_insert()'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually created and edited the files on the system.",
+      "visual_evidence": "Look for an open text editor (like VS Code, Notepad) or terminal commands (like echo, cat, or vim) showing the files being written to the correct C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bolo_alert\\ path, rather than just printing the code in the chat interface."
+    },
+    {
+      "id": "no_mock_scripts",
+      "description": "The agent implemented a genuine Talon module rather than a mock Python script.",
+      "visual_evidence": "Ensure the Python file uses Talon's Module/Context API (e.g., 'from talon import Module', 'mod = Module()', '@mod.action_class') instead of just writing a standard standalone Python script."
+    },
+    {
+      "id": "exact_path_used",
+      "description": "The agent used the exact requested directory path.",
+      "visual_evidence": "Verify in the terminal or editor file tree that the path is exactly 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bolo_alert\\' and not a generic temporary directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Note: The task repository contains a fatal architectural bug where 'setup_task.ps1' and 'export_result.ps1' are missing, meaning the automated programmatic evaluation will always fail with a 'Failed to read result JSON' error. However, for this visual evaluation, you must ignore this underlying bug and score the agent strictly on whether it successfully wrote the required Python and Talon code in the correct files as visible in the screenshots."
+}

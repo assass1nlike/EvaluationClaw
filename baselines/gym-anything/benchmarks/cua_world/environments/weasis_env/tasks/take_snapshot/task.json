@@ -1,0 +1,30 @@
+{
+  "id": "take_snapshot@1",
+  "version": "1.0",
+  "env_id": "weasis_env@0.1",
+  "description": "Export a screenshot of the currently displayed DICOM image in Weasis. Save the view as a PNG or JPEG image file to the ~/DICOM/exports/ folder.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/take_snapshot/setup_task.sh",
+    "post_task": "/workspace/tasks/take_snapshot/export_result.sh"
+  },
+  "metadata": {
+    "export_directory": "/home/ga/DICOM/exports",
+    "expected_formats": [
+      "png",
+      "jpg",
+      "jpeg"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_take_snapshot"
+    }
+  }
+}

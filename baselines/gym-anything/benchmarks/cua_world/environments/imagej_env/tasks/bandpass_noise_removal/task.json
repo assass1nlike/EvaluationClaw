@@ -1,0 +1,39 @@
+{
+  "id": "bandpass_noise_removal@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Remove Noise from Microscopy Image using FFT Bandpass Filter",
+  "description": "A microscopy image has been corrupted by both high-frequency noise and low-frequency uneven illumination. Clean the image located at ~/ImageJ_Data/raw/noisy_blobs.tif using an FFT Bandpass Filter. Filter out large structures (approximately 40 pixels) and small structures (approximately 3-5 pixels) without suppressing stripes. Save the filtered image to ~/ImageJ_Data/results/filtered_image.tif. Create a CSV report at ~/ImageJ_Data/results/bandpass_filter_results.csv comparing the 'Mean' and 'StdDev' statistics of the image before and after filtering, including columns for 'Condition' (Before/After), 'Mean', and 'StdDev'.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "fft",
+    "filtering",
+    "microscopy",
+    "noise-removal",
+    "fiji"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bandpass_noise_removal/setup_task.sh",
+    "post_task": "/workspace/tasks/bandpass_noise_removal/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/ImageJ_Data/raw/noisy_blobs.tif",
+    "output_image_path": "/home/ga/ImageJ_Data/results/filtered_image.tif",
+    "output_csv_path": "/home/ga/ImageJ_Data/results/bandpass_filter_results.csv",
+    "ground_truth_path": "/var/lib/imagej_ground_truth/clean_reference.tif",
+    "min_std_reduction_percent": 10.0,
+    "max_mean_change_percent": 20.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bandpass_noise_removal"
+    }
+  }
+}

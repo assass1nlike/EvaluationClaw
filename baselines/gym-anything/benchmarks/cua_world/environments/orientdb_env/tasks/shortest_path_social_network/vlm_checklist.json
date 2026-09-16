@@ -1,0 +1,53 @@
+{
+  "task_id": "shortest_path_social_network@1",
+  "task_completion": [
+    {
+      "id": "output_file_created",
+      "description": "Verify the agent created or opened the required output JSON file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displaying the file '/home/ga/shortest_path_results.json'."
+    },
+    {
+      "id": "schafer_no_path",
+      "description": "Verify the agent correctly identified that no path exists to Thomas Schafer.",
+      "points": 20,
+      "visual_evidence": "In the JSON file, the 'path_to_schafer' object should indicate no path (e.g., 'hops' is 0 or null, and 'path_emails' is an empty array [])."
+    },
+    {
+      "id": "petrakis_shortest_path",
+      "description": "Verify the agent correctly identified the 3-hop shortest path to Elena Petrakis.",
+      "points": 30,
+      "visual_evidence": "In the JSON file, the 'path_to_petrakis' object should show 'hops': 3, and 'path_emails' should be exactly [\"john.smith@example.com\", \"maria.garcia@example.com\", \"sophie.martin@example.com\", \"elena.petrakis@example.com\"]."
+    },
+    {
+      "id": "tanaka_path_exists",
+      "description": "Verify the agent correctly determined if a path exists to Yuki Tanaka.",
+      "points": 20,
+      "visual_evidence": "In the JSON file, the 'path_to_tanaka_exists' key must be set to the boolean value 'false'."
+    },
+    {
+      "id": "friends_of_friends",
+      "description": "Verify the agent correctly identified the exact friends of friends for John Smith.",
+      "points": 20,
+      "visual_evidence": "In the JSON file, the 'friends_of_friends' array must contain exactly two emails: 'emma.white@example.com' and 'sophie.martin@example.com' (order does not matter)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_interaction",
+      "description": "Verify the agent actually interacted with the OrientDB database to find the answers.",
+      "visual_evidence": "Screenshots should show the agent using OrientDB Studio in a web browser, the OrientDB console in a terminal, or running a custom script to query the 'demodb' database."
+    },
+    {
+      "id": "no_hallucination",
+      "description": "Verify the agent did not just hallucinate or guess the JSON output without querying the graph.",
+      "visual_evidence": "There should be a visible history of graph traversal queries (like MATCH or TRAVERSE in OrientDB) or programmatic graph exploration before the JSON file is populated."
+    },
+    {
+      "id": "proper_json_format",
+      "description": "Verify the agent formatted the output exactly as requested in the task description.",
+      "visual_evidence": "The final result must be a valid JSON object matching the requested schema, not a raw database console dump or plain text."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'demodb'. The correct answers for the JSON file are: 1) path_to_schafer: No path exists (disconnected components), so hops should be 0/null and path_emails empty. 2) path_to_petrakis: 3 hops, path is john.smith@example.com -> maria.garcia@example.com -> sophie.martin@example.com -> elena.petrakis@example.com. 3) path_to_tanaka_exists: false (disconnected components). 4) friends_of_friends: exactly two emails, emma.white@example.com and sophie.martin@example.com. The expected output file is /home/ga/shortest_path_results.json."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "first_time_seen_ip_detection@1",
+  "task_completion": [
+    {
+      "id": "splunk_ui_accessed",
+      "description": "Agent accessed the Splunk Web UI.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Splunk Web interface (typically dark top bar with 'Splunk' logo) loaded in a web browser."
+    },
+    {
+      "id": "baseline_search_constructed",
+      "description": "Agent constructed a search query for the baseline targeting the correct index.",
+      "points": 15,
+      "visual_evidence": "The Splunk search bar contains a query explicitly searching `index=security_logs` (or similar syntax targeting the security_logs index) for successful logins."
+    },
+    {
+      "id": "baseline_lookup_output",
+      "description": "Agent configured the baseline search to output to the correct lookup file.",
+      "points": 15,
+      "visual_evidence": "The baseline search query in the Splunk search bar ends with a pipe to `outputlookup known_user_ips.csv`."
+    },
+    {
+      "id": "baseline_report_created",
+      "description": "Agent saved the baseline search as a report with the correct name.",
+      "points": 20,
+      "visual_evidence": "A save confirmation dialog, the Reports list, or the report viewing page shows a report explicitly named 'Baseline_Known_User_IPs'."
+    },
+    {
+      "id": "alert_search_constructed",
+      "description": "Agent constructed a search query for the alert that checks against the lookup file.",
+      "points": 20,
+      "visual_evidence": "The Splunk search bar contains a query targeting `index=security_logs` that includes lookup logic (e.g., `| lookup known_user_ips.csv...` or `NOT [| inputlookup known_user_ips.csv]`) to find user/IP combinations not in the baseline."
+    },
+    {
+      "id": "alert_created",
+      "description": "Agent saved the deviation search as an alert with the correct name.",
+      "points": 20,
+      "visual_evidence": "A save confirmation dialog, the Alerts list, or the alert configuration page shows an alert explicitly named 'First_Time_Seen_Login_Alert'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web UI to create the reports and alerts.",
+      "visual_evidence": "Screenshots show interaction with the Splunk web interface in a browser, rather than terminal commands (like curl) interacting with the Splunk API."
+    },
+    {
+      "id": "genuine_splunk_results",
+      "description": "Agent interacted with actual Splunk search results and interfaces.",
+      "visual_evidence": "Screenshots show the genuine Splunk search interface with syntax highlighting, timeline graphs, or parsed log events, rather than a text editor with mock queries."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "Agent used Splunk commands to create the lookup, not direct file system manipulation.",
+      "visual_evidence": "The lookup file creation is visible via the `outputlookup` command in the Splunk search bar, rather than terminal commands creating a CSV file directly in the Splunk backend directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline report MUST be named exactly 'Baseline_Known_User_IPs'. The alert MUST be named exactly 'First_Time_Seen_Login_Alert'. The lookup file MUST be named 'known_user_ips.csv'. Both the baseline and alert searches MUST query the 'security_logs' index."
+}

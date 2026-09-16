@@ -1,0 +1,110 @@
+{
+  "dataset_id": "91f29c38",
+  "name": "Mathematical Word Problem Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 8,
+  "description": "The Mathematical Word Problem VQA dataset evaluates visual question answering on elementary math word problems presented with an accompanying image. Each sample contains an image, a multiple-choice question about time, schedules, or other math concepts, and a short textual answer. Models must select the correct answer from the embedded candidate choices based on the image.",
+  "card_text": "This dataset is a small collection of image-text multiple-choice questions centered on mathematical word problems, such as reading clocks and interpreting schedules. Each item includes an image file (e.g., clock face, timetable) and a question string that specifies the task, sometimes with an answer-format instruction, and lists candidate answers in a bracketed array. A constant prompt asks the model to answer based on the image and select one of the given choices. The target output is a short text answer corresponding to one of the candidates. The data is suitable for evaluating multimodal reasoning where the model must extract numeric or temporal information from visual content and map it to a verbal answer. No separate context passage or dialog is present.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa",
+    "question_answering"
+  ],
+  "domain": "mathematical word problems",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "The image file referenced by the sample. It provides the visual math context, such as a clock face or a schedule, needed to answer the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The natural-language question or task instruction, including the mathematical query (e.g., reading a time or schedule) and often an explicit answer format requirement. It references the image and asks the model to produce the correct answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The candidate answer choices embedded at the end of the question string as a bracketed list. They define the closed set from which the model must select the final answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target answer string, which is one of the candidate choices and is usually a short word or phrase (e.g., a time word or activity name).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A constant instruction that directs the model to answer based on the image and to select one choice from the given options. It frames the task but does not contain problem-specific content.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference (input.image_file), a question string (input.question) that includes both the math problem and its embedded multiple-choice candidates, a constant prompt instruction (input.prompt), and a target answer string (output.text). The image supplies visual context such as clocks or schedules; the question asks about that visual content and lists possible answers; the output is one selected candidate. There is no separate passage, dialog, or rationale."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/mathematical_word_problem_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "mathematical word problem vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Mathematics"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Mathematics"
+    ]
+  }
+}

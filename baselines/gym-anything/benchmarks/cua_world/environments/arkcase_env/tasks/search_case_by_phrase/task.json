@@ -1,0 +1,25 @@
+{
+  "id": "search_case_by_phrase@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "We have received intelligence about a Complaint case involving the code phrase 'Project Blue Sky <UNIQUE_ID>'. Locate this case and identify its Case ID. Save only the Case ID to /home/ga/found_case_id.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/search_case_by_phrase/setup_task.sh",
+    "post_task": "/workspace/tasks/search_case_by_phrase/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/found_case_id.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_search_case_by_phrase"
+    }
+  }
+}

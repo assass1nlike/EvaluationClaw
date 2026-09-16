@@ -1,0 +1,53 @@
+{
+  "id": "fret_sensitized_emission_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Perform Sensitized Emission FRET correction on the fluorescence microscopy images 'donor_channel.tif', 'acceptor_channel.tif', and 'fret_raw_channel.tif' located in '~/Fiji_Data/raw/fret_experiment/'. Create a corrected image named 'corrected_fret.tif' using the formula: Corrected_FRET = Raw_FRET - (0.28 * Donor) - (0.19 * Acceptor). The calculation must be performed with 32-bit float precision to maintain accuracy. Save the resulting image to '~/Fiji_Data/results/fret/corrected_fret.tif'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fret_sensitized_emission_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/fret_sensitized_emission_analysis/export_result.sh"
+  },
+  "metadata": {
+    "coefficients": {
+      "beta": 0.28,
+      "gamma": 0.19
+    },
+    "rois": {
+      "donor_only": [
+        50,
+        200,
+        50,
+        200
+      ],
+      "acceptor_only": [
+        50,
+        200,
+        312,
+        462
+      ],
+      "fret_positive": [
+        312,
+        462,
+        181,
+        331
+      ]
+    },
+    "expected_values": {
+      "donor_only_max": 10.0,
+      "acceptor_only_max": 10.0,
+      "fret_positive_min": 50.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fret_sensitized_emission_analysis"
+    }
+  }
+}

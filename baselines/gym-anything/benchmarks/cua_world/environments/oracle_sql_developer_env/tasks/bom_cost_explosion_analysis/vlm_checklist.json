@@ -1,0 +1,65 @@
+{
+  "task_id": "bom_cost_explosion_analysis@1",
+  "task_completion": [
+    {
+      "id": "delete_bom_cycles",
+      "description": "Identify and delete the erroneous BOM_LINES records causing cycles.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL client connected to the MFG_ENGINEER schema executing DELETE statements on the BOM_LINES table, likely using CONNECT_BY_ISCYCLE or CONNECT BY NOCYCLE to find the cyclic rows."
+    },
+    {
+      "id": "log_bom_fixes",
+      "description": "Record the fixes in the BOM_FIXES_LOG table.",
+      "points": 5,
+      "visual_evidence": "Look for CREATE TABLE BOM_FIXES_LOG (if not already existing) and INSERT statements adding the deleted bom_line_id records along with fix_action and fix_date into the BOM_FIXES_LOG table."
+    },
+    {
+      "id": "create_hierarchy_views",
+      "description": "Create COSTED_BOM_EXPLOSION_VW and WHERE_USED_VW views.",
+      "points": 20,
+      "visual_evidence": "Look for CREATE VIEW statements for COSTED_BOM_EXPLOSION_VW (must include CONNECT BY PRIOR, LEVEL, and SYS_CONNECT_BY_PATH) and WHERE_USED_VW (must include CONNECT BY PRIOR parent_item_id = component_item_id)."
+    },
+    {
+      "id": "create_plsql_procedure",
+      "description": "Implement the PL/SQL procedure PROC_CALC_MRP.",
+      "points": 25,
+      "visual_evidence": "Look for a CREATE OR REPLACE PROCEDURE PROC_CALC_MRP statement with parameters for p_product_id and p_quantity. The body should contain logic to explode the BOM, calculate total_quantity, and INSERT into MRP_REQUIREMENTS."
+    },
+    {
+      "id": "execute_mrp_procedure",
+      "description": "Execute the PROC_CALC_MRP procedure for the 'WS-5000' product.",
+      "points": 10,
+      "visual_evidence": "Look for an execution command like EXEC PROC_CALC_MRP(..., 500) or a PL/SQL BEGIN...END block calling the procedure for the WS-5000 product ID with a quantity of 500."
+    },
+    {
+      "id": "create_materialized_view",
+      "description": "Create the BOM_COST_SUMMARY_MV materialized view.",
+      "points": 10,
+      "visual_evidence": "Look for a CREATE MATERIALIZED VIEW BOM_COST_SUMMARY_MV statement that includes a GROUP BY ROLLUP clause on product category and item_number."
+    },
+    {
+      "id": "export_mrp_csv",
+      "description": "Export the MRP_REQUIREMENTS table to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command (e.g., using sqlplus spooling or a script) or a SQL client GUI export action saving the contents of MRP_REQUIREMENTS to /home/ga/bom_mrp_report.csv."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with a real database client and executed the SQL commands.",
+      "visual_evidence": "Screenshots should show a SQL client (like SQL*Plus, SQL Developer, or DBeaver) with execution success messages (e.g., 'View created', 'Procedure created', 'PL/SQL procedure successfully completed'), not just text typed into an editor."
+    },
+    {
+      "id": "procedural_calculation",
+      "description": "The agent used the PL/SQL procedure to calculate MRP requirements rather than hardcoding the answers.",
+      "visual_evidence": "Verify that the MRP_REQUIREMENTS table was populated via the execution of PROC_CALC_MRP, rather than direct INSERT statements with manually calculated hardcoded quantities."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file was generated via a database export tool or command.",
+      "visual_evidence": "Look for evidence of a query export (like SPOOL in SQL*Plus or a GUI export wizard) rather than the agent manually typing CSV data into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV output file must be located exactly at /home/ga/bom_mrp_report.csv. The task requires the use of specific Oracle features: CONNECT BY, NOCYCLE, SYS_CONNECT_BY_PATH, ROLLUP, Materialized Views, and PL/SQL. Note: Although the prompt instructs the agent to delete 3 erroneous records causing cycles, the environment setup actually injects 4 erroneous links across the 3 cycles. Accept the deletion of the cyclic records even if the count is 4 instead of 3."
+}

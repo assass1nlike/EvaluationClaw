@@ -1,0 +1,53 @@
+{
+  "task_id": "parallel_jaw_grasp_planning@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_running",
+      "description": "CoppeliaSim is open and running on the system.",
+      "points": 10,
+      "visual_evidence": "The CoppeliaSim application window is visible on the screen."
+    },
+    {
+      "id": "scene_objects_created",
+      "description": "An asymmetric cuboid workpiece and a virtual gripper (dummy object with two opposed ray-type proximity sensors) are created in the scene.",
+      "points": 20,
+      "visual_evidence": "The CoppeliaSim 3D viewport or scene hierarchy shows the newly created cuboid and the gripper setup (a dummy parent with two proximity sensors)."
+    },
+    {
+      "id": "script_execution_poses",
+      "description": "A Python script is executed to evaluate at least 30 distinct candidate poses.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the script running and iterating through poses, or the script code itself clearly showing a loop designed to evaluate 30 or more poses using the ZMQ Remote API."
+    },
+    {
+      "id": "csv_exported",
+      "description": "The grasp evaluation data is exported to a CSV file with the required columns.",
+      "points": 25,
+      "visual_evidence": "A terminal command (like 'cat' or 'ls') or a text editor showing the file '/home/ga/Documents/CoppeliaSim/exports/grasp_evaluations.csv' containing columns: pose_id, x, y, z, roll, pitch, yaw, contact1_detected, contact2_detected, normal_dot_product, and score."
+    },
+    {
+      "id": "json_exported",
+      "description": "The optimal grasp summary is exported to a JSON file with the required keys.",
+      "points": 25,
+      "visual_evidence": "A terminal command or text editor showing the file '/home/ga/Documents/CoppeliaSim/exports/optimal_grasp.json' containing keys: total_poses_tested, valid_grasps_found, best_pose_id, best_score, and best_pose_coords."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent actually executed a script to interact with CoppeliaSim rather than manually typing out fake results.",
+      "visual_evidence": "Terminal output showing the execution of a Python script (e.g., 'python3 grasp_planner.py') and subsequent output logs, rather than just manually creating the CSV/JSON files."
+    },
+    {
+      "id": "realistic_simulation_data",
+      "description": "The exported CSV and JSON files contain realistic simulation data.",
+      "visual_evidence": "The values in the CSV and JSON files contain realistic floating-point numbers for coordinates (x, y, z, roll, pitch, yaw) and scores, rather than placeholder text or perfectly round numbers that indicate manual fabrication."
+    },
+    {
+      "id": "correct_export_paths",
+      "description": "The files are saved in the exact required directory.",
+      "visual_evidence": "Terminal prompts, file manager paths, or editor titles confirming the files are located in '/home/ga/Documents/CoppeliaSim/exports/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires evaluating at least 30 distinct poses. The output files must be exactly located at /home/ga/Documents/CoppeliaSim/exports/grasp_evaluations.csv and /home/ga/Documents/CoppeliaSim/exports/optimal_grasp.json."
+}

@@ -1,0 +1,39 @@
+{
+  "id": "naive_bayes_dose_classification@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Naive Bayes multiclass classification on the ToothGrowth dataset to predict vitamin C dose levels using 'len' and 'supp' as predictors. Ensure the 'dose' variable is treated as a categorical (nominal) variable. Use either a 70/30 training/test split or 5-fold cross-validation with a seed of 42. The analysis should include the confusion matrix and classification accuracy. Save the JASP analysis file to /home/ga/Documents/JASP/NaiveBayesDose.jasp and create a text report at /home/ga/Documents/JASP/naive_bayes_report.txt including the algorithm name, the overall classification accuracy, the confusion matrix counts, and a sentence interpreting which dose level was easiest or hardest to classify.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/naive_bayes_dose_classification/setup_task.sh",
+    "post_task": "/workspace/tasks/naive_bayes_dose_classification/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/ToothGrowth.csv",
+    "expected_jasp_file": "/home/ga/Documents/JASP/NaiveBayesDose.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/naive_bayes_report.txt",
+    "target_variable": "dose",
+    "predictors": [
+      "len",
+      "supp"
+    ],
+    "class_levels": [
+      "0.5",
+      "1.0",
+      "2.0"
+    ],
+    "accuracy_min": 0.4,
+    "accuracy_max": 0.95
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_naive_bayes_dose_classification"
+    }
+  }
+}

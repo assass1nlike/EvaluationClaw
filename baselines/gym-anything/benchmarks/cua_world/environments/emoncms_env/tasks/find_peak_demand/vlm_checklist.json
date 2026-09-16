@@ -1,0 +1,53 @@
+{
+  "task_id": "find_peak_demand@1",
+  "task_completion": [
+    {
+      "id": "access_emoncms_feed",
+      "description": "Agent accesses the Emoncms web interface and locates the 'main_panel_power' feed.",
+      "points": 20,
+      "visual_evidence": "A web browser showing the Emoncms interface with the 'main_panel_power' feed visible in the feeds list or selected."
+    },
+    {
+      "id": "view_feed_data",
+      "description": "Agent views the data for the 'main_panel_power' feed to find the peak demand.",
+      "points": 30,
+      "visual_evidence": "A graph, chart, or data viewer for the 'main_panel_power' feed is displayed in the Emoncms web interface."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Agent creates the report file at the specified path.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor is visible showing the file path '~/peak_demand_report.txt' or '/home/ga/peak_demand_report.txt'."
+    },
+    {
+      "id": "write_peak_watts",
+      "description": "Agent writes the peak watts value to the report file.",
+      "points": 15,
+      "visual_evidence": "The exact text 'peak_watts: ' followed by a numeric value (expected to be between 4800 and 4900) is visible in the report file."
+    },
+    {
+      "id": "write_peak_timestamp",
+      "description": "Agent writes the peak timestamp value to the report file.",
+      "points": 15,
+      "visual_evidence": "The exact text 'peak_timestamp: ' followed by a numeric value (a UNIX timestamp) is visible in the report file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent did not cheat by reading the ground truth file.",
+      "visual_evidence": "No terminal commands (like 'cat', 'less', 'nano') or text editors are seen opening '/tmp/ground_truth_peak.json'."
+    },
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Emoncms web interface to find the data rather than bypassing it.",
+      "visual_evidence": "Screenshots show the browser interacting with the Emoncms application (e.g., viewing graphs or data tables)."
+    },
+    {
+      "id": "no_copy_paste_prompt",
+      "description": "Agent did not just copy the placeholder text from the prompt.",
+      "visual_evidence": "The report file contains actual numeric values for watts and timestamp, not the literal string '<value>'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target feed is 'main_panel_power'. The peak power value is between 4800.0 and 4900.0 Watts. The report file must be located at /home/ga/peak_demand_report.txt. The ground truth file is located at /tmp/ground_truth_peak.json (the agent must not access this file directly)."
+}

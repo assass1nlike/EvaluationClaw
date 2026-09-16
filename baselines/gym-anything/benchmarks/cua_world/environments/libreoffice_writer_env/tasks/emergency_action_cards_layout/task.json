@@ -1,0 +1,44 @@
+{
+  "id": "emergency_action_cards_layout@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Create a set of emergency action cards in LibreOffice Writer using the content provided in /home/ga/Documents/card_content.txt. The document must be in landscape orientation with 0.5 inch margins and contain a 2x2 table filling most of the page. Configure the cells with the following backgrounds and corresponding text: Top-Left (Red, 'CODE RED...'), Top-Right (Yellow, 'CODE YELLOW...'), Bottom-Left (Blue, 'CODE BLUE...'), and Bottom-Right (Green, 'ALL CLEAR...'). All text should be centered both horizontally and vertically within the cells, with bold headings larger than the body text. Ensure text color is readable against the cell backgrounds (white text for Red, Blue, and Green; black text for Yellow). Save the document as /home/ga/Documents/emergency_cards.docx.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/emergency_action_cards_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/emergency_action_cards_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/emergency_cards.docx",
+    "content_file": "/home/ga/Documents/card_content.txt",
+    "expected_text_quadrants": [
+      [
+        "CODE RED",
+        "EVACUATION"
+      ],
+      [
+        "CODE YELLOW",
+        "SHELTER"
+      ],
+      [
+        "CODE BLUE",
+        "MEDICAL"
+      ],
+      [
+        "ALL CLEAR",
+        "RETURN"
+      ]
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_emergency_cards"
+    }
+  }
+}

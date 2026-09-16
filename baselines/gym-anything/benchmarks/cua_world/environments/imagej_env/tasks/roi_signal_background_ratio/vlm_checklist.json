@@ -1,0 +1,53 @@
+{
+  "task_id": "roi_signal_background_ratio@1",
+  "task_completion": [
+    {
+      "id": "open_sample_image",
+      "description": "Open the 'Fluorescent Cells' sample image in Fiji.",
+      "points": 10,
+      "visual_evidence": "Fiji application window is open displaying an image titled 'Fluorescent Cells' (a fluorescence microscopy image showing cellular structures)."
+    },
+    {
+      "id": "define_and_name_rois",
+      "description": "Define and correctly name at least 4 ROIs (2 signal, 1 cytoplasm, 1 background).",
+      "points": 20,
+      "visual_evidence": "Fiji ROI Manager window is visible showing at least 4 ROIs. The names must include 'signal' or 'cell' (at least 2), 'cytoplasm' or 'dim' (at least 1), and 'background' or 'bg' (at least 1)."
+    },
+    {
+      "id": "measure_regions",
+      "description": "Measure the Mean, Standard Deviation, and Area for the defined ROIs.",
+      "points": 20,
+      "visual_evidence": "Fiji 'Results' window is open showing a table of measurements for the defined ROIs, specifically including columns for 'Mean', 'StdDev', and 'Area'."
+    },
+    {
+      "id": "calculate_sbr",
+      "description": "Calculate the Signal-to-Background Ratio (SBR) and include it in the results.",
+      "points": 25,
+      "visual_evidence": "A spreadsheet program (like LibreOffice Calc), text editor, or modified Fiji results table showing the measurement data along with a new field, column, or row labeled 'SBR' or 'Ratio' containing a calculated numerical value."
+    },
+    {
+      "id": "save_output_files",
+      "description": "Save the ROI set as a ZIP file and the measurements as a CSV file in the correct directory.",
+      "points": 25,
+      "visual_evidence": "File manager, terminal window (e.g., using 'ls'), or save dialogs confirming that 'roi_set.zip' and 'roi_measurements.csv' are saved in the '/home/ga/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fiji_gui_used",
+      "description": "Verify that the agent used the Fiji GUI to perform the analysis.",
+      "visual_evidence": "Screenshots should show active interaction with Fiji's graphical interface (ROI Manager, Results table, Image window) rather than just terminal commands creating mock files."
+    },
+    {
+      "id": "genuine_image_data",
+      "description": "Verify that the actual 'Fluorescent Cells' sample image was used.",
+      "visual_evidence": "The image visible in Fiji should be a genuine fluorescence microscopy image with bright spots and dark backgrounds, not a blank, solid color, or artificially drawn image."
+    },
+    {
+      "id": "authentic_csv_content",
+      "description": "Verify that the CSV contains genuine measurement data.",
+      "visual_evidence": "The final CSV or spreadsheet should contain varying numerical values for Mean, Area, and StdDev that correspond to actual image measurements, not placeholder text or identical dummy numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected CSV path: /home/ga/ImageJ_Data/results/roi_measurements.csv. Expected ZIP path: /home/ga/ImageJ_Data/results/roi_set.zip. Minimum 4 ROIs required (at least 2 signal/cell, 1 cytoplasm/dim, 1 background/bg). Required measurement columns in the CSV: Label, Mean, Area. The calculated SBR value should be a reasonable float (the verifier accepts values between 1.0 and 1000.0)."
+}

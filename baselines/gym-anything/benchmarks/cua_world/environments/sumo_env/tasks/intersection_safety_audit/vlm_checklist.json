@@ -1,0 +1,53 @@
+{
+  "task_id": "intersection_safety_audit@1",
+  "task_completion": [
+    {
+      "id": "load_scenario",
+      "description": "Verify the agent accesses the bologna_acosta SUMO scenario.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent navigating to /home/ga/SUMO_Scenarios/bologna_acosta/ or opening the scenario files in a text editor, terminal, or SUMO-GUI."
+    },
+    {
+      "id": "configure_ssm_parameters",
+      "description": "Verify the agent configures the Surrogate Safety Measures (SSM) output with the correct thresholds.",
+      "points": 20,
+      "visual_evidence": "Screenshots of a configuration file (.sumocfg), Python script (TraCI), or terminal command showing the device.ssm.probability, device.ssm.file set to /home/ga/SUMO_Output/ssm_output.xml, TTC threshold (3.0), and DRAC threshold (3.5)."
+    },
+    {
+      "id": "execute_simulation",
+      "description": "Verify the agent runs the SUMO simulation to generate the SSM XML data.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SUMO executing (either SUMO-GUI running the network or terminal output showing simulation steps progressing) and the creation of ssm_output.xml."
+    },
+    {
+      "id": "generate_csv_report",
+      "description": "Verify the agent produces the intersection safety report in CSV format.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing a script generating or a viewer/editor displaying intersection_safety_report.csv in the /home/ga/SUMO_Output/ directory, containing parsed safety data."
+    },
+    {
+      "id": "generate_txt_summary",
+      "description": "Verify the agent produces the safety audit summary text file.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing a script generating or a text editor displaying safety_audit_summary.txt in the /home/ga/SUMO_Output/ directory, containing summary statistics referencing the critical limits (TTC < 1.5s, DRAC > 5.0)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Verify the agent actually executed the SUMO simulation rather than mocking the XML output.",
+      "visual_evidence": "Look for terminal logs showing SUMO loading the network and routing, or the SUMO-GUI actively running, rather than a script that just writes a hardcoded XML file."
+    },
+    {
+      "id": "authentic_data_processing",
+      "description": "Verify the CSV and TXT reports contain genuine processed data.",
+      "visual_evidence": "Look for a script (e.g., Python) that parses the ssm_output.xml to calculate the results, or check that the CSV/TXT files contain realistic, varied numerical data rather than placeholder or copy-pasted text."
+    },
+    {
+      "id": "correct_output_directories",
+      "description": "Verify the output files are actually saved to the requested directory.",
+      "visual_evidence": "Look for terminal commands (like 'ls /home/ga/SUMO_Output/') or a file manager window confirming the files exist in the exact specified paths, not just printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "Scenario: bologna_acosta. Expected output paths: /home/ga/SUMO_Output/ssm_output.xml, /home/ga/SUMO_Output/intersection_safety_report.csv, /home/ga/SUMO_Output/safety_audit_summary.txt. Required thresholds: TTC <= 3.0s, DRAC >= 3.5 m/s^2. Critical limits: TTC < 1.5s, DRAC > 5.0 m/s^2."
+}

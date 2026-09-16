@@ -1,0 +1,53 @@
+{
+  "task_id": "crossvalidate_event_db@1",
+  "task_completion": [
+    {
+      "id": "db_queried_for_validation",
+      "description": "Agent queries the SeisComP database to cross-validate the structural linkage of Event, Origin, and Magnitude.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a MySQL/MariaDB prompt, a database client, or a script executing SQL queries against the 'seiscomp' database using the 'sysop' user."
+    },
+    {
+      "id": "xml_dump_created",
+      "description": "Agent saves an XML dump of the database to /home/ga/event_dump.xml.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a command like 'mysqldump --xml' or a script writing to '/home/ga/event_dump.xml', or the file visible in the file manager/editor."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Agent generates the structured validation report at /home/ga/earthquake_validation_report.txt.",
+      "points": 10,
+      "visual_evidence": "Terminal, text editor, or file manager showing the creation or existence of the file '/home/ga/earthquake_validation_report.txt'."
+    },
+    {
+      "id": "report_format_correct",
+      "description": "The validation report contains the required keys formatted as KEY: VALUE.",
+      "points": 20,
+      "visual_evidence": "The contents of the report file show the specific keys (e.g., EVENT_ID, ORIGIN_TIME, LATITUDE) formatted with a colon and space before the value, one per line."
+    },
+    {
+      "id": "report_values_populated",
+      "description": "The validation report contains actual extracted data and YES/NO values for the validation fields.",
+      "points": 20,
+      "visual_evidence": "The report file shows actual values for the earthquake data and 'YES' or 'NO' for keys like ORIGIN_REF_VALID, MAG_ORIGIN_LINK_VALID, PREFERRED_ORIGIN_EXISTS, PREFERRED_MAG_EXISTS, and OVERALL_VALID."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacts with the actual database rather than hallucinating the data.",
+      "visual_evidence": "Screenshots should show actual SQL queries being executed or a script connecting to the database, rather than the agent just writing the final report from memory."
+    },
+    {
+      "id": "genuine_xml_dump",
+      "description": "The XML dump is generated via a database tool or script.",
+      "visual_evidence": "The XML dump should be the result of a command (like mysqldump) or a script, not manually typed or copy-pasted."
+    },
+    {
+      "id": "data_consistency",
+      "description": "The values in the validation report match the data retrieved from the database.",
+      "visual_evidence": "The data in the final report should be consistent with the query results or XML dump seen in earlier steps."
+    }
+  ],
+  "privileged_info_for_vlm": "The database user is 'sysop', password is 'sysop', and database name is 'seiscomp'. The XML dump must be saved exactly to '/home/ga/event_dump.xml'. The validation report must be saved to '/home/ga/earthquake_validation_report.txt' and contain exactly 14 expected keys formatted as KEY: VALUE."
+}

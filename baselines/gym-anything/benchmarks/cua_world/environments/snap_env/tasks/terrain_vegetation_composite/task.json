@@ -1,0 +1,28 @@
+{
+  "id": "terrain_vegetation_composite@1",
+  "version": "1.0",
+  "env_id": "snap_env@0.1",
+  "description": "As a forestry scientist conducting a timber harvest suitability assessment, create a classified suitability map with at least three categories (suitable, marginal, unsuitable) using the SRTM digital elevation model at /home/ga/snap_data/srtm_dem.tif and Landsat multispectral imagery at /home/ga/snap_data/landsat_multispectral.tif (band_1=SWIR1, band_2=NIR, band_3=Red, band_4=Green). The classification must be based on a vegetation vigor index and a terrain steepness metric derived from the co-registered source data. Save the integrated analysis product in BEAM-DIMAP format and export the suitability map as a GeoTIFF to /home/ga/snap_exports/.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/terrain_vegetation_composite/setup_task.sh",
+    "post_task": "/workspace/tasks/terrain_vegetation_composite/export_result.sh"
+  },
+  "metadata": {
+    "data_files": [
+      "/home/ga/snap_data/srtm_dem.tif",
+      "/home/ga/snap_data/landsat_multispectral.tif"
+    ],
+    "data_source": "SRTM DEM + Landsat satellite imagery from github.com/opengeos/data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_terrain_vegetation_composite"
+    }
+  }
+}

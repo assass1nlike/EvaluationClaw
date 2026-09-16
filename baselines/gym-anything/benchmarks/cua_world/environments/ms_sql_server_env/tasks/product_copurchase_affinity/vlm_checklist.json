@@ -1,0 +1,53 @@
+{
+  "task_id": "product_copurchase_affinity@1",
+  "task_completion": [
+    {
+      "id": "table_created",
+      "description": "Create the ProductAffinityResults table with the required columns",
+      "points": 15,
+      "visual_evidence": "Azure Data Studio showing a CREATE TABLE statement for 'dbo.ProductAffinityResults' with the 12 required columns (ProductA_ID, ProductA_Name, ProductB_ID, ProductB_Name, CoOccurrenceCount, ProductA_OrderCount, ProductB_OrderCount, TotalOrders, Support, Confidence_AtoB, Lift, AnalysisDate), or the table visible in the Object Explorer."
+    },
+    {
+      "id": "procedure_created",
+      "description": "Develop the usp_MarketBasketAnalysis stored procedure",
+      "points": 30,
+      "visual_evidence": "Azure Data Studio showing a CREATE PROCEDURE statement for 'dbo.usp_MarketBasketAnalysis' with parameters @StartDate and @EndDate. The script should contain logic to calculate Support, Confidence, and Lift, and include filters for CoOccurrenceCount >= 3 and ProductA_ID < ProductB_ID."
+    },
+    {
+      "id": "procedure_executed",
+      "description": "Execute the stored procedure for the specified date range",
+      "points": 15,
+      "visual_evidence": "Azure Data Studio showing the execution command `EXEC dbo.usp_MarketBasketAnalysis '2011-05-31', '2014-06-30'` (or similar) along with a 'Commands completed successfully' message or execution time."
+    },
+    {
+      "id": "view_created",
+      "description": "Create the vw_TopProductBundles view",
+      "points": 15,
+      "visual_evidence": "Azure Data Studio showing a CREATE VIEW statement for 'dbo.vw_TopProductBundles' that selects from the results table and includes a 'WHERE Lift > 1.0' clause. The ordering by Lift descending might be in the view (using TOP) or in the subsequent SELECT query."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the top 15 rows to a CSV file",
+      "points": 25,
+      "visual_evidence": "A file manager, terminal, or text editor showing the file 'top_product_bundles.csv' located in '/home/ga/Documents/exports/' containing exactly 15 rows of data plus headers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_azure_data_studio",
+      "description": "The agent used Azure Data Studio for database interactions",
+      "visual_evidence": "Screenshots should show the Azure Data Studio interface being used to write and execute the SQL queries, rather than a generic text editor or terminal."
+    },
+    {
+      "id": "actual_sql_execution",
+      "description": "SQL scripts were actually executed against the database",
+      "visual_evidence": "Look for result grids, 'Commands completed successfully' messages, or execution times in Azure Data Studio, proving the code was run and not just typed."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The stored procedure dynamically calculates the metrics",
+      "visual_evidence": "The SQL script for the stored procedure should contain actual JOINs and aggregation logic (COUNT, SUM, etc.) on Sales.SalesOrderDetail, rather than hardcoding the final product pairs or results."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the AdventureWorks2022 database. The table 'dbo.ProductAffinityResults' must have exactly 12 columns (ProductA_ID, ProductA_Name, ProductB_ID, ProductB_Name, CoOccurrenceCount, ProductA_OrderCount, ProductB_OrderCount, TotalOrders, Support, Confidence_AtoB, Lift, AnalysisDate). The stored procedure 'dbo.usp_MarketBasketAnalysis' must calculate Support = Count(AB)/Total, Confidence = Count(AB)/Count(A), and Lift = P(AB)/(P(A)*P(B)), filter for CoOccurrenceCount >= 3, and ensure ProductA_ID < ProductB_ID. The execution date range is '2011-05-31' to '2014-06-30'. The view 'dbo.vw_TopProductBundles' must filter for Lift > 1.0. The final export must be exactly 15 rows of data plus headers saved to '/home/ga/Documents/exports/top_product_bundles.csv'."
+}

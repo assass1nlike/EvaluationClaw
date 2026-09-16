@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_network_isolation@1",
+  "task_completion": [
+    {
+      "id": "create_networks",
+      "description": "Create two custom bridge networks named 'frontend' and 'backend'.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of 'docker network create frontend' and 'docker network create backend', or a 'docker network ls' command displaying both networks in the list."
+    },
+    {
+      "id": "deploy_web_proxy",
+      "description": "Deploy the 'web-proxy' container using the nginx:alpine image, connected only to the 'frontend' network, with host port 8081 mapped to container port 80.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'docker run' command for 'web-proxy' including arguments like '--network frontend', '-p 8081:80', and 'nginx:alpine', or 'docker ps'/'docker inspect' confirming these exact settings."
+    },
+    {
+      "id": "deploy_data_store",
+      "description": "Deploy the 'data-store' container using the redis:alpine image, connected only to the 'backend' network, with host port 6380 mapped to container port 6379.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'docker run' command for 'data-store' including arguments like '--network backend', '-p 6380:6379', and 'redis:alpine', or 'docker ps'/'docker inspect' confirming these exact settings."
+    },
+    {
+      "id": "deploy_app_server",
+      "description": "Deploy the 'app-server' container using the httpd:alpine image and connect it to BOTH the 'frontend' and 'backend' networks.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the 'app-server' container being created on one network and then connected to the second (e.g., 'docker run --network frontend ... httpd:alpine' followed by 'docker network connect backend app-server'), or 'docker inspect app-server' showing both networks under the Networks section."
+    },
+    {
+      "id": "verify_isolation_configuration",
+      "description": "Verify the network isolation and connectivity rules (web-proxy isolated from data-store, app-server connected to both).",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'docker inspect' on the containers/networks confirming the correct network attachments, or explicit 'ping'/'curl' commands executed via 'docker exec' showing successful/failed connections matching the isolation requirements."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "real_terminal_usage",
+      "description": "Verify the agent is executing commands in a genuine terminal environment.",
+      "visual_evidence": "Look for standard terminal prompts, command execution delays, and authentic Docker daemon output rather than a text editor or mocked interface."
+    },
+    {
+      "id": "actual_docker_execution",
+      "description": "Verify that Docker commands are genuinely executed and return standard system responses.",
+      "visual_evidence": "Look for authentic Docker output such as image pull progress bars, container ID hashes, and standard 'docker ps' formatting."
+    },
+    {
+      "id": "no_echo_mocking",
+      "description": "Verify the agent did not simply echo or print success messages to bypass the task.",
+      "visual_evidence": "Ensure there are no 'echo' commands or basic scripts designed to print fake 'docker ps' or 'docker inspect' outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The required networks are 'frontend' and 'backend'. The required containers are 'web-proxy' (nginx:alpine, port 8081:80, frontend network), 'app-server' (httpd:alpine, frontend and backend networks), and 'data-store' (redis:alpine, port 6380:6379, backend network). Note: The automated python verifier has a bug with hyphenated container names, but you should visually verify that the agent used the exact hyphenated names ('web-proxy', 'app-server', 'data-store') in the terminal."
+}

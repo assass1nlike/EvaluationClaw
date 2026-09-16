@@ -1,0 +1,30 @@
+{
+  "id": "flight_manual_revision@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are the Chief Pilot at Stratos Air Charter. The FAA has issued new guidance on 'Clean Aircraft Concept' verification, requiring an immediate update to the General Operations Manual (GOM). Update the manual at '/home/ga/Documents/GOM_Ch7_ColdWeather.odt' using the revision instructions in '/home/ga/Documents/revision_order.json'. Replace the text in Section 7.4.1 (Pre-Takeoff Check) with the new text provided in the JSON file. Apply a visual 'Revision Bar' (vertical line, width >= 1.00 pt) to the left side of the updated paragraph in Section 7.4.1. Format the 'WARNING' paragraph immediately following Section 7.4.1 with a Box Border (all 4 sides) and Bold text. Update the document header by changing 'Revision: 04' to 'Revision: 05' and setting the date to today's date (YYYY-MM-DD). Save the updated manual as '/home/ga/Documents/GOM_Ch7_Rev05.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flight_manual_revision/setup_task.sh",
+    "post_task": "/workspace/tasks/flight_manual_revision/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/GOM_Ch7_ColdWeather.odt",
+    "instruction_file": "/home/ga/Documents/revision_order.json",
+    "output_file": "/home/ga/Documents/GOM_Ch7_Rev05.odt",
+    "old_text_snippet": "Visual inspection of wings",
+    "new_text_snippet": "tactile check of critical surfaces",
+    "expected_header": "Revision: 05"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flight_manual_revision"
+    }
+  }
+}

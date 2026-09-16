@@ -1,0 +1,53 @@
+{
+  "task_id": "supply_chain_dependency_map@1",
+  "task_completion": [
+    {
+      "id": "database_imported_openlca",
+      "description": "OpenLCA is open and the USLCI database is imported and visible.",
+      "points": 20,
+      "visual_evidence": "The OpenLCA application window is visible, and the USLCI database is listed in the Navigation pane under 'Databases'."
+    },
+    {
+      "id": "natural_gas_search",
+      "description": "The agent searches for or views processes consuming natural gas in OpenLCA.",
+      "points": 20,
+      "visual_evidence": "The OpenLCA search bar contains 'natural gas', or a process tab is open showing natural gas as an input flow."
+    },
+    {
+      "id": "output_file_created",
+      "description": "The required CSV file is created in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window shows 'natural_gas_dependency.csv' located in the '~/LCA_Results/' directory."
+    },
+    {
+      "id": "csv_columns_correct",
+      "description": "The CSV file contains the required columns for Process Name, Amount, and Unit.",
+      "points": 20,
+      "visual_evidence": "The contents of the CSV file are visible (e.g., in a text editor or terminal) and show header columns for process name, amount, and unit (or similar variants)."
+    },
+    {
+      "id": "csv_rows_sufficient",
+      "description": "The CSV file contains at least 5 different processes.",
+      "points": 20,
+      "visual_evidence": "The contents of the CSV file show at least 5 distinct data rows representing different processes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "openlca_interaction",
+      "description": "The agent used the OpenLCA GUI to interact with the database.",
+      "visual_evidence": "Screenshots show active use of the OpenLCA interface (e.g., expanding folders, viewing process tabs) rather than just running a script to parse the raw zip file."
+    },
+    {
+      "id": "authentic_process_names",
+      "description": "The CSV contains genuine process names from the USLCI database.",
+      "visual_evidence": "Process names in the CSV look like real USLCI processes (e.g., 'Electricity, at cogen, for natural gas turbine') rather than generic or fabricated names."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not simply hardcode a CSV file without querying the database.",
+      "visual_evidence": "The agent is seen extracting data from OpenLCA or copying it from the OpenLCA interface, rather than typing out a CSV file from memory or using a single echo command with fabricated data."
+    }
+  ],
+  "privileged_info_for_vlm": "The USLCI database is imported from '~/LCA_Imports/uslci_database.zip'. The output must be saved to '~/LCA_Results/natural_gas_dependency.csv'. The CSV must contain at least 5 data rows. Required columns are 'Process Name', 'Amount', and 'Unit' (flexible matching like 'process', 'value', 'quantity' is acceptable). The USLCI database contains genuine processes like 'Natural gas, production mixture, at extraction', 'Electricity, at cogen, for natural gas turbine', and 'Transport, pipeline, natural gas'."
+}

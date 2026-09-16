@@ -1,0 +1,29 @@
+{
+  "id": "implement_biometric_auth@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Secure the 'SecretDiary' app by implementing biometric authentication. Currently, the Login button immediately opens the DiaryActivity, which is insecure. Update the application to use the 'androidx.biometric:biometric' library (version 1.2.0-alpha05) to ensure that clicking the login button triggers a BiometricPrompt. The prompt must be configured with the title 'Biometric Login' and negative button text 'Cancel'. Navigation to DiaryActivity must only occur after a successful authentication callback.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_biometric_auth/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_biometric_auth/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/SecretDiary",
+    "login_activity_path": "app/src/main/java/com/example/secretdiary/LoginActivity.kt",
+    "build_gradle_path": "app/build.gradle.kts",
+    "required_dependency": "androidx.biometric:biometric",
+    "expected_title": "Biometric Login"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_biometric_auth"
+    }
+  }
+}

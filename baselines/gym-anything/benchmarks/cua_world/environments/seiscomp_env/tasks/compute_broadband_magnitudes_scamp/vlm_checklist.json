@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_broadband_magnitudes_scamp@1",
+  "task_completion": [
+    {
+      "id": "access_event_data",
+      "description": "Agent accesses the input Noto earthquake SCML file.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands reading or processing '/home/ga/seiscomp/var/lib/events/noto_earthquake.scml' (e.g., using it as an input flag like '-i' or '--ep'), or the event being loaded in a SeisComP GUI tool."
+    },
+    {
+      "id": "run_amplitude_processor",
+      "description": "Agent runs the amplitude processor (scamp) to calculate broadband amplitudes.",
+      "points": 20,
+      "visual_evidence": "Look for the 'scamp' command being executed in the terminal with appropriate database and archive flags, or the amplitude picker being used in the SeisComP GUI."
+    },
+    {
+      "id": "compute_mb_magnitude",
+      "description": "Agent successfully calculates the mB magnitude.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output, log files, or GUI elements displaying an 'mB' magnitude calculation. The calculated value should be between 6.8 and 8.2."
+    },
+    {
+      "id": "compute_mwp_magnitude",
+      "description": "Agent successfully calculates the Mwp magnitude.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output, log files, or GUI elements displaying an 'Mwp' magnitude calculation. The calculated value should be between 6.8 and 8.2."
+    },
+    {
+      "id": "save_reprocessed_event",
+      "description": "Agent saves the final reprocessed event to the expected output path.",
+      "points": 30,
+      "visual_evidence": "Look for a command redirecting output to '~/Documents/noto_reprocessed.scml' or '/home/ga/Documents/noto_reprocessed.scml' (e.g., using '>', 'cp', or an export command), or a GUI save dialog confirming this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_seiscomp_usage",
+      "description": "Verify the agent used actual SeisComP tools (scamp, scmag, scolv, etc.) to process the data.",
+      "visual_evidence": "Look for execution of SeisComP specific commands in the terminal or the presence of SeisComP GUI windows. The agent should not be using generic scripts to bypass the software."
+    },
+    {
+      "id": "no_manual_xml_mocking",
+      "description": "Verify the agent did not manually type out or echo a fake XML/SCML file.",
+      "visual_evidence": "Ensure the agent is not using text editors (nano, vim) or 'echo' commands to manually write the expected magnitudes (mB, Mwp) directly into the output file."
+    },
+    {
+      "id": "no_hardcoded_magnitudes",
+      "description": "Verify the magnitudes are derived from computation, not hardcoded.",
+      "visual_evidence": "Check that the agent didn't simply assign '7.5' to mB and Mwp in a script without actually running the amplitude/magnitude processing tools on the provided miniSEED archive."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output path: /home/ga/Documents/noto_reprocessed.scml. Required magnitudes to be calculated: mB and Mwp. Valid magnitude range for both mB and Mwp is between 6.8 and 8.2 (based on the Mww 7.5 ground truth). The input event file is located at /home/ga/seiscomp/var/lib/events/noto_earthquake.scml. The SDS archive is at /home/ga/seiscomp/var/lib/archive."
+}

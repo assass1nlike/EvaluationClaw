@@ -1,0 +1,72 @@
+{
+  "dataset_id": "5e8ef924",
+  "name": "Grammar-Correction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 121,
+  "description": "A small English grammar correction dataset where each sample provides an ungrammatical sentence and its corrected Standard English version, optionally accompanied by an error type label. It evaluates a model's ability to detect and correct grammatical errors.",
+  "card_text": "This dataset contains 121 text-only samples for English grammar correction. Each sample is structured as an input object with an 'Error Type' category (e.g., Subject-Verb Agreement, Article Usage) and an 'Ungrammatical Statement' sentence, paired with an output object containing a 'Standard English' corrected sentence. The data are short, single-sentence declarative statements, often simple everyday examples. The task is to transform the ungrammatical input into the target standard form, using the error type as auxiliary context. Some samples appear noisy or trivial, with identical input and output, and occasional labels that may not follow prescriptive grammar. No multi-turn dialog, multiple-choice options, or visual/audio content are included.",
+  "tasks": [],
+  "domain": "English grammar correction",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.Ungrammatical Statement"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ungrammatical English sentence that the model must correct. It serves as the primary input text, containing one or more grammatical errors (though some samples may already be correct).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.Standard English"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The corrected Standard English version corresponding to the ungrammatical statement. In some samples it is identical to the input, indicating no correction is needed or a noisy label.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "category": {
+        "paths": [
+          "input.Error Type"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The grammatical error type (e.g., Subject-Verb Agreement, Article Usage) that categorizes the issue in the ungrammatical statement. It provides auxiliary information about what kind of correction is expected.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with two fields: an Error Type category label and an Ungrammatical Statement sentence, and an output object with a Standard English sentence. The Error Type categorizes the grammatical issue, the Ungrammatical Statement is the source text to be corrected, and the Standard English field is the target corrected sentence. No dialog, options, or visual components are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Grammar-Correction/annotation.json",
+    "existing_tags": {
+      "task": "Grammar Correction",
+      "type": "Grammar Correction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

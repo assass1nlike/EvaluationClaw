@@ -1,0 +1,53 @@
+{
+  "task_id": "measure_and_export@1",
+  "task_completion": [
+    {
+      "id": "weasis_open_with_image",
+      "description": "Weasis is open and displaying a DICOM image",
+      "points": 10,
+      "visual_evidence": "The Weasis application window is visible with a loaded medical image (e.g., X-Ray Angiography) displayed in the main viewing area."
+    },
+    {
+      "id": "measurement_tool_selected",
+      "description": "The distance measurement tool is activated",
+      "points": 10,
+      "visual_evidence": "The distance measurement tool (often a ruler icon) is highlighted or selected in the Weasis toolbar or context menu."
+    },
+    {
+      "id": "measurement_drawn",
+      "description": "A measurement is drawn on the DICOM image",
+      "points": 30,
+      "visual_evidence": "A visible measurement line with associated distance text/numbers is drawn across a structure on the displayed DICOM image."
+    },
+    {
+      "id": "export_dialog_opened",
+      "description": "The export or save dialog is opened",
+      "points": 20,
+      "visual_evidence": "A dialog box for exporting or saving the view (e.g., 'Export View', 'Save As') is open on the screen."
+    },
+    {
+      "id": "export_path_and_format_set",
+      "description": "The correct export path and JPEG format are specified",
+      "points": 30,
+      "visual_evidence": "The file path in the save/export dialog is set to '/home/ga/DICOM/exports/annotated_measurement.jpg' and the file type/format is set to JPEG."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_measurement",
+      "description": "The agent used the Weasis GUI to draw the measurement",
+      "visual_evidence": "Screenshots show the mouse cursor interacting with the Weasis measurement tools and drawing on the image, rather than terminal commands being used to edit an image."
+    },
+    {
+      "id": "gui_used_for_export",
+      "description": "The agent used the Weasis GUI to export the image",
+      "visual_evidence": "The export is performed via the Weasis menus (e.g., File > Export) and save dialogs, not by using terminal commands like 'touch', 'cp', or ImageMagick to spoof the output file."
+    },
+    {
+      "id": "genuine_image_content",
+      "description": "The measurement is applied to the actual medical image",
+      "visual_evidence": "The measurement line is clearly drawn over the loaded X-Ray/DICOM image within the Weasis viewer, not on a blank canvas or a different application."
+    }
+  ],
+  "privileged_info_for_vlm": "The exported file must be saved exactly to '/home/ga/DICOM/exports/annotated_measurement.jpg'. The expected format is JPEG (verified by magic bytes 'ffd8ff' in the system), and the file size must be at least 10240 bytes (10KB). The VLM should verify that the agent explicitly selects this path and the JPEG format in the Weasis export dialog."
+}

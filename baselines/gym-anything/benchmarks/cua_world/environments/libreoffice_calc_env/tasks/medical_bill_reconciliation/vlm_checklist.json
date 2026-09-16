@@ -1,0 +1,53 @@
+{
+  "task_id": "medical_bill_reconciliation@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "The agent opened the medical bills and EOB spreadsheet in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open showing medical billing data and EOB statements."
+    },
+    {
+      "id": "add_reconciliation_columns",
+      "description": "The agent added reconciliation columns to the spreadsheet.",
+      "points": 20,
+      "visual_evidence": "New columns (e.g., 'Status', 'Match', 'Notes', 'EOB Amount') are visible next to the original bill or EOB data."
+    },
+    {
+      "id": "flag_duplicates",
+      "description": "The agent identified and flagged the duplicate bills.",
+      "points": 25,
+      "visual_evidence": "The spreadsheet explicitly marks the City Hospital ER ($850) and Dr. Chen ER ($425) bills as 'Duplicate' or similar in the reconciliation columns."
+    },
+    {
+      "id": "flag_discrepancies",
+      "description": "The agent identified and flagged discrepancies, specifically the bill with no EOB.",
+      "points": 20,
+      "visual_evidence": "The Pharmacy bill ($45) is marked as 'Missing EOB', 'Disputed', 'Not Found', or similar in the reconciliation columns."
+    },
+    {
+      "id": "calculate_totals",
+      "description": "The agent calculated the total amount owed in a summary section.",
+      "points": 25,
+      "visual_evidence": "A summary section or cell is visible at the bottom or side of the data, labeled 'Total', 'Total Owed', or similar, containing a final calculated monetary value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent used a graphical spreadsheet application to perform the task.",
+      "visual_evidence": "The screenshots show a spreadsheet GUI (like LibreOffice Calc) being interacted with, rather than terminal commands or python scripts doing the reconciliation in the background."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not bypass the spreadsheet software by editing raw files in a basic text editor.",
+      "visual_evidence": "The data is viewed and edited in a proper grid-based spreadsheet interface, not a plain text editor like nano, vim, or gedit."
+    },
+    {
+      "id": "genuine_data_manipulation",
+      "description": "The agent genuinely manipulated the spreadsheet to add columns and summaries.",
+      "visual_evidence": "Visible signs of spreadsheet usage such as selected cells, active formula bars, or newly typed headers/summaries in the grid."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 8 medical bills and 5 EOB entries. To correctly complete the task, the agent must flag exactly 2 duplicate bills: City Hospital ER ($850) and Dr. Chen ER ($425). The agent must also flag 1 discrepancy: a Pharmacy bill ($45) that has no corresponding EOB entry. The total potential overpayment from the duplicates is $1,275."
+}

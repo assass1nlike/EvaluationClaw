@@ -1,0 +1,28 @@
+{
+  "id": "create_print_layout_export_pdf@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Create a map layout in QGIS named 'Sample Data Map' using the polygon layer from /home/ga/GIS_Data/sample_polygon.geojson and the point layer from /home/ga/GIS_Data/sample_points.geojson. The layout must include a map showing both layers, a title 'San Francisco Bay Area - GIS Sample Data', a north arrow, a scale bar, and a legend. Export the final layout as a PDF to /home/ga/GIS_Data/exports/sample_map.pdf.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_print_layout_export_pdf/setup_task.sh",
+    "post_task": "/workspace/tasks/create_print_layout_export_pdf/export_result.sh"
+  },
+  "metadata": {
+    "polygon_source": "/home/ga/GIS_Data/sample_polygon.geojson",
+    "point_source": "/home/ga/GIS_Data/sample_points.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/sample_map.pdf",
+    "expected_title": "San Francisco Bay Area - GIS Sample Data",
+    "layout_name": "Sample Data Map"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_print_layout_export_pdf"
+    }
+  }
+}

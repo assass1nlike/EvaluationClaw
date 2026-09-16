@@ -1,0 +1,34 @@
+{
+  "id": "mosaic_elevation_tiles_merge@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Merge the two elevation raster tiles dem_tile_west.tif and dem_tile_east.tif from /home/ga/GIS_Data/rasters/ into a single seamless Digital Elevation Model (DEM). Save the merged output as a Float32 file to /home/ga/GIS_Data/exports/merged_dem.tif, ensuring it covers the combined extent of both input tiles.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mosaic_elevation_tiles_merge/setup_task.sh",
+    "post_task": "/workspace/tasks/mosaic_elevation_tiles_merge/export_result.sh"
+  },
+  "metadata": {
+    "input_west": "/home/ga/GIS_Data/rasters/dem_tile_west.tif",
+    "input_east": "/home/ga/GIS_Data/rasters/dem_tile_east.tif",
+    "expected_output": "/home/ga/GIS_Data/exports/merged_dem.tif",
+    "expected_extent": [
+      -122.5,
+      37.5,
+      -121.5,
+      38.0
+    ],
+    "crs": "EPSG:4326"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mosaic_elevation_tiles_merge"
+    }
+  }
+}

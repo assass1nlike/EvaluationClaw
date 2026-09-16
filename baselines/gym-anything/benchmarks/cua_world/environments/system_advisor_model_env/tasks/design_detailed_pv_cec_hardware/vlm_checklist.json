@@ -1,0 +1,65 @@
+{
+  "task_id": "design_detailed_pv_cec_hardware@1",
+  "task_completion": [
+    {
+      "id": "project_setup",
+      "description": "Create a Detailed Commercial PV system project in Phoenix, AZ.",
+      "points": 10,
+      "visual_evidence": "SAM interface showing the project type as 'Commercial' and 'Detailed PV' (or pvsamv1). The Location and Resource page should show 'Phoenix, AZ' as the selected weather file/location."
+    },
+    {
+      "id": "module_selection",
+      "description": "Select a Canadian Solar / CSI Solar module between 300 Wdc and 350 Wdc from the CEC database.",
+      "points": 15,
+      "visual_evidence": "SAM 'Module' page showing the 'CEC Performance Model with Database' selected. The chosen module must have the manufacturer 'CSI Solar Co. Ltd.' (or 'Canadian Solar Inc.') and a nominal power rating (Pmp or Nameplate) between 300 and 350 Wdc."
+    },
+    {
+      "id": "inverter_selection",
+      "description": "Select an SMA America inverter between 10 kWac and 20 kWac from the CEC database.",
+      "points": 15,
+      "visual_evidence": "SAM 'Inverter' page showing the 'Inverter CEC Database' selected. The chosen inverter must have the manufacturer 'SMA America' and a maximum AC power (Paco) between 10000 Wac and 20000 Wac (10-20 kWac)."
+    },
+    {
+      "id": "inverter_count_config",
+      "description": "Configure the system with exactly 4 inverters.",
+      "points": 15,
+      "visual_evidence": "SAM 'System Design' page showing the number of inverters explicitly set to 4."
+    },
+    {
+      "id": "dc_capacity_config",
+      "description": "Configure valid electrical stringing to achieve a Total Nameplate DC capacity between 45.0 kWdc and 55.0 kWdc.",
+      "points": 20,
+      "visual_evidence": "SAM 'System Design' page showing a 'Total Nameplate DC capacity' value between 45.0 and 55.0 kWdc. The stringing configuration (modules per string, strings in parallel) should be filled out without showing red validation errors."
+    },
+    {
+      "id": "save_sam_project",
+      "description": "Save the SAM project to the specified path.",
+      "points": 10,
+      "visual_evidence": "SAM window title bar showing 'detailed_hardware_design.sam', or a file explorer/terminal showing the file exists at '/home/ga/Documents/SAM_Projects/detailed_hardware_design.sam'."
+    },
+    {
+      "id": "create_json_summary",
+      "description": "Create a JSON summary file with the required hardware names and capacity details.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Documents/SAM_Projects/design_summary.json'. It must contain the keys 'module_selected', 'inverter_selected', 'total_dc_capacity_kw' (value between 45.0-55.0), and 'inverter_count' (value 4)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the SAM desktop application GUI to design the system.",
+      "visual_evidence": "Screenshots should show the agent clicking through the SAM interface (Module, Inverter, System Design tabs) rather than just writing a .sam file via a script or text editor."
+    },
+    {
+      "id": "genuine_database_strings",
+      "description": "The JSON summary contains exact strings from the SAM database, not generic placeholders.",
+      "visual_evidence": "The 'module_selected' and 'inverter_selected' values in the JSON file should be long, specific strings matching the format of the SAM CEC databases (e.g., containing specific model numbers and voltages), not just 'Canadian Solar 300W' or copied text from the prompt."
+    },
+    {
+      "id": "consistency_check",
+      "description": "The values in the JSON summary match the values configured in the SAM project.",
+      "visual_evidence": "The DC capacity, inverter count, and hardware names in the JSON file must perfectly match the values visible in the SAM GUI screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The SAM version installed is 2024-12-12. In the CEC Module database for this version, the manufacturer 'Canadian Solar Inc.' has been updated to 'CSI Solar Co. Ltd.'. You must accept 'CSI Solar Co. Ltd.' as the correct module brand for this task. The expected SAM filename is 'detailed_hardware_design.sam' and the JSON filename is 'design_summary.json'. The inverter count must be exactly 4, and the total DC capacity must be between 45.0 and 55.0 kWdc."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "mle_normal_regression@1",
+  "task_completion": [
+    {
+      "id": "script_initialization",
+      "description": "Initialize parameters b0, b1, and sigma in a script",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or Gretl script window where parameters b0, b1, and sigma are assigned initial values (e.g., 80, 10, 50)."
+    },
+    {
+      "id": "script_mle_block",
+      "description": "Define the 'mle' block with the normal log-likelihood equation",
+      "points": 25,
+      "visual_evidence": "Look for the script containing an 'mle' block (starting with 'mle' and ending with 'end mle') that includes the exact log-likelihood equation: logl = -0.5*log(2*$pi) - log(sigma) - 0.5*((food_exp - b0 - b1*income)/sigma)^2."
+    },
+    {
+      "id": "script_saved",
+      "description": "Save the Gretl script to the specified path",
+      "points": 20,
+      "visual_evidence": "Look for a file manager, terminal, or editor save dialog confirming the script is saved to '/home/ga/Documents/gretl_output/mle_food.inp'."
+    },
+    {
+      "id": "estimation_run",
+      "description": "Run the MLE estimation in Gretl",
+      "points": 20,
+      "visual_evidence": "Look for a Gretl output window or terminal output displaying the results of the Maximum Likelihood Estimation, showing estimated coefficients and standard errors."
+    },
+    {
+      "id": "results_saved",
+      "description": "Save the resulting coefficients to mle_results.txt",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal command saving or displaying the final estimated values for b0, b1, and sigma in a file located at '/home/ga/Documents/gretl_output/mle_results.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gretl_execution",
+      "description": "Verify the estimation was actually run using Gretl",
+      "visual_evidence": "Check that there is evidence of Gretl executing the script (e.g., Gretl GUI output window, or gretlcli terminal execution) rather than the agent just typing numbers into a text file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not just copy the example initialization values as the final results",
+      "visual_evidence": "Check that the values saved in mle_results.txt are the actual computed estimates (b0 ~ 79.89, b1 ~ 12.31, sigma ~ 28.38) and NOT the example initialization values (80, 10, 50) provided in the task description."
+    },
+    {
+      "id": "correct_variables_used",
+      "description": "Ensure the model was estimated using the correct dataset variables",
+      "visual_evidence": "Look at the Gretl output window or script to confirm 'food_exp' and 'income' are the exact variable names used in the MLE block."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct script path is '/home/ga/Documents/gretl_output/mle_food.inp' and the results path is '/home/ga/Documents/gretl_output/mle_results.txt'. The script must contain the keywords: 'mle', 'params', 'log', and 'end mle'. The actual computed MLE estimates for the food.gdt dataset are approximately: b0 = 79.886, b1 = 12.315, and sigma = 28.379. The agent must save these computed values, not the example initialization values (80, 10, 50) mentioned in the prompt."
+}

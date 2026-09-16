@@ -1,0 +1,62 @@
+{
+  "id": "wayback_web_history_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a digital archivist creating an exhibit on 'The Birth of the Modern Web'. Using the Internet Archive's Wayback Machine (https://web.archive.org), find the earliest available archived snapshot for google.com, amazon.com, wikipedia.org, youtube.com, and twitter.com. Bookmark each snapshot in a Firefox folder named 'Web Archive Research' and create a JSON report at ~/Documents/web_history_report.json containing the earliest capture date, Wayback URL, and a brief description for each site.\n\nThe JSON report should follow this structure for all five websites:\n{\n  \"google.com\": {\n    \"earliest_capture_date\": \"YYYY-MM-DD\",\n    \"wayback_url\": \"https://web.archive.org/web/...\",\n    \"description\": \"Brief description of the page content\"\n  },\n  ...\n}",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "wayback-machine",
+    "history",
+    "json"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wayback_web_history_research/setup_task.sh",
+    "post_task": "/workspace/tasks/wayback_web_history_research/export_result.sh"
+  },
+  "metadata": {
+    "target_sites": [
+      "google.com",
+      "amazon.com",
+      "wikipedia.org",
+      "youtube.com",
+      "twitter.com"
+    ],
+    "required_bookmark_folder": "Web Archive Research",
+    "output_file": "/home/ga/Documents/web_history_report.json",
+    "date_ranges": {
+      "google.com": {
+        "start": "1997-01-01",
+        "end": "1999-12-31"
+      },
+      "amazon.com": {
+        "start": "1995-01-01",
+        "end": "2000-12-31"
+      },
+      "wikipedia.org": {
+        "start": "2001-01-01",
+        "end": "2002-12-31"
+      },
+      "youtube.com": {
+        "start": "2005-01-01",
+        "end": "2006-12-31"
+      },
+      "twitter.com": {
+        "start": "2006-01-01",
+        "end": "2007-12-31"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wayback_web_history_research"
+    }
+  }
+}

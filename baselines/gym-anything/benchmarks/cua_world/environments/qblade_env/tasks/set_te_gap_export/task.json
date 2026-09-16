@@ -1,0 +1,37 @@
+{
+  "id": "set_te_gap_export@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "A wind turbine blade designer needs to modify a NACA 4415 airfoil (4% max camber at 40% chord, 15% thickness) to have a blunt trailing edge for manufacturing feasibility. Generate the NACA 4415 airfoil and apply a trailing edge gap of 2.0% of chord with a blending distance of 80% of chord from the trailing edge. Export the modified airfoil coordinates in standard .dat format (header line followed by x,y coordinate pairs) to /home/ga/Documents/airfoils/naca4415_bluntTE.dat.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/set_te_gap_export/setup_task.sh",
+    "post_task": "/workspace/tasks/set_te_gap_export/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/airfoils/naca4415_bluntTE.dat",
+    "target_te_gap": 0.02,
+    "te_gap_tolerance": 0.008,
+    "target_thickness": 0.15,
+    "thickness_tolerance": 0.02,
+    "min_points": 30
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_set_te_gap_export"
+    }
+  },
+  "tags": [
+    "airfoil",
+    "geometry",
+    "export",
+    "manufacturing",
+    "qblade"
+  ]
+}

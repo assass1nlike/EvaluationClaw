@@ -1,0 +1,44 @@
+{
+  "id": "psychometrics_scale_construction@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform a reliability analysis on the Extraversion items (E1, E2, E3, E4, E5) in the BFI25 dataset, accounting for reverse-coded items identified through negative item-total correlations. Create a Computed Variable named 'Extraversion_Score' representing the mean of the five items, ensuring reverse-coded items are manually transformed for a 1-6 scale. Save the project as 'Extraversion_Scale.omv' and record the corrected Cronbach's Alpha and the 'Extraversion_Score' for the first participant in 'scale_report.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/psychometrics_scale_construction/setup_task.sh",
+    "post_task": "/workspace/tasks/psychometrics_scale_construction/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/Jamovi/BFI25.csv",
+    "project_path": "/home/ga/Documents/Jamovi/Extraversion_Scale.omv",
+    "report_path": "/home/ga/Documents/Jamovi/scale_report.txt",
+    "items": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5"
+    ],
+    "reverse_items": [
+      "E1",
+      "E2"
+    ],
+    "scale_max": 6,
+    "scoring": {
+      "files_exist": 20,
+      "alpha_accuracy": 30,
+      "score_accuracy": 50
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_psychometrics_scale_construction"
+    }
+  }
+}

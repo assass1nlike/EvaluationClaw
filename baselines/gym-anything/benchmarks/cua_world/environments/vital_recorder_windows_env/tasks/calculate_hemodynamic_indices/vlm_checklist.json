@@ -1,0 +1,59 @@
+{
+  "task_id": "calculate_hemodynamic_indices@1",
+  "task_completion": [
+    {
+      "id": "view_timepoints_vital_recorder",
+      "description": "Agent navigates to the required timepoints (00:15:00, 00:45:00, 01:15:00) in the Vital Recorder application to read the physiological data.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the Vital Recorder GUI with the timeline cursor positioned at or very near 15 minutes, 45 minutes, and 1 hour 15 minutes."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Agent creates the text file 'hemodynamic_indices_report.txt' in the 'C:\\Users\\Docker\\Documents\\' directory.",
+      "points": 10,
+      "visual_evidence": "A text editor (like Notepad) is open saving to the correct path, or terminal commands show the creation of the file at 'C:\\Users\\Docker\\Documents\\hemodynamic_indices_report.txt'."
+    },
+    {
+      "id": "report_header_format",
+      "description": "The report contains the exact required header format.",
+      "points": 10,
+      "visual_evidence": "The text file contains 'HEMODYNAMIC INDICES REPORT', 'Case: VitalDB #6', and '==========================' at the top."
+    },
+    {
+      "id": "timepoint_1_data",
+      "description": "The report contains data for Timepoint 1 (00:15:00) with plausible raw values and correctly calculated indices.",
+      "points": 20,
+      "visual_evidence": "The text file shows Timepoint 1 with HR (~66 bpm), SBP (~108 mmHg), and DBP (~54 mmHg). Shock Index is calculated as HR/SBP and Pulse Pressure as SBP-DBP based on the written values."
+    },
+    {
+      "id": "timepoint_2_data",
+      "description": "The report contains data for Timepoint 2 (00:45:00) with plausible raw values and correctly calculated indices.",
+      "points": 20,
+      "visual_evidence": "The text file shows Timepoint 2 with HR (~72 bpm), SBP (~96 mmHg), and DBP (~48 mmHg). Shock Index is calculated as HR/SBP and Pulse Pressure as SBP-DBP based on the written values."
+    },
+    {
+      "id": "timepoint_3_data",
+      "description": "The report contains data for Timepoint 3 (01:15:00) with plausible raw values and correctly calculated indices.",
+      "points": 25,
+      "visual_evidence": "The text file shows Timepoint 3 with HR (~75 bpm), SBP (~112 mmHg), and DBP (~56 mmHg). Shock Index is calculated as HR/SBP and Pulse Pressure as SBP-DBP based on the written values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_vital_recorder",
+      "description": "Agent extracted data by interacting with the Vital Recorder GUI rather than hallucinating values.",
+      "visual_evidence": "Screenshots show the agent actively clicking or scrolling through the Vital Recorder interface to find the specific timepoints."
+    },
+    {
+      "id": "mathematical_consistency",
+      "description": "The calculated Shock Index and Pulse Pressure match the raw HR, SBP, and DBP values written in the report.",
+      "visual_evidence": "The math in the final text file checks out: Shock Index exactly equals the written HR divided by the written SBP, and Pulse Pressure exactly equals the written SBP minus the written DBP."
+    },
+    {
+      "id": "manual_report_creation",
+      "description": "Agent manually typed or constructed the report rather than downloading a pre-made solution.",
+      "visual_evidence": "Screenshots show the agent typing in Notepad, a code editor, or using echo/cat commands in the terminal to build the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected approximate values (with tolerances: HR \u00b15, SBP \u00b110, DBP \u00b110): Timepoint 1 (15m): HR 66, SBP 108, DBP 54. Timepoint 2 (45m): HR 72, SBP 96, DBP 48. Timepoint 3 (75m): HR 75, SBP 112, DBP 56. The agent's calculated Shock Index MUST equal their recorded HR / SBP (tolerance \u00b10.1). The agent's calculated Pulse Pressure MUST equal their recorded SBP - DBP (tolerance \u00b15). The report format must exactly match the prompt's template."
+}

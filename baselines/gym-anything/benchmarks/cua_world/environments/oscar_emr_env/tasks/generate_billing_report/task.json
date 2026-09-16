@@ -1,0 +1,29 @@
+{
+  "id": "generate_billing_report@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Generate a billing report for Dr. Sarah Chen (provider 'oscardoc', Username: oscardoc, Password: oscar, PIN: 1117) for the current month. The report must exclusively contain services with Service Code 'K013' (Individual Counselling) performed by Dr. Chen. Export the final report to /home/ga/Documents/K013_Report.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_billing_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_billing_report/export_result.sh"
+  },
+  "metadata": {
+    "target_code": "K013",
+    "distractor_code": "A007",
+    "provider_no": "999998",
+    "expected_filename": "K013_Report.pdf",
+    "output_dir": "/home/ga/Documents"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_billing_report"
+    }
+  }
+}

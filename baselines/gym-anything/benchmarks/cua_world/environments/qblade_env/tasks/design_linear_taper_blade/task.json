@@ -1,0 +1,31 @@
+{
+  "id": "design_linear_taper_blade@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Design a 3-bladed wind turbine rotor (Radius = 2m, Hub = 0.2m) using a NACA 4412 airfoil (Re=500,000, Ncrit=9, 360-degree polar extrapolation). The rotor must feature linear taper and linear twist distributions. The objective is to achieve the Maximum Power Coefficient (Max Cp) at a Tip Speed Ratio (TSR) of 7.0 (±0.2). Save the project to '~/Documents/projects/tsr7_rotor.wpa', export the final blade geometry to '~/Documents/tsr7_geometry.txt', and export the BEM simulation results to '~/Documents/tsr7_bem_results.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_linear_taper_blade/setup_task.sh",
+    "post_task": "/workspace/tasks/design_linear_taper_blade/export_result.sh"
+  },
+  "metadata": {
+    "target_tsr": 7.0,
+    "tsr_tolerance": 0.2,
+    "rotor_radius": 2.0,
+    "blade_count": 3,
+    "project_path": "/home/ga/Documents/projects/tsr7_rotor.wpa",
+    "geometry_path": "/home/ga/Documents/tsr7_geometry.txt",
+    "results_path": "/home/ga/Documents/tsr7_bem_results.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_linear_taper_blade"
+    }
+  }
+}

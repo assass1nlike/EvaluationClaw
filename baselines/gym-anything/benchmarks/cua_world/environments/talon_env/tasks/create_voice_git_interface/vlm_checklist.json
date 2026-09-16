@@ -1,0 +1,59 @@
+{
+  "task_id": "create_voice_git_interface@1",
+  "task_completion": [
+    {
+      "id": "create_git_system_directory",
+      "description": "Create the git_system directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal, or editor tree showing the existence of the directory path C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\git_system."
+    },
+    {
+      "id": "git_system_py_list_defined",
+      "description": "Define the 'user.git_branch' list in git_system.py.",
+      "points": 15,
+      "visual_evidence": "A text editor showing git_system.py with code defining a Talon Module (e.g., mod = Module()) and a list named 'git_branch' (e.g., mod.list('git_branch'))."
+    },
+    {
+      "id": "git_system_py_action_defined",
+      "description": "Define the 'update_git_branches' action in git_system.py with specific string replacements.",
+      "points": 25,
+      "visual_evidence": "A text editor showing git_system.py with an action named 'update_git_branches'. The function must execute 'git branch --format=\"%(refname:short)\"' and contain logic to replace slashes (/), dashes (-), and dots (.) with spaces."
+    },
+    {
+      "id": "git_system_talon_context",
+      "description": "Create git_system.talon with a terminal-specific context.",
+      "points": 10,
+      "visual_evidence": "A text editor showing git_system.talon starting with a context header restricting it to a terminal (e.g., 'app: windows_terminal', 'app: cmd', or similar terminal application) followed by a '-' separator."
+    },
+    {
+      "id": "git_system_talon_branch_commands",
+      "description": "Define branch-related voice commands in git_system.talon.",
+      "points": 20,
+      "visual_evidence": "In git_system.talon, the presence of voice commands 'git refresh branches:' (which calls the update_git_branches action) and 'git checkout {user.git_branch}:'."
+    },
+    {
+      "id": "git_system_talon_basic_commands",
+      "description": "Define basic git voice commands in git_system.talon.",
+      "points": 20,
+      "visual_evidence": "In git_system.talon, the presence of voice commands 'git status:', 'git add all:', and 'git commit <user.text>:'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_saved_in_correct_location",
+      "description": "Verify that the files are saved in the correct target directory.",
+      "visual_evidence": "The editor's title bar, file tree, or terminal output confirms the files are actually saved in C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\git_system\\, rather than just being unsaved buffers."
+    },
+    {
+      "id": "dynamic_branch_retrieval",
+      "description": "Verify that branch names are retrieved dynamically via the git command, not hardcoded.",
+      "visual_evidence": "The update_git_branches action uses a subprocess or similar method to run the git branch command, without containing a hardcoded list of expected branch names."
+    },
+    {
+      "id": "correct_target_repository",
+      "description": "Verify that the git operations target the correct repository.",
+      "visual_evidence": "The update_git_branches action explicitly references C:\\workspace\\requests as the working directory (cwd) for the git subprocess command."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory for Talon module: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\git_system. Target repository path for git operations: C:\\workspace\\requests."
+}

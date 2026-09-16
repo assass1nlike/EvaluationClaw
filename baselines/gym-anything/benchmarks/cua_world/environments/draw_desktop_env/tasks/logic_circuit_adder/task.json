@@ -1,0 +1,54 @@
+{
+  "id": "logic_circuit_adder@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a digital logic circuit diagram for a 4-bit Ripple Carry Adder in draw.io based on the specification in '~/Desktop/adder_specification.txt'. The diagram must include two pages: a block-level page named '4-Bit Ripple Carry Adder' and a gate-level schematic page named 'Full Adder Gate Level'. The block-level page should feature four Full Adder blocks (FA0-FA3) connected in a ripple carry chain with the first carry input grounded and all inputs (A0-A3, B0-B3) and outputs (S0-S3, Cout) labeled. The gate-level page should implement a single Full Adder using XOR, AND, and OR gates for the equations Sum = A XOR B XOR Cin and Cout = (A AND B) OR (Cin AND (A XOR B)), including labels and Boolean equation annotations. Save the diagram as '~/Desktop/ripple_carry_adder.drawio' and export the block-level page as '~/Desktop/ripple_carry_adder.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/logic_circuit_adder/setup_task.sh",
+    "post_task": "/workspace/tasks/logic_circuit_adder/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "ripple_carry_adder.drawio",
+    "expected_png": "ripple_carry_adder.png",
+    "min_pages": 2,
+    "required_blocks": [
+      "FA0",
+      "FA1",
+      "FA2",
+      "FA3"
+    ],
+    "required_signals": [
+      "A0",
+      "A1",
+      "A2",
+      "A3",
+      "B0",
+      "B1",
+      "B2",
+      "B3",
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "Cout"
+    ],
+    "required_gates": [
+      "XOR",
+      "AND",
+      "OR"
+    ],
+    "min_edges": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_logic_circuit_adder"
+    }
+  }
+}

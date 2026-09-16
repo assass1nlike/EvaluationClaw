@@ -1,0 +1,47 @@
+{
+  "task_id": "extract_event_window_waveforms@1",
+  "task_completion": [
+    {
+      "id": "query_origin_time",
+      "description": "Verify the agent queries the SeisComP database to find the origin time of the Noto Peninsula earthquake.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a database query (e.g., using mysql, sqlite3, or a SeisComP tool) and its output displaying the origin time for the Noto earthquake (around 2024-01-01 07:10:09)."
+    },
+    {
+      "id": "execute_extraction_command",
+      "description": "Verify the agent executes a command or script to extract waveform data from the SDS archive for the GE network using the correct time window.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a command (like `scart` or a Python script using `obspy`) that reads from `/home/ga/seiscomp/var/lib/archive/`, filters for the GE network, and uses a start time of ~07:09:09 and an end time of ~07:20:09."
+    },
+    {
+      "id": "create_output_file",
+      "description": "Verify the agent creates the output miniSEED file at the specified path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the output file `/home/ga/noto_event_data.mseed` being specified as the output target in the extraction command, or an `ls` command showing the file exists."
+    },
+    {
+      "id": "verify_output_contents",
+      "description": "Verify the agent checks the generated miniSEED file to ensure it contains the correct duration and stations.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the execution of a tool (e.g., `mseedinfo`, `scart -l`, or a Python script) inspecting `/home/ga/noto_event_data.mseed` and displaying the ~11-minute duration (660 seconds) and the presence of GE stations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_extraction_performed",
+      "description": "Check that the agent actually extracted data from the specified archive.",
+      "visual_evidence": "The extraction command or script must explicitly reference the SDS archive path `/home/ga/seiscomp/var/lib/archive/`."
+    },
+    {
+      "id": "database_queried",
+      "description": "Check that the agent queried the database for the origin time rather than guessing or hardcoding it.",
+      "visual_evidence": "A query to the SeisComP database or event list should be visible in the terminal history before the extraction is performed."
+    },
+    {
+      "id": "genuine_miniseed_format",
+      "description": "Check that the output file is generated using proper seismic data tools.",
+      "visual_evidence": "The agent uses appropriate tools (like `scart`, `mseedcut`, or Python's `obspy`) to write the file, rather than just touching an empty file or writing plain text."
+    }
+  ],
+  "privileged_info_for_vlm": "The true origin time of the Noto Peninsula earthquake in the database is 2024-01-01T07:10:09.476Z. The required time window is strictly 60s before (2024-01-01 07:09:09) and 600s after (2024-01-01 07:20:09) the origin time. The output file must be /home/ga/noto_event_data.mseed. There are exactly 3 GEOFON (GE) stations available (GSI, SANI, BKB)."
+}

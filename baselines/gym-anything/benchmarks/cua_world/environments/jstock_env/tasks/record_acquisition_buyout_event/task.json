@@ -1,0 +1,35 @@
+{
+  "id": "record_acquisition_buyout_event@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "You need to record a corporate action in JStock for Activision Blizzard (ATVI), which was acquired by Microsoft on October 13, 2023, for $95.00 per share in cash. Record a 'Sell' transaction for the 50 shares in your portfolio with the following details: Date: Oct 13, 2023, Price: 95.00, Units: 50, and Comment: 'Acquired by MSFT'. Ensure the transaction is saved to close the position and record the realized gain.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_acquisition_buyout_event/setup_task.sh",
+    "post_task": "/workspace/tasks/record_acquisition_buyout_event/export_result.sh"
+  },
+  "metadata": {
+    "target_symbol": "ATVI",
+    "expected_date": "Oct 13, 2023",
+    "expected_price": 95.0,
+    "expected_units": 50,
+    "required_comment_keywords": [
+      "msft",
+      "acquired",
+      "buyout",
+      "microsoft"
+    ],
+    "portfolio_file": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/sellportfolio.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_acquisition_buyout_event"
+    }
+  }
+}

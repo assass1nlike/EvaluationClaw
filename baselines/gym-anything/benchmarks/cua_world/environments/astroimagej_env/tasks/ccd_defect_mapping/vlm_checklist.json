@@ -1,0 +1,53 @@
+{
+  "task_id": "ccd_defect_mapping@1",
+  "task_completion": [
+    {
+      "id": "median_combination_logic",
+      "description": "Agent writes code to generate Master Dark and Master Flat frames using median-combination.",
+      "points": 20,
+      "visual_evidence": "A script open in an editor showing logic to read multiple FITS files from the 'darks/' and 'flats/' directories and combine them using a median function (e.g., numpy.median)."
+    },
+    {
+      "id": "defect_identification_logic",
+      "description": "Agent writes code to identify hot and dead pixels using the specified mathematical thresholds.",
+      "points": 20,
+      "visual_evidence": "Code showing the exact formulas for defect identification: hot pixels as > (median + 5 * standard deviation) of the Master Dark, and dead pixels as < (0.5 * median) of the Master Flat."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent executes the script to process the CCD frames.",
+      "points": 15,
+      "visual_evidence": "Terminal window showing the execution of the Python (or other language) script, with no unhandled errors."
+    },
+    {
+      "id": "report_file_creation",
+      "description": "Agent saves the defect report to the correct path.",
+      "points": 15,
+      "visual_evidence": "Terminal or file explorer showing the creation of 'defect_report.txt' in the '~/AstroImages/defect_mapping/' directory."
+    },
+    {
+      "id": "report_contents",
+      "description": "The defect report contains all required labeled values.",
+      "points": 30,
+      "visual_evidence": "The contents of 'defect_report.txt' displayed on screen (e.g., via 'cat' or a text editor) containing the exact labels: HOT_PIXEL_THRESHOLD, HOT_PIXEL_COUNT, DEAD_PIXEL_THRESHOLD, DEAD_PIXEL_COUNT, MASTER_DARK_MEDIAN, MASTER_DARK_STDDEV, MASTER_FLAT_MEDIAN, TOTAL_PIXELS, and DEFECT_FRACTION."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation",
+      "description": "Agent computed the statistics programmatically rather than hardcoding fake values.",
+      "visual_evidence": "The script contains actual calculation logic using libraries like numpy and astropy.io.fits, rather than just printing pre-written numbers to a text file."
+    },
+    {
+      "id": "correct_data_usage",
+      "description": "Agent used the provided FITS files for calculations.",
+      "visual_evidence": "The code explicitly loads files from the '~/AstroImages/defect_mapping/darks/' and '~/AstroImages/defect_mapping/flats/' directories."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The report file was genuinely saved to the filesystem.",
+      "visual_evidence": "Evidence of the file existing on disk (e.g., via 'ls' or a file explorer) at '/home/ga/AstroImages/defect_mapping/defect_report.txt', rather than just being printed to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses real astronomical CCD data from the Large Format Camera (LFC) on the Palomar 200-inch Hale Telescope (Zenodo record 3254683). The final report must be saved exactly to /home/ga/AstroImages/defect_mapping/defect_report.txt."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "rsm_chemical_optimization@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The analysis script is saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'optimize_reaction.R' in the '/home/ga/RProjects/' directory. The contents should show R code loading the 'rsm' package and fitting a model."
+    },
+    {
+      "id": "contour_plot_saved",
+      "description": "The contour plot is generated and saved.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'contour_yield.png' in '/home/ga/RProjects/output/'. If opened, it should display a 2D contour plot typical of response surface methodology."
+    },
+    {
+      "id": "surface_plot_saved",
+      "description": "The 3D perspective surface plot is generated and saved.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'surface_yield.png' in '/home/ga/RProjects/output/'. If opened, it should display a 3D perspective surface plot (wireframe or colored surface)."
+    },
+    {
+      "id": "results_csv_saved",
+      "description": "The optimization results CSV is saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'optimization_results.csv' in '/home/ga/RProjects/output/'."
+    },
+    {
+      "id": "optimal_inputs_calculated",
+      "description": "The optimal Time and Temperature are correctly calculated.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'optimization_results.csv' or the R console output. The optimal Time should be approximately 86.8 to 86.9, and the optimal Temperature should be approximately 176.3 to 176.7."
+    },
+    {
+      "id": "predicted_yield_calculated",
+      "description": "The predicted maximum yield is calculated.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'optimization_results.csv' or the R console output. The predicted yield should be approximately 84.37 (or 79.91 for Block 2). Note: The automated verifier has a flawed target of 87.4, but the true calculated values (84.37 or 79.91) are correct and should be awarded points."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The agent actually executed R code to generate the outputs.",
+      "visual_evidence": "Look for an open R console, RStudio, or terminal where the script 'optimize_reaction.R' was executed. The outputs should not just be manually created text files."
+    },
+    {
+      "id": "authentic_rsm_plots",
+      "description": "The plots appear to be genuine R outputs from the rsm package.",
+      "visual_evidence": "The contour and surface plots should have standard R graphical formatting (e.g., base R plot aesthetics, axis labels matching 'Time' and 'Temp' or their coded versions)."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not simply hardcode the expected answers into the CSV.",
+      "visual_evidence": "The R script should contain actual modeling functions (e.g., `rsm(Yield ~ Block + SO(x1, x2)...)`) and extraction of the stationary point, rather than `write.csv(data.frame(optimal_time=86.86, optimal_temp=176.67...))` without prior calculation."
+    }
+  ],
+  "privileged_info_for_vlm": "The true optimal stationary point for the ChemReact dataset using the specified second-order model is Time = 86.86 and Temp = 176.67. The true maximum predicted yield is 84.37 (for Block B1) or 79.91 (for Block B2). The automated verifier has a known flaw where it expects a yield of 87.4 (with a tolerance of 2.0), meaning a perfectly correct script calculating 84.37 will fail the automated check. As a VLM verifier, you should award points if the agent calculates the true values (~84.37 or ~79.91) or the flawed target (~87.4)."
+}

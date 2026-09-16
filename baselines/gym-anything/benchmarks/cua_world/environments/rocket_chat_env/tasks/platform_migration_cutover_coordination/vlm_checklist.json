@@ -1,0 +1,59 @@
+{
+  "task_id": "platform_migration_cutover_coordination@1",
+  "task_completion": [
+    {
+      "id": "war_room_created",
+      "description": "Create a private war room channel with the correct topic and members.",
+      "points": 20,
+      "visual_evidence": "Look for a channel named 'atlas-cutover-war-room' with a lock icon (private). The channel header/info should show the topic 'Project Atlas | Cutover 2026-03-18 01:00-05:00 UTC | Status: IN PROGRESS'. System messages in the chat should indicate that db.lead, network.lead, backend.lead, frontend.lead, qa.lead, sre.oncall, and cloud.architect were invited."
+    },
+    {
+      "id": "runbook_posted_and_pinned",
+      "description": "Post and pin a consolidated cutover runbook with the correct staged migration order and rollback triggers.",
+      "points": 20,
+      "visual_evidence": "Look for a message (likely in the war room) containing a runbook with the correct sequence (Gateway TLS 1.3 restart -> DB migration -> PPS config update -> QA Phase 1 -> backend cloud routing -> QA Phase 2 -> frontend cutover -> QA Phase 3) and rollback triggers (error rate >1%, p99 latency >800ms, DB connection failures >5/min, QA phase-specific rules). The message must have a 'pinned' indicator or appear in the pinned messages list."
+    },
+    {
+      "id": "status_tracker_posted",
+      "description": "Post a go/no-go status tracker reflecting each team's actual readiness.",
+      "points": 10,
+      "visual_evidence": "Look for a message listing the teams and their statuses: Database=GO, Networking=CONDITIONAL, Backend=GO, Frontend=GO, QA=READY."
+    },
+    {
+      "id": "ops_alerts_triaged",
+      "description": "Reply to both monitoring alerts in #ops-alerts with triage assessments.",
+      "points": 15,
+      "visual_evidence": "Look in the '#ops-alerts' channel for replies (either in the main chat referencing the alerts or in threads) to the WARN load balancer alert and the CRITICAL backup job alert."
+    },
+    {
+      "id": "dms_sent",
+      "description": "DM the conditional team lead for an ETA, and DM vp.engineering with an executive summary.",
+      "points": 20,
+      "visual_evidence": "Look in the Direct Messages section for conversations with 'network.lead' (requesting an ETA for the gateway restart) and 'vp.engineering' (providing an executive status summary of the cutover)."
+    },
+    {
+      "id": "announcement_posted",
+      "description": "Post a cutover-commencement announcement in #engineering-announcements.",
+      "points": 15,
+      "visual_evidence": "Look in the '#engineering-announcements' channel for a message from the agent announcing the commencement of the cutover."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Rocket.Chat web interface to perform actions.",
+      "visual_evidence": "Screenshots should show the Rocket.Chat web UI being used, without evidence of terminal commands or API scripts being executed to bypass the UI."
+    },
+    {
+      "id": "genuine_content",
+      "description": "The messages posted by the agent appear to be typed out and contextually relevant.",
+      "visual_evidence": "Messages should be formatted naturally for a chat application, not just raw JSON or copy-pasted text from the task description."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "The agent did not use browser developer tools to fake the UI.",
+      "visual_evidence": "Screenshots should not show the browser developer tools (Elements, Console, etc.) open and modifying the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "Team statuses: Database=GO, Networking=CONDITIONAL, Backend=GO, Frontend=GO, QA=READY. Conditional team lead: network.lead. Correct runbook order: Gateway TLS 1.3 restart -> DB migration -> PPS config update -> QA Phase 1 -> backend cloud routing -> QA Phase 2 -> frontend cutover (maintenance banner + DNS switch) -> QA Phase 3. Rollback triggers: error rate >1%, p99 latency >800ms, DB connection failures >5/min; QA Phase 1 fail=immediate rollback, Phase 2 fail=15min window, Phase 3=case-by-case. Ops alerts: (1) WARN - LB intermittent 502s; (2) CRITICAL - backup job failed. War room must be PRIVATE, named 'atlas-cutover-war-room', topic contains 'Project Atlas', 'Cutover', and '2026-03-18 01:00-05:00 UTC'. Required members: db.lead, network.lead, backend.lead, frontend.lead, qa.lead, sre.oncall, cloud.architect."
+}

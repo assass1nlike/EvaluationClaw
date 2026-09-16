@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_geometry_geojson@1",
+  "task_completion": [
+    {
+      "id": "create_python_script",
+      "description": "Agent opens a text editor or IDE to create a Python script.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., VS Code, nano, vim, gedit) is open on the screen containing Python code."
+    },
+    {
+      "id": "reference_input_file",
+      "description": "The Python script includes the correct input file path.",
+      "points": 15,
+      "visual_evidence": "The string '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.g04' is visible in the Python code."
+    },
+    {
+      "id": "extract_reach_and_xs",
+      "description": "The Python script contains logic to extract Reach and Cross-Section coordinates.",
+      "points": 25,
+      "visual_evidence": "The Python code contains specific string matching, regex, or parsing logic looking for the exact keywords 'Reach XY' and 'XS GIS Cut Line'."
+    },
+    {
+      "id": "assign_geojson_properties",
+      "description": "The Python script constructs GeoJSON features with the required properties.",
+      "points": 25,
+      "visual_evidence": "The Python code contains dictionary definitions or string formatting that includes the keys 'type', 'river_name', 'reach_name', and 'station'."
+    },
+    {
+      "id": "reference_output_file",
+      "description": "The Python script specifies the correct output file path.",
+      "points": 15,
+      "visual_evidence": "The string '/home/ga/Documents/hec_ras_results/model_geometry.geojson' is visible in the Python code, typically within an open() or write() function."
+    },
+    {
+      "id": "generate_output_file",
+      "description": "The agent successfully executes the script to generate the output file.",
+      "points": 10,
+      "visual_evidence": "A terminal window shows the script executing without errors, or a file explorer/terminal shows the 'model_geometry.geojson' file has been created in '/home/ga/Documents/hec_ras_results/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_not_hardcoded",
+      "description": "The script contains genuine parsing logic rather than a hardcoded GeoJSON string.",
+      "visual_evidence": "The Python code uses loops, conditionals, or regex to read and process lines from the input file, rather than just printing a pre-written GeoJSON block."
+    },
+    {
+      "id": "no_manual_geojson_creation",
+      "description": "The agent does not manually create the GeoJSON file.",
+      "visual_evidence": "The agent is not seen manually typing GeoJSON syntax into a text editor to bypass writing the Python script."
+    },
+    {
+      "id": "genuine_error_handling",
+      "description": "The agent does not fake the output file if it encounters a missing input file error.",
+      "visual_evidence": "If a FileNotFoundError is shown in the terminal for 'Muncie.g04', the agent does not subsequently create a dummy 'model_geometry.geojson' file using touch or echo just to satisfy the output requirement."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file path is /home/ga/Documents/hec_ras_results/model_geometry.geojson. Note: The required input file Muncie.g04 does NOT exist in the environment. The agent will likely encounter a FileNotFoundError when trying to run the script. Score the agent based on the Python code it writes to fulfill the parsing and formatting requirements, even if the final execution fails due to the missing input file."
+}

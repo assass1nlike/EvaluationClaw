@@ -1,0 +1,53 @@
+{
+  "task_id": "annotate_suspicious_events@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_search",
+      "description": "Navigate to the log search or viewing interface in ManageEngine EventLog Analyzer",
+      "points": 10,
+      "visual_evidence": "The ManageEngine EventLog Analyzer web interface is open, specifically on a tab or page used for searching or viewing logs (e.g., 'Search' tab)."
+    },
+    {
+      "id": "search_target_user",
+      "description": "Search or filter for the target user 'forensic_target'",
+      "points": 20,
+      "visual_evidence": "The text 'forensic_target' is visible in the search bar, advanced search filters, or active filter tags."
+    },
+    {
+      "id": "locate_target_event",
+      "description": "Locate the failed SSH login events for the target user",
+      "points": 20,
+      "visual_evidence": "The search results table displays log entries corresponding to failed SSH logins (e.g., 'Failed password') for the user 'forensic_target'."
+    },
+    {
+      "id": "open_add_note_dialog",
+      "description": "Open the dialog or input field to add a note to the target event",
+      "points": 20,
+      "visual_evidence": "A popup dialog, modal, or inline text area titled 'Add Note', 'Annotate', or similar is open for one of the 'forensic_target' log events."
+    },
+    {
+      "id": "save_forensic_note",
+      "description": "Save the required forensic note to the event",
+      "points": 30,
+      "visual_evidence": "The exact text 'CASE-999: Verified scan' is visible as a saved note, tag, or annotation attached to the specific failed login event in the EventLog Analyzer UI."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the ManageEngine EventLog Analyzer web GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with the web browser and the EventLog Analyzer interface, rather than terminal commands (like curl or API scripts) being used to add the note."
+    },
+    {
+      "id": "genuine_event_modification",
+      "description": "The note was added to an actual log event within the application",
+      "visual_evidence": "The note is clearly attached to a log row in the EventLog Analyzer interface, not just typed into a separate text editor, notepad, or unrelated web page."
+    },
+    {
+      "id": "no_developer_tools",
+      "description": "The agent did not use browser developer tools to fake the result",
+      "visual_evidence": "The browser's developer tools (Inspect Element, DOM editor) are not open in the screenshots showing the final saved note."
+    }
+  ],
+  "privileged_info_for_vlm": "The target user is 'forensic_target'. There are exactly 5 injected failed SSH login logs for this user in the system. The agent must successfully attach a note to at least one of these specific events containing the exact text 'CASE-999: Verified scan'."
+}

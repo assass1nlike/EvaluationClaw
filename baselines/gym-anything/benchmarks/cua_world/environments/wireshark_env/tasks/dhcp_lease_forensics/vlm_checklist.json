@@ -1,0 +1,53 @@
+{
+  "task_id": "dhcp_lease_forensics@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open and analyze the DHCP PCAP file.",
+      "points": 20,
+      "visual_evidence": "Screenshots show Wireshark open with dhcp.pcap loaded, or terminal commands like tshark/tcpdump being used to read the file."
+    },
+    {
+      "id": "create_report",
+      "description": "Create the analysis report file.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a text editor (like nano, vim, gedit) open with the file ~/Documents/captures/dhcp_analysis_report.txt, or terminal commands creating this file."
+    },
+    {
+      "id": "write_header",
+      "description": "Write the report header with packet count and transaction IDs.",
+      "points": 20,
+      "visual_evidence": "The text report contains a header stating there are 4 total packets and lists the unique transaction IDs: 0x00003d1d and 0x00003d1e."
+    },
+    {
+      "id": "write_transaction_1",
+      "description": "Document details for the first transaction (0x00003d1d).",
+      "points": 25,
+      "visual_evidence": "The report includes a section for transaction 0x00003d1d showing Client MAC (00:0b:82:01:fc:42), Assigned IP (192.168.0.10), Server IP (192.168.0.1), Subnet Mask (255.255.255.0), and indicates no Router or DNS Server options are present."
+    },
+    {
+      "id": "write_transaction_2",
+      "description": "Document details for the second transaction (0x00003d1e).",
+      "points": 25,
+      "visual_evidence": "The report includes a section for transaction 0x00003d1e showing Client MAC (00:0b:82:01:fc:42), Assigned IP (192.168.0.10), Server IP (192.168.0.1), Subnet Mask (255.255.255.0), and indicates no Router or DNS Server options are present."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tool_usage",
+      "description": "Verify the agent used a packet analysis tool.",
+      "visual_evidence": "The agent must be seen using Wireshark, tshark, or a similar tool to inspect the PCAP file, rather than hallucinating the contents."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "Verify the report is saved in the correct location.",
+      "visual_evidence": "The text editor or terminal commands must show the file being saved exactly at ~/Documents/captures/dhcp_analysis_report.txt."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Verify the agent extracted data from the file.",
+      "visual_evidence": "The agent should extract the data by interacting with the PCAP file directly, not by downloading a pre-made report or using external internet searches."
+    }
+  ],
+  "privileged_info_for_vlm": "The PCAP file contains exactly 4 DHCP packets. There are two unique transaction IDs: 0x00003d1d and 0x00003d1e. Across both transactions, the Client MAC address is 00:0b:82:01:fc:42, the Assigned IP is 192.168.0.10, the DHCP Server IP is 192.168.0.1, and the Subnet Mask is 255.255.255.0. There are no Router or DNS Server options present in the capture."
+}

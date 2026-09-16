@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_phone_from_address_field@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "The agent connects to the DrTuxTest database and accesses the fchpat table.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent using a MySQL client (terminal or GUI) connected to the 'DrTuxTest' database, such as running 'USE DrTuxTest;' or querying the 'fchpat' table."
+    },
+    {
+      "id": "update_test_a",
+      "description": "The agent successfully extracts the phone number and cleans the address for TEST_A.",
+      "points": 20,
+      "visual_evidence": "Look for a database query result showing the record for TEST_A (or TEST-DIRTY-001). The 'FchPat_Tel1' field must be exactly '0145678900' and the 'FchPat_Adresse' field must be exactly '10 Rue de la Paix'."
+    },
+    {
+      "id": "update_test_b",
+      "description": "The agent successfully extracts the phone number and cleans the address for TEST_B.",
+      "points": 20,
+      "visual_evidence": "Look for a database query result showing the record for TEST_B (or TEST-DIRTY-002). The 'FchPat_Tel1' field must be exactly '0612345678' and the 'FchPat_Adresse' field must be exactly '5 Ave Foch'."
+    },
+    {
+      "id": "update_test_c",
+      "description": "The agent successfully extracts the phone number and cleans the address for TEST_C.",
+      "points": 20,
+      "visual_evidence": "Look for a database query result showing the record for TEST_C (or TEST-DIRTY-003). The 'FchPat_Tel1' field must be exactly '0987654321' and the 'FchPat_Adresse' field must be exactly 'Route 66'."
+    },
+    {
+      "id": "control_record_unmodified",
+      "description": "The agent does not modify the control record TEST_D, which already had a clean address.",
+      "points": 30,
+      "visual_evidence": "Look for a database query result showing the record for TEST_D (or TEST-CLEAN-001). The 'FchPat_Adresse' field must remain '88 Blvd Saint Germain' and the 'FchPat_Tel1' field must remain '0199887766'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "executed_in_database",
+      "description": "The agent executed the SQL commands in a database client or terminal.",
+      "visual_evidence": "Check for actual execution of SQL commands (e.g., 'Query OK, X rows affected' in terminal, or successful execution indicators in a GUI), rather than just writing a script without running it."
+    },
+    {
+      "id": "genuine_output",
+      "description": "The results are shown in a real database client or terminal.",
+      "visual_evidence": "Ensure the output showing the updated table is from a genuine database query result (like a formatted MySQL table output), not manually typed text simulating a table."
+    },
+    {
+      "id": "applied_to_database",
+      "description": "The agent applied the changes to the actual MySQL database.",
+      "visual_evidence": "Look for evidence that the changes were committed to the MySQL database (e.g., running a SELECT query after the UPDATEs), rather than just printing the desired output to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: DrTuxTest. Table: fchpat.\nTarget records to update:\n- TEST_A (TEST-DIRTY-001): Initial address '10 Rue de la Paix 01.45.67.89.00'. Expected FchPat_Tel1: '0145678900', Expected FchPat_Adresse: '10 Rue de la Paix'.\n- TEST_B (TEST-DIRTY-002): Initial address '5 Ave Foch (Tel: 06 12 34 56 78)'. Expected FchPat_Tel1: '0612345678', Expected FchPat_Adresse: '5 Ave Foch'.\n- TEST_C (TEST-DIRTY-003): Initial address 'Route 66 - 0987654321'. Expected FchPat_Tel1: '0987654321', Expected FchPat_Adresse: 'Route 66'.\nControl record (must NOT be modified):\n- TEST_D (TEST-CLEAN-001): Initial address '88 Blvd Saint Germain', Initial phone '0199887766'."
+}

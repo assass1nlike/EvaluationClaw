@@ -1,0 +1,40 @@
+{
+  "id": "create_line_listing@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Using Epi Info 7 Classic Analysis, create a line listing report for the Oswego outbreak investigation using the Oswego sample project. Generate an HTML report at C:\\Users\\Docker\\Documents\\Oswego_LineList.html that includes only records where ILL is 'Yes'. The report must be sorted chronologically by ONSETDATE and ONSETTIME, displaying only the variables ID, AGE, SEX, ONSETDATE, and ONSETTIME.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_line_listing\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_line_listing\\export_result.ps1"
+  },
+  "metadata": {
+    "output_path": "C:\\Users\\Docker\\Documents\\Oswego_LineList.html",
+    "expected_columns": [
+      "ID",
+      "AGE",
+      "SEX",
+      "ONSETDATE",
+      "ONSETTIME"
+    ],
+    "filter_condition": "ILL = 'Yes'",
+    "min_rows": 40,
+    "max_rows": 50,
+    "total_rows_unfiltered": 75,
+    "sort_keys": [
+      "ONSETDATE",
+      "ONSETTIME"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_line_listing"
+    }
+  }
+}

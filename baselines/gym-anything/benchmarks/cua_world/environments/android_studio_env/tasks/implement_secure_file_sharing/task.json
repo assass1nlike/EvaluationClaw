@@ -1,0 +1,28 @@
+{
+  "id": "implement_secure_file_sharing@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Implement secure file sharing for the 'LogShareApp' Android project to resolve crashes occurring when sharing 'filesDir/app_logs.txt' via file:// URIs. Configure a FileProvider with the authority 'com.example.logshare.fileprovider' to expose the internal files directory using the name 'logs'. Update the 'shareLogFile()' function in MainActivity.kt to securely share the log file using the FileProvider, ensuring the intent includes the necessary read permissions and uses the 'text/plain' MIME type. The project must compile successfully after these changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_secure_file_sharing/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_secure_file_sharing/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/LogShareApp",
+    "expected_authority": "com.example.logshare.fileprovider",
+    "expected_xml_file": "app/src/main/res/xml/provider_paths.xml",
+    "base_project_source": "/workspace/data/CalculatorApp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_secure_file_sharing"
+    }
+  }
+}

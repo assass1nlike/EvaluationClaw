@@ -1,0 +1,65 @@
+{
+  "task_id": "purge_trashed_documents@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_workspace",
+      "description": "The agent navigated to the 'ClientRecords' workspace.",
+      "points": 10,
+      "visual_evidence": "The Nuxeo web interface shows the current location as 'ClientRecords', visible in the breadcrumb navigation (e.g., Default domain > Workspaces > ClientRecords) or the workspace title."
+    },
+    {
+      "id": "access_trash_tab",
+      "description": "The agent accessed the Trash view for the workspace.",
+      "points": 10,
+      "visual_evidence": "The 'Manage' > 'Trash' tab (or similar Trash view) is selected and active, displaying a list of deleted documents."
+    },
+    {
+      "id": "select_anderson_doc",
+      "description": "The agent selected the Anderson Account Agreement for deletion.",
+      "points": 15,
+      "visual_evidence": "In the Trash list, the checkbox next to 'Anderson-Account-Agreement-2016' (or its unhyphenated title) is checked."
+    },
+    {
+      "id": "select_baker_doc",
+      "description": "The agent selected the Baker Loan Application for deletion.",
+      "points": 15,
+      "visual_evidence": "In the Trash list, the checkbox next to 'Baker-Loan-Application-2015' (or its unhyphenated title) is checked."
+    },
+    {
+      "id": "select_chen_doc",
+      "description": "The agent selected the Chen Investment Portfolio for deletion.",
+      "points": 15,
+      "visual_evidence": "In the Trash list, the checkbox next to 'Chen-Investment-Portfolio-2014' (or its unhyphenated title) is checked."
+    },
+    {
+      "id": "execute_purge",
+      "description": "The agent permanently deleted the selected documents.",
+      "points": 15,
+      "visual_evidence": "The agent clicks a 'Permanent Delete' or 'Purge' button for the selected items, or a confirmation message appears indicating the documents were permanently deleted."
+    },
+    {
+      "id": "verify_preserved_docs",
+      "description": "The agent preserved the documents under legal hold in the trash.",
+      "points": 20,
+      "visual_evidence": "After the purge action, the Trash list still displays 'Davis-Mortgage-Records-2018' and 'Evans-Trust-Documents-2019'. They must not have been deleted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "The agent used the Nuxeo web GUI to perform the task, not terminal commands.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the Nuxeo interface. There should be no terminal windows open executing commands like 'curl' or 'rm' to interact with the Nuxeo API or backend."
+    },
+    {
+      "id": "genuine_browser_usage",
+      "description": "The agent interacted with the actual application rather than faking the outcome.",
+      "visual_evidence": "The sequence of screenshots shows a logical progression of clicks (selecting checkboxes, clicking delete buttons) rather than just a sudden change in the DOM/HTML via developer tools."
+    },
+    {
+      "id": "selective_deletion_used",
+      "description": "The agent did not use a generic 'Empty Trash' shortcut if it bypasses the preservation requirement.",
+      "visual_evidence": "The agent explicitly selected the three target documents rather than clicking a single 'Empty Trash' button that would wipe all contents including the preserved documents."
+    }
+  ],
+  "privileged_info_for_vlm": "The task takes place in Nuxeo Platform 10.10. The target workspace path is '/default-domain/workspaces/ClientRecords'. The exact document names to be permanently deleted (purged) are 'Anderson-Account-Agreement-2016', 'Baker-Loan-Application-2015', and 'Chen-Investment-Portfolio-2014'. The exact document names to be preserved in the trash are 'Davis-Mortgage-Records-2018' and 'Evans-Trust-Documents-2019'."
+}

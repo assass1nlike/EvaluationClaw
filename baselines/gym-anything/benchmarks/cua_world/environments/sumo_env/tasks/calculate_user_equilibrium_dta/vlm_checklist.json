@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_user_equilibrium_dta@1",
+  "task_completion": [
+    {
+      "id": "study_dir_created",
+      "description": "Create the study directory for the DTA outputs.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the creation or existence of the directory '/home/ga/SUMO_Output/dta_study' (e.g., via 'mkdir' or 'ls' commands)."
+    },
+    {
+      "id": "demand_file_generated",
+      "description": "Generate the baseline morning demand file.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of a script (like randomTrips.py) and the creation of 'demand.trips.xml' in the '/home/ga/SUMO_Output/dta_study/' directory."
+    },
+    {
+      "id": "demand_file_content",
+      "description": "Verify the demand file contains approximately 500 trips.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a command like 'wc -l', 'grep', or 'cat' on 'demand.trips.xml' indicating the file contains between 400 and 600 trips."
+    },
+    {
+      "id": "dta_execution",
+      "description": "Conduct the Dynamic Traffic Assignment (DTA) study for 5 iterations.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the DTA script (e.g., duaIterate.py) with logs indicating multiple iteration steps being processed."
+    },
+    {
+      "id": "final_iteration_folder",
+      "description": "Ensure the final iteration folder '004' is created in the study directory.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing an 'ls' command of '/home/ga/SUMO_Output/dta_study/' that lists the '004' directory, indicating the 5th iteration (steps 0 to 4) was completed and saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_execution",
+      "description": "The agent actually ran the SUMO scripts (randomTrips.py, duaIterate.py) rather than mocking the outputs.",
+      "visual_evidence": "Look for genuine console output from SUMO tools, including parsing logs, warning messages, or progress steps, rather than simple 'touch' or 'mkdir' commands for the output files."
+    },
+    {
+      "id": "correct_network_used",
+      "description": "The agent used the specified Bologna Acosta network for the study.",
+      "visual_evidence": "Command line arguments for the trip generation and DTA scripts should explicitly reference files within '/home/ga/SUMO_Scenarios/bologna_acosta/'."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "The agent did not manually write the XML files using a text editor to bypass the simulation tools.",
+      "visual_evidence": "Absence of text editors (like nano, vim, gedit) being used to manually type out the contents of 'demand.trips.xml' or the files inside the '004' folder."
+    }
+  ],
+  "privileged_info_for_vlm": "The study directory must be exactly '/home/ga/SUMO_Output/dta_study'. The demand file must be saved as '/home/ga/SUMO_Output/dta_study/demand.trips.xml' and contain between 400 and 600 trips. The DTA process must complete 5 iterations (0 to 4), resulting in a final iteration folder named '004' inside the study directory."
+}

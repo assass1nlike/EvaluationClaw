@@ -1,0 +1,29 @@
+{
+  "id": "create_demographics_section@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Customize the Patient Demographics layout in LibreHealth EHR to support a new Remote Patient Monitoring program. Log in as 'admin' with password 'password'. Add a new group named 'RPM' to the demographics layout. Within this group, include a text field with the ID 'rpm_device_serial', the title 'Device Serial Number', and a size of 20. Save the updated layout.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_demographics_section/setup_task.sh",
+    "post_task": "/workspace/tasks/create_demographics_section/export_result.sh"
+  },
+  "metadata": {
+    "expected_group_title": "RPM",
+    "expected_field_id": "rpm_device_serial",
+    "expected_field_label": "Device Serial Number",
+    "expected_data_type": "1",
+    "form_id": "DEM"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_demographics_section"
+    }
+  }
+}

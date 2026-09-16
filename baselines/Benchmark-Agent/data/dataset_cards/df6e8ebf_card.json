@@ -1,0 +1,80 @@
+{
+  "dataset_id": "df6e8ebf",
+  "name": "Multi-Page Order Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 60,
+  "description": "A multi-page document visual question answering dataset where models must answer natural language questions by reading and understanding sequences of document page images. It evaluates cross-page document comprehension for legal and administrative records.",
+  "card_text": "This dataset contains 60 samples of multi-page document visual question answering. Each sample provides a natural language prompt (e.g., 'What organization is this document a register of?') and a list of image files representing consecutive pages of a scanned or photographed document, such as court orders, registers, or certificates. The model must locate and extract relevant information across multiple pages to produce a short free-text answer. Documents are predominantly legal, governmental, or administrative in nature, and questions target specific fields like organization names, court districts, or citation titles. The dataset tests visual document understanding, cross-page reasoning, and open-ended answer generation from images.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "legal and administrative documents",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "A sequence of multi-page document images (scanned or photographed pages) that form the subject of the question. The model must read and understand text and layout across all pages to answer.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question or instruction about the content of the document images, asking for specific information such as an organization name, court district, or register title.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short text answer, typically a phrase, name, or entity extracted from the document images, directly responding to the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a natural language question (input.prompt), a list of multi-page document images (input.image_files), and a short text answer (output.text). The question asks about information contained in the document images; the answer is extracted from those images. No additional annotations such as bounding boxes, options, or dialogue are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageOrderDocumentVisualQuestionAnswering/multi-page_order_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Order Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

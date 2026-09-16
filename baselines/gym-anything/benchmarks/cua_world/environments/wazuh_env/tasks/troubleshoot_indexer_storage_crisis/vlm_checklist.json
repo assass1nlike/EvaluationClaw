@@ -1,0 +1,47 @@
+{
+  "task_id": "troubleshoot_indexer_storage_crisis@1",
+  "task_completion": [
+    {
+      "id": "delete_legacy_indices",
+      "description": "Delete legacy indices matching the pattern 'wazuh-alerts-2023.*'",
+      "points": 30,
+      "visual_evidence": "Look for a terminal curl command, Dev Tools console query (e.g., DELETE /wazuh-alerts-2023.*), or Wazuh Dashboard Index Management action that deletes the indices from 2023. A successful response (e.g., {\"acknowledged\":true}) or a UI confirmation message should be visible."
+    },
+    {
+      "id": "remove_read_only_block",
+      "description": "Remove the 'read_only_allow_delete' block from the remaining 'wazuh-alerts-*' indices",
+      "points": 30,
+      "visual_evidence": "Look for an API request (e.g., PUT /wazuh-alerts-*/_settings) setting 'index.blocks.read_only_allow_delete' to null or false, or a corresponding settings change in the Wazuh Dashboard UI. A successful acknowledgment response must be visible."
+    },
+    {
+      "id": "verify_cluster_health",
+      "description": "Ensure the cluster status returns to green or yellow",
+      "points": 20,
+      "visual_evidence": "Look for a GET request to /_cluster/health with a JSON response showing '\"status\": \"green\"' or '\"status\": \"yellow\"', or the Wazuh Dashboard UI displaying the cluster health as green or yellow."
+    },
+    {
+      "id": "verify_new_writes",
+      "description": "Ensure the cluster accepts new writes",
+      "points": 20,
+      "visual_evidence": "Look for a POST or PUT request adding a new document to a wazuh-alerts-* index with a response indicating successful creation (e.g., '\"result\": \"created\"'), or evidence in the Wazuh Dashboard that new alerts are successfully being indexed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_system_interaction",
+      "description": "Agent interacts with the actual Wazuh Indexer API or Dashboard",
+      "visual_evidence": "The agent must be seen using a terminal (curl), an API client, or a web browser connected to https://localhost:9200 or the Wazuh Dashboard, rather than just typing commands into a text editor."
+    },
+    {
+      "id": "authentic_responses",
+      "description": "System responses appear genuine and not mocked",
+      "visual_evidence": "JSON responses from the API or UI updates should look like authentic OpenSearch/Elasticsearch outputs (containing standard fields like _shards, acknowledged, etc.) and not manually typed text."
+    },
+    {
+      "id": "authentic_credentials_used",
+      "description": "Agent uses the provided credentials to authenticate",
+      "visual_evidence": "Look for the use of 'admin' and 'SecretPassword' in curl commands (e.g., -u admin:SecretPassword), API client auth settings, or the dashboard login screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The Wazuh Indexer URL is 'https://localhost:9200' and credentials are 'admin' / 'SecretPassword'. The legacy indices to be deleted exactly match the pattern 'wazuh-alerts-2023.*'. The remaining indices that need the 'read_only_allow_delete' block removed match 'wazuh-alerts-*'."
+}

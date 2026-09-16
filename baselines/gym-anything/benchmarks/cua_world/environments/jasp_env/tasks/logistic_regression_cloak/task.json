@@ -1,0 +1,33 @@
+{
+  "id": "logistic_regression_cloak@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a binary logistic regression using the 'InvisibilityCloak.csv' dataset to predict 'Cloak' based on 'Mischief' scores. The analysis must include odds ratios, a confusion matrix, and model fit statistics (Deviance, AIC, and Nagelkerke R²). Save the JASP analysis file to /home/ga/Documents/JASP/LogisticRegression_Cloak.jasp. Additionally, create a summary text file at /home/ga/Documents/JASP/logistic_report.txt containing the following labeled values from the results: the coefficient (B), odds ratio (OR), and p-value for 'Mischief', the classification accuracy percentage, and the Nagelkerke R² value.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/logistic_regression_cloak/setup_task.sh",
+    "post_task": "/workspace/tasks/logistic_regression_cloak/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/InvisibilityCloak.csv",
+    "expected_jasp_path": "/home/ga/Documents/JASP/LogisticRegression_Cloak.jasp",
+    "expected_report_path": "/home/ga/Documents/JASP/logistic_report.txt",
+    "ground_truth": {
+      "approx_B": 0.12,
+      "approx_OR": 1.13,
+      "approx_accuracy_min": 50.0,
+      "approx_accuracy_max": 80.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_logistic_regression"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "create_reply_template@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Create a new Reply Template in ManageEngine ServiceDesk Plus to standardize password reset responses. Log in as administrator (password: administrator). Configure the template with the name 'Password Reset Completion', set access to 'Available to All Technicians' (Public), and use the subject 'Security Notification: Your password has been reset'. The body content must include a greeting with the $RequesterName variable, the sentence 'Your password has been successfully reset as per your request.', the instruction 'Please restart your computer and login with the temporary password provided over the phone.', and the closing 'Regards, IT Security Team'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_reply_template/setup_task.sh",
+    "post_task": "/workspace/tasks/create_reply_template/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "template_name": "Password Reset Completion",
+    "expected_subject": "Security Notification: Your password has been reset",
+    "required_strings": [
+      "Your password has been successfully reset as per your request",
+      "restart your computer",
+      "provided over the phone",
+      "Regards, IT Security Team"
+    ],
+    "required_variable": "$RequesterName"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_reply_template"
+    }
+  }
+}

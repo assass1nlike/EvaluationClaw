@@ -1,0 +1,29 @@
+{
+  "id": "check_multiple_comedications@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "medium",
+  "description": "The Cancer iChart Archive app is open on the Welcome screen. Search for drug interactions between the cancer drug 'Crizotinib' and two co-medications: 'Warfarin' and 'Ketoconazole'. Navigate to the results page to view the interaction details for both pairs.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_multiple_comedications/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_multiple_comedications/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_multiple_comedications"
+    }
+  },
+  "metadata": {
+    "cancer_drug": "Crizotinib",
+    "co_medications": [
+      "Warfarin",
+      "Ketoconazole"
+    ],
+    "expected_result_count": 2
+  }
+}

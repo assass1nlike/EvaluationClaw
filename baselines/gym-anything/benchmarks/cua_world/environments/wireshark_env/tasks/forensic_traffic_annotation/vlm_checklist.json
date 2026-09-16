@@ -1,0 +1,53 @@
+{
+  "task_id": "forensic_traffic_annotation@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the correct input PCAP file in Wireshark.",
+      "points": 10,
+      "visual_evidence": "Look for the Wireshark window with the title bar or status bar indicating that '200722_tcp_anon.pcapng' is loaded."
+    },
+    {
+      "id": "isolate_tcp_stream",
+      "description": "Isolate the TCP conversation with the highest data transfer.",
+      "points": 20,
+      "visual_evidence": "Look for a display filter applied in Wireshark (e.g., 'tcp.stream eq 1') and the status bar showing exactly 27 packets displayed, which corresponds to the largest conversation."
+    },
+    {
+      "id": "annotate_first_packet",
+      "description": "Annotate the first packet of the isolated conversation with 'Evidence Start'.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Packet Comment' dialog or the packet details pane in Wireshark showing the comment 'Evidence Start' on the first packet of the isolated stream."
+    },
+    {
+      "id": "annotate_last_packet",
+      "description": "Annotate the last packet of the isolated conversation with 'Evidence End'.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Packet Comment' dialog or the packet details pane in Wireshark showing the comment 'Evidence End' on the last packet of the isolated stream."
+    },
+    {
+      "id": "export_annotated_conversation",
+      "description": "Export only the annotated conversation to the specified output file.",
+      "points": 30,
+      "visual_evidence": "Look for the 'Export Specified Packets' dialog in Wireshark with the file name 'evidence_annotated.pcapng' in the '/home/ga/Documents/captures/' directory, with the 'Displayed' packets option selected, or a file manager/terminal showing the file was successfully created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Wireshark GUI for analysis rather than command-line tools.",
+      "visual_evidence": "Look for screenshots showing active interaction with the Wireshark graphical interface (menus, dialogs, filters) rather than terminal commands like 'tshark'."
+    },
+    {
+      "id": "genuine_comments",
+      "description": "Verify that packet comments were added using Wireshark's built-in commenting feature.",
+      "visual_evidence": "Look for the Wireshark 'Packet Comment' dialog being used, ensuring the agent didn't just type the expected text into a text editor."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Verify the export was performed via Wireshark to ensure correct format and filtering.",
+      "visual_evidence": "Look for the 'Export Specified Packets' dialog being used to save the file, rather than a simple file copy command in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The target TCP conversation with the highest data transfer is TCP stream index 1, which consists of exactly 27 packets. The first packet of this stream must be annotated with 'Evidence Start' and the last packet with 'Evidence End' (case insensitive). The final output must be saved to '/home/ga/Documents/captures/evidence_annotated.pcapng'."
+}

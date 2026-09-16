@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_personalized_recommendations_engine@1",
+  "task_completion": [
+    {
+      "id": "create_recommendations_table",
+      "description": "Create the customer_recommendations table with the specified columns",
+      "points": 10,
+      "visual_evidence": "MySQL Workbench showing the successful execution of a CREATE TABLE query, or the 'customer_recommendations' table visible in the schema navigator with columns 'customer_id', 'film_id', 'rank_score', and 'generated_at'."
+    },
+    {
+      "id": "create_stored_procedure",
+      "description": "Develop the stored procedure sp_generate_recommendations",
+      "points": 30,
+      "visual_evidence": "MySQL Workbench SQL editor showing the CREATE PROCEDURE sp_generate_recommendations code containing logic for finding favorite categories, filtering unrented films, and ranking, or the procedure listed in the schema navigator."
+    },
+    {
+      "id": "execute_stored_procedure",
+      "description": "Execute the stored procedure to populate the recommendations table",
+      "points": 20,
+      "visual_evidence": "MySQL Workbench output panel showing the successful execution of 'CALL sp_generate_recommendations()', or a SELECT query showing the customer_recommendations table is populated with data."
+    },
+    {
+      "id": "verify_expected_rows",
+      "description": "Verify the recommendations table is populated with exactly 1797 rows",
+      "points": 20,
+      "visual_evidence": "A SELECT COUNT(*) query on customer_recommendations returning exactly 1797, or a result grid showing 1797 rows fetched."
+    },
+    {
+      "id": "export_recommendations_csv",
+      "description": "Export the joined recommendations to the specified CSV file",
+      "points": 20,
+      "visual_evidence": "MySQL Workbench showing an 'INTO OUTFILE' query or export wizard targeting '/home/ga/Documents/exports/recommendations_batch_01.csv', or a file explorer/terminal showing the file exists at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_mysql_workbench",
+      "description": "Verify the agent used MySQL Workbench to perform the database operations",
+      "visual_evidence": "The MySQL Workbench GUI is visible in the screenshots for writing and executing the SQL queries, rather than a terminal CLI."
+    },
+    {
+      "id": "genuine_procedure_logic",
+      "description": "Verify the agent wrote actual dynamic SQL logic instead of hardcoding answers",
+      "visual_evidence": "The SQL script for the procedure contains dynamic logic (e.g., ROW_NUMBER(), JOINs, GROUP BY, or cursors) rather than static INSERT statements."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Verify the CSV export was generated from the database query",
+      "visual_evidence": "The export action is visible in MySQL Workbench (either via an INTO OUTFILE query or the GUI export tool), rather than the agent manually typing a few rows into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The target table is 'customer_recommendations' and the target procedure is 'sp_generate_recommendations'. There are exactly 599 customers in the Sakila database. The task requires exactly 3 recommendations per customer, resulting in exactly 1797 total rows in the populated table. The final output must be exported to '/home/ga/Documents/exports/recommendations_batch_01.csv'."
+}

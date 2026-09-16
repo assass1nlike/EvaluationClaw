@@ -1,0 +1,29 @@
+{
+  "id": "create_packaging_offset@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a packaging clearance volume for the T8 lead screw housing bracket by applying a 2.0 mm solid offset to the main body in ~/Documents/FreeCAD/T8_housing_bracket.FCStd. Name the resulting object 'ClearanceBody' and save the document to ~/Documents/FreeCAD/packaging_clearance.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_packaging_offset/setup_task.sh",
+    "post_task": "/workspace/tasks/create_packaging_offset/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd",
+    "expected_output_file": "/home/ga/Documents/FreeCAD/packaging_clearance.FCStd",
+    "offset_distance_mm": 2.0,
+    "target_object_name": "ClearanceBody",
+    "tolerance_percent": 1.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_packaging_offset"
+    }
+  }
+}

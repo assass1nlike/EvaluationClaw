@@ -1,0 +1,39 @@
+{
+  "id": "stack_reslicing_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Orthogonal Reslicing and Projection of Fly Brain",
+  "description": "You are a neurobiologist analyzing a confocal Z-stack of a Drosophila brain. Your goal is to generate a 'side view' (XZ cross-section) projection to visualize the depth of the signal. Using the 'Fly Brain' sample, convert the image stack to 8-bit grayscale and reslice the stack from the 'Top' using 1.0 pixel spacing. Create a Maximum Intensity Projection of the resliced view and save the resulting 256x57 pixel image to ~/ImageJ_Data/results/side_view_projection.tif",
+  "difficulty": "medium",
+  "tags": [
+    "stack-manipulation",
+    "reslice",
+    "projection",
+    "3d-analysis",
+    "neurobiology"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stack_reslicing_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/stack_reslicing_analysis/export_result.sh"
+  },
+  "metadata": {
+    "image_source": "Fiji built-in sample (Fly Brain)",
+    "expected_filename": "side_view_projection.tif",
+    "expected_width": 256,
+    "expected_height": 57,
+    "expected_depth": 1,
+    "expected_type": "8-bit unsigned integer",
+    "output_path": "/home/ga/ImageJ_Data/results/side_view_projection.tif"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stack_reslicing"
+    }
+  }
+}

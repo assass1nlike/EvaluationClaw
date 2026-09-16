@@ -1,0 +1,59 @@
+{
+  "task_id": "dual_axis_resource_correlation@1",
+  "task_completion": [
+    {
+      "id": "dashboard_named",
+      "description": "Create a new dashboard named 'Resource Correlation'.",
+      "points": 10,
+      "visual_evidence": "Look for the text 'Resource Correlation' in the dashboard title or header area of the Graphite UI."
+    },
+    {
+      "id": "graph_titled",
+      "description": "Add a graph titled 'CPU vs Disk Activity'.",
+      "points": 10,
+      "visual_evidence": "Look for a graph panel within the dashboard that has the title 'CPU vs Disk Activity' displayed above it."
+    },
+    {
+      "id": "cpu_metric_and_alias",
+      "description": "Add the CPU utilization metric and set its alias to 'CPU Utilization %'.",
+      "points": 20,
+      "visual_evidence": "Look for the metric 'servers.ec2_instance_1.cpu.utilization' in the metric editor, and verify that the graph legend displays 'CPU Utilization %'."
+    },
+    {
+      "id": "disk_metric_and_alias",
+      "description": "Add the disk write bytes metric and set its alias to 'Disk Write Bytes'.",
+      "points": 20,
+      "visual_evidence": "Look for the metric 'servers.ec2_instance_1.disk.write_bytes' in the metric editor, and verify that the graph legend displays 'Disk Write Bytes'."
+    },
+    {
+      "id": "dual_axis_configured",
+      "description": "Configure the graph to use a dual-axis by applying the secondYAxis function to the disk metric.",
+      "points": 30,
+      "visual_evidence": "Look for the 'secondYAxis' function applied to the disk metric in the editor, AND/OR look for a secondary Y-axis with numbers on the right side of the graph panel."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the completed dashboard.",
+      "points": 10,
+      "visual_evidence": "Look for a 'Dashboard saved' notification, a save dialog being confirmed, or the URL updating to reflect the saved dashboard name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Graphite web UI to build the dashboard.",
+      "visual_evidence": "Screenshots should show the agent clicking through the Graphite web interface, adding metrics via the UI, rather than using terminal commands to inject a JSON file."
+    },
+    {
+      "id": "genuine_data_rendered",
+      "description": "The graph renders actual data points for the metrics.",
+      "visual_evidence": "The graph panel should display plotted lines or data points, indicating it successfully queried the real backend metrics, rather than being an empty graph or a mocked image."
+    },
+    {
+      "id": "no_direct_json_editing",
+      "description": "The agent did not bypass the UI by manually writing the dashboard JSON in a text editor.",
+      "visual_evidence": "Ensure there are no screenshots of the agent using nano, vim, or another text editor to manually write the dashboard JSON structure."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named exactly 'Resource Correlation'. The graph title must be 'CPU vs Disk Activity'. The primary Y-axis metric is 'servers.ec2_instance_1.cpu.utilization' with alias 'CPU Utilization %'. The secondary Y-axis metric is 'servers.ec2_instance_1.disk.write_bytes' with alias 'Disk Write Bytes'. The dual-axis setup requires the 'secondYAxis' function applied specifically to the disk metric."
+}

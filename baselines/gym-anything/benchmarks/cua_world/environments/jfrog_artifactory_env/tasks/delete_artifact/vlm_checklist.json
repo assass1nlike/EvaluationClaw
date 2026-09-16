@@ -1,0 +1,59 @@
+{
+  "task_id": "delete_artifact@1",
+  "task_completion": [
+    {
+      "id": "access_and_login",
+      "description": "Access Artifactory and log in as admin",
+      "points": 10,
+      "visual_evidence": "Browser shows the Artifactory UI at http://localhost:8082, and there is an indication that the user is logged in as 'admin' (e.g., user profile icon or welcome message)."
+    },
+    {
+      "id": "navigate_to_artifacts",
+      "description": "Navigate to the Artifacts repository browser",
+      "points": 10,
+      "visual_evidence": "The Artifactory UI shows the 'Artifacts' section or repository tree view."
+    },
+    {
+      "id": "locate_target_folder",
+      "description": "Locate the target commons-lang3 version folder",
+      "points": 20,
+      "visual_evidence": "The repository tree is expanded to show 'example-repo-local/org/apache/commons/commons-lang3/3.14.0'."
+    },
+    {
+      "id": "initiate_deletion",
+      "description": "Initiate deletion of the target folder or artifact",
+      "points": 20,
+      "visual_evidence": "A delete action is triggered on the '3.14.0' folder or the 'commons-lang3-3.14.0.jar' file (e.g., right-click context menu showing 'Delete' or clicking a trash can icon)."
+    },
+    {
+      "id": "confirm_deletion",
+      "description": "Confirm the deletion action",
+      "points": 20,
+      "visual_evidence": "A confirmation dialog for deleting the artifact/folder is shown and accepted, or a success toast notification appears confirming the deletion."
+    },
+    {
+      "id": "verify_preserved_artifact",
+      "description": "Ensure the commons-io artifact is preserved",
+      "points": 20,
+      "visual_evidence": "The repository tree still displays the 'commons-io' folder or the 'commons-io-2.15.1.jar' artifact under 'example-repo-local/org/apache/commons/', proving it was not deleted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction",
+      "description": "Agent used the web browser GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with the Artifactory web interface in a browser, rather than using terminal commands (like curl) to bypass the GUI."
+    },
+    {
+      "id": "actual_deletion_action",
+      "description": "Agent genuinely interacted with the application's delete functionality",
+      "visual_evidence": "The deletion is performed through the application's native buttons and dialogs, not by hiding elements using browser developer tools."
+    },
+    {
+      "id": "no_direct_api_scripts",
+      "description": "Agent did not use pre-written scripts to solve the task",
+      "visual_evidence": "The agent does not open a terminal or text editor to write and execute a Python or Bash script to interact with the Artifactory API."
+    }
+  ],
+  "privileged_info_for_vlm": "Artifactory URL: http://localhost:8082. Credentials: admin / password. Target artifact to delete: example-repo-local/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar (and its parent folder '3.14.0'). Artifact to preserve: example-repo-local/org/apache/commons/commons-io/2.15.1/commons-io-2.15.1.jar."
+}

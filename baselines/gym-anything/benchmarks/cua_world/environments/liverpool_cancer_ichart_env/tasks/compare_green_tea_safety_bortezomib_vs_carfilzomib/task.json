@@ -1,0 +1,45 @@
+{
+  "id": "compare_green_tea_safety_bortezomib_vs_carfilzomib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Compare the drug interaction safety of Green Tea with two Multiple Myeloma treatments, Bortezomib and Carfilzomib, using the Liverpool Cancer iChart Archive app. Create a text report at /sdcard/green_tea_safety_report.txt documenting the interaction traffic light color for both drug combinations and a conclusion identifying which treatment is the safer option for a green tea drinker.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/compare_green_tea_safety_bortezomib_vs_carfilzomib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/compare_green_tea_safety_bortezomib_vs_carfilzomib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug_1": "Bortezomib",
+    "cancer_drug_2": "Carfilzomib",
+    "co_medication": "Green tea",
+    "expected_color_bortezomib": [
+      "Red",
+      "Orange"
+    ],
+    "expected_color_carfilzomib": [
+      "Green",
+      "Yellow",
+      "Grey"
+    ],
+    "safer_drug": "Carfilzomib",
+    "output_file": "/sdcard/green_tea_safety_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_green_tea_safety"
+    }
+  },
+  "tags": [
+    "android",
+    "medical",
+    "drug-interaction",
+    "comparison",
+    "report-writing"
+  ]
+}

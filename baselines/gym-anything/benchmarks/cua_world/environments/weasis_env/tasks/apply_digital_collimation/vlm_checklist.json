@@ -1,0 +1,53 @@
+{
+  "task_id": "apply_digital_collimation@1",
+  "task_completion": [
+    {
+      "id": "dicom_viewer_active",
+      "description": "The DICOM viewer application is open and displaying the loaded DICOM image.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer GUI is visible on the screen with a medical image loaded."
+    },
+    {
+      "id": "rectangular_shutter_applied",
+      "description": "A Rectangular Shutter is applied to mask the outer edges of the image.",
+      "points": 30,
+      "visual_evidence": "The outer edges of the displayed image are masked (e.g., blacked out) in a rectangular shape, leaving only the central anatomy visible."
+    },
+    {
+      "id": "export_dialog_opened",
+      "description": "An export or save dialog is opened to save the masked view.",
+      "points": 20,
+      "visual_evidence": "A 'Save', 'Save As', or 'Export' dialog window is visible over the DICOM viewer."
+    },
+    {
+      "id": "jpeg_format_selected",
+      "description": "The export format is set to JPEG.",
+      "points": 10,
+      "visual_evidence": "The file type or extension in the save dialog is explicitly set to JPEG or .jpg."
+    },
+    {
+      "id": "correct_export_path",
+      "description": "The masked image is exported to the correct path.",
+      "points": 30,
+      "visual_evidence": "The save dialog shows the file name as 'collimated_view.jpg' and the directory path as '~/DICOM/exports' or '/home/ga/DICOM/exports', or a terminal/file manager confirms the file was saved there."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_masking",
+      "description": "The agent used the DICOM viewer's GUI to apply the shutter, rather than terminal commands.",
+      "visual_evidence": "The masking action and export are performed within the graphical interface of the DICOM viewer, without relying on command-line image processing tools like ImageMagick or Python scripts."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The exported file is a genuine result of the agent's actions in the viewer.",
+      "visual_evidence": "The save dialog is actively used to write the file, rather than the agent moving, downloading, or renaming a pre-existing file in the terminal."
+    },
+    {
+      "id": "actual_image_masked",
+      "description": "The image being masked is the originally loaded DICOM image.",
+      "visual_evidence": "The central anatomy visible within the shutter matches the anatomy of the initially loaded DICOM image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path for the exported JPEG is exactly '/home/ga/DICOM/exports/collimated_view.jpg'. Note: Ignore any variance thresholds mentioned elsewhere, as they are mathematically flawed for this synthetic data. Rely entirely on visual confirmation that the outer edges are masked and the central anatomy is visible."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "export_filtered_leads@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Export all leads from List ID '9001' located in the state of Florida ('FL') from the Vicidial system. Use credentials User: 6666, Pass: andromeda. Save the resulting CSV or Tab-Delimited file to /home/ga/Downloads.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_filtered_leads/setup_task.sh",
+    "post_task": "/workspace/tasks/export_filtered_leads/export_result.sh"
+  },
+  "metadata": {
+    "target_list_id": "9001",
+    "target_state": "FL",
+    "expected_count": 2,
+    "download_dir": "/home/ga/Downloads"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_filtered_leads"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "setup_recurring_amortization_journal@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Configure automatic monthly amortization for a prepaid insurance premium in Northwind Traders. Create two new accounts: 'Prepaid Insurance' (Assets group) and 'Insurance Expense' (Expenses group). Set up a recurring monthly journal entry named 'Monthly Insurance Amortization' for 1000 that debits 'Insurance Expense' and credits 'Prepaid Insurance'. Ensure the entry is saved and active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_recurring_amortization_journal/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_recurring_amortization_journal/export_result.sh"
+  },
+  "metadata": {
+    "asset_account_name": "Prepaid Insurance",
+    "expense_account_name": "Insurance Expense",
+    "recurring_entry_description": "Monthly Insurance Amortization",
+    "recurring_amount": 1000,
+    "recurring_interval": "Monthly"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_recurring_amortization_journal"
+    }
+  }
+}

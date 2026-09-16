@@ -1,0 +1,42 @@
+{
+  "id": "create_electrical_schematic_led_driver@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a 'Transistor LED Driver' electrical schematic in Wondershare EdrawMax titled 'NPN LED Driver Schematic'. The circuit must include a 9V DC Voltage Source (Label: '9V'), a Switch (Label: 'SW1'), a 1k Resistor (Label: '1k'), an NPN Transistor (Label: '2N2222'), an LED (Label: 'Status LED'), a 330R Resistor (Label: '330R'), and a Ground connection (Label: 'GND'). Configure the wiring so that the 9V (+) connects through SW1 and the 1k Resistor to the Transistor Base; the 9V (+) connects through the 330R Resistor to the LED Anode; the LED Cathode connects to the Transistor Collector; the Transistor Emitter connects to Ground; and the 9V (-) connects to Ground. Save the schematic to /home/ga/Diagrams/led_driver_schematic.eddx and export it as an image to /home/ga/Diagrams/led_driver_schematic.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_electrical_schematic_led_driver/setup_task.sh",
+    "post_task": "/workspace/tasks/create_electrical_schematic_led_driver/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx": "/home/ga/Diagrams/led_driver_schematic.eddx",
+    "expected_png": "/home/ga/Diagrams/led_driver_schematic.png",
+    "required_labels": [
+      "9V",
+      "1k",
+      "330R",
+      "2N2222",
+      "LED",
+      "GND",
+      "SW1"
+    ],
+    "required_shapes": [
+      "Resistor",
+      "Transistor",
+      "Ground",
+      "Source",
+      "Diode"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_electrical_schematic"
+    }
+  }
+}

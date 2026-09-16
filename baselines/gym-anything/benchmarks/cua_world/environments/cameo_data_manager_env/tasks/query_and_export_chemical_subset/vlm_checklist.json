@@ -1,0 +1,53 @@
+{
+  "task_id": "query_and_export_chemical_subset@1",
+  "task_completion": [
+    {
+      "id": "search_chlorine_records",
+      "description": "Search for Chlorine or its CAS number in the chemical inventory",
+      "points": 20,
+      "visual_evidence": "A search interface, filter dialog, or query result screen in the application showing 'Chlorine' or '7782-50-5' being used to filter the records."
+    },
+    {
+      "id": "configure_export_columns",
+      "description": "Select the specific fields required for the export",
+      "points": 20,
+      "visual_evidence": "An export configuration or field selection dialog showing 'Facility Name', 'Chemical Name', and 'Maximum Daily Amount' selected, with other fields deselected."
+    },
+    {
+      "id": "save_export_file",
+      "description": "Export the results to the specified file path",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog or export prompt showing the file being saved as 'chlorine_facilities.csv' in the 'C:\\Users\\Docker\\Documents\\' directory."
+    },
+    {
+      "id": "verify_exported_headers",
+      "description": "Verify the exported CSV contains the correct column headers",
+      "points": 15,
+      "visual_evidence": "A view of the exported CSV file (e.g., in a spreadsheet viewer or text editor) showing exactly three headers: 'Facility Name', 'Chemical Name', and 'Maximum Daily Amount'."
+    },
+    {
+      "id": "verify_exported_data",
+      "description": "Verify the exported CSV contains only the correct Chlorine record",
+      "points": 25,
+      "visual_evidence": "A view of the exported CSV file showing a single data row for 'Green Valley Water Facility' with 'Chlorine' and its maximum daily amount (20000). There should be no records for Fluorosilic Acid or any other chemicals."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used the CAMEO Data Manager GUI to perform the search and export",
+      "visual_evidence": "Screenshots show interaction with the CAMEO Data Manager application windows and menus, rather than terminal commands or python scripts bypassing the UI."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "The agent exported the data natively rather than manually typing it into a file",
+      "visual_evidence": "Presence of application export dialogs and progress indicators, rather than the agent just opening a text editor and typing out the CSV contents manually."
+    },
+    {
+      "id": "no_hallucinated_facilities",
+      "description": "The agent did not fabricate data based on incorrect metadata assumptions",
+      "visual_evidence": "The final CSV only contains 'Green Valley Water Facility'. It does NOT contain 'Water Treatment Plant A', 'Community Pool', or 'Agri-Chem Supply'."
+    }
+  ],
+  "privileged_info_for_vlm": "The seed data contains exactly one facility storing Chlorine: 'Green Valley Water Facility' with a maximum amount of 20,000 lbs. The metadata incorrectly lists other positive matches (Water Treatment Plant A, Community Pool, Agri-Chem Supply); these do NOT exist in the data and should NOT be expected in the output. The seed data also contains 'Fluorosilic Acid', which must be excluded. The required export columns are 'Facility Name', 'Chemical Name', and 'Maximum Daily Amount'. The expected output path is 'C:\\Users\\Docker\\Documents\\chlorine_facilities.csv'."
+}

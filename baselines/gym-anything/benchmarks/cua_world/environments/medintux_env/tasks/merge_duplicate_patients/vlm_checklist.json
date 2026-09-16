@@ -1,0 +1,53 @@
+{
+  "task_id": "merge_duplicate_patients@1",
+  "task_completion": [
+    {
+      "id": "access_patient_records",
+      "description": "Agent searches for and accesses the patient records for DUPONT Marie-Claire.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the medical software's patient search or list interface displaying records for 'DUPONT' or 'Marie-Claire'."
+    },
+    {
+      "id": "consolidate_demographics",
+      "description": "Agent consolidates the demographic information into a single record.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the patient details form showing Last Name 'DUPONT', First Name 'Marie-Claire' (with hyphen), DOB '1967-04-12', and SSN '2670475002123'."
+    },
+    {
+      "id": "consolidate_contact_info",
+      "description": "Agent consolidates the contact information into the same single record.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the patient details form showing Address '15 Rue de la Paix', Zip '75002', City 'Paris', and Phone '0145678901'."
+    },
+    {
+      "id": "verify_single_record_remains",
+      "description": "Agent deletes the duplicate record, leaving only the consolidated one.",
+      "points": 20,
+      "visual_evidence": "Screenshots of a deletion confirmation dialog, or the patient search results showing only one entry remaining for 'DUPONT Marie-Claire'."
+    },
+    {
+      "id": "create_merge_report",
+      "description": "Agent creates a report listing the GUIDs of the kept and deleted records.",
+      "points": 30,
+      "visual_evidence": "Screenshots of a text editor or terminal displaying the contents of '/home/ga/merge_report.txt' which must include the GUIDs 'DUP-MERGE-AAA-001' and 'DUP-MERGE-BBB-002'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the application's graphical user interface to merge and delete records.",
+      "visual_evidence": "Screenshots should show interaction with the medical software's forms and buttons, rather than direct database manipulation via terminal commands (e.g., sqlite3)."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "Agent actually created the text file report in the environment.",
+      "visual_evidence": "Screenshots should show a real text editor (like nano, gedit) or terminal commands (like echo/cat) writing to '/home/ga/merge_report.txt'."
+    },
+    {
+      "id": "no_hallucinated_guids",
+      "description": "Agent extracted the actual GUIDs from the application or database rather than hallucinating them.",
+      "visual_evidence": "The report should contain the exact GUIDs 'DUP-MERGE-AAA-001' and 'DUP-MERGE-BBB-002', and there should be evidence of the agent finding these IDs in the software or database."
+    }
+  ],
+  "privileged_info_for_vlm": "The duplicate records have specific GUIDs: DUP-MERGE-AAA-001 (contains phone 0145678901, empty address, firstname 'Marie Claire' without hyphen) and DUP-MERGE-BBB-002 (contains address 15 Rue de la Paix, Paris, 75002, empty phone, firstname 'Marie-Claire' with hyphen). The final consolidated record must contain all this information, including the hyphenated firstname 'Marie-Claire', DOB '1967-04-12', and SSN '2670475002123'. The report at /home/ga/merge_report.txt must list one of these GUIDs as kept and the other as deleted."
+}

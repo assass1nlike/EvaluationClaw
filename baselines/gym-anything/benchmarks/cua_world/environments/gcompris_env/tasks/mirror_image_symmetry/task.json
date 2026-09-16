@@ -1,0 +1,31 @@
+{
+  "id": "mirror_image_symmetry@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Solve the 'Reflections' (Mirror Image) activity in GCompris. Once the puzzle is completed, save a screenshot of the solved state to /home/ga/mirror_solved.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mirror_image_symmetry/setup_task.sh",
+    "post_task": "/workspace/tasks/mirror_image_symmetry/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/mirror_solved.png",
+    "activity_name": "Reflections / Mirror Image",
+    "category_hints": [
+      "Puzzle",
+      "Math",
+      "Geometry"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mirror_image_symmetry"
+    }
+  }
+}

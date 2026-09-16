@@ -1,0 +1,59 @@
+{
+  "task_id": "manage_invoice_sequence@1",
+  "task_completion": [
+    {
+      "id": "find_invoice_line",
+      "description": "Locate the associated invoice line for InvoiceId 412",
+      "points": 10,
+      "visual_evidence": "Look for the 'InvoiceLine' table being opened in LibreOffice Base and the record containing InvoiceId 412 being visible or selected."
+    },
+    {
+      "id": "delete_invoice_line",
+      "description": "Delete the associated invoice line for InvoiceId 412",
+      "points": 20,
+      "visual_evidence": "Look for a row deletion action in the 'InvoiceLine' table (e.g., right-clicking the row and selecting Delete, a deletion confirmation dialog, or the row disappearing from the table)."
+    },
+    {
+      "id": "find_invoice",
+      "description": "Locate InvoiceId 412 in the Invoice table",
+      "points": 10,
+      "visual_evidence": "Look for the 'Invoice' table being opened and the record with InvoiceId 412 being visible or selected."
+    },
+    {
+      "id": "delete_invoice",
+      "description": "Delete the invoice with InvoiceId 412",
+      "points": 20,
+      "visual_evidence": "Look for a row deletion action in the 'Invoice' table for InvoiceId 412 (e.g., a deletion confirmation dialog, or the row being removed from the table view)."
+    },
+    {
+      "id": "reset_sequence",
+      "description": "Reset the auto-increment sequence for the Invoice table to 1000",
+      "points": 30,
+      "visual_evidence": "Look for the 'Execute SQL Statement' window (accessed via Tools -> SQL) containing a command like 'ALTER TABLE \"Invoice\" ALTER COLUMN \"InvoiceId\" RESTART WITH 1000' and a status message indicating the command executed successfully."
+    },
+    {
+      "id": "save_database",
+      "description": "Save the database file to persist changes",
+      "points": 10,
+      "visual_evidence": "Look for the agent saving the database in the main LibreOffice Base window, such as clicking the Save icon (floppy disk) or selecting File -> Save."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_libreoffice_base",
+      "description": "Agent used the LibreOffice Base GUI to perform the operations",
+      "visual_evidence": "Verify that the agent interacted with the LibreOffice Base graphical interface rather than executing terminal commands or python scripts to modify the database."
+    },
+    {
+      "id": "genuine_sql_execution",
+      "description": "Agent executed the SQL command genuinely through the application",
+      "visual_evidence": "Verify that the SQL command to reset the sequence was typed and executed in the actual LibreOffice Base SQL window, not pasted into a text editor or mocked."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Agent did not manually edit the unzipped ODB contents",
+      "visual_evidence": "Verify that the agent did not unzip the chinook.odb file and edit the internal HSQLDB script/data files directly using a text editor like nano or vim."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is /home/ga/chinook.odb, which is a LibreOffice Base file containing an embedded HSQLDB 1.8 database. InvoiceId 412 is the highest-numbered invoice and has exactly 1 associated invoice line. Because of foreign key constraints, the InvoiceLine record must be deleted before the Invoice record. In LibreOffice Base, resetting the auto-increment sequence typically requires executing a direct SQL command via Tools -> SQL, using the syntax: ALTER TABLE \"Invoice\" ALTER COLUMN \"InvoiceId\" RESTART WITH 1000."
+}

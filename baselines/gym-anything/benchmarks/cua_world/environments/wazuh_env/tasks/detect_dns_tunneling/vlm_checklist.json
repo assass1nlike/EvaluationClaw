@@ -1,0 +1,53 @@
+{
+  "task_id": "detect_dns_tunneling@1",
+  "task_completion": [
+    {
+      "id": "configure_log_ingestion",
+      "description": "Verify that the Wazuh manager is configured to ingest the custom DNS log file.",
+      "points": 20,
+      "visual_evidence": "Look for an open text editor or terminal command modifying ossec.conf to include a <localfile> block with <location>/var/log/custom_dns.log</location>."
+    },
+    {
+      "id": "create_custom_decoder",
+      "description": "Verify the creation of a custom decoder named 'custom-dns' to extract 'srcip' and 'domain'.",
+      "points": 20,
+      "visual_evidence": "Look for an open text editor modifying local_decoder.xml (usually in /var/ossec/etc/decoders/) showing <decoder name=\"custom-dns\"> and extraction regex for 'srcip' and 'domain'."
+    },
+    {
+      "id": "create_detection_rule",
+      "description": "Verify the creation of a detection rule with ID 100050 and level 12 for domains exceeding 60 characters.",
+      "points": 20,
+      "visual_evidence": "Look for an open text editor modifying local_rules.xml (usually in /var/ossec/etc/rules/) showing <rule id=\"100050\" level=\"12\"> and a regex condition checking for a domain length greater than 60 characters."
+    },
+    {
+      "id": "restart_wazuh_manager",
+      "description": "Verify that the Wazuh manager configuration was applied and the service was restarted.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart' executing successfully without syntax errors."
+    },
+    {
+      "id": "verify_rule_trigger",
+      "description": "Verify that the configuration is active and the rule successfully triggers on the malicious domain.",
+      "points": 25,
+      "visual_evidence": "Look for the execution of '/var/ossec/bin/wazuh-logtest' or viewing of '/var/ossec/logs/alerts/alerts.log' showing rule 100050 firing for the domain 'very-long-encoded-string-that-looks-like-base64-exfiltration-data.attacker-site.com'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the agent actually modified the Wazuh configuration files using standard tools.",
+      "visual_evidence": "Look for the use of standard text editors (nano, vim) or valid shell redirection (echo, sed) targeting the actual Wazuh directories (/var/ossec/etc/), rather than creating mock files in a temporary directory."
+    },
+    {
+      "id": "no_hardcoded_domain_cheat",
+      "description": "Ensure the agent implemented a length-based check rather than hardcoding the specific malicious domain.",
+      "visual_evidence": "In local_rules.xml, the rule condition should use a regex pattern for length (e.g., matching 61+ characters) and MUST NOT explicitly contain the string 'very-long-encoded-string-that-looks-like-base64-exfiltration-data.attacker-site.com'."
+    },
+    {
+      "id": "genuine_verification_tool",
+      "description": "Ensure the agent used genuine Wazuh tools to verify the rule.",
+      "visual_evidence": "Look for the authentic wazuh-logtest interface or actual Wazuh alert logs, rather than a script that simply prints 'Rule 100050 triggered'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target log file: /var/log/custom_dns.log. Sample data file: /home/ga/dns_sample_data.log. Required rule ID: 100050. Required decoder name: custom-dns. Malicious domain sample: very-long-encoded-string-that-looks-like-base64-exfiltration-data.attacker-site.com. Benign domain sample: google.com."
+}

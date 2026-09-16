@@ -549,6 +549,35 @@ class BenchmarkPlan(BaseModel):
         )
 
 
+class AgentJudgeCriterion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=1)
+    rubric: str = Field(min_length=1, description="Evidence requirements and anchors for scores from 0 to 1.")
+    weight: float = Field(default=1.0, gt=0, allow_inf_nan=False)
+
+
+class AgentJudgeSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: Literal["judge", "hybrid"] = "judge"
+    instructions: str = Field(min_length=1)
+    criteria: list[AgentJudgeCriterion] = Field(min_length=1)
+    script_weight: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
+    script_gate: bool = False
+    setup_commands: list[StrictStr] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_scoring(self) -> "AgentJudgeSpec":
+        if len({c.id for c in self.criteria}) != len(self.criteria):
+            raise ValueError("Judge criterion ids must be unique.")
+        if self.mode == "hybrid" and self.script_weight is None:
+            raise ValueError("Hybrid judging requires an explicit script_weight.")
+        if self.mode == "judge" and (self.script_weight is not None or self.script_gate):
+            raise ValueError("Script weights and gates require hybrid judging.")
+        return self
+
+
 class AgentEnvironmentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -580,6 +609,7 @@ class AgentEnvironmentSpec(BaseModel):
     vm_provisioning: dict[str, Any] = Field(default_factory=dict)
     session: dict[str, Any] = Field(default_factory=dict)
     evaluation: dict[str, Any] = Field(default_factory=dict)
+    judge: AgentJudgeSpec | None = None
     actor_toolsets: dict[StrictStr, ActorToolsetSpec] = Field(default_factory=dict)
     actors: list[EnvironmentActorSpec] = Field(default_factory=list)
     interventions: list[EnvironmentInterventionSpec] = Field(default_factory=list)
@@ -587,6 +617,11 @@ class AgentEnvironmentSpec(BaseModel):
 
     @model_validator(mode="after")
     def validate_actors(self) -> "AgentEnvironmentSpec":
+        if self.judge:
+            if self.type != AgentEnvironmentType.docker_workspace:
+                raise ValueError("Environment judge agents currently require docker_workspace.")
+            if self.judge.mode == "hybrid" and not self.test_command.strip():
+                raise ValueError("Hybrid judging requires test_command.")
         if self.actors and self.type != AgentEnvironmentType.docker_workspace:
             raise ValueError("Environment actors currently require type=docker_workspace.")
         if self.interventions and self.type != AgentEnvironmentType.docker_workspace:
@@ -917,6 +952,7 @@ class ItemResult(BaseModel):
     judge_reasoning: Optional[str] = None
     error: Optional[str] = None
     latency_ms: Optional[int] = None
+    execution: dict[str, Any] = Field(default_factory=dict)
 
 
 class TargetSummary(BaseModel):
@@ -1133,11 +1169,12 @@ class BenchmarkConfig(BaseModel):
     laaj_reasoning_effort: Optional[str] = None
     laaj_extra_body: dict[str, Any] = Field(default_factory=dict)
     laaj_sample_size: int = Field(default=50, ge=1)
+    laaj_tool_calls_per_item: int = Field(default=200, ge=1)
     contamination_enabled: bool = True
     contamination_sample_size: int | None = Field(default=None, ge=1)
-    contamination_max_queries: int = Field(default=12, ge=1)
-    contamination_max_sources: int = Field(default=20, ge=1)
-    contamination_max_tool_calls: int = Field(default=40, ge=1)
+    contamination_max_queries: int = Field(default=100, ge=1)
+    contamination_max_sources: int = Field(default=200, ge=1)
+    contamination_max_tool_calls: int = Field(default=500, ge=1)
     contamination_min_overlap_chars: int = Field(default=200, ge=1)
     task_models: list[TargetModelConfig] = Field(
         default_factory=list,
@@ -1159,15 +1196,16 @@ class BenchmarkConfig(BaseModel):
     analyser_base_url: Optional[str] = None
     analyser_reasoning_effort: Optional[str] = None
     analyser_extra_body: dict[str, Any] = Field(default_factory=dict)
+    analyser_tool_max_calls: int = Field(default=500, ge=1)
     actor_model: Optional[str] = None
     actor_provider: Optional[str] = None
     actor_api_key: Optional[str] = None
     actor_base_url: Optional[str] = None
     actor_extra_body: dict[str, Any] = Field(default_factory=dict)
-    actor_max_turns: int = Field(default=10, ge=1)
-    actor_max_tool_calls: int = Field(default=20, ge=0)
+    actor_max_turns: int = Field(default=200, ge=1)
+    actor_max_tool_calls: int = Field(default=500, ge=0)
     actor_max_tokens: int = Field(default=32768, ge=1)
-    actor_timeout_s: int = Field(default=300, ge=1)
+    actor_timeout_s: int = Field(default=3600, ge=1)
     targets: list[TargetModelConfig] = Field(default_factory=list)
     item_count: Optional[int] = None
     large_scale_item_threshold: int = 1000
@@ -1201,12 +1239,16 @@ class BenchmarkConfig(BaseModel):
     task_builder_repair_attempts: int = 4
     task_builder_call_retries: int = 5
     task_builder_truncation_retries: int = 3
-    task_builder_tool_max_calls: int = 50
+    task_builder_tool_max_calls: int = Field(default=2000, ge=1)
     task_builder_tool_max_chars: int = 50_000
-    planner_tool_max_calls: int = 20
+    builder_sandbox_image: str = "python:3.11-slim"
+    builder_memory_mb: int = Field(default=8192, ge=128)
+    builder_pids_limit: int = Field(default=512, ge=16)
+    planner_tool_max_calls: int = Field(default=500, ge=1)
     planner_tool_max_chars: int = 50_000
     runner_max_workers: int = 4
     judge_double_pass: bool = True
+    agent_judge_tool_max_calls: int = Field(default=500, ge=1)
     llm_backend: Literal["auto", "litellm"] = "auto"
     runner: str = "direct"  # direct | lm-eval | auto
     environment_claw: bool = True
@@ -1223,7 +1265,7 @@ class BenchmarkConfig(BaseModel):
     docker_executable: str = "docker"
     container_sandbox_image: str = "python:3.11-slim"
     environment_preflight: bool = True
-    allow_incomplete_benchmark: bool = False
+    allow_incomplete_benchmark: bool = True
     strict_qc_filter: bool = False
     viewer_item_limit: int = 1000
     viewer_result_limit: int = 2000

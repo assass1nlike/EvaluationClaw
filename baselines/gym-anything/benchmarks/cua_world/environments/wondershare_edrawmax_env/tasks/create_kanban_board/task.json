@@ -1,0 +1,62 @@
+{
+  "id": "create_kanban_board@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a visual Kanban board for the 'Inventory Migration' project in EdrawMax. The board must include the title 'Sprint 24 - Inventory Migration' and four vertical columns labeled 'Backlog', 'In Progress', 'Code Review', and 'Done'. Add the following task cards with their specified background colors to the appropriate columns: 'User Audit Logs' (Blue) in 'Backlog'; 'API Rate Limiting' (Blue) in 'In Progress'; 'Fix Null Pointer Exception' (Red) and 'Schema Validation' (Blue) in 'Code Review'; and 'Legacy DB Backup' (Green) in 'Done'. Save the diagram to /home/ga/Documents/sprint_board.eddx and export it as an image to /home/ga/Documents/sprint_board.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_kanban_board/setup_task.sh",
+    "post_task": "/workspace/tasks/create_kanban_board/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/sprint_board.eddx",
+    "expected_png_path": "/home/ga/Documents/sprint_board.png",
+    "required_strings": [
+      "Sprint 24",
+      "Backlog",
+      "In Progress",
+      "Code Review",
+      "Done",
+      "Null Pointer",
+      "Legacy DB"
+    ],
+    "task_items": [
+      {
+        "text": "User Audit Logs",
+        "column": "Backlog",
+        "color": "Blue"
+      },
+      {
+        "text": "API Rate Limiting",
+        "column": "In Progress",
+        "color": "Blue"
+      },
+      {
+        "text": "Fix Null Pointer Exception",
+        "column": "Code Review",
+        "color": "Red"
+      },
+      {
+        "text": "Schema Validation",
+        "column": "Code Review",
+        "color": "Blue"
+      },
+      {
+        "text": "Legacy DB Backup",
+        "column": "Done",
+        "color": "Green"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_kanban_board"
+    }
+  }
+}

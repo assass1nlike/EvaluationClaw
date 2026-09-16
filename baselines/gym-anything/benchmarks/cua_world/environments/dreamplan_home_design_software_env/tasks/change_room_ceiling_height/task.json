@@ -1,0 +1,29 @@
+{
+  "id": "change_room_ceiling_height@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Change the ceiling height of the ground floor (Story 1) in the loaded sample house project to exactly 10 feet (3.05 meters). The final state should show the 3D view of the house with the new ceiling height applied.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_room_ceiling_height/setup_task.sh",
+    "post_task": "/workspace/tasks/change_room_ceiling_height/export_result.sh"
+  },
+  "metadata": {
+    "target_value_ft": "10",
+    "target_value_m": "3.05",
+    "target_value_in": "120",
+    "project_file_pattern": "*.dpp",
+    "default_project_path": "C:\\Users\\Docker\\Documents\\DreamPlan Projects"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_room_ceiling_height"
+    }
+  }
+}

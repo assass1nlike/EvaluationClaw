@@ -1,0 +1,59 @@
+{
+  "task_id": "household_aggregation_mailing_list@1",
+  "task_completion": [
+    {
+      "id": "medintux_patient_registration",
+      "description": "Verify that the patients were registered into the MedinTux system or its underlying database.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the MedinTux GUI with the new patients (e.g., Jacques Lemoine, Jean Dupuis) entered, or a database tool/terminal showing the 'fchpat' table in the 'DrTuxTest' database populated with these records."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "Verify the creation of the household mailing list CSV file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file manager window showing 'household_mailing_list.csv' inside the '/home/ga/Documents/' directory, or a terminal window listing the file at this exact path."
+    },
+    {
+      "id": "csv_headers_correct",
+      "description": "Verify the CSV file contains the exact required headers.",
+      "points": 10,
+      "visual_evidence": "The CSV file opened in a text editor, spreadsheet application, or displayed in the terminal, showing the first row exactly as: Household_Address, City, Head_Name, Head_FirstName, Member_Count."
+    },
+    {
+      "id": "lemoine_household_row",
+      "description": "Verify the Lemoine household is correctly aggregated in the CSV.",
+      "points": 20,
+      "visual_evidence": "A row in the CSV file showing the Lemoine family data: Jacques as the Head_FirstName, LEMOINE as the Head_Name, Paris as the City, and 2 as the Member_Count."
+    },
+    {
+      "id": "dupuis_household_row",
+      "description": "Verify the Dupuis household is correctly aggregated in the CSV.",
+      "points": 20,
+      "visual_evidence": "A row in the CSV file showing the Dupuis family data: Jean as the Head_FirstName, DUPUIS as the Head_Name, Lyon as the City, and 3 as the Member_Count."
+    },
+    {
+      "id": "martin_household_row",
+      "description": "Verify the Martin household is correctly aggregated in the CSV.",
+      "points": 20,
+      "visual_evidence": "A row in the CSV file showing the Martin family data: Claire as the Head_FirstName, MARTIN as the Head_Name, Strasbourg as the City, and 1 as the Member_Count."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_patient_registration",
+      "description": "Ensure the agent actually registered the patients in MedinTux/Database and didn't just skip to creating the CSV.",
+      "visual_evidence": "Look for evidence of interaction with the MedinTux application, a database client (like DBeaver), or SQL commands in the terminal used to insert the patient data."
+    },
+    {
+      "id": "authentic_csv_generation",
+      "description": "Ensure the CSV was generated through a script, database query, or spreadsheet tool rather than manually typed out.",
+      "visual_evidence": "Look for a Python script, SQL aggregation query, or spreadsheet formulas used to group the addresses and calculate the oldest members, rather than a text editor where the final answers were just manually typed."
+    },
+    {
+      "id": "no_hardcoded_echo",
+      "description": "Ensure the agent didn't simply echo the expected final output into the file.",
+      "visual_evidence": "Check the terminal history to ensure there is no single 'echo' or 'cat' command that hardcodes the entire expected CSV output directly from the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV file must be located at /home/ga/Documents/household_mailing_list.csv with exactly these headers: Household_Address, City, Head_Name, Head_FirstName, Member_Count. The data must contain exactly 3 households: 1) Lemoine in Paris, Head: Jacques, Count: 2. 2) Dupuis in Lyon, Head: Jean, Count: 3. 3) Martin in Strasbourg, Head: Claire, Count: 1."
+}

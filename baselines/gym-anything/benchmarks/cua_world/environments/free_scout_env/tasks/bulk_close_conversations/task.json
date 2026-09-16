@@ -1,0 +1,36 @@
+{
+  "id": "bulk_close_conversations@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are a Computer User Support Specialist performing end-of-week ticket cleanup in FreeScout. In the 'IT Support' mailbox, change the status of the following resolved conversations to Closed: \"Printer driver installed successfully\", \"VPN access restored for remote team\", and \"Password reset completed for jsmith\". Ensure that \"Ongoing network latency in Building C\" and \"New laptop request for onboarding\" remain open.\n\nAdmin credentials:\n- URL: http://localhost:8080\n- Email: admin@helpdesk.local\n- Password: Admin123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_close_conversations/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_close_conversations/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Computer User Support Specialists",
+    "industry": "Computer and Mathematical",
+    "target_conversations": [
+      "Printer driver installed successfully",
+      "VPN access restored for remote team",
+      "Password reset completed for jsmith"
+    ],
+    "keep_open_conversations": [
+      "Ongoing network latency in Building C",
+      "New laptop request for onboarding"
+    ],
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_close_conversations"
+    }
+  }
+}

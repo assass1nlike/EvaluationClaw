@@ -8,9 +8,8 @@ import mimetypes
 import re
 import shutil
 import subprocess
-import sys
-import tempfile
 from concurrent.futures import CancelledError
+from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
 from threading import Event
 from typing import Any
@@ -26,6 +25,7 @@ from ..diagnostics import (
     document_set,
     write_json,
 )
+from ..execution.docker import docker_subprocess_env, resolve_docker_executable
 from ..execution.docker_images import (
     DEFAULT_DOCKER_IMAGE,
     build_docker_image_from_context,
@@ -36,6 +36,7 @@ from ..execution.docker_images import (
     start_inspection_container,
     stop_inspection_container,
 )
+from ..execution.resource_guard import DockerResourceGuard
 from ..execution.vm_provider import (
     build_vm_image,
     close_vm_command_session,
@@ -69,20 +70,21 @@ from ..research.documents import (
     read_document,
 )
 from ..types import AgentEnvironmentSpec, BenchmarkConfig, Message
+from .runtime import BuilderRuntime
 
 _MAX_DOWNLOAD_URLS = 64
 _MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024
 _PYTHON_TIMEOUT_SECONDS = 60
 TASK_BUILDER_MAX_OUTPUT_TOKENS = 65_536
-_MAX_IMAGE_BUILDS = 3
-_MAX_IMAGE_CHECKS = 6
+_MAX_IMAGE_BUILDS = 100
+_MAX_IMAGE_CHECKS = 500
 _MAX_IMAGE_CONTEXT_FILES = 128
 _MAX_IMAGE_CONTEXT_BYTES = 256 * 1024 * 1024
 _MAX_IMAGE_CHECK_COMMAND_CHARS = 4000
-_MAX_INSPECT_STARTS = 3
-_MAX_INSPECT_COMMANDS = 12
-_MAX_VM_SESSION_STARTS = 2
-_MAX_VM_SESSION_COMMANDS = 8
+_MAX_INSPECT_STARTS = 100
+_MAX_INSPECT_COMMANDS = 2000
+_MAX_VM_SESSION_STARTS = 100
+_MAX_VM_SESSION_COMMANDS = 2000
 _IMAGE_GENERATION_TIMEOUT_SECONDS = 600
 _MAX_GENERATED_IMAGE_BYTES = 64 * 1024 * 1024
 _MAX_IMAGE_REFERENCE_FILES = 10
@@ -103,6 +105,14 @@ class TaskBuilderCallError(RuntimeError):
 TASK_BUILDER_TOOL_PROMPT = """\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
+Python runs in a persistent Docker sandbox with private /tmp and only this Builder's
+file directory mounted. It has a memory/process limit and no host Docker socket or
+model credentials. Use build_image and inspection tools for Docker operations.
+Install Python packages with `python -m pip install --user` inside this sandbox.
+Background subprocesses may persist between calls: redirect their stdin/stdout/stderr
+to DEVNULL or files and record their PIDs. Each call has a 60-second deadline; timeout
+stops the entire sandbox, including background processes. Job completion also removes
+it. Only files saved in the Builder directory survive; recreate services after a timeout.
 Use read_document for local UTF-8 text or PDF, including a named ZIP/TAR member.
 Use list_archive to discover members and extract_archive to unpack selected files or all
 files (up to 64 files and 1 GiB per call). Extraction preserves layout and executable
@@ -173,7 +183,7 @@ bounded; stop once the task is adequately constructed.
 TASK_BUILDER_PYTHON_TOOL = ToolSpec(
     name="run_python",
     description=(
-        "Run Python code in an isolated interpreter process whose working directory is the "
+        "Run Python code in a persistent resource-limited Docker sandbox whose working directory is the "
         "current Builder job's framework-managed asset directory. Use relative paths to create "
         "or process task files there."
     ),
@@ -1140,28 +1150,23 @@ def _execute_task_builder_tool(
                 raise ValueError("benchmark output_dir is required for Python task construction")
             work_dir.mkdir(parents=True, exist_ok=True)
             before = _file_state(work_dir)
-            with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
-                try:
-                    completed = subprocess.run(
-                        [sys.executable, "-I", "-B", "-"],
-                        input=code.encode("utf-8"),
-                        cwd=work_dir,
-                        stdout=stdout_file,
-                        stderr=stderr_file,
-                        timeout=_PYTHON_TIMEOUT_SECONDS,
-                        check=False,
-                    )
-                except subprocess.TimeoutExpired:
-                    return ToolResult(
-                        tool_call_id=call.id,
-                        name=call.name,
-                        content=f"Python execution timed out after {_PYTHON_TIMEOUT_SECONDS} seconds.",
-                        error="python_timeout",
-                    )
-                stdout_file.seek(0)
-                stderr_file.seek(0)
-                stdout = stdout_file.read(max_chars + 1).decode("utf-8", errors="replace")
-                stderr = stderr_file.read(max_chars + 1).decode("utf-8", errors="replace")
+            runtime = state.get("python_runtime")
+            if runtime is None:
+                runtime = state["python_runtime"] = BuilderRuntime(work_dir, config)
+            timed_out = False
+            try:
+                completed = runtime.run(code, timeout=_PYTHON_TIMEOUT_SECONDS, max_chars=max_chars)
+            except subprocess.TimeoutExpired as exc:
+                state.pop("python_runtime", None)
+                timed_out = True
+                completed = subprocess.CompletedProcess([], -1, exc.stdout or "", exc.stderr or "")
+            except BaseException:
+                state.pop("python_runtime", None)
+                raise
+            finally:
+                if tool_state is None:
+                    runtime.close()
+            stdout, stderr = completed.stdout, completed.stderr
             after = _file_state(work_dir)
             changed_files = [
                 str(path.resolve())
@@ -1174,12 +1179,16 @@ def _execute_task_builder_tool(
                 "stderr": stderr[:max_chars],
                 "files": changed_files,
                 "working_directory": str(work_dir),
+                "timed_out": timed_out,
+                "runtime_stopped": timed_out,
             }
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
                 content=_tool_content(value, max_chars=max_chars),
-                error="python_execution_failed" if completed.returncode else None,
+                error="python_timeout" if timed_out else (
+                    "python_execution_failed" if completed.returncode else None
+                ),
             )
 
         if call.name == "generate_image":
@@ -1319,6 +1328,7 @@ def _execute_task_builder_tool(
             result = run_docker_image_check(
                 image,
                 command,
+                memory_mb=config.builder_memory_mb, pids_limit=config.builder_pids_limit,
                 network="none",
                 docker_executable=config.docker_executable,
                 timeout_s=_bounded_int(
@@ -1369,7 +1379,19 @@ def _execute_task_builder_tool(
                     stop_inspection_container(existing, docker_executable=config.docker_executable)
                 except Exception:
                     pass
-            result = start_inspection_container(image, docker_executable=config.docker_executable)
+            guard = state.get("inspect_guard")
+            if guard is None:
+                docker = resolve_docker_executable(config.docker_executable)
+                if not docker:
+                    raise RuntimeError("Docker is required for container inspection.")
+                guard = state["inspect_guard"] = DockerResourceGuard(
+                    docker, docker_subprocess_env(config.docker_executable)
+                )
+            result = start_inspection_container(
+                image, docker_executable=config.docker_executable,
+                memory_mb=config.builder_memory_mb, pids_limit=config.builder_pids_limit,
+                workspace=work_dir, resource_guard=guard,
+            )
             state["inspect_container"] = result.container
             state["inspect_starts_used"] = starts_used + 1
             state["inspect_commands_used"] = 0
@@ -1381,6 +1403,7 @@ def _execute_task_builder_tool(
                         "container": result.container,
                         "image": image,
                         "detail": result.detail,
+                        "builder_files_directory": str(work_dir.resolve()),
                     },
                     max_chars=max_chars,
                 ),
@@ -1422,6 +1445,8 @@ def _execute_task_builder_tool(
                 ),
             )
             state["inspect_commands_used"] = commands_used + 1
+            if result.timed_out:
+                state.pop("inspect_container", None)
             value = {
                 "container": result.container,
                 "command": command,
@@ -1969,12 +1994,7 @@ def run_task_builder_tools(
             raise CancelledError("TaskBuilder batch stopped after another job failed.")
 
     raise_if_stopped()
-    max_calls = _bounded_int(
-        config.task_builder_tool_max_calls,
-        default=50,
-        minimum=1,
-        maximum=50,
-    )
+    max_calls = config.task_builder_tool_max_calls
     max_chars = _bounded_int(
         config.task_builder_tool_max_chars,
         default=50_000,
@@ -2213,8 +2233,15 @@ def run_task_builder_tools(
                 raise_if_stopped()
                 return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
     finally:
-        _stop_inspect_container()
-        _stop_vm_session()
+        runtime = tool_state.pop("python_runtime", None)
+        guard = tool_state.pop("inspect_guard", None)
+        with ExitStack() as cleanup:
+            cleanup.callback(_stop_vm_session)
+            if guard is not None:
+                cleanup.callback(guard.close)
+            cleanup.callback(_stop_inspect_container)
+            if runtime is not None:
+                cleanup.callback(runtime.close)
 
 
 __all__ = [

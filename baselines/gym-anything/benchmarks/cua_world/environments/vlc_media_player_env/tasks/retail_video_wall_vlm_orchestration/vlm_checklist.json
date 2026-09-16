@@ -1,0 +1,59 @@
+{
+  "task_id": "retail_video_wall_vlm_orchestration@1",
+  "task_completion": [
+    {
+      "id": "vlm_file_created",
+      "description": "Verify the VLM configuration file is created at the correct path with basic channel setups.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (nano, vim) or terminal output (cat) showing a file named '/home/ga/Documents/signage.vlm' containing 'setup' commands for 'window', 'entrance', and 'checkout' channels."
+    },
+    {
+      "id": "window_channel_config",
+      "description": "Verify the 'window' channel is configured correctly (port 8081, mux=ts, looping, no audio).",
+      "points": 15,
+      "visual_evidence": "In the signage.vlm file, look for 'setup window input' pointing to window_promo.mp4, an output destination containing '127.0.0.1:8081/window' and 'mux=ts', a loop command, and an option disabling audio (e.g., 'no-sout-audio', 'noaudio', or 'acodec=none')."
+    },
+    {
+      "id": "entrance_channel_config",
+      "description": "Verify the 'entrance' channel is configured correctly (port 8082, mux=ts, looping, audio retained).",
+      "points": 15,
+      "visual_evidence": "In the signage.vlm file, look for 'setup entrance input' pointing to entrance_promo.mp4, an output destination containing '127.0.0.1:8082/entrance' and 'mux=ts', a loop command, and NO flags disabling audio."
+    },
+    {
+      "id": "checkout_channel_config",
+      "description": "Verify the 'checkout' channel is configured correctly (port 8083, mux=ts, looping, no audio).",
+      "points": 15,
+      "visual_evidence": "In the signage.vlm file, look for 'setup checkout input' pointing to checkout_promo.mp4, an output destination containing '127.0.0.1:8083/checkout' and 'mux=ts', a loop command, and an option disabling audio."
+    },
+    {
+      "id": "bash_script_created",
+      "description": "Verify the bash script is created at the correct path with the proper cvlc command.",
+      "points": 25,
+      "visual_evidence": "Look for a file named '/home/ga/start_signage.sh' containing a command starting with 'cvlc' (or 'vlc -I dummy'), loading the VLM file (e.g., '--vlm-conf /home/ga/Documents/signage.vlm'), and including an ampersand '&' or daemon flag to run in the background."
+    },
+    {
+      "id": "script_executed_and_running",
+      "description": "Verify the bash script was executed and the VLC streams are active in the background.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing the execution of './start_signage.sh' or 'bash /home/ga/start_signage.sh', followed by the return of the command prompt (indicating background execution). Alternatively, look for a 'ps', 'jobs', or 'netstat' command showing cvlc running or ports 8081, 8082, and 8083 active."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Ensure the configuration and script files were actually saved to disk.",
+      "visual_evidence": "Look for confirmation of saving in text editors (e.g., 'Wrote X lines' in nano) or terminal commands like 'ls -l /home/ga/Documents/signage.vlm' or 'cat' verifying the contents exist on disk."
+    },
+    {
+      "id": "vlc_used_not_mocked",
+      "description": "Ensure the agent used VLC/cvlc for streaming and did not mock the HTTP servers.",
+      "visual_evidence": "Check that the script explicitly calls 'cvlc' or 'vlc'. There should be no use of 'python -m http.server', 'nc' (netcat), or other generic web servers to fake the ports."
+    },
+    {
+      "id": "headless_background_execution",
+      "description": "Ensure VLC was launched headlessly and in the background, not blocking the terminal.",
+      "visual_evidence": "The terminal should not be stuck showing the VLC interactive console or standard output blocking the prompt. The prompt should be available after running the script."
+    }
+  ],
+  "privileged_info_for_vlm": "The VLM configuration file must be exactly at /home/ga/Documents/signage.vlm and the script at /home/ga/start_signage.sh. Target URLs are: window -> http://127.0.0.1:8081/window, entrance -> http://127.0.0.1:8082/entrance, checkout -> http://127.0.0.1:8083/checkout. The window and checkout streams MUST have audio disabled (e.g., via no-sout-audio or acodec=none), while entrance retains audio. The script must use 'cvlc' (headless VLC) to load the VLM file and run in the background."
+}

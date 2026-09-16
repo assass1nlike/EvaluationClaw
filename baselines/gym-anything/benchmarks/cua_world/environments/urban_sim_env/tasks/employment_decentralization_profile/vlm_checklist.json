@@ -1,0 +1,59 @@
+{
+  "task_id": "employment_decentralization_profile@1",
+  "task_completion": [
+    {
+      "id": "notebook_created_and_executed",
+      "description": "Create and execute the Jupyter notebook at the specified path.",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook named 'employment_decentralization.ipynb' is open in the editor, and the cells show execution numbers (e.g., [1], [2]) indicating it has been run."
+    },
+    {
+      "id": "data_loading_and_joining",
+      "description": "Load and join the required tables from the HDF5 dataset.",
+      "points": 15,
+      "visual_evidence": "Code cells show reading 'jobs', 'buildings', and 'parcels' from 'sanfran_public.h5', joining them to get coordinates and zone IDs, and filtering out missing or zero coordinates."
+    },
+    {
+      "id": "cbd_identification_and_distance",
+      "description": "Identify the CBD and calculate Euclidean distances for all valid jobs.",
+      "points": 25,
+      "visual_evidence": "Code cells show grouping jobs by zone ID to find the highest density, calculating the mean x and y coordinates for that zone to define the CBD, and computing the Euclidean distance from every valid job to the CBD."
+    },
+    {
+      "id": "json_output_created",
+      "description": "Export CBD details to a JSON file.",
+      "points": 10,
+      "visual_evidence": "Code shows exporting a dictionary or JSON object with keys 'cbd_zone_id', 'cbd_x', 'cbd_y', and 'total_valid_jobs_citywide' to 'cbd_info.json' in the output directory, or the file is visible in the file explorer."
+    },
+    {
+      "id": "csv_output_created",
+      "description": "Calculate metrics for the top three sectors and save to a CSV file.",
+      "points": 15,
+      "visual_evidence": "Code shows identifying the top 3 sectors, calculating median and 75th percentile distances, and saving a DataFrame with columns 'sector_id', 'total_jobs', 'median_distance_to_cbd', 'p75_distance_to_cbd' to 'sector_sprawl_metrics.csv'."
+    },
+    {
+      "id": "cdf_plot_generated",
+      "description": "Generate and save a CDF line chart for the top three sectors.",
+      "points": 25,
+      "visual_evidence": "A line chart showing the Cumulative Distribution Function (CDF) of jobs by distance for the top 3 sectors, including a legend, is visible in the notebook output or code shows saving it to 'job_sprawl_cdf.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_execution",
+      "description": "The notebook contains actual Python code that has been executed, not just markdown or text.",
+      "visual_evidence": "The notebook cells have execution counts (e.g., In [1]:) and the outputs match the code logic."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent computes the CBD, distances, and metrics dynamically from the data.",
+      "visual_evidence": "The code uses pandas/numpy operations to calculate the results rather than hardcoding the expected JSON values or CSV rows."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The CDF plot is generated using a plotting library within the notebook.",
+      "visual_evidence": "Code imports a library like matplotlib or seaborn and uses it to create the plot, rather than downloading an existing image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/employment_decentralization.ipynb. The expected outputs are /home/ga/urbansim_projects/output/cbd_info.json, /home/ga/urbansim_projects/output/sector_sprawl_metrics.csv, and /home/ga/urbansim_projects/output/job_sprawl_cdf.png. The data source is /home/ga/urbansim_projects/data/sanfran_public.h5."
+}

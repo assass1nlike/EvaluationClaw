@@ -1,0 +1,53 @@
+{
+  "task_id": "retroperitoneal_lymph_assessment@1",
+  "task_completion": [
+    {
+      "id": "lymph_nodes_measured",
+      "description": "Agent identifies and measures the short-axis diameter of retroperitoneal lymph nodes on the CT scan.",
+      "points": 30,
+      "visual_evidence": "Medical imaging software (e.g., 3D Slicer) is open showing an abdominal CT scan. Measurement tools (lines or rulers) are visibly placed across the short axis of lymph nodes."
+    },
+    {
+      "id": "anatomical_stations_recorded",
+      "description": "Agent assigns anatomical stations to the measured lymph nodes.",
+      "points": 20,
+      "visual_evidence": "Text labels on the image or entries in a markups/measurements table within the software showing station names (e.g., 'para-aortic', 'paracaval', 'aortocaval', 'retrocaval', 'retroaortic') corresponding to the measured nodes."
+    },
+    {
+      "id": "enlarged_and_largest_nodes_assessed",
+      "description": "Agent evaluates nodes against the 10.0 mm enlargement threshold and identifies the largest node.",
+      "points": 30,
+      "visual_evidence": "Evidence of the agent filtering, sorting, or explicitly noting nodes with a short-axis diameter >= 10.0 mm, and isolating the single largest measurement (e.g., visible in a sorted table, a calculator, or draft notes)."
+    },
+    {
+      "id": "markups_file_saved",
+      "description": "Agent saves the measurement markups to the specified JSON file.",
+      "points": 10,
+      "visual_evidence": "A save dialog, file explorer, or terminal command confirming the creation/saving of 'lymph_nodes.mrk.json' in the '~/Documents/SlicerData/AMOS/' directory."
+    },
+    {
+      "id": "report_file_generated",
+      "description": "Agent generates the final lymph node report with all required fields.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the contents of '~/Documents/SlicerData/AMOS/lymph_node_report.json'. The file must contain the exact keys: 'total_nodes_identified', 'enlarged_nodes_count', 'largest_node_mm', 'largest_node_station', and 'n_stage'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_software_usage",
+      "description": "Agent used a medical imaging viewer to perform the task rather than guessing or generating files blindly.",
+      "visual_evidence": "Screenshots must show the agent actively interacting with the CT scan in a GUI application (like 3D Slicer), not just writing scripts or text files in a terminal."
+    },
+    {
+      "id": "measurements_match_visuals",
+      "description": "The reported measurements correspond to actual work done in the viewer.",
+      "visual_evidence": "The numerical values for 'largest_node_mm' and the node counts in the final report should plausibly match the measurements and markups visible in the imaging software screenshots."
+    },
+    {
+      "id": "no_fabricated_files",
+      "description": "Agent did not use a script to generate mock JSON files with hardcoded data.",
+      "visual_evidence": "The creation of the .mrk.json and report.json files should follow the visual inspection and measurement process, rather than being generated instantly via a pre-written script containing dummy answers."
+    }
+  ],
+  "privileged_info_for_vlm": "The standard clinical threshold for defining pathologically enlarged retroperitoneal lymph nodes is a short-axis diameter of 10.0 mm. The standard anatomical stations for retroperitoneal lymph nodes include the para-aortic, paracaval, aortocaval, retrocaval, and retroaortic regions."
+}

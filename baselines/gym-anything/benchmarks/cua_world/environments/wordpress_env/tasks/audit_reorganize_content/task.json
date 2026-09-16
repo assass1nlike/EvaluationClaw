@@ -1,0 +1,37 @@
+{
+  "id": "audit_reorganize_content@1",
+  "version": "1.0",
+  "env_id": "wordpress_env@0.1",
+  "description": "You are a content strategist tasked with auditing and reorganizing this WordPress site's content. Recategorize 'Cloud Computing Trends 2026' and 'AI in Software Development' to 'Technology', 'Weekend Hiking Trail Guide' and 'Healthy Meal Prep Ideas' to 'Lifestyle', and 'Breaking: Local Business Awards Announced' to 'News', ensuring the 'Uncategorized' category is removed from each. Delete the spam post 'V1agra Ch3ap Online Buy Now!!!'. Publish the drafts for 'Cloud Computing Trends 2026' and 'Breaking: Local Business Awards Announced'. Add the tag 'featured' to all five legitimate posts.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 960,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_reorganize_content/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_reorganize_content/export_result.sh"
+  },
+  "metadata": {
+    "posts_to_recategorize": {
+      "Cloud Computing Trends 2026": "Technology",
+      "AI in Software Development": "Technology",
+      "Weekend Hiking Trail Guide": "Lifestyle",
+      "Healthy Meal Prep Ideas": "Lifestyle",
+      "Breaking: Local Business Awards Announced": "News"
+    },
+    "spam_post_title": "V1agra Ch3ap Online Buy Now!!!",
+    "drafts_to_publish": [
+      "Cloud Computing Trends 2026",
+      "Breaking: Local Business Awards Announced"
+    ],
+    "tag_to_add": "featured"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_reorganize_content"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "pid_joint_tuning_study@1",
+  "task_completion": [
+    {
+      "id": "zmq_connection_script",
+      "description": "Agent creates a script that connects to CoppeliaSim via the ZMQ Remote API on port 23000.",
+      "points": 10,
+      "visual_evidence": "A Python script open in an editor or terminal showing connection logic (e.g., `RemoteAPIClient('localhost', 23000)`)."
+    },
+    {
+      "id": "pid_tuning_execution",
+      "description": "Agent tests at least 8 distinct PID gain combinations, varying P, I, and D within the specified ranges.",
+      "points": 15,
+      "visual_evidence": "Script logic showing a loop over at least 8 combinations of P (0.1-5.0), I (0.0-0.5), and D (0.0-1.0), or terminal output showing the execution of these trials."
+    },
+    {
+      "id": "transient_response_metrics",
+      "description": "Agent evaluates the transient response to a step input by calculating overshoot, settling time, steady-state error, and rise time.",
+      "points": 15,
+      "visual_evidence": "Script code containing mathematical logic to calculate overshoot (%), settling time (s), steady-state error (deg), and rise time (s) from the joint's position data."
+    },
+    {
+      "id": "csv_file_creation",
+      "description": "Agent creates the pid_tuning_data.csv file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., `ls`) or a file manager showing `pid_tuning_data.csv` located in `/home/ga/Documents/CoppeliaSim/exports/`."
+    },
+    {
+      "id": "csv_file_content",
+      "description": "The CSV file contains the required columns and data for all trials.",
+      "points": 20,
+      "visual_evidence": "Contents of the CSV file (via `cat`, `head`, or editor) showing columns: trial_id, kp, ki, kd, overshoot_pct, settling_time_s, rise_time_s, steady_state_error_deg, and at least 8 rows of trial data."
+    },
+    {
+      "id": "json_report_creation",
+      "description": "Agent creates the pid_tuning_report.json file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., `ls`) or a file manager showing `pid_tuning_report.json` located in `/home/ga/Documents/CoppeliaSim/exports/`."
+    },
+    {
+      "id": "json_report_content",
+      "description": "The JSON report contains the required keys and recommends the best-performing gain set.",
+      "points": 20,
+      "visual_evidence": "Contents of the JSON file showing keys: joint_name, total_trials, step_size_deg, best_trial_id, best_kp, best_ki, best_kd, best_overshoot_pct, best_settling_time_s, and selection_criterion."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_driven_execution",
+      "description": "The agent wrote and executed a script to interact with the simulation rather than manually fabricating the output files.",
+      "visual_evidence": "Presence of a Python script containing ZMQ API calls, simulation stepping logic (`sim.step()`), and file writing logic."
+    },
+    {
+      "id": "genuine_simulation_data",
+      "description": "The generated data appears to be genuine simulation results rather than hardcoded mock data.",
+      "visual_evidence": "The CSV and JSON files contain realistic, non-trivial floating-point values for metrics (e.g., 12.345 instead of exactly 10.0) that vary across different PID combinations."
+    },
+    {
+      "id": "dynamic_best_selection",
+      "description": "The script contains logic to programmatically determine the best trial based on the calculated metrics.",
+      "visual_evidence": "Script contains sorting, filtering, or `min()`/`max()` logic applied to the trial results to select the best trial for the JSON report."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output paths for the study results are exactly '/home/ga/Documents/CoppeliaSim/exports/pid_tuning_data.csv' and '/home/ga/Documents/CoppeliaSim/exports/pid_tuning_report.json'."
+}

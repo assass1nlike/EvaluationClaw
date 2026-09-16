@@ -1,0 +1,59 @@
+{
+  "task_id": "setup_split_knowledge_volume@1",
+  "task_completion": [
+    {
+      "id": "volume_location_and_options",
+      "description": "Configure the volume path, size, and encryption options.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt Volume Creation Wizard showing the volume location set to '/home/ga/Volumes/master_keys.hc', Encryption Algorithm set to 'AES', Hash Algorithm set to 'SHA-512', and Volume Size set to '10 MB'."
+    },
+    {
+      "id": "password_and_keyfiles",
+      "description": "Set the volume password and add all three required keyfiles.",
+      "points": 25,
+      "visual_evidence": "VeraCrypt password configuration screen showing a password entered and the 'Keyfiles' dialog displaying exactly these three files: '/home/ga/Dept_IT/it_token.bin', '/home/ga/Dept_Security/sec_cert.pem', and '/home/ga/Dept_Compliance/audit_policy.pdf'."
+    },
+    {
+      "id": "volume_format_and_creation",
+      "description": "Format the volume with the FAT filesystem and complete creation.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt Volume Format screen showing 'FAT' selected as the filesystem, followed by a success message dialog stating the volume has been successfully created."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Mount the newly created volume using the configured credentials.",
+      "points": 15,
+      "visual_evidence": "Main VeraCrypt window showing '/home/ga/Volumes/master_keys.hc' actively mounted in one of the drive slots, or a terminal showing a successful VeraCrypt mount command."
+    },
+    {
+      "id": "seed_file_moved",
+      "description": "Move the master_seed.txt file into the root of the mounted volume.",
+      "points": 20,
+      "visual_evidence": "File manager showing 'master_seed.txt' inside the mounted VeraCrypt volume directory, or a terminal window showing a successful 'mv /home/ga/Sensitive/master_seed.txt <mount_point>' command."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Dismount the VeraCrypt volume after moving the file.",
+      "points": 10,
+      "visual_evidence": "Main VeraCrypt window showing the previously used drive slot is now empty/dismounted, or a terminal showing a successful VeraCrypt dismount command."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "Verify the agent actually used VeraCrypt to create and mount the volume.",
+      "visual_evidence": "Screenshots must show interaction with the VeraCrypt GUI or valid 'veracrypt' CLI commands, rather than using standard Linux commands like 'touch', 'dd', or 'mkdir' to fake the .hc file or mount point."
+    },
+    {
+      "id": "actual_file_move",
+      "description": "Verify the seed file was moved, not copied.",
+      "visual_evidence": "Look for a 'mv' command in the terminal or a cut/paste (or drag-and-drop move) action in the GUI. The original '/home/ga/Sensitive/master_seed.txt' should no longer exist in its original location."
+    },
+    {
+      "id": "genuine_keyfile_selection",
+      "description": "Verify the agent selected the actual keyfiles from their respective directories.",
+      "visual_evidence": "The VeraCrypt keyfile selection dialog or CLI command must show the exact absolute paths to the three distinct directories (Dept_IT, Dept_Security, Dept_Compliance), rather than faking the files in a single directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume Path: /home/ga/Volumes/master_keys.hc\nPassword: SharedAccess2025\nKeyfiles required: /home/ga/Dept_IT/it_token.bin, /home/ga/Dept_Security/sec_cert.pem, /home/ga/Dept_Compliance/audit_policy.pdf\nSeed File: /home/ga/Sensitive/master_seed.txt must be moved (not copied) to the root of the mounted volume."
+}

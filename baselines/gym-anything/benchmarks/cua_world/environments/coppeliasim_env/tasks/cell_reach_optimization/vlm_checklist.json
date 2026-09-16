@@ -1,0 +1,59 @@
+{
+  "task_id": "cell_reach_optimization@1",
+  "task_completion": [
+    {
+      "id": "script_connection_setup",
+      "description": "Agent writes a script to connect to the CoppeliaSim simulation on port 23000.",
+      "points": 10,
+      "visual_evidence": "A code editor or terminal showing a Python script importing the CoppeliaSim ZeroMQ Remote API and initializing a client connection on port 23000."
+    },
+    {
+      "id": "target_points_defined",
+      "description": "Agent includes the 6 specified workstation target points in the script.",
+      "points": 15,
+      "visual_evidence": "The script contains an array, list, or dictionary defining the exact coordinates for WS_1 through WS_6 as provided in the task description."
+    },
+    {
+      "id": "candidate_positions_defined",
+      "description": "Agent defines at least 8 spatially diverse candidate base positions at floor level.",
+      "points": 15,
+      "visual_evidence": "Code showing a loop, list, or generator creating at least 8 different coordinates where the Z value is 0 (or very close to 0)."
+    },
+    {
+      "id": "reachability_logic",
+      "description": "Agent implements logic to determine reachable targets within 0.05m and average minimum distance.",
+      "points": 20,
+      "visual_evidence": "Code showing distance calculations between the robot's end-effector and the targets, including a condition checking if the distance is <= 0.05m."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent successfully executes the evaluation script.",
+      "points": 20,
+      "visual_evidence": "Terminal window showing the Python script being executed without crashing, preferably displaying progress output or a completion message."
+    },
+    {
+      "id": "output_files_generated",
+      "description": "Agent exports the results to the specified CSV and JSON files.",
+      "points": 20,
+      "visual_evidence": "Terminal showing commands like 'ls', 'cat', or a file explorer confirming the existence of 'placement_candidates.csv' and 'placement_recommendation.json' in the '/home/ga/Documents/CoppeliaSim/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_interaction",
+      "description": "The agent actually interacts with the CoppeliaSim API rather than faking the evaluation.",
+      "visual_evidence": "The script contains genuine CoppeliaSim API calls (e.g., sim.getObject, sim.setObjectPosition, IK/FK calculations) to test the reachability, rather than randomly generating numbers."
+    },
+    {
+      "id": "computed_results",
+      "description": "The output files contain realistic, computed simulation data.",
+      "visual_evidence": "If the contents of the CSV or JSON are visible, the 'avg_min_distance_m' and 'score' fields should contain realistic floating-point numbers, not perfectly round or obviously hardcoded fake numbers."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "The CSV and JSON files are generated programmatically by the script.",
+      "visual_evidence": "The agent does not manually type out the contents of the CSV or JSON files in a text editor; the files are created as a direct result of running the Python script."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The task requires evaluating exactly 6 target points (WS_1 to WS_6). At least 8 candidate base positions must be evaluated. The reach threshold is exactly 0.05m. The required output files are strictly '/home/ga/Documents/CoppeliaSim/exports/placement_candidates.csv' and '/home/ga/Documents/CoppeliaSim/exports/placement_recommendation.json'."
+}

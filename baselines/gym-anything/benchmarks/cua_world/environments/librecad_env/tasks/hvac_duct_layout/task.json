@@ -1,0 +1,33 @@
+{
+  "id": "hvac_duct_layout@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a mechanical supply duct layout plan for an office space in LibreCAD using inches as the drawing unit. The layout must include a 360\" wide x 240\" high room rectangle starting at (0,0) on layer 'WALLS' (Color: Black/White). On layer 'DUCT-SUPPLY' (Color: Cyan), draw a horizontal main trunk 24\" high (Y=108 to Y=132) running from X=30 to X=330, along with four 10\" wide vertical branches: Branch 1 (X=115 to X=125, Y=132 to Y=192), Branch 2 (X=235 to X=245, Y=132 to Y=192), Branch 3 (X=115 to X=125, Y=108 to Y=48), and Branch 4 (X=235 to X=245, Y=108 to Y=48). On layer 'DUCT-DIFFUSER' (Color: Red), draw a 24\"x24\" square diffuser with an 'X' inside centered at the end of each of the four branches. On layer 'DUCT-RETURN' (Color: Magenta), draw a 24\"x24\" return grille box at (288, 108) containing three horizontal lines. On layer 'DUCT-LABELS' (Color: Green), add text '24x12' near the main trunk and '10x8' near one of the branches using a text height of approximately 6. Save the final drawing to /home/ga/Documents/LibreCAD/hvac_duct_layout.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hvac_duct_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/hvac_duct_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/hvac_duct_layout.dxf",
+    "required_layers": [
+      "WALLS",
+      "DUCT-SUPPLY",
+      "DUCT-DIFFUSER",
+      "DUCT-RETURN",
+      "DUCT-LABELS"
+    ],
+    "min_entity_count": 35
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hvac_duct_layout"
+    }
+  }
+}

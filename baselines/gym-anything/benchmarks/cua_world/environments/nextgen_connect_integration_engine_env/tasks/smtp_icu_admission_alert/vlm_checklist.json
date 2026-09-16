@@ -1,0 +1,65 @@
+{
+  "task_id": "smtp_icu_admission_alert@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'ICU_Admission_Notifier'",
+      "points": 10,
+      "visual_evidence": "In the NextGen Connect Administrator GUI, verify that a channel named 'ICU_Admission_Notifier' exists in the Channels list or is currently being edited."
+    },
+    {
+      "id": "source_configured",
+      "description": "Configure the source as a TCP Listener on port 6661 in MLLP mode",
+      "points": 15,
+      "visual_evidence": "In the Source tab of the channel, verify the Connector Type is 'TCP Listener', the Port is '6661', and the Transmission Mode is 'MLLP'."
+    },
+    {
+      "id": "filter_configured",
+      "description": "Configure a filter for PV1-3.1 containing 'ICU'",
+      "points": 20,
+      "visual_evidence": "In the Filter tab, verify there is a rule configured to check the HL7 field PV1-3.1 (often represented as msg['PV1']['PV1.3']['PV1.3.1'] or similar) for the value 'ICU'."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Create an SMTP Sender destination named 'Email_Alert'",
+      "points": 10,
+      "visual_evidence": "In the Destinations tab, verify there is a destination named 'Email_Alert' with the Connector Type set to 'SMTP Sender'."
+    },
+    {
+      "id": "smtp_settings",
+      "description": "Configure SMTP server, To, and From addresses",
+      "points": 20,
+      "visual_evidence": "In the SMTP Sender destination settings, verify the SMTP Server is 'mailhog', Port is '1025', To is 'icu-admin@hospital.org', and From is 'alerts@hospital.org'."
+    },
+    {
+      "id": "email_content",
+      "description": "Configure email subject and body with PID-5",
+      "points": 15,
+      "visual_evidence": "In the SMTP Sender destination settings, verify the Subject field contains 'ICU Admission Alert' and the Body field contains a reference to the PID-5 field (e.g., ${msg['PID']['PID.5']...})."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Deploy the channel",
+      "points": 10,
+      "visual_evidence": "In the Dashboard view of NextGen Connect, verify the 'ICU_Admission_Notifier' channel is listed and its status is 'Deployed' or 'Started'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_nextgen_gui",
+      "description": "Agent used the NextGen Connect Administrator GUI",
+      "visual_evidence": "Verify the agent interacted with the NextGen Connect Administrator Java application GUI to configure the channel, rather than using a script."
+    },
+    {
+      "id": "no_xml_manipulation",
+      "description": "Agent did not bypass GUI by editing XML files directly",
+      "visual_evidence": "Verify the agent did not simply write or edit an XML file in a text editor or terminal to bypass the GUI configuration."
+    },
+    {
+      "id": "authentic_deployment",
+      "description": "Deployment is shown in the actual application",
+      "visual_evidence": "Verify the deployment status is shown in the actual NextGen Connect Dashboard, not just a text output or mocked interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel must be named 'ICU_Admission_Notifier'. Source must be TCP Listener on port 6661 with MLLP mode. Filter must check PV1-3.1 for 'ICU'. Destination must be SMTP Sender named 'Email_Alert' using host 'mailhog', port 1025, from 'alerts@hospital.org', to 'icu-admin@hospital.org'. Subject must include 'ICU Admission Alert' and body must include PID-5."
+}

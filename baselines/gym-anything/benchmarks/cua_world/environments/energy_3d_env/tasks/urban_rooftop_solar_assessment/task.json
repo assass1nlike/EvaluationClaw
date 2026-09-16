@@ -1,0 +1,30 @@
+{
+  "id": "urban_rooftop_solar_assessment@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Design a commercial rooftop solar array on the tallest building in a city block, run an annual yield simulation for Chicago, and export the results.\n\nInstructions:\n1. The starting project '~/Documents/Energy3D/city-block.ng3' is already open in Energy3D.\n2. Change the project's location to Chicago, IL using the application's location settings.\n3. Visually identify the tallest building in the city block scene.\n4. Add a solar panel array to cover its main flat roof. Configure the array with the following specifications:\n   - Tilt angle: 15 degrees\n   - Row spacing: 2.0 meters\n   - Panel orientation: Landscape\n   (Note: Use the automated array generation tool to fill the roof; do not place panels one by one manually.)\n5. Run an Annual Yield Analysis for the solar array to simulate its monthly energy generation.\n6. Export the analysis results as a CSV file to '~/Documents/Energy3D/tallest_building_yield.csv'.\n7. Save the modified 3D project as '~/Documents/Energy3D/city_block_upgraded.ng3'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_rooftop_solar_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_rooftop_solar_assessment/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Sustainability Consultant",
+    "industry": "Commercial Real Estate",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/city_block_upgraded.ng3",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/tallest_building_yield.csv",
+    "expected_location": "Chicago",
+    "expected_tilt": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rooftop_assessment"
+    }
+  }
+}

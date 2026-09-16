@@ -1,0 +1,65 @@
+{
+  "task_id": "insurance_claims_upload_config@1",
+  "task_completion": [
+    {
+      "id": "survey_and_groups_created",
+      "description": "Verify the survey and question groups are created with the correct titles.",
+      "points": 15,
+      "visual_evidence": "Look for a survey titled 'Auto Insurance Claim Portal 2025' in the LimeSurvey interface. Within its structure, look for two question groups named 'Incident Details' and 'Document Submission'."
+    },
+    {
+      "id": "has_evidence_question",
+      "description": "Verify the 'HAS_EVIDENCE' question is created correctly.",
+      "points": 15,
+      "visual_evidence": "Look for a question with the code 'HAS_EVIDENCE' inside the 'Incident Details' group. The question type must be 'Yes/No' (Type 'Y') and the text must be 'Do you have photographic evidence of the damage?'."
+    },
+    {
+      "id": "form_pdf_question",
+      "description": "Verify the 'FORM_PDF' question is created correctly.",
+      "points": 15,
+      "visual_evidence": "Look for a question with the code 'FORM_PDF' inside the 'Document Submission' group. The question type must be 'File Upload' (Type '|') and the text must be 'Upload Signed Claim Form (PDF Only)'."
+    },
+    {
+      "id": "form_pdf_restrictions",
+      "description": "Verify the file restrictions for the 'FORM_PDF' question.",
+      "points": 15,
+      "visual_evidence": "Look at the settings/logic for the 'FORM_PDF' question. The 'Maximum number of files' should be set to 1, and the 'Allowed file types' should be restricted to 'pdf'."
+    },
+    {
+      "id": "dmg_photos_question",
+      "description": "Verify the 'DMG_PHOTOS' question is created correctly.",
+      "points": 15,
+      "visual_evidence": "Look for a question with the code 'DMG_PHOTOS' inside the 'Document Submission' group. The question type must be 'File Upload' (Type '|') and the text must be 'Upload Damage Photos'."
+    },
+    {
+      "id": "dmg_photos_restrictions",
+      "description": "Verify the file restrictions for the 'DMG_PHOTOS' question.",
+      "points": 10,
+      "visual_evidence": "Look at the settings/logic for the 'DMG_PHOTOS' question. The 'Maximum number of files' should be set to 5, and the 'Allowed file types' should be restricted to 'jpg' and 'png' (or 'jpg, png')."
+    },
+    {
+      "id": "conditional_logic",
+      "description": "Verify the conditional logic for the 'DMG_PHOTOS' question.",
+      "points": 15,
+      "visual_evidence": "Look for the relevance equation or condition settings for the 'DMG_PHOTOS' question. It must show a dependency on the 'HAS_EVIDENCE' question being answered 'Yes' (e.g., HAS_EVIDENCE == 'Y')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_limesurvey_gui",
+      "description": "Verify the agent interacted with the LimeSurvey web interface.",
+      "visual_evidence": "Screenshots should show the LimeSurvey 6 admin dashboard in a web browser, not terminal commands or database injection scripts."
+    },
+    {
+      "id": "no_text_editor_mockup",
+      "description": "Verify the agent did not mock the results in a text editor.",
+      "visual_evidence": "The survey configuration must be visible within the actual LimeSurvey application UI, not typed out in a text editor like Notepad or VS Code."
+    },
+    {
+      "id": "genuine_survey_structure",
+      "description": "Verify the survey structure is genuinely built in the system.",
+      "visual_evidence": "The left-hand structure panel or survey summary should naturally display the created groups and questions as part of the LimeSurvey UI."
+    }
+  ],
+  "privileged_info_for_vlm": "LimeSurvey version is 6. The correct question type code for Yes/No questions is 'Y' (ignore any metadata claiming it is 'L'). The correct question type code for File Upload questions is '|'."
+}

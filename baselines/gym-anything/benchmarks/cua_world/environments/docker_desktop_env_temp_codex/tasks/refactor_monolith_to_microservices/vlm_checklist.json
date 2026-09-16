@@ -1,0 +1,59 @@
+{
+  "task_id": "refactor_monolith_to_microservices@1",
+  "task_completion": [
+    {
+      "id": "dockerfile_modified",
+      "description": "The Dockerfile is modified to remove PostgreSQL and the legacy startup script, running only the Python app.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the contents of the Dockerfile. It should not contain PostgreSQL installation commands or references to a startup script, and should have a CMD or ENTRYPOINT running the Python app directly."
+    },
+    {
+      "id": "docker_compose_services",
+      "description": "A docker-compose.yml file is created defining 'app' and 'db' services.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing a docker-compose.yml file with a 'services' block containing both 'app' and 'db'."
+    },
+    {
+      "id": "db_service_configuration",
+      "description": "The 'db' service is configured with the postgres:15-alpine image and a named volume.",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, the 'db' service specifies 'image: postgres:15-alpine' and includes a 'volumes' block referencing a named volume."
+    },
+    {
+      "id": "app_service_configuration",
+      "description": "The 'app' service is configured to connect to the 'db' service with the correct credentials.",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file (via environment variables) or app.py, the app is configured to use host 'db', user 'notes_user', password 'notes_password', and database 'notes_db'."
+    },
+    {
+      "id": "stack_running",
+      "description": "The Docker Compose stack is successfully started.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing 'docker compose up' (or similar) with both 'app' and 'db' containers running, or the Docker Desktop GUI showing the active containers."
+    },
+    {
+      "id": "app_accessible",
+      "description": "The refactored application is accessible on port 5000.",
+      "points": 15,
+      "visual_evidence": "A web browser showing the application loaded at http://localhost:5000, or a successful 'curl http://localhost:5000' command in the terminal returning the app's HTML."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Files were genuinely edited in the project directory.",
+      "visual_evidence": "The file paths in the text editor or terminal commands match /home/ga/legacy_project/ and are not just scratchpads or echoed text."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Docker Compose was actually executed to start the services.",
+      "visual_evidence": "Standard Docker Compose output is visible in the terminal (e.g., pulling images, creating networks, starting containers) or the containers are visible in Docker Desktop."
+    },
+    {
+      "id": "no_mocked_responses",
+      "description": "The application response was not mocked or hardcoded.",
+      "visual_evidence": "The browser or curl output shows a genuine connection to localhost:5000, not a printed string or a local file opened in the browser."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/legacy_project. The Docker Compose stack must define services named 'app' and 'db'. The 'db' service must use the 'postgres:15-alpine' image. The application must be accessible on port 5000."
+}

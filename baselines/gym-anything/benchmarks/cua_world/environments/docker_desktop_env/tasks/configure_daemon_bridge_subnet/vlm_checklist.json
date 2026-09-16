@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_daemon_bridge_subnet@1",
+  "task_completion": [
+    {
+      "id": "open_docker_desktop_settings",
+      "description": "Open the Docker Desktop settings",
+      "points": 10,
+      "visual_evidence": "The Docker Desktop application is open and the Settings (gear icon) window is visible."
+    },
+    {
+      "id": "navigate_to_docker_engine",
+      "description": "Navigate to the Docker Engine configuration section",
+      "points": 10,
+      "visual_evidence": "The 'Docker Engine' tab is selected in the Docker Desktop settings, displaying a JSON editor."
+    },
+    {
+      "id": "bip_key_configured",
+      "description": "Add the 'bip' key to the Docker Engine JSON configuration",
+      "points": 20,
+      "visual_evidence": "The JSON editor contains the key \"bip\"."
+    },
+    {
+      "id": "bip_value_configured",
+      "description": "Set the 'bip' value to the required CIDR format",
+      "points": 30,
+      "visual_evidence": "The value corresponding to the \"bip\" key is exactly \"192.168.200.1/24\"."
+    },
+    {
+      "id": "changes_applied_or_verified",
+      "description": "Apply the configuration changes or verify the bridge network",
+      "points": 30,
+      "visual_evidence": "Either the 'Apply & restart' button is clicked in Docker Desktop, OR a terminal window shows the output of `docker network inspect bridge` confirming the Subnet is '192.168.200.0/24' and Gateway is '192.168.200.1'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_desktop_used",
+      "description": "Verify the agent used the real Docker Desktop application",
+      "visual_evidence": "The screenshots should show the genuine Docker Desktop GUI, not a text editor modifying a daemon.json file directly unless done through the official Docker Desktop interface or standard OS paths."
+    },
+    {
+      "id": "valid_json_format",
+      "description": "Verify the JSON configuration remains valid",
+      "visual_evidence": "The JSON editor in Docker Desktop should not show syntax errors (e.g., missing commas between key-value pairs) after adding the 'bip' property."
+    },
+    {
+      "id": "no_inspect_spoofing",
+      "description": "Verify terminal output is genuine if used for verification",
+      "visual_evidence": "If terminal output is shown, it should be the result of a genuine `docker network inspect` command, not an echoed string or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires setting the 'bip' parameter in the Docker Engine configuration to '192.168.200.1/24'. This automatically configures the default bridge network to use the subnet '192.168.200.0/24' and gateway '192.168.200.1'. Verification can be done by checking the Docker Desktop Engine JSON configuration for `\"bip\": \"192.168.200.1/24\"`, or by observing the output of `docker network inspect bridge` showing IPAM.Config.Subnet as '192.168.200.0/24' and IPAM.Config.Gateway as '192.168.200.1'."
+}

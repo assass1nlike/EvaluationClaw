@@ -1,0 +1,29 @@
+{
+  "id": "cool_roof_albedo_retrofit_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Sustainability Consultant evaluating a cool roof retrofit. The Energy3D project 'building-shape.ng3' is open. Perform the following steps:\n1. Change the geographic location of the project to Phoenix, AZ to model a hot climate.\n2. Run an Annual Energy Analysis to determine the baseline annual cooling energy required for the building.\n3. Select all roof structures and change their Albedo property to 0.85 (representing a highly reflective white cool roof).\n4. Re-run the Annual Energy Analysis to determine the optimized annual cooling energy.\n5. Save the modified building model to ~/Documents/Energy3D/cool_roof_optimized.ng3\n6. Create a text file at ~/Documents/Energy3D/cooling_savings.txt that explicitly reports three values (in kWh): the Baseline Cooling Load, the Optimized Cooling Load, and the Total Cooling Savings (Baseline minus Optimized).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cool_roof_albedo_retrofit_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/cool_roof_albedo_retrofit_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Sustainability Consultant",
+    "industry": "Architecture / Energy Modeling",
+    "starter_file": "building-shape.ng3",
+    "expected_city": "Phoenix",
+    "expected_albedo": "0.85"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cool_roof"
+    }
+  }
+}

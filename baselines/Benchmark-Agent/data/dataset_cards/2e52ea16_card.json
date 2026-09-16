@@ -1,0 +1,93 @@
+{
+  "dataset_id": "2e52ea16",
+  "name": "Circuit-Elements-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset contains images of printed circuit boards (PCBs) paired with dense bounding-box annotations of electronic components such as capacitors, resistors, ICs, connectors, diodes, inductors, fuses, clock elements, and LEDs. It evaluates an object-detection / visual grounding model's ability to localize and label circuit elements in technical imagery.",
+  "card_text": "Circuit-Elements-Detection is an image-text dataset of 200 samples focused on PCB (printed circuit board) inspection. Each sample provides a single input image (a photograph/scan of a circuit board) plus a short prompt field, and the target output is a dense list of bounding boxes. Each bounding box entry is a JSON object whose key is the component class name (e.g. 'Capacitor', 'Resistor', 'IC', 'Connector', 'Led', 'Diode', 'Inductor', 'Fuse', 'Clock', 'Capacitor Jumper', 'Resistor Jumper') and whose value is a four-number [x, y, width, height] coordinate tuple. Images range from small boards with a few dozen components to large, very dense boards with hundreds of annotations, so the number of boxes per sample varies widely. The dataset is designed to test fine-grained visual recognition and precise localization of technical/electronic objects rather than generic everyday object detection.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "electronics / PCB circuit board inspection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "A reference to a single circuit-board image, which is the main visual content the model must inspect. Visual complexity varies strongly between samples, ranging from a handful of components to hundreds of densely packed circuit elements.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short textual prompt field that acts as the task instruction for the model, telling it what to do with the accompanying image. In the raw samples it holds a placeholder string indicating that user-defined prompts are supplied per model.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "mixed",
+        "content_extent": "long",
+        "style": "structured",
+        "semantics": "The target annotation: a list of objects, each mapping a component class name to a [x, y, width, height] bounding-box tuple in image coordinates. It encodes both the spatial localization and the identity of every electronic component present in the corresponding image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The class-name keys inside each bounding-box entry (e.g. Capacitor, Resistor, IC, Connector, Led, Diode, Inductor, Fuse, Clock, Capacitor Jumper, Resistor Jumper). They define the closed set of electronic component types that can be detected in the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample couples one circuit-board image (input.image_file) with a short instruction string (input.prompt) that serves as the query. The target output (output.bbox) is a dense list of annotation objects, where each object's key is an electronic component category and its value is a four-number [x, y, width, height] bounding box. The image supplies the visual context, the prompt defines the task, and the bounding-box list provides the ground-truth localization and class labels for every circuit element in that image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/circuit-elements-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "circuit-element-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

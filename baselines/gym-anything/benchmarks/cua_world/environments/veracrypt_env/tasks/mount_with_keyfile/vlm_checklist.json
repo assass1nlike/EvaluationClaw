@@ -1,0 +1,53 @@
+{
+  "task_id": "mount_with_keyfile@1",
+  "task_completion": [
+    {
+      "id": "volume_selected",
+      "description": "The agent selects the correct VeraCrypt volume file.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt GUI showing '/home/ga/Volumes/secure_finance.hc' in the volume path field, or a terminal with a command referencing this path (e.g., 'veracrypt /home/ga/Volumes/secure_finance.hc')."
+    },
+    {
+      "id": "keyfile_configured",
+      "description": "The agent configures the required keyfile for authentication.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt 'Keyfiles' dialog showing '/home/ga/Keyfiles/finance_key.dat' added to the list, or a terminal command including the flag '--keyfiles /home/ga/Keyfiles/finance_key.dat'."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "The volume is successfully mounted at the specified mount point.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI main window showing the volume mounted at the directory '/home/ga/MountPoints/slot1', or terminal output (like 'df', 'mount', or 'lsblk') confirming the mount point."
+    },
+    {
+      "id": "contents_viewed",
+      "description": "The agent lists or views the contents of the mounted volume.",
+      "points": 20,
+      "visual_evidence": "A file manager window open to '/home/ga/MountPoints/slot1' showing the files, or a terminal showing the output of an 'ls' command on that directory displaying the expected files."
+    },
+    {
+      "id": "output_saved",
+      "description": "The agent saves the list of files to the required output text file.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat /home/ga/Documents/volume_contents.txt') showing the file contains the names of the three expected files, one per line."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_interaction",
+      "description": "The agent actually used VeraCrypt to mount the volume rather than hallucinating the contents.",
+      "visual_evidence": "Screenshots must show genuine interaction with the VeraCrypt GUI or VeraCrypt CLI commands being executed in the terminal."
+    },
+    {
+      "id": "authentic_file_listing",
+      "description": "The output file contains a genuine listing of the files, not a script or copy-pasted task description.",
+      "visual_evidence": "The file '/home/ga/Documents/volume_contents.txt' should be a plain text file containing only the filenames (one per line), without extra conversational text, python code, or markdown formatting."
+    },
+    {
+      "id": "correct_mount_point_used",
+      "description": "The agent used the explicitly requested mount point rather than a default one.",
+      "visual_evidence": "The file manager or terminal commands must clearly reference '/home/ga/MountPoints/slot1' as the location where the files are being read from."
+    }
+  ],
+  "privileged_info_for_vlm": "The VeraCrypt volume is located at '/home/ga/Volumes/secure_finance.hc'. The required mount point is '/home/ga/MountPoints/slot1'. The required keyfile is '/home/ga/Keyfiles/finance_key.dat'. The expected files inside the mounted volume are exactly: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'. The final output must be saved to '/home/ga/Documents/volume_contents.txt'."
+}

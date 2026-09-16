@@ -1,0 +1,59 @@
+{
+  "task_id": "stream_playback_udp_json@1",
+  "task_completion": [
+    {
+      "id": "openbci_playback_mode",
+      "description": "OpenBCI GUI is open and configured for Playback mode",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI window is visible with 'PLAYBACK' (or 'Playback File') selected as the data source."
+    },
+    {
+      "id": "correct_file_loaded",
+      "description": "The specified motor imagery EEG recording file is loaded",
+      "points": 20,
+      "visual_evidence": "The filename 'OpenBCI-EEG-S001-MotorImagery.txt' is visible in the file selection area or playback widget of the OpenBCI GUI."
+    },
+    {
+      "id": "networking_udp_json",
+      "description": "Networking widget is configured for UDP protocol and JSON format",
+      "points": 20,
+      "visual_evidence": "The Networking widget is open in the GUI. The protocol dropdown is set to 'UDP' and the data format is set to 'JSON'."
+    },
+    {
+      "id": "networking_port",
+      "description": "Networking widget is configured for port 12345",
+      "points": 20,
+      "visual_evidence": "In the Networking widget, the port input field is explicitly set to '12345'."
+    },
+    {
+      "id": "streaming_active",
+      "description": "Data playback and streaming are started",
+      "points": 10,
+      "visual_evidence": "The GUI shows active EEG waveforms (fluctuating lines, not flatlines) in the Time Series widget, and the Networking widget indicates streaming is active (e.g., button says 'Stop Data Stream' or similar active state)."
+    },
+    {
+      "id": "packets_received",
+      "description": "Data packets are successfully received by a listening server",
+      "points": 20,
+      "visual_evidence": "A terminal or external application window is visible alongside the GUI, showing output of received UDP JSON packets (at least 5 packets or a continuous stream of JSON data)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_streaming",
+      "description": "The agent used the OpenBCI GUI to stream the data",
+      "visual_evidence": "The OpenBCI GUI is visibly open and configured for networking. The agent did not bypass the GUI by using a standalone Python script or terminal command (like netcat or cat) to read the text file and send UDP packets directly."
+    },
+    {
+      "id": "genuine_server_receipt",
+      "description": "The listening server is genuinely receiving data over the network",
+      "visual_evidence": "The terminal showing received packets appears to be running a genuine listener (e.g., a Python UDP server script or netcat listening on port 12345), rather than just echoing a hardcoded JSON string."
+    },
+    {
+      "id": "real_eeg_data_visible",
+      "description": "The GUI displays real EEG data, confirming the correct file is playing",
+      "visual_evidence": "The Time Series widget in the OpenBCI GUI shows actual fluctuating EEG waveforms across multiple channels, not synthetic flatlines or perfect sine waves, confirming the PhysioNet recording is actually playing."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is 'OpenBCI-EEG-S001-MotorImagery.txt'. The streaming protocol must be UDP, format JSON, and port 12345. The listening server must receive at least 5 packets. The data contains 8 channels of real EEG data (Fp1, Fp2, C3, C4, P7, P8, O1, O2) at 250 Hz, so the GUI should show active, fluctuating waveforms, not flatlines."
+}

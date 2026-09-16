@@ -1,0 +1,59 @@
+{
+  "task_id": "graphite_nagios_plugin@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The Python script is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal shows the file /home/ga/check_graphite_metric.py being edited or created."
+    },
+    {
+      "id": "script_executable",
+      "description": "The script is made executable.",
+      "points": 10,
+      "visual_evidence": "A terminal command like 'chmod +x /home/ga/check_graphite_metric.py' is visible, or an 'ls -l' command shows executable permissions for the file."
+    },
+    {
+      "id": "argparse_implemented",
+      "description": "The script uses argparse for required and optional arguments.",
+      "points": 20,
+      "visual_evidence": "The script content shows 'import argparse' and 'add_argument' calls for '--target', '--warning', '--critical', and '--minutes' (with a default of 10)."
+    },
+    {
+      "id": "api_query_logic",
+      "description": "The script constructs the correct API query to Graphite.",
+      "points": 20,
+      "visual_evidence": "The script content shows a URL being built for 'http://localhost/render' with query parameters including 'format=json', the URL-encoded target, and a time range (e.g., 'from=-...min')."
+    },
+    {
+      "id": "data_evaluation_logic",
+      "description": "The script evaluates the most recent non-null data point.",
+      "points": 20,
+      "visual_evidence": "The script content shows logic to extract the first returned series, find the most recent non-null data point, and compare its value against warning and critical thresholds using '>='."
+    },
+    {
+      "id": "nagios_output_format",
+      "description": "The script outputs the correct Nagios format and exit codes.",
+      "points": 20,
+      "visual_evidence": "The script content shows print statements matching '[STATUS] - <target> is <value> | metric=<value>;<warning>;<critical>' and 'sys.exit()' calls with 0, 1, 2, and 3."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_values",
+      "description": "The script dynamically processes the API response rather than hardcoding specific outputs.",
+      "visual_evidence": "The script parses JSON and uses variables for the target, value, warning, and critical thresholds in the print statements instead of hardcoded strings."
+    },
+    {
+      "id": "genuine_api_request",
+      "description": "The script makes a real HTTP request to the Graphite API.",
+      "visual_evidence": "The script imports and uses an HTTP library like 'urllib.request' or 'requests' to fetch data from 'http://localhost/render'."
+    },
+    {
+      "id": "script_not_empty",
+      "description": "The script contains the actual implementation, not just a placeholder.",
+      "visual_evidence": "The file /home/ga/check_graphite_metric.py has multiple lines of Python code implementing the required logic, rather than being empty or containing only comments."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating a Nagios-compliant Python script at /home/ga/check_graphite_metric.py to query a Graphite API. The script is expected to handle metrics such as 'servers.ec2_instance_1.cpu.utilization', aligning with Cloud Infrastructure monitoring."
+}

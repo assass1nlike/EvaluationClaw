@@ -1,0 +1,42 @@
+{
+  "id": "client_onboarding_handoff@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "You are an IT Project Manager at a professional services consulting firm. The sales team has just closed a major deal with Meridian Health Systems, a 500-bed hospital network. You need to set up the project communication infrastructure and coordinate the handoff from sales to delivery. Log in to Rocket.Chat (Username: admin, Password: Admin1234!).\n\nEstablish the project's communication structure based on the client briefing in the #sales-handoffs channel. This includes creating a private channel named 'proj-meridian-internal' (Topic: 'Meridian Health Systems | EHR Integration Platform | $2.4M | Discovery: Mar-Apr 2026') for solutions.architect, delivery.lead, ux.designer, and data.engineer, featuring a pinned kickoff message containing the client overview, technical requirements (HL7 FHIR, real-time sync, HIPAA logging), identified risk factors, and proposed timeline milestones. Additionally, create a public channel named 'proj-meridian-client' (Topic: 'Meridian Health Systems - EHR Integration Project | Client Communication Channel') for solutions.architect, delivery.lead, account.manager, and client.sponsor, containing a welcome message introducing the delivery team and confirming the kickoff timeline. Confirm the setup is complete by replying to the briefing thread in #sales-handoffs and direct message solutions.architect to request a technical assessment of the HL7 FHIR integration requirements and the legacy lab system API gap.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "dense"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/client_onboarding_handoff/setup_task.sh",
+    "pre_task_timeout": 600,
+    "post_task": "/workspace/tasks/client_onboarding_handoff/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "IT Project Manager",
+    "industry": "Professional Services / Consulting",
+    "internal_channel": "proj-meridian-internal",
+    "client_channel": "proj-meridian-client",
+    "internal_members": [
+      "solutions.architect",
+      "delivery.lead",
+      "ux.designer",
+      "data.engineer"
+    ],
+    "client_members": [
+      "solutions.architect",
+      "delivery.lead",
+      "account.manager",
+      "client.sponsor"
+    ],
+    "dm_recipient": "solutions.architect"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_client_onboarding_handoff"
+    }
+  }
+}

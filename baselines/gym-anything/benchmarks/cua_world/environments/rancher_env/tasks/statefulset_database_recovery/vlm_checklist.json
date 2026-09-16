@@ -1,0 +1,53 @@
+{
+  "task_id": "statefulset_database_recovery@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent successfully logged into the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "The Rancher web interface is visible in the browser, showing the home screen, cluster dashboard, or workload overview, indicating successful authentication."
+    },
+    {
+      "id": "navigate_data_platform_namespace",
+      "description": "Agent navigated to the 'data-platform' namespace",
+      "points": 10,
+      "visual_evidence": "The Rancher UI shows 'data-platform' selected in the namespace filter dropdown at the top of the screen or in the workloads list."
+    },
+    {
+      "id": "locate_postgres_statefulset",
+      "description": "Agent located the 'postgres-primary' StatefulSet",
+      "points": 20,
+      "visual_evidence": "The Rancher UI displays the 'postgres-primary' workload in the StatefulSets list or shows its specific detail view."
+    },
+    {
+      "id": "edit_statefulset_configuration",
+      "description": "Agent opened the configuration or YAML of the StatefulSet to diagnose and fix failures",
+      "points": 20,
+      "visual_evidence": "The Rancher UI shows the 'Edit Config' form or 'Edit YAML' screen for the 'postgres-primary' StatefulSet, indicating the agent is actively modifying the broken configuration."
+    },
+    {
+      "id": "statefulset_healthy_running",
+      "description": "The 'postgres-primary' StatefulSet and its pods are restored to a healthy, Running status",
+      "points": 40,
+      "visual_evidence": "The Rancher UI shows the 'postgres-primary' StatefulSet with a green 'Active' or 'Running' status indicator, and the associated pod count shows the expected number of pods in a 'Running' state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Agent interacted with the actual Rancher web application",
+      "visual_evidence": "The screenshots show a real web browser navigating the Rancher UI, not a mock-up, text editor, or static HTML file."
+    },
+    {
+      "id": "no_dev_tools_tampering",
+      "description": "Agent did not use browser developer tools to fake the StatefulSet status",
+      "visual_evidence": "The browser's developer tools (Inspect Element) are not open to manually alter the DOM to show 'Active' or 'Running' text."
+    },
+    {
+      "id": "no_terminal_only_bypass",
+      "description": "Agent utilized the requested Rancher interface rather than exclusively using terminal commands to bypass the UI requirement",
+      "visual_evidence": "Screenshots must show the Rancher UI being used for at least the verification of the StatefulSet status, rather than only showing a terminal window with kubectl commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Namespace: 'data-platform'. Target StatefulSet: 'postgres-primary'. The task requires fixing the StatefulSet so that its pods reach a 'Running' status. A passing score requires remediating at least 3 out of 4 injected failures, which will visually result in the StatefulSet showing as healthy/active in the Rancher UI."
+}

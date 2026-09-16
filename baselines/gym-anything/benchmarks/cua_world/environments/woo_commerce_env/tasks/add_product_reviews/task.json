@@ -1,0 +1,35 @@
+{
+  "id": "add_product_reviews@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure WooCommerce product settings to enable reviews and require star ratings. Add a 5-star review to 'Wireless Bluetooth Headphones' with the text: 'Amazing sound quality and the noise cancellation is top-notch. Battery lasts all week with daily use.' Also, add a 4-star review to 'Organic Cotton T-Shirt' with the text: 'Very soft and comfortable fabric. Runs slightly large so consider sizing down.' Ensure both reviews are submitted and visible on the storefront.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_product_reviews/setup_task.sh",
+    "post_task": "/workspace/tasks/add_product_reviews/export_result.sh"
+  },
+  "metadata": {
+    "headphones_sku": "WBH-001",
+    "headphones_rating": 5,
+    "headphones_text_keyword": "noise cancellation",
+    "tshirt_sku": "OCT-BLK-M",
+    "tshirt_rating": 4,
+    "tshirt_text_keyword": "sizing down",
+    "expected_settings": {
+      "woocommerce_enable_reviews": "yes",
+      "woocommerce_enable_review_rating": "yes",
+      "woocommerce_review_rating_required": "yes"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_product_reviews"
+    }
+  }
+}

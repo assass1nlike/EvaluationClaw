@@ -1,0 +1,33 @@
+{
+  "id": "dose_response_trend_esophageal@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Using Epi Info 7 Classic Analysis, perform dose-response analyses on the esophageal cancer case-control dataset located at 'C:\\Users\\Docker\\Documents\\EpiData\\esophageal_cancer.csv'. Conduct TABLES analyses for 'CaseStatus' by 'AlcoholGroup' and 'CaseStatus' by 'TobaccoGroup' to determine the Chi-Square for Linear Trend and p-values. Record the findings in a summary text file at 'C:\\Users\\Docker\\Documents\\EpiResults\\dose_response_results.txt' using the following format:\n\nAlcohol_ChiSq_Trend: [value]\nAlcohol_Trend_PValue: [value]\nTobacco_ChiSq_Trend: [value]\nTobacco_Trend_PValue: [value]\nAlcohol_DoseResponse: [Yes/No]\nTobacco_DoseResponse: [Yes/No]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dose_response_trend_esophageal\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dose_response_trend_esophageal\\export_result.ps1"
+  },
+  "metadata": {
+    "data_path": "C:\\Users\\Docker\\Documents\\EpiData\\esophageal_cancer.csv",
+    "result_path": "C:\\Users\\Docker\\Documents\\EpiResults\\dose_response_results.txt",
+    "expected_values": {
+      "alcohol_chisq_min": 50.0,
+      "alcohol_chisq_max": 200.0,
+      "tobacco_chisq_min": 15.0,
+      "tobacco_chisq_max": 100.0,
+      "p_value_threshold": 0.001
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dose_response_trend"
+    }
+  }
+}

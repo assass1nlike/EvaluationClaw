@@ -1,0 +1,59 @@
+{
+  "task_id": "running_pace_analyzer@1",
+  "task_completion": [
+    {
+      "id": "open_training_log",
+      "description": "Open the training log data in LibreOffice Calc",
+      "points": 10,
+      "visual_evidence": "LibreOffice Calc window is open displaying the running training log data with columns such as Date, RunType, Distance, DistanceUnit, Time, and TimeFormat."
+    },
+    {
+      "id": "standardize_distance",
+      "description": "Standardize distance units to miles",
+      "points": 20,
+      "visual_evidence": "A new or modified column (e.g., 'Distance_Miles') is visible, showing distances where 'km' values have been converted to miles (using the multiplier 0.621371). The formula bar may show an IF statement handling the conversion."
+    },
+    {
+      "id": "standardize_time",
+      "description": "Standardize time formats to decimal minutes",
+      "points": 20,
+      "visual_evidence": "A new or modified column (e.g., 'Time_Minutes') is visible, showing all times converted to a consistent decimal minutes format, resolving the mixed HH:MM:SS, decimal minutes, and decimal hours formats."
+    },
+    {
+      "id": "calculate_pace",
+      "description": "Calculate pace metrics for each run",
+      "points": 20,
+      "visual_evidence": "A 'Pace' column is visible showing calculated values (Time_Minutes divided by Distance_Miles). The values in this column should range between approximately 8.14 and 9.90."
+    },
+    {
+      "id": "identify_performance_trends",
+      "description": "Identify performance trends by calculating average pace per run type",
+      "points": 20,
+      "visual_evidence": "Summary cells or a small table is visible showing the calculated average pace for different run types. Expected averages are roughly: Easy (8.53), Tempo (9.04), and Long (9.82)."
+    },
+    {
+      "id": "save_results",
+      "description": "Save the cleaned and analyzed data to the designated output path",
+      "points": 10,
+      "visual_evidence": "A 'Save As' dialog is visible saving the file to the required path, or the LibreOffice Calc title bar reflects the new saved filename."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used the LibreOffice Calc GUI to perform the data cleaning and analysis.",
+      "visual_evidence": "Screenshots should show interaction with the LibreOffice Calc interface (menus, formula bar, cells) rather than a terminal window running a Python/bash script to process the CSV."
+    },
+    {
+      "id": "used_formulas_not_hardcoding",
+      "description": "The agent used spreadsheet formulas rather than manually typing in the expected answers.",
+      "visual_evidence": "The formula bar in LibreOffice Calc should display actual formulas (e.g., =IF(...), =AVERAGE(...), or division operations) when calculation cells are selected, rather than hardcoded numbers."
+    },
+    {
+      "id": "genuine_data_manipulation",
+      "description": "The agent actively manipulated the data step-by-step.",
+      "visual_evidence": "The sequence of screenshots should show the progressive creation of new columns and summary tables, not just a sudden jump to a completed spreadsheet."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 15 running records with mixed distances (10 miles, 5 km) and mixed times (7 HH:MM:SS, 5 decimal minutes, 3 decimal hours). Distance must be standardized to miles (km * 0.621371). Time must be standardized to decimal minutes. Pace is calculated as Time_Minutes / Distance_Miles. All calculated paces should fall within a realistic 8.14 to 9.90 min/mile range. The summary trend analysis must show average paces by run type: Easy runs average 8.53 min/mile, Tempo runs average 9.04 min/mile, and Long runs average 9.82 min/mile. The agent is expected to use formulas (e.g., IF, AVERAGE) rather than hardcoding values."
+}

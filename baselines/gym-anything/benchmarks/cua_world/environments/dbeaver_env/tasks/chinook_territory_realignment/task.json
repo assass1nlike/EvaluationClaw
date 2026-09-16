@@ -1,0 +1,35 @@
+{
+  "id": "chinook_territory_realignment@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "The Sales Director has issued a new territory realignment plan. You need to update the Chinook database (/home/ga/Documents/databases/chinook.db) to reflect these changes. Import the territory mapping CSV from /home/ga/Documents/territory_assignments.csv into a new table named 'territory_map'. Update the 'customers' table by setting 'SupportRepId' to the matching 'RepId' from 'territory_map' for each customer's 'Country'. Export a summary CSV to /home/ga/Documents/exports/reassignment_verification.csv with columns 'EmployeeName' (First and Last name combined) and 'CustomerCount' showing the number of customers assigned to each employee. Save the SQL script containing your import, update, and verification logic to /home/ga/Documents/scripts/update_territories.sql. Login: ga / password123",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_territory_realignment/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_territory_realignment/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "csv_source": "/home/ga/Documents/territory_assignments.csv",
+    "output_report": "/home/ga/Documents/exports/reassignment_verification.csv",
+    "output_script": "/home/ga/Documents/scripts/update_territories.sql",
+    "expected_mappings": {
+      "USA": 4,
+      "Canada": 4,
+      "France": 3,
+      "United Kingdom": 3,
+      "Australia": 5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_territory_realignment"
+    }
+  }
+}

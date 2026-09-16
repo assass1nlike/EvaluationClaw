@@ -1,0 +1,46 @@
+{
+  "id": "mumps_vaccine_effectiveness_analysis@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are an epidemiologist investigating a mumps outbreak. Using the Mumps dataset (C:\\EpiInfo7\\Projects\\Mumps\\Mumps.mdb, table: Survey), perform a frequency analysis on all relevant variables and create a 2x2 table of vaccination status versus illness outcome to compute the crude odds ratio. Conduct a multivariable logistic regression with illness as the outcome and vaccination status as the primary predictor, controlling for age group and other relevant covariates. Save the complete analysis output to C:\\Users\\Docker\\mumps_analysis.html and export a summary CSV containing variable names and their effect estimates (OR, 95% CI) to C:\\Users\\Docker\\mumps_ve_summary.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\mumps_vaccine_effectiveness_analysis\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\mumps_vaccine_effectiveness_analysis\\export_result.ps1"
+  },
+  "metadata": {
+    "dataset": "C:\\EpiInfo7\\Projects\\Mumps\\Mumps.mdb",
+    "table": "Survey",
+    "primary_outcome": "illness indicator variable in the Mumps Survey dataset",
+    "primary_exposure": "vaccination status variable in the Mumps Survey dataset",
+    "covariates": [
+      "age group",
+      "other demographic variables present in dataset"
+    ],
+    "required_outputs": [
+      "C:\\Users\\Docker\\mumps_analysis.html",
+      "C:\\Users\\Docker\\mumps_ve_summary.csv"
+    ],
+    "analysis_modules": [
+      "Classic Analysis"
+    ],
+    "expected_commands": [
+      "READ",
+      "FREQ",
+      "TABLES",
+      "LOGISTIC",
+      "ROUTEOUT",
+      "WRITE"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mumps_vaccine_effectiveness_analysis"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "emergency_diversion_plan@1",
+  "version": "1.0",
+  "env_id": "example.avare_env@0.1",
+  "description": "You are a VFR pilot airborne over the San Francisco Bay Area when your engine develops a rough-running problem. Identify a suitable emergency alternate airport within the Bay Area (such as KHAF, KSQL, KPAO, KLVK, KCCR, or KWVI) and build a direct diversion flight plan from KSFO to that alternate. Save the flight plan with the internal name EMER to the file EMER.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/emergency_diversion_plan/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/emergency_diversion_plan/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_emergency_diversion_plan"
+    }
+  },
+  "metadata": {
+    "required_plan_name": "EMER",
+    "origin_waypoint": "KSFO",
+    "acceptable_alternates": [
+      "KHAF",
+      "KSQL",
+      "KPAO",
+      "KLVK",
+      "KCCR",
+      "KWVI",
+      "KSJC",
+      "KNUQ",
+      "KOAK",
+      "KAPC"
+    ]
+  }
+}

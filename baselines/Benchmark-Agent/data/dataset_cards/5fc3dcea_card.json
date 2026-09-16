@@ -1,0 +1,81 @@
+{
+  "dataset_id": "5fc3dcea",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Annotation Open dataset contains image-text pairs from the Multi30k corpus, where each sample pairs an image with a sentence in a target language (French or German). The task is to determine whether the sentence correctly describes the image, producing a binary 'yes' or 'no' answer. It evaluates cross-lingual multimodal understanding and image-text matching.",
+  "card_text": "This dataset contains 200 multimodal samples from the Multi30k corpus, pairing Flickr30k images with human-translated descriptions in French and German. Each item includes an image file path, a task instruction asking whether the image can be described by the provided sentence in the specified language, and a generic prompt specifying the output format. The expected output is a binary label: 'yes' if the sentence correctly matches the image, otherwise 'no'. The images depict everyday scenes, people, objects, and activities, while the target sentences are short, natural descriptions. The dataset evaluates a model's ability to perform cross-lingual image-text matching and binary entailment: it must understand the visual content and the sentence in another language, and judge their compatibility. The samples are drawn from the open set of a translation benchmark, making it suitable for zero-shot or few-shot evaluation of vision-language models.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "multimodal image-text matching",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "Path to the image that serves as the visual context. The model must analyze this image to determine whether the provided textual description matches it.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.instruction",
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The instruction asks whether the image can be described by a given sentence in a specified language (e.g., French or German). The prompt provides task guidelines and specifies the expected output format ('yes' or 'no').",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Binary answer ('yes' or 'no') indicating whether the image matches the provided translated description.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference, a textual instruction that contains a sentence in a target language and asks a yes/no question about the image, a generic prompt specifying the task and output format, and a binary answer. The image is the visual context, while the instruction and prompt together form the question. The answer is a short text label ('yes' or 'no') that represents the model's judgment on whether the image can be described by the given sentence."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multimodal_Neural_Translation/annotation_open.json",
+    "existing_tags": {
+      "task": "Multimodal_Neural_Translation",
+      "type": "comprehension",
+      "skill": "Multimodal Neural Translation",
+      "domain": "Linguistics",
+      "general_capability": "Reasoning Ability",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Linguistics"
+  }
+}

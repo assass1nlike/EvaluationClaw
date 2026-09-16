@@ -1,0 +1,38 @@
+{
+  "id": "multi_event_magnitude_comparison_scolv@1",
+  "version": "1.0",
+  "env_id": "seiscomp_env@0.1",
+  "description": "Your observatory database contains the 2024-01-01 Noto Peninsula mainshock, but the aftershock from the same day is missing. Import the aftershock event from /home/ga/Desktop/aftershock_data.xml into the SeisComP database with the event type set to 'earthquake' and preferred magnitude type 'Mw(mB)'. Export a formatted event bulletin containing the magnitudes and locations for both the mainshock and aftershock to /home/ga/Desktop/event_comparison.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "partial"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multi_event_magnitude_comparison_scolv/setup_task.sh",
+    "post_task": "/workspace/tasks/multi_event_magnitude_comparison_scolv/export_result.sh"
+  },
+  "metadata": {
+    "mainshock_event_id": "us6000m0xl",
+    "aftershock_event_id": "us6000m13n",
+    "aftershock_magnitude": 6.2,
+    "aftershock_quakeml_path": "/home/ga/Desktop/aftershock_data.xml",
+    "seiscomp_gui_apps": [
+      "scolv"
+    ],
+    "seiscomp_cli_tools": [
+      "scdb",
+      "fdsnxml2inv",
+      "scbulletin"
+    ],
+    "occupation": "Geoscientists (SOC 19-2042.00)",
+    "task_type": "event_import_review_and_bulletin_export"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_event_magnitude_comparison_scolv"
+    }
+  }
+}

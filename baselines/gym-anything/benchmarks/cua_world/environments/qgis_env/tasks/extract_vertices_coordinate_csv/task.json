@@ -1,0 +1,36 @@
+{
+  "id": "extract_vertices_coordinate_csv@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "A land surveyor needs a table of all corner coordinates from planning zone polygon boundaries for GPS field verification. Using the polygon layer from /home/ga/GIS_Data/sample_polygon.geojson, extract the corner vertices into a point layer and add explicit X (longitude) and Y (latitude) coordinate columns. Export the resulting point layer as a CSV file to /home/ga/GIS_Data/exports/polygon_vertices.csv, ensuring it contains all attribute columns including coordinates, vertex_index, and original polygon attributes like name and id. Save the QGIS project to /home/ga/GIS_Data/projects/vertex_extraction.qgs.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_vertices_coordinate_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_vertices_coordinate_csv/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/GIS_Data/exports/polygon_vertices.csv",
+    "expected_project_path_prefix": "/home/ga/GIS_Data/projects/vertex_extraction",
+    "min_rows": 8,
+    "max_rows": 12,
+    "lon_range": [
+      -122.6,
+      -121.8
+    ],
+    "lat_range": [
+      37.4,
+      37.9
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_vertices"
+    }
+  }
+}

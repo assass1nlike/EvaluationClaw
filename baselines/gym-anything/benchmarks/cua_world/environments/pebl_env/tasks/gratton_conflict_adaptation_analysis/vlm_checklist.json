@@ -1,0 +1,59 @@
+{
+  "task_id": "gratton_conflict_adaptation_analysis@1",
+  "task_completion": [
+    {
+      "id": "data_file_accessed",
+      "description": "Agent accesses or inspects the simon_data.csv file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., head, cat) or a text editor/spreadsheet showing the contents of ~/pebl/data/simon_data.csv."
+    },
+    {
+      "id": "script_created",
+      "description": "Agent creates a script to process the data.",
+      "points": 15,
+      "visual_evidence": "A text editor or IDE open with code (e.g., Python, R) that reads the CSV file and prepares to iterate over or group the trials."
+    },
+    {
+      "id": "exclusion_logic_implemented",
+      "description": "Agent implements logic to exclude specific trials and the bot participant.",
+      "points": 25,
+      "visual_evidence": "Code visible showing conditions to exclude 'sub-999', the first trial of each block, current error trials, and post-error trials (e.g., checking previous trial accuracy)."
+    },
+    {
+      "id": "gratton_effect_calculated",
+      "description": "Agent implements the formula for the Gratton Effect.",
+      "points": 20,
+      "visual_evidence": "Code visible calculating the difference of differences: (rt_cI - rt_cC) - (rt_iI - rt_iC)."
+    },
+    {
+      "id": "json_report_generated",
+      "description": "Agent executes the script to generate the JSON report.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the script being run without errors, or an ls command showing gratton_report.json created in ~/pebl/analysis/."
+    },
+    {
+      "id": "json_content_verified",
+      "description": "The generated JSON report contains the required structure.",
+      "points": 15,
+      "visual_evidence": "The contents of gratton_report.json are displayed (via cat or editor), showing a 'participants' list, 'sub-999' with 'excluded': true and a 'reason', and a 'group_mean_gratton' value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation_performed",
+      "description": "The agent uses a script or data analysis tool to compute the results.",
+      "visual_evidence": "The agent writes and executes code (e.g., Python, pandas) rather than manually calculating and typing the JSON."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent does not hardcode the final JSON output.",
+      "visual_evidence": "The script dynamically calculates means and effects from the CSV data instead of printing a static, pre-written JSON string."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The JSON file is saved to the correct directory.",
+      "visual_evidence": "The output file path in the script or terminal is exactly ~/pebl/analysis/gratton_report.json."
+    }
+  ],
+  "privileged_info_for_vlm": "Data file is located at /home/ga/pebl/data/simon_data.csv. Output must be at /home/ga/pebl/analysis/gratton_report.json. The contaminated participant to exclude is 'sub-999'. The agent must compute the Gratton Effect as (rt_cI - rt_cC) - (rt_iI - rt_iC) and output a JSON with 'participants', 'group_mean_gratton', and exclusion details for 'sub-999'."
+}

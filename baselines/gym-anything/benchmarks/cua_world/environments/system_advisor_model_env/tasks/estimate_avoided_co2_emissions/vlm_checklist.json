@@ -1,0 +1,59 @@
+{
+  "task_id": "estimate_avoided_co2_emissions@1",
+  "task_completion": [
+    {
+      "id": "read_weather_file_path",
+      "description": "The agent reads the weather file path from the specified text file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat /home/ga/.SAM/weather_file_for_task.txt' or Python code opening and reading this specific file."
+    },
+    {
+      "id": "write_pysam_script",
+      "description": "The agent writes a Python script utilizing PySAM's Pvwattsv8 module with the correct system parameters.",
+      "points": 20,
+      "visual_evidence": "A code editor or terminal showing a Python script importing 'PySAM.Pvwattsv8' (or similar) and setting parameters: capacity 50.0, module type 0, array type 1, tilt 20, azimuth 180, losses 14.08, dc_ac_ratio 1.2, and inv_eff 96."
+    },
+    {
+      "id": "implement_calculations",
+      "description": "The agent implements the required environmental impact calculations using the correct conversion factors.",
+      "points": 20,
+      "visual_evidence": "Python code showing the math: converting kWh to MWh (dividing by 1000), multiplying by 0.3856 for CO2, dividing CO2 by 4.6 for cars, and dividing CO2 by 0.060 for trees."
+    },
+    {
+      "id": "execute_simulation",
+      "description": "The agent executes the Python script to run the PySAM simulation.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the Python script (e.g., 'python script.py') without throwing unhandled errors."
+    },
+    {
+      "id": "create_json_report",
+      "description": "The agent saves the results to the specified JSON file path.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the creation of '/home/ga/Documents/SAM_Projects/co2_avoided_report.json' (e.g., via 'ls' or 'cat' commands) or the Python script explicitly writing to this path."
+    },
+    {
+      "id": "verify_json_contents",
+      "description": "The generated JSON file contains the correct structure and reasonable computed values.",
+      "points": 20,
+      "visual_evidence": "Terminal or editor showing the contents of the JSON file. It must include all required keys (system_capacity_kw, tilt_deg, azimuth_deg, annual_energy_kwh, annual_energy_mwh, emission_factor_mt_co2_per_mwh, avoided_co2_mt, equivalent_cars_removed, equivalent_trees_planted, weather_file_used) and the 'annual_energy_kwh' should be a number between 50000 and 100000."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pysam_execution",
+      "description": "The agent actually runs the PySAM simulation rather than hardcoding a random acceptable energy value.",
+      "visual_evidence": "The Python script must contain the execution command for the PySAM model (e.g., 'model.execute()') and extract the 'annual_energy' from the model outputs."
+    },
+    {
+      "id": "no_manual_json_creation",
+      "description": "The agent generates the JSON file programmatically rather than typing it out manually.",
+      "visual_evidence": "The JSON file is created via Python's 'json.dump()' or similar programmatic output in the script, not by manually typing the JSON structure into a text editor."
+    },
+    {
+      "id": "dynamic_weather_file_usage",
+      "description": "The agent uses the weather file path obtained from the text file.",
+      "visual_evidence": "The Python script assigns the 'solar_resource_file' parameter using the path extracted from '/home/ga/.SAM/weather_file_for_task.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/SAM_Projects/co2_avoided_report.json. The correct emission factor is 0.3856 MT CO2/MWh, the car factor is 4.6 MT CO2/year/car, and the tree factor is 0.06 MT CO2/seedling. A correct PySAM PVWattsv8 simulation for a 50kW array with the given parameters will yield an annual_energy_kwh between 50,000 and 100,000 kWh."
+}

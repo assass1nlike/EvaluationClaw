@@ -1,0 +1,48 @@
+{
+  "task_id": "motor_imagery_channel_protocol@1",
+  "task_completion": [
+    {
+      "id": "load_recording",
+      "description": "Verify the correct EEG recording file is loaded into the OpenBCI GUI.",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI shows 'OpenBCI-EEG-S001-MotorImagery.txt' in the playback file selection or session setup screen."
+    },
+    {
+      "id": "isolate_motor_channels",
+      "description": "Verify that only channels C3 and C4 are active, and all other channels are disabled.",
+      "points": 30,
+      "visual_evidence": "In the Time Series widget or channel control panel, Channels 3 and 4 are active (colored/toggled on), while Channels 1, 2, 5, 6, 7, and 8 are disabled (grayed out/toggled off)."
+    },
+    {
+      "id": "apply_bandpass_filter",
+      "description": "Verify that an 8-30 Hz bandpass filter is applied.",
+      "points": 20,
+      "visual_evidence": "A filter setting or dropdown in the GUI (often in the Time Series widget or hardware settings) explicitly shows '8-30 Hz' or '8.0 - 30.0 Hz' selected."
+    },
+    {
+      "id": "open_fft_plot",
+      "description": "Verify that the FFT Plot widget is included in the GUI layout.",
+      "points": 20,
+      "visual_evidence": "A widget window titled 'FFT Plot' is visible on the screen, displaying a frequency spectrum graph."
+    },
+    {
+      "id": "save_configuration",
+      "description": "Verify the session configuration is saved to the specified JSON file.",
+      "points": 20,
+      "visual_evidence": "A save dialog, GUI notification, or terminal command (like 'ls' or 'cat') confirms that 'motor_imagery_config.json' was saved in the '~/Documents/OpenBCI_GUI/Settings/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent actually used the OpenBCI GUI to perform the task.",
+      "visual_evidence": "Screenshots must show the OpenBCI GUI application open and being interacted with, rather than just terminal windows."
+    },
+    {
+      "id": "no_direct_json_creation",
+      "description": "Ensure the agent did not bypass the GUI by manually creating the JSON configuration file.",
+      "visual_evidence": "The configuration should be saved via the GUI's 'Save Settings' or similar feature. There should be no evidence of the agent using 'echo', 'nano', 'vim', or python scripts to directly write the 'motor_imagery_config.json' file."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel mapping based on the 10-20 system and the provided order: Fp1=1, Fp2=2, C3=3, C4=4, P7=5, P8=6, O1=7, O2=8. To isolate C3 and C4, Channels 3 and 4 must be active, while Channels 1, 2, 5, 6, 7, and 8 must be disabled. The bandpass filter must be exactly 8-30 Hz (capturing Mu and Beta bands). The FFT Plot is a standard widget in OpenBCI GUI v5.2.2."
+}

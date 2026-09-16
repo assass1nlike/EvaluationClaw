@@ -1,0 +1,59 @@
+{
+  "task_id": "hand_eye_calibration_dataset@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Agent writes a script to interact with CoppeliaSim via ZMQ Remote API, including logic to attach a vision sensor with an offset and iterate through joint configurations.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing code (likely Python) that imports the CoppeliaSim ZMQ API, creates/gets a vision sensor, sets a local translation offset relative to the end-effector, and loops at least 20 times to change joint positions and read poses."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent executes the dataset generation script successfully.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of the script (e.g., `python3 generate_dataset.py`) completing without connection refused or syntax errors. CoppeliaSim may be visible running in the background."
+    },
+    {
+      "id": "csv_file_generated",
+      "description": "The hand_eye_dataset.csv file is created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "Terminal output of `ls /home/ga/Documents/CoppeliaSim/exports/` or a file explorer showing `hand_eye_dataset.csv` present in the directory."
+    },
+    {
+      "id": "csv_content_correct",
+      "description": "The CSV file contains the correct header columns and at least 20 rows of data.",
+      "points": 25,
+      "visual_evidence": "Terminal output (e.g., using `cat`, `head`, or `wc -l`) or an open file showing the header row: sample_id, ee_x, ee_y, ee_z, ee_qx, ee_qy, ee_qz, ee_qw, cam_x, cam_y, cam_z, cam_qx, cam_qy, cam_qz, cam_qw, followed by at least 20 rows of numerical pose data."
+    },
+    {
+      "id": "json_file_generated",
+      "description": "The dataset_report.json file is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Terminal output of `ls /home/ga/Documents/CoppeliaSim/exports/` or a file explorer showing `dataset_report.json` present in the directory."
+    },
+    {
+      "id": "json_content_correct",
+      "description": "The JSON report contains the required metadata fields.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., `cat dataset_report.json`) or an open file showing a JSON object with the keys: total_samples (must be >= 20), ee_handle, camera_handle, local_offset_x, local_offset_y, and local_offset_z."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_data",
+      "description": "The generated CSV data appears to be genuine simulation output rather than manually fabricated data.",
+      "visual_evidence": "The pose coordinates and quaternions in the CSV should be high-precision floating-point numbers (e.g., 0.123456) typical of physics simulations, not simple integers or repetitive mock patterns."
+    },
+    {
+      "id": "programmatic_generation",
+      "description": "The agent used API calls to generate the data rather than hardcoding the output files.",
+      "visual_evidence": "The script code must show actual CoppeliaSim API calls (like getting object poses and setting joint positions) inside a loop, rather than a script that just writes a hardcoded multi-line string to the files."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The output files were actually saved to the filesystem.",
+      "visual_evidence": "Look for shell commands verifying the files exist on disk (e.g., `ls`, `cat`), ensuring the agent didn't just print the expected output to the standard output without saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output CSV path is '/home/ga/Documents/CoppeliaSim/exports/hand_eye_dataset.csv'. The expected output JSON path is '/home/ga/Documents/CoppeliaSim/exports/dataset_report.json'. The CSV must contain exactly these columns: sample_id, ee_x, ee_y, ee_z, ee_qx, ee_qy, ee_qz, ee_qw, cam_x, cam_y, cam_z, cam_qx, cam_qy, cam_qz, cam_qw. The dataset must contain a minimum of 20 samples."
+}

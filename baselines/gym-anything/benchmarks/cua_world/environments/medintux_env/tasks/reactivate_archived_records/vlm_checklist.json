@@ -1,0 +1,59 @@
+{
+  "task_id": "reactivate_archived_records@1",
+  "task_completion": [
+    {
+      "id": "read_restore_requests",
+      "description": "The agent opened or read the 'restore_requests.txt' file to identify which patients to reactivate.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window (e.g., using 'cat') showing the contents of '~/Documents/restore_requests.txt' with the names of the three patients."
+    },
+    {
+      "id": "access_database",
+      "description": "The agent connected to the MySQL database to manage the records.",
+      "points": 10,
+      "visual_evidence": "A terminal or database client showing an active connection to the MySQL database (e.g., 'mysql -u root', 'USE DrTuxTest;')."
+    },
+    {
+      "id": "restore_fchpat_records",
+      "description": "The agent inserted the patients' demographic data from 'ArchivedPatients' into the 'fchpat' table.",
+      "points": 25,
+      "visual_evidence": "SQL 'INSERT INTO fchpat ...' commands visible in the terminal/DB client, followed by a success message indicating rows were affected."
+    },
+    {
+      "id": "restore_index_records",
+      "description": "The agent inserted the patients into the 'IndexNomPrenom' table and set the record type to 'Dossier'.",
+      "points": 25,
+      "visual_evidence": "SQL 'INSERT INTO IndexNomPrenom ...' commands explicitly specifying the type as 'Dossier', followed by a success message indicating rows were affected."
+    },
+    {
+      "id": "delete_archived_records",
+      "description": "The agent deleted the restored patient records from the 'ArchivedPatients' table.",
+      "points": 15,
+      "visual_evidence": "SQL 'DELETE FROM ArchivedPatients WHERE ...' commands visible in the terminal, followed by a success message indicating rows were deleted."
+    },
+    {
+      "id": "verify_medintux_application",
+      "description": "The agent verified the patients now appear in the MedinTux application.",
+      "points": 15,
+      "visual_evidence": "The MedinTux application GUI is open, showing the newly restored patients in the active patient list or search results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "sql_execution_confirmed",
+      "description": "The agent actually executed the SQL commands rather than just typing them in a text editor.",
+      "visual_evidence": "MySQL prompt showing 'Query OK, X rows affected' or similar execution confirmation for the INSERT and DELETE statements."
+    },
+    {
+      "id": "correct_database_used",
+      "description": "The agent interacted with the correct MedinTux database.",
+      "visual_evidence": "The database name 'DrTuxTest' or the specific tables ('fchpat', 'IndexNomPrenom', 'ArchivedPatients') are visible in the MySQL prompt context or connection string."
+    },
+    {
+      "id": "genuine_medintux_interaction",
+      "description": "The agent interacted with the genuine MedinTux application to verify the restoration.",
+      "visual_evidence": "The actual MedinTux GUI is visible and being interacted with, not a mockup, text file, or terminal output claiming they are restored."
+    }
+  ],
+  "privileged_info_for_vlm": "The request file is located at '/home/ga/Documents/restore_requests.txt'. The database name is 'DrTuxTest'. The archive table is 'ArchivedPatients'. The active tables are 'fchpat' (demographics) and 'IndexNomPrenom' (search index). The target record type to set in the index table is 'Dossier'."
+}

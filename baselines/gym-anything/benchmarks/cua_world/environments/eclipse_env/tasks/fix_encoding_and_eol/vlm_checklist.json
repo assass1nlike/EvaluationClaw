@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_encoding_and_eol@1",
+  "task_completion": [
+    {
+      "id": "open_project_and_files",
+      "description": "Open the 'InternationalApp' project and its files in Eclipse.",
+      "points": 10,
+      "visual_evidence": "The Eclipse IDE is open, showing the 'InternationalApp' project in the Package Explorer, and either 'WindowsService.java' or 'messages_jp.properties' is opened in the editor."
+    },
+    {
+      "id": "convert_line_endings",
+      "description": "Convert 'WindowsService.java' line endings to Unix (LF).",
+      "points": 30,
+      "visual_evidence": "With 'WindowsService.java' active, the menu 'File > Convert Line Delimiters To > Unix' is selected, OR the bottom-right status bar in Eclipse shows 'LF' instead of 'CRLF'."
+    },
+    {
+      "id": "set_encoding_utf8",
+      "description": "Change the project text encoding to UTF-8.",
+      "points": 30,
+      "visual_evidence": "The 'Properties for InternationalApp' dialog is open, and in the 'Resource' section, the 'Text file encoding' is set to 'Other: UTF-8'."
+    },
+    {
+      "id": "verify_japanese_text",
+      "description": "Verify that the Japanese localization file displays correctly.",
+      "points": 20,
+      "visual_evidence": "The 'messages_jp.properties' file is visible in the editor and displays correct Japanese characters (e.g., \u3088\u3046\u3053\u305d, \u30a8\u30e9\u30fc, \u4fdd\u5b58) without any garbled text (mojibake)."
+    },
+    {
+      "id": "save_changes",
+      "description": "Save all changes made to the files.",
+      "points": 10,
+      "visual_evidence": "There are no asterisks (*) next to the file names in the editor tabs, indicating all changes have been saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_eclipse_gui",
+      "description": "The agent used the Eclipse IDE to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with the Eclipse IDE menus and dialogs, not terminal commands like 'dos2unix' or 'iconv'."
+    },
+    {
+      "id": "actual_project_modified",
+      "description": "The changes were made to the correct project in Eclipse.",
+      "visual_evidence": "The Package Explorer and Properties dialog clearly show the 'InternationalApp' project being modified."
+    },
+    {
+      "id": "no_manual_typing_of_japanese",
+      "description": "The agent fixed the encoding rather than manually retyping the Japanese text.",
+      "visual_evidence": "The agent is seen changing the project encoding in the Properties dialog, rather than manually typing or pasting the Japanese characters into the editor to replace the mojibake."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is 'InternationalApp'. The Java file is 'src/com/legacy/WindowsService.java' which initially has CRLF line endings. The properties file is 'src/messages_jp.properties' which contains UTF-8 Japanese text (welcome=\u3088\u3046\u3053\u305d, error=\u30a8\u30e9\u30fc, save=\u4fdd\u5b58) but is initially loaded with ISO-8859-1 encoding, causing mojibake. The agent must use Eclipse to convert the Java file's line delimiters to Unix (LF) and change the project's text file encoding to UTF-8."
+}

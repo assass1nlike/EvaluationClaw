@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_entrypoint_debug@1",
+  "task_completion": [
+    {
+      "id": "fixes_applied",
+      "description": "Agent modified the entrypoint scripts or Dockerfiles to fix the bugs.",
+      "points": 20,
+      "visual_evidence": "Terminal commands (like sed, dos2unix) or an open text editor (nano, vim, VS Code) showing modifications to 'entrypoint.sh' or 'Dockerfile' within the ~/projects/acme-services/ subdirectories."
+    },
+    {
+      "id": "images_rebuilt",
+      "description": "Agent rebuilt the Docker images for the modified services.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'docker build -t acme-cache-warmer .' (and similar commands for the other 3 services) along with the Docker build output logs."
+    },
+    {
+      "id": "containers_running",
+      "description": "All four containers were successfully started and remain running.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the output of 'docker ps' with all four services (acme-cache-warmer, acme-event-processor, acme-report-generator, acme-static-server) listed with a status of 'Up'."
+    },
+    {
+      "id": "report_created",
+      "description": "Agent created the debugging report at the correct location.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the creation of the file, or an open text editor saving to '~/Desktop/debugging_report.txt'."
+    },
+    {
+      "id": "report_content_accurate",
+      "description": "The debugging report contains accurate root causes and fixes for the four services.",
+      "points": 20,
+      "visual_evidence": "Visible text in the debugging report mentioning specific technical details (e.g., CRLF/line endings, bash vs sh syntax, set -e/grep failures, and incorrect config file paths)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_execution",
+      "description": "Agent genuinely interacted with the Docker daemon.",
+      "visual_evidence": "Terminal shows authentic Docker build steps (e.g., 'Step 1/X', layer hashes) and real container IDs in 'docker ps' output, rather than just echoing text."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Agent actually ran the containers before writing the report.",
+      "visual_evidence": "Screenshots show the sequence of fixing, building, and running the containers prior to or alongside writing the final debugging report."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Agent actually modified the files rather than just writing a report about what to do.",
+      "visual_evidence": "Evidence of file editing tools (nano, vim, sed, etc.) being used on the specific files in ~/projects/acme-services/."
+    }
+  ],
+  "privileged_info_for_vlm": "The four services have specific intentional bugs: 1) acme-cache-warmer uses Bash syntax in an Alpine container that only has /bin/sh. 2) acme-event-processor has CRLF (Windows) line endings in its entrypoint script. 3) acme-report-generator uses 'set -e' with a failing 'grep' command, causing immediate exit. 4) acme-static-server sources a config file from an incorrect path (/etc/nginx/conf.d/env.conf instead of /etc/nginx/env.conf). The final report must be at /home/ga/Desktop/debugging_report.txt."
+}

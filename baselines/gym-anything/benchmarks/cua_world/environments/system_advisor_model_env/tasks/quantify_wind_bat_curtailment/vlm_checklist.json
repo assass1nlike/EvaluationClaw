@@ -1,0 +1,53 @@
+{
+  "task_id": "quantify_wind_bat_curtailment@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "Agent creates a Python script that imports PySAM and initializes a wind power model.",
+      "points": 15,
+      "visual_evidence": "Code editor showing a Python script with imports like `PySAM.Windpower` and initialization of a wind power model."
+    },
+    {
+      "id": "dataset_configuration",
+      "description": "Agent configures the script to use the specified Wyoming wind dataset.",
+      "points": 15,
+      "visual_evidence": "Code editor showing the exact file path `/opt/SAM/2023.12.15/wind_resource/wyoming_wind_resource_dataset.csv` assigned to the wind resource parameter in the script."
+    },
+    {
+      "id": "curtailment_logic",
+      "description": "Agent implements the specific environmental curtailment rule.",
+      "points": 30,
+      "visual_evidence": "Code editor showing logic that checks for months 8, 9, 10 (August, September, October), hours between 20 and 5 inclusive, and wind speed strictly less than 6.0 m/s."
+    },
+    {
+      "id": "json_export_code",
+      "description": "Agent writes code to save the calculated metrics to the specified JSON file with the required keys.",
+      "points": 20,
+      "visual_evidence": "Code editor showing a dictionary with keys `baseline_energy_kwh`, `curtailed_energy_kwh`, `energy_penalty_kwh`, and `curtailed_hours_count` being saved to `/home/ga/Documents/SAM_Projects/bat_curtailment_analysis.json`."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent executes the Python script to generate the analysis results.",
+      "points": 20,
+      "visual_evidence": "Terminal window showing the execution of the Python script (e.g., `python script.py`) without errors, or terminal/file explorer showing the `bat_curtailment_analysis.json` file has been successfully created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_driven_output",
+      "description": "The JSON output file is generated programmatically by the Python script, not manually created or typed by the agent.",
+      "visual_evidence": "The agent runs the script in the terminal to produce the file, rather than opening a text editor to manually write the JSON file."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The script calculates the energy metrics dynamically using PySAM, rather than hardcoding pre-calculated values.",
+      "visual_evidence": "The script contains variables and mathematical operations for the energy calculations, with no hardcoded final numbers for the JSON values."
+    },
+    {
+      "id": "genuine_pysam_simulation",
+      "description": "The script actually executes the PySAM model to obtain generation data.",
+      "visual_evidence": "The script calls the execution method on the PySAM model (e.g., `model.execute()`) to run the simulation."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified expected output path: /home/ga/Documents/SAM_Projects/bat_curtailment_analysis.json. Verified required JSON keys: ['baseline_energy_kwh', 'curtailed_energy_kwh', 'energy_penalty_kwh', 'curtailed_hours_count']. The task operates on real-world wind reanalysis data (wyoming_wind_resource_dataset.csv) installed via the NREL SAM application. Note: 'verifier.py' is missing from the environment, so visual verification of the script logic and execution is critical."
+}

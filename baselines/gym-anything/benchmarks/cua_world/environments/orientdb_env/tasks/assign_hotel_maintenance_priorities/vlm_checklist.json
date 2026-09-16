@@ -1,0 +1,53 @@
+{
+  "task_id": "assign_hotel_maintenance_priorities@1",
+  "task_completion": [
+    {
+      "id": "access_orientdb_studio",
+      "description": "Access OrientDB Studio and connect to the demodb database.",
+      "points": 10,
+      "visual_evidence": "The OrientDB Studio web interface is visible in the browser, and the active database shown in the top navigation or connection screen is 'demodb'."
+    },
+    {
+      "id": "create_hotel_maintenance_flag_class",
+      "description": "Create the HotelMaintenanceFlag vertex class with a unique index.",
+      "points": 20,
+      "visual_evidence": "The Schema tab or query execution history shows 'HotelMaintenanceFlag' created as a Vertex class (extends V). Evidence of a unique index should be visible in the schema properties/indexes list or via a CREATE INDEX query."
+    },
+    {
+      "id": "create_requires_maintenance_edge",
+      "description": "Create the RequiresMaintenance edge class.",
+      "points": 10,
+      "visual_evidence": "The Schema tab or query execution history shows 'RequiresMaintenance' created as an Edge class (extends E)."
+    },
+    {
+      "id": "assign_maintenance_priorities",
+      "description": "Create HotelMaintenanceFlag records with correct CRITICAL, HIGH, or STANDARD priorities.",
+      "points": 30,
+      "visual_evidence": "The Browse tab (query results) or Graph tab shows HotelMaintenanceFlag records containing a priority field set to 'CRITICAL', 'HIGH', or 'STANDARD'. Look for query results indicating 15 total records were created."
+    },
+    {
+      "id": "link_flags_to_hotels",
+      "description": "Link each HotelMaintenanceFlag to its corresponding Hotel via a RequiresMaintenance edge.",
+      "points": 30,
+      "visual_evidence": "The Graph visualization shows directed edges (arrows) labeled 'RequiresMaintenance' connecting HotelMaintenanceFlag vertices to Hotel vertices, OR query results show edge creation (e.g., CREATE EDGE) or edge properties (in/out fields) linking the two classes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio_gui",
+      "description": "The agent used the OrientDB Studio web interface to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with the OrientDB Studio UI in a web browser (http://localhost:2480/studio/index.html), rather than just running terminal commands or scripts."
+    },
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the actual database and did not just mock the results.",
+      "visual_evidence": "Results, schemas, and graphs should be displayed within the OrientDB Studio interface (Browse, Schema, or Graph tabs), not in a text editor or separate document."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent derived the priorities using queries or manual inspection rather than blindly pasting a pre-computed list.",
+      "visual_evidence": "Look for SQL queries in the Browse tab that use conditional logic (e.g., IF, UPDATE... WHERE Stars = 5) or evidence of the agent checking hotel properties before assigning priorities."
+    }
+  ],
+  "privileged_info_for_vlm": "There are exactly 15 hotels in demodb. Expected priority assignments: 6 CRITICAL (5-star Luxury/Palace hotels, e.g., Hotel Adlon Kempinski, The Savoy), 6 HIGH (other 5-star hotels, e.g., The Plaza Hotel, Copacabana Palace), and 3 STANDARD (<5 star hotels, e.g., Hotel Artemide, Melia Berlin). The maintenance batch is 'maint_q1_2026' and the last inspection year is 2024."
+}

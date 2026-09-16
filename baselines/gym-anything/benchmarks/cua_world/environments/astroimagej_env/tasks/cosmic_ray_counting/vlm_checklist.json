@@ -1,0 +1,53 @@
+{
+  "task_id": "cosmic_ray_counting@1",
+  "task_completion": [
+    {
+      "id": "difference_image_saved",
+      "description": "Verify that the absolute difference image FITS file is saved in the correct results directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal listing showing 'difference_image.fits' inside the '~/AstroImages/cosmic_ray_project/results/' directory."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify that the cosmic ray report text file is created in the results directory.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal listing showing 'cosmic_ray_report.txt' inside the '~/AstroImages/cosmic_ray_project/results/' directory."
+    },
+    {
+      "id": "report_basic_stats",
+      "description": "Verify the report contains the basic image statistics: Exposure time and Image dimensions.",
+      "points": 15,
+      "visual_evidence": "The contents of 'cosmic_ray_report.txt' displayed in a text editor or terminal (via cat/less), showing labeled values for 'Exposure time' and 'Image dimensions'."
+    },
+    {
+      "id": "report_diff_stats",
+      "description": "Verify the report contains the difference image statistics: Median, Standard deviation, and Threshold value used.",
+      "points": 25,
+      "visual_evidence": "The contents of 'cosmic_ray_report.txt' showing labeled values for 'Difference image median', 'Difference image standard deviation', and 'Threshold value used'."
+    },
+    {
+      "id": "report_cr_results",
+      "description": "Verify the report contains the final cosmic ray calculations: Number of events detected and Hit rate.",
+      "points": 30,
+      "visual_evidence": "The contents of 'cosmic_ray_report.txt' showing labeled values for 'Number of cosmic ray events detected' and 'Cosmic ray hit rate (events/pixel/second)'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_or_tool_execution",
+      "description": "Verify that the agent used a script or appropriate software to process the FITS files rather than fabricating the report.",
+      "visual_evidence": "A terminal showing the execution of a Python script, an open Jupyter notebook, or an interactive Python session importing libraries like 'astropy' and 'numpy'."
+    },
+    {
+      "id": "genuine_calculation_evidence",
+      "description": "Verify that the agent actually performed the required mathematical operations (absolute difference, median, std dev, 5-sigma threshold).",
+      "visual_evidence": "Code snippets visible in an editor or terminal showing operations like 'numpy.abs(data1 - data2)', 'numpy.median', 'numpy.std', and a threshold calculation multiplying the std dev by 5."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify the agent did not simply hardcode a pre-written text file without reading the source FITS files.",
+      "visual_evidence": "The agent's code should show dynamic extraction of the exposure time from the FITS header (e.g., 'header[\"EXPTIME\"]') and dynamic calculation of the array dimensions."
+    }
+  ],
+  "privileged_info_for_vlm": "The data consists of real cryogenically cooled CCD dark frames from the Large Format Camera (LFC) on the Palomar 200-inch Hale Telescope (Astropy CCD Reduction Guide dataset). The agent must explicitly use a sigma threshold of 5 to calculate the cosmic ray events."
+}

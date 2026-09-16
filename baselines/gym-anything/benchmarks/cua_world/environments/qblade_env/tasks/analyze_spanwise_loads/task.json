@@ -1,0 +1,36 @@
+{
+  "id": "analyze_spanwise_loads@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform a steady-state BEM simulation to analyze spanwise aerodynamic loads using the 'Turbine Simulation' sample project located at /home/ga/Documents/sample_projects/. Configure the HAWT BEM Simulation for a 'Single Point' analysis with a Wind Speed of 12 m/s and a Tip Speed Ratio (TSR) of 7, including Tip Loss and Hub Loss corrections. Export the resulting spanwise load data (Position vs Normal Force and Tangential Force) to /home/ga/Documents/spanwise_loads.txt. Identify the maximum Normal Force value and record it in /home/ga/Documents/max_load_report.txt using the format 'Max_Fn = <value>'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_spanwise_loads/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_spanwise_loads/export_result.sh"
+  },
+  "metadata": {
+    "sample_project": "Turbine Simulation.wpa",
+    "output_data_path": "/home/ga/Documents/spanwise_loads.txt",
+    "output_report_path": "/home/ga/Documents/max_load_report.txt",
+    "simulation_settings": {
+      "wind_speed": 12,
+      "tsr": 7,
+      "type": "Single Point"
+    },
+    "physics_validation": {
+      "min_peak_load_n": 100,
+      "expected_columns": 3
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_spanwise_loads"
+    }
+  }
+}

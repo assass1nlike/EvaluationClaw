@@ -1,0 +1,74 @@
+{
+  "dataset_id": "194484e4",
+  "name": "Aspect-Opinion-Pair-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for aspect-opinion pair extraction from restaurant reviews. Given a review text and an extraction instruction, the model must output all aspect-opinion pairs in a specified format.",
+  "card_text": "This dataset contains 200 text samples for aspect-opinion pair extraction, a core task in opinion mining. Each sample provides a raw review text (e.g., about food, decor, service, or atmosphere) and a prompt instructing the model to extract all aspect-opinion pairs and format them as 'aspect => opinion', separated by commas. The output is a single string listing these pairs. Reviews are short and typically express subjective evaluations. The dataset is monolingual (English) and purely textual, evaluating the model's ability to identify fine-grained sentiment relations between aspects and their corresponding opinions.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The raw review text serving as the main input. It contains customer feedback, often about restaurant food, decor, service, or atmosphere, from which aspect-opinion pairs must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The instruction prompt that asks the model to extract all aspect-opinion pairs from the review and output them in a specific format. It includes a placeholder for the raw text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output: extracted aspect-opinion pairs formatted as 'aspect => opinion', with multiple pairs separated by commas.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three components: a context field (input.raw_text) containing a short restaurant review, a question field (input.prompt) providing the extraction instruction with a placeholder for the review text, and an answer field (output.text) containing the extracted aspect-opinion pairs as a formatted string. The prompt directs the extraction from the review, and the answer lists the resulting pairs."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Opinion-Pair-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "aspect_opinion_pair_extraction",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "compare_analgesic_safety_methotrexate@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Evaluate the safety of Ibuprofen, Diclofenac, and Paracetamol for a patient on Methotrexate using the Liverpool Cancer iChart app. Create a report at /sdcard/methotrexate_analgesic_report.txt documenting the traffic light interaction color for each drug and a concluding sentence identifying the safest option among the three.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/compare_analgesic_safety_methotrexate/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/compare_analgesic_safety_methotrexate/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/sdcard/methotrexate_analgesic_report.txt",
+    "drugs": [
+      "Methotrexate",
+      "Ibuprofen",
+      "Diclofenac",
+      "Paracetamol"
+    ],
+    "expected_safety": {
+      "Ibuprofen": "unsafe",
+      "Diclofenac": "unsafe",
+      "Paracetamol": "safe"
+    },
+    "expected_colors": {
+      "Ibuprofen": [
+        "red",
+        "orange",
+        "amber"
+      ],
+      "Diclofenac": [
+        "red",
+        "orange",
+        "amber"
+      ],
+      "Paracetamol": [
+        "green",
+        "yellow",
+        "grey",
+        "gray"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compare_analgesic_safety"
+    }
+  }
+}

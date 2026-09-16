@@ -1,0 +1,53 @@
+{
+  "task_id": "post_op_followup_audit@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Access the DrTuxTest database to search for patient records.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening a database client (e.g., DBeaver, MySQL CLI), a script connecting to the DB, or the MedinTux application to access the 'DrTuxTest' database."
+    },
+    {
+      "id": "identify_cataract_2024",
+      "description": "Filter for patients who had cataract surgery in 2024.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of a SQL query, script logic, or GUI filter specifically searching for 'Op\u00e9ration de la cataracte' or 'Chirurgie cataracte' AND dates within the year '2024'."
+    },
+    {
+      "id": "create_csv_file",
+      "description": "Create the required CSV report file in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A file named 'audit_cataracte_2024.csv' is visible in a text editor, spreadsheet application, or terminal, specifically located in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "write_csv_headers",
+      "description": "Include the correct headers in the CSV file.",
+      "points": 20,
+      "visual_evidence": "The CSV file contains the exact header row: 'GUID, Nom, Prenom, Date_Chirurgie, Statut'."
+    },
+    {
+      "id": "write_non_compliant_patients",
+      "description": "Populate the CSV with the non-compliant patients and correct status.",
+      "points": 30,
+      "visual_evidence": "The CSV file contains exactly 3 patient data rows (excluding the header). The 'Statut' column for all 3 patients is explicitly set to 'NON_CONFORME'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_query",
+      "description": "The agent must extract data from the database rather than hallucinating the results.",
+      "visual_evidence": "The agent is seen executing a query or search against the database before creating the CSV. It should not just create the CSV file out of nowhere."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The CSV file must be saved to the file system, not just printed to standard output.",
+      "visual_evidence": "Evidence of a file save operation or a script writing to '/home/ga/Documents/audit_cataracte_2024.csv', rather than just `echo` or `print` statements outputting to the terminal."
+    },
+    {
+      "id": "no_hardcoded_script",
+      "description": "Scripts used to generate the CSV must perform actual logic, not just print hardcoded answers.",
+      "visual_evidence": "If a Python or bash script is used, it must contain database connection and querying logic, rather than a hardcoded list of patient names and GUIDs."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses a synthetic database with 6 test scenarios. The agent must correctly identify exactly 3 non-compliant patients: one with no follow-up, one with a follow-up on Day 8 (outside the 1-7 day window), and one with a follow-up on Day 31. The agent must exclude 3 compliant patients who had follow-ups on Day 1, Day 2, and Day 7 (boundary case). The final CSV must have exactly 3 data rows, the specified headers (GUID, Nom, Prenom, Date_Chirurgie, Statut), and the status 'NON_CONFORME' for all entries."
+}

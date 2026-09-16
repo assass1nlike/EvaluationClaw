@@ -1,0 +1,59 @@
+{
+  "task_id": "rc_aux_failsafe_config@1",
+  "task_completion": [
+    {
+      "id": "read_mapping_doc",
+      "description": "The agent opens and reads the transmitter mapping document.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window is open displaying the contents of /home/ga/Documents/QGC/transmitter_mapping.txt, showing the required parameter values."
+    },
+    {
+      "id": "open_qgc_parameters",
+      "description": "The agent navigates to the Parameters menu in QGroundControl.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl application is open, the Vehicle Setup menu (gear icon) is selected, and the 'Parameters' tab is active."
+    },
+    {
+      "id": "configure_rc7_rc8",
+      "description": "The agent configures the RC7_OPTION and RC8_OPTION parameters.",
+      "points": 20,
+      "visual_evidence": "In the QGC Parameters screen, RC7_OPTION is modified to 41 and RC8_OPTION is modified to 31. This may be seen in the parameter list or modification dialogs."
+    },
+    {
+      "id": "configure_rc9_rc10",
+      "description": "The agent configures the RC9_OPTION and RC10_OPTION parameters.",
+      "points": 20,
+      "visual_evidence": "In the QGC Parameters screen, RC9_OPTION is modified to 15 and RC10_OPTION is modified to 11."
+    },
+    {
+      "id": "configure_fs_thr",
+      "description": "The agent configures the FS_THR_ENABLE and FS_THR_VALUE parameters.",
+      "points": 20,
+      "visual_evidence": "In the QGC Parameters screen, FS_THR_ENABLE is modified to 2 and FS_THR_VALUE is modified to 925."
+    },
+    {
+      "id": "configure_pilot_thr_filt",
+      "description": "The agent configures the PILOT_THR_FILT parameter.",
+      "points": 20,
+      "visual_evidence": "In the QGC Parameters screen, PILOT_THR_FILT is modified to 4."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgc_gui",
+      "description": "The agent used the QGroundControl GUI to modify parameters.",
+      "visual_evidence": "Parameter changes are made through the QGroundControl interface, not by running a script or editing a configuration file in the terminal."
+    },
+    {
+      "id": "no_reboot_initiated",
+      "description": "The agent did not reboot the vehicle.",
+      "visual_evidence": "There is no evidence of the agent clicking 'Reboot Vehicle' in QGC or issuing a reboot command in the terminal."
+    },
+    {
+      "id": "genuine_parameter_modification",
+      "description": "The agent genuinely interacted with the parameter modification dialogs.",
+      "visual_evidence": "Screenshots show the QGC parameter search functionality being used and the parameter edit dialogs being opened and saved."
+    }
+  ],
+  "privileged_info_for_vlm": "The mapping document /home/ga/Documents/QGC/transmitter_mapping.txt contains the target values: RC7_OPTION=41, RC8_OPTION=31, RC9_OPTION=15, RC10_OPTION=11, FS_THR_ENABLE=2, FS_THR_VALUE=925, and PILOT_THR_FILT=4. Note that FS_THR_ENABLE=2 is explicitly required even if it contradicts official ArduPilot documentation. The agent must configure these exact values in QGroundControl."
+}

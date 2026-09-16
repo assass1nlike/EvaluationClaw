@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_alembic_migrations@1",
+  "task_completion": [
+    {
+      "id": "open_migration_script",
+      "description": "Open the target Alembic migration script in a text editor or IDE.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE (like VS Code, nano, or vim) displaying the file /home/ga/workspace/media_db/alembic/versions/a1b2c3d4_update_schema.py."
+    },
+    {
+      "id": "edit_migration_script",
+      "description": "Modify the migration script to fix the SQLite compatibility or schema errors.",
+      "points": 20,
+      "visual_evidence": "Visible changes in the migration script, such as correcting a foreign key reference to use 'CustomerId' instead of 'id', or wrapping alter table statements in SQLite-compatible batch operations (e.g., 'with op.batch_alter_table(...)')."
+    },
+    {
+      "id": "alembic_upgrade_success",
+      "description": "Successfully execute the alembic upgrade command.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing the command 'alembic upgrade head' being run, followed by successful execution logs without any Python tracebacks or SQLAlchemy/SQLite errors."
+    },
+    {
+      "id": "alembic_downgrade_success",
+      "description": "Successfully execute the alembic downgrade command.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing the command 'alembic downgrade base' being run, followed by successful execution logs without any errors."
+    },
+    {
+      "id": "pytest_success",
+      "description": "Run the provided pytest suite to verify the fixes.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the command 'pytest test_migration.py' executing and returning a passing result (e.g., green text, '1 passed', or similar success indicators)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_alembic_execution",
+      "description": "Ensure the agent actually ran the alembic commands and didn't just echo success messages.",
+      "visual_evidence": "The terminal should show genuine Alembic log formatting (e.g., INFO lines with alembic.runtime.migration) rather than simple printed text or echoed strings."
+    },
+    {
+      "id": "actual_file_modified",
+      "description": "Ensure the agent modified the correct target file and did not create a mock file.",
+      "visual_evidence": "The file path in the editor or terminal commands must explicitly match /home/ga/workspace/media_db/alembic/versions/a1b2c3d4_update_schema.py."
+    },
+    {
+      "id": "genuine_pytest_output",
+      "description": "Ensure the pytest execution is genuine.",
+      "visual_evidence": "The terminal should display standard pytest headers, including platform info, rootdir, plugins, and the test progress indicators, rather than a mocked script output."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains exactly 2 invoices for the year 2009. The Customer table's primary key is explicitly defined as 'CustomerId'. The agent must ensure any foreign keys in the migration script correctly reference 'CustomerId' (not 'id' or other variations) to succeed."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "ecoli_comprehensive_food_investigation@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Verify that the agent loaded the FoodHistory table from the EColi.mdb dataset into Epi Info 7.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show the Epi Info 7 Classic Analysis interface with a READ command or Data Source indicating 'C:\\EpiInfo7\\Projects\\EColi\\EColi.mdb' and the 'FoodHistory' table."
+    },
+    {
+      "id": "epidemic_curve",
+      "description": "Verify that the agent generated epidemic curve data using the onset dates.",
+      "points": 15,
+      "visual_evidence": "Epi Info output window or command log showing a FREQ, GRAPH, or histogram command applied to the 'ONSETDATE' variable, with corresponding output."
+    },
+    {
+      "id": "crude_odds_ratios",
+      "description": "Verify that the agent calculated crude odds ratios for food exposure variables against the illness outcome.",
+      "points": 20,
+      "visual_evidence": "Epi Info output showing a 2x2 table (e.g., using the TABLES command) comparing the 'HAMBURGER' variable with the 'ILLDUM' outcome variable, displaying odds ratios and p-values."
+    },
+    {
+      "id": "logistic_regression",
+      "description": "Verify that the agent performed a multivariable logistic regression.",
+      "points": 25,
+      "visual_evidence": "Epi Info output showing a LOGISTIC REGRESSION model with 'ILLDUM' as the dependent (outcome) variable and 'HAMBURGER' (and potentially 'AGENUM' or 'SEX') as independent variables."
+    },
+    {
+      "id": "save_html_output",
+      "description": "Verify that the complete investigation output was saved as an HTML file in the specified directory.",
+      "points": 15,
+      "visual_evidence": "File explorer, terminal (ls/dir), or text editor showing the existence of 'ecoli_food_investigation.html' in the 'C:\\Users\\Docker\\' directory."
+    },
+    {
+      "id": "save_csv_output",
+      "description": "Verify that the summary risk factor table was saved as a CSV file in the specified directory.",
+      "points": 15,
+      "visual_evidence": "File explorer, terminal, or spreadsheet application showing the existence of 'ecoli_risk_factors.csv' in the 'C:\\Users\\Docker\\' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_epi_info_usage",
+      "description": "Ensure the agent actually used Epi Info 7 to perform the epidemiological analysis.",
+      "visual_evidence": "Screenshots must show interaction with the Epi Info 7 GUI (Classic Analysis module) rather than bypassing the software entirely with external scripts."
+    },
+    {
+      "id": "no_hallucinated_variables",
+      "description": "Ensure the agent only analyzed variables that actually exist in the database.",
+      "visual_evidence": "The analysis commands and outputs should only reference verified variables (ILLDUM, ONSETDATE, HAMBURGER, AGENUM, SEX). The agent should not analyze hallucinated food variables like HOTDOG, WATERMELON, etc., which are missing from the database."
+    },
+    {
+      "id": "no_direct_file_fabrication",
+      "description": "Ensure the agent did not simply hardcode the final HTML and CSV files without running the analysis.",
+      "visual_evidence": "The Epi Info analysis steps (READ, TABLES, LOGISTIC) must be visible in the application window prior to the creation of the final output files. The files should not be created using simple 'echo' or text editor copy-pasting of expected answers."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is located at C:\\EpiInfo7\\Projects\\EColi\\EColi.mdb and the relevant table is FoodHistory. The verified outcome variable is ILLDUM, the onset date variable is ONSETDATE, and the only verified food exposure variable is HAMBURGER. Age is AGENUM and Sex is SEX. Note that despite metadata claims of 12 food variables, only HAMBURGER is verified to exist in the database. The dataset is synthetic teaching data, not real CDC data."
+}

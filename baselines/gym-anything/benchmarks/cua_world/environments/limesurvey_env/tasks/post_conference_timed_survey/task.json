@@ -1,0 +1,30 @@
+{
+  "id": "post_conference_timed_survey@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create a fully configured, timed post-conference evaluation survey for the '2024 International Data Science Summit' in LimeSurvey (admin/Admin123!). The survey must be titled '2024 International Data Science Summit - Post-Event Evaluation' with the start date set to March 15, 2025 and expiry to March 29, 2025. Presentation settings must include an enabled progress bar and disabled backward navigation. The survey should include a welcome message mentioning the conference name, a thank you message, and an End URL of 'https://www.datasciencesummit2024.org/thank-you'. Within a question group named 'Conference Track Preferences', include a Ranking question titled 'Please rank the following conference tracks from most to least valuable to you' with the following options: 'Machine Learning & Deep Learning', 'Natural Language Processing', 'Computer Vision & Image Analysis', 'Data Engineering & MLOps', and 'Responsible AI & Ethics'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/post_conference_timed_survey/setup_task.sh",
+    "post_task": "/workspace/tasks/post_conference_timed_survey/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "Data Science Summit",
+    "expected_start_date": "2025-03-15",
+    "expected_expiry_date": "2025-03-29",
+    "expected_end_url": "datasciencesummit2024.org/thank-you",
+    "expected_question_type": "R",
+    "min_answer_options": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_post_conference_survey"
+    }
+  }
+}

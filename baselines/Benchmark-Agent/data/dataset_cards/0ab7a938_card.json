@@ -1,0 +1,82 @@
+{
+  "dataset_id": "0ab7a938",
+  "name": "Openset Recipe Ingredient Description",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for multimodal recipe image selection: given a textual recipe guide and a series of step images with one missing, select the best matching image from four choices.",
+  "card_text": "This dataset contains 200 samples of recipe-guided image selection tasks. Each sample includes a list of image file references (typically 7 images) showing recipe steps, and a long text prompt that describes the recipe step-by-step, includes ingredient lists and equipment, and instructs the model to choose the optimal image to fill a missing blank in the recipe image series. A choice list of four labeled options (Image A to Image D) is embedded in the prompt. The output is a single text label indicating the selected image. The dataset evaluates multimodal reasoning, visual recipe comprehension, and the ability to align textual cooking instructions with visual step representations.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "cooking recipes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "The prompt contains a detailed textual recipe guide with step-by-step instructions, ingredient and equipment lists, and the task instruction asking to select the optimal image to fill a missing blank in the recipe image series. It also embeds a multiple-choice list of image labels (Image A to Image D) and ends with a request for the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of image file references that depict recipe steps, ingredients, cooking processes, and final dishes. These images form the recipe image series and include candidate images for the missing step; the correct one must be selected based on the textual recipe.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The selected image label (e.g., 'Image A' or 'Image B') indicating which candidate image best completes the recipe image series according to the textual recipe guide.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with a list of image file references (input.image_file) and a long text prompt (input.prompt) that contains the recipe details, task instruction, and an embedded choice list. The output object contains a single text answer (output.text) selecting one of the labeled image options. The images correspond to recipe steps and candidate choices, and the prompt ties them together by describing the recipe and asking for the missing step."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/RecipeIngredientDescription/openset_recipe_ingredient_description.json",
+    "existing_tags": {
+      "task": "Recipe Ingredient Description",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

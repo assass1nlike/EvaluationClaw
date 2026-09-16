@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_bulletin_scbulletin@1",
+  "task_completion": [
+    {
+      "id": "seiscomp_cli_executed",
+      "description": "The agent executes a SeisComP command-line tool in the terminal.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a command starting with a SeisComP tool like 'scbulletin' being executed."
+    },
+    {
+      "id": "database_queried",
+      "description": "The agent connects to the specified SeisComP database.",
+      "points": 15,
+      "visual_evidence": "The command executed in the terminal includes the database connection string, such as '-d mysql://sysop:sysop@localhost/seiscomp'."
+    },
+    {
+      "id": "output_file_path_used",
+      "description": "The agent saves the bulletin to the correct file path.",
+      "points": 20,
+      "visual_evidence": "Terminal command showing output redirection ('>') or an output flag pointing to '~/bulletins/noto_bulletin.txt' or '/home/ga/bulletins/noto_bulletin.txt'."
+    },
+    {
+      "id": "bulletin_contains_location",
+      "description": "The generated bulletin contains the correct location data for the Noto earthquake.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing the contents of the bulletin file (e.g., via 'cat' or 'less'), displaying a latitude between 36.5 and 38.5, and a longitude between 136.0 and 138.5."
+    },
+    {
+      "id": "bulletin_contains_mag_time",
+      "description": "The generated bulletin contains the correct time and magnitude data.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the contents of the bulletin file, displaying the year 2024 and a magnitude between 7.0 and 8.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "cli_tool_used_not_echo",
+      "description": "Verifies that the agent used the actual SeisComP tool to generate the file, rather than manually writing the text.",
+      "visual_evidence": "The file creation command should involve 'scbulletin' or a similar SeisComP tool, not 'echo' or a text editor like 'nano' or 'vim' manually typing the expected values."
+    },
+    {
+      "id": "no_gui_used",
+      "description": "Verifies that the agent used command-line tools as requested, not a GUI.",
+      "visual_evidence": "No graphical database clients or SeisComP GUI windows are open; all interaction is within the terminal."
+    },
+    {
+      "id": "genuine_bulletin_format",
+      "description": "Verifies that the output looks like a genuine SeisComP bulletin.",
+      "visual_evidence": "The displayed file content should have the structured formatting typical of an earthquake bulletin report, not just a raw list of numbers or a single sentence."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is /home/ga/bulletins/noto_bulletin.txt. The bulletin must contain data for the 2024 Noto Peninsula earthquake: year 2024, latitude between 36.5 and 38.5 (specifically ~37.48), longitude between 136.0 and 138.5 (specifically ~137.27), and magnitude between 7.0 and 8.0 (specifically ~7.5). The file size should be at least 100 bytes."
+}

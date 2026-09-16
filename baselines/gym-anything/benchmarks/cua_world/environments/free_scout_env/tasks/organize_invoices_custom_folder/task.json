@@ -1,0 +1,27 @@
+{
+  "id": "organize_invoices_custom_folder@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the Office Manager. The 'Sales' mailbox is cluttered. Organize it by creating a new custom folder named 'Invoices' and moving the conversation with the subject 'Invoice #2023-998 for December Consultation' into it.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_invoices_custom_folder/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_invoices_custom_folder/export_result.sh"
+  },
+  "metadata": {
+    "mailbox_name": "Sales",
+    "folder_name": "Invoices",
+    "target_subject": "Invoice #2023-998 for December Consultation"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_invoices"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "ehs_chemical_correction@1",
+  "task_completion": [
+    {
+      "id": "import_audit_data",
+      "description": "Import the source XML dataset into CAMEO Data Manager.",
+      "points": 10,
+      "visual_evidence": "CAMEO Data Manager interface showing the imported facilities 'Northfield Paper Mill' and 'Essex Wire and Cable', or an import success dialog for 'ehs_audit_data.xml'."
+    },
+    {
+      "id": "correct_ammonia_ehs",
+      "description": "Mark Ammonia, Anhydrous as an Extremely Hazardous Substance (EHS).",
+      "points": 30,
+      "visual_evidence": "The chemical inventory or edit screen in CAMEO Data Manager for 'Ammonia, Anhydrous' (at Essex Wire and Cable) showing the 'EHS' or 'Extremely Hazardous Substance' checkbox checked."
+    },
+    {
+      "id": "correct_hydrofluoric_acid_ehs",
+      "description": "Mark Hydrofluoric Acid as an Extremely Hazardous Substance (EHS).",
+      "points": 30,
+      "visual_evidence": "The chemical inventory or edit screen in CAMEO Data Manager for 'Hydrofluoric Acid' (at Essex Wire and Cable) showing the 'EHS' or 'Extremely Hazardous Substance' checkbox checked."
+    },
+    {
+      "id": "verify_chlorine_dioxide_ehs",
+      "description": "Ensure Chlorine Dioxide is NOT marked as an EHS.",
+      "points": 10,
+      "visual_evidence": "The chemical inventory or edit screen in CAMEO Data Manager for 'Chlorine Dioxide' (at Northfield Paper Mill) showing the 'EHS' checkbox UNCHECKED."
+    },
+    {
+      "id": "export_corrected_xml",
+      "description": "Export the corrected dataset as a Tier II XML file to the specified path.",
+      "points": 20,
+      "visual_evidence": "A file save dialog, export screen, or success message in CAMEO Data Manager showing the file being saved as 'ehs_corrected.xml' in the 'C:\\Users\\Docker\\Documents\\CAMEO' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_cameo_gui",
+      "description": "The agent used the CAMEO Data Manager GUI to edit the chemical records.",
+      "visual_evidence": "Screenshots should show interaction with the CAMEO Data Manager application windows, not a text editor (like Notepad or VS Code) editing the XML file directly."
+    },
+    {
+      "id": "used_cameo_export",
+      "description": "The agent used CAMEO Data Manager to export the XML file.",
+      "visual_evidence": "The export process should be visible within the CAMEO Data Manager interface, rather than using terminal commands or scripts to copy/modify the file."
+    }
+  ],
+  "privileged_info_for_vlm": "Based on the EPA EHS List (40 CFR Part 355): Ammonia, Anhydrous (CAS 7664-41-7) and Hydrofluoric Acid (CAS 7664-39-3) are confirmed EHS substances and must have their EHS status set to True. Chlorine Dioxide (CAS 10049-04-4) is NOT on the EPA EHS list (it is OSHA PSM regulated) and must remain EHS=False. The final file must be exported to C:\\Users\\Docker\\Documents\\CAMEO\\ehs_corrected.xml."
+}

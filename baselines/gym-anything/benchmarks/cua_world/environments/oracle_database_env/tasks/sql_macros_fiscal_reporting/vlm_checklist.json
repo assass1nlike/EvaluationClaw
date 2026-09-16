@@ -1,0 +1,53 @@
+{
+  "task_id": "sql_macros_fiscal_reporting@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle 21c database using the HR schema",
+      "points": 10,
+      "visual_evidence": "A database client (like SQL*Plus, SQL Developer, DBeaver, or terminal) showing an active connection to localhost:1521/XEPDB1 with the user 'hr'."
+    },
+    {
+      "id": "create_scalar_macro",
+      "description": "Create the GET_FISCAL_YEAR Scalar SQL Macro",
+      "points": 20,
+      "visual_evidence": "Execution of a SQL statement starting with 'CREATE OR REPLACE FUNCTION GET_FISCAL_YEAR' and containing 'SQL_MACRO(SCALAR)' or 'RETURN VARCHAR2 SQL_MACRO', along with a success message like 'Function created'."
+    },
+    {
+      "id": "create_table_macro",
+      "description": "Create the GET_HIGH_IMPACT_SALES Table SQL Macro",
+      "points": 25,
+      "visual_evidence": "Execution of a SQL statement starting with 'CREATE OR REPLACE FUNCTION GET_HIGH_IMPACT_SALES' and containing 'SQL_MACRO(TABLE)' or 'SQL_MACRO', filtering for weekends (e.g., using TO_CHAR(..., 'DY') or 'D'), along with a success message."
+    },
+    {
+      "id": "execute_report_query",
+      "description": "Execute the report query using the created macros for the 'EAST' region and amount >= 500",
+      "points": 20,
+      "visual_evidence": "A SQL query visible in the editor or terminal that explicitly calls both 'GET_FISCAL_YEAR' and 'GET_HIGH_IMPACT_SALES('EAST', 500)' (or similar parameters), showing the aggregated results on screen."
+    },
+    {
+      "id": "export_csv_report",
+      "description": "Export the report as a CSV file to the specified desktop path with correct headers",
+      "points": 25,
+      "visual_evidence": "A file manager, terminal (e.g., cat command), or text editor showing the file '/home/ga/Desktop/fiscal_impact_report.csv' containing the headers 'FISCAL_YEAR,TOTAL_AMOUNT,TXN_COUNT' and the corresponding data rows."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent actually interacted with the Oracle database to execute SQL commands",
+      "visual_evidence": "Presence of a real database client interface or terminal executing SQL commands, rather than just typing the final CSV output manually into a text editor."
+    },
+    {
+      "id": "actual_macro_usage",
+      "description": "Agent used the SQL macros in the final query instead of hardcoding the logic",
+      "visual_evidence": "The final SELECT statement used to generate the report must contain the text 'GET_FISCAL_YEAR' and 'GET_HIGH_IMPACT_SALES'. It should not be a standard SELECT with standard WHERE clauses bypassing the macros."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file was generated from the query results",
+      "visual_evidence": "Evidence of a database export tool, spool command, or script being used to write the CSV, rather than the agent hallucinating or manually typing fabricated numbers into the CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/Desktop/fiscal_impact_report.csv. Required scalar macro: GET_FISCAL_YEAR. Required table macro: GET_HIGH_IMPACT_SALES. Target region: EAST. Minimum transaction amount: 500."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "create_activity_type@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Enable Developer Mode and create a new Activity Type named 'Product Demo'. Configure the activity type with the default summary 'Scheduled product demonstration' and the default note 'Please prepare the demo environment and confirm attendee list before the session.' Set the 'Planned in' value to 3 days and constrain the activity to the 'Lead/Opportunity' (crm.lead) model.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_activity_type/setup_task.sh",
+    "post_task": "/workspace/tasks/create_activity_type/export_result.sh"
+  },
+  "metadata": {
+    "target_name": "Product Demo",
+    "expected_summary": "Scheduled product demonstration",
+    "expected_note_fragment": "prepare the demo environment",
+    "expected_delay": 3,
+    "expected_model": "crm.lead"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_activity_type"
+    }
+  }
+}

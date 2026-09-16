@@ -1,0 +1,59 @@
+{
+  "task_id": "ttest_food_expenditure_group@1",
+  "task_completion": [
+    {
+      "id": "dataset_loaded",
+      "description": "Verify that the food.gdt dataset is loaded in the statistical software.",
+      "points": 10,
+      "visual_evidence": "The Gretl main window (or similar software) should be visible, displaying 'food.gdt' as the active dataset and listing 'food_exp' and 'income' in the variable list."
+    },
+    {
+      "id": "dummy_variable_created",
+      "description": "Verify that the 'high_income' dummy variable was created.",
+      "points": 15,
+      "visual_evidence": "The variable 'high_income' should appear in the software's variable list alongside 'food_exp' and 'income'."
+    },
+    {
+      "id": "ttest_performed",
+      "description": "Verify that a two-sample t-test was performed comparing food_exp between the high_income groups.",
+      "points": 20,
+      "visual_evidence": "An output window showing the results of a two-sample t-test (or difference in means) for food_exp grouped by high_income. Look for a t-statistic of approximately -8.887 and 38 degrees of freedom."
+    },
+    {
+      "id": "ttest_saved",
+      "description": "Verify that the t-test results were saved to the specified text file.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal, text editor, or save dialog showing 'ttest_results.txt' located in the '/home/ga/Documents/gretl_output/' directory."
+    },
+    {
+      "id": "boxplot_generated",
+      "description": "Verify that a boxplot comparing food_exp by high_income was generated.",
+      "points": 20,
+      "visual_evidence": "A graph window showing a boxplot with two distinct boxes (representing the high_income groups: 0 and 1) for the food_exp variable."
+    },
+    {
+      "id": "boxplot_saved",
+      "description": "Verify that the boxplot was saved as an image file.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, image viewer, or save dialog showing 'food_boxplot.png' located in the '/home/ga/Documents/gretl_output/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_software_usage",
+      "description": "Verify the agent used statistical software (like Gretl) to perform the analysis.",
+      "visual_evidence": "Screenshots should show the Gretl application GUI or console being used, rather than just Linux terminal commands echoing text to create fake output files."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent did not just copy-paste the expected answers.",
+      "visual_evidence": "The t-test results should be formatted in the software's standard output style and contain the exact calculated values (t = -8.887, df = 38), not manually typed into a text editor."
+    },
+    {
+      "id": "authentic_boxplot",
+      "description": "Verify the boxplot is a genuine output generated from the data.",
+      "visual_evidence": "The boxplot must show the specific data distribution (means around 186 and 321) and have the software's native plotting styling (e.g., gnuplot for Gretl), not a generic placeholder image downloaded from the internet."
+    }
+  ],
+  "privileged_info_for_vlm": "Dataset: food.gdt (40 observations). Median income: 13.29. Low-income group (n=20) mean food_exp: $186.44. High-income group (n=20) mean food_exp: $321.76. Two-sample t-test results: t-statistic = -8.887250, p-value < 0.000001, degrees of freedom = 38. The boxplot should display two boxes corresponding to the high_income groups (0 and 1)."
+}

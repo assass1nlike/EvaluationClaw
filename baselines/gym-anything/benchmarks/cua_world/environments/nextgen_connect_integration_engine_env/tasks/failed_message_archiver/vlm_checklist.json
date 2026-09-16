@@ -1,0 +1,59 @@
+{
+  "task_id": "failed_message_archiver@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel 'Fail_Safe_Archiver' was created.",
+      "points": 10,
+      "visual_evidence": "In the NextGen Connect Administrator GUI, the Channels list should display a channel exactly named 'Fail_Safe_Archiver'."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the source is configured to listen on TCP port 6661.",
+      "points": 15,
+      "visual_evidence": "In the Source tab of the channel, the connector type should be 'TCP Listener' and the Local Port should be set to '6661'."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the destination is configured to send to localhost:9999.",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab of the channel, the connector type should be 'TCP Sender' with the Host set to 'localhost' (or '127.0.0.1') and the Port set to '9999'."
+    },
+    {
+      "id": "fail_fast_configured",
+      "description": "Verify the 'Fail Fast' queue and retry settings.",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab or Channel settings, 'Queue Messages' should be set to 'Never' (or disabled) and the retry count/limit should be set to '0'."
+    },
+    {
+      "id": "post_processor_script",
+      "description": "Verify the JavaScript Post-Processor script is configured to archive failed messages.",
+      "points": 25,
+      "visual_evidence": "In the Scripts -> Postprocessor tab, there should be JavaScript code that checks for an ERROR or FAILURE status and includes logic to write a file to '/tmp/failed_messages/' with a '.hl7' extension."
+    },
+    {
+      "id": "message_processed_and_archived",
+      "description": "Verify the sample message was processed and archived successfully.",
+      "points": 20,
+      "visual_evidence": "A terminal window showing the contents of '/tmp/failed_messages/' containing a '.hl7' file, OR the NextGen Connect Dashboard showing the 'Fail_Safe_Archiver' channel with at least 1 message in the 'Error' or 'Received' statistics columns."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gui_interaction",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI to configure the channel.",
+      "visual_evidence": "Screenshots should show the NextGen Connect Administrator Java application interface being interacted with, rather than just editing XML configuration files in a text editor."
+    },
+    {
+      "id": "actual_message_processing",
+      "description": "Verify the message was actually sent through the channel.",
+      "visual_evidence": "The NextGen Connect dashboard should show message statistics (Received/Error counts > 0) for the channel, indicating real processing occurred."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "Verify the archived file was not manually created by the agent.",
+      "visual_evidence": "The terminal history should not show commands like 'cp /home/ga/sample.hl7 /tmp/failed_messages/...' or 'echo ... > /tmp/failed_messages/...'. The file creation must be the result of the channel's script."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel must be named exactly 'Fail_Safe_Archiver'. Source: TCP Listener on port 6661 (MLLP). Destination: TCP Sender to localhost:9999. Queue settings must be disabled ('Queue Messages: Never' / NO_QUEUE) with 0 retries. The post-processor script must archive failed messages to the directory '/tmp/failed_messages/'. The sample file to be processed is located at '/home/ga/sample.hl7'."
+}

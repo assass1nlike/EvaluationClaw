@@ -1,0 +1,59 @@
+{
+  "task_id": "hl7_latency_monitoring_router@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Channel named 'Latency_Monitor' is created",
+      "points": 10,
+      "visual_evidence": "In the NextGen Connect Administrator (Channels view or Dashboard) or via API response, a channel named 'Latency_Monitor' is visible."
+    },
+    {
+      "id": "source_configured",
+      "description": "Source connector is configured to listen on TCP port 6661",
+      "points": 20,
+      "visual_evidence": "The Source tab shows 'TCP Listener' selected with the Port field set to '6661', or equivalent API configuration is visible."
+    },
+    {
+      "id": "latency_logic_configured",
+      "description": "Logic is configured to calculate latency between MSH-7 and EVN-2 in minutes",
+      "points": 30,
+      "visual_evidence": "JavaScript code or rules in a Filter, Transformer, or Destination settings that extracts MSH-7 and EVN-2, parses them using 'yyyyMMddHHmmss' format, and calculates the difference in minutes."
+    },
+    {
+      "id": "high_latency_destination",
+      "description": "Destination configured to route high latency (> 10 mins) messages to /home/ga/latency_high/",
+      "points": 15,
+      "visual_evidence": "A Destination (e.g., File Writer) is configured with the Directory set to '/home/ga/latency_high/'. There should be evidence (like a filter or router rule) linking this to the > 10 minutes condition."
+    },
+    {
+      "id": "normal_latency_destination",
+      "description": "Destination configured to route normal latency (<= 10 mins) messages to /home/ga/latency_normal/",
+      "points": 15,
+      "visual_evidence": "A Destination (e.g., File Writer) is configured with the Directory set to '/home/ga/latency_normal/'. There should be evidence linking this to the <= 10 minutes condition."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "The channel is deployed and running",
+      "points": 10,
+      "visual_evidence": "The Dashboard shows the 'Latency_Monitor' channel with a status of 'Started' or 'Deployed', or an API command shows successful deployment."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration",
+      "description": "Agent used the NextGen Connect Administrator GUI or REST API to configure the channel",
+      "visual_evidence": "Screenshots show the actual NextGen Connect Administrator interface or terminal commands interacting with the Mirth REST API, not just a text editor with mock configurations."
+    },
+    {
+      "id": "logic_implemented",
+      "description": "The latency calculation logic is genuinely implemented",
+      "visual_evidence": "The JavaScript code or routing rules actually perform the date parsing and math for MSH-7 and EVN-2, rather than just hardcoding paths or skipping the calculation."
+    },
+    {
+      "id": "actual_deployment",
+      "description": "The channel is genuinely deployed",
+      "visual_evidence": "The channel appears in the active Dashboard view with a 'Started' status, proving it was deployed and not just saved as a draft."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires a NextGen Connect (Mirth Connect) channel named 'Latency_Monitor'. Source: TCP Listener on port 6661. Routing logic must calculate latency = (MSH-7) - (EVN-2) in minutes, using 'yyyyMMddHHmmss' format. Messages with latency > 10 minutes go to a File Writer destination at '/home/ga/latency_high/'. Messages with latency <= 10 minutes go to a File Writer destination at '/home/ga/latency_normal/'. The channel must be deployed and started."
+}

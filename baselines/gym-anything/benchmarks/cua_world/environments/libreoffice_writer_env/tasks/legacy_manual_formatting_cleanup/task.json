@@ -1,0 +1,56 @@
+{
+  "id": "legacy_manual_formatting_cleanup@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Clean up the legacy installation guide at /home/ga/Documents/legacy_install_guide.docx by replacing manual direct formatting with proper LibreOffice Writer Styles. Apply the 'Heading 1' paragraph style to all main titles (Arial Black, ~18pt), 'Heading 2' paragraph style to subtitles (Arial, 14pt, Bold), 'Source Text' character style to code snippets (Courier New), and 'Strong Emphasis' character style to warning text (Red). Save the cleaned document as /home/ga/Documents/styled_install_guide.docx without overwriting the original file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/legacy_manual_formatting_cleanup/setup_task.sh",
+    "post_task": "/workspace/tasks/legacy_manual_formatting_cleanup/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/Documents/legacy_install_guide.docx",
+    "output_path": "/home/ga/Documents/styled_install_guide.docx",
+    "mappings": [
+      {
+        "target_style": "Heading 1",
+        "original_font": "Arial Black",
+        "key_phrases": [
+          "System Requirements",
+          "Installation Steps",
+          "Troubleshooting"
+        ]
+      },
+      {
+        "target_style": "Heading 2",
+        "original_font": "Arial",
+        "key_phrases": [
+          "Database Configuration",
+          "Firewall Settings",
+          "User Permissions"
+        ]
+      },
+      {
+        "target_style": "Source Text",
+        "original_font": "Courier New",
+        "type": "character"
+      },
+      {
+        "target_style": "Strong Emphasis",
+        "original_color": "Red",
+        "type": "character"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_legacy_cleanup"
+    }
+  }
+}

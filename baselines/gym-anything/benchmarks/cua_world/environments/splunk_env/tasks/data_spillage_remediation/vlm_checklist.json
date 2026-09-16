@@ -1,0 +1,59 @@
+{
+  "task_id": "data_spillage_remediation@1",
+  "task_completion": [
+    {
+      "id": "admin_role_can_delete",
+      "description": "Update the admin user's roles to include the can_delete capability.",
+      "points": 15,
+      "visual_evidence": "Splunk web interface showing the 'Roles' or 'Users' configuration page where the 'can_delete' capability is being assigned to the admin user or a role held by the admin."
+    },
+    {
+      "id": "search_leaked_events",
+      "description": "Search for the specific leaked password events in the web_logs index.",
+      "points": 10,
+      "visual_evidence": "Splunk web interface search bar showing a query targeting the leaked passwords, such as 'index=web_logs sourcetype=apache_leak password='."
+    },
+    {
+      "id": "purge_leaked_events",
+      "description": "Purge the identified password events using the delete command.",
+      "points": 25,
+      "visual_evidence": "Splunk web interface showing the search query piped to the delete command (e.g., '| delete') and a success message or statistics indicating that the events were successfully deleted."
+    },
+    {
+      "id": "props_conf_edited",
+      "description": "Open or create the props.conf file to implement the index-time masking rule.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor (like nano or vim) or a cat/echo command modifying '/opt/splunk/etc/system/local/props.conf' with an '[apache_leak]' stanza."
+    },
+    {
+      "id": "sedcmd_redact_rule_added",
+      "description": "Add the specific SEDCMD-redact directive to mask future passwords.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the exact string 'SEDCMD-redact = s/password=[^&\" ]+/password=REDACTED/g' placed under the '[apache_leak]' stanza in the props.conf file."
+    },
+    {
+      "id": "splunk_service_restarted",
+      "description": "Ensure configuration and permission changes are fully active by restarting the Splunk service.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command to restart Splunk (e.g., '/opt/splunk/bin/splunk restart') or a Splunk web interface message indicating the server is restarting/has restarted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_deletion",
+      "description": "Verify the agent used the Splunk web interface for the deletion task as requested.",
+      "visual_evidence": "Screenshots should show the actual Splunk GUI (http://localhost:8000) being used for the search and delete operations, rather than just terminal API/curl commands."
+    },
+    {
+      "id": "selective_deletion_verified",
+      "description": "Verify the agent did not delete the entire index, but only the password events.",
+      "visual_evidence": "The delete command in the Splunk search bar must explicitly include a filter for the password data (e.g., 'password=*' or 'password=') before the '| delete' pipe."
+    },
+    {
+      "id": "genuine_terminal_interaction",
+      "description": "Verify the agent genuinely interacted with the terminal to edit the configuration.",
+      "visual_evidence": "Terminal screenshots should show standard Linux commands and editor interfaces (e.g., nano, vim, cat) modifying the actual file path '/opt/splunk/etc/system/local/props.conf'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target index is 'web_logs' and the sourcetype is 'apache_leak'. The Splunk credentials are admin / SplunkAdmin1!. The redaction rule must exactly match: SEDCMD-redact = s/password=[^&\" ]+/password=REDACTED/g in /opt/splunk/etc/system/local/props.conf."
+}

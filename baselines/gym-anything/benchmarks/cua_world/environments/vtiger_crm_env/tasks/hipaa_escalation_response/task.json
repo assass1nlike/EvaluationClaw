@@ -1,0 +1,36 @@
+{
+  "id": "hipaa_escalation_response@1",
+  "version": "1.0",
+  "env_id": "vtiger_crm_env@0.1",
+  "description": "A compliance crisis is unfolding at Pinnacle Healthcare Systems, one of Meridian Technology Partners' most critical accounts. Escalate the support ticket 'HIPAA audit finding - unencrypted backups' to Priority 'Urgent', Severity 'Critical', and Status 'In Progress'. Update the deal 'Pinnacle EHR Security Upgrade' to the 'Negotiation/Review' sales stage with a probability of 75 and an expected close date of 2026-05-31. Schedule a meeting for the Pinnacle Healthcare Systems account with the subject 'HIPAA Emergency Remediation - Pinnacle Healthcare' for 2026-03-15 from 09:00 to 11:00, status 'Planned', at 'Video Conference - Zoom'. Login to Vtiger CRM at http://localhost:8000 using credentials admin / password.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hipaa_escalation_response/setup_task.sh",
+    "post_task": "/workspace/tasks/hipaa_escalation_response/export_result.sh"
+  },
+  "metadata": {
+    "target_ticket": "HIPAA audit finding - unencrypted backups",
+    "target_ticket_account": "Pinnacle Healthcare Systems",
+    "expected_ticket_priority": "Urgent",
+    "expected_ticket_severity": "Critical",
+    "expected_ticket_status": "In Progress",
+    "target_deal": "Pinnacle EHR Security Upgrade",
+    "expected_deal_stage": "Negotiation/Review",
+    "expected_deal_probability": 75,
+    "expected_deal_closedate": "2026-05-31",
+    "expected_event_subject": "HIPAA Emergency Remediation - Pinnacle Healthcare",
+    "expected_event_date": "2026-03-15",
+    "expected_event_start": "09:00",
+    "pass_threshold": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hipaa_escalation_response"
+    }
+  }
+}

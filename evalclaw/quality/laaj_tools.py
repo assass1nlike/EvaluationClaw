@@ -216,6 +216,9 @@ def agent_environment_overview(item: BenchmarkItem) -> dict[str, Any]:
         "max_steps": env.get("max_steps"),
         "timeout": env.get("timeout"),
         "test_command": env.get("test_command"),
+        "judge": {"mode": env["judge"].get("mode", "judge"),
+                  "criterion_ids": [c.get("id") for c in env["judge"].get("criteria", [])]}
+        if isinstance(env.get("judge"), dict) else None,
         "setup_command_count": len(setup_commands) if isinstance(setup_commands, list) else 0,
         "evaluation_keys": list(evaluation),
         "session_keys": list(session),

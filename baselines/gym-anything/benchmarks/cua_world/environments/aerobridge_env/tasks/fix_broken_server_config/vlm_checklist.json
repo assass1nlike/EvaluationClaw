@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_broken_server_config@1",
+  "task_completion": [
+    {
+      "id": "view_server_logs",
+      "description": "The agent viewed the server logs to diagnose the crash.",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor displaying the contents of /var/log/aerobridge_server.log."
+    },
+    {
+      "id": "edit_env_file",
+      "description": "The agent modified the environment configuration file to update the encryption key.",
+      "points": 20,
+      "visual_evidence": "A text editor (like nano or vim) open with /opt/aerobridge/.env, showing the CRYPTOGRAPHY_SALT variable being updated with a new value."
+    },
+    {
+      "id": "restart_service",
+      "description": "The agent restarted the aerobridge service to apply the new configuration.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a command execution like 'systemctl restart aerobridge' or 'systemctl start aerobridge'."
+    },
+    {
+      "id": "access_admin_panel",
+      "description": "The agent successfully accessed the Aerobridge admin panel.",
+      "points": 20,
+      "visual_evidence": "A web browser open to http://localhost:8000/admin/ showing the Django administration login page or dashboard."
+    },
+    {
+      "id": "record_aircraft_count",
+      "description": "The agent recorded the correct number of Aircraft records in the verification file.",
+      "points": 30,
+      "visual_evidence": "A terminal command (e.g., echo '2' > /home/ga/repair_verification.txt) or a text editor showing the file /home/ga/repair_verification.txt containing exactly the number '2'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "verified_aircraft_in_browser",
+      "description": "The agent actually navigated the admin panel or queried the database to find the aircraft count.",
+      "visual_evidence": "Screenshots showing the agent viewing the 'Aircraft' list in the web browser or executing a SQL query on the sqlite3 database, rather than just guessing the number."
+    },
+    {
+      "id": "generated_fernet_key",
+      "description": "The agent generated a valid Fernet key programmatically.",
+      "visual_evidence": "A terminal showing a Python interactive shell or script importing 'cryptography.fernet' and generating a key, proving they didn't just paste a random string."
+    },
+    {
+      "id": "proper_verification_format",
+      "description": "The verification file contains only the requested integer.",
+      "visual_evidence": "The file /home/ga/repair_verification.txt contains only the digit '2' without any additional text, sentences, or formatting."
+    }
+  ],
+  "privileged_info_for_vlm": "The server log is located at /var/log/aerobridge_server.log. The environment file is /opt/aerobridge/.env. The systemd service is named 'aerobridge'. A valid CRYPTOGRAPHY_SALT must be a 32-byte base64-encoded Fernet key. The admin panel is accessible at http://localhost:8000/admin/. The correct total number of Aircraft records is 2. The final answer must be written to /home/ga/repair_verification.txt."
+}

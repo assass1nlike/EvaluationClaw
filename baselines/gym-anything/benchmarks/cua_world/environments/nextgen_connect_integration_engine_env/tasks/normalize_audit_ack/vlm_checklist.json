@@ -1,0 +1,59 @@
+{
+  "task_id": "normalize_audit_ack@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'LIS_ACK_Normalizer'",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'LIS_ACK_Normalizer' in the channels list or dashboard of the integration engine (e.g., Mirth Connect Administrator)."
+    },
+    {
+      "id": "source_configured",
+      "description": "Configure the source to receive on TCP port 6661",
+      "points": 15,
+      "visual_evidence": "Look at the Source tab/settings for the channel. It should be configured as a TCP Listener (or similar) on port 6661."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Configure the destination to send to localhost port 6662",
+      "points": 15,
+      "visual_evidence": "Look at the Destinations tab/settings. There should be a destination configured as a TCP Sender (or similar) pointing to localhost (or 127.0.0.1) on port 6662."
+    },
+    {
+      "id": "audit_logging_configured",
+      "description": "Log raw responses to /home/ga/ack_audit.log",
+      "points": 20,
+      "visual_evidence": "Look for a File Writer destination, a JavaScript writer step, or postprocessor code that explicitly references the file path '/home/ga/ack_audit.log' and writes the raw response to it."
+    },
+    {
+      "id": "normalization_logic",
+      "description": "Implement logic to normalize MSA-3 based on MSA-1",
+      "points": 30,
+      "visual_evidence": "Look for JavaScript code, transformers, or mapping rules that check the value of MSA-1 (e.g., 'AA', 'AE', 'AR') and modify MSA-3 to 'Processed Successfully' or 'Remote Error' if it is missing."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Deploy the channel",
+      "points": 10,
+      "visual_evidence": "Look at the Dashboard or deployment screen. The 'LIS_ACK_Normalizer' channel should be listed with a status of 'Deployed', 'Started', or actively running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_software_used",
+      "description": "The agent used the actual integration engine software (e.g., Mirth Connect Administrator) to configure the channel.",
+      "visual_evidence": "Screenshots should show the UI of an integration engine like Mirth Connect, not just a text editor with a mock configuration file."
+    },
+    {
+      "id": "no_hardcoded_ack",
+      "description": "The agent implemented conditional logic rather than hardcoding a single static ACK response.",
+      "visual_evidence": "The normalization logic should show conditional statements (if/else) checking MSA-1, rather than a hardcoded string replacement for all messages."
+    },
+    {
+      "id": "genuine_deployment",
+      "description": "The channel was genuinely deployed in the system.",
+      "visual_evidence": "The dashboard should show realistic deployment status, not just a preview or a disconnected UI state."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel Name: LIS_ACK_Normalizer. Source Port: 6661. Destination Port: 6662. Audit File: /home/ga/ack_audit.log. Sample File: /home/ga/documents/sample_adt.hl7. The task requires creating a channel in an integration engine (like Mirth Connect) with these parameters, implementing specific logic to normalize MSA-3 based on MSA-1, logging the raw response, and deploying the channel."
+}

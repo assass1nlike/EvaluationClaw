@@ -1,0 +1,53 @@
+{
+  "task_id": "vod_chapter_indexing_package@1",
+  "task_completion": [
+    {
+      "id": "create_vod_package_directory",
+      "description": "Verify the creation of the target directory for the deliverables.",
+      "points": 10,
+      "visual_evidence": "Look for a directory named 'vod_package' created inside '/home/ga/Videos/' via a file manager or terminal output."
+    },
+    {
+      "id": "create_chaptered_video",
+      "description": "Verify the creation of the chaptered video file.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'documentary_chaptered.mp4' inside the 'vod_package' directory. Evidence of embedded chapters may be visible in terminal logs (e.g., FFmpeg output) or if the video is opened in a media player showing chapter markers."
+    },
+    {
+      "id": "create_chapter_thumbnails",
+      "description": "Verify the creation of the six individual chapter thumbnail images.",
+      "points": 20,
+      "visual_evidence": "Look for six image files named 'chapter_1.png', 'chapter_2.png', 'chapter_3.png', 'chapter_4.png', 'chapter_5.png', and 'chapter_6.png' inside the 'vod_package' directory."
+    },
+    {
+      "id": "create_chapter_index_json",
+      "description": "Verify the creation and structure of the chapter index JSON file.",
+      "points": 20,
+      "visual_evidence": "Look for 'chapter_index.json' in the 'vod_package' directory. If the file is open in an editor or printed in the terminal, verify it contains a JSON array of 6 objects with the keys: chapter_number, title, start_time_sec, end_time_sec, description, and thumbnail_file."
+    },
+    {
+      "id": "create_scrub_preview_sprite",
+      "description": "Verify the creation of the scrub preview sprite sheet.",
+      "points": 30,
+      "visual_evidence": "Look for a file named 'scrub_preview.png' in the 'vod_package' directory. If opened in an image viewer, it should display a grid of video frames (specifically a 6x3 grid)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_media_processing",
+      "description": "Ensure the agent actually processed the media files using appropriate tools (like FFmpeg) rather than just creating empty dummy files.",
+      "visual_evidence": "Look for terminal commands invoking FFmpeg, ImageMagick, or the use of a GUI video/image editor. Check that the generated files have non-zero file sizes in the file manager or terminal 'ls -l' output."
+    },
+    {
+      "id": "genuine_json_formatting",
+      "description": "Ensure the JSON file was properly formatted and not just a raw copy-paste of the text file.",
+      "visual_evidence": "If the JSON file is visible, check that it uses proper JSON syntax (brackets, braces, quoted keys/values) rather than just being plain text copied directly from 'chapter_sheet.txt'."
+    },
+    {
+      "id": "valid_sprite_sheet_generation",
+      "description": "Ensure the sprite sheet is a genuinely generated image grid, not just a renamed single frame or empty file.",
+      "visual_evidence": "Look for complex FFmpeg filter commands (like 'tile=6x3') in the terminal, or visual confirmation of the 6x3 grid if the image is opened."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating four specific deliverables in /home/ga/Videos/vod_package/: a chaptered video (documentary_chaptered.mp4), 6 thumbnail images (chapter_1.png to chapter_6.png), a JSON index (chapter_index.json) with specific keys, and a 6x3 sprite sheet (scrub_preview.png). The agent is expected to use tools like FFmpeg for video processing, metadata embedding, and sprite sheet generation."
+}

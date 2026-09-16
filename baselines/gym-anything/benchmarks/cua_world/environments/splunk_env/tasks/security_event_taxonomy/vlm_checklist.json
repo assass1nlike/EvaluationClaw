@@ -1,0 +1,53 @@
+{
+  "task_id": "security_event_taxonomy@1",
+  "task_completion": [
+    {
+      "id": "create_ssh_brute_force",
+      "description": "Create the 'ssh_brute_force' eventtype with correct search and tags",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Event Types' settings page or creation dialog showing the name 'ssh_brute_force', a search string containing 'index=security_logs' and 'fail' (or 'Failed password'), and the tags 'authentication' and 'attack'."
+    },
+    {
+      "id": "create_ssh_successful_login",
+      "description": "Create the 'ssh_successful_login' eventtype with correct search and tags",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Event Types' settings page or creation dialog showing the name 'ssh_successful_login', a search string containing 'index=security_logs' and 'accept' (or 'Accepted'), and the tags 'authentication' and 'privileged'."
+    },
+    {
+      "id": "create_system_error",
+      "description": "Create the 'system_error' eventtype with correct search and tags",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Event Types' settings page or creation dialog showing the name 'system_error', a search string containing 'index=system_logs' and 'error', and the tags 'operations' and 'error'."
+    },
+    {
+      "id": "create_saved_search",
+      "description": "Create a saved search named 'Tagged_Security_Summary'",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Searches, Reports, and Alerts' settings page or a 'Save As Report' dialog showing a saved search explicitly named 'Tagged_Security_Summary'."
+    },
+    {
+      "id": "saved_search_query",
+      "description": "Configure the saved search to query 'tag=authentication' and summarize by eventtype",
+      "points": 20,
+      "visual_evidence": "Look at the search bar or the saved search configuration details showing the query includes 'tag=authentication' and a summarizing command (e.g., '| stats count by eventtype', '| chart count by eventtype', or '| top eventtype')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_ui_interaction",
+      "description": "Agent interacted with the Splunk Web UI or valid configuration files",
+      "visual_evidence": "Screenshots should show the agent navigating the Splunk web interface (http://localhost:8000) or editing Splunk .conf files in a terminal, rather than just writing text in an unconnected editor."
+    },
+    {
+      "id": "genuine_eventtype_creation",
+      "description": "Agent actually created the eventtypes and tags rather than mocking the UI",
+      "visual_evidence": "Look for progressive steps of filling out forms in Settings > Event Types and Settings > Tags, or running valid Splunk SPL commands to create them."
+    },
+    {
+      "id": "genuine_search_execution",
+      "description": "Agent executed the search before saving it",
+      "visual_evidence": "Look for the Splunk Search & Reporting app showing the executed search 'tag=authentication ...' with actual results or a job running before it is saved as a report."
+    }
+  ],
+  "privileged_info_for_vlm": "Splunk credentials: admin / SplunkAdmin1!. Eventtypes to verify: 1) 'ssh_brute_force' (index='security_logs', keyword='fail' or 'Failed password', tags: 'authentication', 'attack'). 2) 'ssh_successful_login' (index='security_logs', keyword='accept' or 'Accepted', tags: 'authentication', 'privileged'). 3) 'system_error' (index='system_logs', keyword='error', tags: 'operations', 'error'). Saved search name: 'Tagged_Security_Summary' which must include 'tag=authentication' in its search string."
+}

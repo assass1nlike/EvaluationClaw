@@ -1,0 +1,34 @@
+{
+  "id": "film_call_sheet_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are the 2nd Assistant Director for the film 'The Midnight Echo'. It is Day 14 of production. Create a professional one-page Daily Call Sheet for tomorrow's shoot in Apache OpenOffice Writer using the production logistics from /home/ga/Documents/production_data.json and the logo from /home/ga/Documents/production_logo.png. The document must feature a header with the Film Title, 'Day 14 of 24', and the General Crew Call time. Include a 'Shooting Schedule' table listing Scene #, Description, Day/Night, Pages, and Cast IDs, as well as a 'Cast' table listing Character, Actor, Pickup Time, H/M Time, and Set Call Time. Ensure all times match the source data exactly. Include the weather forecast and nearest hospital information at the bottom. Save the document as /home/ga/Documents/Call_Sheet_Day_14.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/film_call_sheet_create/setup_task.sh",
+    "post_task": "/workspace/tasks/film_call_sheet_create/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Call_Sheet_Day_14.odt",
+    "required_content": {
+      "film_title": "The Midnight Echo",
+      "day_str": "Day 14",
+      "scene_check": "42",
+      "actor_check": "Elena Rostova",
+      "time_check": "05:45"
+    },
+    "min_table_count": 2,
+    "min_file_size_kb": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_film_call_sheet"
+    }
+  }
+}

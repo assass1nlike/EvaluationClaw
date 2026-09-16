@@ -1,0 +1,53 @@
+{
+  "task_id": "robot_depth_scanning_reconstruction@1",
+  "task_completion": [
+    {
+      "id": "spawn_primitive_shape",
+      "description": "Spawn a primitive shape at the specified world coordinates in CoppeliaSim.",
+      "points": 10,
+      "visual_evidence": "CoppeliaSim GUI is visible showing a newly spawned primitive shape (e.g., cube, sphere, cylinder) located near the robot arm."
+    },
+    {
+      "id": "zmq_script_execution",
+      "description": "Write and execute a script to control the robot arm, attach the vision sensor, and capture depth buffers via ZMQ Remote API.",
+      "points": 20,
+      "visual_evidence": "A code editor or terminal showing a script (likely Python) that connects to port 23000, moves the robot arm to multiple configurations, and reads from a vision sensor. Terminal should show the script being executed."
+    },
+    {
+      "id": "export_depth_csvs",
+      "description": "Save raw normalized depth values from at least 4 distinct views to CSV files.",
+      "points": 20,
+      "visual_evidence": "Terminal or file manager showing at least 4 files named 'depth_view_<id>.csv' (e.g., depth_view_1.csv) in the directory '/home/ga/Documents/CoppeliaSim/exports'."
+    },
+    {
+      "id": "export_merged_pointcloud",
+      "description": "Back-project depth pixels into 3D world coordinates, filter background, and save to merged_pointcloud.csv with specific columns.",
+      "points": 30,
+      "visual_evidence": "Presence of 'merged_pointcloud.csv' in the exports directory. If opened or printed in the terminal, it must show the header columns: view_id, px, py, world_x, world_y, world_z, and contain multiple rows of numerical data."
+    },
+    {
+      "id": "export_scanning_report",
+      "description": "Save a metadata report including sensor configurations, resolution, clipping planes, and pose matrices to scanning_report.json.",
+      "points": 20,
+      "visual_evidence": "Presence of 'scanning_report.json' in the exports directory. If opened or printed, it should contain JSON keys related to resolution, clipping planes, and pose matrices."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_driven_execution",
+      "description": "Ensure the agent used a programmatic script to generate the outputs rather than manually typing mock data.",
+      "visual_evidence": "Look for a Python (or similar) script being executed in the terminal that generates the CSV and JSON files. The files should not be manually created in a text editor with hardcoded mock data."
+    },
+    {
+      "id": "genuine_simulation_data",
+      "description": "Ensure the output files contain genuine numerical data derived from a simulation.",
+      "visual_evidence": "When CSV files are visible, they should contain dense arrays of floating-point numbers (depth values and 3D coordinates), not empty files, placeholder text, or perfectly uniform dummy numbers."
+    },
+    {
+      "id": "coppeliasim_active",
+      "description": "Ensure CoppeliaSim was actually running and used during the task.",
+      "visual_evidence": "The CoppeliaSim application window should be visible in the screenshots, showing the 3D scene with the robot arm and the spawned shape, confirming the simulation was active."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires exactly or more than 4 distinct views (min_views: 4). The generated point cloud must contain at least 500 points (min_pc_points: 500). The target zone for the shape is bounded by x: [0.1, 0.9], y: [-0.5, 0.5], z: >= -0.1. All output files must be located exactly in '/home/ga/Documents/CoppeliaSim/exports'."
+}

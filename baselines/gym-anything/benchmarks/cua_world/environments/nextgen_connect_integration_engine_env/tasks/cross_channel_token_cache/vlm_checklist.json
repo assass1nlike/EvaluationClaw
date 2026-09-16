@@ -1,0 +1,53 @@
+{
+  "task_id": "cross_channel_token_cache@1",
+  "task_completion": [
+    {
+      "id": "token_manager_source_setup",
+      "description": "Verify the Token_Manager channel is configured to listen on TCP port 6661 for JSON data.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing a REST API request (e.g., curl or a Python script) creating or updating a channel named 'Token_Manager' with a TCP Listener on port 6661 and inbound data type set to JSON. Look for JSON payloads in the terminal containing 'TCP Listener', '6661', and 'JSON'."
+    },
+    {
+      "id": "token_manager_global_map",
+      "description": "Verify the Token_Manager channel extracts the access token and stores it in the Global Map.",
+      "points": 25,
+      "visual_evidence": "Terminal output of the API request payload or script showing JavaScript/configuration that extracts 'access_token' from the incoming JSON and uses 'globalMap.put(\"current_bearer_token\", ...)' or equivalent logic to store it."
+    },
+    {
+      "id": "data_sender_source_setup",
+      "description": "Verify the Data_Sender channel is configured to listen on TCP port 6662 for HL7 v2.x messages.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing a REST API request creating or updating a channel named 'Data_Sender' with a TCP Listener on port 6662 and inbound data type set to HL7V2. Look for payloads containing 'TCP Listener', '6662', and 'HL7V2'."
+    },
+    {
+      "id": "data_sender_file_writer",
+      "description": "Verify the Data_Sender channel is configured to write to the correct output directory and filename.",
+      "points": 20,
+      "visual_evidence": "Terminal output of the API request payload or script showing a destination configured as a File Writer (or Document Writer) with the directory '/tmp/authenticated_output' and the filename 'msg_${message.messageId}.txt'."
+    },
+    {
+      "id": "data_sender_message_formatting",
+      "description": "Verify the Data_Sender channel formats the output with the Authorization header and raw message, including the NO_TOKEN fallback.",
+      "points": 25,
+      "visual_evidence": "Terminal output of the API request payload or script showing the destination template or transformer script configured to output 'Authorization: Bearer ' followed by the retrieved token (with logic to use 'NO_TOKEN' if missing), a newline, and the raw HL7 message (e.g., '${message.rawData}')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Verify the agent actually executed the REST API requests rather than just writing the scripts.",
+      "visual_evidence": "Terminal screenshots showing successful HTTP 200/201/202 responses from the NextGen Connect API, or execution output of a Python/Bash script that applies the configuration."
+    },
+    {
+      "id": "required_api_headers",
+      "description": "Verify the agent used the required REST API credentials and headers.",
+      "visual_evidence": "Terminal commands (like curl) or scripts showing the use of 'admin:admin' credentials and the 'X-Requested-With: OpenAPI' header."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "Verify the agent did not manually create the output files to bypass the channel logic.",
+      "visual_evidence": "Absence of terminal commands like 'echo \"Authorization: Bearer...\" > /tmp/authenticated_output/msg_...txt' or manual 'touch' commands for the final output files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring NextGen Connect via its REST API. Token_Manager must listen on TCP 6661 (JSON) and store 'access_token' in the Global Map under 'current_bearer_token'. Data_Sender must listen on TCP 6662 (HL7 v2.x) and write to '/tmp/authenticated_output/msg_${message.messageId}.txt'. The output must prepend 'Authorization: Bearer <TOKEN>' (or 'NO_TOKEN' if missing) to the HL7 message."
+}

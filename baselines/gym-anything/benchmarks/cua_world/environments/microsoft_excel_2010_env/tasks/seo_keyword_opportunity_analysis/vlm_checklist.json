@@ -1,0 +1,59 @@
+{
+  "task_id": "seo_keyword_opportunity_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_dataset",
+      "description": "Open the coffee_keywords.xlsx dataset in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the coffee_keywords.xlsx file, with columns for Keyword, Search_Volume, Keyword_Difficulty, and CPC_USD."
+    },
+    {
+      "id": "calculate_est_traffic",
+      "description": "Calculate estimated organic traffic for each keyword.",
+      "points": 15,
+      "visual_evidence": "A new column (e.g., 'Est_Traffic') is added to the spreadsheet. The values should be calculated as Search_Volume multiplied by 0.14 (e.g., if Volume is 5000, Est_Traffic is 700)."
+    },
+    {
+      "id": "calculate_monthly_value",
+      "description": "Calculate equivalent media value (monthly value) for each keyword.",
+      "points": 15,
+      "visual_evidence": "A new column (e.g., 'Monthly_Value') is added. The values should be calculated as Est_Traffic multiplied by CPC_USD (e.g., if Est_Traffic is 700 and CPC is 5.00, Monthly_Value is 3500)."
+    },
+    {
+      "id": "filter_opportunities",
+      "description": "Filter the dataset for 'low-hanging fruit' (low competition, high volume).",
+      "points": 20,
+      "visual_evidence": "Spreadsheet filters are applied to the columns. Specifically, Keyword_Difficulty is filtered to show values < 40, and Search_Volume is filtered to show values >= 200."
+    },
+    {
+      "id": "create_top_20_sheet",
+      "description": "Create a summary sheet named 'Top_Opportunities' containing the top 20 opportunities sorted by value.",
+      "points": 25,
+      "visual_evidence": "A new sheet tab named 'Top_Opportunities' is visible and active. It contains exactly 20 rows of keyword data (plus the header row), sorted in descending order by the calculated Monthly_Value. The top row should be 'organic fair trade coffee beans bulk'."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the final workbook to /home/ga/Documents/coffee_analysis.xlsx.",
+      "points": 15,
+      "visual_evidence": "The 'Save As' dialog shows the file being saved as 'coffee_analysis.xlsx' in the /home/ga/Documents/ directory, or the application title bar reflects the new filename 'coffee_analysis.xlsx'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used a graphical spreadsheet application to complete the task.",
+      "visual_evidence": "Screenshots show interaction with a GUI spreadsheet tool (like LibreOffice Calc) rather than a terminal window running Python/Pandas scripts or bash commands."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "The agent used spreadsheet formulas to calculate values rather than manually typing the expected answers.",
+      "visual_evidence": "When a calculated cell (Est_Traffic or Monthly_Value) is selected, the formula bar shows a mathematical formula (e.g., '=B2*0.14' or '=E2*D2') instead of a hardcoded number."
+    },
+    {
+      "id": "authentic_filtering_and_sorting",
+      "description": "The agent used the application's built-in sorting and filtering tools.",
+      "visual_evidence": "Visible filter dropdown arrows on the column headers and the use of the application's 'Sort' dialog or buttons, rather than manually copying and pasting specific rows."
+    }
+  ],
+  "privileged_info_for_vlm": "The estimated traffic calculation must use a CTR of 0.14 (Est_Traffic = Search_Volume * 0.14). The monthly value is calculated as Est_Traffic * CPC_USD. The 'low-hanging fruit' filter criteria are Keyword_Difficulty < 40 and Search_Volume >= 200. The top keyword in the final sorted list must be 'organic fair trade coffee beans bulk' (Volume=5000, KD=25, CPC=$5.00, Est_Traffic=700, Monthly_Value=$3500). The final summary sheet must be named 'Top_Opportunities' and contain exactly 20 data rows. The expected columns are Keyword, Search_Volume, Keyword_Difficulty, CPC_USD, Est_Traffic, and Monthly_Value."
+}

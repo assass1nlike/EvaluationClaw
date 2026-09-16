@@ -1,0 +1,29 @@
+{
+  "id": "create_user@1",
+  "version": "1.0",
+  "env_id": "wordpress_env@0.1",
+  "description": "In the WordPress admin panel, create a new user with the username 'marketing_lead', email 'marketing@example.com', first name 'Sarah', last name 'Johnson', password 'Marketing123!', and the role of 'Editor'. Ensure the username is exactly 'marketing_lead'.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_user/setup_task.sh",
+    "post_task": "/workspace/tasks/create_user/export_result.sh"
+  },
+  "metadata": {
+    "expected_username": "marketing_lead",
+    "expected_email": "marketing@example.com",
+    "expected_first_name": "Sarah",
+    "expected_last_name": "Johnson",
+    "expected_role": "editor"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_user"
+    }
+  }
+}

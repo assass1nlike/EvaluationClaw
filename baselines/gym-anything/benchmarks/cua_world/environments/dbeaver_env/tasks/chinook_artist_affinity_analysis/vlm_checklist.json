@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_artist_affinity_analysis@1",
+  "task_completion": [
+    {
+      "id": "dbeaver_connection",
+      "description": "Connect to the Chinook SQLite database in DBeaver",
+      "points": 10,
+      "visual_evidence": "DBeaver application is open with a database connection named 'Chinook' visible in the Database Navigator, connected to the SQLite database."
+    },
+    {
+      "id": "sql_query_construction",
+      "description": "Write the Market Basket Analysis SQL query",
+      "points": 20,
+      "visual_evidence": "The SQL editor in DBeaver shows a query that joins the invoice line table (e.g., InvoiceLine) with Tracks, Albums, and Artists. It must include a self-join to find pairs in the same invoice, a condition where the first artist name is alphabetically less than the second (e.g., A.Name < B.Name), and an ORDER BY clause sorting the count descending."
+    },
+    {
+      "id": "query_execution_results",
+      "description": "Execute the query and obtain the correct artist affinity pairs",
+      "points": 30,
+      "visual_evidence": "The DBeaver results grid shows columns 'Artist_A', 'Artist_B', and 'CoOccurrenceCount'. The top row must display 'Lost', 'U2', and '129' respectively."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "Save the SQL query script to the specified path",
+      "points": 15,
+      "visual_evidence": "A file manager, text editor, or DBeaver tab indicates that the SQL script is saved as 'affinity_query.sql' in the '/home/ga/Documents/scripts/' directory."
+    },
+    {
+      "id": "csv_results_exported",
+      "description": "Export the query results to a CSV file",
+      "points": 25,
+      "visual_evidence": "A file manager, text editor, or DBeaver export dialog confirms the creation of 'artist_affinity_pairs.csv' in the '/home/ga/Documents/exports/' directory, containing the query results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dbeaver_gui_usage",
+      "description": "The agent used the DBeaver GUI to perform the database tasks",
+      "visual_evidence": "Screenshots show interaction with the DBeaver graphical interface (SQL editor, results grid, export dialogs) rather than relying solely on terminal commands like 'sqlite3'."
+    },
+    {
+      "id": "no_hardcoded_sql",
+      "description": "The SQL query genuinely calculates the results",
+      "visual_evidence": "The SQL query in the editor performs actual JOINs, GROUP BY, and COUNT() operations, and does not simply SELECT hardcoded literal strings like 'Lost', 'U2', 129."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "The CSV and SQL files were created through genuine application interaction",
+      "visual_evidence": "The files are saved using DBeaver's save/export features or a proper text editor, rather than using terminal 'echo' commands with hardcoded text."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct table for invoice items in the Chinook database is 'InvoiceLine', not 'InvoiceItems' as hinted in the task description. The expected output columns are 'Artist_A', 'Artist_B', and 'CoOccurrenceCount'. The top result must be 'Lost' and 'U2' with a CoOccurrenceCount of 129, followed by 'C\u00e1ssia Eller' and 'Deep Purple' with 61. The database connection in DBeaver should be explicitly named 'Chinook'."
+}

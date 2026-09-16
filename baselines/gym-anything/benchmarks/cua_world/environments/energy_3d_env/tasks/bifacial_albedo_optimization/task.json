@@ -1,0 +1,28 @@
+{
+  "id": "bifacial_albedo_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Upgrade an existing monofacial solar array to a bifacial array, optimize the ground albedo and rack height for back-face absorption, and calculate the new annual yield.\n\nStarting State: Energy3D is open with the project file ~/Documents/Energy3D/bifacial_baseline.ng3. The scene contains a standard monofacial solar array on a dirt foundation.\n\nExpected Actions:\n1. Select the solar array racks in the scene.\n2. Change the solar panel type/properties to be Bifacial.\n3. Increase the Pole Height (rack clearance) of the arrays to 2.5 meters to allow more reflected light to reach the backside of the panels.\n4. Select the Foundation beneath the array and change its Albedo to 0.65 (representing white crushed rock).\n5. Run an Annual Yield Analysis for the solar array to calculate the production over a full year.\n6. Export the resulting yield data as a CSV file to ~/Documents/Energy3D/bifacial_yield.csv.\n7. Save the modified project as ~/Documents/Energy3D/bifacial_optimized.ng3.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bifacial_albedo_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/bifacial_albedo_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Renewable Energy",
+    "expected_rack_height": 2.5,
+    "expected_albedo": 0.65
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bifacial_optimization"
+    }
+  }
+}

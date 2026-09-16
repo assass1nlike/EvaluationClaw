@@ -1,0 +1,30 @@
+{
+  "id": "setup_store_tax_configuration@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "You are setting up tax compliance for the Urban Electronics Drupal Commerce store (http://localhost, admin / Admin1234!). Configure the store's tax settings by updating the timezone to 'America/Los_Angeles' (Pacific Time), adding 'US' to the tax registration countries, and updating the store's address line to '100 Commerce Boulevard'. Create a new customer account for the tax compliance officer with username 'taxmanager', email 'tax@urbanelectronics.com', and password 'TaxAdmin2024!'. Ensure the 'commerce_tax' module is enabled and the store's default currency is set to USD.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_store_tax_configuration/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_store_tax_configuration/export_result.sh"
+  },
+  "metadata": {
+    "store_id": 1,
+    "expected_timezone": "America/Los_Angeles",
+    "expected_address_line1": "100 Commerce Boulevard",
+    "expected_tax_country": "US",
+    "expected_new_username": "taxmanager",
+    "expected_new_email": "tax@urbanelectronics.com",
+    "expected_currency": "USD"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_store_tax_configuration"
+    }
+  }
+}

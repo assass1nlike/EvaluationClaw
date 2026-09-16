@@ -1,0 +1,53 @@
+{
+  "task_id": "denormalize_latest_review@1",
+  "task_completion": [
+    {
+      "id": "property_latest_review_created",
+      "description": "Verify that a new property named 'LatestReview' was added to the 'Hotels' class.",
+      "points": 10,
+      "visual_evidence": "Schema view, class manager, or console output showing the properties of the 'Hotels' class, with 'LatestReview' listed."
+    },
+    {
+      "id": "property_type_embedded",
+      "description": "Verify that the 'LatestReview' property is configured with the 'EMBEDDED' type.",
+      "points": 10,
+      "visual_evidence": "Schema view or property details showing the data type of 'LatestReview' explicitly set to 'EMBEDDED'."
+    },
+    {
+      "id": "update_query_executed",
+      "description": "Verify that a query or script was executed to populate the 'LatestReview' property by fetching the most recent review (sorted by Date descending).",
+      "points": 40,
+      "visual_evidence": "Query editor or console showing an UPDATE statement or script being executed on the 'Hotels' class. The query should include logic to traverse 'HasReview' edges, sort by 'Date DESC', and limit to 1."
+    },
+    {
+      "id": "embedded_fields_present",
+      "description": "Verify that the populated 'LatestReview' embedded object contains the correct fields: 'stars', 'text', and 'date'.",
+      "points": 20,
+      "visual_evidence": "A query result or record inspection showing a Hotel's 'LatestReview' field containing a JSON/embedded object with the keys 'stars', 'text', and 'date'."
+    },
+    {
+      "id": "hotels_successfully_populated",
+      "description": "Verify that the 'LatestReview' property is successfully populated with data for the hotels (e.g., the test hotel 'Hotel Artemide').",
+      "points": 20,
+      "visual_evidence": "Data browsing view or query result showing one or more hotel records (like 'Hotel Artemide') where the 'LatestReview' column/field is not null and contains the embedded review data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_db_interface",
+      "description": "Verify the agent used a genuine database interface (e.g., OrientDB Studio or database console) to perform the schema changes and updates.",
+      "visual_evidence": "Screenshots show the OrientDB Studio web interface or a legitimate database terminal, not a text editor or mock interface."
+    },
+    {
+      "id": "bulk_update_performed",
+      "description": "Verify the agent updated the records programmatically rather than manually typing in a single review for a single hotel.",
+      "visual_evidence": "The query executed is an UPDATE statement or script targeting the 'Hotels' class generally, rather than a manual edit of a single record's JSON."
+    },
+    {
+      "id": "authentic_execution_result",
+      "description": "Verify that the query execution resulted in a genuine success confirmation from the database.",
+      "visual_evidence": "Presence of a success message, such as 'Updated X records' or a green success notification in the database GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying the 'Hotels' class by adding a 'LatestReview' property of type EMBEDDED. The embedded object must contain exactly three fields: 'stars' (INTEGER), 'text' (STRING), and 'date' (DATE), sourced from the 'Reviews' class via 'HasReview' edges. A valid test record to look for in the results is 'Hotel Artemide', a 4-star hotel in Rome, which should have its LatestReview populated."
+}

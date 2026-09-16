@@ -1,0 +1,59 @@
+{
+  "task_id": "pto_date_calculation_logic@1",
+  "task_completion": [
+    {
+      "id": "survey_created_and_activated",
+      "description": "Verify the survey 'PTO Request Form 2024' is created and activated.",
+      "points": 15,
+      "visual_evidence": "Look for the LimeSurvey dashboard or survey list showing 'PTO Request Form 2024' with an 'Active' status indicator (usually a green checkmark, active status badge, or 'Stop survey' button indicating it is currently running)."
+    },
+    {
+      "id": "question_group_created",
+      "description": "Verify a question group named 'Leave Details' exists.",
+      "points": 10,
+      "visual_evidence": "Look for the survey structure menu or group list showing a group titled 'Leave Details'."
+    },
+    {
+      "id": "date_questions_created",
+      "description": "Verify 'Start Date' and 'Return Date' questions exist with correct codes.",
+      "points": 15,
+      "visual_evidence": "Look for the survey structure or question list showing 'Start Date' with code 'start' and 'Return Date' with code 'return'."
+    },
+    {
+      "id": "return_date_validation",
+      "description": "Verify the 'Return Date' question has validation logic ensuring it is after the start date.",
+      "points": 20,
+      "visual_evidence": "Look for the question settings or logic panel for 'Return Date' showing a validation equation that references both 'return' and 'start' (e.g., checking that return > start or using strtotime comparisons)."
+    },
+    {
+      "id": "duration_calculation_logic",
+      "description": "Verify the 'Duration Calculation' question uses ExpressionScript to calculate days.",
+      "points": 20,
+      "visual_evidence": "Look for the question settings for 'Duration Calculation' (code 'calc_days') showing an equation containing 'strtotime', '-', and '86400' to calculate the difference between the two dates."
+    },
+    {
+      "id": "medical_certificate_relevance",
+      "description": "Verify the 'Medical Certificate' file upload question appears only if duration is > 3 days.",
+      "points": 20,
+      "visual_evidence": "Look for the question settings for 'Medical Certificate' (code 'med_cert') showing the relevance equation 'calc_days > 3' and the question type set to File Upload."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent interacted with the LimeSurvey web interface.",
+      "visual_evidence": "Screenshots should show the LimeSurvey admin dashboard in a web browser, not terminal commands or API scripts."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Verify the logic was entered into the actual application.",
+      "visual_evidence": "The ExpressionScript and validation logic must be visible inside LimeSurvey input fields, not just typed into a notepad or text editor."
+    },
+    {
+      "id": "authentic_survey_structure",
+      "description": "Verify the results are from genuine software interaction.",
+      "visual_evidence": "The screenshots should display the standard LimeSurvey UI elements (menus, sidebars, save buttons) rather than mockups or copy-pasted text from the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "Survey Title: 'PTO Request Form 2024'. Expected Question Codes: 'start', 'return', 'calc_days', 'med_cert'. Validation Logic: Must reference both 'start' and 'return' to ensure return date is after start date. Calculation Logic: Must use 'strtotime', '86400', and '-' to calculate the day difference. Relevance Logic: Must use 'calc_days', '>', and '3' for the Medical Certificate question."
+}

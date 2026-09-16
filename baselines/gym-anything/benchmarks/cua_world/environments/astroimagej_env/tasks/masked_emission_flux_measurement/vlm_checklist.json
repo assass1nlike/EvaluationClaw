@@ -1,0 +1,59 @@
+{
+  "task_id": "masked_emission_flux_measurement@1",
+  "task_completion": [
+    {
+      "id": "load_fits_image",
+      "description": "Load or open the specified FITS image for analysis.",
+      "points": 10,
+      "visual_evidence": "A Python script (using libraries like astropy or fitsio) loading '~/AstroImages/emission_analysis/656nmos.fits', or an astronomical image viewer (like DS9) displaying the image."
+    },
+    {
+      "id": "calculate_threshold",
+      "description": "Calculate the image mean, standard deviation, and the threshold value.",
+      "points": 20,
+      "visual_evidence": "Code or console output showing the calculation of the mean, standard deviation, and the specific threshold formula (Mean + 3 * StdDev)."
+    },
+    {
+      "id": "create_binary_mask",
+      "description": "Create a binary mask using the calculated threshold.",
+      "points": 20,
+      "visual_evidence": "Code applying the threshold to the image data array to create a boolean/binary mask (e.g., `mask = data > threshold`), or a GUI tool performing a thresholding operation."
+    },
+    {
+      "id": "save_mask_tif",
+      "description": "Save the resulting binary mask as a TIF file to the specified output directory.",
+      "points": 15,
+      "visual_evidence": "Code (using cv2, PIL, tifffile, etc.) or a save dialog showing the mask being saved to '~/AstroImages/emission_analysis/output/emission_mask.tif'."
+    },
+    {
+      "id": "calculate_area_and_intensity",
+      "description": "Calculate the emission area in square arcseconds and the masked mean intensity.",
+      "points": 15,
+      "visual_evidence": "Code or calculations showing the number of masked pixels multiplied by 0.01 (the square arcsecond per pixel value), and the calculation of the mean of the original image pixels strictly within the masked region."
+    },
+    {
+      "id": "save_emission_report",
+      "description": "Save the calculated results to the emission report text file with the required formatting.",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal output (e.g., cat command), or script showing the creation of '~/AstroImages/emission_analysis/output/emission_report.txt' containing the exact lines: 'image_mean = [value]', 'image_stddev = [value]', 'threshold_value = [value]', 'emission_area_sq_arcsec = [value]', and 'masked_mean_intensity = [value]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_data_processing",
+      "description": "The agent actually loaded and processed the FITS file data.",
+      "visual_evidence": "Look for genuine usage of data processing libraries (like numpy, astropy) or image analysis software. The agent should not be guessing or hallucinating the statistical values without reading the file."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "The report values are dynamically calculated from the image, not hardcoded.",
+      "visual_evidence": "Ensure the script or commands derive the mean, stddev, area, and intensity from variables linked to the image array, rather than printing pre-determined strings."
+    },
+    {
+      "id": "valid_tif_export",
+      "description": "The mask is exported as a genuine image file.",
+      "visual_evidence": "Look for the use of an image saving function (e.g., tifffile.imwrite, Image.save) or a proper GUI export feature, rather than just writing raw text or renaming a non-image file to .tif."
+    }
+  ],
+  "privileged_info_for_vlm": "The FITS image is of the Eagle Nebula (M16) using an H-alpha filter. The plate scale to be used for area calculations is exactly 0.1 arcsec/pixel, which equals 0.01 square arcseconds per pixel. The expected output files must be exactly located at ~/AstroImages/emission_analysis/output/emission_mask.tif and ~/AstroImages/emission_analysis/output/emission_report.txt."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "classifier_comparison_toothgrowth@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Train K-Nearest Neighbors and Decision Tree classification models in JASP to predict supplement type ('supp') from tooth length ('len') and 'dose' using the 'Tooth Growth.csv' dataset located in '~/Documents/JASP/'. Ensure 'dose' is treated as Scale or Ordinal and 'supp' as Nominal. For both models, set the random seed to 42 and enable the AUC metric. Save the project to '~/Documents/JASP/Classifier_Comparison.jasp' and record the performance results in '~/Documents/JASP/model_performance.txt' using the following format:\n\nKNN AUC: [value]\nDecision Tree AUC: [value]\nBest Model: [KNN or Decision Tree]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/classifier_comparison_toothgrowth/setup_task.sh",
+    "post_task": "/workspace/tasks/classifier_comparison_toothgrowth/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/ToothGrowth.csv",
+    "expected_jasp_file": "/home/ga/Documents/JASP/Classifier_Comparison.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/model_performance.txt",
+    "required_seed": 42
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_classifier_comparison"
+    }
+  }
+}

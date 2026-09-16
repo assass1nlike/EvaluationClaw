@@ -1,0 +1,53 @@
+{
+  "task_id": "sales_down_payment_workflow@1",
+  "task_completion": [
+    {
+      "id": "sales_order_confirmed",
+      "description": "Verify that a Sales Order has been created and confirmed for the correct customer and product.",
+      "points": 20,
+      "visual_evidence": "Odoo Sales Order screen showing customer 'Apex Legal Services', product 'Bespoke Mahogany Desk' with a unit price of $4,200.00, and the document status indicator showing 'Sales Order' (which means it is confirmed, not just a Quotation)."
+    },
+    {
+      "id": "down_payment_invoice_posted",
+      "description": "Verify that an invoice for the 30% down payment has been created and posted.",
+      "points": 20,
+      "visual_evidence": "An Odoo Customer Invoice screen showing a down payment line item for $1,260.00 (30% of $4,200.00) with the invoice status marked as 'Posted'."
+    },
+    {
+      "id": "down_payment_invoice_paid",
+      "description": "Verify that the down payment invoice has been paid.",
+      "points": 20,
+      "visual_evidence": "The down payment invoice for $1,260.00 displays a green 'Paid' or 'In Payment' banner/ribbon, indicating that the payment registration was successfully completed."
+    },
+    {
+      "id": "final_invoice_created",
+      "description": "Verify that a final invoice has been created for the remaining balance.",
+      "points": 20,
+      "visual_evidence": "An Odoo Customer Invoice screen showing the final billing. It should display the remaining balance of $2,940.00 (typically shown as the full $4,200.00 product line minus a $1,260.00 down payment deduction line)."
+    },
+    {
+      "id": "final_invoice_posted",
+      "description": "Verify that the final invoice for the remaining balance has been posted.",
+      "points": 20,
+      "visual_evidence": "The final invoice for the remaining balance ($2,940.00) has its status marked as 'Posted'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Odoo web GUI to complete the task.",
+      "visual_evidence": "Screenshots should show the Odoo web interface in a browser, not terminal windows executing Python/XML-RPC scripts or database queries."
+    },
+    {
+      "id": "authentic_workflow",
+      "description": "Verify the agent navigated through the actual Odoo sales and invoicing workflow.",
+      "visual_evidence": "Presence of standard Odoo modals and screens (e.g., 'Create Invoices' modal, 'Register Payment' modal) rather than directly editing HTML or using a text editor to mock the final state."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Verify the agent did not use browser developer tools to fake the invoice statuses.",
+      "visual_evidence": "No browser developer tools (Elements/Console tab) should be open and actively modifying the DOM to display 'Posted' or 'Paid' badges."
+    }
+  ],
+  "privileged_info_for_vlm": "Customer: 'Apex Legal Services'. Product: 'Bespoke Mahogany Desk'. Total Price: $4,200.00. Down Payment Requirement: 30%, which equals exactly $1,260.00. The remaining balance on the final invoice must be $2,940.00."
+}

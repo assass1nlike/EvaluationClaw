@@ -1,0 +1,33 @@
+{
+  "id": "security_headers_compliance_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a security header compliance audit for https://crawler-test.com/. Export the security audit data for all crawled URLs to /home/ga/Documents/SEO/exports/security_audit.csv. Create a summary report at /home/ga/Documents/SEO/reports/security_headers_summary.txt that includes the total number of URLs crawled, the count of URLs missing 'X-Frame-Options', the count of URLs missing 'X-Content-Type-Options', and a statement on whether HSTS is enforced (Yes/No).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/security_headers_compliance_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/security_headers_compliance_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "expected_export_filename": "security_audit.csv",
+    "expected_report_filename": "security_headers_summary.txt",
+    "required_headers_to_check": [
+      "X-Frame-Options",
+      "X-Content-Type-Options",
+      "Strict-Transport-Security"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_security_headers_compliance_audit"
+    }
+  }
+}

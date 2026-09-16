@@ -1,0 +1,40 @@
+{
+  "id": "design_vawt_blade@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Design a vertical axis wind turbine (VAWT) rotor blade named 'UrbanDarrieus' in QBlade using a symmetric NACA 0021 airfoil (4-digit series, max thickness 21%). The rotor should feature an H-Type (straight blade) geometry with 3 blades, a height of 2.0m, and a radius of 1.0m. Define two stations (bottom and top) with a chord of 0.15m and a foil offset (radius) of 1.0m using the NACA 0021 airfoil. Save the complete project to /home/ga/Documents/projects/urban_darrieus_vawt.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_vawt_blade/setup_task.sh",
+    "post_task": "/workspace/tasks/design_vawt_blade/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "urban_darrieus_vawt.wpa",
+    "expected_path": "/home/ga/Documents/projects/urban_darrieus_vawt.wpa",
+    "airfoil_name": "NACA 0021",
+    "blade_name": "UrbanDarrieus",
+    "blade_count": 3,
+    "target_chord": 0.15,
+    "target_radius": 1.0,
+    "target_height": 2.0,
+    "tolerance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_vawt_blade"
+    }
+  },
+  "tags": [
+    "engineering",
+    "simulation",
+    "wind-energy",
+    "qblade",
+    "vawt"
+  ]
+}

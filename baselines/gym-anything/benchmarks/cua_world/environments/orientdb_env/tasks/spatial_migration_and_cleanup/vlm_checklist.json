@@ -1,0 +1,59 @@
+{
+  "task_id": "spatial_migration_and_cleanup@1",
+  "task_completion": [
+    {
+      "id": "access_demodb_hotels",
+      "description": "Access the 'demodb' database and navigate to the 'Hotels' class.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio (web GUI) or console showing a connection to 'demodb' and a query or schema view for the 'Hotels' class."
+    },
+    {
+      "id": "standardize_city_title_case",
+      "description": "Standardize all 'City' field values to Title Case.",
+      "points": 20,
+      "visual_evidence": "An UPDATE query modifying the 'City' field (e.g., using a capitalize or title case function), or a data browse view showing City names properly capitalized (e.g., 'Rome', 'New York', 'Berlin')."
+    },
+    {
+      "id": "create_location_property",
+      "description": "Create a new property named 'Location' of type 'OPoint'.",
+      "points": 20,
+      "visual_evidence": "A schema view showing the 'Hotels' class with a new property 'Location' of type 'OPoint', or a CREATE PROPERTY query."
+    },
+    {
+      "id": "populate_location_data",
+      "description": "Populate the 'Location' property for all records using existing 'Latitude' and 'Longitude' values.",
+      "points": 25,
+      "visual_evidence": "An UPDATE query mapping Latitude and Longitude to the new Location property, or a data view showing the 'Location' column populated with coordinate data (e.g., JSON objects with coordinates) for the 15 hotel records."
+    },
+    {
+      "id": "create_spatial_index",
+      "description": "Create a SPATIAL index on the 'Location' property.",
+      "points": 15,
+      "visual_evidence": "An Indexes view in OrientDB Studio showing an index on 'Hotels.Location' of type 'SPATIAL', or a CREATE INDEX query specifying SPATIAL."
+    },
+    {
+      "id": "retain_legacy_coordinates",
+      "description": "Retain the legacy Latitude and Longitude columns.",
+      "points": 10,
+      "visual_evidence": "Schema or data browse views showing that 'Latitude' and 'Longitude' properties still exist alongside the new 'Location' property."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the actual OrientDB software (Studio GUI or console).",
+      "visual_evidence": "Screenshots show the OrientDB Studio web interface or a terminal running the OrientDB console, not a text editor or mock interface."
+    },
+    {
+      "id": "actual_query_execution",
+      "description": "Queries were actually executed and applied to the database.",
+      "visual_evidence": "Presence of success messages, execution times, or 'records updated' confirmations (e.g., 'Updated 15 record(s)') in the OrientDB interface."
+    },
+    {
+      "id": "no_destructive_shortcuts",
+      "description": "The agent did not drop or delete the original coordinate columns.",
+      "visual_evidence": "Absence of 'DROP PROPERTY Hotels.Latitude' or 'DROP PROPERTY Hotels.Longitude' commands in the query history."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Database: 'demodb'. Target Class: 'Hotels'. The task requires creating a property named 'Location' of type 'OPoint' and an index of type 'SPATIAL'. The Hotels class contains 15 real-world hotel records. The Location property must be populated using the existing Latitude and Longitude values, and the legacy Latitude and Longitude columns must remain intact."
+}

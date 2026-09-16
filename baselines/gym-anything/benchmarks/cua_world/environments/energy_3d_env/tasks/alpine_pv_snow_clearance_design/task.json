@@ -1,0 +1,28 @@
+{
+  "id": "alpine_pv_snow_clearance_design@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Modify the standard utility-scale PV layout for a new installation in Anchorage, Alaska to handle extreme snow conditions.\n\nTask instructions:\n1. Open the project file `~/Documents/Energy3D/solar-rack-array.ng3`.\n2. Change the project's geographic location to Anchorage, AK (using the City dropdown/menu).\n3. Select all solar panels/racks in the scene.\n4. Modify their properties to meet alpine requirements:\n   - Set the Tilt Angle to exactly 45 degrees (encourages snow sliding).\n   - Set the Base Height (ground clearance) to 1.5 meters (prevents snowdrift burial).\n5. Run the Annual Solar Analysis for the updated site.\n6. Export the monthly energy yield results from the analysis graph to a CSV file named `anchorage_yield.csv` in the `~/Documents/Energy3D/` directory.\n7. Save the modified 3D model as `alpine_snow_array.ng3` in the `~/Documents/Energy3D/` directory.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/alpine_pv_snow_clearance_design/setup_task.sh",
+    "post_task": "/workspace/tasks/alpine_pv_snow_clearance_design/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Engineer",
+    "industry": "Renewable Energy",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/anchorage_yield.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/alpine_snow_array.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_alpine_snow_clearance"
+    }
+  }
+}

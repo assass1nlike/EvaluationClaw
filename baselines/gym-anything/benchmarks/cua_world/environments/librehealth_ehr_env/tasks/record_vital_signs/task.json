@@ -1,0 +1,39 @@
+{
+  "id": "record_vital_signs@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "You are a medical assistant at a family practice clinic. A patient has arrived for their annual physical examination and you have just completed their triage measurements. Document the vital signs in LibreHealth EHR (username: admin, password: password) for the patient identified in /tmp/target_patient.txt. Create a new encounter and record the following measurements: Blood Pressure 128/82 mmHg, Pulse 76 bpm, Temperature 98.6 F, Respirations 16 per minute, Oxygen Saturation 98%, Height 68 inches, and Weight 185 lbs. Ensure all values are saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_vital_signs/setup_task.sh",
+    "post_task": "/workspace/tasks/record_vital_signs/export_result.sh"
+  },
+  "metadata": {
+    "expected_values": {
+      "bps": 128,
+      "bpd": 82,
+      "pulse": 76,
+      "temperature": 98.6,
+      "respiration": 16,
+      "oxygen_saturation": 98,
+      "height": 68,
+      "weight": 185
+    },
+    "tolerances": {
+      "temperature": 0.1,
+      "height": 0.5,
+      "weight": 0.5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_vital_signs"
+    }
+  }
+}

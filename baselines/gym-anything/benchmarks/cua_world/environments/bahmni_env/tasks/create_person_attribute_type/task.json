@@ -1,0 +1,30 @@
+{
+  "id": "create_person_attribute_type@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Navigate to the OpenMRS Administration interface from the Bahmni Home screen and create a new Person Attribute Type named 'Preferred Language' with the format 'java.lang.String' and the description 'Patient\\'s preferred language for translation and interpreter services'. Ensure the attribute is searchable. If prompted, use the credentials username 'superman' and password 'Admin123'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_person_attribute_type/setup_task.sh",
+    "post_task": "/workspace/tasks/create_person_attribute_type/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_name": "Preferred Language",
+    "target_format": "java.lang.String",
+    "target_description_keyword": "language",
+    "target_searchable": true,
+    "admin_url": "https://localhost/openmrs/admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_person_attribute_type"
+    }
+  }
+}

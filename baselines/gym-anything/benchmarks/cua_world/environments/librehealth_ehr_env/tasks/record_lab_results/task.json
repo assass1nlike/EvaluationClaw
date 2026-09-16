@@ -1,0 +1,41 @@
+{
+  "id": "record_lab_results@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Log in as admin (password: password) and enter laboratory test results for the pending 'Complete Blood Count (CBC)' order for patient Jannette Charley (DOB: 1965-02-14). Record the following values: WBC 6.8, RBC 4.22, Hemoglobin 11.8, Hematocrit 35.4, and Platelet Count 245. Set the order status to 'Final' and save the results.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_lab_results/setup_task.sh",
+    "post_task": "/workspace/tasks/record_lab_results/export_result.sh"
+  },
+  "metadata": {
+    "patient_name": "Jannette Charley",
+    "patient_dob": "1965-02-14",
+    "order_name": "Complete Blood Count",
+    "target_results": {
+      "WBC": 6.8,
+      "RBC": 4.22,
+      "Hemoglobin": 11.8,
+      "Hematocrit": 35.4,
+      "Platelet Count": 245
+    },
+    "tolerances": {
+      "WBC": 0.5,
+      "RBC": 0.3,
+      "Hemoglobin": 0.5,
+      "Hematocrit": 1.0,
+      "Platelet Count": 10
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_lab_results"
+    }
+  }
+}

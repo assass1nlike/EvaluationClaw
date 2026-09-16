@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_tax_shipping_and_fulfill_order@1",
+  "task_completion": [
+    {
+      "id": "enable_tax_calculations",
+      "description": "Verify that tax rates and calculations are enabled in WooCommerce settings.",
+      "points": 10,
+      "visual_evidence": "In the WooCommerce Settings -> General tab, the checkbox for 'Enable tax rates and calculations' should be checked and saved."
+    },
+    {
+      "id": "configure_tax_rate",
+      "description": "Verify the creation of the California tax rate.",
+      "points": 15,
+      "visual_evidence": "In WooCommerce Settings -> Tax -> Standard rates, there should be a row with State code 'CA', Rate '8.25', Tax name 'CA Sales Tax', and Priority '1'. Zip/Postcode and City should be left blank or marked with an asterisk (*) for all."
+    },
+    {
+      "id": "create_shipping_zone",
+      "description": "Verify the creation of the 'California' shipping zone.",
+      "points": 15,
+      "visual_evidence": "In WooCommerce Settings -> Shipping -> Shipping zones, there should be a zone named 'California' with the region set to 'California, United States'."
+    },
+    {
+      "id": "configure_shipping_method_and_cost",
+      "description": "Verify the shipping method and cost for the California zone.",
+      "points": 10,
+      "visual_evidence": "Within the 'California' shipping zone settings, there should be a 'Flat rate' shipping method added. The settings modal or summary for this method should show a cost of '7.99'."
+    },
+    {
+      "id": "create_order_and_customer_details",
+      "description": "Verify the manual order creation with the correct customer and billing state.",
+      "points": 15,
+      "visual_evidence": "On the Edit Order page, the customer should be set to Jane Smith (jane.smith@example.com). The Billing details section must show the State/County as 'California' or 'CA'."
+    },
+    {
+      "id": "add_order_products",
+      "description": "Verify the correct products and quantities are added to the order.",
+      "points": 20,
+      "visual_evidence": "In the order items list, there should be two items: 'Organic Cotton T-Shirt' with a quantity of 2 (Cost/Total reflecting x2), and 'Bamboo Cutting Board Set' with a quantity of 1."
+    },
+    {
+      "id": "set_order_note_and_status",
+      "description": "Verify the private order note and order status.",
+      "points": 15,
+      "visual_evidence": "In the Order Notes sidebar, there should be a private note reading 'Priority fulfillment - customer loyalty reward' (typically indicated by a grey background or 'Private note' label). The Order status dropdown at the top of the page should be set to 'Processing'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Ensure the agent used the WordPress/WooCommerce web GUI.",
+      "visual_evidence": "Screenshots should show a web browser navigating the WordPress admin dashboard, not a terminal using WP-CLI or curl commands to configure settings or create the order."
+    },
+    {
+      "id": "genuine_browser_usage",
+      "description": "Ensure the agent interacted with the actual application.",
+      "visual_evidence": "The screenshots should show the actual WooCommerce interface with forms being filled out and saved, rather than just a text editor or script."
+    },
+    {
+      "id": "no_direct_database_manipulation",
+      "description": "Ensure the agent did not use direct database queries to bypass the UI.",
+      "visual_evidence": "There should be no evidence of MySQL terminals, phpMyAdmin, or database scripts being used to insert the order or settings directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Tax Configuration: Rate must be exactly 8.25%, State 'CA', Name 'CA Sales Tax'. Shipping Configuration: Zone name 'California', Method 'Flat rate', Cost $7.99. Order Details: Customer is Jane Smith (jane.smith@example.com), Billing state is 'CA'. Products: 2x Organic Cotton T-Shirt (SKU: OCT-BLK-M), 1x Bamboo Cutting Board Set (SKU: BCB-SET2). Order Note: 'Priority fulfillment - customer loyalty reward' (must be a private note). Order Status: 'Processing'."
+}

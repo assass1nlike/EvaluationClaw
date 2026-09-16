@@ -1,0 +1,27 @@
+{
+  "id": "double_entry_table@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete at least 2 levels of the 'Double Entry Table' activity in GCompris. Save a screenshot of the completed Level 2 grid or the success animation to '~/double_entry_success.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/double_entry_table/setup_task.sh",
+    "post_task": "/workspace/tasks/double_entry_table/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/home/ga/double_entry_success.png",
+    "category_name": "Puzzle",
+    "activity_name": "Double entry table"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_double_entry_table"
+    }
+  }
+}

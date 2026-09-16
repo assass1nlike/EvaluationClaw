@@ -1,0 +1,42 @@
+{
+  "id": "access_admin_system_info@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "You are a systems administrator at a university facilities management department. As part of an IT security audit, document the technical specifications from the Emoncms Admin panel. Create a report file at /home/ga/system_audit_report.txt containing the following fields, each on its own line in 'key: value' format:\n\n- emoncms_version: The Emoncms version\n- mysql_version: The MySQL/MariaDB server version\n- php_version: The PHP version\n- redis_status: The Redis connection status\n- server_os: The server operating system string\n- feed_count: The total number of feeds\n- input_count: The total number of inputs\n- mqtt_status: The MQTT server connection status",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/access_admin_system_info/setup_task.sh",
+    "post_task": "/workspace/tasks/access_admin_system_info/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "/home/ga/system_audit_report.txt",
+    "required_fields": [
+      "emoncms_version",
+      "mysql_version",
+      "php_version",
+      "redis_status",
+      "server_os",
+      "feed_count",
+      "input_count",
+      "mqtt_status"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_access_admin_system_info"
+    }
+  },
+  "tags": [
+    "admin-panel",
+    "system-info",
+    "audit",
+    "reporting",
+    "file-creation"
+  ]
+}

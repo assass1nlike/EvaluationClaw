@@ -1,0 +1,59 @@
+{
+  "task_id": "manufacturing_spc_quality_analysis@1",
+  "task_completion": [
+    {
+      "id": "process_capability_vw",
+      "description": "Create the PROCESS_CAPABILITY_VW view with required SPC metrics and capability ratings.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL Developer window or terminal showing 'CREATE VIEW PROCESS_CAPABILITY_VW' or a query result containing columns like X-bar, sigma, Cp, Cpk, and capability_rating ('EXCELLENT', 'CAPABLE', 'MARGINAL', 'INCAPABLE')."
+    },
+    {
+      "id": "control_violations_table",
+      "description": "Create the CONTROL_VIOLATIONS table to store out-of-control process events.",
+      "points": 10,
+      "visual_evidence": "Look for 'CREATE TABLE CONTROL_VIOLATIONS' with columns such as violation_id, rule_number, violation_description, measurement_mean, and control_limit."
+    },
+    {
+      "id": "proc_detect_violations",
+      "description": "Create and execute the PROC_DETECT_VIOLATIONS PL/SQL procedure implementing Western Electric Rules 1-4.",
+      "points": 25,
+      "visual_evidence": "Look for 'CREATE OR REPLACE PROCEDURE PROC_DETECT_VIOLATIONS' containing logic for standard deviation checks (e.g., >3 sigma, 2 of 3 >2 sigma, 4 of 5 >1 sigma, 8 consecutive) and a message indicating successful compilation and execution (e.g., 'PL/SQL procedure successfully completed')."
+    },
+    {
+      "id": "pareto_and_calibration_views",
+      "description": "Create the DEFECT_PARETO_VW and CALIBRATION_ALERTS_VW views.",
+      "points": 15,
+      "visual_evidence": "Look for 'CREATE VIEW DEFECT_PARETO_VW' (with cumulative percentage logic) and 'CREATE VIEW CALIBRATION_ALERTS_VW' (checking next_calibration_date < SYSDATE)."
+    },
+    {
+      "id": "quality_audit_mv",
+      "description": "Create the QUALITY_AUDIT_MV materialized view using ROLLUP.",
+      "points": 20,
+      "visual_evidence": "Look for 'CREATE MATERIALIZED VIEW QUALITY_AUDIT_MV' and the explicit use of the 'ROLLUP' keyword summarizing defect rates by line, part, and shift."
+    },
+    {
+      "id": "export_csv_report",
+      "description": "Export the quality audit summary to /home/ga/quality_audit_report.csv.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command (like 'cat /home/ga/quality_audit_report.csv', 'ls -l /home/ga/'), a SQL spool command, or a GUI file manager/editor showing the exported CSV file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Verify the agent interacted with the Oracle database using a genuine client.",
+      "visual_evidence": "Look for the use of Oracle SQL Developer, SQL*Plus, or another database client to execute the queries, rather than just typing SQL into a text editor without running it."
+    },
+    {
+      "id": "plsql_execution_verification",
+      "description": "Verify the PL/SQL procedure was actually executed to populate the table.",
+      "visual_evidence": "Look for execution commands like 'EXEC PROC_DETECT_VIOLATIONS;' or 'BEGIN PROC_DETECT_VIOLATIONS; END;' and success messages, rather than manually inserting mock rows into the CONTROL_VIOLATIONS table."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the CSV export is derived from the database.",
+      "visual_evidence": "Look for evidence of an export mechanism (e.g., SQL Developer export wizard, SQL*Plus spooling, or a script) rather than the agent manually typing a mock CSV file in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains synthetic measurement data with specific embedded signals: Line 1 Brake Rotor has a sudden mean shift (+0.020mm), Line 2 Bearing Housing has a gradual mean drift (+0.0003mm/day), and Line 3 Valve Spring has a standard deviation jump (0.10 to 0.35). The agent must use Oracle features like Analytical Functions, Materialized Views, ROLLUP/CUBE, and PL/SQL Processing. The final output must be exported to /home/ga/quality_audit_report.csv."
+}

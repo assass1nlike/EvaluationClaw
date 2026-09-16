@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_ev_fleet_emissions@1",
+  "task_completion": [
+    {
+      "id": "create_vtypes_file",
+      "description": "Create ev_vtypes.add.xml with the specified fleet mix distribution.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a text editor or terminal output (e.g., cat) of ev_vtypes.add.xml containing a vTypeDistribution named 'fleet_mix' with 70% 'HBEFA4/PC_petrol_Euro-4' and 30% 'HBEFA4/PC_BEV'."
+    },
+    {
+      "id": "generate_route_file",
+      "description": "Generate acosta_fleet.rou.xml containing at least 50 trips using the fleet mix.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the generation script, terminal output, or file contents of acosta_fleet.rou.xml with multiple trip or vehicle definitions (at least 50) that reference the 'fleet_mix' type."
+    },
+    {
+      "id": "create_sumocfg_file",
+      "description": "Create ev_run.sumocfg linking the network, routes, vtypes, and output files.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of ev_run.sumocfg. It must include references to 'acosta_buslanes.net.xml', 'acosta_fleet.rou.xml', 'ev_vtypes.add.xml', and configure outputs for emissions.xml and ev_tripinfo.xml."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation using the created configuration.",
+      "points": 15,
+      "visual_evidence": "Screenshots of a terminal showing the execution of the 'sumo' or 'sumo-gui' command with 'ev_run.sumocfg' and the resulting simulation progress or completion logs."
+    },
+    {
+      "id": "verify_xml_outputs",
+      "description": "Verify the generation of emissions.xml and ev_tripinfo.xml in the output directory.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a terminal command (like ls -l /home/ga/SUMO_Output/) or file explorer confirming the existence of emissions.xml and ev_tripinfo.xml."
+    },
+    {
+      "id": "generate_summary_report",
+      "description": "Generate the ev_fleet_report.txt with the required metrics.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of ev_fleet_report.txt (via cat or a text editor) containing the total number of vehicles, percentage of EV vs conventional, total CO2 emissions for each type, and the overall CO2 reduction percentage."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_run",
+      "description": "The agent actually executed the SUMO simulation to generate the XML outputs.",
+      "visual_evidence": "Look for terminal logs showing SUMO loading the network and routing files, and stepping through the simulation, rather than the agent just using 'touch' to create empty output files."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "The agent used a script or tool to parse the XML files and calculate the report metrics.",
+      "visual_evidence": "Look for a Python script, shell script, or command-line data processing tools (like awk/grep) being written and executed to calculate the CO2 reduction and vehicle counts, rather than the agent typing hardcoded, fabricated numbers directly into the text file."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "The agent worked within the specified directories.",
+      "visual_evidence": "Check terminal prompts and file paths to ensure the agent is working in /home/ga/SUMO_Scenarios/bologna_acosta for inputs and /home/ga/SUMO_Output for outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The working directory for scenario files is /home/ga/SUMO_Scenarios/bologna_acosta. The output directory is /home/ga/SUMO_Output. The expected filenames are ev_vtypes.add.xml, acosta_fleet.rou.xml, ev_run.sumocfg, emissions.xml, ev_tripinfo.xml, and ev_fleet_report.txt. The fleet mix must be exactly 70% HBEFA4/PC_petrol_Euro-4 and 30% HBEFA4/PC_BEV."
+}

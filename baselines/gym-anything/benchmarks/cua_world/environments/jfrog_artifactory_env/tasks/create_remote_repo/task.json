@@ -1,0 +1,31 @@
+{
+  "id": "create_remote_repo@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Create a remote Maven repository in JFrog Artifactory (http://localhost:8082) using username 'admin' and password 'password'. Configure the repository with the Key 'maven-central-proxy', Package Type 'Maven', Remote URL 'https://repo1.maven.org/maven2', and Description 'Proxy for Maven Central Repository'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_remote_repo/setup_task.sh"
+  },
+  "metadata": {
+    "target_repo_key": "maven-central-proxy",
+    "target_repo_type": "remote",
+    "target_package_type": "maven",
+    "target_remote_url": "https://repo1.maven.org/maven2",
+    "target_description": "Proxy for Maven Central Repository",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_remote_repo"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "chinook_revenue_quintile_analysis@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Marketing Analyst performing a customer segmentation analysis on the Chinook database (/home/ga/Documents/databases/chinook.db) to identify revenue concentration. Calculate total lifetime revenue for each customer and segment them into 5 quintiles (1=Top 20% highest spenders, 5=Bottom 20%) using window functions. Aggregate the data to show Quintile, CustomerCount, TotalRevenue, and AvgRevenue per quintile, ensuring Quintile 1 represents the highest TotalRevenue. Export the results as a CSV with a header and exactly 5 data rows to /home/ga/Documents/exports/revenue_quintiles.csv and save the SQL analysis script to /home/ga/Documents/scripts/quintile_analysis.sql.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_revenue_quintile_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_revenue_quintile_analysis/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "output_csv": "/home/ga/Documents/exports/revenue_quintiles.csv",
+    "output_sql": "/home/ga/Documents/scripts/quintile_analysis.sql",
+    "expected_rows": 5,
+    "columns": [
+      "Quintile",
+      "CustomerCount",
+      "TotalRevenue",
+      "AvgRevenue"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_revenue_quintile_analysis"
+    }
+  }
+}

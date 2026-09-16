@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_rated_disabilities@1",
+  "task_completion": [
+    {
+      "id": "open_ydbgui",
+      "description": "Open the YDBGui application",
+      "points": 10,
+      "visual_evidence": "The YDBGui application window is visible on the screen."
+    },
+    {
+      "id": "locate_patient_disability_node",
+      "description": "Locate a patient's rated disabilities in the ^DPT global",
+      "points": 25,
+      "visual_evidence": "YDBGui is displaying the ^DPT global, specifically showing a patient record expanded to reveal node .372 (Rated Disabilities)."
+    },
+    {
+      "id": "cross_reference_disability_name",
+      "description": "Cross-reference the disability name in the ^DIC(31) global",
+      "points": 25,
+      "visual_evidence": "YDBGui is displaying the ^DIC(31) global, showing the lookup of the specific disability code found in the patient's record to get the human-readable disability name."
+    },
+    {
+      "id": "open_report_file",
+      "description": "Open or create the required text report file",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) is open, and the file path /home/ga/Documents/disability_audit.txt is visible in the window title, status bar, or save dialog."
+    },
+    {
+      "id": "write_formatted_report",
+      "description": "Write the patient disability details in the exact required format",
+      "points": 30,
+      "visual_evidence": "The text editor contains the exact format: 'Patient: [Name]', 'Disability: [Name]', and 'Percentage: [Number]%' using the data retrieved from YDBGui."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ydbgui_interface",
+      "description": "The agent used the YDBGui interface to explore the database, rather than terminal commands.",
+      "visual_evidence": "Screenshots should show interaction with the graphical YDBGui window to view globals, not terminal commands like 'mumps -dir' or direct database queries via CLI."
+    },
+    {
+      "id": "data_matches_database",
+      "description": "The data entered into the report matches the data viewed in the database.",
+      "visual_evidence": "The Patient Name, Disability Name, and Percentage in the text file should correspond exactly to the values seen in the YDBGui ^DPT and ^DIC(31) screens, proving the agent didn't hallucinate or copy-paste a pre-existing answer."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent actually created and saved the file in a text editor or via standard file writing commands.",
+      "visual_evidence": "Evidence of a text editor being used or a terminal command (like echo or cat) writing to the specific file path, rather than just printing the text to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be exactly at '/home/ga/Documents/disability_audit.txt'. The patient data is located in the '^DPT' global under node '.372'. The human-readable disability names are cross-referenced in the '^DIC(31)' global."
+}

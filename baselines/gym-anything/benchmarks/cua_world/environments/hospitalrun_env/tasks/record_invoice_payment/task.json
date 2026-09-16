@@ -1,0 +1,30 @@
+{
+  "id": "record_invoice_payment@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Record a payment of 200 for patient Maria Elena Santos (P00042) on her existing invoice. Use the date 01/15/2025 and set the payment type to Cash. Ensure the payment is saved and the invoice reflects the updated paid total.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_invoice_payment/setup_task.sh",
+    "post_task": "/workspace/tasks/record_invoice_payment/export_result.sh"
+  },
+  "metadata": {
+    "patient_id": "patient_p1_000042",
+    "invoice_id": "invoice_p1_000042",
+    "expected_payment_amount": 200,
+    "expected_payment_type": "Cash",
+    "expected_total_paid_min": 199,
+    "expected_payment_date_year": "2025"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_invoice_payment"
+    }
+  }
+}

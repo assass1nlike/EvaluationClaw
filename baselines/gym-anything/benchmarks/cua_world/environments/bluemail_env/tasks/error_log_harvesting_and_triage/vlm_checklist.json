@@ -1,0 +1,53 @@
+{
+  "task_id": "error_log_harvesting_and_triage@1",
+  "task_completion": [
+    {
+      "id": "bluemail_folder_created",
+      "description": "Verify the 'Processed-Logs' folder was created in BlueMail.",
+      "points": 10,
+      "visual_evidence": "The BlueMail application sidebar should display a custom folder named 'Processed-Logs'."
+    },
+    {
+      "id": "local_dir_created",
+      "description": "Verify the 'ErrorLogs' directory was created in the local Documents folder.",
+      "points": 10,
+      "visual_evidence": "A file manager window or terminal showing the 'ErrorLogs' folder existing inside the '~/Documents/' directory."
+    },
+    {
+      "id": "emails_identified",
+      "description": "Verify the agent identified and opened emails containing technical error logs or stack traces.",
+      "points": 15,
+      "visual_evidence": "BlueMail showing an open email whose body contains technical error logs, code snippets, or stack traces."
+    },
+    {
+      "id": "error_logs_saved",
+      "description": "Verify at least 3 unique text files containing extracted error logs were saved in the ErrorLogs directory.",
+      "points": 40,
+      "visual_evidence": "A file manager or text editor showing at least 3 distinct files inside '~/Documents/ErrorLogs/'. The files must contain text extracted from the emails."
+    },
+    {
+      "id": "emails_moved",
+      "description": "Verify the processed emails were moved to the 'Processed-Logs' folder.",
+      "points": 25,
+      "visual_evidence": "BlueMail showing the 'Processed-Logs' folder opened, containing the 3 or more emails that were previously processed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the graphical user interface to interact with emails.",
+      "visual_evidence": "Screenshots should show interaction with the BlueMail GUI to read and move emails, rather than bypassing the email client entirely."
+    },
+    {
+      "id": "authentic_extraction",
+      "description": "Ensure the extracted text genuinely comes from the emails.",
+      "visual_evidence": "The content visible in the saved text files must match the text seen in the source emails, not hallucinated or copied from the task description."
+    },
+    {
+      "id": "no_loose_files",
+      "description": "Ensure no loose log files were left in the Documents root directory.",
+      "visual_evidence": "When viewing the '~/Documents/' directory, there should be no loose text files containing logs; they must all be properly placed inside the 'ErrorLogs' folder."
+    }
+  ],
+  "privileged_info_for_vlm": "Target local directory: /home/ga/Documents/ErrorLogs. Target mail folder: Processed-Logs. Minimum files required: 3. The extracted text in each file must be at least 15 characters long and exist in the source emails. Ensure no loose files were left in the Documents root directory."
+}

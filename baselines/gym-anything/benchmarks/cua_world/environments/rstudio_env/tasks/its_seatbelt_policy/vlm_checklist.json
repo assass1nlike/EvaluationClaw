@@ -1,0 +1,62 @@
+{
+  "task_id": "its_seatbelt_policy@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The analysis script is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A file named 'its_seatbelt_analysis.R' is visible in a text editor, IDE, or terminal at '/home/ga/RProjects/'."
+    },
+    {
+      "id": "regression_model_code",
+      "description": "The script contains code for a segmented regression model on 'DriversKilled'.",
+      "points": 15,
+      "visual_evidence": "The R script shows a regression function (e.g., lm(), gls()) predicting 'DriversKilled' with independent variables accounting for secular trend (time), immediate level change (intervention indicator), trend change after intervention, and seasonality."
+    },
+    {
+      "id": "model_results_csv",
+      "description": "The model coefficients are exported to its_model_results.csv.",
+      "points": 15,
+      "visual_evidence": "A file named 'its_model_results.csv' is visible in '/home/ga/RProjects/output/'. If its contents are shown, it should contain columns for term, estimate, std_error, p_value, ci_lower, and ci_upper."
+    },
+    {
+      "id": "diagnostics_csv",
+      "description": "The diagnostic metrics are exported to its_diagnostics.csv.",
+      "points": 15,
+      "visual_evidence": "A file named 'its_diagnostics.csv' is visible in '/home/ga/RProjects/output/'. If its contents are shown, it must have 'metric' and 'value' columns, including rows for 'durbin_watson', 'level_change_estimate', and 'n_observations'."
+    },
+    {
+      "id": "plot_file_created",
+      "description": "The ITS plot image file is created in the output directory.",
+      "points": 20,
+      "visual_evidence": "An image file named 'its_seatbelt_plot.png' is visible in the '/home/ga/RProjects/output/' directory."
+    },
+    {
+      "id": "plot_visual_elements",
+      "description": "The ITS plot contains all required visual elements.",
+      "points": 25,
+      "visual_evidence": "The generated plot (either opened in an image viewer or RStudio plots pane) shows a time series with: 1) observed data points/lines, 2) fitted pre-intervention and post-intervention trend lines, 3) a dashed line representing the counterfactual scenario, and 4) a vertical line marking the Feb 1983 intervention."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The agent actually executed the R script to generate the outputs.",
+      "points": 0,
+      "visual_evidence": "The terminal or R console shows commands like 'Rscript its_seatbelt_analysis.R' or execution within an IDE like RStudio, rather than just creating text files manually."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent computed the results dynamically rather than hardcoding the expected outputs.",
+      "points": 0,
+      "visual_evidence": "The R script contains actual data manipulation, modeling, and plotting functions (e.g., lm, write.csv, plot/ggplot) rather than hardcoded strings or arrays writing directly to the CSV files."
+    },
+    {
+      "id": "used_builtin_dataset",
+      "description": "The agent used the built-in 'Seatbelts' dataset.",
+      "points": 0,
+      "visual_evidence": "The script references the 'Seatbelts' dataset directly (e.g., data(Seatbelts) or directly using the Seatbelts object) rather than downloading or mocking a fake dataset."
+    }
+  ],
+  "privileged_info_for_vlm": "The built-in 'Seatbelts' dataset contains 192 monthly observations. The intervention (Feb 1983) occurs at observation index 170. IMPORTANT: The task asks for an analysis on 'DriversKilled'. A correct analysis on 'DriversKilled' will yield a level change estimate (law coefficient) of approximately -19 to -23. Do not penalize the agent if this value appears in the diagnostics CSV; it is the correct mathematical result for 'DriversKilled', whereas a drop of ~300 would incorrectly correspond to total driver casualties. The expected output directory is '/home/ga/RProjects/output' and the script path is '/home/ga/RProjects/its_seatbelt_analysis.R'."
+}

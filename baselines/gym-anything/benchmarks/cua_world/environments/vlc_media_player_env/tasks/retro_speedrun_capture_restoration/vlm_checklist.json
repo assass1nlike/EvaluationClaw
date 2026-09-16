@@ -1,0 +1,53 @@
+{
+  "task_id": "retro_speedrun_capture_restoration@1",
+  "task_completion": [
+    {
+      "id": "process_video_crop_deinterlace",
+      "description": "The agent processes the raw video to remove overscan borders, deinterlace, and encode to MP4.",
+      "points": 25,
+      "visual_evidence": "Terminal showing an ffmpeg command with a crop filter (e.g., crop=688:448:16:16), a deinterlace filter (e.g., yadif), and outputting to clean_run.mp4, or a GUI video editor with equivalent settings applied."
+    },
+    {
+      "id": "extract_audio_track",
+      "description": "The agent extracts the audio track from the raw video into a standalone MP3 file.",
+      "points": 15,
+      "visual_evidence": "Terminal showing an ffmpeg command extracting audio to run_audio.mp3, or an audio/video GUI tool exporting the audio track as MP3."
+    },
+    {
+      "id": "capture_victory_thumbnail",
+      "description": "The agent captures a still frame from the processed video at the 0:25 mark.",
+      "points": 20,
+      "visual_evidence": "Terminal showing an ffmpeg command with a time seek flag (e.g., -ss 00:00:25 or -ss 25) outputting to victory_thumbnail.png, or a video player paused at 0:25 with a snapshot being taken."
+    },
+    {
+      "id": "create_manifest_json",
+      "description": "The agent creates a manifest.json file containing the required metadata.",
+      "points": 25,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) or terminal echo/cat command showing a JSON structure with keys 'runner' ('ga_agent'), 'original_resolution' ('720x480'), 'cropped_resolution' ('688x448'), and 'deinterlaced' (true)."
+    },
+    {
+      "id": "verify_final_outputs",
+      "description": "All required files are successfully saved in the leaderboard_submission directory.",
+      "points": 15,
+      "visual_evidence": "A terminal 'ls' command or file manager window showing clean_run.mp4, run_audio.mp3, victory_thumbnail.png, and manifest.json inside /home/ga/Videos/leaderboard_submission/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_media_processing",
+      "description": "The agent genuinely processed the media files rather than creating empty mock files.",
+      "visual_evidence": "Screenshots should show actual processing logs (e.g., ffmpeg progress output showing frames, fps, and bitrate) or a real media application processing the files, not just 'touch' commands."
+    },
+    {
+      "id": "correct_source_file_used",
+      "description": "The agent used the specified raw capture file as the input.",
+      "visual_evidence": "Commands or GUI inputs explicitly reference /home/ga/Videos/raw_capture/speedrun_raw.mpg as the input file."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "The agent manually or programmatically constructed the JSON file.",
+      "visual_evidence": "The agent is seen typing, echoing, or using a script to generate the JSON content, rather than copying a pre-existing solution file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output files: /home/ga/Videos/leaderboard_submission/clean_run.mp4, /home/ga/Videos/leaderboard_submission/run_audio.mp3, /home/ga/Videos/leaderboard_submission/victory_thumbnail.png, /home/ga/Videos/leaderboard_submission/manifest.json. Expected cropped dimensions: 688x448."
+}

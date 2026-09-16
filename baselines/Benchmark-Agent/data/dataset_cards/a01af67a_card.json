@@ -1,0 +1,107 @@
+{
+  "dataset_id": "a01af67a",
+  "name": "Openset Multi-Image Visual Entailment Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for multi-image visual entailment reasoning. Given two images and a relation sentence, the model must judge whether the sentence correctly describes the relationship between the images, choosing True or False.",
+  "card_text": "The dataset contains 200 samples for openset multi-image visual entailment reasoning. Each sample pairs two images with a natural-language sentence that states a relation between them (e.g., 'There are exactly two bottles'). The model receives both images and a prompt that includes the evaluation instruction, the relation sentence, and a choice list with two options (True/False). The task is to decide whether the relation sentence is entailed by the visual content of both images. Images typically depict everyday objects, animals, or scenes, and the relations focus on counting, existence, or attributes. The dataset is designed to test multimodal reasoning and fine-grained visual-text alignment, requiring the model to compare and combine evidence from multiple images. The output is a single binary label.",
+  "tasks": [
+    "entailment_judgment",
+    "classification_binary",
+    "visual_question_answering"
+  ],
+  "domain": "visual entailment",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Textual input that contains the task instruction and the relation sentence (hypothesis) to be evaluated against the two images. It is the main textual context the model reads.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt also functions as the query, asking the model to judge whether the relation sentence accurately depicts the relationship between the paired images and to select an answer from the provided choices.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Embedded within the prompt is the Choice list with the two candidate labels ('True', 'False'); these constrain the output space.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "A list of two image file references per sample. They serve as visual premises whose combined content must support or contradict the relation sentence.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary label ('True' or 'False') indicating whether the relation sentence is entailed by the pair of images.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of two image references (input.image_file), a single text prompt (input.prompt) that bundles the task instruction, a relation sentence (hypothesis), and a binary choice list, and a text answer (output.text). The images act as visual premises; the prompt provides both the query and the hypothesis to be checked; the answer is the binary entailment judgment. There are no separate fields for question, options, or rationale."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-ImageVisualEntailmentReasoning/openset_multi-image_visual_entailment_reasoning.json",
+    "existing_tags": {
+      "task": "Multi-Image Visual Entailment Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

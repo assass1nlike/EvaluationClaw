@@ -1,0 +1,53 @@
+{
+  "task_id": "osm_geolocation_verification@1",
+  "task_completion": [
+    {
+      "id": "osm_opened",
+      "description": "OpenStreetMap website is opened in a web browser.",
+      "points": 10,
+      "visual_evidence": "A web browser window is visible, navigated to https://www.openstreetmap.org."
+    },
+    {
+      "id": "geolocation_override_used",
+      "description": "Browser developer tools are used to override geolocation coordinates.",
+      "points": 20,
+      "visual_evidence": "The browser's Developer Tools are open, specifically showing the 'Sensors' or 'Location' tab where custom latitude and longitude values can be entered."
+    },
+    {
+      "id": "report_file_opened",
+      "description": "The report file geo_verification_report.txt is opened or created.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal is visible, showing the file path /home/ga/Desktop/geo_verification_report.txt."
+    },
+    {
+      "id": "london_url_recorded",
+      "description": "The OpenStreetMap URL for London is saved in the report file.",
+      "points": 30,
+      "visual_evidence": "The text file contains an OSM URL with coordinates close to London's location (e.g., containing values near 51.50 and -0.12 in the format #map=zoom/lat/lon)."
+    },
+    {
+      "id": "tokyo_url_recorded",
+      "description": "The OpenStreetMap URL for Tokyo is saved in the report file.",
+      "points": 30,
+      "visual_evidence": "The text file contains an OSM URL with coordinates close to Tokyo's location (e.g., containing values near 35.68 and 139.69 in the format #map=zoom/lat/lon)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction_genuine",
+      "description": "The agent interacted with the actual OpenStreetMap website in a GUI browser.",
+      "visual_evidence": "Screenshots show the actual OSM map interface loading the locations, not just terminal commands making curl requests."
+    },
+    {
+      "id": "no_direct_url_manipulation",
+      "description": "The agent used the 'Show My Location' feature rather than just typing coordinates directly into the URL bar.",
+      "visual_evidence": "The 'Show My Location' button (an arrow/crosshair icon on the right side of the OSM map) should appear clicked or active, and the browser's geolocation override should be visible in the developer tools."
+    },
+    {
+      "id": "urls_not_hallucinated",
+      "description": "The URLs recorded in the report file match the URLs generated in the browser.",
+      "visual_evidence": "The URLs in the text editor should match the URLs seen in the browser's address bar when the map was centered on the respective cities."
+    }
+  ],
+  "privileged_info_for_vlm": "London coordinates are approximately 51.50 (latitude) and -0.12 (longitude). Tokyo coordinates are approximately 35.68 (latitude) and 139.69 (longitude). OpenStreetMap URLs are formatted as #map=zoom/latitude/longitude. The target report file is /home/ga/Desktop/geo_verification_report.txt. A tolerance of 0.5 degrees is acceptable for the coordinates in the URLs."
+}

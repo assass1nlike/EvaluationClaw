@@ -1,0 +1,20 @@
+{
+  "id": "create_org_chart@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create an organizational chart for the Apache Software Foundation governance structure. The hierarchy must include 'Board of Directors' at the top level, with 'President', 'Executive Vice President', and 'Secretary' at the second level. Under 'President', include 'VP Infrastructure', 'VP Legal Affairs', and 'VP Marketing'. Connect all boxes with hierarchy lines to represent the reporting relationships. Save the completed diagram to /home/ga/apache_org_chart.eddx.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_org_chart/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_org_chart"
+    }
+  }
+}

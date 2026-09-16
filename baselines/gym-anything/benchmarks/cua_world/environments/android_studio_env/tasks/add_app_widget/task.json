@@ -1,0 +1,35 @@
+{
+  "id": "add_app_widget@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Add a home screen widget to the existing WeatherApp project. The implementation must include a layout file at app/src/main/res/layout/widget_weather.xml with TextView IDs widget_city_name, widget_temperature, and widget_condition. The widget metadata must be defined in app/src/main/res/xml/weather_widget_info.xml using an <appwidget-provider> with minWidth 180dp, minHeight 60dp, and updatePeriodMillis 1800000. The provider class app/src/main/java/com/example/weatherapp/WeatherWidgetProvider.kt should extend AppWidgetProvider and override onUpdate to update the text using RemoteViews. The widget must be registered in AndroidManifest.xml with the android.appwidget.action.APPWIDGET_UPDATE intent filter and the metadata. The project must build successfully upon completion.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_app_widget/setup_task.sh",
+    "post_task": "/workspace/tasks/add_app_widget/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/WeatherApp",
+    "layout_file": "app/src/main/res/layout/widget_weather.xml",
+    "info_file": "app/src/main/res/xml/weather_widget_info.xml",
+    "provider_file": "app/src/main/java/com/example/weatherapp/WeatherWidgetProvider.kt",
+    "manifest_file": "app/src/main/AndroidManifest.xml",
+    "expected_ids": [
+      "widget_city_name",
+      "widget_temperature",
+      "widget_condition"
+    ],
+    "package_name": "com.example.weatherapp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_app_widget"
+    }
+  }
+}

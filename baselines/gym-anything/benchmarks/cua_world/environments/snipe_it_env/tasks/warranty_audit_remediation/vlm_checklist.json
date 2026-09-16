@@ -1,0 +1,53 @@
+{
+  "task_id": "warranty_audit_remediation@1",
+  "task_completion": [
+    {
+      "id": "identify_expired_assets",
+      "description": "Agent navigates to the hardware assets page and reviews purchase dates and warranty months to identify expired assets.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the Snipe-IT hardware assets list or individual asset details being viewed, specifically checking the purchase date and warranty months against the 2025-03-06 audit date."
+    },
+    {
+      "id": "change_status_expired",
+      "description": "Agent changes the status of expired warranty assets to 'Pending'.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the asset edit screen with the status dropdown set to 'Pending' for an expired asset, or the asset list showing the updated 'Pending' status for these assets."
+    },
+    {
+      "id": "add_note_expired",
+      "description": "Agent adds the required compliance note to the expired warranty assets.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the asset edit screen with the Notes field containing 'WARRANTY EXPIRED - Renewal or replacement required per compliance policy FIN-IT-2025-Q1'."
+    },
+    {
+      "id": "active_assets_unmodified",
+      "description": "Agent does not modify assets with active warranties (e.g., ASSET-W004).",
+      "points": 20,
+      "visual_evidence": "Screenshots show that assets with active warranties (where purchase date + warranty months is after 2025-03-06) are skipped and not edited, retaining their original status and notes."
+    },
+    {
+      "id": "retired_assets_unmodified",
+      "description": "Agent does not modify assets that are already retired, lost, or stolen.",
+      "points": 20,
+      "visual_evidence": "Screenshots show that assets with statuses like 'Retired', 'Lost', or 'Stolen' are skipped and not edited."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "Agent interacted with the Snipe-IT web interface to make changes.",
+      "visual_evidence": "Screenshots show the agent clicking through the Snipe-IT web application forms rather than using terminal commands, API calls, or direct database modifications."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Agent genuinely updated the assets one by one or via bulk edit in the application.",
+      "visual_evidence": "Screenshots show the actual edit screens, dropdown selections, and save actions being performed in the browser."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Agent did not use browser developer tools to fake the final state.",
+      "visual_evidence": "No browser developer tools (Inspect Element) are open to manipulate the DOM text to appear as if the task is completed."
+    }
+  ],
+  "privileged_info_for_vlm": "The audit date is 2025-03-06. Expired assets are those where the purchase date plus warranty months is before 2025-03-06. The expected note must contain 'WARRANTY EXPIRED'. The target status for expired assets is 'Pending'. Active warranty assets (e.g., ASSET-W004) and retired/lost/stolen assets must not be modified."
+}

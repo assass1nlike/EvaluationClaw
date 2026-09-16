@@ -1,0 +1,59 @@
+{
+  "task_id": "validation_protocol_execution_nibp@1",
+  "task_completion": [
+    {
+      "id": "openice_vital_signs_running",
+      "description": "OpenICE Supervisor and Vital Signs application are opened to display an NIBP reading",
+      "points": 15,
+      "visual_evidence": "The OpenICE Supervisor and/or Vital Signs application window is visible on the screen, actively showing simulated Noninvasive Blood Pressure (NIBP) data."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the NIBP reading is saved to the Desktop",
+      "points": 20,
+      "visual_evidence": "An image file named 'nibp_reading_captured.png' is visible on the Desktop or in a file manager at /home/ga/Desktop/."
+    },
+    {
+      "id": "text_file_saved",
+      "description": "A text file for the values is created on the Desktop",
+      "points": 15,
+      "visual_evidence": "A text file named 'nibp_values.txt' is visible on the Desktop or in a file manager at /home/ga/Desktop/."
+    },
+    {
+      "id": "correct_text_format",
+      "description": "The text file contains the correctly formatted NIBP reading",
+      "points": 20,
+      "visual_evidence": "The contents of 'nibp_values.txt' (visible in a text editor or terminal output) strictly follow the format: 'Systolic: [Value] mmHg, Diastolic: [Value] mmHg'."
+    },
+    {
+      "id": "values_match_reading",
+      "description": "The recorded values match the captured screenshot",
+      "points": 20,
+      "visual_evidence": "The numerical values for Systolic and Diastolic recorded in the text file exactly match the numbers displayed in the OpenICE Vital Signs application screenshot."
+    },
+    {
+      "id": "vital_signs_closed",
+      "description": "The Vital Signs application is closed after recording",
+      "points": 10,
+      "visual_evidence": "In the final screenshots of the trajectory, the OpenICE Vital Signs application window is no longer open or visible on the desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_usage",
+      "description": "The agent interacted with the OpenICE GUI to obtain the reading",
+      "visual_evidence": "The agent is seen navigating the OpenICE Supervisor GUI to launch the Vital Signs app and view the NIBP simulation, rather than using terminal scripts to bypass the UI or extract logs directly."
+    },
+    {
+      "id": "authentic_screenshot",
+      "description": "The captured screenshot is a genuine capture of the application",
+      "visual_evidence": "The 'nibp_reading_captured.png' file displays a genuine OpenICE interface with simulated patient data, not a generic web image or an empty window."
+    },
+    {
+      "id": "derived_not_fabricated",
+      "description": "The recorded values are derived from the actual simulation",
+      "visual_evidence": "The values typed into 'nibp_values.txt' are clearly derived from observing the GUI reading during the trajectory, not randomly generated or typed before the simulation produces a reading."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires capturing an NIBP reading from the OpenICE simulator (synthetic data). The screenshot must be saved exactly to /home/ga/Desktop/nibp_reading_captured.png and the text file to /home/ga/Desktop/nibp_values.txt. The text file must strictly use the format 'Systolic: [Value] mmHg, Diastolic: [Value] mmHg'. The verifier accepts systolic values between 60-250 mmHg and diastolic values between 30-150 mmHg."
+}

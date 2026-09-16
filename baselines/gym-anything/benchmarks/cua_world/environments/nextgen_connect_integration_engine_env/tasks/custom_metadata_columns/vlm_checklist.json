@@ -1,0 +1,59 @@
+{
+  "task_id": "custom_metadata_columns@1",
+  "task_completion": [
+    {
+      "id": "channel_creation",
+      "description": "Verify the creation of a channel named 'ADT_Metadata_Tracker'",
+      "points": 10,
+      "visual_evidence": "Look for terminal output, API responses (XML/JSON), or GUI screenshots showing a channel configured with the name 'ADT_Metadata_Tracker'."
+    },
+    {
+      "id": "source_configuration",
+      "description": "Verify the source is configured as a TCP Listener on port 6661",
+      "points": 15,
+      "visual_evidence": "Look for configuration details (e.g., in an API payload or GUI) showing the source connector type as TCP Listener and the port set to 6661."
+    },
+    {
+      "id": "destination_configuration",
+      "description": "Verify the destination is a File Writer with the correct directory and filename pattern",
+      "points": 15,
+      "visual_evidence": "Look for destination connector settings showing the directory '/tmp/adt_output/' and the file name pattern 'adt_${DATE}_${COUNT}.hl7'."
+    },
+    {
+      "id": "metadata_columns_setup",
+      "description": "Verify custom metadata columns are configured for PatientMRN, PatientName, and EventType",
+      "points": 20,
+      "visual_evidence": "Look for metadata column definitions in the channel configuration mapping 'PatientMRN' to PID.3.1, 'PatientName' to PID.5, and 'EventType' to MSH.9.2."
+    },
+    {
+      "id": "channel_deployment",
+      "description": "Verify the channel has been deployed",
+      "points": 10,
+      "visual_evidence": "Look for an API response (e.g., 200 OK from a deploy endpoint), a channel status showing 'STARTED'/'DEPLOYED', or a success message indicating deployment."
+    },
+    {
+      "id": "message_processing_verification",
+      "description": "Verify the test messages were processed and metadata was correctly extracted",
+      "points": 30,
+      "visual_evidence": "Look for message browser output, API message queries, or logs showing the extracted custom metadata. Message 1 must show PatientMRN 'MRN78432' and EventType 'A01'. Message 2 must show PatientMRN 'MRN91205' and EventType 'A04'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "Ensure the agent interacted with the NextGen Connect API or GUI rather than just printing text",
+      "visual_evidence": "Look for actual curl commands, python script executions, or GUI interactions with the NextGen Connect system (localhost:8443), rather than simple 'echo' commands or text file manipulations."
+    },
+    {
+      "id": "dynamic_metadata_extraction",
+      "description": "Ensure metadata extraction relies on HL7 paths, not hardcoded values",
+      "visual_evidence": "Check the channel configuration payload to ensure the mapping uses HL7 variables (like msg['PID']['PID.3']['PID.3.1'].toString()) and does not hardcode 'MRN78432' or 'A01'."
+    },
+    {
+      "id": "actual_message_transmission",
+      "description": "Ensure the test messages were actually sent to the TCP port",
+      "visual_evidence": "Look for commands like 'nc', 'telnet', or a script sending the contents of '/home/ga/adt_a01.hl7' and '/home/ga/adt_a04.hl7' to localhost:6661."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel must be named 'ADT_Metadata_Tracker' with a TCP Listener on port 6661. The custom metadata columns must include 'PatientMRN', 'PatientName', and 'EventType'. When the test messages are processed, the metadata for Message 1 should show PatientMRN 'MRN78432' and EventType 'A01'. Message 2 should show PatientMRN 'MRN91205' and EventType 'A04'."
+}

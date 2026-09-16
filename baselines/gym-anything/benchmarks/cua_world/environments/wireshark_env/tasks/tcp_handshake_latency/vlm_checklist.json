@@ -1,0 +1,59 @@
+{
+  "task_id": "tcp_handshake_latency@1",
+  "task_completion": [
+    {
+      "id": "analyze_pcap_file",
+      "description": "Analyze the specified PCAP file to extract TCP handshake data.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening '200722_tcp_anon.pcapng' in a tool like Wireshark, or running terminal commands (e.g., tshark, tcpdump) against the file."
+    },
+    {
+      "id": "create_csv_header",
+      "description": "Create the CSV file with the required header.",
+      "points": 15,
+      "visual_evidence": "A file named 'handshake_latencies.csv' open in a text editor or displayed in the terminal, containing the exact header: 'src_ip, dst_ip, src_port, dst_port, initial_rtt_seconds'."
+    },
+    {
+      "id": "populate_csv_data",
+      "description": "Populate the CSV file with connection data and RTT values in seconds.",
+      "points": 25,
+      "visual_evidence": "The 'handshake_latencies.csv' file contains rows of data with IP addresses, ports, and RTT values formatted in seconds (e.g., values around 0.004 to 0.006)."
+    },
+    {
+      "id": "create_summary_file",
+      "description": "Create the summary text file.",
+      "points": 10,
+      "visual_evidence": "A file named 'handshake_summary.txt' is created and open in a text editor or displayed via terminal output."
+    },
+    {
+      "id": "document_summary_statistics",
+      "description": "Document the total connections, minimum, maximum, and mean RTT in milliseconds in the summary file.",
+      "points": 20,
+      "visual_evidence": "The 'handshake_summary.txt' file explicitly lists the total connections (expected: 4), minimum RTT (~4.57 ms), maximum RTT (~5.66 ms), and mean RTT (~5.12 ms)."
+    },
+    {
+      "id": "document_slowest_connection",
+      "description": "Document the source IP, destination IP, and destination port of the slowest connection in the summary file.",
+      "points": 20,
+      "visual_evidence": "The 'handshake_summary.txt' file identifies the slowest connection, specifically including the destination IP '192.168.200.21' and destination port '2000'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis_tool_usage",
+      "description": "Verify the agent actually analyzed the PCAP file using appropriate tools.",
+      "visual_evidence": "Screenshots should show interaction with Wireshark, tshark, or a custom script being executed to parse the PCAP file, rather than just guessing or hallucinating values."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify the agent did not just copy-paste expected answers without performing the extraction.",
+      "visual_evidence": "The trajectory must show the intermediate steps of data extraction (e.g., viewing Wireshark statistics or script output) before the final CSV and summary files are written."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Verify the output files are saved in the correct directory.",
+      "visual_evidence": "File paths in the text editor, terminal prompts, or commands like 'ls ~/Documents/captures/' confirm that both 'handshake_latencies.csv' and 'handshake_summary.txt' are located in '~/Documents/captures/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The ground truth evaluation expects exactly 4 connections (due to tshark counting both directions of 2 unique handshakes). The expected statistics in the summary file are: Minimum RTT = 4.57 ms, Maximum RTT = 5.66 ms, Mean RTT = 5.12 ms (tolerances: 1% for RTT, 5% for mean). The slowest connection details must include the destination IP '192.168.200.21' and destination port '2000'. The CSV file must be located at '~/Documents/captures/handshake_latencies.csv' and the summary at '~/Documents/captures/handshake_summary.txt'."
+}

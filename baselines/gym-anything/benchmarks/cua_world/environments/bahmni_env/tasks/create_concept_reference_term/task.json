@@ -1,0 +1,35 @@
+{
+  "id": "create_concept_reference_term@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "The Ministry of Health requires all diagnoses to be mapped to ICD-10 codes. You need to add a missing code to the system dictionary by creating a new Concept Reference Term in the OpenMRS Administration interface (https://localhost/openmrs/admin). Use the following details: Concept Source 'ICD-10-WHO', Code 'A00', Name 'Cholera', and Description 'Acute diarrhoeal infection caused by ingestion of food or water contaminated with the bacterium Vibrio cholerae'. \n\nCredentials:\nUsername: superman\nPassword: Admin123",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_concept_reference_term/setup_task.sh",
+    "post_task": "/workspace/tasks/create_concept_reference_term/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_code": "A00",
+    "expected_name": "Cholera",
+    "expected_source": "ICD-10-WHO",
+    "expected_description_keywords": [
+      "acute",
+      "diarrhoeal",
+      "vibrio",
+      "cholerae"
+    ],
+    "admin_url": "https://localhost/openmrs/admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_concept_reference_term"
+    }
+  }
+}

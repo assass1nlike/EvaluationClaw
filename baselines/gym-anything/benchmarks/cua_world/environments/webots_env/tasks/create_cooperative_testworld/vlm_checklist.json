@@ -1,0 +1,65 @@
+{
+  "task_id": "create_cooperative_testworld@1",
+  "task_completion": [
+    {
+      "id": "world_creation_started",
+      "description": "Agent opens Webots to create a new world or opens a text editor to write a .wbt file.",
+      "points": 10,
+      "visual_evidence": "The Webots application window is open with a new world, or a text editor (like VS Code, nano, or gedit) is open and being used to write a Webots world file."
+    },
+    {
+      "id": "environment_nodes_added",
+      "description": "Agent adds the required environment nodes: RectangleArena (or Floor), TexturedBackground, and a light source.",
+      "points": 10,
+      "visual_evidence": "In Webots, the Scene Tree shows nodes for RectangleArena/Floor, TexturedBackground, and a Light (e.g., DirectionalLight). If using a text editor, these node names are visible in the code."
+    },
+    {
+      "id": "world_info_configured",
+      "description": "Agent configures the WorldInfo node with a basicTimeStep of 32 and Earth gravity.",
+      "points": 15,
+      "visual_evidence": "In Webots, the WorldInfo node properties show 'basicTimeStep 32' and gravity around '-9.81'. If using a text editor, the text 'WorldInfo { basicTimeStep 32' is visible."
+    },
+    {
+      "id": "robot_1_placed",
+      "description": "Agent adds the first E-puck robot, names it 'e-puck_1', and positions it at (-0.3, 0, 0).",
+      "points": 15,
+      "visual_evidence": "In Webots, an E-puck node named 'e-puck_1' is in the Scene Tree, and its translation is set to approximately '-0.3 0 0'. In the 3D view, it is placed to one side of the center. If in a text editor, 'DEF e-puck_1 E-puck' and 'translation -0.3 0 0' are visible."
+    },
+    {
+      "id": "robot_2_placed",
+      "description": "Agent adds the second E-puck robot, names it 'e-puck_2', and positions it at (0.3, 0, 0).",
+      "points": 15,
+      "visual_evidence": "In Webots, an E-puck node named 'e-puck_2' is in the Scene Tree, and its translation is set to approximately '0.3 0 0'. In the 3D view, it is placed opposite the first robot. If in a text editor, 'DEF e-puck_2 E-puck' and 'translation 0.3 0 0' are visible."
+    },
+    {
+      "id": "ball_placed",
+      "description": "Agent adds a Ball node at the center of the arena (0, 0, 0.04).",
+      "points": 15,
+      "visual_evidence": "In Webots, a Ball node is visible in the Scene Tree with translation '0 0 0.04', and a spherical object is visible between the two robots in the 3D view. If in a text editor, a Ball node with 'translation 0 0 0.04' is visible."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Agent saves the world file to the expected path: /home/ga/Desktop/cooperative_push.wbt.",
+      "points": 20,
+      "visual_evidence": "The Webots window title bar shows 'cooperative_push.wbt', a text editor shows the file saved at the correct Desktop path, or a terminal/file manager shows the 'cooperative_push.wbt' file existing on the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_creation_process",
+      "description": "The agent actively constructs the world file rather than downloading a pre-made solution.",
+      "visual_evidence": "Screenshots should show the step-by-step addition of nodes in the Webots GUI or the typing/pasting of Webots syntax in a text editor."
+    },
+    {
+      "id": "valid_webots_interaction",
+      "description": "If a text editor is used, the syntax must resemble valid Webots VRML97 format. If the GUI is used, the 3D viewport should accurately reflect the Scene Tree.",
+      "visual_evidence": "Look for proper Webots node syntax (e.g., 'WorldInfo { ... }') in text editors, or a matching 3D render in the Webots application."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "The agent does not simply print a success message without actually creating the file.",
+      "visual_evidence": "There must be visual proof of the file's existence on the Desktop or the file being actively edited/saved, not just a terminal echo command claiming completion."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/Desktop/cooperative_push.wbt. Expected basicTimeStep: 32. Robot 1 name: 'e-puck_1'. Robot 2 name: 'e-puck_2'. Note on positions: The prompt asks for robots at (-0.3, 0, 0) and (0.3, 0, 0) and the ball at (0, 0, 0.04). The underlying verifier is slightly lenient, accepting a minimum distance between robots of 0.2 and a maximum ball distance from the center of 0.2, but the agent should aim for the exact coordinates requested."
+}

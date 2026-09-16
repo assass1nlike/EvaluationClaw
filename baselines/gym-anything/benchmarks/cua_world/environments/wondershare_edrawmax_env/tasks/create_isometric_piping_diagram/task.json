@@ -1,0 +1,35 @@
+{
+  "id": "create_isometric_piping_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create an isometric piping diagram for a cooling water loop in Wondershare EdrawMax. The installation sketch must feature a vertical storage tank, a centrifugal pump, and a shell-and-tube heat exchanger connected by pipelines. Include isolation valves on the piping between the tank and pump, and between the pump and heat exchanger. Label the components 'Feed Tank T-100', 'Circulation Pump P-101', and 'Cooler HX-200', and include the title 'Cooling Loop Installation Sketch'. Save the project to /home/ga/Diagrams/cooling_loop_iso.eddx and export the final diagram to /home/ga/Diagrams/cooling_loop_iso.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_isometric_piping_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_isometric_piping_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/cooling_loop_iso.eddx",
+    "expected_png_path": "/home/ga/Diagrams/cooling_loop_iso.png",
+    "required_text_strings": [
+      "T-100",
+      "P-101",
+      "HX-200",
+      "Feed Tank",
+      "Circulation Pump",
+      "Cooler"
+    ],
+    "min_file_size_bytes": 5000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_isometric_piping_diagram"
+    }
+  }
+}

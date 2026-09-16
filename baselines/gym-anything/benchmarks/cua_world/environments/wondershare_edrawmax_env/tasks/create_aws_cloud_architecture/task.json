@@ -1,0 +1,40 @@
+{
+  "id": "create_aws_cloud_architecture@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a 3-tier AWS cloud architecture diagram in EdrawMax starting from a blank canvas. The diagram must include a User/Internet icon, a CloudFront CDN layer, an Elastic Load Balancer (ELB), and a VPC container containing a Public Subnet (with a Web Server EC2) and a Private Subnet (with an App Server EC2 and RDS MySQL). Include an S3 Static Assets bucket outside the VPC. Represent the architecture flow with directional arrows from Users through CloudFront, ELB, Web Servers, App Servers, to RDS, and a connection from CloudFront to S3. Save the editable diagram to /home/ga/Diagrams/aws_architecture.eddx and export the image to /home/ga/Diagrams/aws_architecture.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_aws_cloud_architecture/setup_task.sh",
+    "post_task": "/workspace/tasks/create_aws_cloud_architecture/export_result.sh"
+  },
+  "metadata": {
+    "eddx_path": "/home/ga/Diagrams/aws_architecture.eddx",
+    "png_path": "/home/ga/Diagrams/aws_architecture.png",
+    "min_eddx_size_bytes": 10000,
+    "min_png_size_bytes": 20000,
+    "required_keywords": [
+      "VPC",
+      "Subnet",
+      "EC2",
+      "RDS",
+      "S3",
+      "CloudFront",
+      "Load Balancer",
+      "Web",
+      "App"
+    ],
+    "passing_threshold_keywords": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_aws_cloud_architecture"
+    }
+  }
+}

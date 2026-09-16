@@ -1,0 +1,34 @@
+{
+  "id": "collect_webrtc_logs@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Troubleshoot connection issues for the 'Finance' team at the Jitsi meeting room 'FinanceTroubleshoot' (http://localhost:8080/FinanceTroubleshoot). Capture the browser console logs from the initialization sequence and save them to /home/ga/jitsi_debug.log. Save a screenshot showing the console logs alongside the meeting window to /home/ga/console_evidence.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/collect_webrtc_logs/setup_task.sh",
+    "post_task": "/workspace/tasks/collect_webrtc_logs/export_result.sh"
+  },
+  "metadata": {
+    "expected_log_file": "/home/ga/jitsi_debug.log",
+    "expected_screenshot": "/home/ga/console_evidence.png",
+    "required_keywords": [
+      "JitsiMeetJS",
+      "conference",
+      "connection",
+      "xmpp",
+      "strophe"
+    ],
+    "room_name": "FinanceTroubleshoot"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_collect_webrtc_logs"
+    }
+  }
+}

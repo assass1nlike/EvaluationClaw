@@ -1,0 +1,65 @@
+{
+  "task_id": "factory_inspection_terminal@1",
+  "task_completion": [
+    {
+      "id": "open_specification",
+      "description": "Open and read the Factory Floor Workstation Standard specification file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/factory_workstation_standard.txt."
+    },
+    {
+      "id": "organize_bookmarks",
+      "description": "Organize the scattered bookmarks into specific folders as required by the standard.",
+      "points": 20,
+      "visual_evidence": "Chrome Bookmark Manager (chrome://bookmarks) or the Bookmark Bar showing newly created folders. Look specifically for folders named 'Quality & Standards' and 'Components & Suppliers' containing bookmarks."
+    },
+    {
+      "id": "configure_chrome_flags",
+      "description": "Configure specific Chrome flags for performance.",
+      "points": 15,
+      "visual_evidence": "The chrome://flags page open with modified flags visible (typically indicated by a blue dot or a non-default status like 'Enabled' or 'Disabled' highlighted at the top of the list)."
+    },
+    {
+      "id": "set_readability_options",
+      "description": "Set readability options such as font sizes.",
+      "points": 10,
+      "visual_evidence": "Chrome Appearance settings (chrome://settings/appearance) showing adjustments to 'Font size' or 'Customize fonts'."
+    },
+    {
+      "id": "adjust_homepage_startup",
+      "description": "Adjust homepage and startup behavior.",
+      "points": 15,
+      "visual_evidence": "Chrome Startup settings (chrome://settings/onStartup) showing 'Open a specific page or set of pages' selected with custom URLs, or Appearance settings showing a custom Homepage URL."
+    },
+    {
+      "id": "add_custom_search_engines",
+      "description": "Add custom search engine shortcuts.",
+      "points": 15,
+      "visual_evidence": "Chrome Search Engine settings (chrome://settings/searchEngines) showing new custom site search entries added under the 'Site search' section."
+    },
+    {
+      "id": "configure_privacy_downloads",
+      "description": "Lock down privacy and download settings.",
+      "points": 15,
+      "visual_evidence": "Chrome Privacy and security settings (chrome://settings/privacy) or Downloads settings (chrome://settings/downloads) showing modified toggles, such as 'Ask where to save each file before downloading' being enabled."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_chrome",
+      "description": "The agent interacted with the Chrome GUI to make configuration changes.",
+      "visual_evidence": "Screenshots showing the Chrome browser settings pages (chrome://settings, chrome://flags, chrome://bookmarks) being actively navigated and modified, rather than terminal commands altering config files."
+    },
+    {
+      "id": "genuine_specification_reading",
+      "description": "The agent actually opened and read the specification file rather than hallucinating the requirements.",
+      "visual_evidence": "A screenshot showing factory_workstation_standard.txt open in a text editor or terminal viewer."
+    },
+    {
+      "id": "no_direct_database_manipulation",
+      "description": "The agent did not bypass the UI by directly manipulating Chrome's internal databases or JSON files.",
+      "visual_evidence": "Absence of terminal commands executing sqlite3 or python scripts targeting ~/.config/google-chrome/Default/Web Data or the Preferences file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring Chrome based on ~/Desktop/factory_workstation_standard.txt. The agent must organize 32 injected bookmarks into 5 folders. Note: The programmatic verifier has a bug where it only checks the 'Quality & Standards' and 'Components & Suppliers' bookmark folders, and fails to verify custom search engines because it checks the wrong file (Preferences instead of Web Data SQLite). Therefore, visual verification of the custom search engines in the Chrome UI (chrome://settings/searchEngines) and the presence of the bookmark folders is crucial."
+}

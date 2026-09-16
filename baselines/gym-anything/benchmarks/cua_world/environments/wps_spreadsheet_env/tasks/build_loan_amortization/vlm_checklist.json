@@ -1,0 +1,53 @@
+{
+  "task_id": "build_loan_amortization@1",
+  "task_completion": [
+    {
+      "id": "input_loan_parameters",
+      "description": "Verify that the spreadsheet loan_amortization.xlsx is open and the correct loan parameters are entered.",
+      "points": 10,
+      "visual_evidence": "Spreadsheet application is open with 'loan_amortization.xlsx' in the title. Cells contain the values $485,000 (Amount), 7.25% (Rate), and 60 (Term)."
+    },
+    {
+      "id": "generate_amortization_table",
+      "description": "Verify that a 60-month amortization table is generated starting at row 20 with the required columns.",
+      "points": 20,
+      "visual_evidence": "A table starting at row 20 contains columns for Month (going down to 60), Monthly Payment, Interest Portion, Principal Portion, Ending Balance, and Cumulative Interest."
+    },
+    {
+      "id": "correct_month_1_interest",
+      "description": "Verify that the first month's interest is calculated correctly.",
+      "points": 20,
+      "visual_evidence": "In the first row of the amortization table (Month 1), the 'Interest Portion' cell displays exactly $2,930.21."
+    },
+    {
+      "id": "create_summary_section",
+      "description": "Verify that a summary section is included around row 82 with the required totals.",
+      "points": 20,
+      "visual_evidence": "Around row 82, there are labels and calculated values for 'Total Payments', 'Total Interest', and 'Total Principal'."
+    },
+    {
+      "id": "create_declining_balance_chart",
+      "description": "Verify that a chart visualizing the declining loan balance over the 60-month term is present.",
+      "points": 30,
+      "visual_evidence": "A line or bar chart is visible within the spreadsheet, clearly showing a downward trend over 60 periods representing the ending loan balance."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_spreadsheet_app",
+      "description": "Verify the agent used a graphical spreadsheet application.",
+      "visual_evidence": "The interface is a standard GUI spreadsheet application (like LibreOffice Calc) and not a terminal window or plain text editor."
+    },
+    {
+      "id": "used_formulas_not_hardcoded",
+      "description": "Verify the agent used formulas for calculations rather than typing in hardcoded answers.",
+      "visual_evidence": "If the formula bar is visible for any selected calculated cell (like PMT, Interest, or Totals), it should show a spreadsheet formula (e.g., =PMT(...), =SUM(...)) rather than a raw typed number."
+    },
+    {
+      "id": "native_chart_object",
+      "description": "Verify the chart is generated natively within the spreadsheet software.",
+      "visual_evidence": "The chart appears as a native spreadsheet object with standard spreadsheet chart formatting, not as an imported image file or external Python plot."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified parameters: Loan Amount = $485,000; Annual Rate = 7.25%; Term = 60 months. The correct Month 1 Interest is exactly $2,930.21. Note: Standard financial calculations yield a true Monthly Payment (PMT) of $9,660.89 and true Total Interest of $94,653.42. The VLM should accept these mathematically correct values if visible in the table or summary."
+}

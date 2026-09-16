@@ -1,0 +1,41 @@
+{
+  "id": "temporal_change_detection@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Temporal Change Detection in Mitotic Spindles",
+  "description": "Quantify dynamic structural changes in the 'Mitosis (26MB, 5D stack)' sample image by analyzing the Green channel (spindles). Generate a 2D time-series using Maximum Intensity Z-Projection and create an absolute difference map between the first and last frames. Threshold the difference map using the Otsu method to measure the Area of changed regions. Save the Z-projected first frame as 'spindle_start.tif', the Z-projected last frame as 'spindle_end.tif', the difference map as 'change_map.tif', and the results table with the measured Area as 'change_quantification.csv' to ~/ImageJ_Data/results/. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "time-lapse",
+    "image-arithmetic",
+    "mitosis",
+    "quantification",
+    "hyperstack"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/temporal_change_detection/setup_task.sh",
+    "post_task": "/workspace/tasks/temporal_change_detection/export_result.sh"
+  },
+  "metadata": {
+    "image_source": "Mitosis (26MB, 5D stack)",
+    "expected_files": [
+      "spindle_start.tif",
+      "spindle_end.tif",
+      "change_map.tif",
+      "change_quantification.csv"
+    ],
+    "results_dir": "/home/ga/ImageJ_Data/results"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_temporal_change"
+    }
+  }
+}

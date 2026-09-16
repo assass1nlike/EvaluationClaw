@@ -1,0 +1,28 @@
+{
+  "id": "customize_admin_branding@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Customize the branding of the Aerobridge Django administration interface located in /opt/aerobridge to match client requirements. The Site Header must be \"SkyGuard Operations\", the Site Title \"SkyGuard Admin\", and the Index Title \"Fleet Command Center\". Verify that these branding changes are active at http://localhost:8000.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customize_admin_branding/setup_task.sh",
+    "post_task": "/workspace/tasks/customize_admin_branding/export_result.sh"
+  },
+  "metadata": {
+    "expected_header": "SkyGuard Operations",
+    "expected_title": "SkyGuard Admin",
+    "expected_index_title": "Fleet Command Center",
+    "admin_url": "http://localhost:8000/admin/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_admin_branding"
+    }
+  }
+}

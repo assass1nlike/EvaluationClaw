@@ -1,0 +1,53 @@
+{
+  "task_id": "retail_fair_workweek_compliance_audit@1",
+  "task_completion": [
+    {
+      "id": "create_clopening_view",
+      "description": "Create the CLOPENING_VIOLATIONS_VW view",
+      "points": 15,
+      "visual_evidence": "A SQL client (e.g., DBeaver, SQL*Plus, terminal) showing the successful execution of a CREATE VIEW statement for CLOPENING_VIOLATIONS_VW, or a SELECT query on this view showing columns like emp_id, shift_id, previous_shift_id, rest_hours, and penalty_amount."
+    },
+    {
+      "id": "create_predictive_scheduling_view",
+      "description": "Create the PREDICTIVE_SCHEDULING_VW view",
+      "points": 15,
+      "visual_evidence": "A SQL client showing the successful execution of a CREATE VIEW statement for PREDICTIVE_SCHEDULING_VW, or a SELECT query on this view showing columns like emp_id, schedule_id, notice_days, and penalty_amount."
+    },
+    {
+      "id": "create_meal_break_view",
+      "description": "Create the MEAL_BREAK_VIOLATIONS_VW view",
+      "points": 15,
+      "visual_evidence": "A SQL client showing the successful execution of a CREATE VIEW statement for MEAL_BREAK_VIOLATIONS_VW, or a SELECT query on this view showing columns like emp_id, shift_id, shift_hours, break_minutes, and penalty_amount."
+    },
+    {
+      "id": "create_payroll_penalty_mv",
+      "description": "Create the PAYROLL_PENALTY_SUMMARY_MV materialized view",
+      "points": 25,
+      "visual_evidence": "A SQL client showing the successful execution of a CREATE MATERIALIZED VIEW statement for PAYROLL_PENALTY_SUMMARY_MV, or a SELECT query on this materialized view showing aggregated columns (total_clopening_penalty, total_scheduling_penalty, total_meal_penalty, grand_total_penalty)."
+    },
+    {
+      "id": "export_penalties_csv",
+      "description": "Export the final summary to fair_workweek_penalties.csv",
+      "points": 30,
+      "visual_evidence": "A terminal, file explorer, or text editor showing the file /home/ga/Documents/exports/fair_workweek_penalties.csv containing the exported data with headers (e.g., EMP_ID, TOTAL_CLOPENING_PENALTY, etc.)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the Oracle database to create the views and materialized view.",
+      "visual_evidence": "Screenshots should show a real database client (DBeaver, SQL*Plus, or a Python/shell script executing SQL) connected to the Oracle database, rather than just typing text into a mock file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected penalty totals into the views or the final CSV.",
+      "visual_evidence": "The SQL queries should show actual logic (e.g., LAG functions, date arithmetic, COALESCE/NVL) to calculate penalties, rather than hardcoding '111' or specific employee IDs."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file was generated from the database query results.",
+      "visual_evidence": "The CSV export should appear to be the result of a database export tool (like DBeaver's export feature) or a script, not manually typed out in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected grand total penalty across all employees is exactly 111. The breakdown is: Emp 2 has a $50 clopening penalty, Emp 3 has a $25 schedule change penalty, and Emp 4 has two meal break penalties totaling $36 ($18+$18). The final CSV must be located at /home/ga/Documents/exports/fair_workweek_penalties.csv and contain headers."
+}

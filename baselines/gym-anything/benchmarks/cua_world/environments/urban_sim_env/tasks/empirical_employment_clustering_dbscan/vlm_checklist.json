@@ -1,0 +1,65 @@
+{
+  "task_id": "empirical_employment_clustering_dbscan@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened",
+      "description": "Open the specified Jupyter notebook",
+      "points": 10,
+      "visual_evidence": "The Jupyter notebook 'employment_clustering.ipynb' is open in a notebook interface (e.g., JupyterLab, Jupyter Notebook, or VS Code)."
+    },
+    {
+      "id": "data_loading_and_filtering",
+      "description": "Load data and filter for buildings with 50 or more jobs",
+      "points": 10,
+      "visual_evidence": "Code cells show loading data from '/home/ga/urbansim_projects/data/sanfran_public.h5' and filtering the dataset for buildings where jobs >= 50."
+    },
+    {
+      "id": "dbscan_clustering",
+      "description": "Apply DBSCAN clustering with specified parameters",
+      "points": 20,
+      "visual_evidence": "Code cells show the initialization of a DBSCAN model with parameters 'eps=1500' and 'min_samples=5', and fitting it to the spatial data."
+    },
+    {
+      "id": "cluster_aggregation",
+      "description": "Compute cluster metrics excluding noise",
+      "points": 20,
+      "visual_evidence": "Code cells show grouping the data by cluster labels, explicitly excluding noise (typically label -1), and calculating the building count, total jobs, and mean x and y coordinates for each cluster."
+    },
+    {
+      "id": "save_csv",
+      "description": "Save aggregated cluster data sorted by total jobs",
+      "points": 15,
+      "visual_evidence": "Code cells show sorting the aggregated cluster data by total jobs in descending order and saving it to '/home/ga/urbansim_projects/output/employment_clusters.csv'."
+    },
+    {
+      "id": "save_plot",
+      "description": "Save a 2D scatter plot of employment nodes",
+      "points": 15,
+      "visual_evidence": "Code cells show the creation of a 2D scatter plot of the employment nodes and saving the figure to '/home/ga/urbansim_projects/output/cluster_map.png'."
+    },
+    {
+      "id": "cells_executed",
+      "description": "Ensure all cells in the notebook are executed",
+      "points": 10,
+      "visual_evidence": "All visible code cells in the notebook have execution numbers (e.g., '[1]', '[2]') next to them, indicating they have been run."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "notebook_interface",
+      "description": "Agent used a genuine Jupyter Notebook interface",
+      "visual_evidence": "The screenshots show a Jupyter environment (browser-based JupyterLab/Notebook or an IDE like VS Code with notebook support) rather than a plain text editor writing a .py script."
+    },
+    {
+      "id": "no_hardcoded_clusters",
+      "description": "Agent did not hardcode the expected results",
+      "visual_evidence": "The code dynamically computes the clusters using a clustering algorithm (like sklearn's DBSCAN) and does not contain hardcoded arrays, dataframes, or the number '3' for the final clusters."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Agent actually executed the code to generate outputs",
+      "visual_evidence": "The notebook shows sequential execution numbers, and any visible cell outputs (like printed dataframes or inline plots) match the code written in the cell."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is real-world San Francisco parcel and building data. The expected CSV columns are 'building_count', 'total_jobs', 'centroid_x', and 'centroid_y'. The DBSCAN parameters must be exactly eps=1500 and min_samples=5. The correct execution of these operations on the dataset produces exactly 3 distinct valid employment clusters."
+}

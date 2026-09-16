@@ -1,0 +1,76 @@
+{
+  "dataset_id": "b2adeff3",
+  "name": "Event-Trigger-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Event-Trigger-Detection is a news-domain information extraction dataset in which a model must read a short news passage and identify all event trigger words together with their corresponding event types from a fixed ontology (e.g. 'fired => personnel:endposition'). It evaluates fine-grained event extraction and span-level trigger typing.",
+  "card_text": "This dataset contains 200 English text samples drawn from news-style prose. Each item provides a raw news snippet (often one to three sentences, sometimes with residual markup or a timestamp line) and a task prompt that enumerates 37 allowed event types spanning business, conflict, contact, justice, life, movement, personnel and transaction categories. The prompt asks the model to list every event trigger word in the passage together with its event type, using a 'trigger => type, trigger => type' format. The expected output is a short structured string, not free-form prose, so the dataset tests precise span selection, event-type classification from a closed inventory, and multi-trigger enumeration. Text is factual/newsy in style, with entity mentions ranging from political figures to legal officials. No question-answer pairs, dialogues, images, or tables are present.",
+  "tasks": [
+    "event_extraction",
+    "span_extraction",
+    "tagging"
+  ],
+  "domain": "news / event extraction",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "narrative",
+        "semantics": "The news passage that must be scanned for event triggers. It reports real-world happenings (e.g. a police chief being fired, a district attorney commenting on a legal decision) and may contain residual HTML markup or a leading timestamp line.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "The task instruction, containing a placeholder for the raw text, an explicit request to find all event trigger words and their event types, the full closed list of 37 candidate event types, and the required output format ('trigger => type, ...'). It is the query that frames what the answer must contain.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A compact structured string listing each extracted trigger followed by '=>' and its event type, with multiple triggers separated by commas. It is the gold annotation distilled from the context passage according to the ontology given in the question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three text components: a raw news passage (input.raw_text) that serves as the context to be analyzed, an instruction prompt (input.prompt) that embeds the passage and asks for all event triggers with their event types from a fixed 37-label ontology, and a short structured gold answer (output.text) formatted as 'trigger => event_type' pairs separated by commas. The context supplies the evidence, the prompt defines the extraction task and label space, and the answer encodes the selected trigger spans mapped to their types."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Event-Trigger-Detection/annotation.json",
+    "existing_tags": {
+      "task": "event_trigger_detection",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

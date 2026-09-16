@@ -1,0 +1,28 @@
+{
+  "id": "bayesian_rm_anova_bigfive@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Bayesian Repeated Measures ANOVA on the Extraversion items (E1, E2, E3, E4, and E5) from /home/ga/Documents/JASP/BigFivePersonalityTraits.csv to determine if they are endorsed differently. Define a repeated measures factor named 'Item' for these five variables. The analysis should provide BF10 evidence and descriptive plots for the items. Save the JASP project to /home/ga/Documents/JASP/Extraversion_BayesianANOVA.jasp. Additionally, create a report file at /home/ga/Documents/JASP/rm_anova_results.txt recording the BF10 value from the Model Comparison table and identifying the item (E1-E5) with the highest mean score.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bayesian_rm_anova_bigfive/setup_task.sh",
+    "post_task": "/workspace/tasks/bayesian_rm_anova_bigfive/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/Extraversion_BayesianANOVA.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/rm_anova_results.txt",
+    "dataset_path": "/home/ga/Documents/JASP/BigFivePersonalityTraits.csv",
+    "min_bf10": 1000.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bayesian_rm_anova_bigfive"
+    }
+  }
+}

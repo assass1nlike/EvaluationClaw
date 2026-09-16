@@ -1,0 +1,35 @@
+{
+  "id": "estimate_development_feasibility@1",
+  "version": "1.0",
+  "env_id": "urban_sim_env@0.1",
+  "difficulty": "medium",
+  "description": "Analyze real estate development feasibility in San Francisco using the Jupyter notebook at /home/ga/urbansim_projects/notebooks/development_feasibility.ipynb and data from /home/ga/urbansim_projects/data/sanfran_public.h5. The analysis must identify parcels where current Floor Area Ratio (FAR) is less than 50% of the maximum allowed (max_far), with current FAR calculated as total building square footage divided by parcel area (converting shape_area from square meters to square feet). Required outputs include a summary of total and feasible parcels, a CSV of the top 100 parcels by unused capacity ratio (including parcel_id, current_density, max_allowed, and unused_capacity_ratio) saved to /home/ga/urbansim_projects/output/feasible_parcels.csv, and a bar chart of the unused capacity ratio distribution saved to /home/ga/urbansim_projects/output/feasibility_distribution.png.",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/estimate_development_feasibility/setup_task.sh",
+    "post_task": "/workspace/tasks/estimate_development_feasibility/export_result.sh"
+  },
+  "metadata": {
+    "expected_notebook_path": "/home/ga/urbansim_projects/notebooks/development_feasibility.ipynb",
+    "expected_csv_path": "/home/ga/urbansim_projects/output/feasible_parcels.csv",
+    "expected_plot_path": "/home/ga/urbansim_projects/output/feasibility_distribution.png",
+    "data_path": "/home/ga/urbansim_projects/data/sanfran_public.h5",
+    "expected_csv_columns": [
+      "parcel_id",
+      "current_density",
+      "max_allowed",
+      "unused_capacity_ratio"
+    ],
+    "top_n_parcels": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_development_feasibility"
+    }
+  }
+}

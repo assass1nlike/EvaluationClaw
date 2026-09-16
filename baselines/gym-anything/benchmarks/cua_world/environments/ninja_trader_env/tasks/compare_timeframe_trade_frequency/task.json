@@ -1,0 +1,33 @@
+{
+  "id": "compare_timeframe_trade_frequency@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Analyze how changing the chart timeframe affects strategy execution frequency using NinjaTrader 8's Strategy Analyzer. Run the 'SampleMACrossover' strategy on 'AAPL' for the full year of 2024 (Jan 1, 2024 - Dec 31, 2024). Compare the 'Total # of trades' for 'Daily' bars versus 'Weekly' bars. Record the results in a text file at C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\trade_frequency_report.txt, with the Daily trade count on the first line and the Weekly trade count on the second line.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\compare_timeframe_trade_frequency\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\compare_timeframe_trade_frequency\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\trade_frequency_report.txt",
+    "strategy": "SampleMACrossover",
+    "instrument": "AAPL",
+    "date_start": "2024-01-01",
+    "date_end": "2024-12-31",
+    "daily_min": 5,
+    "daily_max": 30,
+    "weekly_min": 0,
+    "weekly_max": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compare_timeframe_trade_frequency"
+    }
+  }
+}

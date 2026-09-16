@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_mood_tagging@1",
+  "task_completion": [
+    {
+      "id": "create_mood_table",
+      "description": "Create the 'Mood' table with the correct schema",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a database client (GUI or CLI) executing a CREATE TABLE statement for 'Mood' or displaying the schema of the 'Mood' table with 'MoodId' (INTEGER PK) and 'Name' (VARCHAR)."
+    },
+    {
+      "id": "create_trackmood_table",
+      "description": "Create the 'TrackMood' junction table with the correct schema",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or schema of the 'TrackMood' table, including 'TrackId' and 'MoodId' as a composite primary key, and ideally showing foreign key constraints."
+    },
+    {
+      "id": "insert_mood_data",
+      "description": "Insert the three required moods into the 'Mood' table",
+      "points": 15,
+      "visual_evidence": "Screenshots showing an INSERT statement or a data grid view confirming the 'Mood' table contains: 1='Energetic', 2='Focus', and 3='Melancholy'."
+    },
+    {
+      "id": "tag_rock_tracks",
+      "description": "Associate all Rock tracks with the 'Energetic' mood (MoodId 1)",
+      "points": 20,
+      "visual_evidence": "Screenshots showing an INSERT statement execution or query results linking Rock tracks to MoodId 1 in the 'TrackMood' table. Look for a success message indicating 1297 rows were affected or a query showing this count."
+    },
+    {
+      "id": "tag_jazz_tracks",
+      "description": "Associate all Jazz tracks with the 'Focus' mood (MoodId 2)",
+      "points": 20,
+      "visual_evidence": "Screenshots showing an INSERT statement execution or query results linking Jazz tracks to MoodId 2 in the 'TrackMood' table. Look for a success message indicating 130 rows were affected or a query showing this count."
+    },
+    {
+      "id": "save_database_changes",
+      "description": "Save the changes to the database file",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent committing the transaction (e.g., executing 'COMMIT;'), clicking 'Write Changes' in a GUI like DB Browser for SQLite, or cleanly exiting the database tool to ensure changes are written to disk."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with a real database client",
+      "visual_evidence": "The agent is using a genuine database tool (like sqlite3 CLI, DB Browser for SQLite, DBeaver, etc.) rather than just typing SQL commands into a plain text editor without executing them."
+    },
+    {
+      "id": "actual_chinook_db_used",
+      "description": "Agent modified the actual Chinook database",
+      "visual_evidence": "The database client shows it is connected to the Chinook database file (e.g., chinook.db or similar filename), and other Chinook tables (like Track, Genre, Album) are visible in the environment."
+    },
+    {
+      "id": "no_mocked_outputs",
+      "description": "Agent did not fake the results",
+      "visual_evidence": "The query results and row counts (1297 for Rock, 130 for Jazz) appear as genuine outputs from the database engine, not manually typed text or mocked console outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'Mood' table must contain exactly three entries: 1='Energetic', 2='Focus', 3='Melancholy'. The 'TrackMood' table must contain exactly 1427 rows in total: 1297 rows mapping Rock tracks to MoodId 1, and 130 rows mapping Jazz tracks to MoodId 2. Look for these specific row counts in the execution results to verify correct insertion."
+}

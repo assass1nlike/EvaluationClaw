@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_inventory_queries@1",
+  "task_completion": [
+    {
+      "id": "open_project_directory",
+      "description": "Open the inventory_system project in an IDE or text editor.",
+      "points": 10,
+      "visual_evidence": "An IDE (like PyCharm) or text editor is open showing the directory structure for '/home/ga/PycharmProjects/inventory_system'."
+    },
+    {
+      "id": "locate_target_function",
+      "description": "Open the target file and locate the function to be refactored.",
+      "points": 10,
+      "visual_evidence": "The file 'inventory/report.py' is open in the editor, and the 'generate_valuation_report' function is visible on the screen."
+    },
+    {
+      "id": "refactor_query_optimization",
+      "description": "Refactor the SQLAlchemy query to resolve the N+1 issue.",
+      "points": 30,
+      "visual_evidence": "The code inside 'generate_valuation_report' shows modifications to the database query, specifically adding SQLAlchemy eager loading methods (such as '.options(joinedload(...))' or '.options(selectinload(...))') to fetch related data in a single query."
+    },
+    {
+      "id": "maintain_output_format",
+      "description": "Maintain the exact output format of the original function.",
+      "points": 20,
+      "visual_evidence": "The refactored 'generate_valuation_report' function still constructs and returns a list of dictionaries (e.g., using a loop or list comprehension that builds dicts matching the original keys)."
+    },
+    {
+      "id": "verify_query_count_reduction",
+      "description": "Run tests or a script to verify the query count has been successfully reduced.",
+      "points": 30,
+      "visual_evidence": "A terminal window shows the execution of tests (e.g., pytest) or a Python script with output indicating that the query count is now 10 or fewer, and the tests pass."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "unmodified_tests_and_models",
+      "description": "Ensure the agent did not modify the tests, data generation, or models to bypass the requirements.",
+      "visual_evidence": "No editor tabs or terminal commands show modifications to 'tests/', 'models.py', or data generation scripts. Git status (if visible) does not list these files as modified."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not hardcode the report output to bypass database queries.",
+      "visual_evidence": "The 'generate_valuation_report' function dynamically builds its return value from the SQLAlchemy query results, rather than returning a static, hardcoded list of dictionaries."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify that the agent genuinely executed the code or tests to check the query count.",
+      "visual_evidence": "Terminal output shows standard Python or pytest execution logs with realistic execution times and formatting, not just a manually printed success string."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/PycharmProjects/inventory_system'. The target query count for the optimized function is 10 or fewer. The passing score threshold is 70. Note: The initial unoptimized report actually runs 1006 queries, not 2500 as stated in the task description."
+}

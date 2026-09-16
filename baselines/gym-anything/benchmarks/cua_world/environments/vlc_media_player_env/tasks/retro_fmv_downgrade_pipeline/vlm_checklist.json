@@ -1,0 +1,53 @@
+{
+  "task_id": "retro_fmv_downgrade_pipeline@1",
+  "task_completion": [
+    {
+      "id": "output_files_created",
+      "description": "Verify that the three transcoded AVI files and the JSON report have been created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file manager window or terminal 'ls' output showing '/home/ga/Videos/retro_assets/' containing 'scene1_fmv.avi', 'scene2_fmv.avi', 'scene3_fmv.avi', and 'compression_report.json'."
+    },
+    {
+      "id": "video_specifications",
+      "description": "Verify the video streams of the transcoded files meet the retro specifications (320x240, 15 fps, MPEG-4).",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'ffprobe', 'mediainfo') or a media player properties window showing the video stream details for the .avi files: resolution of 320x240, frame rate of 15 fps, and codec as MPEG-4 (often displayed as mpeg4, mp4v, or FMP4)."
+    },
+    {
+      "id": "audio_specifications",
+      "description": "Verify the audio streams of the transcoded files meet the retro specifications (MP3, mono, 22050 Hz).",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'ffprobe') or media player properties showing the audio stream details: codec MP3 (mp3 or mpeg audio), 1 channel (mono), and sample rate of 22050 Hz."
+    },
+    {
+      "id": "grayscale_and_hardsubs",
+      "description": "Verify that the video is visually grayscale and the subtitles are burned into the frames.",
+      "points": 25,
+      "visual_evidence": "A media player (like VLC or ffplay) playing one of the .avi files, showing a black-and-white (grayscale) image with subtitle text visible on the screen. There should be no active subtitle track selected in the player's menu (confirming hardsubs)."
+    },
+    {
+      "id": "json_compression_report",
+      "description": "Verify the structure and contents of the JSON compression report.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal 'cat' output showing 'compression_report.json'. It must have a root key 'assets' containing a list of objects. Each object must have 'id' (e.g., 'scene1'), 'original_size_kb', 'retro_size_kb', and 'compression_ratio' (which should appear as a number rounded to 1 decimal place)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_transcoding_commands",
+      "description": "Ensure the agent actually used a transcoding tool (like ffmpeg) to process the videos, rather than just renaming files or creating dummies.",
+      "visual_evidence": "Terminal history showing 'ffmpeg' commands with complex arguments like '-vf' (video filters for scale, format=gray, subtitles), '-c:v mpeg4', '-c:a libmp3lame', '-ar 22050', and '-ac 1'."
+    },
+    {
+      "id": "genuine_json_calculation",
+      "description": "Ensure the JSON report contains actual calculated values and not placeholder text.",
+      "visual_evidence": "The 'original_size_kb' and 'retro_size_kb' values in the JSON file should be distinct, realistic numbers, and the 'compression_ratio' should mathematically align with original/retro."
+    },
+    {
+      "id": "hardsubbing_verification",
+      "description": "Ensure the agent didn't just load a soft subtitle file into a media player to fake the hardsubbing requirement.",
+      "visual_evidence": "The ffmpeg command must include a subtitle filter (e.g., 'subtitles=/home/ga/Documents/scripts/scene1.srt'), OR the media player showing the video must explicitly show that no subtitle track is loaded/available while text is still visible on screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires transcoding three 1080p MP4 videos to 320x240, 15fps, grayscale AVI files with MPEG-4 video and mono MP3 22050Hz audio. Subtitles must be hardsubbed (burned in). A JSON report must be created at /home/ga/Videos/retro_assets/compression_report.json with root key 'assets' and calculated 'compression_ratio' (original_size_kb / retro_size_kb rounded to 1 decimal place). The expected output files are scene1_fmv.avi, scene2_fmv.avi, scene3_fmv.avi, and compression_report.json."
+}

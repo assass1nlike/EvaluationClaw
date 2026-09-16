@@ -1,0 +1,65 @@
+{
+  "task_id": "clinical_trial_safety_analysis@1",
+  "task_completion": [
+    {
+      "id": "populate_protocol_deviations",
+      "description": "Populate the PROTOCOL_DEVIATIONS table with out-of-window, missing, and sequence violations.",
+      "points": 15,
+      "visual_evidence": "Look for an executed SQL query (e.g., INSERT INTO PROTOCOL_DEVIATIONS) or a database data grid showing the contents of the PROTOCOL_DEVIATIONS table with deviation records."
+    },
+    {
+      "id": "create_time_to_onset_vw",
+      "description": "Create the TIME_TO_ONSET_VW view categorizing AEs into RISK_WINDOWs.",
+      "points": 15,
+      "visual_evidence": "Look for the execution of a 'CREATE VIEW TIME_TO_ONSET_VW' statement or a data grid showing the view's output, specifically containing a 'RISK_WINDOW' column with values like 'IMMEDIATE', 'EARLY', 'DELAYED', or 'LATE'."
+    },
+    {
+      "id": "create_signal_detection_vw",
+      "description": "Create the SIGNAL_DETECTION_VW view calculating PRR and flagging signals.",
+      "points": 20,
+      "visual_evidence": "Look for the execution of a 'CREATE VIEW SIGNAL_DETECTION_VW' statement or a data grid showing the view's output, specifically containing columns for PRR calculations and a flag for signals where PRR >= 2.0 and a >= 3."
+    },
+    {
+      "id": "create_lab_shift_analysis_vw",
+      "description": "Create the LAB_SHIFT_ANALYSIS_VW view comparing baseline to post-baseline labs.",
+      "points": 15,
+      "visual_evidence": "Look for the execution of a 'CREATE VIEW LAB_SHIFT_ANALYSIS_VW' statement or a data grid showing the view's output, specifically containing shift patterns categorized as 'LOW', 'NORMAL', or 'HIGH'."
+    },
+    {
+      "id": "create_sdtm_views",
+      "description": "Establish CDISC SDTM compliant views: SDTM_DM, SDTM_AE, and SDTM_LB.",
+      "points": 10,
+      "visual_evidence": "Look for the execution of 'CREATE VIEW' statements for SDTM_DM, SDTM_AE, and SDTM_LB, or look for these three views listed in the database client's schema/object explorer."
+    },
+    {
+      "id": "create_safety_summary_mv",
+      "description": "Create the SAFETY_SUMMARY_MV materialized view showing AE incidence by meddra_soc.",
+      "points": 15,
+      "visual_evidence": "Look for the execution of a 'CREATE MATERIALIZED VIEW SAFETY_SUMMARY_MV' statement or a data grid showing the view's output, specifically containing a 'meddra_soc' column and separate count columns for 'RVX-4010 20MG' and 'PLACEBO'."
+    },
+    {
+      "id": "export_safety_summary_csv",
+      "description": "Export the safety summary to /home/ga/safety_summary_report.csv.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager window, terminal output (e.g., 'ls /home/ga/'), or a database export dialog confirming the existence or successful creation of 'safety_summary_report.csv' in the '/home/ga/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent interacted with the Oracle database using a proper client or CLI.",
+      "visual_evidence": "Look for a database client GUI (like DBeaver, SQL Developer) or a terminal running a database CLI (like sqlplus). The SQL should be executed, not just typed into a standalone text editor without execution."
+    },
+    {
+      "id": "actual_view_creation",
+      "description": "Verify that the views were actually created in the database.",
+      "visual_evidence": "Look for success messages in the database client (e.g., 'View created', 'Materialized view created') or the views appearing in the database object navigator, rather than just unexecuted SQL scripts."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify the CSV file was generated via an export process or script.",
+      "visual_evidence": "Look for the use of an export wizard in the database GUI, a spool command in CLI, or a script execution. The CSV should not be manually typed or copy-pasted into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

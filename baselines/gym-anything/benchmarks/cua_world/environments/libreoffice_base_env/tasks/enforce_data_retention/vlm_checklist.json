@@ -1,0 +1,53 @@
+{
+  "task_id": "enforce_data_retention@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "The agent opens the Chinook database.",
+      "points": 20,
+      "visual_evidence": "LibreOffice Base is open with the `/home/ga/chinook.odb` file loaded, or a terminal shows a connection to the database."
+    },
+    {
+      "id": "access_query_interface",
+      "description": "The agent accesses an interface to query or modify the database.",
+      "points": 20,
+      "visual_evidence": "The 'Execute SQL Statement' window (Tools -> SQL) is open in LibreOffice Base, the Query Design view is active, or a SQL prompt is visible in the terminal."
+    },
+    {
+      "id": "formulate_date_condition",
+      "description": "The agent formulates a condition to target invoices before January 1, 2011.",
+      "points": 20,
+      "visual_evidence": "A SQL query or GUI filter is visible containing a date comparison like `InvoiceDate < '2011-01-01'` or similar."
+    },
+    {
+      "id": "formulate_genre_condition",
+      "description": "The agent formulates a condition to preserve invoices with 'Classical' genre tracks.",
+      "points": 20,
+      "visual_evidence": "A SQL query or GUI filter is visible containing logic to exclude the 'Classical' genre (e.g., `Genre.Name = 'Classical'`, `GenreId = 24`, or checking for the word 'Classical')."
+    },
+    {
+      "id": "execute_deletion_or_verify",
+      "description": "The agent executes the deletion or verifies that no matching records exist.",
+      "points": 20,
+      "visual_evidence": "A message showing the SQL command executed successfully (likely affecting 0 rows), or a SELECT query result showing an empty table/0 records."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with the actual database rather than just writing text.",
+      "visual_evidence": "The agent used LibreOffice Base or a database CLI to run queries, rather than just typing SQL into a text editor without executing it."
+    },
+    {
+      "id": "no_unauthorized_deletions",
+      "description": "The agent did not delete valid invoices.",
+      "visual_evidence": "There is no evidence of the agent executing a DELETE command without the proper date filter (which would incorrectly delete invoices from 2021-2025)."
+    },
+    {
+      "id": "no_schema_modification",
+      "description": "The agent did not alter the database schema.",
+      "visual_evidence": "There is no evidence of DROP TABLE or ALTER TABLE commands being executed."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database contains exactly 412 invoices, all dated between 2021-01-01 and 2025-12-22. There are zero invoices dated before the cutoff date of 2011-01-01. Therefore, a correct deletion operation will affect 0 rows. The 'Classical' genre has GenreId 24. The agent may discover that no invoices match the date criteria and conclude the task, or they may execute a DELETE query that successfully runs but deletes 0 rows."
+}

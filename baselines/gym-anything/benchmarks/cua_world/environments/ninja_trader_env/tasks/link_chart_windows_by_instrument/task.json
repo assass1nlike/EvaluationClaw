@@ -1,0 +1,32 @@
+{
+  "id": "link_chart_windows_by_instrument@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running with real historical data. Set up a workspace with two instrument-linked Daily charts. Configure the first chart with 'Bollinger Bands' (Period 20, StdDev 2) and the second with 'RSI' (Period 14). Link both windows using the same instrument link color and ensure both charts display 'AAPL'. Save the workspace.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\link_chart_windows_by_instrument\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\link_chart_windows_by_instrument\\export_result.ps1"
+  },
+  "metadata": {
+    "target_instrument": "AAPL",
+    "initial_instrument": "SPY",
+    "required_indicators": {
+      "chart1": "Bollinger",
+      "chart2": "RSI"
+    },
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces",
+    "result_file": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\link_chart_windows_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_link_chart_windows"
+    }
+  }
+}

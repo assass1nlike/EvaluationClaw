@@ -1,0 +1,28 @@
+{
+  "id": "repeated_measures_anova_bugs@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Repeated Measures ANOVA on the 'Bugs.csv' dataset (Field, 2013) to analyze the desire to kill bugs based on Disgust (Low vs High) and Frequency (Low vs High). Map the columns LDLF (Low Disgust, Low Frequency), LDHF (Low Disgust, High Frequency), HDLF (High Disgust, Low Frequency), and HDHF (High Disgust, High Frequency) to the appropriate factor levels. The analysis must include descriptive statistics, partial η² effect sizes, and sphericity tests. Save the analysis file to /home/ga/Documents/JASP/BugsRM.jasp. Generate a summary report at /home/ga/Documents/JASP/bugs_rm_report.txt containing the F-value, p-value, and partial η² for the Disgust, Frequency, and interaction effects, the Mean and SD for all four conditions, and the significance of Mauchly's test.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/repeated_measures_anova_bugs/setup_task.sh",
+    "post_task": "/workspace/tasks/repeated_measures_anova_bugs/export_result.sh"
+  },
+  "metadata": {
+    "output_jasp_path": "/home/ga/Documents/JASP/BugsRM.jasp",
+    "output_report_path": "/home/ga/Documents/JASP/bugs_rm_report.txt",
+    "data_path": "/home/ga/Documents/JASP/Bugs.csv",
+    "ground_truth_means_path": "/var/lib/jasp/bugs_ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_repeated_measures_anova"
+    }
+  }
+}

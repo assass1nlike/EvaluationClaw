@@ -1,0 +1,35 @@
+{
+  "id": "verify_gui_api_hr_peak@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Perform a data integrity validation for surgical case #6 from the VitalDB dataset ('C:\\Users\\Docker\\Documents\\VitalRecorder\\vitaldb_case_006.vital'). Determine the maximum Heart Rate (HR) value during the first 10 minutes (0-600 seconds) of the recording using both visual inspection in Vital Recorder and programmatic verification. Save a screenshot of the GUI showing the peak HR to 'C:\\Users\\Docker\\Documents\\VitalRecorder\\gui_peak_capture.png'. Create a Python script 'C:\\Users\\Docker\\Documents\\VitalRecorder\\verify_peak.py' that uses the 'vitaldb' library to extract the 'Solar8000/HR' track and compute the maximum value for the first 600 seconds. Document the results in 'C:\\Users\\Docker\\Documents\\VitalRecorder\\validation_report.txt' using the following format:\nGUI Observed Peak: [Your visual number]\nAPI Computed Peak: [Your script result]\nMatch: [YES/NO]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\verify_gui_api_hr_peak\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\verify_gui_api_hr_peak\\export_result.ps1"
+  },
+  "metadata": {
+    "case_id": "6",
+    "track_name": "Solar8000/HR",
+    "time_window_seconds": 600,
+    "ground_truth_peak_hr": 105.0,
+    "tolerance_bpm": 2.0,
+    "paths": {
+      "vital_file": "C:\\Users\\Docker\\Documents\\VitalRecorder\\vitaldb_case_006.vital",
+      "report_file": "C:\\Users\\Docker\\Documents\\VitalRecorder\\validation_report.txt",
+      "script_file": "C:\\Users\\Docker\\Documents\\VitalRecorder\\verify_peak.py",
+      "screenshot_file": "C:\\Users\\Docker\\Documents\\VitalRecorder\\gui_peak_capture.png"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gui_api_hr_peak"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "recipe_optimizer@1",
+  "task_completion": [
+    {
+      "id": "clean_ingredient_data",
+      "description": "Clean the recipe experiment data by fixing capitalization and trailing spaces.",
+      "points": 20,
+      "visual_evidence": "Look at the ingredient columns (Butter_Type, Sugar_Type, Chocolate_Type) in the spreadsheet. The values should have consistent capitalization (e.g., all lowercase or Title Case) and no visible trailing spaces."
+    },
+    {
+      "id": "normalize_ratings",
+      "description": "Normalize the rating columns to a 0-10 scale.",
+      "points": 20,
+      "visual_evidence": "Look for new columns or modified data where Taste, Texture, Cost, and Ease values have been mathematically scaled to fall within a 0 to 10 range."
+    },
+    {
+      "id": "calculate_composite_scores",
+      "description": "Calculate weighted composite scores for the experiments.",
+      "points": 30,
+      "visual_evidence": "Look for a 'Composite Score' (or similar) column. If the formula bar is visible, it should show the normalized values being multiplied by their respective weights (0.4 for Taste, 0.3 for Texture, 0.2 for Ease, 0.1 for Cost)."
+    },
+    {
+      "id": "identify_optimal_combinations",
+      "description": "Identify the optimal chocolate chip cookie ingredient combinations.",
+      "points": 15,
+      "visual_evidence": "The spreadsheet should be sorted by the new composite score in descending order, or the top-scoring rows should be explicitly highlighted, filtered, or extracted."
+    },
+    {
+      "id": "save_results",
+      "description": "Save the results to the output directory.",
+      "points": 15,
+      "visual_evidence": "Look for a 'Save As' dialog pointing to an output directory, the LibreOffice title bar showing the file saved in an output path, or a terminal/file manager verifying the file exists in the output directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used the LibreOffice Calc GUI to perform the data manipulation.",
+      "visual_evidence": "Screenshots should show the LibreOffice Calc interface being actively used, rather than just a terminal window running a Python script to process the CSV."
+    },
+    {
+      "id": "genuine_formulas_used",
+      "description": "The agent used spreadsheet formulas rather than hardcoding answers.",
+      "visual_evidence": "When a calculated cell (like normalized rating or composite score) is selected, the formula bar should show a valid spreadsheet formula (e.g., =A2*0.4 + B2*0.3...) rather than a typed-in static number."
+    },
+    {
+      "id": "no_manual_copy_paste",
+      "description": "The agent did not simply type in a pre-calculated final answer.",
+      "visual_evidence": "The presence of intermediate columns (like normalized values) and active formula usage indicates genuine calculation rather than pasting a final result."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 20 experiments with 8 columns: Experiment, Butter_Type, Sugar_Type, Chocolate_Type, Taste_Rating, Texture_Rating, Cost_USD, Ease_Rating. The agent must clean inconsistent capitalization and trailing spaces in the ingredient columns. Ratings must be normalized to a 0-10 scale. The weighted composite score must use these exact weights: Taste 40%, Texture 30%, Ease 20%, Cost 10%."
+}

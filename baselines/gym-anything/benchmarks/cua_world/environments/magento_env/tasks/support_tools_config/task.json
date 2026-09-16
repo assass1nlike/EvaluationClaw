@@ -1,0 +1,28 @@
+{
+  "id": "support_tools_config@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "You are the Customer Support Manager at Luminary Gadgets. Configure the support tools in the Magento admin panel to improve the support workflow. Enable the 'Login as Customer' extension and set the Page Header Title to 'Assisted Service Mode'. Increase the precision of online customer tracking by setting the 'Online Minutes Interval' to 5. Route 'Contact Us' emails to 'support@luminarygadgets.com'. Save all configurations. If not logged in, use admin / Admin1234!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/support_tools_config/setup_task.sh",
+    "post_task": "/workspace/tasks/support_tools_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_login_as_customer_enabled": "1",
+    "expected_ui_title": "Assisted Service Mode",
+    "expected_online_interval": "5",
+    "expected_contact_email": "support@luminarygadgets.com"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_support_tools_config"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "fault_tree_drone_power@1",
+  "task_completion": [
+    {
+      "id": "top_event_created",
+      "description": "Create the Top Event labeled 'Total Loss of Power'",
+      "points": 15,
+      "visual_evidence": "A rectangle or standard top event symbol at the top of the diagram explicitly labeled 'Total Loss of Power'."
+    },
+    {
+      "id": "pdb_single_point_failure",
+      "description": "Model the Power Distribution Board (PDB) as a single point of failure",
+      "points": 20,
+      "visual_evidence": "The PDB failure event should be connected directly as an input to a top-level OR gate that leads to the 'Total Loss of Power' event."
+    },
+    {
+      "id": "battery_redundancy_and_gate",
+      "description": "Model battery redundancy using an AND gate",
+      "points": 25,
+      "visual_evidence": "An AND gate symbol (flat bottom, rounded top) must be used to combine the failure paths of Battery A and Battery B, showing that BOTH must fail to cause a system power loss."
+    },
+    {
+      "id": "basic_events_included",
+      "description": "Include at least 4 basic events for battery failure modes",
+      "points": 20,
+      "visual_evidence": "At least 4 basic event symbols (circles or ovals) at the bottom of the tree representing root causes (e.g., 'Internal Cell Malfunction', 'Connector Disconnect' for each battery)."
+    },
+    {
+      "id": "files_saved_and_exported",
+      "description": "Save as drawio and export as PNG to the Desktop",
+      "points": 20,
+      "visual_evidence": "Icons for 'fault_tree.drawio' and 'fault_tree.png' visible on the Desktop, or file manager/save dialogs confirming both files are saved to the ~/Desktop directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_diagramming_gui",
+      "description": "The agent used a graphical diagramming tool to create the fault tree",
+      "visual_evidence": "A diagramming application (like draw.io/diagrams.net) is open and visible in the screenshots, rather than a terminal script or text editor generating the files."
+    },
+    {
+      "id": "genuine_canvas_interaction",
+      "description": "The agent actively built the diagram on the canvas",
+      "visual_evidence": "Screenshots show intermediate steps of shapes being dragged, selected, labeled, or connected with lines on the canvas."
+    },
+    {
+      "id": "consistent_export",
+      "description": "The exported PNG matches the constructed diagram",
+      "visual_evidence": "The final diagram visible in the editor canvas matches the content of the exported 'fault_tree.png' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The fault tree must accurately reflect the system logic: 1) It requires exactly 1 AND gate to represent the battery redundancy (Battery A AND Battery B must fail). 2) It requires at least 2 OR gates (e.g., the top-level gate where PDB failure OR Battery System failure leads to Total Loss of Power). 3) It requires at least 4 basic events (circles) representing the two specific failure modes ('Internal Cell Malfunction' and 'Connector Disconnect') for each of the two batteries."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "deploy_swarm_experiment@1",
+  "task_completion": [
+    {
+      "id": "open_webots_world",
+      "description": "Open the Webots application and load the initial simulation world.",
+      "points": 10,
+      "visual_evidence": "The Webots GUI is open and displays a 3D soccer field environment with multiple robots."
+    },
+    {
+      "id": "inspect_scene_tree",
+      "description": "Locate the robot nodes within the Webots scene tree.",
+      "points": 10,
+      "visual_evidence": "The scene tree panel (usually on the left side of the Webots interface) is expanded, showing robot nodes such as 'B1 Robot' or similar."
+    },
+    {
+      "id": "identify_broken_controller",
+      "description": "Inspect the controller field of the robots to identify the configuration issue.",
+      "points": 20,
+      "visual_evidence": "The properties of a robot node are expanded in the scene tree or field editor, specifically showing the 'controller' field with the incorrect value 'soccer_player_broken'."
+    },
+    {
+      "id": "fix_robot_controllers",
+      "description": "Change the broken controllers to the correct soccer demo controller.",
+      "points": 30,
+      "visual_evidence": "The 'controller' field for the robots is actively being edited or is shown to be successfully changed to 'soccer_player' in the Webots interface or a text editor modifying the .wbt file."
+    },
+    {
+      "id": "save_corrected_world",
+      "description": "Save the modified world to the specified output path.",
+      "points": 30,
+      "visual_evidence": "A 'Save World As...' dialog box showing the path '/home/ga/Desktop/swarm_ready.wbt', a terminal command saving the file to this path, or the Webots window title updating to 'swarm_ready.wbt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the agent actually modified the world file rather than creating a blank or dummy file.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Webots GUI or a text editor containing the actual Webots world structure, not just using 'touch' or echoing text into the target file."
+    },
+    {
+      "id": "no_superficial_renaming",
+      "description": "Ensure the agent fixed the controller field and didn't just rename the robot nodes.",
+      "visual_evidence": "The modification must specifically target the 'controller' field (changing it to 'soccer_player'), leaving the robot's DEF or name fields intact unless explicitly required."
+    },
+    {
+      "id": "actual_save_execution",
+      "description": "Verify the agent executed the save operation and didn't just type the path without confirming.",
+      "visual_evidence": "Look for the confirmation of the save action, such as the file appearing on the Desktop, the Webots window title changing, or a successful terminal command execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The base world is a Webots soccer demo (soccer.wbt). There are 6 robots in the scene (named 'B1 Robot', etc.) that have their controllers incorrectly set to 'soccer_player_broken'. The agent must change these controllers to 'soccer_player' and save the corrected world exactly to '/home/ga/Desktop/swarm_ready.wbt'. The programmatic verifier for this task is known to be broken regarding position checks, so rely strictly on visual evidence of the controller fixes and the file save operation."
+}

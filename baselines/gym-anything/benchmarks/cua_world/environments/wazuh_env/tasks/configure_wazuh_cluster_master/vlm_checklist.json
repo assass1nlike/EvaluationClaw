@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_wazuh_cluster_master@1",
+  "task_completion": [
+    {
+      "id": "access_container_config",
+      "description": "Access the wazuh-wazuh.manager-1 container and open the configuration file",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'docker exec -it wazuh-wazuh.manager-1' and the opening or editing of '/var/ossec/etc/ossec.conf' using a text editor (e.g., nano, vim) or stream editor (e.g., sed)."
+    },
+    {
+      "id": "configure_cluster_name",
+      "description": "Set the cluster name to 'security-ops-cluster'",
+      "points": 15,
+      "visual_evidence": "Within the <cluster> section of ossec.conf, the <name> tag contains exactly 'security-ops-cluster'."
+    },
+    {
+      "id": "configure_node_details",
+      "description": "Set the node name and node type",
+      "points": 20,
+      "visual_evidence": "Within the <cluster> section of ossec.conf, the <node_name> tag contains 'wazuh-master-01' and the <node_type> tag contains 'master'."
+    },
+    {
+      "id": "configure_key_and_bind",
+      "description": "Set the cluster key and bind address",
+      "points": 25,
+      "visual_evidence": "Within the <cluster> section of ossec.conf, the <key> tag contains 'c987654321fedcba0123456789abcdef' and the <bind_addr> tag contains '0.0.0.0'."
+    },
+    {
+      "id": "verify_daemon_active",
+      "description": "Verify that the wazuh-clusterd daemon is active",
+      "points": 30,
+      "visual_evidence": "Terminal showing the Wazuh manager being restarted (e.g., '/var/ossec/bin/wazuh-control restart') and subsequent verification that 'wazuh-clusterd' is running (e.g., via 'ps aux | grep clusterd', '/var/ossec/bin/wazuh-control status', or cluster control logs)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_container_interaction",
+      "description": "Verify the agent interacted with the actual Docker container",
+      "visual_evidence": "Look for standard Docker execution commands ('docker exec') or a shell prompt indicating the agent is inside the 'wazuh-wazuh.manager-1' container, rather than modifying a local dummy file."
+    },
+    {
+      "id": "genuine_configuration_edit",
+      "description": "Verify the configuration file was genuinely edited",
+      "visual_evidence": "Look for the interface of a real text editor (like nano or vi) or valid shell commands (like sed, echo) being used to modify ossec.conf, rather than just printing the expected XML to the console."
+    },
+    {
+      "id": "service_actually_started",
+      "description": "Verify the agent actually checked the service status",
+      "visual_evidence": "Look for genuine command output from 'ps', 'systemctl', or 'wazuh-control' showing the wazuh-clusterd process, rather than the agent simply echoing a success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration file is /var/ossec/etc/ossec.conf inside the wazuh-wazuh.manager-1 container. The <cluster> block must contain: <name>security-ops-cluster</name>, <node_name>wazuh-master-01</node_name>, <node_type>master</node_type>, <key>c987654321fedcba0123456789abcdef</key>, and <bind_addr>0.0.0.0</bind_addr>. The task is only complete if the wazuh-clusterd daemon is successfully started and active, which usually requires setting <disabled>no</disabled> in the cluster configuration and restarting the wazuh-manager service."
+}

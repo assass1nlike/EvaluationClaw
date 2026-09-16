@@ -1,0 +1,47 @@
+{
+  "id": "trafalgar_vfx_reference@1",
+  "version": "1.0",
+  "env_id": "stellarium_env@0.1",
+  "description": "You are a VFX supervisor on a historical epic film about the Battle of Trafalgar (October 21, 1805). Document the sky as seen from offshore Cape Trafalgar (36.18°N, 6.03°W, altitude 0m) on October 21, 1805, at 20:00 UTC with atmosphere enabled, ground disabled, constellation artwork visible, the azimuthal coordinate grid active, and cardinal direction labels shown. Save screenshots of the Moon, Jupiter, and a wide-field view of the sky to /home/ga/Desktop/ and record the positions of the Moon and Jupiter in a reference file at /home/ga/Desktop/trafalgar_sky_notes.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 800,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/trafalgar_vfx_reference/setup_task.sh",
+    "post_task": "/workspace/tasks/trafalgar_vfx_reference/export_result.sh"
+  },
+  "metadata": {
+    "location_name": "Cape Trafalgar, Spain (sea position)",
+    "target_lat_deg": 36.18,
+    "target_lon_deg": -6.03,
+    "target_lat_rad": 0.63143,
+    "target_lon_rad": -0.10524,
+    "target_altitude_m": 0,
+    "event_date": "1805-10-21",
+    "event_time_utc": "20:00:00",
+    "event_name": "Battle of Trafalgar",
+    "approx_jd": 2380564,
+    "required_display_flags": {
+      "flag_atmosphere": true,
+      "flag_landscape": false,
+      "flag_constellation_art": true,
+      "flag_azimuthal_grid": true
+    },
+    "vfx_notes_path": "/home/ga/Desktop/trafalgar_sky_notes.txt",
+    "screenshots_dir": "/home/ga/Pictures/stellarium",
+    "min_screenshots": 3,
+    "celestial_targets": [
+      "Moon",
+      "Jupiter"
+    ],
+    "data_source": "Geographic coordinates of Cape Trafalgar, Spain; Gregorian calendar date"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_trafalgar_vfx_reference"
+    }
+  }
+}

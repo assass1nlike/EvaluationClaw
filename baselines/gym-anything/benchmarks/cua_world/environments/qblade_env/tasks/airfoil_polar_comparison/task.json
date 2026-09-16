@@ -1,0 +1,36 @@
+{
+  "id": "airfoil_polar_comparison@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "You are a wind energy engineer evaluating candidate airfoils for a small wind turbine operating at moderate Reynolds numbers. Generate XFoil viscous analysis polar data in QBlade for the three NACA airfoil coordinate files in /home/ga/Documents/airfoils/ (naca0015.dat, naca2412.dat, and naca4412.dat). The analysis requires a Reynolds number of 1,000,000 and an angle of attack range from -5 to 20 degrees. Export the resulting aerodynamic coefficients (Cl, Cd, etc.) as columns across the analyzed range to the following files:\n\n- /home/ga/Documents/airfoils/polar_naca0015.txt\n- /home/ga/Documents/airfoils/polar_naca2412.txt\n- /home/ga/Documents/airfoils/polar_naca4412.txt\n\nYou are logged in as user 'ga'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/airfoil_polar_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/airfoil_polar_comparison/export_result.sh"
+  },
+  "metadata": {
+    "airfoils": [
+      "naca0015",
+      "naca2412",
+      "naca4412"
+    ],
+    "reynolds_number": 1000000,
+    "aoa_min": -5,
+    "aoa_max": 20,
+    "expected_outputs": [
+      "polar_naca0015.txt",
+      "polar_naca2412.txt",
+      "polar_naca4412.txt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_airfoil_polar_comparison"
+    }
+  }
+}

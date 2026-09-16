@@ -1,0 +1,59 @@
+{
+  "task_id": "ev_charging_allocation@1",
+  "task_completion": [
+    {
+      "id": "open_notebook",
+      "description": "Open the Jupyter notebook ev_charging_analysis.ipynb",
+      "points": 10,
+      "visual_evidence": "Jupyter notebook interface (in a browser or IDE) showing the file ev_charging_analysis.ipynb open."
+    },
+    {
+      "id": "data_processing_logic",
+      "description": "Write logic to read data and filter households and buildings",
+      "points": 20,
+      "visual_evidence": "Code cells showing reading from sanfran_public.h5 and filtering for households with >= 1 vehicle and buildings with >= 5 residential units."
+    },
+    {
+      "id": "zone_aggregation_logic",
+      "description": "Write logic to aggregate by zone and calculate vulnerability percentage",
+      "points": 20,
+      "visual_evidence": "Code cells showing grouping by zone, filtering for zones with >= 100 total households, and calculating the percentage of vulnerable households."
+    },
+    {
+      "id": "export_csv_code",
+      "description": "Write logic to export the top 20 zones to a CSV file",
+      "points": 15,
+      "visual_evidence": "Code cells showing sorting by vulnerability percentage in descending order, selecting the top 20 rows, and saving to ev_charging_priority_zones.csv with columns zone_id, total_households, vuln_households, and vuln_pct."
+    },
+    {
+      "id": "save_plot_code",
+      "description": "Write logic to save a scatter plot of total versus vulnerable households",
+      "points": 15,
+      "visual_evidence": "Code cells showing the creation of a scatter plot and saving it to ev_vulnerability_scatter.png."
+    },
+    {
+      "id": "notebook_execution",
+      "description": "Execute all cells in the notebook",
+      "points": 20,
+      "visual_evidence": "Notebook cells show execution numbers (e.g., In [1]:, In [2]:). Note: Due to a missing column in the dataset, execution may result in an error traceback, which is acceptable as long as the cells were executed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_jupyter_usage",
+      "description": "The agent uses a genuine Jupyter Notebook environment",
+      "visual_evidence": "The screenshots show a Jupyter Notebook interface (either in a web browser or an IDE like VSCode) rather than a plain text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent calculates the results programmatically",
+      "visual_evidence": "The code uses pandas or similar libraries to process the data, without hardcoding the final CSV contents or plot data."
+    },
+    {
+      "id": "actual_execution_attempt",
+      "description": "The agent attempts to run the code",
+      "visual_evidence": "The notebook shows execution indicators (numbers in brackets or error outputs) rather than just unexecuted code."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires filtering households by vehicle ownership, but the actual dataset in sanfran_public.h5 lacks a 'cars' column. The setup script may fail, and the agent might encounter errors (e.g., KeyError) when trying to read or filter by vehicle ownership. Score based on the agent's attempt to write the correct logic as per the instructions and execute the cells, even if execution fails due to the missing column."
+}

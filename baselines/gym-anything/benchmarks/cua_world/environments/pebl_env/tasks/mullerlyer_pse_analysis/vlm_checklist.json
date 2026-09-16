@@ -1,0 +1,53 @@
+{
+  "task_id": "mullerlyer_pse_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_dataset",
+      "description": "Agent reads the Muller-Lyer dataset.",
+      "points": 10,
+      "visual_evidence": "Visual evidence of a script (e.g., Python, R) or tool opening/reading '~/pebl/data/mullerlyer_data.csv'."
+    },
+    {
+      "id": "exclude_contaminated_participant",
+      "description": "Agent identifies and excludes the contaminated participant (P99).",
+      "points": 20,
+      "visual_evidence": "Code or data manipulation steps showing the filtering out of participant 'P99' or logic that removes a participant with 100% 'comparison longer' (response=1) trials."
+    },
+    {
+      "id": "fit_logistic_functions_and_pse",
+      "description": "Agent fits logistic psychometric functions and estimates the Point of Subjective Equality (PSE).",
+      "points": 30,
+      "visual_evidence": "Code implementing logistic regression or curve fitting (e.g., using statsmodels, scipy.optimize, or sklearn) to model responses against comparison_length, and calculating the PSE (the length where probability = 0.5) for both 'fins_in' and 'fins_out' conditions."
+    },
+    {
+      "id": "calculate_magnitude_and_means",
+      "description": "Agent computes illusion magnitude and group means.",
+      "points": 20,
+      "visual_evidence": "Code calculating the illusion magnitude (PSE_fins_in - PSE_fins_out) for each participant, and computing the overall group means for PSE_fins_out, PSE_fins_in, and illusion_magnitude."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent saves the final results to the specified JSON file.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of the file '~/pebl/analysis/mullerlyer_report.json' being created or written, containing the required structure with a 'participants' list and 'group_mean' keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "Agent actually performed the statistical calculations rather than hallucinating the results.",
+      "visual_evidence": "The agent writes and executes a script (e.g., in VS Code, Jupyter, or terminal) to process the CSV data, rather than just writing a JSON file with fabricated numbers."
+    },
+    {
+      "id": "no_hardcoded_template",
+      "description": "Agent did not simply copy-paste the example JSON from the prompt.",
+      "visual_evidence": "The final JSON file contains actual calculated values for all 15 valid participants, not just the placeholder '...' or the exact numbers from the prompt's example without computation."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Agent saved the file in the correct directory.",
+      "visual_evidence": "The file path for the output is explicitly shown as '/home/ga/pebl/analysis/mullerlyer_report.json' in the code or file explorer."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 15 valid participants (P01-P15) and 1 contaminated participant (P99). P99 must be excluded for having 100% '1' responses. The standard length is 100. The conditions are 'fins_in' and 'fins_out'. The final output must be saved to /home/ga/pebl/analysis/mullerlyer_report.json."
+}

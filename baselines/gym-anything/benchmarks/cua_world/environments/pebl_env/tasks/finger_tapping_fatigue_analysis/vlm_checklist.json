@@ -1,0 +1,59 @@
+{
+  "task_id": "finger_tapping_fatigue_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Access and read the input FTT data CSV file.",
+      "points": 10,
+      "visual_evidence": "A script (e.g., Python, R) or data tool showing code to open and read '~/pebl/data/ftt_tapping_data.csv'."
+    },
+    {
+      "id": "calculate_tapping_frequency",
+      "description": "Calculate the average tapping frequency (Hz) for Dominant and Non-Dominant hands.",
+      "points": 15,
+      "visual_evidence": "Code or intermediate outputs showing the calculation of total taps divided by 10.0 per trial for both hand conditions."
+    },
+    {
+      "id": "calculate_fatigue_index",
+      "description": "Calculate the Dominant Fatigue Index.",
+      "points": 20,
+      "visual_evidence": "Code or intermediate outputs showing the calculation of the ratio of taps occurring after 5000ms to those at or before 5000ms, averaged across trials."
+    },
+    {
+      "id": "calculate_coefficient_of_variation",
+      "description": "Calculate the Dominant Coefficient of Variation.",
+      "points": 20,
+      "visual_evidence": "Code or intermediate outputs showing the calculation of the standard deviation divided by the mean of 'iti_ms' per trial, explicitly excluding the first tap."
+    },
+    {
+      "id": "exclude_contaminated_participant",
+      "description": "Exclude participant P099 from group statistics and mark them as excluded.",
+      "points": 15,
+      "visual_evidence": "Code logic explicitly checking for participant 'P099', excluding them from the group statistics calculation, and formatting their participant entry with 'excluded': true and a 'reason'."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the final analysis report as a JSON file with the required structure.",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal, or file explorer showing the creation and content of '~/pebl/analysis/ftt_fatigue_report.json' containing 'participants' (list) and 'group_statistics' (dictionary) keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_statistics",
+      "description": "The agent computed the statistics programmatically rather than hardcoding the final JSON output.",
+      "visual_evidence": "Presence of a script (e.g., Python pandas/numpy code) performing aggregations, filtering, and math operations rather than just a script that prints a static JSON string."
+    },
+    {
+      "id": "genuine_data_source",
+      "description": "The agent processed the actual provided CSV file.",
+      "visual_evidence": "The script explicitly references and loads '~/pebl/data/ftt_tapping_data.csv' rather than generating mock data or using an external dataset."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The output JSON file was actually saved to the filesystem.",
+      "visual_evidence": "A file explorer window, terminal 'ls' command, or script execution showing that the file 'ftt_fatigue_report.json' was written to the disk, not just printed to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be saved exactly at /home/ga/pebl/analysis/ftt_fatigue_report.json. Participant P099 must be explicitly excluded from group statistics due to a corrupted mechanical profile."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "model_turbine_blade@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a solid twisted turbine blade in FreeCAD by lofting between a root profile and a tip profile. The root profile is an ellipse centered at (0,0,0) with a 20mm major radius and 6mm minor radius. The tip profile is an ellipse centered at (0,0,100) with a 12mm major radius and 3mm minor radius, rotated 45 degrees counter-clockwise around the Z-axis. Save the model to /home/ga/Documents/FreeCAD/turbine_blade.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/model_turbine_blade/setup_task.sh",
+    "post_task": "/workspace/tasks/model_turbine_blade/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "turbine_blade.FCStd",
+    "expected_height_mm": 100.0,
+    "height_tolerance_mm": 1.0,
+    "expected_volume_mm3": 5800.0,
+    "volume_tolerance_mm3": 600.0,
+    "min_y_width_for_twist_mm": 14.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_model_turbine_blade"
+    }
+  }
+}

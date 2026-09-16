@@ -1,0 +1,53 @@
+{
+  "task_id": "create_custom_webhook_integration@1",
+  "task_completion": [
+    {
+      "id": "shell_wrapper_created",
+      "description": "Create the shell wrapper script for the custom integration.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the creation or content of the file '/var/ossec/integrations/custom-slack-alerts' (e.g., via cat, nano, vim, or echo) inside the wazuh manager container."
+    },
+    {
+      "id": "python_script_created",
+      "description": "Create the Python script for the custom integration.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the creation or content of the file '/var/ossec/integrations/custom-slack-alerts.py' inside the wazuh manager container."
+    },
+    {
+      "id": "python_script_parsing_logic",
+      "description": "Implement JSON parsing logic in the Python script to extract specific alert fields.",
+      "points": 20,
+      "visual_evidence": "The content of the Python script must be visible, showing it reads the file path from the first argument (e.g., sys.argv[1]), parses it as JSON, and extracts 'timestamp', 'rule.id', 'rule.level', 'rule.description', and 'agent.name'."
+    },
+    {
+      "id": "python_script_post_logic",
+      "description": "Implement the POST request logic in the Python script using urllib.request.",
+      "points": 20,
+      "visual_evidence": "The content of the Python script must show it reading the webhook URL from the third argument (e.g., sys.argv[3]) and making a POST request using 'urllib.request' (e.g., urllib.request.Request / urllib.request.urlopen) to send the extracted data."
+    },
+    {
+      "id": "ossec_conf_updated",
+      "description": "Enable and configure the integration in ossec.conf.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the edited '/var/ossec/etc/ossec.conf' file containing an <integration> block with <name>custom-slack-alerts</name>, <hook_url>http://webhook-receiver:9999/alerts</hook_url>, <level>12</level>, and <alert_format>json</alert_format>."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "container_execution",
+      "description": "Verify the agent executed commands inside the correct Docker container.",
+      "visual_evidence": "The terminal prompt or command history should show 'docker exec -it wazuh-wazuh.manager-1' or the prompt should reflect the container's environment, rather than the host machine."
+    },
+    {
+      "id": "dynamic_arguments",
+      "description": "Verify the Python script uses dynamic arguments rather than hardcoded values.",
+      "visual_evidence": "The Python script must use system arguments (like sys.argv[1] and sys.argv[3]) for the alert file path and webhook URL, rather than hardcoding the webhook URL or a dummy JSON payload directly in the script."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent genuinely edited the configuration files.",
+      "visual_evidence": "Screenshots should show the use of standard text editors (nano, vim) or valid shell commands (sed, echo >>, cat) modifying the actual files, rather than just printing a pre-written success message to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Target container: wazuh-wazuh.manager-1. Shell wrapper path: /var/ossec/integrations/custom-slack-alerts. Python script path: /var/ossec/integrations/custom-slack-alerts.py. Wazuh config path: /var/ossec/etc/ossec.conf. Integration name: custom-slack-alerts. Hook URL: http://webhook-receiver:9999/alerts. Alert level: 12. Alert format: json."
+}

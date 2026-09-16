@@ -1,0 +1,29 @@
+{
+  "id": "js_rendering_gap_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are a Search Marketing Strategist auditing a JavaScript-heavy client website (https://quotes.toscrape.com/js/) to quantify the 'content gap' between raw HTML and rendered content. Crawl the site using Screaming Frog SEO Spider with JavaScript rendering enabled. Export the 'Internal - HTML' report, including rendered metrics such as word count, to a CSV file in ~/Documents/SEO/exports/. Analyze the results and provide a report at ~/Documents/SEO/reports/js_rendering_report.txt that includes the total number of pages crawled, observations on word count differences (Original vs. Rendered), and a recommendation on whether the site relies on Client-Side Rendering.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/js_rendering_gap_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/js_rendering_gap_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://quotes.toscrape.com/js/",
+    "target_domain": "quotes.toscrape.com",
+    "expected_min_pages": 5,
+    "report_path": "/home/ga/Documents/SEO/reports/js_rendering_report.txt",
+    "export_dir": "/home/ga/Documents/SEO/exports"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_js_rendering_gap_audit"
+    }
+  }
+}

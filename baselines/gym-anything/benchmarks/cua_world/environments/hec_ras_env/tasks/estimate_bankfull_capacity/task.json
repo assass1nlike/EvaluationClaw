@@ -1,0 +1,30 @@
+{
+  "id": "estimate_bankfull_capacity@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the bankfull discharge for every cross-section in the Muncie HEC-RAS model using the HDF5 geometry and result data (e.g., Muncie.p04.tmp.hdf). Bankfull discharge is defined as the flow rate on the rising limb of the flood hydrograph at the exact moment the water surface elevation equals the minimum bank elevation. Create a Python script to perform these calculations and export a summary CSV to /home/ga/Documents/hec_ras_results/bankfull_capacity.csv. The output CSV must contain the columns: RiverStation, Min_Bank_Elev_ft, Bankfull_Q_cfs, and Max_WSE_ft. If a cross-section never floods (Max WSE < Min Bank Elev), set Bankfull Q to 0.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/estimate_bankfull_capacity/setup_task.sh",
+    "post_task": "/workspace/tasks/estimate_bankfull_capacity/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/hec_ras_results/bankfull_capacity.csv",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "tolerances": {
+      "elevation_ft": 0.1,
+      "flow_percent": 5.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_estimate_bankfull_capacity"
+    }
+  }
+}

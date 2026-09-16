@@ -1,0 +1,65 @@
+{
+  "task_id": "create_crm_email_template@1",
+  "task_completion": [
+    {
+      "id": "template_creation_started",
+      "description": "Verify the agent opened the new Email Template creation form.",
+      "points": 10,
+      "visual_evidence": "A new record form for 'Email Templates' is visible in the Odoo interface."
+    },
+    {
+      "id": "template_name_entered",
+      "description": "Verify the template name is set correctly.",
+      "points": 10,
+      "visual_evidence": "The text 'Opportunity Follow-Up' is entered into the Template Name field."
+    },
+    {
+      "id": "template_model_selected",
+      "description": "Verify the correct model is selected for the template.",
+      "points": 15,
+      "visual_evidence": "The 'Applies To' field shows 'Lead/Opportunity' or 'crm.lead'."
+    },
+    {
+      "id": "template_subject_entered",
+      "description": "Verify the subject line contains the required text and placeholder.",
+      "points": 15,
+      "visual_evidence": "The Subject field contains exactly 'Following up: {{ object.name }}'."
+    },
+    {
+      "id": "template_body_placeholders",
+      "description": "Verify the required dynamic placeholders are present in the email body.",
+      "points": 20,
+      "visual_evidence": "The email body text area contains the exact strings '{{ object.partner_id.name }}' and '{{ object.name }}'."
+    },
+    {
+      "id": "template_body_text",
+      "description": "Verify the required static text phrases are present in the email body.",
+      "points": 20,
+      "visual_evidence": "The email body text area contains the phrases 'Thank you for your interest' and 'Best regards'."
+    },
+    {
+      "id": "template_saved",
+      "description": "Verify the template has been saved.",
+      "points": 10,
+      "visual_evidence": "The record appears in a saved state (e.g., 'Save' button is no longer active, 'Edit' button is visible, or a success notification is shown)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Verify the agent used the Odoo web interface.",
+      "visual_evidence": "The screenshots show a web browser interacting with the Odoo GUI, not a terminal or API client."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Verify the agent didn't just edit the HTML of the page to fake the result.",
+      "visual_evidence": "There are no browser developer tools open modifying the DOM to fake the template fields."
+    },
+    {
+      "id": "no_direct_db_access",
+      "description": "Verify the agent did not use a database client to insert the record.",
+      "visual_evidence": "No terminal windows with psql or other database clients are used to bypass the UI."
+    }
+  ],
+  "privileged_info_for_vlm": "The email template must be named 'Opportunity Follow-Up' and apply to the 'crm.lead' (Lead/Opportunity) model. The subject must be exactly 'Following up: {{ object.name }}'. The email body must contain the placeholders '{{ object.partner_id.name }}' and '{{ object.name }}', as well as the phrases 'Thank you for your interest' and 'Best regards' (case-insensitive for the static text)."
+}

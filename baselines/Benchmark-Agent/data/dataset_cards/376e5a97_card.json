@@ -1,0 +1,84 @@
+{
+  "dataset_id": "376e5a97",
+  "name": "Resume Docvqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 84,
+  "description": "Resume DocVQA is a document visual question answering dataset built from resume/CV images. Given one or more resume page images and a natural-language question, the model must extract the correct short answer, such as a name, phone number, employer, or job title, from the document.",
+  "card_text": "The dataset consists of 84 samples pairing resume/CV document images with natural-language questions. Each sample provides one or more image files (input.image_file) depicting resume pages, and a question (input.prompt) about information contained in the document. Answers are short text strings (output.text) extracted directly from the resume, such as a person's name, phone number, job title, or employer. The images are document-style visual inputs containing both layout and text, so models must perform OCR or document understanding to locate the relevant answer. Questions are open-ended and require reading comprehension over visually presented personal and professional information. The dataset is relatively small and focuses on information extraction from resumes rather than multiple-choice or long-form generation.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "resumes/CVs",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Images of resume/CV pages (possibly multi-page) containing structured personal and professional information such as names, contact details, work history, and education. These images act as the main document context that the model must read to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question targeting specific information in the resume image(s), often asking to identify a person, employer, phone number, job title, or other resume details.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target answer as a list of strings (usually one), containing the exact text snippet extracted from the resume document, such as a name or phone number.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference list (input.image_file) with one or more resume page images, a natural-language question (input.prompt) about the resume, and a short answer (output.text) given as a list of strings. The images serve as the main document context; the question asks for specific information within them, and the answer provides the extracted text snippet. No separate textual passage, options, or bounding boxes are included."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/resume_docvqa/json/annotation.json",
+    "existing_tags": {
+      "task": "document vqa",
+      "type": "comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

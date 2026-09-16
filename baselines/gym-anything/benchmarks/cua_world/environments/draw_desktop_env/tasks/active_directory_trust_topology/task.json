@@ -1,0 +1,41 @@
+{
+  "id": "active_directory_trust_topology@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are an Identity Architect at Contoso Ltd. Following a merger with Fabrikam Inc., you need to create a logical Active Directory topology diagram to visualize the trust relationships for the security team using draw.io Desktop. Refer to the audit report at '~/Desktop/ad_trust_audit.txt' for domain details. The diagram must include visual containers for 'Contoso Forest' and 'Fabrikam Forest', with the five domains (contoso.com, corp.contoso.com, research.contoso.com, fabrikam.net, legacy.fabrikam.net) represented as triangles labeled with their FQDNs. Connect the domains to show bidirectional Parent-Child links within each forest, a bidirectional Forest Trust between the roots (contoso.com and fabrikam.net), and a one-way External Trust from 'corp.contoso.com' (Trusting) to 'legacy.fabrikam.net' (Trusted). Label all trust lines with their type. Save the source file to '~/Desktop/ad_topology.drawio' and export a PNG image to '~/Desktop/ad_topology.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/active_directory_trust_topology/setup_task.sh",
+    "post_task": "/workspace/tasks/active_directory_trust_topology/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/ad_topology.drawio",
+    "expected_png": "/home/ga/Desktop/ad_topology.png",
+    "domains": [
+      "contoso.com",
+      "corp.contoso.com",
+      "research.contoso.com",
+      "fabrikam.net",
+      "legacy.fabrikam.net"
+    ],
+    "trusts": {
+      "forest": [
+        "contoso.com",
+        "fabrikam.net"
+      ],
+      "external_source": "corp.contoso.com",
+      "external_target": "legacy.fabrikam.net"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ad_topology"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "dataset_id": "991382e5",
+  "name": "Multi-Page E-Mail Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 73,
+  "description": "A visual question answering dataset over multi-page e-mail/document images. Each sample pairs one or more document page images with a natural-language question, and the model must provide a short text answer grounded in the visual content. It evaluates document comprehension and information extraction from rendered e-mail pages.",
+  "card_text": "This dataset contains 73 samples for multi-page document visual question answering, focused on e-mail and memo-like documents. Inputs are one or more page images (input.image_files) and a short natural-language question (input.prompt). Outputs are short free-form answers (output.text) such as a person's name, a fee, or a date, drawn from the visual document content. The images appear to be scanned or rendered pages of e-mails or memos, requiring the model to locate and read textual information across potentially multiple pages. Questions are typically fact-seeking and can refer to details spread across pages. There are no multiple-choice options, bounding boxes, or rationale annotations. The dataset tests visual document understanding, OCR, and question answering in a realistic office-document setting.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "multi-page e-mail documents",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of one or more document page images (e-mail/memo pages) that serve as the visual context. The model must read these pages to find the information requested by the question. The number of pages and their visual complexity vary across samples.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "References to page images of the e-mail/document, given as filenames. These are the visual inputs that the model processes, often comprising multiple pages per sample.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short natural-language question asking for specific information (e.g., a name, fee, date, or policy detail) contained in the document page images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list containing the short answer string extracted or inferred from the visual document content, such as a person's name or a price.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a natural-language question (input.prompt), one or more document page images (input.image_files), and a short answer string (output.text). The images are the main context and must be read to answer the question; there are no multiple-choice options, bounding boxes, masks, or rationale fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageE-mailDocumentVisualQuestionAnswering/multi-page_e-mail_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page E-mail Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

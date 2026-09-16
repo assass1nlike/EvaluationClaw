@@ -1,0 +1,59 @@
+{
+  "task_id": "terminal_system_inventory@1",
+  "task_completion": [
+    {
+      "id": "file_created_and_displayed",
+      "description": "The system inventory file is created at the correct path and its contents are displayed for verification.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'cat /home/ga/Documents/system_inventory.txt' or a text editor open to this specific file path showing the generated report."
+    },
+    {
+      "id": "system_info_section",
+      "description": "The report contains the SYSTEM INFO section with hostname, kernel version, and RAM.",
+      "points": 20,
+      "visual_evidence": "Look for the exact heading '=== SYSTEM INFO ===' followed by the system hostname, Linux kernel version (e.g., 5.x.x or 6.x.x), and total system RAM."
+    },
+    {
+      "id": "sugar_activities_list",
+      "description": "The report contains the SUGAR ACTIVITIES section with a list of installed activities.",
+      "points": 15,
+      "visual_evidence": "Look for the exact heading '=== SUGAR ACTIVITIES ===' followed by a list of Sugar activity names."
+    },
+    {
+      "id": "sugar_activities_total",
+      "description": "The SUGAR ACTIVITIES section includes a 'Total' count line.",
+      "points": 15,
+      "visual_evidence": "Look for a line containing the word 'Total' along with a numeric count of the activities, located under the SUGAR ACTIVITIES section."
+    },
+    {
+      "id": "disk_usage_section",
+      "description": "The report contains the DISK USAGE section for the root filesystem.",
+      "points": 20,
+      "visual_evidence": "Look for the exact heading '=== DISK USAGE ===' followed by human-readable disk statistics (size, used, and available space) specifically for the root (/) filesystem."
+    },
+    {
+      "id": "sugar_user_config_section",
+      "description": "The report contains the SUGAR USER CONFIG section with nickname and XO icon color.",
+      "points": 20,
+      "visual_evidence": "Look for the exact heading '=== SUGAR USER CONFIG ===' followed by the current Sugar nickname and the XO icon color values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_gathering",
+      "description": "The agent executed commands to gather real system data rather than hallucinating values.",
+      "visual_evidence": "Check the terminal history for commands like 'uname', 'free', 'df', 'ls', or 'cat' on configuration files, showing the agent actively retrieved the information before writing the report."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The output was actually saved to the requested file path, not just printed to standard output.",
+      "visual_evidence": "Verify that the report is saved to '/home/ga/Documents/system_inventory.txt' by looking at the file path in a text editor or the command used to display it (e.g., 'cat /home/ga/Documents/system_inventory.txt')."
+    },
+    {
+      "id": "no_hallucinated_placeholders",
+      "description": "The final report contains actual system values, not placeholder text.",
+      "visual_evidence": "Ensure the final report contains concrete system values (e.g., actual kernel versions, RAM sizes, color hex codes) and not placeholder text like '<insert kernel version here>' or '[Total Count]'."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file path: /home/ga/Documents/system_inventory.txt. The report must contain exactly these four headings: '=== SYSTEM INFO ===', '=== SUGAR ACTIVITIES ===', '=== DISK USAGE ===', and '=== SUGAR USER CONFIG ==='."
+}

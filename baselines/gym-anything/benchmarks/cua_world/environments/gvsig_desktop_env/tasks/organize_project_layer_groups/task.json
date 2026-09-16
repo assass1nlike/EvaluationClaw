@@ -1,0 +1,37 @@
+{
+  "id": "organize_project_layer_groups@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Create a gvSIG world basemap project saved to /home/ga/gvsig_data/projects/organized_basemap.gvsproj. The project must feature a View named 'World Overview' containing three layers loaded from /home/ga/gvsig_data/: ne_110m_admin_0_countries.shp (renamed to 'Countries'), ne_110m_rivers_lake_centerlines.shp (renamed to 'Rivers'), and ne_110m_populated_places.shp (renamed to 'Cities'). Organize the layers such that 'Countries' and 'Rivers' are placed within a Layer Group named 'Physical Geography', while 'Cities' remains outside the group.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_project_layer_groups/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_project_layer_groups/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/gvsig_data/projects/organized_basemap.gvsproj",
+    "required_view_name": "World Overview",
+    "required_group_name": "Physical Geography",
+    "required_layer_names": [
+      "Countries",
+      "Rivers",
+      "Cities"
+    ],
+    "raw_filenames": [
+      "ne_110m_admin_0_countries.shp",
+      "ne_110m_rivers_lake_centerlines.shp",
+      "ne_110m_populated_places.shp"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_project_layer_groups"
+    }
+  }
+}

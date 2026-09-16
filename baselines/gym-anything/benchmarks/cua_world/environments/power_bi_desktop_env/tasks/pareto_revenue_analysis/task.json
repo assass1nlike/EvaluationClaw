@@ -1,0 +1,34 @@
+{
+  "id": "pareto_revenue_analysis@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "A quality and operations manager needs a Pareto analysis of sales representatives using the data in C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv. Create a Power BI report named Pareto_Analysis.pbix at C:\\Users\\Docker\\Desktop\\Pareto_Analysis.pbix. On a page named 'Pareto Analysis', include a Line and Clustered Column Chart showing Sales_Rep, Rep_Revenue, and Cumulative_Pct, and a Card visual showing Rep_Revenue. The Rep_Revenue measure must calculate the sum of Sales_Amount, and the Cumulative_Pct measure must calculate the cumulative percentage of revenue for representatives sorted by revenue descending.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\pareto_revenue_analysis\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\pareto_revenue_analysis\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Pareto_Analysis.pbix",
+    "required_visuals": [
+      "lineClusteredColumnComboChart",
+      "card"
+    ],
+    "required_measures": [
+      "Rep_Revenue",
+      "Cumulative_Pct"
+    ],
+    "required_page_name": "Pareto Analysis"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pareto_analysis"
+    }
+  }
+}

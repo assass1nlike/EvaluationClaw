@@ -1,0 +1,34 @@
+{
+  "id": "rc_beam_elevation@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a structural engineering elevation drawing of a reinforced concrete beam in LibreCAD using millimeters. Draw a 5000mm x 600mm beam on layer 'CONCRETE' (Color: Gray/8) with the lower-left corner at (0,0). Include top and bottom longitudinal reinforcement on layer 'REBAR_MAIN' (Color: Red/1) using 40mm clear cover (lines at Y=40 and Y=560). Add vertical stirrups on layer 'REBAR_STIRRUPS' (Color: Green/3) starting at X=100 and spaced at 200mm centers along the beam length. Save the drawing to /home/ga/Documents/LibreCAD/rc_beam_elevation.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/rc_beam_elevation/setup_task.sh",
+    "post_task": "/workspace/tasks/rc_beam_elevation/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "rc_beam_elevation.dxf",
+    "beam_length": 5000,
+    "beam_depth": 600,
+    "cover": 40,
+    "stirrup_spacing": 200,
+    "layer_specs": {
+      "CONCRETE": 8,
+      "REBAR_MAIN": 1,
+      "REBAR_STIRRUPS": 3
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rc_beam_elevation"
+    }
+  }
+}

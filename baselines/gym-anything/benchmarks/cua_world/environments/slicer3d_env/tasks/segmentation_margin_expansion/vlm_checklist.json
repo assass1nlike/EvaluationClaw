@@ -1,0 +1,65 @@
+{
+  "task_id": "segmentation_margin_expansion@1",
+  "task_completion": [
+    {
+      "id": "gtv_preserved",
+      "description": "The original 'GTV' segment is preserved in the segmentation list.",
+      "points": 10,
+      "visual_evidence": "In the Segment Editor or Segmentations module of the medical imaging software (e.g., 3D Slicer), 'GTV' is visible and active in the segment list."
+    },
+    {
+      "id": "ctv_exists",
+      "description": "A new 'CTV' segment has been created.",
+      "points": 10,
+      "visual_evidence": "A segment named 'CTV' is visible in the segment list alongside the original 'GTV'."
+    },
+    {
+      "id": "ptv_exists",
+      "description": "A new 'PTV' segment has been created.",
+      "points": 10,
+      "visual_evidence": "A segment named 'PTV' is visible in the segment list alongside 'GTV' and 'CTV'."
+    },
+    {
+      "id": "ctv_margin_accuracy",
+      "description": "The CTV segment is expanded from the GTV segment with a visible margin.",
+      "points": 20,
+      "visual_evidence": "In the 2D slice views (axial, sagittal, coronal), the CTV contour/color visibly surrounds the GTV contour with a consistent margin (representing 5mm)."
+    },
+    {
+      "id": "ptv_margin_accuracy",
+      "description": "The PTV segment is expanded from the CTV segment with a visible margin.",
+      "points": 20,
+      "visual_evidence": "In the 2D slice views, the PTV contour/color visibly surrounds the CTV contour with a consistent margin (representing 8mm)."
+    },
+    {
+      "id": "proper_nesting",
+      "description": "All segments are properly nested (GTV inside CTV inside PTV).",
+      "points": 15,
+      "visual_evidence": "The 2D slice views or 3D view show concentric layers where GTV is the innermost volume, CTV is the middle volume, and PTV is the outermost volume, with no disjointed or overlapping boundaries that violate this nesting."
+    },
+    {
+      "id": "report_generated",
+      "description": "A volume report JSON is generated with the required fields and saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "A text editor, terminal output, or Python console shows the creation/content of '~/Documents/SlicerData/BraTS/treatment_volumes_report.json' containing the exact keys: 'gtv_volume_ml', 'ctv_volume_ml', 'ptv_volume_ml', 'ctv_margin_mm', and 'ptv_margin_mm'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the medical imaging software's GUI or built-in Python console to perform the margin expansions.",
+      "visual_evidence": "Screenshots show interaction with the Segment Editor module (e.g., using the 'Margin' effect) or the application's Python interactor, rather than just writing a mock script in an external text editor."
+    },
+    {
+      "id": "genuine_report_values",
+      "description": "The generated JSON report contains actual calculated numerical values for the volumes.",
+      "visual_evidence": "The values for 'gtv_volume_ml', 'ctv_volume_ml', and 'ptv_volume_ml' in the JSON file are specific floating-point numbers, not placeholders like '0', 'null', or copy-pasted text."
+    },
+    {
+      "id": "actual_file_saving",
+      "description": "The agent actually saved the segmentation and report files to the requested directories.",
+      "visual_evidence": "A save dialog, terminal command (like 'ls' or 'cat'), or file explorer confirms the files 'treatment_volumes.seg.nrrd' and 'treatment_volumes_report.json' exist in '~/Documents/SlicerData/BraTS/'."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

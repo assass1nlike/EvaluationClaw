@@ -1,0 +1,47 @@
+{
+  "task_id": "populate_curated_playlist@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "Open the 'chinook.odb' database file.",
+      "points": 10,
+      "visual_evidence": "A database management application (e.g., LibreOffice Base) is open, displaying the tables of the 'chinook.odb' database."
+    },
+    {
+      "id": "create_playlist",
+      "description": "Create a new playlist named 'Epic Rock' in the 'Playlist' table.",
+      "points": 20,
+      "visual_evidence": "An SQL execution window showing an INSERT statement adding 'Epic Rock' to the Playlist table, or the Playlist table open in data view showing a new row with the name 'Epic Rock'."
+    },
+    {
+      "id": "query_target_tracks",
+      "description": "Identify tracks matching the criteria: Rock genre, duration > 300,000 ms, and non-empty composer.",
+      "points": 30,
+      "visual_evidence": "An SQL query or GUI filter showing conditions for GenreId=1 (or Genre='Rock'), Milliseconds > 300000, and Composer IS NOT NULL (and/or Composer != '')."
+    },
+    {
+      "id": "populate_playlist_track",
+      "description": "Insert the matching tracks into the 'PlaylistTrack' table associated with the new playlist.",
+      "points": 40,
+      "visual_evidence": "An SQL INSERT statement targeting the 'PlaylistTrack' table that selects the matching TrackIds and the new PlaylistId, or the 'PlaylistTrack' table open showing newly added rows linking to the 'Epic Rock' PlaylistId."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_app_used",
+      "description": "The agent used a graphical database application to interact with the database.",
+      "visual_evidence": "Screenshots show a database GUI (like LibreOffice Base) being used, rather than just a terminal or text editor."
+    },
+    {
+      "id": "dynamic_query_used",
+      "description": "The agent used SQL conditions or GUI filters to dynamically find the tracks.",
+      "visual_evidence": "The SQL query or filter uses logical conditions (e.g., Milliseconds > 300000) rather than hardcoding a long list of specific TrackIds."
+    },
+    {
+      "id": "no_copy_paste_answers",
+      "description": "The agent actually executed the queries or modifications in the database.",
+      "visual_evidence": "Evidence of query execution success messages, updated table views, or saved database state, rather than just typing the query without running it."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database file: 'chinook.odb'. Target playlist name: 'Epic Rock'. Target genre: 'Rock' (GenreId=1). Duration threshold: Milliseconds > 300000. Composer requirement: Composer IS NOT NULL and Composer != ''. Exactly 347 tracks match all these criteria."
+}

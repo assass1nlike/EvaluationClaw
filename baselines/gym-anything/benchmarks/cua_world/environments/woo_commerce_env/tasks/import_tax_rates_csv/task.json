@@ -1,0 +1,38 @@
+{
+  "id": "import_tax_rates_csv@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Import the sales tax rates from /home/ga/Documents/wa_tax_rates.csv into the WooCommerce Standard rates table. Ensure tax calculations are enabled in the store settings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_tax_rates_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/import_tax_rates_csv/export_result.sh"
+  },
+  "metadata": {
+    "csv_path": "/home/ga/Documents/wa_tax_rates.csv",
+    "expected_total_count": 15,
+    "check_data": [
+      {
+        "postcode": "98101",
+        "rate": "10.2500",
+        "name": "WA Sales Tax"
+      },
+      {
+        "postcode": "99201",
+        "rate": "9.0000",
+        "name": "WA Sales Tax"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_tax_rates_csv"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "soil_sampling_loiter_mission@1",
+  "task_completion": [
+    {
+      "id": "read_csv_coordinates",
+      "description": "Agent opens and reads the sampling_points.csv file to get the GPS coordinates.",
+      "points": 10,
+      "visual_evidence": "A text editor, spreadsheet viewer, or terminal window displaying the contents of /home/ga/Documents/QGC/sampling_points.csv with the 6 coordinate pairs."
+    },
+    {
+      "id": "initial_takeoff_command",
+      "description": "Agent starts the mission plan with a Takeoff command.",
+      "points": 15,
+      "visual_evidence": "In the mission planner interface (e.g., QGroundControl), the first item in the mission sequence list is 'Takeoff'."
+    },
+    {
+      "id": "add_loiter_waypoints",
+      "description": "Agent adds 6 waypoints/loiter points corresponding to the coordinates from the CSV.",
+      "points": 30,
+      "visual_evidence": "The mission sequence list shows 6 distinct waypoint or loiter items added after the takeoff command, or the map shows 6 points plotted."
+    },
+    {
+      "id": "set_altitude_and_loiter_time",
+      "description": "Agent sets the altitude to 30m and the loiter time to 30 seconds for the waypoints.",
+      "points": 20,
+      "visual_evidence": "The waypoint parameter settings panel in the GUI shows 'Altitude' set to 30 (or within 15-50m tolerance) and 'Hold' or 'Loiter Time' set to 30 seconds."
+    },
+    {
+      "id": "add_rtl_command",
+      "description": "Agent ends the mission with a Return to Launch (RTL) command.",
+      "points": 10,
+      "visual_evidence": "The final item in the mission sequence list is 'Return', 'Return to Launch', or 'RTL'."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Agent saves the mission plan to the specified file path.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog or file manager showing the mission being saved as 'soil_sampling.plan' in the '/home/ga/Documents/QGC/' directory, or a sync/save confirmation in the GUI."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgc_gui",
+      "description": "Agent used a graphical mission planner (like QGroundControl) to create the mission.",
+      "visual_evidence": "Screenshots show interaction with the QGroundControl GUI (or similar drone mission planning software) rather than a text editor writing the raw JSON .plan file."
+    },
+    {
+      "id": "genuine_waypoint_entry",
+      "description": "Agent manually entered coordinates or clicked on the map to create waypoints.",
+      "visual_evidence": "Screenshots show the agent typing coordinates into the waypoint editor or clicking the map interface, rather than running a background script to generate the mission."
+    },
+    {
+      "id": "no_pre_existing_plan",
+      "description": "Agent created the plan from scratch rather than copying an existing file.",
+      "visual_evidence": "The mission is built step-by-step in the GUI, starting from an empty or default mission, rather than just opening a pre-made 'soil_sampling.plan' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target coordinates from the CSV are: [47.3972, 8.5435], [47.3978, 8.5435], [47.3984, 8.5435], [47.3984, 8.5455], [47.3978, 8.5455], [47.3972, 8.5455]. The mission must be saved to /home/ga/Documents/QGC/soil_sampling.plan. The target altitude is 30m (acceptable range 15m-50m) and the loiter time must be at least 20 seconds (target 30s)."
+}

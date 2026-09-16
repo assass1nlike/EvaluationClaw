@@ -1,0 +1,38 @@
+{
+  "id": "law_review_publication_prep@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "You are a law review managing editor preparing the final organization for a special issue on Technology and Privacy Law. Organize the 15 items in your Juris-M library (8 law review articles and 7 court cases) by creating a parent collection named 'Tech & Privacy Special Issue' with three subcollections: 'Data Privacy Articles' (for privacy theory and data governance articles), 'Digital Search Cases' (for electronic search and Fourth Amendment cases), and 'Surveillance Law' (for mass surveillance cases and articles). Assign all items to the appropriate subcollections. Add a 1-3 sentence abstract to the four law review articles missing that field. Create a standalone note titled 'Table of Contents' listing the titles of all 15 items. Configure the Quick Copy export format to 'Chicago Manual of Style 17th edition (full note)'. Apply the tag 'tech-privacy-2024' to all 15 items. Login: username 'ga', password 'password123'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/law_review_publication_prep/setup_task.sh",
+    "post_task": "/workspace/tasks/law_review_publication_prep/export_result.sh"
+  },
+  "metadata": {
+    "parent_collection": "Tech & Privacy Special Issue",
+    "subcollections": [
+      "Data Privacy Articles",
+      "Digital Search Cases",
+      "Surveillance Law"
+    ],
+    "articles_without_abstract": [
+      "A Taxonomy of Privacy",
+      "Lex Informatica: The Formulation of Information Policy Rules Through Technology",
+      "Broken Promises of Privacy: Responding to the Surprising Failure of Anonymization",
+      "Big Data Ethics"
+    ],
+    "required_tag": "tech-privacy-2024",
+    "required_citation_style": "chicago-fullnote-bibliography",
+    "total_items": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_law_review_publication_prep"
+    }
+  }
+}

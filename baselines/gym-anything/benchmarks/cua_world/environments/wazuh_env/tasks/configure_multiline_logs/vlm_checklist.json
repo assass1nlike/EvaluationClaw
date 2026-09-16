@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_multiline_logs@1",
+  "task_completion": [
+    {
+      "id": "access_ossec_conf",
+      "description": "Verify the agent accesses the ossec.conf file for the Wazuh manager container.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a terminal editor (like nano or vim) or a command (like cat, grep, or sed) interacting with the ossec.conf file, typically located at /var/ossec/etc/ossec.conf inside the wazuh-wazuh.manager-1 container."
+    },
+    {
+      "id": "enable_logall",
+      "description": "Verify global log archiving is enabled in ossec.conf.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the ossec.conf file show the <logall> tag set to 'yes' (i.e., <logall>yes</logall>)."
+    },
+    {
+      "id": "configure_localfile_location",
+      "description": "Verify a localfile block is created targeting the billing_app.log.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the ossec.conf file show a <localfile> block containing the exact path: <location>/var/log/billing_app.log</location>."
+    },
+    {
+      "id": "configure_log_format",
+      "description": "Verify the log format is set to syslog for the billing app log.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the ossec.conf file show <log_format>syslog</log_format> within the same <localfile> block used for billing_app.log."
+    },
+    {
+      "id": "configure_multiline_regex",
+      "description": "Verify the multiline_regex is configured to match the specified timestamp format.",
+      "points": 30,
+      "visual_evidence": "Screenshots of the ossec.conf file show a <multiline_regex> tag within the <localfile> block containing a regular expression that matches the 'YYYY-MM-DD HH:MM:SS' format (e.g., ^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} or similar valid regex)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration_edit",
+      "description": "Verify the agent genuinely edited the configuration file.",
+      "visual_evidence": "Screenshots show the use of standard terminal text editors (vi, vim, nano) or valid stream editors (sed) to modify ossec.conf, rather than just echoing the final expected XML block to the console without writing it."
+    },
+    {
+      "id": "no_hardcoded_timestamp",
+      "description": "Verify the agent used a regular expression for the timestamp, not a hardcoded literal date.",
+      "visual_evidence": "The <multiline_regex> tag must contain a pattern with regex metacharacters (like \\d, [0-9], or .*) and MUST NOT be the exact literal string '2023-11-15 08:30:00'."
+    },
+    {
+      "id": "no_fake_archive_log",
+      "description": "Verify the agent did not manually spoof the archive logs.",
+      "visual_evidence": "There should be no commands showing the agent manually echoing or appending text directly into /var/ossec/logs/archives/archives.log to fake the ingestion process."
+    }
+  ],
+  "privileged_info_for_vlm": "The target container is 'wazuh-wazuh.manager-1'. The target log file is '/var/log/billing_app.log'. The correct multiline regex to match the timestamp format should be equivalent to '^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}'. The global log archiving setting must be '<logall>yes</logall>'."
+}

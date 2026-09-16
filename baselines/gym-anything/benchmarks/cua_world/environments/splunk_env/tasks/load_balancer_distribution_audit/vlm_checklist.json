@@ -1,0 +1,53 @@
+{
+  "task_id": "load_balancer_distribution_audit@1",
+  "task_completion": [
+    {
+      "id": "alert_created",
+      "description": "Verify the creation of the 'Unbalanced_Load_Alert' alert.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Alerts' page, a success modal, or the 'Save As Alert' dialog showing the exact name 'Unbalanced_Load_Alert'."
+    },
+    {
+      "id": "alert_schedule_and_condition",
+      "description": "Verify the alert is scheduled on a recurring basis and has a trigger condition for >40% traffic.",
+      "points": 20,
+      "visual_evidence": "Look for the alert configuration screen showing a recurring 'Schedule' (e.g., 'Run on Cron Schedule' or 'Run every hour') and 'Trigger Conditions' that evaluate if a host exceeds 40% traffic (e.g., a custom condition or SPL search string checking for > 40)."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verify the creation of the 'Web_Infrastructure_Health' dashboard.",
+      "points": 10,
+      "visual_evidence": "Look for the Splunk Dashboards list or the active dashboard view displaying the exact title 'Web_Infrastructure_Health'."
+    },
+    {
+      "id": "panel_traffic_distribution",
+      "description": "Verify the dashboard contains a 'Traffic Distribution' panel showing event counts or percentages by host.",
+      "points": 25,
+      "visual_evidence": "Look for a dashboard panel titled 'Traffic Distribution'. It must contain a visualization (such as a pie chart, bar chart, or data table) that groups data by 'host' and displays either event counts or traffic percentages."
+    },
+    {
+      "id": "panel_server_error_counts",
+      "description": "Verify the dashboard contains a 'Server Error Counts' panel showing HTTP errors (status >= 400) grouped by host.",
+      "points": 25,
+      "visual_evidence": "Look for a dashboard panel titled 'Server Error Counts'. It must contain a visualization grouping data by 'host' and showing counts of HTTP errors (often visible via a search string containing 'status>=400' or status codes like 404, 500, etc. in the table/chart)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_gui_interaction",
+      "description": "Ensure the agent actually used the Splunk Web UI to create the artifacts.",
+      "visual_evidence": "Look for screenshots showing the Splunk Enterprise web interface (typically at localhost:8000) being actively navigated, rather than just terminal commands or text editors modifying configuration files."
+    },
+    {
+      "id": "genuine_dashboard_visualizations",
+      "description": "Ensure the dashboard panels are rendering real Splunk search results.",
+      "visual_evidence": "Look for authentic Splunk UI elements like loading bars, search job indicators, or actual rendered charts/tables in the dashboard panels, ensuring the agent didn't just type static text into a markdown panel."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "Ensure the agent did not use browser developer tools to fake the dashboard or alert names.",
+      "visual_evidence": "Check that the browser developer tools (F12/Inspect) are not open and being used to modify the DOM text to 'Unbalanced_Load_Alert' or 'Web_Infrastructure_Health'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Index: 'tutorial'. Alert Name: 'Unbalanced_Load_Alert'. Dashboard Name: 'Web_Infrastructure_Health'. Splunk Credentials: admin / SplunkAdmin1!"
+}

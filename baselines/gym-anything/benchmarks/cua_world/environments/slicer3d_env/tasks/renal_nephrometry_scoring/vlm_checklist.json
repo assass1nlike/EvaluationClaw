@@ -1,0 +1,59 @@
+{
+  "task_id": "renal_nephrometry_scoring@1",
+  "task_completion": [
+    {
+      "id": "measurements_saved",
+      "description": "Verify that the agent saved the measurements to the specified mrk.json file.",
+      "points": 5,
+      "visual_evidence": "Screenshots showing the file 'agent_measurements.mrk.json' being saved in the 3D Slicer UI, or visible in a file explorer, terminal, or text editor in the ~/Documents/SlicerData/KiTS/ directory."
+    },
+    {
+      "id": "r_score_reported",
+      "description": "Verify that the R (Radius) score and diameter are included in the final report.",
+      "points": 15,
+      "visual_evidence": "Screenshots of 'renal_score_report.json' open in a text editor or terminal, showing the fields 'R_diameter_cm' and 'R_score' populated with calculated values."
+    },
+    {
+      "id": "e_score_reported",
+      "description": "Verify that the E (Exophytic/Endophytic) score and percentage are included in the final report.",
+      "points": 15,
+      "visual_evidence": "Screenshots of 'renal_score_report.json' showing the fields 'E_percent_exophytic' and 'E_score' populated with calculated values."
+    },
+    {
+      "id": "n_score_reported",
+      "description": "Verify that the N (Nearness to collecting system) score and distance are included in the final report.",
+      "points": 15,
+      "visual_evidence": "Screenshots of 'renal_score_report.json' showing the fields 'N_distance_mm' and 'N_score' populated with calculated values."
+    },
+    {
+      "id": "a_and_l_scores_reported",
+      "description": "Verify that the A (Anterior/Posterior) location and L (Location relative to polar lines) scores are included in the final report.",
+      "points": 25,
+      "visual_evidence": "Screenshots of 'renal_score_report.json' showing the fields 'A_location' and 'L_score' populated with calculated values."
+    },
+    {
+      "id": "total_score_and_complexity_reported",
+      "description": "Verify that the total score, suffix, and complexity are included in the final report.",
+      "points": 25,
+      "visual_evidence": "Screenshots of 'renal_score_report.json' showing the fields 'total_score', 'suffix', and 'complexity' populated with calculated values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_imaging_software",
+      "description": "Verify the agent used medical imaging software to view the CT scan.",
+      "visual_evidence": "Screenshots showing the abdominal CT loaded in a GUI application (like 3D Slicer), with the kidney and tumor visible."
+    },
+    {
+      "id": "authentic_measurements",
+      "description": "Verify the agent actually performed measurements on the image.",
+      "visual_evidence": "Screenshots showing measurement tools (e.g., rulers, markups, or crosshairs) actively used on the CT scan in the imaging software to determine diameter, depth, or distances."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "Verify the agent did not simply generate a hardcoded JSON file without inspecting the image.",
+      "visual_evidence": "The trajectory must show the agent opening the image and interacting with it before creating or populating the 'renal_score_report.json' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset uses standard KiTS labels: 1 for kidney parenchyma and 2 for renal tumor. The data for case_00002 is synthetically generated to simulate a kidney tumor with a 4.5cm diameter and 40% exophytic extent."
+}

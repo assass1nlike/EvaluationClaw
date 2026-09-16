@@ -1,0 +1,31 @@
+{
+  "id": "compute_inundated_area@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the total water surface area (in acres) for the 'Maximum' water surface profile of the Muncie HEC-RAS model. Document the results in a text file at ~/Documents/hec_ras_results/inundated_area_report.txt with the text: \"Total Inundated Area: X acres\" (where X is the calculated value). Additionally, export a CSV file to ~/Documents/hec_ras_results/reach_data.csv containing the River_Station, Top_Width_ft, and Reach_Length_ft for each cross-section, and generate a plot showing Top Width (ft) vs River Station at ~/Documents/hec_ras_results/top_width_profile.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_inundated_area/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_inundated_area/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "result_hdf": "Muncie.p04.hdf",
+    "output_report": "inundated_area_report.txt",
+    "output_csv": "reach_data.csv",
+    "output_plot": "top_width_profile.png",
+    "tolerance_percent": 5.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_inundated_area"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "cpsc_recall_notice_draft@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Compliance Officer at Vornado Air LLC. Draft a CPSC-compliant recall press release for Steamfast Travel Steam Irons using Apache OpenOffice Writer, incorporating the details found in /home/ga/Documents/recall_details.json. The document should feature 'FOR IMMEDIATE RELEASE' at the top, the Headline in Heading 1 style, and a table of all affected Model Numbers. Include sections for Name of Product, Hazard, Remedy, Consumer Contact, and Units using Heading 2 style for titles, and a bulleted list summarizing report data under 'Incidents/Injuries'. Conclude the release with centered '###' characters and save the document as /home/ga/Documents/Steamfast_Recall_Draft.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cpsc_recall_notice_draft/setup_task.sh",
+    "post_task": "/workspace/tasks/cpsc_recall_notice_draft/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/recall_details.json",
+    "output_file": "/home/ga/Documents/Steamfast_Recall_Draft.odt",
+    "required_strings": [
+      "FOR IMMEDIATE RELEASE",
+      "Steamfast",
+      "866-827-3362",
+      "###"
+    ],
+    "model_numbers": [
+      "SF-425",
+      "SF-430",
+      "SF-432",
+      "SF-435",
+      "SF-437",
+      "SF-438",
+      "SF-439",
+      "SF-440",
+      "SF-445",
+      "SF-447"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cpsc_recall_draft"
+    }
+  }
+}

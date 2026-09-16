@@ -1,0 +1,28 @@
+{
+  "id": "cisa_kev_threat_intelligence@1",
+  "version": "1.0",
+  "env_id": "wazuh_env@0.1",
+  "description": "You are a Threat Intelligence Engineer tasked with integrating the CISA Known Exploited Vulnerabilities (KEV) catalog into Wazuh's detection pipeline. Create a Wazuh CDB lookup list in /var/ossec/etc/lists/ containing at least 10 CVE IDs from the catalog at /tmp/cisa_kev.json. The integration must include a custom detection rule referencing this CDB list to generate alerts, the configuration of the Wazuh vulnerability detection module (syscollector wodle) in ossec.conf, and a threat intelligence integration report of at least 60 words.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cisa_kev_threat_intelligence/setup_task.sh",
+    "post_task": "/workspace/tasks/cisa_kev_threat_intelligence/export_result.sh"
+  },
+  "metadata": {
+    "min_cve_entries": 10,
+    "kev_source_path": "/tmp/cisa_kev.json",
+    "report_path": "/home/ga/Desktop/kev_integration_report.txt",
+    "min_report_chars": 600,
+    "pass_threshold": 65
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cisa_kev_threat_intelligence"
+    }
+  }
+}

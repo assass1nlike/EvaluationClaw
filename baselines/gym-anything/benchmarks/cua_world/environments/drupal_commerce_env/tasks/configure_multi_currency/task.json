@@ -1,0 +1,43 @@
+{
+  "id": "configure_multi_currency@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Configure the 'Urban Electronics' Drupal Commerce store to support international sales by enabling Euro (EUR) and British Pound Sterling (GBP) currencies in addition to USD. Create and publish the 'European Travel Adapter' (SKU: EU-TRAVEL-ADAPT) with a price of 24.99 EUR and the 'British Audio Cable' (SKU: UK-AUDIO-CBL) with a price of 12.99 GBP.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_multi_currency/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_multi_currency/export_result.sh"
+  },
+  "metadata": {
+    "products": [
+      {
+        "title": "European Travel Adapter",
+        "sku": "EU-TRAVEL-ADAPT",
+        "price": "24.99",
+        "currency": "EUR"
+      },
+      {
+        "title": "British Audio Cable",
+        "sku": "UK-AUDIO-CBL",
+        "price": "12.99",
+        "currency": "GBP"
+      }
+    ],
+    "required_currencies": [
+      "EUR",
+      "GBP"
+    ],
+    "store_id": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_multi_currency"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "index_time_nullqueue_filtering@1",
+  "task_completion": [
+    {
+      "id": "props_conf_opened",
+      "description": "Agent opens or interacts with the props.conf file.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing a text editor (like vim or nano) or a command (like cat, echo, or tee) interacting with a 'props.conf' file."
+    },
+    {
+      "id": "props_conf_syslog_stanza",
+      "description": "Agent creates or modifies a syslog stanza in props.conf.",
+      "points": 15,
+      "visual_evidence": "Visible text in the props.conf file showing a stanza header for syslog, typically '[syslog]' or '[sourcetype::syslog]'."
+    },
+    {
+      "id": "props_conf_transforms_rule",
+      "description": "Agent adds a TRANSFORMS rule to the syslog stanza in props.conf.",
+      "points": 15,
+      "visual_evidence": "Under the syslog stanza in props.conf, there is a line starting with 'TRANSFORMS-' pointing to a custom transform name (e.g., 'TRANSFORMS-null = setnull')."
+    },
+    {
+      "id": "transforms_conf_opened",
+      "description": "Agent opens or interacts with the transforms.conf file.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing a text editor or command interacting with a 'transforms.conf' file."
+    },
+    {
+      "id": "transforms_conf_regex",
+      "description": "Agent configures the REGEX to match 'CRON' in transforms.conf.",
+      "points": 20,
+      "visual_evidence": "Visible text in the transforms.conf file showing a stanza matching the TRANSFORMS name from props.conf, containing the setting 'REGEX = CRON' (or a regex containing CRON)."
+    },
+    {
+      "id": "transforms_conf_nullqueue",
+      "description": "Agent configures the destination to nullQueue in transforms.conf.",
+      "points": 30,
+      "visual_evidence": "In the same stanza in transforms.conf, there are settings explicitly routing to the null queue: 'DEST_KEY = queue' and 'FORMAT = nullQueue'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "backend_files_used",
+      "description": "Agent modified backend configuration files directly instead of using the Splunk Web GUI.",
+      "visual_evidence": "The modifications to props.conf and transforms.conf are done via terminal commands or terminal-based text editors, not through the Splunk Web interface."
+    },
+    {
+      "id": "valid_splunk_directory",
+      "description": "Configuration files are edited in a valid Splunk directory.",
+      "visual_evidence": "File paths shown in the terminal or editor indicate the files are located in a Splunk configuration directory (e.g., /opt/splunk/etc/system/local/ or /opt/splunk/etc/apps/...)."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Agent actually modified the files rather than just printing the expected output.",
+      "visual_evidence": "Presence of actual editor interfaces (vim/nano) being saved, or valid shell redirection commands (>, >>) writing to the .conf files."
+    }
+  ],
+  "privileged_info_for_vlm": "The target sourcetype to be filtered is explicitly 'syslog'. The target regex to match in the events is 'CRON'. The agent must configure these parameters in props.conf and transforms.conf to route matching events to the 'nullQueue'."
+}

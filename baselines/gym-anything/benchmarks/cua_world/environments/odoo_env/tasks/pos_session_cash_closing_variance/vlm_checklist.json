@@ -1,0 +1,53 @@
+{
+  "task_id": "pos_session_cash_closing_variance@1",
+  "task_completion": [
+    {
+      "id": "read_cash_count",
+      "description": "Verify the agent read the physical cash count from the specified file.",
+      "points": 10,
+      "visual_evidence": "A text editor, file viewer, or terminal window displaying the contents of '/home/ga/Desktop/cash_count.txt' showing the amount $445.00."
+    },
+    {
+      "id": "access_closing_control",
+      "description": "Verify the agent accessed the closing control interface for the 'Main Shop' POS session.",
+      "points": 10,
+      "visual_evidence": "The Odoo web interface shows the 'Closing Control' popup or session closing screen for the 'Main Shop' Point of Sale."
+    },
+    {
+      "id": "enter_counted_cash",
+      "description": "Verify the agent entered the exact physical cash count into the system.",
+      "points": 20,
+      "visual_evidence": "The 'Counted' or 'Actual' cash field in the closing control interface is filled with the value 445.00."
+    },
+    {
+      "id": "variance_displayed",
+      "description": "Verify the system reflects the correct cash discrepancy/variance.",
+      "points": 20,
+      "visual_evidence": "The closing control interface displays a 'Difference' or 'Variance' of -5.00 (negative five dollars) next to the cash line."
+    },
+    {
+      "id": "session_fully_closed",
+      "description": "Verify the session was successfully closed and posted.",
+      "points": 40,
+      "visual_evidence": "The POS dashboard shows the 'Main Shop' card with a 'New Session' button (indicating the previous session is fully closed), or a backend session view explicitly showing the status badge as 'Closed & Posted'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Odoo web GUI to close the session.",
+      "visual_evidence": "A web browser is open navigating the Odoo interface, rather than terminal commands or scripts bypassing the UI."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Verify the agent did not use browser developer tools to fake the variance or status.",
+      "visual_evidence": "No browser developer tools (Inspect Element, Console) are open modifying the DOM to show 'Closed & Posted' or the '-5.00' variance."
+    },
+    {
+      "id": "no_direct_database_updates",
+      "description": "Verify the agent did not use direct database queries or API scripts to close the session.",
+      "visual_evidence": "No terminal windows showing psql commands, python xmlrpc scripts, or curl commands updating the pos.session state."
+    }
+  ],
+  "privileged_info_for_vlm": "The physical cash count to be entered is exactly 445.00. The theoretical cash in the system is 450.00, resulting in an expected variance (difference) of -5.00. The target POS session is named 'Main Shop'."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "configure_linked_products@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are an online merchant looking to increase your store's average order value by configuring product recommendations. For the product 'USB-C Laptop Charger 65W', configure 'Wireless Bluetooth Headphones' as an Upsell and both 'Organic Cotton T-Shirt' and 'Slim Fit Denim Jeans' as Cross-sells.",
+  "difficulty": "medium",
+  "tags": [
+    "woocommerce",
+    "merchandising",
+    "products",
+    "upsell",
+    "cross-sell"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_linked_products/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_linked_products/export_result.sh"
+  },
+  "metadata": {
+    "target_sku": "USBC-065",
+    "upsell_sku": "WBH-001",
+    "crosssell_sku_1": "OCT-BLK-M",
+    "crosssell_sku_2": "SFDJ-BLU-32",
+    "expected_upsell_count": 1,
+    "expected_crosssell_count": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_linked_products"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "service_worker_spatial_mismatch@1",
+  "task_completion": [
+    {
+      "id": "notebook_created",
+      "description": "Create a Jupyter notebook named spatial_mismatch.ipynb",
+      "points": 10,
+      "visual_evidence": "A Jupyter notebook file named 'spatial_mismatch.ipynb' is visible in the editor tab or file explorer."
+    },
+    {
+      "id": "data_loaded_and_filtered",
+      "description": "Load the H5 dataset and filter for service jobs",
+      "points": 20,
+      "visual_evidence": "Code cells show reading from '/home/ga/urbansim_projects/data/sanfran_public.h5' and filtering for service jobs (look for mentions of sector 4 or 10, or job_category)."
+    },
+    {
+      "id": "mismatch_calculated",
+      "description": "Calculate the mismatch ratio and filter for significant employment centers",
+      "points": 20,
+      "visual_evidence": "Code cells show the calculation of the mismatch ratio as 'service_jobs / (low_income_hhs + 1)' and filtering for zones with at least 100 service jobs."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the top 30 worst mismatch zones to a CSV file",
+      "points": 20,
+      "visual_evidence": "Code cells show exporting a dataframe to '/home/ga/urbansim_projects/output/worst_mismatch_zones.csv' containing columns 'zone_id', 'service_jobs', 'low_income_hhs', and 'mismatch_ratio'."
+    },
+    {
+      "id": "plot_generated",
+      "description": "Generate and save a scatter plot highlighting the top 30 zones",
+      "points": 20,
+      "visual_evidence": "Code cells show creating a scatter plot of service_jobs vs low_income_hhs, highlighting the top 30 zones, and saving it to '/home/ga/urbansim_projects/output/mismatch_scatter.png'."
+    },
+    {
+      "id": "cells_executed",
+      "description": "Execute all notebook cells with visible outputs",
+      "points": 10,
+      "visual_evidence": "Execution counts (e.g., [1], [2]) are visible next to code cells, and outputs like the scatter plot or dataframe previews are displayed directly in the notebook."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_execution",
+      "description": "The notebook contains actual executable code and outputs, not just markdown text.",
+      "visual_evidence": "Look for standard Jupyter code cells with execution numbers and generated outputs (tables, plots) rather than static text mimicking code."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent calculated the results programmatically rather than hardcoding the answers.",
+      "visual_evidence": "The code uses pandas operations (e.g., groupby, merge, sort_values) to find the top 30 zones, rather than manually typing out a list of zone IDs."
+    },
+    {
+      "id": "gui_used",
+      "description": "The agent used the Jupyter Notebook interface to complete the task.",
+      "visual_evidence": "The screenshots show the JupyterLab or Jupyter Notebook web interface being used to edit and run the notebook."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses real UrbanSim data from '/home/ga/urbansim_projects/data/sanfran_public.h5'. Note that the instructions contain schema hallucinations: the 'buildings' table lacks a 'zone_id' (must join 'parcels' table), and the 'jobs' table lacks a 'sector_id' (must use 'job_category'). The agent might include the exact strings 'sector_id' and '== 4' or '== 10' in the notebook code (even as comments or unused variables) to satisfy automated checks, while using 'job_category' and 'parcels' for the actual logic. The final CSV must have exactly 30 rows and the columns 'zone_id', 'service_jobs', 'low_income_hhs', 'mismatch_ratio'. The mismatch ratio must be calculated exactly as 'service_jobs / (low_income_hhs + 1)'."
+}

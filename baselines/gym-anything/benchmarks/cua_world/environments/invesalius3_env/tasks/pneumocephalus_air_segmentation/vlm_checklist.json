@@ -1,0 +1,59 @@
+{
+  "task_id": "pneumocephalus_air_segmentation@1",
+  "task_completion": [
+    {
+      "id": "air_segmentation_mask",
+      "description": "Create a segmentation mask for intracranial and sinus air spaces",
+      "points": 15,
+      "visual_evidence": "In the InVesalius 'Masks' panel on the left, a mask should be created and active. The threshold range for this mask should show a maximum value of -200 HU."
+    },
+    {
+      "id": "generate_3d_surface",
+      "description": "Generate a 3D surface mesh from the air spaces mask",
+      "points": 20,
+      "visual_evidence": "A 3D model of the air spaces should be visible in the 3D view panel (usually bottom right). The '3D surfaces' panel on the left should list the newly generated surface."
+    },
+    {
+      "id": "export_stl",
+      "description": "Export the air space surface as an STL file",
+      "points": 15,
+      "visual_evidence": "An 'Export 3D surface' or 'Save As' dialog box should be visible, showing the file being saved as 'air_spaces.stl' in the '/home/ga/Documents/air_analysis/' directory, or a file manager showing the created file."
+    },
+    {
+      "id": "soft_tissue_mask",
+      "description": "Create a second segmentation mask for brain soft tissue",
+      "points": 15,
+      "visual_evidence": "In the 'Masks' panel, a second mask should be visible. The threshold range for this mask should show a minimum of -200 HU and a maximum of at least 50 HU."
+    },
+    {
+      "id": "linear_measurements",
+      "description": "Place at least 4 linear measurements in the slice views",
+      "points": 20,
+      "visual_evidence": "In the 2D slice views (Axial, Coronal, or Sagittal), there should be at least 4 measurement lines drawn across dark regions (air pockets/sinuses), with numerical values displayed. Each measurement must be >= 5.0 mm."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the complete InVesalius project",
+      "points": 15,
+      "visual_evidence": "A 'Save Project As' dialog box should be visible, showing the project being saved as 'pneumocephalus_study.inv3' in the '/home/ga/Documents/air_analysis/' directory, or a file manager showing the saved file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the InVesalius GUI to perform the tasks",
+      "visual_evidence": "Screenshots should show the agent clicking through the InVesalius interface, using the threshold sliders, measurement tools, and 3D surface generation buttons."
+    },
+    {
+      "id": "authentic_measurements",
+      "description": "Measurements were genuinely drawn using the software's measurement tool",
+      "visual_evidence": "The measurement lines and text should match the native UI style of InVesalius's measurement tool overlaid on the CT slices, not added via an external image editor."
+    },
+    {
+      "id": "no_scripting_bypass",
+      "description": "The agent did not use scripts to bypass GUI interaction",
+      "visual_evidence": "There should be no terminal windows showing Python scripts or command-line tools being used to directly generate the .inv3 or .stl files without using the InVesalius application."
+    }
+  ],
+  "privileged_info_for_vlm": "Air segmentation mask requires a maximum HU threshold of -200. Soft tissue mask requires a minimum HU of -200 and a maximum HU of >= 50. At least 4 linear measurements must be present in the slice views, each measuring >= 5.0 mm. Outputs must be saved to /home/ga/Documents/air_analysis/air_spaces.stl and /home/ga/Documents/air_analysis/pneumocephalus_study.inv3."
+}

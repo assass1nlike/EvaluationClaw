@@ -1,0 +1,66 @@
+{
+  "id": "structural_gusset_plate@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a structural steel gusset plate in LibreCAD using millimeters. Draw a 300mm wide by 200mm high rectangular plate with its bottom-left corner at (0,0) and 40mm chamfers on all four corners on a layer named 'STEEL' (Color: Cyan, Index 4). On a layer named 'HOLES' (Color: Yellow, Index 2), place six 22mm diameter bolt holes in a grid with rows at Y=50 and 150, and columns at X=50, 150, and 250. Add the text 'GP-1' with a height of 25mm centered at (150, 100) on a layer named 'MARK' (Color: Red, Index 1). Save the completed drawing as /home/ga/Documents/LibreCAD/gusset_plate_gp1.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/structural_gusset_plate/setup_task.sh",
+    "post_task": "/workspace/tasks/structural_gusset_plate/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/gusset_plate_gp1.dxf",
+    "layers": {
+      "STEEL": 4,
+      "HOLES": 2,
+      "MARK": 1
+    },
+    "geometry": {
+      "width": 300,
+      "height": 200,
+      "chamfer": 40
+    },
+    "holes": {
+      "count": 6,
+      "radius": 11,
+      "tolerance": 0.5,
+      "centers": [
+        [
+          50,
+          50
+        ],
+        [
+          150,
+          50
+        ],
+        [
+          250,
+          50
+        ],
+        [
+          50,
+          150
+        ],
+        [
+          150,
+          150
+        ],
+        [
+          250,
+          150
+        ]
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_structural_gusset_plate"
+    }
+  }
+}

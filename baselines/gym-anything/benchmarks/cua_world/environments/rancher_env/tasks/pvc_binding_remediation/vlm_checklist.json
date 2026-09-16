@@ -1,0 +1,59 @@
+{
+  "task_id": "pvc_binding_remediation@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Verify the agent successfully logged into the Rancher interface.",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible in a web browser, indicating a successful login (e.g., URL shows localhost, user profile or cluster dashboard is displayed)."
+    },
+    {
+      "id": "pvcs_bound",
+      "description": "Verify that the PersistentVolumeClaims in the target namespace are successfully bound.",
+      "points": 10,
+      "visual_evidence": "In the Rancher UI (Storage -> PersistentVolumeClaims) or via a terminal 'kubectl get pvc -n data-pipeline' output, the PVCs show a status of 'Bound'."
+    },
+    {
+      "id": "kafka_broker_running",
+      "description": "Verify the kafka-broker deployment has at least one Running pod.",
+      "points": 20,
+      "visual_evidence": "In the Rancher Workloads/Deployments view or terminal output, the 'kafka-broker' deployment in the 'data-pipeline' namespace shows at least 1 active/Running pod (e.g., 1/1)."
+    },
+    {
+      "id": "minio_store_running",
+      "description": "Verify the minio-store deployment has at least one Running pod.",
+      "points": 20,
+      "visual_evidence": "In the Rancher Workloads/Deployments view or terminal output, the 'minio-store' deployment in the 'data-pipeline' namespace shows at least 1 active/Running pod (e.g., 1/1)."
+    },
+    {
+      "id": "elastic_search_running",
+      "description": "Verify the elastic-search deployment has at least one Running pod.",
+      "points": 20,
+      "visual_evidence": "In the Rancher Workloads/Deployments view or terminal output, the 'elastic-search' deployment in the 'data-pipeline' namespace shows at least 1 active/Running pod (e.g., 1/1)."
+    },
+    {
+      "id": "analytics_db_running",
+      "description": "Verify the analytics-db deployment has at least one Running pod.",
+      "points": 20,
+      "visual_evidence": "In the Rancher Workloads/Deployments view or terminal output, the 'analytics-db' deployment in the 'data-pipeline' namespace shows at least 1 active/Running pod (e.g., 1/1)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_interaction",
+      "description": "Ensure the agent actually interacted with the Rancher UI or used kubectl commands to remediate the issues.",
+      "visual_evidence": "Screenshots should show a sequence of navigating the Rancher UI, editing YAMLs, or typing kubectl commands in a terminal, rather than just a final static state appearing out of nowhere."
+    },
+    {
+      "id": "no_workaround_deployments",
+      "description": "Ensure the agent did not bypass the storage requirement by simply removing the volume mounts from the deployments.",
+      "visual_evidence": "The deployments or pods should still show attached volumes/PVCs in the UI or terminal output, confirming the storage misconfigurations were fixed rather than deleted."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Check that the UI or terminal outputs were not spoofed.",
+      "visual_evidence": "Fonts, alignments, and UI elements in Rancher should look consistent. Terminal outputs should match standard kubectl formatting without obvious text manipulation."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace is explicitly 'data-pipeline'. The four target deployments that must be remediated and have at least one Running pod are: 'kafka-broker', 'minio-store', 'elastic-search', and 'analytics-db'."
+}

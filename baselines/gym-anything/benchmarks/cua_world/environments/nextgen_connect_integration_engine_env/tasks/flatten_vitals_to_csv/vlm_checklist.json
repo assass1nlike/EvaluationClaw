@@ -1,0 +1,48 @@
+{
+  "task_id": "flatten_vitals_to_csv@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "A channel named 'Vitals_Flattener' is created in NextGen Connect.",
+      "points": 10,
+      "visual_evidence": "Look for 'Vitals_Flattener' in the Channels list or at the top of the Channel Edit screen in the NextGen Connect Administrator GUI."
+    },
+    {
+      "id": "source_tcp_listener",
+      "description": "The Source connector is configured to listen on TCP port 6661.",
+      "points": 20,
+      "visual_evidence": "In the Source tab of the channel configuration, the Connector Type should be 'TCP Listener' and the Local Port should be set to '6661'."
+    },
+    {
+      "id": "destination_file_writer",
+      "description": "The Destination connector is configured to write to /tmp/research_data/vitals.csv with append and directory creation enabled.",
+      "points": 20,
+      "visual_evidence": "In the Destinations tab, the Connector Type should be 'File Writer'. The Directory/File Name should point to '/tmp/research_data/vitals.csv'. The 'Append to file' option should be set to Yes, and 'Create Directories' should be set to Yes."
+    },
+    {
+      "id": "extraction_logic_configured",
+      "description": "Transformers or scripts are configured to extract PatientID, ObservationTime, and vital signs using specific LOINC codes.",
+      "points": 30,
+      "visual_evidence": "In the Transformers or Scripts section, look for JavaScript code or mapping steps referencing PID.3.1, OBR.7, and the LOINC codes (8867-4, 8480-6, 8462-4, 2708-6) to extract values from OBX segments."
+    },
+    {
+      "id": "csv_output_template",
+      "description": "The Destination template is configured to output the flattened CSV format without headers.",
+      "points": 20,
+      "visual_evidence": "In the Destinations tab, the Template field should contain a comma-separated sequence of variables (e.g., `${patientId},${obsTime},${hr},${sys},${dia},${spo2}`) matching the required column order, with no header row."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the NextGen Connect Administrator GUI to configure the channel.",
+      "visual_evidence": "Screenshots should show the NextGen Connect Administrator Java application interface being interacted with."
+    },
+    {
+      "id": "no_mocked_output",
+      "description": "The agent did not manually create the output CSV file to bypass the channel configuration.",
+      "visual_evidence": "The agent should be configuring the channel in NextGen Connect, not just using terminal commands like 'echo' to write the expected output directly to /tmp/research_data/vitals.csv."
+    }
+  ],
+  "privileged_info_for_vlm": "HL7 v2.5 fields: PatientID is PID.3.1, ObservationTime is OBR.7. LOINC codes for vitals: Heart Rate (8867-4), Systolic BP (8480-6), Diastolic BP (8462-4), Oxygen Saturation (2708-6). The CSV output must be exactly in the order: PatientID,ObservationTime,HeartRate,SystolicBP,DiastolicBP,SpO2 with no headers. Missing vitals should be left empty (e.g., consecutive commas)."
+}

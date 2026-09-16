@@ -1,0 +1,43 @@
+{
+  "id": "galaxy_morphology_separation@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are an astronomer analyzing the interacting galaxy pair M51 (Whirlpool Galaxy) and its companion NGC 5195. Segment the galaxies and separate the companion (NGC 5195) from the main spiral. Measure the Area, Centroid, Mean Gray Value, Integrated Density, and Fit Ellipse for the companion galaxy only. Save the measurements to ~/Fiji_Data/results/galaxy/companion_metrics.csv and save an image showing the segmentation mask or ROI outlines to ~/Fiji_Data/results/galaxy/segmentation_map.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/galaxy_morphology_separation/setup_task.sh",
+    "post_task": "/workspace/tasks/galaxy_morphology_separation/export_result.sh"
+  },
+  "metadata": {
+    "target_object": "NGC 5195 (Companion)",
+    "image_source": "m51.tif (ImageJ sample)",
+    "expected_outputs": [
+      "companion_metrics.csv",
+      "segmentation_map.png"
+    ],
+    "validation_criteria": {
+      "area_min": 1000,
+      "area_max": 8000,
+      "centroid_y_max": 200,
+      "separation_check": "Area must be smaller than combined area (~20000+)"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_galaxy_morphology_separation"
+    }
+  },
+  "tags": [
+    "astronomy",
+    "morphology",
+    "segmentation",
+    "watershed",
+    "measurement"
+  ]
+}

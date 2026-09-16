@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_postgres_init_failure@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_project",
+      "description": "Agent navigates to the project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the current working directory as /home/ga/Documents/docker-projects/inventory or a file explorer open to this path."
+    },
+    {
+      "id": "fix_init_script_mount",
+      "description": "Agent modifies the Docker Compose configuration to correctly mount the initialization script.",
+      "points": 20,
+      "visual_evidence": "A text editor showing docker-compose.yml with a volume mapping added for the database service, mapping init.sql to /docker-entrypoint-initdb.d/ (e.g., ./init.sql:/docker-entrypoint-initdb.d/init.sql)."
+    },
+    {
+      "id": "clear_old_database_volume",
+      "description": "Agent removes the old database volume so the initialization script can run on a fresh database.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like 'docker compose down -v', 'docker volume rm inventory_pgdata', or 'docker system prune -v' being executed."
+    },
+    {
+      "id": "start_services",
+      "description": "Agent starts the Docker Compose services.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'docker compose up' or 'docker compose up -d' and the containers (including inventory_db) starting."
+    },
+    {
+      "id": "verify_table_creation",
+      "description": "Agent verifies that the 'products' table was successfully created in the database.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a psql command executed against the inventory_db container (e.g., docker exec -it inventory_db psql -U postgres) and the output displaying the 'products' table in the relation list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_execution",
+      "description": "Verify that Docker commands were actually executed in the terminal.",
+      "visual_evidence": "Terminal shows standard Docker output logs (e.g., pulling images, creating networks, container logs) rather than just echoed text."
+    },
+    {
+      "id": "genuine_file_edit",
+      "description": "Verify that the configuration file was edited using a real text editor.",
+      "visual_evidence": "Screenshots show a recognized text editor (like nano, vim, or VS Code) being used to modify docker-compose.yml, not just a cat command or echo."
+    },
+    {
+      "id": "genuine_database_verification",
+      "description": "Verify that the database table check is from a real PostgreSQL prompt.",
+      "visual_evidence": "Terminal shows the standard psql prompt (e.g., 'postgres=#') and authentic tabular output for the '\\dt' or 'SELECT' command."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/Documents/docker-projects/inventory. Expected table: 'products'. Volume name: 'inventory_pgdata'. Container name: 'inventory_db'."
+}

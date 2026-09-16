@@ -1,0 +1,59 @@
+{
+  "task_id": "build_construction_bid_estimate@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the correct file in WPS Spreadsheet",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet application is open with 'residential_takeoff.xlsx' visible in the title bar or tab."
+    },
+    {
+      "id": "populate_project_takeoff_details",
+      "description": "Populate Description and CSI_Division columns",
+      "points": 15,
+      "visual_evidence": "On the 'Project_Takeoff' sheet, Column D ('Description') and Column E ('CSI_Division') are filled with text data retrieved from the price book."
+    },
+    {
+      "id": "calculate_project_takeoff_costs",
+      "description": "Calculate adjusted quantities and line item costs",
+      "points": 20,
+      "visual_evidence": "On the 'Project_Takeoff' sheet, Columns F ('Adj_Material_Qty'), G ('Mat_Cost_Total'), H ('Lab_Cost_Total'), and I ('Line_Total') are populated with numerical values."
+    },
+    {
+      "id": "create_bid_summary_sheet",
+      "description": "Create a Bid_Summary sheet summarizing costs by CSI_Division",
+      "points": 20,
+      "visual_evidence": "A sheet tab named 'Bid_Summary' is visible at the bottom. The sheet contains a table listing unique CSI Divisions and their aggregated total costs."
+    },
+    {
+      "id": "calculate_final_bid_totals",
+      "description": "Calculate Subtotal, 15% Markup, and Final Total Bid Price",
+      "points": 20,
+      "visual_evidence": "The 'Bid_Summary' sheet displays a Subtotal (approx $17,854.50), a 15% 'Overhead & Profit' markup, and a Final Total Bid Price of exactly $20,532.68."
+    },
+    {
+      "id": "format_currency",
+      "description": "Format all cost columns as Currency",
+      "points": 15,
+      "visual_evidence": "Cost values in Columns G, H, and I on the 'Project_Takeoff' sheet, as well as the aggregated costs and totals on the 'Bid_Summary' sheet, display the Currency symbol ($)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "The agent interacted with the WPS Spreadsheet GUI rather than using a terminal script to modify the file.",
+      "visual_evidence": "Screenshots show the WPS Spreadsheet application interface being actively used, with menus, ribbons, or cell selections visible."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used spreadsheet formulas rather than hardcoding the final answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar (fx) shows a formula (e.g., VLOOKUP, SUMIF, or arithmetic operations) rather than a raw typed number."
+    },
+    {
+      "id": "genuine_summary_table",
+      "description": "The agent genuinely created the summary table rather than just typing the final expected total.",
+      "visual_evidence": "The 'Bid_Summary' sheet contains a structured table with multiple rows for different CSI Divisions, leading up to the subtotal and final total, rather than just a single cell with the final answer."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct final construction bid estimate total is exactly $20,532.68. This is derived from a subtotal of $17,854.50 and a 15% Overhead & Profit markup. The final spreadsheet must have exactly three tabs: 'Master_Price_Book', 'Project_Takeoff', and 'Bid_Summary'. The agent is expected to use formulas such as VLOOKUP (or INDEX/XLOOKUP) and SUMIF to complete the task."
+}

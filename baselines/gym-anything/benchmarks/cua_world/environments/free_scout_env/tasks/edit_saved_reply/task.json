@@ -1,0 +1,35 @@
+{
+  "id": "edit_saved_reply@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "A saved reply named 'Password Reset Instructions' exists in the 'IT Support' mailbox at http://localhost:8080 (admin@helpdesk.local / Admin123!). This saved reply contains outdated information referencing the old IT portal at legacy.internal.corp/reset. The company has migrated to a new SSO platform. Update the existing 'Password Reset Instructions' saved reply by changing its name to 'SSO Password Reset Guide' and replacing the body with the text provided below. You must edit the existing saved reply rather than creating a new one.\n\nHello,\n\nTo reset your password on our new SSO platform, please follow these steps:\n\n1. Go to https://sso.company.com/reset\n2. Enter your corporate email address\n3. Click \"Send Reset Link\"\n4. Check your inbox for the reset email (check spam/junk if not found within 5 minutes)\n5. Follow the link and create a new password that meets the complexity requirements\n\nYour new password must be at least 12 characters and include uppercase, lowercase, a number, and a special character.\n\nIf you continue to experience issues, please reply to this email and we will assist you further.\n\nBest regards,\nIT Support Team",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/edit_saved_reply/setup_task.sh",
+    "post_task": "/workspace/tasks/edit_saved_reply/export_result.sh"
+  },
+  "metadata": {
+    "target_mailbox": "IT Support",
+    "old_name": "Password Reset Instructions",
+    "new_name": "SSO Password Reset Guide",
+    "required_strings": [
+      "sso.company.com/reset",
+      "at least 12 characters",
+      "IT Support Team"
+    ],
+    "forbidden_strings": [
+      "legacy.internal.corp/reset"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_edit_saved_reply"
+    }
+  }
+}

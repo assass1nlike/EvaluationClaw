@@ -1,0 +1,35 @@
+{
+  "id": "create_metro_map_transit_plan@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a schematic metro map in EdrawMax for a Boston transit expansion proposal showing the intersection of the 'Blue Line' and a new 'Silver Line' extension. The 'Blue Line' (blue) must include Aquarium, Maverick, and Airport Station. The 'Silver Line' (gray/silver) must include Design Center, World Trade Center, Airport Station, and Terminal A, intersecting the Blue Line at Airport Station. Use standard metro station symbols for regular stops and a transfer/interchange symbol for the intersection. Lines should follow 45-degree or 90-degree angles. Include the title 'Airport Transit Expansion Proposal' and a legend. Save the project to /home/ga/Documents/boston_metro_map.eddx and export the map to /home/ga/Documents/boston_metro_map.png. Dismiss any 'Account Login' or 'File Recovery' dialogs on startup.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_metro_map_transit_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_metro_map_transit_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx": "/home/ga/Documents/boston_metro_map.eddx",
+    "expected_png": "/home/ga/Documents/boston_metro_map.png",
+    "required_strings": [
+      "Aquarium",
+      "Maverick",
+      "Design Center",
+      "World Trade Center",
+      "Terminal A",
+      "Airport Station",
+      "Expansion Proposal"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_metro_map"
+    }
+  }
+}

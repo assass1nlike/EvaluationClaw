@@ -1,0 +1,65 @@
+{
+  "task_id": "guitar_fretboard_layout@1",
+  "task_completion": [
+    {
+      "id": "draw_trapezoid_outline",
+      "description": "Draw the symmetric trapezoid outline of the fretboard.",
+      "points": 10,
+      "visual_evidence": "A 4-sided polygon (trapezoid) is visible in the SolveSpace workspace, representing the fretboard outline."
+    },
+    {
+      "id": "constrain_nut",
+      "description": "Constrain the nut (bottom edge) to 43.0 mm and center it at the origin.",
+      "points": 15,
+      "visual_evidence": "A length constraint of '43.0' is visible on the bottom horizontal edge, and it is centered at the origin point (0,0)."
+    },
+    {
+      "id": "constrain_top_edge",
+      "description": "Constrain the top edge to 56.0 mm and position it 480.0 mm from the nut.",
+      "points": 15,
+      "visual_evidence": "A length constraint of '56.0' is visible on the top horizontal edge, and a vertical distance constraint of '480.0' is visible between the top and bottom edges."
+    },
+    {
+      "id": "draw_fret_lines",
+      "description": "Draw three horizontal fret lines terminating exactly on the side edges.",
+      "points": 15,
+      "visual_evidence": "Three horizontal line segments are drawn inside the trapezoid. Their endpoints must touch the angled side edges of the fretboard (indicated by point-on-line constraints)."
+    },
+    {
+      "id": "constrain_fret_distances",
+      "description": "Apply perpendicular distance constraints from the nut to the three frets.",
+      "points": 20,
+      "visual_evidence": "Vertical distance constraints of '36.48', '70.92', and '103.46' are visible between the bottom edge (nut) and the three respective fret lines."
+    },
+    {
+      "id": "fully_constrained_sketch",
+      "description": "Ensure the sketch is fully constrained.",
+      "points": 15,
+      "visual_evidence": "The SolveSpace property browser (usually top-left) displays 'ok, 0 d.o.f.', indicating the sketch has zero degrees of freedom."
+    },
+    {
+      "id": "save_fretboard_file",
+      "description": "Save the sketch to the specified path.",
+      "points": 10,
+      "visual_evidence": "The SolveSpace window title shows 'fretboard.slvs' or a save dialog/terminal confirms the file is saved in '/home/ga/Documents/SolveSpace/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "solvespace_gui_used",
+      "description": "The agent used the SolveSpace graphical user interface to create the model.",
+      "visual_evidence": "Screenshots show the SolveSpace application window with toolbars, property browser, and workspace being actively used, rather than a terminal window writing a script to generate the .slvs file."
+    },
+    {
+      "id": "authentic_constraints",
+      "description": "Dimensions are applied as actual CAD constraints.",
+      "visual_evidence": "The dimensions (43.0, 56.0, 480.0, etc.) appear as native SolveSpace constraint labels (usually purple/pink text with reference lines) rather than text annotations added via an image editor."
+    },
+    {
+      "id": "step_by_step_construction",
+      "description": "The agent constructed the geometry from a blank canvas.",
+      "visual_evidence": "Earlier screenshots show a blank workspace or partial geometry being built up, proving the agent did not just open a pre-existing completed file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output is a SolveSpace file saved at /home/ga/Documents/SolveSpace/fretboard.slvs. The geometry must be a fully constrained symmetric trapezoid with a 43.0 mm base centered at (0,0) and a 56.0 mm top edge at Y=480.0. Three horizontal fret lines must be constrained at Y=36.48, Y=70.92, and Y=103.46. When correctly constrained, the right-side endpoints of the frets will mathematically fall at X=21.994, X=22.46, and X=22.901 respectively. Verify that the SolveSpace UI shows '0 d.o.f.' to confirm it is fully constrained."
+}

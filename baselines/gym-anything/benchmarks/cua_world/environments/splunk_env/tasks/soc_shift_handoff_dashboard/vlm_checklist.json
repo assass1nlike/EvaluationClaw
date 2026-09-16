@@ -1,0 +1,59 @@
+{
+  "task_id": "soc_shift_handoff_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the creation of a dashboard named 'SOC_Shift_Handoff'.",
+      "points": 10,
+      "visual_evidence": "The Splunk web interface showing a dashboard with the title 'SOC_Shift_Handoff'."
+    },
+    {
+      "id": "dropdown_input_added",
+      "description": "Verify the presence of a dropdown input control on the dashboard.",
+      "points": 10,
+      "visual_evidence": "A dropdown menu control visible at the top of the dashboard in either edit or view mode."
+    },
+    {
+      "id": "dropdown_token_configured",
+      "description": "Verify the dropdown input is configured with the token name 'selected_index'.",
+      "points": 15,
+      "visual_evidence": "The input configuration sidebar (usually on the right side in edit mode) showing the 'Token' field set exactly to 'selected_index'."
+    },
+    {
+      "id": "dropdown_choices_configured",
+      "description": "Verify the dropdown input includes choices for 'security_logs', 'web_logs', and 'system_logs'.",
+      "points": 15,
+      "visual_evidence": "The input configuration sidebar showing these three options under 'Static Options', or the dropdown menu itself being clicked and displaying 'security_logs', 'web_logs', and 'system_logs'."
+    },
+    {
+      "id": "three_panels_created",
+      "description": "Verify the dashboard contains at least three distinct visualization panels.",
+      "points": 20,
+      "visual_evidence": "The dashboard layout showing three or more separate panels (e.g., charts, tables, lists) populated with data or search configurations."
+    },
+    {
+      "id": "panels_use_token",
+      "description": "Verify that the panels' search queries incorporate the $selected_index$ token to dynamically update.",
+      "points": 30,
+      "visual_evidence": "The search configuration for the panels (visible in the panel edit sidebar, the search string box, or the Splunk XML source editor view) showing the search string containing the exact token syntax, such as 'index=$selected_index$'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_web_gui",
+      "description": "The agent interacted with the Splunk web interface in a browser to build the dashboard.",
+      "visual_evidence": "Screenshots show the Splunk web UI (http://localhost:8000) in a web browser. The agent should not be exclusively using a terminal or external text editor to modify files directly."
+    },
+    {
+      "id": "genuine_splunk_interaction",
+      "description": "The dashboard and panels are built within the actual Splunk application.",
+      "visual_evidence": "Standard Splunk UI elements (menus, edit buttons, 'Save' buttons, Splunk logo) are visible, and the panels render actual Splunk visualizations or search results rather than mocked-up HTML."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not bypass the browser by using terminal commands (like curl) to directly inject the dashboard configuration.",
+      "visual_evidence": "The presence of browser windows showing the step-by-step creation of the dashboard, inputs, and panels, rather than just terminal windows executing scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'SOC_Shift_Handoff'. The dropdown input must use the token name 'selected_index'. The dropdown must contain exactly these three choices: 'security_logs', 'web_logs', and 'system_logs'. The dashboard must contain a minimum of 3 distinct panels. The panels' search queries must include the token '$selected_index$' to dynamically filter data."
+}

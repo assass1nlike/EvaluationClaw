@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_fraud_detection_forensics@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the sakila database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., MySQL Workbench, DBeaver, or terminal) is open, showing a connection to the 'sakila' database."
+    },
+    {
+      "id": "sql_query_construction",
+      "description": "Construct the SQL query for the fraud report view",
+      "points": 30,
+      "visual_evidence": "An SQL editor showing a `CREATE VIEW v_fraud_report AS` statement that includes `UNION ALL` and logic for the three anomalies: 'Time Travel' (comparing return and rental dates), 'Nepotism' (matching staff and customer last names with 0.00 payment), and 'Hoarding' (counting overdue rentals older than 30 days)."
+    },
+    {
+      "id": "view_creation_success",
+      "description": "Successfully create the v_fraud_report view",
+      "points": 20,
+      "visual_evidence": "An execution log showing a success message for the view creation, or the schema tree updated to display 'v_fraud_report' under the views section."
+    },
+    {
+      "id": "view_queried_for_export",
+      "description": "Query the newly created view to retrieve results",
+      "points": 20,
+      "visual_evidence": "A `SELECT * FROM v_fraud_report` query is executed, with the results visible in a data grid showing columns `fraud_type`, `incident_id`, and `details`, OR an `INTO OUTFILE` statement is visible."
+    },
+    {
+      "id": "csv_export_completed",
+      "description": "Export the results to the specified CSV file path",
+      "points": 20,
+      "visual_evidence": "An export wizard/dialog saving the file to `/home/ga/Documents/exports/fraud_report.csv`, or a file manager/terminal showing the file successfully created at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacted with a genuine database client",
+      "visual_evidence": "The screenshots show a real database client (GUI or CLI) being used to execute queries, rather than a text editor mocking the process."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent used actual SQL logic instead of hardcoding answers",
+      "visual_evidence": "The SQL query contains genuine conditional logic (e.g., comparing dates, checking last names, counting rentals) rather than hardcoded incident IDs or mock data."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Agent used database export functionality",
+      "visual_evidence": "The CSV file was generated via the database client's built-in export feature or an SQL `INTO OUTFILE` command, not manually typed out in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database: sakila. Expected view name: v_fraud_report. Expected export path: /home/ga/Documents/exports/fraud_report.csv. The injected anomaly IDs (time_travel_rental_id, nepotism_rental_id, hoarding_customer_id) are dynamically generated during setup, so the agent must use correct SQL logic to find them rather than relying on hardcoded IDs."
+}

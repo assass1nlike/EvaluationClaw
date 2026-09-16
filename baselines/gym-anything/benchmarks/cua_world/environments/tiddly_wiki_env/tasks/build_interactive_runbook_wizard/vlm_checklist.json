@@ -1,0 +1,53 @@
+{
+  "task_id": "build_interactive_runbook_wizard@1",
+  "task_completion": [
+    {
+      "id": "tiddler_created",
+      "description": "Create a new tiddler with the correct title.",
+      "points": 10,
+      "visual_evidence": "A new tiddler is created with the title input field containing exactly 'Production Database Upgrade Wizard'."
+    },
+    {
+      "id": "state_and_transclusion_logic",
+      "description": "Implement state management and transclude the four runbook tiddlers.",
+      "points": 30,
+      "visual_evidence": "In the tiddler edit mode, the text area contains TiddlyWiki code (e.g., `<$reveal>` widgets) referencing the state tiddler '$:/state/upgrade-wizard'. It must also contain transclusions for the four runbook tiddlers, typically formatted as `{{Runbook: 1. Pre-Upgrade Checks}}`, `{{Runbook: 2. Stop Application Services}}`, `{{Runbook: 3. Run pg_upgrade}}`, and `{{Runbook: 4. Verification and Restart}}`."
+    },
+    {
+      "id": "navigation_buttons_logic",
+      "description": "Implement 'Next', 'Previous', and 'Finish' navigation buttons.",
+      "points": 30,
+      "visual_evidence": "In the tiddler edit mode, the text area contains TiddlyWiki button widgets (`<$button>`) labeled 'Next', 'Previous', and 'Finish'. The logic for the 'Finish' button should show it resetting the state to the first step."
+    },
+    {
+      "id": "wizard_rendered",
+      "description": "The wizard correctly renders a step with its corresponding buttons.",
+      "points": 20,
+      "visual_evidence": "In the preview pane or the saved tiddler view, only one step's content is visible at a time. The visible step must show the correct buttons (e.g., Step 1 shows only a 'Next' button; Step 2 shows 'Previous' and 'Next'; Step 4 shows 'Previous' and 'Finish')."
+    },
+    {
+      "id": "tiddler_saved",
+      "description": "Save the completed wizard tiddler.",
+      "points": 10,
+      "visual_evidence": "In the final screenshots, the 'Production Database Upgrade Wizard' tiddler is saved and displayed in view mode (the title input box and text editor are no longer visible)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the TiddlyWiki web interface to create and edit the tiddler.",
+      "visual_evidence": "Screenshots show the agent clicking the 'New Tiddler' button and typing in the browser's text editor, rather than using terminal commands to create files."
+    },
+    {
+      "id": "genuine_tiddlywiki_code",
+      "description": "The agent wrote functional TiddlyWiki markup rather than faking the output.",
+      "visual_evidence": "The editor shows actual TiddlyWiki widgets (`<$reveal>`, `<$button>`, transclusions) rather than hardcoded HTML or plain text mimicking the final look."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not bypass the UI by directly modifying backend files.",
+      "visual_evidence": "The terminal is not used to run scripts or commands that directly inject the tiddler into the TiddlyWiki node.js directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected title of the tiddler is 'Production Database Upgrade Wizard'. The four runbook tiddlers that must be transcluded are exactly: 'Runbook: 1. Pre-Upgrade Checks', 'Runbook: 2. Stop Application Services', 'Runbook: 3. Run pg_upgrade', and 'Runbook: 4. Verification and Restart'."
+}

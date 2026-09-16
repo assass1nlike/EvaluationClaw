@@ -1,0 +1,30 @@
+{
+  "id": "debug_broken_pipelines@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Three pipeline jobs in Jenkins are currently failing and blocking the development team: payment-service-ci, user-auth-service, and inventory-api-build. Fix the configuration or scripting errors in each pipeline so that all three achieve a successful build status. Jenkins URL: http://localhost:8080 — Login: admin / Admin123!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/debug_broken_pipelines/setup_task.sh",
+    "post_task": "/workspace/tasks/debug_broken_pipelines/export_result.sh"
+  },
+  "metadata": {
+    "job_names": [
+      "payment-service-ci",
+      "user-auth-service",
+      "inventory-api-build"
+    ],
+    "correct_credential_id": "github-access-token",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_debug_broken_pipelines"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "restore_default_display_state@1",
+  "task_completion": [
+    {
+      "id": "initial_dicom_viewed",
+      "description": "The initial baseline view of the DICOM file is displayed in a viewer.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application is open, displaying an X-Ray Angiography image in its default, unmodified state."
+    },
+    {
+      "id": "export_state_1",
+      "description": "The initial baseline view is exported to state_1_initial.jpg.",
+      "points": 15,
+      "visual_evidence": "A save/export dialog or file manager shows the creation of 'state_1_initial.jpg' in the '~/DICOM/exports' directory."
+    },
+    {
+      "id": "apply_transformations",
+      "description": "The image is modified with a 90-degree rotation, inverted grayscale mapping, and >300% zoom.",
+      "points": 20,
+      "visual_evidence": "The DICOM viewer shows the image rotated by 90 degrees, the colors inverted (e.g., darks become light and vice versa), and heavily zoomed in so only a small portion of the image is visible."
+    },
+    {
+      "id": "export_state_2",
+      "description": "The modified view is exported to state_2_altered.jpg.",
+      "points": 20,
+      "visual_evidence": "A save/export dialog or file manager shows the creation of 'state_2_altered.jpg' in the '~/DICOM/exports' directory."
+    },
+    {
+      "id": "restore_baseline",
+      "description": "The baseline view is restored by resetting all transformations.",
+      "points": 15,
+      "visual_evidence": "The DICOM viewer shows the image returned to its original state: unrotated, original grayscale mapping, and zoomed out to fit the screen."
+    },
+    {
+      "id": "export_state_3",
+      "description": "The restored baseline view is exported to state_3_restored.jpg.",
+      "points": 20,
+      "visual_evidence": "A save/export dialog or file manager shows the creation of 'state_3_restored.jpg' in the '~/DICOM/exports' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the DICOM viewer GUI to apply transformations and export images.",
+      "visual_evidence": "Screenshots show interaction with the DICOM viewer's menus, buttons, or tools for rotating, inverting, zooming, and exporting, rather than terminal commands (like ImageMagick) doing the work."
+    },
+    {
+      "id": "genuine_transformations",
+      "description": "Transformations were applied within the DICOM viewer, not an external image editor.",
+      "visual_evidence": "The rotated, inverted, and zoomed image is visible inside the main canvas of the DICOM viewer application itself."
+    },
+    {
+      "id": "authentic_exports",
+      "description": "The exported files were generated from the application, not spoofed or downloaded.",
+      "visual_evidence": "The file creation process aligns with the export actions in the GUI, without evidence of downloading pre-made images from the web or copying them from hidden directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The target export directory is /home/ga/DICOM/exports. The expected files are state_1_initial.jpg, state_2_altered.jpg, and state_3_restored.jpg. The loaded DICOM file is an X-Ray Angiography sample (0002.DCM)."
+}

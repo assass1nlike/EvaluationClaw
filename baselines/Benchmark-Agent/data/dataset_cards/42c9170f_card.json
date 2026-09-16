@@ -1,0 +1,80 @@
+{
+  "dataset_id": "42c9170f",
+  "name": "Multi-Page Manual Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 247,
+  "description": "This dataset evaluates multi-page document visual question answering on scanned manual pages. Given a natural language question and a set of page images from a manual, the model must extract the correct answer from the visual and textual content.",
+  "card_text": "The dataset contains 247 examples of document visual question answering. Each example includes a natural language question (e.g., 'what is the meeting date in this document?') and a sequence of scanned page images from a multi-page manual or document. The model must read the pages, which may contain text, diagrams, tables, and layout elements, to produce a short or medium-length answer in text. Answers are typically extracted directly from the manual, such as a date, a phrase, or a sentence. Some answers include a parenthetical note indicating a green bounding box that marks the answer location on the page. The dataset tests visual document understanding and information extraction across multiple pages, with no explicit OCR text provided.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "technical manuals",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "A sequence of scanned page images from a multi-page manual or document, serving as the visual context. The pages contain a mixture of text, diagrams, tables, and layout elements that must be read to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question or instruction asking for specific information contained in the provided manual pages, such as a date, definition, or procedure.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "The expected answer text, typically a short phrase, date, or extracted sentence from the manual. Some answers include a parenthetical note about a green bounding box indicating the answer location on the page.",
+        "path_types": [
+          "list"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a question prompt and a list of manual page images in the input, and a list of answer strings in the output. The image list forms the multi-page visual context, the prompt is the natural language question, and the output text is the answer. No separate OCR text, bounding box coordinates, or options are provided; answers are free-form text extracted from the visual document."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageManualDocumentVisualQuestionAnswering/multi-page_manual_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Manual Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

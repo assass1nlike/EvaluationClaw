@@ -1,0 +1,38 @@
+{
+  "id": "split_multi_issue_complaint@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Refactor the multi-issue complaint titled 'Neighbor Nuisance Report - [Date]' into two separate cases. Update the original case by changing the title to 'Noise Violation - 42 Oak St' and modifying the description to include only the noise and drum allegations. Create a new complaint case titled 'Sanitation Hazard - 42 Oak St' with the description 'Large pile of rotting trash in driveway attracting rats.' Link these two cases using the 'Related' relationship type and add a note to the original noise case stating: 'Sanitation issue split to new case [New Case Number]'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/split_multi_issue_complaint/setup_task.sh",
+    "post_task": "/workspace/tasks/split_multi_issue_complaint/export_result.sh"
+  },
+  "metadata": {
+    "original_title_keyword": "Noise Violation",
+    "new_title_keyword": "Sanitation Hazard",
+    "noise_keywords": [
+      "drum",
+      "loud",
+      "music"
+    ],
+    "sanitation_keywords": [
+      "trash",
+      "rat",
+      "garbage",
+      "rubbish"
+    ],
+    "address": "42 Oak St"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_split_complaint"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_track_segment_by_point_range@1",
+  "task_completion": [
+    {
+      "id": "open_source_file",
+      "description": "Open the source GPX file containing the 'fells_loop' track.",
+      "points": 10,
+      "visual_evidence": "The GIS application (e.g., ExpertGPS) is open with 'fells_loop.gpx' loaded, visible in the file title, track list, or map view."
+    },
+    {
+      "id": "select_point_range",
+      "description": "Attempt to select points from index 250 to 350 of the 'fells_loop' track.",
+      "points": 20,
+      "visual_evidence": "The agent is viewing the point list or track properties and attempting to highlight/select a range of points (Note: the file may not actually contain points up to 350, so look for the attempt to select a large range of available points)."
+    },
+    {
+      "id": "create_new_track",
+      "description": "Create a new track using the selected points.",
+      "points": 20,
+      "visual_evidence": "A new track appears in the track list, or a 'New Track' / 'Duplicate' action is performed containing the selected points."
+    },
+    {
+      "id": "rename_track",
+      "description": "Rename the new track to 'Transect_Soil_Samples'.",
+      "points": 20,
+      "visual_evidence": "The track list or track properties dialog shows a track explicitly named 'Transect_Soil_Samples'."
+    },
+    {
+      "id": "export_track_only",
+      "description": "Initiate the export process for ONLY the 'Transect_Soil_Samples' track.",
+      "points": 10,
+      "visual_evidence": "The agent selects 'Export Selected', 'Save Selected', or deletes/hides all other tracks before initiating the save process to ensure only the new track is exported."
+    },
+    {
+      "id": "save_exported_file",
+      "description": "Save the exported GPX file to the correct output path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'Export' dialog box showing the file name 'transect_extracted.gpx' and the directory path 'C:\\workspace\\output\\'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GIS application's graphical user interface to manipulate the GPS data.",
+      "visual_evidence": "Screenshots show interaction with the GIS software's menus, track lists, and dialogs, rather than a text editor modifying XML/GPX code directly."
+    },
+    {
+      "id": "no_terminal_file_creation",
+      "description": "The agent did not use terminal commands to bypass the application and create a dummy file.",
+      "visual_evidence": "The terminal is not used to run commands like 'touch C:\\workspace\\output\\transect_extracted.gpx' or 'echo > ...'."
+    },
+    {
+      "id": "genuine_export_action",
+      "description": "The file was saved using the application's genuine export/save functionality.",
+      "visual_evidence": "The save action is clearly executed through the application's native 'File -> Save' or 'File -> Export' dialog windows."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is C:\\workspace\\output\\transect_extracted.gpx. The expected track name is 'Transect_Soil_Samples'. The task asks for exactly 101 points (index 250 to 350 inclusive). Note: The source file (C:\\workspace\\data\\fells_loop.gpx) actually contains a maximum of 132 data points and no track points, making the exact point selection physically impossible. Score the agent based on its genuine attempt to select points, create/rename the track, and export to the correct path using the GUI, even if the exact point indices cannot be found."
+}

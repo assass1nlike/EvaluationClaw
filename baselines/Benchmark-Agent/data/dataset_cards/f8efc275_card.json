@@ -1,0 +1,74 @@
+{
+  "dataset_id": "f8efc275",
+  "name": "Legal-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Legal-Ner is a dataset for legal named entity recognition. Given a legal text passage, the model must extract all legal entities and their types from a predefined set (e.g., COURT, ORG, DATE, JUDGE). Outputs are formatted as 'entity => type' pairs separated by commas.",
+  "card_text": "The dataset consists of 200 text samples from legal documents, such as court proceedings, statutes, and official communications. Each sample contains a raw legal text (context), an instruction prompt (question) asking for extraction of legal entities with specified types, and an output string (answer) listing the entities and their types in the format 'entity => type'. Entity types include CASE_NUMBER, COURT, DATE, GPE, JUDGE, ORG, OTHER_PERSON, PETITIONER, PRECEDENT, PROVISION, RESPONDENT, STATUTE, WITNESS. The task evaluates a model's ability to locate and classify named entities in legal domain text. The data is English and requires understanding of legal terminology and roles.",
+  "tasks": [
+    "entity_recognition"
+  ],
+  "domain": "legal",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "The raw legal text passage from which entities must be extracted. It serves as the main context and may include court case descriptions, legal directives, or references to legal roles and organizations.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A task instruction that embeds the raw text via a placeholder and specifies the entity types to extract, along with the required output format ('entity => type', comma-separated). It directs the model to perform legal named entity recognition.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output containing extracted legal entities and their types, serialized as 'entity => type' pairs separated by commas. It represents the expected answer for the entity recognition task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three components: a context field with a raw legal text passage, a question field containing an instruction prompt that includes the raw text and specifies the entity types and output format, and an answer field with the extracted entities and their types formatted as 'entity => type' pairs. The prompt references the raw text and asks for entity extraction; the answer is the resulting entity list."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Legal-NER/annotation.json",
+    "existing_tags": {
+      "task": "legal_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

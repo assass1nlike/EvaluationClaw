@@ -1,0 +1,53 @@
+{
+  "task_id": "dynamic_threat_intel_pipeline@1",
+  "task_completion": [
+    {
+      "id": "stage1_search_query",
+      "description": "Create a search query that identifies failed SSH events in 'security_logs' and exports to 'local_threat_intel.csv'",
+      "points": 20,
+      "visual_evidence": "Splunk search bar or API request showing a query containing 'index=security_logs' (or similar SSH failure logic) and the command '| outputlookup local_threat_intel.csv'."
+    },
+    {
+      "id": "stage1_report_saved",
+      "description": "Save the first stage as a report named 'Generate_Threat_Intel'",
+      "points": 15,
+      "visual_evidence": "Splunk 'Save As Report' dialog, Reports list, or API payload confirming a report has been created with the exact name 'Generate_Threat_Intel'."
+    },
+    {
+      "id": "stage1_schedule_configured",
+      "description": "Schedule the 'Generate_Threat_Intel' report to run hourly",
+      "points": 15,
+      "visual_evidence": "Splunk Edit Schedule dialog or API payload showing the report is scheduled to run with the cron expression '0 * * * *' or the UI equivalent 'Run every hour'."
+    },
+    {
+      "id": "stage2_search_query",
+      "description": "Create a search query that correlates 'web_logs' with the generated lookup file",
+      "points": 30,
+      "visual_evidence": "Splunk search bar or API request showing a query containing 'index=web_logs' and a lookup command referencing the threat intel file (e.g., '| lookup local_threat_intel.csv' or '[| inputlookup local_threat_intel.csv]')."
+    },
+    {
+      "id": "stage2_report_saved",
+      "description": "Save the second stage as a report named 'Web_Threat_Correlation'",
+      "points": 20,
+      "visual_evidence": "Splunk 'Save As Report' dialog, Reports list, or API payload confirming a report has been created with the exact name 'Web_Threat_Correlation'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_splunk_interaction",
+      "description": "Agent interacted with the actual Splunk application (UI or REST API)",
+      "visual_evidence": "Screenshots show the Splunk Web interface (http://localhost:8000) or a terminal executing curl/API commands to the Splunk endpoint, rather than just typing queries into a text editor."
+    },
+    {
+      "id": "no_manual_lookup_bypass",
+      "description": "Agent did not manually create the lookup file to bypass the first stage",
+      "visual_evidence": "The lookup file 'local_threat_intel.csv' should be generated via the Splunk 'outputlookup' command in the report, not manually created using terminal commands like 'echo' or 'touch' in the Splunk backend directories."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "Results and reports appear to be genuinely saved in Splunk",
+      "visual_evidence": "The Splunk UI shows standard loading indicators, success messages, or the reports appear in the official 'Reports' tab, rather than looking like edited HTML via browser developer tools."
+    }
+  ],
+  "privileged_info_for_vlm": "The Splunk instance is accessible at http://localhost:8000 with credentials 'admin' / 'SplunkAdmin1!'. The task requires exactly two reports to be created: 'Generate_Threat_Intel' (which must be scheduled hourly) and 'Web_Threat_Correlation'. The lookup file bridging the two stages must be named exactly 'local_threat_intel.csv'."
+}

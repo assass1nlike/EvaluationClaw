@@ -1,0 +1,27 @@
+{
+  "id": "assign_technician@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Assign the service request 'VPN connection dropping every 30 minutes' to technician 'administrator' and update its status to 'In Progress' in ManageEngine ServiceDesk Plus. Credentials: administrator / administrator.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assign_technician/setup_task.sh",
+    "pre_task_timeout": 3600
+  },
+  "metadata": {
+    "request_subject": "VPN connection dropping every 30 minutes",
+    "technician": "administrator",
+    "new_status": "In Progress"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assign_technician"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "theatrical_live_score_prep@1",
+  "task_completion": [
+    {
+      "id": "import_source_video",
+      "description": "Import the master video file into a video editor",
+      "points": 10,
+      "visual_evidence": "Look for a graphical video editing application (e.g., Kdenlive, Pitivi, DaVinci Resolve) with 'metropolis_master_24fps.mp4' visible in the project bin or timeline."
+    },
+    {
+      "id": "import_conductor_audio",
+      "description": "Import the audio metronome track into the video editor",
+      "points": 10,
+      "visual_evidence": "Look for 'conductor_clicks.wav' visible in the project bin or timeline of the video editor."
+    },
+    {
+      "id": "retime_video_clip",
+      "description": "Retime the video to 18 fps or 80.0 seconds",
+      "points": 25,
+      "visual_evidence": "Look for clip properties, speed, or duration settings showing the video retimed. Evidence includes speed set to 75%, duration changed to 00:01:20:00 (80 seconds), or project framerate set to 18 fps."
+    },
+    {
+      "id": "export_projection_master",
+      "description": "Export the projection master video without audio",
+      "points": 25,
+      "visual_evidence": "Look for an export/render dialog saving 'projection_master.mp4' to the 'live_score_deliverables' folder. There should be evidence that audio is excluded (e.g., 'Export Audio' unchecked, or the audio track is muted/deleted on the timeline)."
+    },
+    {
+      "id": "configure_conductor_timeline",
+      "description": "Align the retimed video with the conductor audio track",
+      "points": 15,
+      "visual_evidence": "Look for the timeline showing both the retimed video track and the 'conductor_clicks.wav' audio track active and aligned together."
+    },
+    {
+      "id": "export_conductor_file",
+      "description": "Export the conductor reference file",
+      "points": 15,
+      "visual_evidence": "Look for an export/render dialog saving a file starting with 'conductor_' (e.g., 'conductor_reference.mp4') to the 'live_score_deliverables' folder, with audio enabled."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used a graphical video editor instead of terminal commands",
+      "visual_evidence": "Verify the agent used a GUI video editor (like Kdenlive, Pitivi, or Premiere) to process the files, rather than typing `ffmpeg` commands in a terminal."
+    },
+    {
+      "id": "genuine_retiming",
+      "description": "Agent genuinely altered the clip speed or framerate",
+      "visual_evidence": "Verify the agent interacted with speed/duration/framerate settings in the UI, rather than just exporting the original file without modifications."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Agent saved files to the correct deliverables directory",
+      "visual_evidence": "Verify that the export paths explicitly point to '/home/ga/Videos/live_score_deliverables/' in the render dialogs, rather than saving to a default or temporary folder."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output duration is exactly 80.0 seconds (derived mathematically from the 60s, 24fps source retimed to 18fps), with a tolerance of 1.5s. The target framerate is 18 fps. The source directory is /home/ga/Videos/live_score_project and the output directory is /home/ga/Videos/live_score_deliverables."
+}

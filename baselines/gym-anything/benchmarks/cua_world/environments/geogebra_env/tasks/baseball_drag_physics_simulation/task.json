@@ -1,0 +1,30 @@
+{
+  "id": "baseball_drag_physics_simulation@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a physics simulation in GeoGebra comparing the trajectory of a baseball in a vacuum versus in air with drag (Fd = 0.5 * ρ * Cd * A * v²). Use the following parameters: Mass m = 0.145 kg, Drag Coefficient Cd = 0.30, Cross-sectional Area A = 0.0043 m², Air Density ρ = 1.225 kg/m², Initial Velocity v0 = 44.7 m/s, Launch Angle θ = 30°, and Gravity g = 9.8 m/s². The simulation must model both trajectories and identify the landing points (y=0) for each. Save the file as baseball_physics.ggb in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/baseball_drag_physics_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/baseball_drag_physics_simulation/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "baseball_physics.ggb",
+    "vacuum_range_expected": 176.6,
+    "drag_range_min": 115.0,
+    "drag_range_max": 135.0,
+    "drag_const_k": 0.00545,
+    "tolerance": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_baseball_physics"
+    }
+  }
+}

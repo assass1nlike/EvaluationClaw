@@ -1,0 +1,33 @@
+{
+  "id": "compliance_metadata_remediation@1",
+  "version": "1.0",
+  "env_id": "nuxeo_platform_env@0.1",
+  "description": "You are a regulatory compliance analyst at a financial services firm performing an internal audit of the Nuxeo document management system. Audit all documents in the Projects and Templates workspaces against the 'Document Metadata Compliance Standards' reference document located in the Projects workspace. Remediate any non-compliant documents by updating their metadata to meet the stated requirements, tagging each with 'compliance-reviewed', and adding a compliance review comment describing the corrections. Ensure documents with expired dates have their lifecycle state updated appropriately. Add all remediated documents to a new collection named 'Q4 2025 Compliance Audit'. Login credentials: Administrator / Administrator.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compliance_metadata_remediation/setup_task.sh"
+  },
+  "metadata": {
+    "occupation": "Compliance Analyst",
+    "industry": "Financial Services",
+    "features_tested": [
+      "metadata_editing",
+      "tags",
+      "comments",
+      "collections",
+      "lifecycle_transitions"
+    ],
+    "companion_ref_doc": "Document Metadata Compliance Standards"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compliance_metadata_remediation"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "dataset_id": "6cea622d",
+  "name": "Timeseries",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 204,
+  "description": "A time-series forecasting dataset in which each sample provides a sequence of numeric observations and asks the model to predict the next value in the series. It is a small (204-sample) regression-style benchmark over univariate numeric sequences.",
+  "card_text": "This dataset consists of short-to-medium univariate time series. Each sample stores a list of floating-point observations under input.data and a single scalar continuation under output.target, which represents the next value after the observed history. The sequences are numeric and presented in a serialized, text-like structure (no headers, timestamps, or metadata), so the modelling challenge is purely to extrapolate the continuation of the numeric pattern. Values appear to come from synthetic or generated signals, sometimes containing sharp regime changes or spikes (e.g. a sudden drop from positive to strongly negative values). No natural-language context, question, or explanation is provided: the input is the raw series and the only supervision is the next-value target, making this a point-forecasting task over numerical sequences.",
+  "tasks": [],
+  "domain": "time series forecasting (numeric/synthetic signals)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.data"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "structured",
+        "semantics": "An ordered list of floating-point numbers forming the observed history of a univariate time series. It is the sole input the model conditions on, and its length varies across samples (roughly 10 to 30+ points).",
+        "path_types": [
+          "list<float>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.target"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single scalar float that is the ground-truth continuation (next value) of the series given in input.data. It is the only supervision signal and directly depends on the preceding numeric sequence.",
+        "path_types": [
+          "float"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains exactly two semantic components: a context consisting of an ordered array of numeric values in input.data (the observed time series history), and an answer consisting of a single scalar float in output.target (the next value to be predicted). The context is the entire input signal and the answer is its continuation; there is no natural-language question, options, dialog, or auxiliary annotation, so the relation is simply 'numeric history -> next numeric value'."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/TimeSeries/annotation.json",
+    "existing_tags": {
+      "task": "Time Series Forecasting",
+      "type": "Time Series",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

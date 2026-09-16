@@ -1,0 +1,44 @@
+{
+  "id": "merge_duplicate_cases@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Your Juris-M library contains 13 items, but 3 Supreme Court cases ('Brown v. Board of Education', 'Miranda v. Arizona', and 'Gideon v. Wainwright') have duplicate entries with incomplete metadata from conflicting sources. Clean up the library by merging these duplicates, ensuring the version with the most complete information (full abstract and court name) is preserved as the master. The final library should contain exactly 10 unique items.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_duplicate_cases/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_duplicate_cases/export_result.sh"
+  },
+  "metadata": {
+    "expected_active_count": 10,
+    "target_cases": [
+      "Brown v. Board of Education",
+      "Miranda v. Arizona",
+      "Gideon v. Wainwright"
+    ],
+    "check_metadata": {
+      "Brown v. Board of Education": {
+        "field": "abstractNote",
+        "contains": "overturning Plessy"
+      },
+      "Miranda v. Arizona": {
+        "field": "abstractNote",
+        "contains": "police custody"
+      },
+      "Gideon v. Wainwright": {
+        "field": "court",
+        "contains": "Supreme Court"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_duplicate_cases"
+    }
+  }
+}

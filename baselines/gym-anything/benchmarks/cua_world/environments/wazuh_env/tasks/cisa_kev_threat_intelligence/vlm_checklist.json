@@ -1,0 +1,53 @@
+{
+  "task_id": "cisa_kev_threat_intelligence@1",
+  "task_completion": [
+    {
+      "id": "cdb_list_created",
+      "description": "Verify that a new CDB lookup list file is created in the Wazuh lists directory.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands (e.g., ls, touch, nano, vim) or a file manager showing a new file created in /var/ossec/etc/lists/."
+    },
+    {
+      "id": "cdb_list_content",
+      "description": "Verify that the CDB list contains at least 10 CVE IDs extracted from the CISA KEV catalog.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of the newly created CDB list file (via cat, less, or a text editor) showing multiple lines starting with 'CVE-YYYY-NNNN'."
+    },
+    {
+      "id": "custom_detection_rule",
+      "description": "Verify that a custom Wazuh detection rule is created that references the new CDB list.",
+      "points": 25,
+      "visual_evidence": "Look for an XML file being edited (typically in /var/ossec/etc/rules/) containing a <rule> block with a <list> tag that explicitly references the filename of the newly created CDB list."
+    },
+    {
+      "id": "ossec_conf_vulnerability_module",
+      "description": "Verify that the Wazuh vulnerability detection module (syscollector/wodle) is configured in ossec.conf.",
+      "points": 25,
+      "visual_evidence": "Look for /var/ossec/etc/ossec.conf open in a text editor or being modified via terminal, specifically showing the <vulnerability-detector> or <syscollector> blocks being enabled or configured."
+    },
+    {
+      "id": "integration_report_created",
+      "description": "Verify that a threat intelligence integration report of sufficient length is created on the Desktop.",
+      "points": 15,
+      "visual_evidence": "Look for a file named kev_integration_report.txt on the Desktop (/home/ga/Desktop/) open in a text editor or displayed in the terminal, containing a substantial paragraph of text (at least ~60 words / 600 characters)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_cve_source",
+      "description": "Verify that the agent actually extracted data from the provided CISA KEV JSON file rather than hallucinating CVEs.",
+      "visual_evidence": "Look for commands like jq, grep, cat, or a script reading /tmp/cisa_kev.json to extract the CVE IDs."
+    },
+    {
+      "id": "authentic_report_content",
+      "description": "Verify that the integration report contains actual threat intelligence context and is not just a copy-paste of the task description.",
+      "visual_evidence": "Read the visible text of kev_integration_report.txt to ensure it reads like a genuine summary or report rather than a repetition of the prompt instructions."
+    },
+    {
+      "id": "correct_system_paths",
+      "description": "Verify that Wazuh configuration files were edited in their actual system paths and not mocked in a local user directory.",
+      "visual_evidence": "Check the file paths in text editor title bars or terminal prompts to ensure edits are happening in /var/ossec/etc/ and not /home/ga/ or /tmp/."
+    }
+  ],
+  "privileged_info_for_vlm": "The CDB list must be created in /var/ossec/etc/lists/ and contain at least 10 CVE IDs. The source data for these CVEs is located at /tmp/cisa_kev.json. The integration report must be saved exactly to /home/ga/Desktop/kev_integration_report.txt and contain at least 600 characters (approximately 60 words)."
+}

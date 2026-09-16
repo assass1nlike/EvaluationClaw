@@ -1,0 +1,53 @@
+{
+  "task_id": "sensor_despiking_anomaly_isolation@1",
+  "task_completion": [
+    {
+      "id": "dashboard_title",
+      "description": "Verify the dashboard is named 'Sensor Quality Analysis'.",
+      "points": 10,
+      "visual_evidence": "The text 'Sensor Quality Analysis' is visible as the dashboard title at the top of the Graphite web interface."
+    },
+    {
+      "id": "graph_raw_vs_median",
+      "description": "Verify the presence of the 'Raw vs Median Filter' graph.",
+      "points": 20,
+      "visual_evidence": "A graph panel titled 'Raw vs Median Filter' is visible. If the query editor is visible, it should show the metric 'servers.web_traffic.speed_sensor_1' and a 'movingMedian' function."
+    },
+    {
+      "id": "graph_absolute_anomaly_score",
+      "description": "Verify the presence of the 'Absolute Anomaly Score' graph.",
+      "points": 20,
+      "visual_evidence": "A graph panel titled 'Absolute Anomaly Score' is visible. If the query editor is visible, it should show a 'diffSeries' or absolute difference function applied to the metric."
+    },
+    {
+      "id": "graph_severe_anomalies",
+      "description": "Verify the presence of the 'Severe Anomalies Only' graph.",
+      "points": 20,
+      "visual_evidence": "A graph panel titled 'Severe Anomalies Only' is visible. If the query editor is visible, it should show a 'removeBelowValue' function with a threshold of 5."
+    },
+    {
+      "id": "dashboard_saved_with_all_graphs",
+      "description": "Verify the dashboard is saved and contains all three required graphs.",
+      "points": 30,
+      "visual_evidence": "All three graphs ('Raw vs Median Filter', 'Absolute Anomaly Score', 'Severe Anomalies Only') are visible together in the dashboard view. There should be evidence that the dashboard is saved, such as a save confirmation message, the dashboard name appearing in the URL, or the absence of an 'unsaved changes' indicator."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_web_ui",
+      "description": "Verify the agent used the Graphite web interface in a browser.",
+      "visual_evidence": "The screenshots should show a web browser navigating the Graphite UI, not a text editor modifying JSON files."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "Verify the agent did not use terminal scripts to bypass the UI.",
+      "visual_evidence": "The terminal should not show commands that directly write the dashboard configuration to Graphite's storage or API."
+    },
+    {
+      "id": "data_rendered_in_graphs",
+      "description": "Verify the graphs actually display rendered data.",
+      "visual_evidence": "The graph panels should show actual plotted lines representing the metric data, indicating genuine interaction with the Graphite backend, rather than empty or broken image panels."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Sensor Quality Analysis'. The three required graph titles are exactly 'Raw vs Median Filter', 'Absolute Anomaly Score', and 'Severe Anomalies Only'. The target metric is 'servers.web_traffic.speed_sensor_1'."
+}

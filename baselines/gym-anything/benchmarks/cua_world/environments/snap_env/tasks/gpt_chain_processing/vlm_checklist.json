@@ -1,0 +1,59 @@
+{
+  "task_id": "gpt_chain_processing@1",
+  "task_completion": [
+    {
+      "id": "xml_file_created",
+      "description": "The agent creates an XML file for the SNAP GPT graph in the required directory.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the creation or existence of an .xml file in the /home/ga/snap_projects/ directory (e.g., via 'ls', 'nano', 'vim', or 'cat' commands)."
+    },
+    {
+      "id": "xml_contains_required_nodes",
+      "description": "The XML graph contains the five required operator nodes: Read, Collocate, BandMaths, Subset, and Write.",
+      "points": 20,
+      "visual_evidence": "Contents of the XML file displayed in the terminal or a text editor showing XML tags for the required operators (e.g., <node id=\"...\" operator=\"Read\">, <node id=\"...\" operator=\"Collocate\">, <node id=\"...\" operator=\"BandMaths\">, <node id=\"...\" operator=\"Subset\">, <node id=\"...\" operator=\"Write\">)."
+    },
+    {
+      "id": "xml_uses_correct_inputs",
+      "description": "The XML graph specifies the correct Sentinel-2 input files.",
+      "points": 10,
+      "visual_evidence": "Contents of the XML file showing the exact file paths '/home/ga/snap_data/sentinel2_B04_red.tif' and '/home/ga/snap_data/sentinel2_B08_nir.tif' within the 'Read' node configurations."
+    },
+    {
+      "id": "xml_uses_correct_output_path",
+      "description": "The XML graph configures the Write node to save the output in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Contents of the XML file showing the 'Write' node configured with an output file path starting with '/home/ga/snap_projects/'."
+    },
+    {
+      "id": "gpt_tool_executed",
+      "description": "The agent executes the SNAP GPT tool using the created XML graph.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the command '/opt/snap/bin/gpt' being run with the path to the created XML file as an argument."
+    },
+    {
+      "id": "output_product_generated",
+      "description": "The final output product is successfully generated and saved to the required directory.",
+      "points": 30,
+      "visual_evidence": "Terminal showing successful completion of the gpt command (e.g., 100% progress, 'done', or SNAP log messages) AND a subsequent 'ls' command showing the newly created output file (e.g., .dim, .tif, or .nc) in /home/ga/snap_projects/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gpt_execution",
+      "description": "The agent genuinely executed the SNAP GPT tool and did not mock the output.",
+      "visual_evidence": "The terminal should display authentic SNAP GPT execution logs (e.g., 'INFO: org.esa.snap...', 'Executing processing graph', or a progress percentage) rather than a simple echo or immediate return to the prompt."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "The XML file has a valid SNAP graph structure.",
+      "visual_evidence": "The XML file contents must show standard XML formatting with a root <graph> element and nested <node> elements, not just a plain text file containing the required keywords."
+    },
+    {
+      "id": "no_manual_gui_processing",
+      "description": "The agent used the command-line tool as requested, rather than the SNAP Desktop GUI.",
+      "visual_evidence": "There should be no screenshots showing the SNAP Desktop graphical user interface being used to build the graph or process the data."
+    }
+  ],
+  "privileged_info_for_vlm": "The input files are Copernicus Sentinel-2 L2A spectral bands located exactly at /home/ga/snap_data/sentinel2_B04_red.tif and /home/ga/snap_data/sentinel2_B08_nir.tif. The agent must use these exact paths in the Read nodes of the XML graph."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "create_readonly_dns_auditor@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "Create a Webmin user named 'dns_auditor' with the password 'AuditorAccess2024!'. Grant access only to the 'BIND DNS Server' module with read-only permissions. The user must be able to view zones/records but cannot edit them, modify module configurations, or start/stop the BIND server.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_readonly_dns_auditor/setup_task.sh",
+    "post_task": "/workspace/tasks/create_readonly_dns_auditor/export_result.sh"
+  },
+  "metadata": {
+    "target_user": "dns_auditor",
+    "target_pass": "AuditorAccess2024!",
+    "target_module": "bind8",
+    "required_acl_keys": {
+      "readonly": "1",
+      "noconfig": "1",
+      "stop": "0"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_readonly_dns_auditor"
+    }
+  }
+}

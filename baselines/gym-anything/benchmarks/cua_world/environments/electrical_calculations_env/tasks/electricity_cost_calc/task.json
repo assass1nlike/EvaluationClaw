@@ -1,0 +1,33 @@
+{
+  "id": "electricity_cost_calc@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "A warehouse manager needs to determine the monthly operating cost of a 4200-watt industrial air compressor that runs 8 hours per day. Using the Electrical Engineering Calculations app, calculate the total energy consumption and cost for 30 days at an electricity rate of 0.14 $/kWh. Save a screenshot of the final calculation to /sdcard/task_result.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/electricity_cost_calc/setup_task.sh",
+    "post_task": "/sdcard/tasks/electricity_cost_calc/export_result.sh"
+  },
+  "metadata": {
+    "expected_power": 4200,
+    "expected_hours": 8,
+    "expected_days": 30,
+    "expected_rate": 0.14,
+    "expected_total_energy": 1008,
+    "expected_total_cost": 141.12,
+    "tolerance_cost": 1.0,
+    "tolerance_energy": 5,
+    "user_screenshot_path": "/sdcard/task_result.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_electricity_cost_calc"
+    }
+  }
+}

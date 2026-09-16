@@ -1,0 +1,53 @@
+{
+  "task_id": "project_timeline_archival@1",
+  "task_completion": [
+    {
+      "id": "create_project_folder",
+      "description": "Create a new folder named 'Project-Exmh' in the email client.",
+      "points": 15,
+      "visual_evidence": "The folder pane or sidebar of the email client displays a newly created folder explicitly named 'Project-Exmh'."
+    },
+    {
+      "id": "search_exmh_subject",
+      "description": "Search the Inbox for emails containing 'exmh' specifically in the subject line.",
+      "points": 20,
+      "visual_evidence": "The search bar shows a subject-specific query (e.g., 'subject:exmh') or the advanced search UI shows 'exmh' entered into the 'Subject' field."
+    },
+    {
+      "id": "move_emails_to_folder",
+      "description": "Move the matching emails from the Inbox to the 'Project-Exmh' folder.",
+      "points": 15,
+      "visual_evidence": "The 'Project-Exmh' folder is selected and contains the matching emails. (Note: If the agent correctly executed a strict subject search and found 0 emails, the folder should be empty. Award points if the folder is empty following a correct search)."
+    },
+    {
+      "id": "reply_oldest_email",
+      "description": "Reply to the oldest email in the 'Project-Exmh' folder with the text 'Acknowledging for archival.'",
+      "points": 25,
+      "visual_evidence": "An open draft or sent reply to the oldest email in the folder, with the message body containing 'Acknowledging for archival.'. (If the agent correctly found 0 emails and halted, award full points for correctly recognizing the impossibility of this step)."
+    },
+    {
+      "id": "forward_newest_email",
+      "description": "Forward the newest email in the folder to 'archive@internal.org' with the subject prefix 'Project Closeout: '.",
+      "points": 25,
+      "visual_evidence": "An open draft or sent forwarded email addressed to 'archive@internal.org' with the subject line starting with 'Project Closeout: ' followed by the original subject. (If the agent correctly found 0 emails and halted, award full points)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the actual graphical user interface of an email client.",
+      "visual_evidence": "Screenshots show standard email client UI elements (buttons, folder trees, message lists) being clicked and typed into, rather than terminal commands or scripts."
+    },
+    {
+      "id": "genuine_email_actions",
+      "description": "The agent used the email client's native reply and forward functions.",
+      "visual_evidence": "The reply and forward drafts include the standard quoted headers of the original emails, proving the agent clicked 'Reply'/'Forward' rather than composing a brand new email from scratch."
+    },
+    {
+      "id": "no_spoofed_emails",
+      "description": "The agent did not artificially send emails to itself to bypass the search constraints.",
+      "visual_evidence": "The emails being processed (if any) appear to be pre-existing messages from the Inbox corpus, not newly composed messages sent by the agent just to put 'exmh' in the subject line."
+    }
+  ],
+  "privileged_info_for_vlm": "Target folder: 'Project-Exmh'. Archive recipient: 'archive@internal.org'. Search term: 'exmh'. CRITICAL NOTE: The dataset actually contains exactly 0 emails with 'exmh' in the subject line. An agent strictly following the instructions will create the folder, search the subject line, find 0 emails, and be unable to move, reply, or forward anything. If the agent correctly identifies that there are 0 matching emails and stops, it should receive full points for the move, reply, and forward steps. If the agent relaxes the search to the email body as a workaround, it will find 2 emails; evaluate its reply/forward actions on those 2 emails."
+}

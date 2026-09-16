@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_automount_service@1",
+  "task_completion": [
+    {
+      "id": "create_service_file",
+      "description": "Create the systemd service file named 'veracrypt-media.service'",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor (like nano or vim) or a command (like cat or echo) creating a file at '/etc/systemd/system/veracrypt-media.service' (or similar systemd path)."
+    },
+    {
+      "id": "service_file_contents",
+      "description": "Configure the service file with the correct VeraCrypt mount command, volume, keyfile, and mount point",
+      "points": 20,
+      "visual_evidence": "The contents of the service file must show a command executing 'veracrypt' with the volume '/home/ga/Volumes/media_vault.hc', the keyfile '/home/ga/Keyfiles/media_server.key', and the mount point '/mnt/media_vault'. It should also indicate no password (e.g., -p \"\" or --password=\"\")."
+    },
+    {
+      "id": "enable_service",
+      "description": "Enable the service to start automatically",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'systemctl enable veracrypt-media.service' and the resulting 'Created symlink' output."
+    },
+    {
+      "id": "start_and_check_service",
+      "description": "Start the service and verify it is running",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'systemctl start veracrypt-media.service' followed by 'systemctl status veracrypt-media.service' displaying an 'Active: active' or 'Active: active (exited)' status."
+    },
+    {
+      "id": "verify_mount_and_data",
+      "description": "Verify the volume is mounted and data is accessible",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like 'ls /mnt/media_vault' with the output displaying 'catalog.csv', proving the volume is successfully mounted and accessible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_systemd_usage",
+      "description": "The agent actually interacted with systemd rather than faking terminal output",
+      "visual_evidence": "Look for standard systemctl output formatting and authentic shell prompts, ensuring the agent didn't just echo the expected success messages."
+    },
+    {
+      "id": "genuine_mount_verification",
+      "description": "The agent genuinely accessed the mounted volume rather than faking the file",
+      "visual_evidence": "Ensure the agent did not use commands like 'touch /mnt/media_vault/catalog.csv' or 'echo catalog.csv' to fake the presence of the expected file."
+    },
+    {
+      "id": "no_gui_mounting",
+      "description": "The agent did not use the VeraCrypt GUI to manually mount the volume",
+      "visual_evidence": "The VeraCrypt graphical user interface should not be used to mount the volume; the mounting must be handled entirely by the systemd service."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected service name is 'veracrypt-media.service'. The volume path is '/home/ga/Volumes/media_vault.hc'. The keyfile path is '/home/ga/Keyfiles/media_server.key'. The mount point is '/mnt/media_vault'. The volume contains a file named 'catalog.csv', which should be visible when successfully mounted."
+}

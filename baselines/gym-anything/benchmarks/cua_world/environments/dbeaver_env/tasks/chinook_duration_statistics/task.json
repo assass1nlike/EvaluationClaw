@@ -1,0 +1,47 @@
+{
+  "id": "chinook_duration_statistics@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Data Analyst at a music streaming company. Produce a statistical profile of track durations across different genres using the Chinook database (/home/ga/Documents/databases/chinook.db, connection name 'Chinook'). Calculate descriptive statistics for track durations in seconds for each genre with 10 or more tracks, including Count, Mean, Median, Standard Deviation, and Coefficient of Variation. Export these statistics to /home/ga/Documents/exports/genre_duration_stats.csv with columns GenreName, TrackCount, MinDurationSec, MaxDurationSec, AvgDurationSec, MedianDurationSec, StdDevDurationSec, and CoeffOfVariation, sorted by CoeffOfVariation descending. Additionally, identify statistical outliers where the duration is more than 2 standard deviations from the genre's mean and export them to /home/ga/Documents/exports/duration_outliers.csv with columns TrackName, GenreName, DurationSec, GenreAvgSec, ZScore, and OutlierType (SHORT/LONG), sorted by absolute ZScore descending. Save all SQL queries to /home/ga/Documents/scripts/duration_stats.sql. All duration values in the exports must be in seconds (derived from milliseconds) formatted to 1 decimal place, and ZScores formatted to 2 decimal places.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_duration_statistics/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_duration_statistics/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "connection_name": "Chinook",
+    "stats_csv_path": "/home/ga/Documents/exports/genre_duration_stats.csv",
+    "outliers_csv_path": "/home/ga/Documents/exports/duration_outliers.csv",
+    "sql_script_path": "/home/ga/Documents/scripts/duration_stats.sql",
+    "stats_columns": [
+      "GenreName",
+      "TrackCount",
+      "MinDurationSec",
+      "MaxDurationSec",
+      "AvgDurationSec",
+      "MedianDurationSec",
+      "StdDevDurationSec",
+      "CoeffOfVariation"
+    ],
+    "outlier_columns": [
+      "TrackName",
+      "GenreName",
+      "DurationSec",
+      "GenreAvgSec",
+      "ZScore",
+      "OutlierType"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_duration_statistics"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "scientific_microscopy_dataset_extraction@1",
+  "task_completion": [
+    {
+      "id": "output_directory_created",
+      "description": "Verify that the target directory for the dataset was created.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager window or terminal `ls` output showing the directory `/home/ga/Pictures/dataset_44B/` exists."
+    },
+    {
+      "id": "frames_extracted_and_named",
+      "description": "Verify that the video frames were extracted and saved as PNGs with a 3-digit sequential naming scheme.",
+      "points": 30,
+      "visual_evidence": "Look inside the `/home/ga/Pictures/dataset_44B/` directory for multiple PNG files named sequentially like `001.png`, `002.png`, up to `120.png` or `150.png`."
+    },
+    {
+      "id": "frames_visually_processed",
+      "description": "Verify that the extracted frames appear to be cropped to a square and have contrast enhancement applied.",
+      "points": 20,
+      "visual_evidence": "Look at image thumbnails or an opened image viewer showing the extracted frames. They should appear as square crops (500x500) and have noticeably high contrast compared to a standard raw video frame."
+    },
+    {
+      "id": "manifest_file_created",
+      "description": "Verify that the manifest.json file was created in the output directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file named `manifest.json` inside `/home/ga/Pictures/dataset_44B/`."
+    },
+    {
+      "id": "manifest_content_accurate",
+      "description": "Verify that the manifest.json contains the correct parameters specified in the protocol.",
+      "points": 30,
+      "visual_evidence": "Look for an open text editor or terminal `cat` output showing the contents of `manifest.json`. It must contain: 'start_time': 76 (or '01:16'), 'duration': 5, 'crop_x': 1350, 'crop_y': 150, 'crop_width': 500, 'crop_height': 500, and 'contrast_factor': 1.5."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Ensure the agent used a genuine method (like ffmpeg, a Python script, or a video editing tool) to process the video.",
+      "visual_evidence": "Look for terminal commands invoking `ffmpeg`, a Python script using OpenCV/PIL, or a GUI video tool being used to perform the extraction, cropping, and contrast enhancement."
+    },
+    {
+      "id": "authentic_frame_content",
+      "description": "Ensure the extracted images actually contain content from the source video and are not blank or dummy files.",
+      "visual_evidence": "Look at the image thumbnails or opened PNGs to confirm they show actual video content (e.g., microscopy/cellular structures or the Tears of Steel video) rather than solid colors, random noise, or placeholder text."
+    },
+    {
+      "id": "protocol_file_read",
+      "description": "Ensure the agent actually read the extraction protocol to obtain the parameters.",
+      "visual_evidence": "Look for terminal commands like `cat /home/ga/Documents/extraction_protocol.txt` or a text editor opening the protocol file early in the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "The extraction protocol requires the following exact parameters: start_time: 76 (or 01:16), duration: 5, crop_x: 1350, crop_y: 150, crop_width: 500, crop_height: 500, contrast_factor: 1.5. Note on frame count: The task description asks for 150 frames, but a 5-second extraction at the source video's native 24fps yields exactly 120 frames. You should accept either 120 or 150 frames as correct for the extraction count, provided the sequential naming scheme (e.g., 001.png) is used."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "readiness_probe_circular_deadlock@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log in to the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "The Rancher UI dashboard is visible in the web browser, indicating successful authentication."
+    },
+    {
+      "id": "navigate_to_ecommerce_core",
+      "description": "Navigate to the deployments in the 'ecommerce-core' namespace",
+      "points": 10,
+      "visual_evidence": "The Rancher UI shows the Workloads or Deployments page, specifically filtered for or displaying the 'ecommerce-core' namespace."
+    },
+    {
+      "id": "refactor_checkout_service_probe",
+      "description": "Refactor the readiness probe for 'checkout-service'",
+      "points": 20,
+      "visual_evidence": "The Rancher UI (either form view or YAML editor) for 'checkout-service' shows the Readiness Probe configured with type 'HTTP GET', path '/health', and port '8080'."
+    },
+    {
+      "id": "refactor_inventory_service_probe",
+      "description": "Refactor the readiness probe for 'inventory-service'",
+      "points": 20,
+      "visual_evidence": "The Rancher UI (either form view or YAML editor) for 'inventory-service' shows the Readiness Probe configured with type 'HTTP GET', path '/health', and port '8080'."
+    },
+    {
+      "id": "checkout_service_ready",
+      "description": "Ensure 'checkout-service' reaches a 1/1 Ready state",
+      "points": 20,
+      "visual_evidence": "The Deployments or Pods list in Rancher (or kubectl output) shows 'checkout-service' with a green active state and 1/1 pods ready."
+    },
+    {
+      "id": "inventory_service_ready",
+      "description": "Ensure 'inventory-service' reaches a 1/1 Ready state",
+      "points": 20,
+      "visual_evidence": "The Deployments or Pods list in Rancher (or kubectl output) shows 'inventory-service' with a green active state and 1/1 pods ready."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_rancher_interaction",
+      "description": "The agent interacted with the actual Rancher web interface or genuine kubectl terminal commands.",
+      "visual_evidence": "Screenshots show the agent clicking through the Rancher GUI in a web browser or typing commands in a real terminal, rather than editing a standalone text file."
+    },
+    {
+      "id": "genuine_ready_state",
+      "description": "The 1/1 Ready state is genuinely displayed by the system.",
+      "visual_evidence": "The ready state is visible within the standard Rancher UI tables or standard terminal output, without signs of text manipulation or mocked HTML."
+    },
+    {
+      "id": "independent_configuration",
+      "description": "The agent manually configured the probe settings rather than pasting a pre-existing complete YAML file from an external source.",
+      "visual_evidence": "The agent navigates through the Rancher UI to the specific deployment settings or uses 'kubectl edit' to modify the existing YAML directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'ecommerce-core'. Target deployments: 'checkout-service' and 'inventory-service'. Expected readiness probe configuration for both: Type = 'httpGet', Path = '/health', Port = 8080. Success requires both deployments to reach a 1/1 Ready state."
+}

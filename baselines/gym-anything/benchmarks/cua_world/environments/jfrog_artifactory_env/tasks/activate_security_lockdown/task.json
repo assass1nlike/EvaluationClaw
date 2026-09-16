@@ -1,0 +1,30 @@
+{
+  "id": "activate_security_lockdown@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Simulate an emergency security response by locking down the JFrog Artifactory instance. Log in as 'admin' with password 'password' to enable 'Offline Mode', disable 'Anonymous Access', and set the System Message to exactly: 'SECURITY ALERT: System in Offline Lockdown'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/activate_security_lockdown/setup_task.sh",
+    "post_task": "/workspace/tasks/activate_security_lockdown/export_result.sh"
+  },
+  "metadata": {
+    "target_offline_mode": true,
+    "target_anon_access": false,
+    "target_message": "SECURITY ALERT: System in Offline Lockdown",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_activate_security_lockdown"
+    }
+  }
+}

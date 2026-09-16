@@ -1,0 +1,59 @@
+{
+  "task_id": "chinook_test_subset@1",
+  "task_completion": [
+    {
+      "id": "access_source_db",
+      "description": "Agent accesses the source Chinook database.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent connecting to or querying `/home/ga/Documents/databases/chinook.db` using a tool like DBeaver, sqlite3 terminal, or a Python script."
+    },
+    {
+      "id": "create_sql_script",
+      "description": "Agent creates the SQL extraction script with DDL and INSERT statements.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing a text editor, IDE, or script containing SQL statements (CREATE TABLE, INSERT INTO) for the 9 required tables, including filtering logic for 'Brazil' customers and their related records."
+    },
+    {
+      "id": "save_sql_script",
+      "description": "Agent saves the SQL extraction script to the required path.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the file being saved or confirmed to exist at `/home/ga/Documents/scripts/brazil_subset_extraction.sql` (e.g., via a save dialog, terminal `ls` command, or editor tab)."
+    },
+    {
+      "id": "create_target_db",
+      "description": "Agent creates the new target SQLite database.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the creation of the database file at `/home/ga/Documents/databases/chinook_brazil_test.db` (e.g., using `sqlite3` command, DBeaver connection manager, or a Python script)."
+    },
+    {
+      "id": "populate_target_db",
+      "description": "Agent populates the target database using the extraction script.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent executing the SQL script against the new `chinook_brazil_test.db` database (e.g., using `.read` in sqlite3, executing in DBeaver, or running a Python script)."
+    },
+    {
+      "id": "verify_target_db_contents",
+      "description": "Agent verifies the contents of the new target database.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the agent querying the new database or listing its tables to confirm the presence of the 9 required tables and/or the correct Brazil subset data (e.g., 5 customers, 35 invoices)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacts with actual database tools or writes functional scripts rather than faking outputs.",
+      "visual_evidence": "Screenshots should show genuine interfaces of DBeaver, sqlite3, or code execution, not just text typed into an editor that mimics database output."
+    },
+    {
+      "id": "genuine_script_creation",
+      "description": "Agent generates the SQL script through logical steps or queries rather than pasting a pre-computed solution.",
+      "visual_evidence": "Screenshots should show the agent exploring the schema, writing queries, or using export tools to build the script."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Agent uses the exact file paths specified in the task description.",
+      "visual_evidence": "Check that the target database and SQL script are saved exactly at `/home/ga/Documents/databases/chinook_brazil_test.db` and `/home/ga/Documents/scripts/brazil_subset_extraction.sql` respectively."
+    }
+  ],
+  "privileged_info_for_vlm": "The source database is at `/home/ga/Documents/databases/chinook.db`. The target database must be at `/home/ga/Documents/databases/chinook_brazil_test.db`. The SQL script must be at `/home/ga/Documents/scripts/brazil_subset_extraction.sql`. The subset must include exactly 9 tables. The original Chinook database uses PascalCase for table names (e.g., Customer, InvoiceLine), but the task description uses snake_case (e.g., customers, invoice_items); either naming convention is acceptable as long as the schema matches. The correct Brazil subset contains exactly: 5 customers, 35 invoices, 190 invoice items, 190 unique tracks, 89 albums, 60 artists, 13 genres, 3 media types, and 3 support employees."
+}

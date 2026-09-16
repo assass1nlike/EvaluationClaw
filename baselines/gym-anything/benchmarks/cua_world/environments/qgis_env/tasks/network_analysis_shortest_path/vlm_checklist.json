@@ -1,0 +1,59 @@
+{
+  "task_id": "network_analysis_shortest_path@1",
+  "task_completion": [
+    {
+      "id": "load_road_network",
+      "description": "Load the road network GeoJSON file into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The 'road_network' layer is visible in the Layers panel of a GIS application (e.g., QGIS), and line features are visible on the map canvas."
+    },
+    {
+      "id": "load_logistics_stops",
+      "description": "Load the logistics stops GeoJSON file into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The 'logistics_stops' layer is visible in the Layers panel, and point features (Warehouse and Customer) are visible on the map canvas."
+    },
+    {
+      "id": "configure_shortest_path_tool",
+      "description": "Open and configure a shortest path or network analysis tool with the correct start and end points.",
+      "points": 20,
+      "visual_evidence": "A network analysis tool window (e.g., 'Shortest path (point to point)') is open. The road network is selected as the input network, and the start/end points are configured using the Warehouse (South-West) and Customer (North-East) locations."
+    },
+    {
+      "id": "calculate_shortest_path",
+      "description": "Execute the tool to calculate the shortest delivery route.",
+      "points": 30,
+      "visual_evidence": "A new line layer (e.g., 'Shortest path') is generated in the Layers panel, and a distinct line connecting the Warehouse and Customer points is visible on the map canvas."
+    },
+    {
+      "id": "select_geojson_export",
+      "description": "Initiate the export of the calculated route as a GeoJSON file.",
+      "points": 15,
+      "visual_evidence": "A 'Save Vector Layer as...' or 'Export' dialog is open for the calculated route layer, with 'GeoJSON' selected as the format."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save the exported file to the specified expected output path.",
+      "points": 15,
+      "visual_evidence": "The file path '/home/ga/GIS_Data/exports/delivery_route.geojson' is entered in the save dialog's file name/path field, or a success message confirms the file was saved to this exact location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gis_usage",
+      "description": "The agent used a GIS application (like QGIS) to perform the analysis rather than bypassing the software.",
+      "visual_evidence": "Screenshots show interaction with a GIS graphical user interface (menus, toolbars, map canvas) rather than just a text editor or terminal."
+    },
+    {
+      "id": "computed_not_drawn",
+      "description": "The shortest path was computed by an algorithm, not manually drawn.",
+      "visual_evidence": "The resulting path is a perfectly straight diagonal line (or follows the exact geometry of the road network) without irregular, manually clicked vertices."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not use terminal commands to hardcode the output file.",
+      "visual_evidence": "There are no terminal windows showing 'echo' or 'cat' commands being used to directly write GeoJSON text into 'delivery_route.geojson'."
+    }
+  ],
+  "privileged_info_for_vlm": "The road network is located at /home/ga/GIS_Data/road_network.geojson and the stops are at /home/ga/GIS_Data/logistics_stops.geojson. The Warehouse is at the South-West corner (0,0) and the Customer is at the North-East corner (1,1). The optimal shortest path is a diagonal line connecting (0,0) to (1,1) passing through the midpoint (0.5, 0.5). The expected output must be exported to /home/ga/GIS_Data/exports/delivery_route.geojson."
+}

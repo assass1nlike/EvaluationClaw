@@ -1,0 +1,59 @@
+{
+  "task_id": "unsafe_cross_origin_audit@1",
+  "task_completion": [
+    {
+      "id": "crawl_target_website",
+      "description": "Crawl the target website https://crawler-test.com/",
+      "points": 10,
+      "visual_evidence": "An SEO auditing tool (like Screaming Frog SEO Spider) is open and shows https://crawler-test.com/ as the crawled URL."
+    },
+    {
+      "id": "identify_unsafe_links",
+      "description": "Identify links missing the rel='noopener' attribute",
+      "points": 20,
+      "visual_evidence": "The SEO tool displays a 'Security' tab or a specific filter for 'Missing rel=\"noopener\"' or 'Unsafe Cross-Origin Links', showing the vulnerable links."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the identified links to the specified CSV path",
+      "points": 20,
+      "visual_evidence": "A file manager, export dialog, or terminal shows the file 'unsafe_links.csv' saved in the '~/Documents/SEO/exports/' directory."
+    },
+    {
+      "id": "csv_correct_content",
+      "description": "Verify the CSV contains the required columns and links",
+      "points": 20,
+      "visual_evidence": "The contents of 'unsafe_links.csv' are visible (e.g., in a spreadsheet viewer or text editor), showing 'Target' and 'Rel' columns, and listing the unsafe links (e.g., 'http://www.s\u00f8kbar.no')."
+    },
+    {
+      "id": "create_summary_file",
+      "description": "Create the security summary text file in the specified path",
+      "points": 10,
+      "visual_evidence": "A file manager, text editor, or terminal shows the file 'security_summary.txt' located in the '~/Documents/SEO/reports/' directory."
+    },
+    {
+      "id": "summary_correct_content",
+      "description": "Record the total count of unsafe links in the summary file",
+      "points": 20,
+      "visual_evidence": "The 'security_summary.txt' file is open and displays the correct total count of unsafe links (which should be 2)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_tool_usage",
+      "description": "The agent used a GUI SEO tool to perform the audit",
+      "visual_evidence": "Screenshots should show a GUI application (like Screaming Frog) being used to crawl and filter the site, rather than a terminal script bypassing the tool."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file is a genuine export from the auditing tool",
+      "visual_evidence": "The CSV file contains standard export formatting and headers from the SEO tool, rather than being manually typed out in a text editor."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not hardcode the expected answers",
+      "visual_evidence": "There is visual proof of the agent actually finding the 2 links in the auditing tool before creating the summary text file, rather than just creating the files immediately."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://crawler-test.com/. Expected CSV path: /home/ga/Documents/SEO/exports/unsafe_links.csv. Expected report path: /home/ga/Documents/SEO/reports/security_summary.txt. The CSV must contain 'Target' and 'Rel' columns. There are exactly 2 unsafe links expected on the site: 'http://www.s\u00f8kbar.no' and 'relativeurl:withcolon'. The summary text file should state a count of 2."
+}

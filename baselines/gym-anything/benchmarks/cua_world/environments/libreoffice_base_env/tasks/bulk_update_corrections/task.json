@@ -1,0 +1,32 @@
+{
+  "id": "bulk_update_corrections@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Perform bulk data corrections in the Chinook database. Update the title 'Sales Support Agent' to 'Customer Service Representative' in the Employee table and change the country 'USA' to 'United States' in the Customer table. In the Track table, update the UnitPrice from 0.99 to 1.19 for all tracks with GenreId 1. Save all changes to the database file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_update_corrections/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_update_corrections/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/chinook.odb",
+    "expected_employee_title_old": "Sales Support Agent",
+    "expected_employee_title_new": "Customer Service Representative",
+    "expected_customer_country_old": "USA",
+    "expected_customer_country_new": "United States",
+    "target_genre_id": 1,
+    "target_price_old": 0.99,
+    "target_price_new": 1.19
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_update_corrections"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "model_geothermal_binary_plant@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The Python modeling script is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A file named `geothermal_model.py` is visible in `/home/ga/Documents/SAM_Projects/` in a text editor, IDE, or terminal."
+    },
+    {
+      "id": "pysam_imported",
+      "description": "The script imports PySAM and initializes the Geothermal and LCOE models.",
+      "points": 10,
+      "visual_evidence": "The script contains `import PySAM` (or specific PySAM modules) and code to instantiate the Geothermal and LCOE models (e.g., `GeothermalPowerLCOECalculator` or similar valid PySAM classes)."
+    },
+    {
+      "id": "model_parameters_set",
+      "description": "The script configures the required plant parameters.",
+      "points": 20,
+      "visual_evidence": "The script sets resource temperature to 175, conversion type to 0, resource type to 0, and nameplate capacity to 15000 (or 15 MW)."
+    },
+    {
+      "id": "weather_file_configured",
+      "description": "The script configures the weather file using the specified directory.",
+      "points": 15,
+      "visual_evidence": "The script contains logic to read `/home/ga/.SAM/solar_resource_dir.txt` and uses a weather file from that directory (Nevada or western US TMY file)."
+    },
+    {
+      "id": "json_output_generated",
+      "description": "The simulation results are saved to the correct JSON file.",
+      "points": 15,
+      "visual_evidence": "A file named `geothermal_results.json` is visible in `/home/ga/Documents/SAM_Projects/`."
+    },
+    {
+      "id": "json_keys_present",
+      "description": "The JSON output contains all required keys.",
+      "points": 15,
+      "visual_evidence": "The JSON file contains the keys: `resource_temp_c`, `conversion_type`, `nameplate_kw`, `annual_energy_kwh`, `capacity_factor`, `lcoe_cents_per_kwh`, `num_wells`, and `weather_file`."
+    },
+    {
+      "id": "json_values_correct",
+      "description": "The JSON output contains values within the expected ranges.",
+      "points": 15,
+      "visual_evidence": "The JSON file shows `resource_temp_c` as 175, `conversion_type` as 0, `nameplate_kw` between 13000-17000, `annual_energy_kwh` between 50,000,000-150,000,000, and `lcoe_cents_per_kwh` between 2.0-30.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "The agent executed the Python script to generate the results.",
+      "visual_evidence": "Terminal output showing the execution of `python geothermal_model.py` without errors, or the JSON file timestamp matches the script execution time."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The Python script dynamically extracts results from the PySAM model.",
+      "visual_evidence": "The script assigns JSON dictionary values from PySAM model outputs (e.g., `model.Outputs.annual_energy`) rather than hardcoding the expected numbers."
+    },
+    {
+      "id": "genuine_weather_file",
+      "description": "The agent read the directory path from the specified text file.",
+      "visual_evidence": "The script or terminal history shows the agent reading `/home/ga/.SAM/solar_resource_dir.txt` (e.g., using `cat` or Python `open()`) rather than guessing or hardcoding the path without checking."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The expected nameplate capacity is 15,000 kW (acceptable range 13,000-17,000). The expected annual energy is ~124,000,000 kWh (acceptable range 50,000,000-150,000,000). The expected LCOE is ~19.15 cents/kWh (acceptable range 2.0-30.0). The capacity factor may be represented as a fraction (0-1) or a percentage (~94.42%). The script must use PySAM and save to /home/ga/Documents/SAM_Projects/geothermal_results.json."
+}

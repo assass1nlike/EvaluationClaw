@@ -1,0 +1,59 @@
+{
+  "id": "bleve_hazard_potential_screening@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Evaluate the BLEVE (Boiling Liquid Expanding Vapor Explosion) risk for Isobutane (CAS 75-28-5), Vinyl Chloride (CAS 75-01-4), Toluene (CAS 108-88-3), Sulfur Dioxide (CAS 7446-09-5), and Cyclohexane (CAS 110-82-7) using CAMEO Chemicals (https://cameochemicals.noaa.gov/). For each chemical, identify the Physical State (Liquefied Gas or Liquid) and Flammability (Yes or No). Classify the risk as TIER_1 (Liquefied Gas and Flammable), TIER_2 (Liquefied Gas and not Flammable), or TIER_3 (Liquid). Save the results to /home/ga/Documents/bleve_risk_assessment.csv with the header 'Chemical,Physical_State,Flammable,Risk_Tier'.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "bleve",
+    "fire-safety",
+    "classification",
+    "hazmat"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bleve_hazard_potential_screening/setup_task.sh",
+    "post_task": "/workspace/tasks/bleve_hazard_potential_screening/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/bleve_risk_assessment.csv",
+    "ground_truth": {
+      "Isobutane": {
+        "state": "Liquefied Gas",
+        "flammable": "Yes",
+        "tier": "TIER_1"
+      },
+      "Vinyl Chloride": {
+        "state": "Liquefied Gas",
+        "flammable": "Yes",
+        "tier": "TIER_1"
+      },
+      "Toluene": {
+        "state": "Liquid",
+        "flammable": "Yes",
+        "tier": "TIER_3"
+      },
+      "Sulfur Dioxide": {
+        "state": "Liquefied Gas",
+        "flammable": "No",
+        "tier": "TIER_2"
+      },
+      "Cyclohexane": {
+        "state": "Liquid",
+        "flammable": "Yes",
+        "tier": "TIER_3"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bleve_screening"
+    }
+  }
+}

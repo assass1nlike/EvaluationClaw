@@ -1,0 +1,53 @@
+{
+  "task_id": "analyze_reach_geometry@1",
+  "task_completion": [
+    {
+      "id": "hdf5_geometry_verified",
+      "description": "Verify the HDF5 geometry data exists or was generated via HEC-RAS preprocessor.",
+      "points": 10,
+      "visual_evidence": "Terminal listing showing the .hdf file (e.g., Muncie.p04.tmp.hdf) or the HEC-RAS GUI showing the geometry preprocessor running/completed."
+    },
+    {
+      "id": "script_created",
+      "description": "Verify the Python script is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A text editor, IDE, or terminal showing a file named 'geometry_analysis.py' located in '~/Documents/hec_ras_results/' (or '/home/ga/Documents/hec_ras_results/')."
+    },
+    {
+      "id": "script_uses_h5py",
+      "description": "Verify the script uses h5py to parse the HEC-RAS HDF5 file.",
+      "points": 20,
+      "visual_evidence": "The script contents show 'import h5py' and code opening the HDF5 file (e.g., h5py.File(...))."
+    },
+    {
+      "id": "script_calculates_slope",
+      "description": "Verify the script extracts the required variables and calculates the slope.",
+      "points": 30,
+      "visual_evidence": "The script contents show extraction of River Stations, Reach Lengths, and Inverts, along with a calculation matching '(Invert_upstream - Invert_downstream) / Reach_Length'."
+    },
+    {
+      "id": "csv_exported_correct_columns",
+      "description": "Verify the CSV report is generated with the correct columns and populated with data.",
+      "points": 30,
+      "visual_evidence": "A terminal output (e.g., cat, head), text editor, or spreadsheet showing the contents of 'reach_stats.csv' located in '~/Documents/hec_ras_results/' with the exact headers: 'Upstream_RS', 'Downstream_RS', 'Reach_Length_ft', 'Upstream_Invert_ft', 'Downstream_Invert_ft', and 'Slope_ft_ft'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_not_hardcoded",
+      "description": "Ensure the Python script dynamically extracts data rather than hardcoding the output CSV.",
+      "visual_evidence": "The script should contain actual h5py dataset access and loops/pandas operations, not just a hardcoded string or list of values being written to the CSV."
+    },
+    {
+      "id": "script_executed",
+      "description": "Ensure the script was actually run to generate the CSV.",
+      "visual_evidence": "Terminal showing the execution command (e.g., 'python geometry_analysis.py') or the resulting CSV file being displayed after the script was written."
+    },
+    {
+      "id": "genuine_data_in_csv",
+      "description": "Ensure the CSV contains realistic extracted data.",
+      "visual_evidence": "The CSV contents should show realistic numerical values for lengths, inverts, and slopes, not placeholder text, empty rows, or repeated dummy data."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV output path is '/home/ga/Documents/hec_ras_results/reach_stats.csv'. The expected Python script path is '/home/ga/Documents/hec_ras_results/geometry_analysis.py'. The CSV must contain exactly these columns: 'Upstream_RS', 'Downstream_RS', 'Reach_Length_ft', 'Upstream_Invert_ft', 'Downstream_Invert_ft', and 'Slope_ft_ft'."
+}

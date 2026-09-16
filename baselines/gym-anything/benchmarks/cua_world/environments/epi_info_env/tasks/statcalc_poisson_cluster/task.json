@@ -1,0 +1,31 @@
+{
+  "id": "statcalc_poisson_cluster@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Evaluate a potential leukemia cluster where 8 cases of pediatric leukemia were observed over 3 years against an expected value of 3.6 cases using Epi Info 7's StatCalc Poisson Probability tool. Create a report at C:\\Users\\Docker\\Documents\\cluster_evaluation.txt including the observed and expected values, the probability of observing 8 or more cases (P(X >= k)), and a conclusion statement: 'Statistically significant at alpha=0.05' if the probability is < 0.05, otherwise 'Not statistically significant'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\statcalc_poisson_cluster\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\statcalc_poisson_cluster\\export_result.ps1"
+  },
+  "metadata": {
+    "output_path": "C:\\Users\\Docker\\Documents\\cluster_evaluation.txt",
+    "expected_cases": 3.6,
+    "observed_cases": 8,
+    "expected_prob_min": 0.02,
+    "expected_prob_max": 0.04,
+    "significance_threshold": 0.05,
+    "ground_truth_prob": 0.0267
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_statcalc_poisson_cluster"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "loan_payoff_strategy@1",
+  "task_completion": [
+    {
+      "id": "loan_data_present",
+      "description": "Verify that the initial loan data for the 4 loans is present in the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for rows containing 'Federal Direct', 'Private Bank A', 'Perkins Loan', and 'Private Bank B' with their corresponding balances ($12,500, $8,200, $3,800, $6,100), interest rates (4.5%, 7.2%, 5.0%, 6.8%), and minimum payments ($150, $120, $75, $95)."
+    },
+    {
+      "id": "monthly_interest_calculated",
+      "description": "Verify that the monthly interest is calculated for each loan.",
+      "points": 20,
+      "visual_evidence": "Look for a column calculating monthly interest. The values should be approximately $46.88 (Federal), $49.20 (Private A), $15.83 (Perkins), and $34.57 (Private B)."
+    },
+    {
+      "id": "payment_allocation_shown",
+      "description": "Verify that payment allocation (e.g., principal vs. interest) is calculated.",
+      "points": 20,
+      "visual_evidence": "Look for columns that subtract the monthly interest from the payment to show how much goes toward the principal, or columns breaking down the total payment into interest and principal components."
+    },
+    {
+      "id": "extra_payment_impact",
+      "description": "Verify that the spreadsheet calculates the impact of extra payments on the payoff timeline.",
+      "points": 25,
+      "visual_evidence": "Look for columns or sections showing 'Extra Payment', 'Months to Payoff', 'New Timeline', or 'Interest Saved' that demonstrate how adding money beyond the minimum payment reduces the time or cost to pay off the loan."
+    },
+    {
+      "id": "priority_loan_identified",
+      "description": "Verify that the spreadsheet determines which loan to prioritize to minimize total interest.",
+      "points": 25,
+      "visual_evidence": "Look for 'Private Bank A' being explicitly highlighted, marked as 'Priority 1', or the loans being sorted in descending order by interest rate (with 7.2% at the top) to indicate the avalanche payoff method."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_libreoffice_calc",
+      "description": "Verify that the agent used LibreOffice Calc to create the spreadsheet.",
+      "visual_evidence": "The screenshots should show the LibreOffice Calc graphical user interface (menus, toolbars, grid) rather than a terminal window running a Python script to generate the file."
+    },
+    {
+      "id": "correct_file_name",
+      "description": "Verify the file is saved with the correct name.",
+      "visual_evidence": "The title bar of the LibreOffice window or a save dialog should show the filename 'loan_tracker.xlsx' or 'loan_tracker.ods' being saved to the Documents folder."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "Verify that the agent appears to be using spreadsheet formulas rather than just typing hardcoded text.",
+      "visual_evidence": "The formula bar (fx) should ideally show spreadsheet formulas (e.g., =B2*C2/12) when a calculated cell is selected, or the layout should clearly reflect a structured, calculated spreadsheet rather than a plain text table."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses 4 specific loans: Federal Direct ($12,500 balance, 4.5% rate, $150 min payment), Private Bank A ($8,200 balance, 7.2% rate, $120 min payment), Perkins Loan ($3,800 balance, 5.0% rate, $75 min payment), and Private Bank B ($6,100 balance, 6.8% rate, $95 min payment). Correct monthly interest calculations (Balance * Rate / 12) are: Federal Direct = $46.88, Private Bank A = $49.20, Perkins = $15.83, Private Bank B = $34.57. To minimize total interest (Avalanche method), the priority loan MUST be Private Bank A because it has the highest interest rate (7.2%)."
+}

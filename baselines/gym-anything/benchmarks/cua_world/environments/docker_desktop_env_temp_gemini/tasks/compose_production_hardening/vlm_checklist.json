@@ -1,0 +1,53 @@
+{
+  "task_id": "compose_production_hardening@1",
+  "task_completion": [
+    {
+      "id": "verify_health_checks",
+      "description": "Verify that health checks are implemented for all three services.",
+      "points": 20,
+      "visual_evidence": "Look at the text editor or terminal output showing the contents of /home/ga/webapp/docker-compose.yml. There should be a 'healthcheck:' block (typically containing 'test', 'interval', etc.) under every service definition."
+    },
+    {
+      "id": "verify_resource_limits",
+      "description": "Verify that CPU and memory limits are implemented for all three services.",
+      "points": 20,
+      "visual_evidence": "Look at the docker-compose.yml file contents. Each service should have resource limits defined, either under 'deploy: resources: limits:' (with 'cpus' and 'memory') or using legacy keys like 'cpus' and 'mem_limit'."
+    },
+    {
+      "id": "verify_restart_policies",
+      "description": "Verify that restart policies are implemented for all three services.",
+      "points": 15,
+      "visual_evidence": "Look at the docker-compose.yml file contents. Each service should have a 'restart:' key set to a valid policy such as 'always', 'unless-stopped', or 'on-failure'."
+    },
+    {
+      "id": "verify_network_isolation",
+      "description": "Verify that separate frontend and backend networks are implemented and assigned.",
+      "points": 20,
+      "visual_evidence": "Look at the docker-compose.yml file contents. There should be a top-level 'networks:' block defining at least two distinct networks (e.g., frontend and backend). Additionally, the services must have a 'networks:' section assigning them to these specific networks to isolate them."
+    },
+    {
+      "id": "verify_app_functional",
+      "description": "Verify that the application remains fully functional at http://localhost:9080 after hardening.",
+      "points": 25,
+      "visual_evidence": "Look for a web browser opened to http://localhost:9080 displaying the running application, or terminal output showing a successful HTTP response from 'curl http://localhost:9080', or 'docker compose ps' showing the services running and healthy."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "verify_correct_directory",
+      "description": "Ensure the agent modified the files in the correct target directory.",
+      "visual_evidence": "Check the file paths in the text editor or terminal commands. They must point to /home/ga/webapp/docker-compose.yml, not a mock file or different directory."
+    },
+    {
+      "id": "verify_genuine_testing",
+      "description": "Ensure the agent actually tested the application rather than just assuming it works.",
+      "visual_evidence": "Look for terminal commands like 'docker compose up -d' followed by 'curl' commands, or a browser window actually navigating to the localhost URL."
+    },
+    {
+      "id": "verify_no_hallucinated_success",
+      "description": "Ensure the agent did not just print a fake success message to the terminal.",
+      "visual_evidence": "The terminal history should show actual docker and curl/browser commands being executed, not just 'echo' statements claiming the task is complete."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

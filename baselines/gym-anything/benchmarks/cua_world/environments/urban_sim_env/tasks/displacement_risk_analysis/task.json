@@ -1,0 +1,37 @@
+{
+  "id": "displacement_risk_analysis@1",
+  "version": "1.0",
+  "env_id": "urban_sim_env@0.1",
+  "difficulty": "very_hard",
+  "description": "As a housing policy analyst at the San Francisco Planning Department, develop a Displacement Risk Index (DRI) for every zone containing residential households and buildings using the San Francisco UrbanSim dataset at /home/ga/urbansim_projects/data/sanfran_public.h5. The index must incorporate household vulnerability (concentration of low-income residents), housing precarity (age and quality of building stock), and development pressure (proximity to maximum allowed density). Define the metrics, weighting, and normalization methods in the Jupyter notebook at /home/ga/urbansim_projects/notebooks/displacement_risk.ipynb. Export the final data to /home/ga/urbansim_projects/output/displacement_risk.csv including columns for zone_id, dri_score, vulnerability_score",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/displacement_risk_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/displacement_risk_analysis/export_result.sh"
+  },
+  "metadata": {
+    "task_name": "displacement_risk_analysis",
+    "notebook_path": "/home/ga/urbansim_projects/notebooks/displacement_risk.ipynb",
+    "csv_path": "/home/ga/urbansim_projects/output/displacement_risk.csv",
+    "chart_path": "/home/ga/urbansim_projects/output/displacement_risk_chart.png",
+    "gt_path": "/tmp/displacement_risk_gt.json",
+    "required_csv_columns": [
+      "zone_id",
+      "dri_score",
+      "vulnerability_score",
+      "precarity_score",
+      "pressure_score"
+    ],
+    "min_zones": 50,
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_displacement_risk"
+    }
+  }
+}

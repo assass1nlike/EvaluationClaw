@@ -1,0 +1,53 @@
+{
+  "task_id": "io_buffering_efficiency_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify that a dashboard named 'I/O Buffering Efficiency' is created.",
+      "points": 10,
+      "visual_evidence": "The dashboard title at the top of the Graphite UI reads 'I/O Buffering Efficiency'."
+    },
+    {
+      "id": "graph_cumulative_network",
+      "description": "Verify the graph 'Cumulative Network Ingest' applies the integral() function to the network bytes in metric.",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Cumulative Network Ingest' is visible. Its legend or configuration panel shows 'integral(servers.ec2_instance_1.network.bytes_in)'."
+    },
+    {
+      "id": "graph_network_ingress",
+      "description": "Verify the graph 'Network Ingress Rate (Bits)' applies the scale() function to multiply the network bytes in metric by 8.",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Network Ingress Rate (Bits)' is visible. Its legend or configuration panel shows 'scale(servers.ec2_instance_1.network.bytes_in, 8)'."
+    },
+    {
+      "id": "graph_write_to_ingest",
+      "description": "Verify the graph 'Write-to-Ingest Ratio' applies the divideSeries() function with disk writes as the numerator and network ingest as the denominator.",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Write-to-Ingest Ratio' is visible. Its legend or configuration panel shows 'divideSeries(servers.ec2_instance_1.disk.write_bytes, servers.ec2_instance_1.network.bytes_in)'."
+    },
+    {
+      "id": "graph_robust_disk_io",
+      "description": "Verify the graph 'Robust Disk I/O' applies the movingMedian() function with a window size of 10 to the disk write bytes metric.",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Robust Disk I/O' is visible. Its legend or configuration panel shows 'movingMedian(servers.ec2_instance_1.disk.write_bytes, 10)'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "graphite_gui_interaction",
+      "description": "Check that the agent interacts with the Graphite web interface to build the dashboard.",
+      "visual_evidence": "Screenshots show the agent clicking through the Graphite UI, adding graphs, and applying functions via the interface menus."
+    },
+    {
+      "id": "actual_data_rendered",
+      "description": "Check that the graphs display actual plotted data lines.",
+      "visual_evidence": "The graphs in the dashboard show rendered lines/curves representing the time-series data, confirming the metrics are correctly queried from the backend."
+    },
+    {
+      "id": "no_json_injection",
+      "description": "Ensure the agent did not bypass the UI by directly writing the dashboard JSON file.",
+      "visual_evidence": "The agent does not use a text editor or terminal to manually create or edit the /tmp/io_buffering_efficiency_dashboard_result.json file or Graphite's internal dashboard storage."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is 'I/O Buffering Efficiency'. The four expected graph titles are exactly: 'Cumulative Network Ingest', 'Network Ingress Rate (Bits)', 'Write-to-Ingest Ratio', and 'Robust Disk I/O'. The task operates on real AWS CloudWatch time-series data injected into Graphite."
+}

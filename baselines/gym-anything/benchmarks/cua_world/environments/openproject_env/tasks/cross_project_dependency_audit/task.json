@@ -1,0 +1,29 @@
+{
+  "id": "cross_project_dependency_audit@1",
+  "version": "1.0",
+  "env_id": "openproject_env@0.1",
+  "description": "You are logged into OpenProject at http://localhost:8080 as admin (password: Admin1234!). As a QA Analyst responsible for cross-project dependency tracking, you must document a critical dependency where the 'mobile-banking-app' project's biometric login feature requires checkout security fixes from the 'ecommerce-platform' project. In the 'mobile-banking-app' project, add a comment to the 'Implement biometric login (Face ID / Fingerprint)' work package stating: 'Blocked by ecommerce-platform checkout security fixes. Cannot deploy biometric auth until Safari checkout bug is resolved. See ecommerce-platform Sprint 1.' Change the status of this work package to 'On hold' (or to 'New' with a '[BLOCKED]' prefix added to the subject if 'On hold' is unavailable). In the 'devops-automation' project, create a new 'Task' work package with the subject 'Cross-project dependency tracking dashboard' assigned to carol.williams in 'Sprint 3 - Monitoring' with the description 'Build a dashboard to visualize cross-project work package dependencies and blockers across all three projects.' In the 'ecommerce-platform' project, set the priority of 'Fix broken checkout on mobile Safari' to 'High'. Create a wiki page in the 'mobile-banking-app' project titled 'Cross-Project Dependencies' documenting the dependency between the biometric login feature and the ecommerce checkout fix, including both project names, work package subjects, and the blocking relationship.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cross_project_dependency_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/cross_project_dependency_audit/export_result.sh"
+  },
+  "metadata": {
+    "biometric_wp_subject": "Implement biometric login (Face ID / Fingerprint)",
+    "checkout_wp_subject": "Fix broken checkout on mobile Safari",
+    "new_wp_subject": "Cross-project dependency tracking dashboard",
+    "new_wp_assignee": "carol.williams",
+    "wiki_title": "Cross-Project Dependencies",
+    "expected_priority": "High"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cross_project_dependency_audit"
+    }
+  }
+}

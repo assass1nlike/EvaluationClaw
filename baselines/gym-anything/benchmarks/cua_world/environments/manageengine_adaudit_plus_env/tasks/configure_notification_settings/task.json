@@ -1,0 +1,27 @@
+{
+  "id": "configure_notification_settings@1",
+  "version": "1.0",
+  "env_id": "manageengine_adaudit_plus_env@0.1",
+  "description": "Log in to ManageEngine ADAudit Plus using username 'admin' and password 'Admin@2024'. Configure the 'Event Collection Status' notification to be sent to 'soc-team@company.local' with a frequency of '1 Hours'. Ensure the configuration is saved and active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_notification_settings\\setup_task.ps1",
+    "pre_task_timeout": 900
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_notification_settings"
+    }
+  },
+  "metadata": {
+    "notification_type": "Event Collection Status",
+    "email": "soc-team@company.local",
+    "frequency": "Every 1 Hour"
+  }
+}

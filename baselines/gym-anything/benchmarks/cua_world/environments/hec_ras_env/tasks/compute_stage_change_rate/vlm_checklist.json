@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_stage_change_rate@1",
+  "task_completion": [
+    {
+      "id": "access_stage_data",
+      "description": "Checks if the agent accessed the water surface elevation (stage) data for the Muncie project.",
+      "points": 20,
+      "visual_evidence": "Look for the HEC-RAS GUI open to stage hydrographs or profile summary tables, OR a code editor/terminal showing a script reading the Muncie HDF5 results file (e.g., 'Muncie.p04.hdf')."
+    },
+    {
+      "id": "create_csv_file",
+      "description": "Checks if the required CSV file was created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal command, or editor showing the creation or existence of the file '/home/ga/Documents/hec_ras_results/stage_change_rates.csv'."
+    },
+    {
+      "id": "populate_csv_columns",
+      "description": "Checks if the CSV file contains the required column headers.",
+      "points": 15,
+      "visual_evidence": "Look for the CSV contents displaying the exact headers: 'cross_section', 'max_rise_rate_ft_per_hr', 'max_fall_rate_ft_per_hr', 'time_of_max_rise_hr', and 'time_of_max_fall_hr'."
+    },
+    {
+      "id": "populate_csv_data",
+      "description": "Checks if the CSV file is populated with computed rate data for the cross-sections.",
+      "points": 25,
+      "visual_evidence": "Look for the CSV containing multiple rows of numerical data corresponding to the cross-sections (ideally 61 rows of data below the headers)."
+    },
+    {
+      "id": "create_summary_file",
+      "description": "Checks if the required summary text file was created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal command, or editor showing the creation or existence of the file '/home/ga/Documents/hec_ras_results/stage_change_summary.txt'."
+    },
+    {
+      "id": "populate_summary_data",
+      "description": "Checks if the summary text file contains the correct format and computed overall maximum rates.",
+      "points": 20,
+      "visual_evidence": "Look for the text file contents showing exactly 'Overall_Max_Rise_Rate_ft_per_hr: <value>' and 'Overall_Max_Fall_Rate_ft_per_hr: <value>'. The values should be approximately 3.48 and 0.54 respectively."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Verifies that the agent actually computed the rates rather than guessing or hallucinating.",
+      "visual_evidence": "Look for evidence of computation, such as a Python/R script using math/pandas operations to calculate derivatives, or a spreadsheet application with formulas calculating differences over time."
+    },
+    {
+      "id": "correct_project_used",
+      "description": "Verifies that the agent used the correct Muncie dataset.",
+      "visual_evidence": "Look for file paths in scripts, terminal commands, or the HEC-RAS GUI that explicitly reference the 'Muncie' project directory or 'Muncie.p04.hdf'."
+    },
+    {
+      "id": "no_hardcoded_summary",
+      "description": "Verifies that the summary values were derived from the data, not just typed out directly without computation.",
+      "visual_evidence": "Look for code or spreadsheet operations that find the maximum values from the computed cross-section rates (e.g., using a max() function on the columns), rather than just echo commands with hardcoded numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct output CSV path is /home/ga/Documents/hec_ras_results/stage_change_rates.csv. The correct output summary text file path is /home/ga/Documents/hec_ras_results/stage_change_summary.txt. The HEC-RAS project directory is /home/ga/Documents/hec_ras_projects/Muncie. The dataset contains 61 total cross-sections. The overall maximum rise rate across all cross-sections is approximately 3.48 ft/hr, and the overall maximum fall rate is approximately 0.54 ft/hr."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "ab_lag_accuracy_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent opens or reads the input CSV data file.",
+      "points": 10,
+      "visual_evidence": "A script (e.g., Python, R) or spreadsheet application showing 'ab_data.csv' being loaded or its contents being displayed."
+    },
+    {
+      "id": "compute_conditional_accuracy",
+      "description": "Agent calculates the conditional T2|T1 accuracy and AB magnitude.",
+      "points": 20,
+      "visual_evidence": "Code or formulas showing filtering for 't1_correct == 1' to calculate 't2_correct' means, and calculating the difference between the maximum and minimum T2|T1 accuracy across lags."
+    },
+    {
+      "id": "exclude_contaminated_participant",
+      "description": "Agent identifies and excludes the participant with 100% accuracy.",
+      "points": 20,
+      "visual_evidence": "Code logic checking if a participant's T2|T1 accuracy is 1.0 (or 100%) at all lags, and setting an 'excluded': true flag with a reason in the output structure."
+    },
+    {
+      "id": "compute_group_means",
+      "description": "Agent calculates the group means for valid participants.",
+      "points": 20,
+      "visual_evidence": "Code or formulas aggregating the valid participants to compute the average 't2_given_t1' for each lag and the average 'ab_magnitude'."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent formats and saves the final JSON report to the correct location.",
+      "points": 30,
+      "visual_evidence": "A script writing to '~/pebl/analysis/ab_report.json' or terminal output showing the file was created. The visible code or output should show the required JSON structure with 'participants' and 'group_means' keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_or_tool_used",
+      "description": "The agent used a script or data analysis tool to process the data rather than manually typing the JSON.",
+      "visual_evidence": "Presence of a Python script, Jupyter notebook, or similar tool being written and executed to perform the calculations."
+    },
+    {
+      "id": "dynamic_exclusion_logic",
+      "description": "The agent implemented actual logic to find the 100% accuracy participant.",
+      "visual_evidence": "The code contains a conditional check for perfect accuracy across lags, rather than just hardcoding the exclusion of participant 'p00' without inspecting the data."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent actually saved the file to the specified directory.",
+      "visual_evidence": "Terminal commands like 'ls ~/pebl/analysis/' showing 'ab_report.json' exists, or a file explorer showing the file in the correct folder, rather than just printing the JSON to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data contains 25 participants. Participant 'p00' is a contaminated participant with 100% accuracy on all trials and must be excluded. The remaining 24 participants (p01 to p24) are valid. The tested lags are exactly 1, 2, 3, 4, 5, 7, and 8. The output must be saved exactly to /home/ga/pebl/analysis/ab_report.json."
+}

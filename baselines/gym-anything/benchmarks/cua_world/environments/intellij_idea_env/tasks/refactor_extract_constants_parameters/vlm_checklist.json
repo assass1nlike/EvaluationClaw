@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_extract_constants_parameters@1",
+  "task_completion": [
+    {
+      "id": "extract_tax_multiplier",
+      "description": "Extract the tax rate to a constant named TAX_MULTIPLIER",
+      "points": 20,
+      "visual_evidence": "Look for the declaration of a constant (e.g., `private static final double TAX_MULTIPLIER = 1.0825;`) in the `PricingCalculator.java` file, and verify it replaces the hardcoded 1.0825 in the calculation."
+    },
+    {
+      "id": "extract_shipping_cost",
+      "description": "Extract the shipping cost to a constant named SHIPPING_COST",
+      "points": 20,
+      "visual_evidence": "Look for the declaration of a constant (e.g., `private static final double SHIPPING_COST = 15.00;`) in the `PricingCalculator.java` file, and verify it replaces the hardcoded 15.00 in the calculation."
+    },
+    {
+      "id": "parameterize_target_tier",
+      "description": "Parameterize the hardcoded string 'PLATINUM' as targetTier",
+      "points": 20,
+      "visual_evidence": "Look at the `calculateFinalPrice` method signature in `PricingCalculator.java`. It must include a new parameter named `targetTier` (e.g., `String targetTier`), and the hardcoded 'PLATINUM' string inside the method body must be replaced by this parameter."
+    },
+    {
+      "id": "update_checkout_service",
+      "description": "Update CheckoutService.java to pass the new argument",
+      "points": 20,
+      "visual_evidence": "Look at the `CheckoutService.java` file. The method call to `calculateFinalPrice` should be updated to pass the required additional argument (e.g., `\"PLATINUM\"`) to match the new method signature."
+    },
+    {
+      "id": "successful_compilation",
+      "description": "Ensure the project compiles successfully",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing a successful build (e.g., `mvn compile` resulting in `BUILD SUCCESS`) or an IDE indicator showing successful compilation with no syntax errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "editor_usage",
+      "description": "Agent used a genuine text editor or IDE to modify the files",
+      "visual_evidence": "Screenshots should show the Java files being edited in a real text editor or IDE (like IntelliJ, VS Code, vim, or nano), rather than using terminal commands like `echo` or `sed` to bypass interaction."
+    },
+    {
+      "id": "genuine_compilation",
+      "description": "Compilation success is from a real build tool",
+      "visual_evidence": "The build success message should come from a genuine tool like Maven (`mvn`) or an IDE's build system, not a spoofed terminal `echo` command."
+    },
+    {
+      "id": "targeted_edits",
+      "description": "Agent made targeted edits rather than replacing the whole file with a pre-written script",
+      "visual_evidence": "Observe the agent navigating to specific lines in the code to type out the constants and parameter changes, rather than pasting a complete, pre-written file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves refactoring a Java project located at `/home/ga/IdeaProjects/ecommerce-pricing`. The file `src/main/java/com/example/pricing/PricingCalculator.java` must be updated to include `private static final` constants `TAX_MULTIPLIER` (value 1.0825) and `SHIPPING_COST` (value 15.00). The method `calculateFinalPrice` must have a new parameter `targetTier` (replacing the hardcoded 'PLATINUM' string). The file `src/main/java/com/example/pricing/CheckoutService.java` must be updated to pass the new argument to `calculateFinalPrice`."
+}

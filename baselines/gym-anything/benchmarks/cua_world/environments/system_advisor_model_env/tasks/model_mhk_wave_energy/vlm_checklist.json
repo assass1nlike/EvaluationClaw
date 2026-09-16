@@ -1,0 +1,59 @@
+{
+  "task_id": "model_mhk_wave_energy@1",
+  "task_completion": [
+    {
+      "id": "import_pysam_module",
+      "description": "The agent writes a Python script that imports the PySAM MhkWave module and loads the default configuration.",
+      "points": 10,
+      "visual_evidence": "A code editor showing an import statement for PySAM (e.g., `import PySAM.MhkWave`) and a call to load the default configuration."
+    },
+    {
+      "id": "set_system_capacity",
+      "description": "The agent sets the system rated capacity to 300 kW in the script.",
+      "points": 15,
+      "visual_evidence": "Code in the editor setting a capacity variable or PySAM parameter to 300."
+    },
+    {
+      "id": "configure_losses",
+      "description": "The agent configures the specified loss percentages in the script.",
+      "points": 20,
+      "visual_evidence": "Code setting array spacing loss to 0, resource overprediction to 5, transmission to 2, downtime to 5, and additional loss to 0."
+    },
+    {
+      "id": "execute_simulation",
+      "description": "The agent executes the PySAM simulation script.",
+      "points": 20,
+      "visual_evidence": "A terminal or IDE output window showing the Python script being run (e.g., `python script.py`) and the PySAM model executing (e.g., calling `.execute()`)."
+    },
+    {
+      "id": "format_json_output",
+      "description": "The agent prepares a data structure with the exact keys required for the JSON output.",
+      "points": 15,
+      "visual_evidence": "Code showing a dictionary being constructed with the exact keys specified in the instructions (e.g., 'annual_energy_kwh', 'capacity_factor_percent', etc.)."
+    },
+    {
+      "id": "save_results_json",
+      "description": "The agent saves the results to the specified JSON file path.",
+      "points": 20,
+      "visual_evidence": "Code showing the dictionary being written to `/home/ga/Documents/SAM_Projects/wave_energy_results.json` using a JSON library, or a terminal showing the file was successfully created at that path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "pysam_actually_used",
+      "description": "The agent used the PySAM library to generate the base results rather than completely fabricating all numbers without running a model.",
+      "visual_evidence": "The script contains actual PySAM execution calls and extracts values from the model, even if some mathematical adjustments are made afterwards."
+    },
+    {
+      "id": "no_manual_json_typing",
+      "description": "The agent generated the JSON file programmatically via the script, not by manually typing a JSON file in a text editor.",
+      "visual_evidence": "The JSON file creation is part of the Python script, and there is no evidence of the agent manually typing the final JSON file contents."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "The JSON file is saved exactly to the requested path.",
+      "visual_evidence": "The path `/home/ga/Documents/SAM_Projects/wave_energy_results.json` is visible in the script's file writing operation."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file: wave_energy_results.json. System capacity must be 300 kW. Losses must be exactly: array spacing 0%, overprediction 5%, transmission 2%, downtime 5%, additional 0%. Note: The verifier has a logical defect where it expects the total Annual Energy Production to match a single device (max 2.6 million kWh). To pass, the agent may creatively deviate by setting 'number_devices' to 1 in PySAM or mathematically adjusting the exported JSON values. This is acceptable and should not be penalized as long as PySAM is used."
+}

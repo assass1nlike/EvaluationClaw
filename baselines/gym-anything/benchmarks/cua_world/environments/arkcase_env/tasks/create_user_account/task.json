@@ -1,0 +1,39 @@
+{
+  "id": "create_user_account@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Create a new user account in ArkCase for Elena Rodriguez (Email: elena.rodriguez@dev.arkcase.com, Password: ArkAnalyst2024!) and assign her to the 'ACM_INVESTIGATOR_DEV' group. Use the administrator credentials (arkcase-admin@dev.arkcase.com, password: ArkCase1234!) to perform this task.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_user_account/setup_task.sh",
+    "post_task": "/workspace/tasks/create_user_account/export_result.sh"
+  },
+  "metadata": {
+    "expected_user": {
+      "username": "elena.rodriguez",
+      "email": "elena.rodriguez@dev.arkcase.com",
+      "first_name": "Elena",
+      "last_name": "Rodriguez",
+      "group": "ACM_INVESTIGATOR_DEV"
+    },
+    "scoring": {
+      "user_exists": 25,
+      "name_correct": 15,
+      "email_correct": 10,
+      "group_correct": 20,
+      "api_verified": 15,
+      "ui_workflow": 15
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_user_account"
+    }
+  }
+}

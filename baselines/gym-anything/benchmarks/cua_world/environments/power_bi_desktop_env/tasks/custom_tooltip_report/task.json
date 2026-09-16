@@ -1,0 +1,38 @@
+{
+  "id": "custom_tooltip_report@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a product marketing manager who needs to create a sales dashboard with drill-down details provided via a custom tooltip using the sales data located at `C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv`. Create a Power BI report and save it to `C:\\Users\\Docker\\Desktop\\Tooltip_Report.pbix`. The report must include a DAX measure named `Avg_Unit_Price` (average of Unit_Price). Develop a 'Sales Overview' page containing a Clustered Column Chart showing `Sales_Amount` by `Product_Category` and a Line Chart showing `Sales_Amount` by `Sale_Date`. Create a second page named 'Category Detail' configured as a tooltip page, featuring cards for `Avg_Unit_Price` and `Quantity_Sold`, and a Stacked Bar Chart showing `Sales_Amount` by `Payment_Method`. Configure the Clustered Column Chart on the 'Sales Overview' page to use the 'Category Detail' page as its tooltip. Login: user `Docker`, no password.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\custom_tooltip_report\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\custom_tooltip_report\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Tooltip_Report.pbix",
+    "expected_pages": [
+      {
+        "name": "Sales Overview",
+        "type": "standard"
+      },
+      {
+        "name": "Category Detail",
+        "type": "tooltip"
+      }
+    ],
+    "required_measures": [
+      "Avg_Unit_Price"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_custom_tooltip_report"
+    }
+  }
+}

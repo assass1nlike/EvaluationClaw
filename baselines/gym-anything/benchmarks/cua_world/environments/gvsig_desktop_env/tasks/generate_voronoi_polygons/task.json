@@ -1,0 +1,30 @@
+{
+  "id": "generate_voronoi_polygons@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Generate Voronoi (Thiessen) polygons from the populated places layer (/home/ga/gvsig_data/cities/ne_110m_populated_places.shp). Save the output shapefile to /home/ga/gvsig_data/exports/voronoi_cities.shp and ensure the resulting layer is added to the View.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_voronoi_polygons/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_voronoi_polygons/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "output_path": "/home/ga/gvsig_data/exports/voronoi_cities.shp",
+    "expected_geometry_type": 5,
+    "min_features": 200,
+    "max_features": 280,
+    "min_file_size_bytes": 50000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_voronoi_polygons"
+    }
+  }
+}

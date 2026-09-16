@@ -1,0 +1,31 @@
+{
+  "id": "soft_body_jello_simulation@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are creating a motion graphics asset of a gelatinous monkey head dropping onto a plate. Configure the 'JellySuzanne' object with soft body physics and the 'Plate' object with collision physics so the monkey head behaves like stiff jelly, deforming upon impact without collapsing and maintaining its volume. Save the project to /home/ga/BlenderProjects/jelly_sim.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/soft_body_jello_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/soft_body_jello_simulation/export_result.sh"
+  },
+  "metadata": {
+    "source_blend": "/home/ga/BlenderProjects/soft_body_start.blend",
+    "expected_output": "/home/ga/BlenderProjects/jelly_sim.blend",
+    "target_object": "JellySuzanne",
+    "collider_object": "Plate",
+    "goal_min": 0.3,
+    "goal_max": 0.9,
+    "stiffness_threshold": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_soft_body_simulation"
+    }
+  }
+}

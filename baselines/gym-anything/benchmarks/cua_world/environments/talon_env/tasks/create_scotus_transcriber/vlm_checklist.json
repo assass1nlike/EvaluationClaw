@@ -1,0 +1,53 @@
+{
+  "task_id": "create_scotus_transcriber@1",
+  "task_completion": [
+    {
+      "id": "scotus_transcriber_directory",
+      "description": "Verify that the scotus_transcriber directory is created in the correct Talon user folder and contains the required files.",
+      "points": 10,
+      "visual_evidence": "A file explorer or terminal window showing the path C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\scotus_transcriber, containing 14-556.json, transcriber.talon, and a Python file (.py)."
+    },
+    {
+      "id": "json_metadata_downloaded",
+      "description": "Verify that the Obergefell v. Hodges metadata was downloaded and saved as 14-556.json.",
+      "points": 10,
+      "visual_evidence": "The file 14-556.json is visible in an editor or terminal, containing JSON data from the Oyez API, including the case name 'Obergefell v. Hodges'."
+    },
+    {
+      "id": "python_advocates_and_speaker",
+      "description": "Verify that the Python module parses advocate names from the JSON and tracks the active speaker.",
+      "points": 30,
+      "visual_evidence": "The Python code shows file reading logic for 14-556.json, extraction of advocate names to populate a Talon list (e.g., mod.list()), and a state variable for the active speaker initialized to 'Chief Justice'."
+    },
+    {
+      "id": "python_actions_defined",
+      "description": "Verify that the Python module defines the required actions for the transcriber.",
+      "points": 30,
+      "visual_evidence": "The Python code defines Talon actions (@mod.action_class) to: 1) update the speaker, 2) record a statement that formats the output as '[HH:MM] {speaker}: {text}\\n' with the text capitalized, and 3) insert the case name."
+    },
+    {
+      "id": "talon_voice_commands",
+      "description": "Verify that transcriber.talon implements the required voice commands.",
+      "points": 20,
+      "visual_evidence": "The transcriber.talon file shows voice commands mapped to the Python actions: switching speakers using the advocate list, setting the speaker to 'Chief Justice', recording dictated text, and inserting the case name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_json_parsing",
+      "description": "Verify that the Python script dynamically reads and parses the JSON file for advocate names.",
+      "visual_evidence": "The code should use json.load() or similar to extract advocates, rather than having a hardcoded list of names for this specific case."
+    },
+    {
+      "id": "genuine_api_download",
+      "description": "Verify that the JSON file was actually downloaded from the API.",
+      "visual_evidence": "Look for terminal commands like curl/wget, a Python script, or a browser downloading from https://api.oyez.org/cases/2014/14-556, rather than the agent manually typing out a fake JSON file."
+    },
+    {
+      "id": "proper_file_editing",
+      "description": "Verify that the code files were created and edited using a real text editor or IDE.",
+      "visual_evidence": "The Python and Talon files should be visible in an editor like VS Code, Notepad, or Vim, showing proper formatting and syntax highlighting."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\scotus_transcriber. API URL: https://api.oyez.org/cases/2014/14-556. Case name: Obergefell v. Hodges. The JSON file must be named 14-556.json and contain real API data."
+}

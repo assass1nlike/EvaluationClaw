@@ -1,0 +1,59 @@
+{
+  "task_id": "ack_capture_db_update@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'Order_Closed_Loop'",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect (Mirth Connect) Administrator dashboard or channel list shows a channel explicitly named 'Order_Closed_Loop'."
+    },
+    {
+      "id": "source_tcp_listener",
+      "description": "Configure the source to receive HL7 messages on TCP port 6661",
+      "points": 15,
+      "visual_evidence": "The Source configuration tab for the channel shows the connector type as 'TCP Listener' and the Local Port set to '6661'."
+    },
+    {
+      "id": "destination_lab_simulator",
+      "description": "Configure a destination to forward messages to the Lab Simulator on port 6670",
+      "points": 15,
+      "visual_evidence": "A Destination configuration tab shows a 'TCP Sender' (or similar network sender) with the Remote Address set to 'localhost' or '127.0.0.1' and the Remote Port set to '6670'."
+    },
+    {
+      "id": "variable_extraction",
+      "description": "Extract the Control ID (MSH-10) and Reference ID (MSA-3 from ACK)",
+      "points": 20,
+      "visual_evidence": "A transformer, response transformer, or JavaScript step shows logic mapping or extracting 'MSH.10' (or MSH['MSH.10']) and 'MSA.3' (or MSA['MSA.3']) from the response message."
+    },
+    {
+      "id": "database_update_step",
+      "description": "Configure a database update for the 'lab_orders' table",
+      "points": 20,
+      "visual_evidence": "A Destination (e.g., Database Writer) or JavaScript step shows a SQL query like 'UPDATE lab_orders SET lab_reference_number = ... WHERE order_control_id = ...' using the mirthdb database and postgres user."
+    },
+    {
+      "id": "successful_execution",
+      "description": "Process the sample order and update the database",
+      "points": 20,
+      "visual_evidence": "The NextGen Connect dashboard shows successful message processing (Received/Sent counts > 0) OR a terminal/database client shows a SELECT query on 'lab_orders' where the row with 'ORD-001' has a populated 'lab_reference_number'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_mirth_gui",
+      "description": "The agent used the NextGen Connect Administrator GUI to configure the channel",
+      "visual_evidence": "Screenshots show the agent interacting with the NextGen Connect Administrator Java application interface, rather than just writing XML configuration files in a text editor."
+    },
+    {
+      "id": "no_manual_db_update",
+      "description": "The agent did not manually update the database to fake success",
+      "visual_evidence": "Terminal windows do not show the agent manually executing an 'UPDATE lab_orders SET...' command via psql or another database client."
+    },
+    {
+      "id": "genuine_message_processing",
+      "description": "The agent actually sent the sample HL7 message through the engine",
+      "visual_evidence": "The NextGen Connect dashboard statistics show actual message counts (e.g., Received: 1, Sent: 1) for the 'Order_Closed_Loop' channel, or a tool like 'Send Message' or 'nc' is seen transmitting the sample_order.hl7 file."
+    }
+  ],
+  "privileged_info_for_vlm": "The NextGen Connect channel must receive on TCP port 6661 and send to localhost:6670. The database connection URL is jdbc:postgresql://nextgen-postgres:5432/mirthdb. The sample HL7 message has Control ID 'ORD-001'. The channel must extract MSH-10 (Control ID) and MSA-3 (Reference ID from the ACK) to perform the database update."
+}

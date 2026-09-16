@@ -1,0 +1,34 @@
+{
+  "id": "create_er_diagram@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create an Entity-Relationship (ER) diagram for a library management system in draw.io. The diagram must include four entities: BOOK (book_id PK, title, isbn), AUTHOR (author_id PK, name), MEMBER (member_id PK, name, email), and LOAN (loan_id PK, book_id FK, member_id FK, loan_date). Establish relationships between BOOK and AUTHOR, BOOK and LOAN, and MEMBER and LOAN. Each entity must be clearly labeled and contain at least two visible attributes. Save the completed diagram as library_er_diagram.drawio to /home/ga/Desktop/library_er_diagram.drawio.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_er_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_er_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "library_er_diagram.drawio",
+    "expected_save_location": "/home/ga/Desktop",
+    "required_entities": [
+      "book",
+      "author",
+      "member",
+      "loan"
+    ],
+    "min_shapes": 4,
+    "min_connections": 3,
+    "min_attributes_per_entity": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_er_diagram"
+    }
+  }
+}

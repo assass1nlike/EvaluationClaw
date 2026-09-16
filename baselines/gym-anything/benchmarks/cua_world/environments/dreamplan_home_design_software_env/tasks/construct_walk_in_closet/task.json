@@ -1,0 +1,32 @@
+{
+  "id": "construct_walk_in_closet@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Construct a walk-in closet (approximately 1.5m x 2m) in the Master Bedroom of the sample house. The closet must be enclosed by partition walls, include a door for access, and contain at least one storage item such as shelving or a wardrobe. Save the project to ~/Documents/project.sh3d.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\construct_walk_in_closet\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\construct_walk_in_closet\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path_search_pattern": "C:\\Users\\Docker\\Documents\\*.dpp",
+    "app_name": "dreamplan",
+    "required_tools": [
+      "Wall",
+      "Door",
+      "Furniture"
+    ],
+    "min_storage_items": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_construct_walk_in_closet"
+    }
+  }
+}

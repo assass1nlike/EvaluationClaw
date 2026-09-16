@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_invalid_geometry_parcels@1",
+  "task_completion": [
+    {
+      "id": "load_input_file",
+      "description": "Load the input GeoJSON file containing the invalid geometries into the GIS software.",
+      "points": 10,
+      "visual_evidence": "The layer 'parcels_with_errors' is visible in the Layers panel of a GIS application (e.g., QGIS), and polygons are visible on the map canvas."
+    },
+    {
+      "id": "identify_invalid_geometry",
+      "description": "Identify the self-intersecting geometry.",
+      "points": 15,
+      "visual_evidence": "A 'Check Validity' tool is run, an error message highlights a self-intersection, or the map canvas is zoomed in on a 'bowtie' shaped polygon."
+    },
+    {
+      "id": "run_repair_tool",
+      "description": "Execute a tool to repair the invalid geometries.",
+      "points": 25,
+      "visual_evidence": "A 'Fix geometries' or similar processing tool dialog is open and being executed on the 'parcels_with_errors' layer."
+    },
+    {
+      "id": "verify_repaired_geometry",
+      "description": "Verify that the repaired geometry layer is created and valid.",
+      "points": 10,
+      "visual_evidence": "A new layer (e.g., 'Fixed geometries') appears in the Layers panel, and the previously self-intersecting 'bowtie' polygon is visually corrected on the map canvas."
+    },
+    {
+      "id": "open_export_dialog",
+      "description": "Open the export dialog to save the repaired layer.",
+      "points": 10,
+      "visual_evidence": "The 'Save Vector Layer as...' or 'Export' dialog is open, specifically targeting the newly repaired layer."
+    },
+    {
+      "id": "save_exported_file",
+      "description": "Export the repaired layer to the specified path in GeoJSON format.",
+      "points": 30,
+      "visual_evidence": "In the export dialog, the Format is set to 'GeoJSON' and the File name/path is explicitly set to '/home/ga/GIS_Data/exports/parcels_fixed.geojson'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gis_gui",
+      "description": "The agent used a GIS graphical user interface (like QGIS) to perform the task.",
+      "visual_evidence": "Screenshots show interaction with a GIS application's GUI, rather than relying solely on terminal commands (e.g., ogr2ogr) or Python scripts."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "The agent did not manually create or edit the GeoJSON file in a text editor.",
+      "visual_evidence": "There are no text editors (like gedit, nano, or VS Code) open where the agent is manually typing or pasting GeoJSON coordinates to bypass using GIS tools."
+    },
+    {
+      "id": "maintained_features",
+      "description": "The agent repaired the geometry rather than simply deleting the invalid feature.",
+      "visual_evidence": "The map canvas or attribute table of the repaired layer still shows 3 distinct parcel features, indicating the invalid feature was fixed, not removed."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/GIS_Data/parcels_with_errors.geojson. Expected output: /home/ga/GIS_Data/exports/parcels_fixed.geojson. The dataset contains exactly 3 features with attributes 'id', 'owner', and 'type'. The specific error is a self-intersecting 'bowtie' polygon (Feature 2, Doe's parcel). The repaired output must still contain all 3 features."
+}

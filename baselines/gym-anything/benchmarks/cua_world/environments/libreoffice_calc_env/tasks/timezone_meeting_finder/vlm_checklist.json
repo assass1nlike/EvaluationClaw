@@ -1,0 +1,53 @@
+{
+  "task_id": "timezone_meeting_finder@1",
+  "task_completion": [
+    {
+      "id": "open_availability_data",
+      "description": "The agent opened the document or file containing the team members' local availability.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet or text document is open on the screen showing the names of the 5 team members (Alex, Priya, Kenji, Sophie, Carlos) and their local availability windows."
+    },
+    {
+      "id": "identify_timezones",
+      "description": "The agent identified or verified the timezone offsets for each team member.",
+      "points": 10,
+      "visual_evidence": "The agent using a web browser to search for timezone offsets (e.g., EST, GMT, JST, AEDT, PST) or noting down the UTC offsets (UTC-5, UTC+0, UTC+9, UTC+11, UTC-8) in a text editor."
+    },
+    {
+      "id": "calculate_utc_times",
+      "description": "The agent converted the local availability windows to UTC.",
+      "points": 30,
+      "visual_evidence": "A text editor, calculator, or scratchpad showing the mathematical conversion of local times to UTC for the participants (e.g., Alex: 14-22 UTC, Priya: 8-16 UTC)."
+    },
+    {
+      "id": "evaluate_overlaps",
+      "description": "The agent analyzed the converted UTC times to find an overlapping window.",
+      "points": 25,
+      "visual_evidence": "The agent comparing the UTC times, which should lead to the realization that a 2-hour overlap for all 5 members is impossible (e.g., noting that the 14-16 UTC overlap for Alex and Priya excludes Kenji, Carlos, and Sophie)."
+    },
+    {
+      "id": "record_optimal_meeting_time",
+      "description": "The agent recorded the optimal meeting times in UTC or noted the impossibility of a full overlap.",
+      "points": 15,
+      "visual_evidence": "A final text file or document is saved containing the proposed optimal meeting time in UTC, a partial overlap, or a statement that no valid 2-hour window exists for all participants."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the availability data using standard GUI applications.",
+      "visual_evidence": "The availability document was opened in a GUI application (like LibreOffice Calc or a graphical text editor) rather than just being parsed via terminal commands."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "The agent genuinely calculated the UTC conversions.",
+      "visual_evidence": "Intermediate steps, scratchpads, or calculator usage are visible, showing the agent didn't just magically produce the final UTC times."
+    },
+    {
+      "id": "no_hallucinated_solution",
+      "description": "The agent did not hallucinate a perfect 2-hour overlap that doesn't exist.",
+      "visual_evidence": "The agent's final output reflects the actual constraints of the data (that a full 5-person overlap is impossible) rather than blindly copying the README's incorrect hint of '16:00-18:00 UTC'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves 5 team members: Alex (UTC-5), Priya (UTC+0), Kenji (UTC+9), Sophie (UTC+11), and Carlos (UTC-8). CRITICAL FLAW: The task is fundamentally impossible as designed. There is NO 2-hour window where all 5 participants are available simultaneously. The most restrictive overlap is between Alex (14-22 UTC) and Priya (8-16 UTC) yielding only 14-16 UTC, but Kenji, Carlos, and Sophie are unavailable then. The README incorrectly hints at a solution around 16:00-18:00 UTC, which is invalid. The agent should ideally discover this impossibility. Award points for correct UTC conversions and logical analysis even if the agent concludes the task is impossible or proposes a partial overlap."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "generate_coverage_report@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Generate an HTML code coverage report for the 'FinTechCalc' project by running the unit tests in 'LoanCalculatorTest.java'. Export the coverage session as an HTML report to /home/ga/coverage-report/index.html.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_coverage_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_coverage_report/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "FinTechCalc",
+    "expected_report_dir": "/home/ga/coverage-report",
+    "expected_index_file": "index.html",
+    "target_class": "LoanCalculator"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_coverage_report"
+    }
+  }
+}

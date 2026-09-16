@@ -1,0 +1,31 @@
+{
+  "id": "export_sella_slices@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A medical student is building a cranial anatomy teaching atlas and needs reference images of the CT Cranium dataset from all three orthogonal viewing planes, each navigated to approximately the level of the sella turcica. The CT Cranium dataset is already loaded in InVesalius. Navigate the axial, sagittal, and coronal views to the sella turcica—a saddle-shaped depression in the sphenoid bone at the base of the skull, located roughly at the center of the head in all three dimensions. Export the axial view to /home/ga/Documents/axial_sella.png, the sagittal view to /home/ga/Documents/sagittal_sella.png, and the coronal view to /home/ga/Documents/coronal_sella.png. All three output files must be valid PNG images showing the respective orthogonal planes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_sella_slices/setup_task.sh",
+    "post_task": "/workspace/tasks/export_sella_slices/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "/home/ga/Documents/axial_sella.png",
+      "/home/ga/Documents/sagittal_sella.png",
+      "/home/ga/Documents/coronal_sella.png"
+    ],
+    "min_file_size_bytes": 10240,
+    "dicom_series": "ct_cranium"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_sella_slices"
+    }
+  }
+}

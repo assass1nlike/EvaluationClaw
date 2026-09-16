@@ -1,0 +1,30 @@
+{
+  "id": "optimize_client_performance@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Optimize the Jitsi Meet server configuration for low-power devices by modifying ~/.jitsi-meet-cfg/web/config.js. Disable CPU-intensive features and enforce audio-only mode by setting the following flags in the configuration object: disableAudioLevels to true, enableNoisyMicDetection to false, and startAudioOnly to true.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/optimize_client_performance/setup_task.sh",
+    "post_task": "/workspace/tasks/optimize_client_performance/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/config.js",
+    "expected_settings": {
+      "disableAudioLevels": true,
+      "enableNoisyMicDetection": false,
+      "startAudioOnly": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_optimize_client_performance"
+    }
+  }
+}

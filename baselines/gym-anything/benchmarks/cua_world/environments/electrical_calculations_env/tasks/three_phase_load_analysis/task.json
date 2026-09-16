@@ -1,0 +1,31 @@
+{
+  "id": "three_phase_load_analysis@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "You are a power quality engineer at a large manufacturing plant. A 3-phase, 400 V (line-to-line) distribution feeder is supplying a production line with 24 amperes of line current at a power factor of 0.80 lagging. Document the apparent power, true (real) power, and reactive power for the power audit report.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/three_phase_load_analysis/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/three_phase_load_analysis/export_result.sh"
+  },
+  "metadata": {
+    "voltage_line": 400,
+    "current_line": 24,
+    "power_factor": 0.8,
+    "expected_apparent_va": 16627,
+    "expected_real_w": 13302,
+    "expected_reactive_var": 9976,
+    "tolerance_pct": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_three_phase_load_analysis"
+    }
+  }
+}

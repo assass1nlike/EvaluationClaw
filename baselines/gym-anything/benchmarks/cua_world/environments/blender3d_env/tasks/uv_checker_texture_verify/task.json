@@ -1,0 +1,30 @@
+{
+  "id": "uv_checker_texture_verify@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A texture artist needs to prepare the Suzanne mesh for texturing. UV unwrap the mesh and apply a material using a Checker Texture node with a scale between 5 and 30 connected to the Base Color. Save the rendered image to /home/ga/BlenderProjects/checker_render.png and the Blender project to /home/ga/BlenderProjects/suzanne_checker.blend. The scene already contains Suzanne, a ground plane, camera, and sun light.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/uv_checker_texture_verify/setup_task.sh",
+    "post_task": "/workspace/tasks/uv_checker_texture_verify/export_result.sh"
+  },
+  "metadata": {
+    "expected_blend_path": "/home/ga/BlenderProjects/suzanne_checker.blend",
+    "expected_render_path": "/home/ga/BlenderProjects/checker_render.png",
+    "min_uv_coverage": 0.2,
+    "min_checker_scale": 5,
+    "max_checker_scale": 30,
+    "target_object_name": "Suzanne"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_uv_checker"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "data_element_groupset_dimension@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "You are a DHIS2 implementer setting up metadata for the Malaria programme. Your goal is to create a 'Programme Area' dimension that allows analysis of data by 'Testing' vs 'Treatment'. Create a Data Element Group named 'Malaria Testing' containing at least two malaria testing data elements and a Data Element Group named 'Malaria Treatment' containing at least two malaria treatment data elements. Combine these into a Data Element Group Set named 'Malaria Programme Areas' configured as a data dimension. Using this configuration, create and save a Pivot Table favorite named 'Malaria by Programme Area 2023' showing the grouped data for Sierra Leone for the year 2023.\n\nLogin credentials: admin / district",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/data_element_groupset_dimension/setup_task.sh",
+    "post_task": "/workspace/tasks/data_element_groupset_dimension/export_result.sh"
+  },
+  "metadata": {
+    "group1_name": "Malaria Testing",
+    "group2_name": "Malaria Treatment",
+    "groupset_name": "Malaria Programme Areas",
+    "visualization_name": "Malaria by Programme Area 2023",
+    "min_elements_per_group": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_data_element_groupset_dimension"
+    }
+  }
+}

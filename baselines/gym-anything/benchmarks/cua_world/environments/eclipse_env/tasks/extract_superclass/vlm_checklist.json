@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_superclass@1",
+  "task_completion": [
+    {
+      "id": "superclass_created",
+      "description": "AbstractNotificationService class is created in the correct package",
+      "points": 10,
+      "visual_evidence": "In the Eclipse Package Explorer, 'AbstractNotificationService.java' is visible under 'notification-system/src/main/java/com/acme/notify'."
+    },
+    {
+      "id": "superclass_contains_members",
+      "description": "The extracted fields and methods are present in AbstractNotificationService",
+      "points": 20,
+      "visual_evidence": "The editor shows AbstractNotificationService.java containing the fields 'serviceName', 'enabled', 'maxRetries' and methods like 'isEnabled()', 'validateRecipient()', etc."
+    },
+    {
+      "id": "subclasses_extend_superclass",
+      "description": "EmailNotificationService and SMSNotificationService extend the new superclass",
+      "points": 20,
+      "visual_evidence": "The editor shows the class declarations for EmailNotificationService and SMSNotificationService including 'extends AbstractNotificationService'."
+    },
+    {
+      "id": "subclasses_cleaned_and_initialized",
+      "description": "Duplicated fields are removed from subclasses and initialized in constructors",
+      "points": 20,
+      "visual_evidence": "The editor for the subclasses shows that the shared fields (serviceName, enabled, maxRetries) are no longer declared at the top of the class, and the constructors either call 'super(...)' or set these inherited fields directly."
+    },
+    {
+      "id": "no_compilation_errors",
+      "description": "The project builds successfully with no errors",
+      "points": 10,
+      "visual_evidence": "The Eclipse 'Problems' view shows 0 Errors, and there are no red underline squiggles or red 'x' marks on the project files in the Package Explorer."
+    },
+    {
+      "id": "tests_passing",
+      "description": "All unit tests in NotificationServiceTest pass",
+      "points": 20,
+      "visual_evidence": "The Eclipse JUnit view is visible showing a solid green bar for 'NotificationServiceTest', indicating all tests passed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_eclipse_ide",
+      "description": "The agent used the Eclipse IDE to perform the refactoring and testing",
+      "visual_evidence": "Screenshots show the Eclipse IDE interface (Package Explorer, Editor, Problems view, JUnit view) rather than just terminal windows with text editors like nano/vim or command-line build outputs."
+    },
+    {
+      "id": "genuine_junit_execution",
+      "description": "The tests were actually executed within the IDE",
+      "visual_evidence": "The JUnit view shows actual execution statistics (e.g., Runs: 6/6, execution time) and a green bar, rather than a mocked text output."
+    },
+    {
+      "id": "correct_workspace_location",
+      "description": "The agent worked in the correct project directory",
+      "visual_evidence": "The Package Explorer or terminal paths confirm the project is 'notification-system' located in the workspace, not a newly created dummy project."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/eclipse-workspace/notification-system. The extracted superclass must be named 'AbstractNotificationService'. Exactly 3 fields (serviceName, enabled, maxRetries) and 7 methods (isEnabled, setEnabled, getServiceName, getMaxRetries, setMaxRetries, validateRecipient, createFailureResult) must be extracted. Although the task description mentions '20+ existing unit tests', there are actually exactly 6 test methods in NotificationServiceTest. The VLM should look for 6/6 passing tests in the JUnit view."
+}

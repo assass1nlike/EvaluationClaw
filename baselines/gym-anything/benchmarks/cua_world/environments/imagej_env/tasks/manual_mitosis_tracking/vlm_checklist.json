@@ -1,0 +1,47 @@
+{
+  "task_id": "manual_mitosis_tracking@1",
+  "task_completion": [
+    {
+      "id": "open_mitosis_sample",
+      "description": "Open the 'Mitosis' sample image in ImageJ.",
+      "points": 10,
+      "visual_evidence": "ImageJ application is open with an image window titled 'Mitosis.tif' or 'mitosis.tif'."
+    },
+    {
+      "id": "create_z_projection",
+      "description": "Create a Max Intensity Z-Projection of the image.",
+      "points": 20,
+      "visual_evidence": "An image window titled 'MAX_Mitosis.tif' (or similar) is visible, or the Z-Projection dialog box is open with 'Max Intensity' selected."
+    },
+    {
+      "id": "record_coordinates",
+      "description": "Record the X, Y centroid coordinates for Frames 1, 6, 11, 16, and 21.",
+      "points": 30,
+      "visual_evidence": "A Results table in ImageJ, or a text editor/spreadsheet showing the recorded X, Y coordinates for the specified frames."
+    },
+    {
+      "id": "save_csv_file",
+      "description": "Save the tracking results in CSV format to ~/ImageJ_Data/results/tracking_trace.csv.",
+      "points": 40,
+      "visual_evidence": "A text editor, terminal, or file manager showing the file 'tracking_trace.csv' saved in the '~/ImageJ_Data/results/' directory with 'Frame, X, Y' columns."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_imagej_gui",
+      "description": "The agent used the ImageJ GUI to open the image and perform the Z-projection.",
+      "visual_evidence": "Screenshots show the ImageJ interface being actively used, rather than just terminal commands or scripts."
+    },
+    {
+      "id": "manual_tracking_evidence",
+      "description": "The agent manually tracked the cells using ImageJ tools.",
+      "visual_evidence": "Point selections on the image, use of the Multi-point tool, or the ImageJ Results table being populated with measurements."
+    },
+    {
+      "id": "plausible_coordinates",
+      "description": "The recorded coordinates appear to be derived from actual measurement.",
+      "visual_evidence": "The coordinates in the CSV roughly match the expected trajectory (starting near X=145, Y=130 and ending near X=170, Y=130) and are not just random numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The target cell starts near X=145, Y=130 in Frame 1. The right-most daughter cell moves to approximately X=162, Y=125 by Frame 21. The ground truth coordinates for Frames 1, 6, 11, 16, 21 are approximately (145, 130), (146, 130), (145, 130), (155, 130), and (170, 130), with a tolerance of 25 pixels. The final output must be saved to /home/ga/ImageJ_Data/results/tracking_trace.csv."
+}

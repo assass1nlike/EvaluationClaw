@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_variable_speed_signs@1",
+  "task_completion": [
+    {
+      "id": "create_vss_add_xml",
+      "description": "Create the pasubio_vss.add.xml file in the scenario directory.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command (like 'touch', 'nano', 'vim', or 'cat') showing the creation or editing of '/home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_vss.add.xml'."
+    },
+    {
+      "id": "vss_element_and_lanes",
+      "description": "Configure the variableSpeedSign element with the correct ID and target lanes.",
+      "points": 20,
+      "visual_evidence": "The contents of pasubio_vss.add.xml must show an XML element <variableSpeedSign> with attributes id=\"vss_peak_control\" and lanes=\"12_0 12_1 12_2\"."
+    },
+    {
+      "id": "vss_speed_schedule",
+      "description": "Configure the correct speed steps inside the variableSpeedSign element.",
+      "points": 20,
+      "visual_evidence": "The contents of pasubio_vss.add.xml must show nested <step> elements with time=\"0\" speed=\"13.89\", time=\"300\" speed=\"8.33\", and time=\"900\" speed=\"13.89\"."
+    },
+    {
+      "id": "update_sumocfg",
+      "description": "Update run.sumocfg to include the new additional file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing modifications to '/home/ga/SUMO_Scenarios/bologna_pasubio/run.sumocfg', specifically adding 'pasubio_vss.add.xml' to the <additional-files> tag."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation using the updated configuration.",
+      "points": 15,
+      "visual_evidence": "A terminal showing the execution of a SUMO command (e.g., 'sumo -c run.sumocfg' or 'sumo-gui') and the resulting simulation progress output."
+    },
+    {
+      "id": "generate_tripinfos",
+      "description": "Generate the tripinfos.xml file as a result of the simulation.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the successful generation of 'tripinfos.xml' (e.g., via an 'ls' command in the scenario directory after running the simulation, or SUMO logs indicating tripinfo output was written)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_run",
+      "description": "Verify the agent actually ran the SUMO simulation to generate the output.",
+      "visual_evidence": "Look for authentic SUMO terminal output (e.g., 'Step #...', 'Simulation ended at time...', 'Reason: The final simulation step has been reached') rather than the agent just using 'touch tripinfos.xml' to create an empty file."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent edited the configuration files properly.",
+      "visual_evidence": "Look for standard text editor interfaces (nano, vim, gedit) or echo/cat commands being used to modify the .xml and .sumocfg files, rather than downloading pre-made files."
+    },
+    {
+      "id": "correct_directory_context",
+      "description": "Verify the agent is working in the correct scenario directory.",
+      "visual_evidence": "Terminal prompts or file paths in editors should clearly show the agent is operating within '/home/ga/SUMO_Scenarios/bologna_pasubio'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target lanes for the Variable Speed Sign are '12_0 12_1 12_2'. The required speed schedule is: 13.89 m/s at step 0, 8.33 m/s at step 300, and 13.89 m/s at step 900. The scenario directory is /home/ga/SUMO_Scenarios/bologna_pasubio."
+}

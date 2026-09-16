@@ -1,0 +1,35 @@
+{
+  "id": "assess_structure_flood_impact@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the peak flood depth for critical infrastructure facilities in Muncie by interpolating HEC-RAS unsteady flow simulation (Plan 04) results. Using 'critical_infrastructure.csv' (containing Facility Name, River Station, and First Floor Elevation), extract the maximum Water Surface Elevation (WSE) profile from the results HDF5 file. For each facility, linearly interpolate the Max WSE at its specific river station and calculate the flood depth (Interpolated Max WSE - FFE). Assign a status of 'FLOODED' if the depth is greater than 0, otherwise 'SAFE'. Save the assessment report including Facility_Name, River_Station, FFE_ft, Interpolated_Max_WSE_ft, Flood_Depth_ft, and Status to '~/Documents/hec_ras_results/structure_impact_assessment.csv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assess_structure_flood_impact/setup_task.sh",
+    "post_task": "/workspace/tasks/assess_structure_flood_impact/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "critical_infrastructure.csv",
+    "output_file": "/home/ga/Documents/hec_ras_results/structure_impact_assessment.csv",
+    "required_columns": [
+      "Facility_Name",
+      "River_Station",
+      "FFE_ft",
+      "Interpolated_Max_WSE_ft",
+      "Flood_Depth_ft",
+      "Status"
+    ],
+    "tolerance_ft": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assess_structure_flood_impact"
+    }
+  }
+}

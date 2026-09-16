@@ -1,0 +1,48 @@
+{
+  "task_id": "configure_holiday_schedules@1",
+  "task_completion": [
+    {
+      "id": "api_script_or_commands",
+      "description": "Agent creates a script or uses commands to interact with the Nx Witness REST API.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor showing a script (e.g., Python) or terminal showing curl commands targeting https://localhost:7001 with credentials admin/Admin1234!."
+    },
+    {
+      "id": "entrance_lobby_schedule",
+      "description": "Agent configures the Entrance and Lobby cameras schedule.",
+      "points": 20,
+      "visual_evidence": "Look for code or commands setting the schedule for 'Entrance Camera' and 'Lobby Camera' to 'always' mode, 'high' quality, and 25 FPS for all 24 hours."
+    },
+    {
+      "id": "parking_loading_schedule",
+      "description": "Agent configures the Parking Lot and Loading Dock cameras schedule.",
+      "points": 25,
+      "visual_evidence": "Look for code or commands setting the schedule for 'Parking Lot Camera' and 'Loading Dock Camera' to 'always' mode, 'high' quality, 15 FPS for 08:00-22:00, and 'motionOnly' mode, 'normal' quality, 10 FPS for 22:00-08:00."
+    },
+    {
+      "id": "server_room_schedule",
+      "description": "Agent configures the Server Room camera schedule.",
+      "points": 25,
+      "visual_evidence": "Look for code or commands setting the schedule for 'Server Room Camera' to 'always' mode, 'low' quality, 5 FPS for weekdays (Mon-Fri), and 'motionOnly' mode, 'low' quality, 5 FPS for weekends (Sat-Sun)."
+    },
+    {
+      "id": "summary_report_created",
+      "description": "Agent exports a summary report of the configurations.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command like `cat /home/ga/recording_schedule_report.txt` or a text editor showing the file `/home/ga/recording_schedule_report.txt` containing the schedule details for all five cameras."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_executed",
+      "description": "The script or commands were actually executed.",
+      "visual_evidence": "Look for terminal output showing the script being run (e.g., `python3 script.py`) or curl commands being executed, rather than just being written in an editor."
+    },
+    {
+      "id": "no_manual_fake_report",
+      "description": "The report was generated programmatically or accurately reflects the API configuration.",
+      "visual_evidence": "Ensure the report file wasn't just manually typed with fake data without any actual API interaction occurring in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Nx Witness REST API is at https://localhost:7001. Credentials: admin / Admin1234!. Schedules to verify: 1) Entrance & Lobby: 24/7 'always', high quality, 25fps. 2) Parking Lot & Loading Dock: 08:00-22:00 'always', high quality, 15fps; 22:00-08:00 'motionOnly', normal quality, 10fps. 3) Server Room: Mon-Fri 'always', low quality, 5fps; Sat-Sun 'motionOnly', low quality, 5fps. Report must be at /home/ga/recording_schedule_report.txt."
+}

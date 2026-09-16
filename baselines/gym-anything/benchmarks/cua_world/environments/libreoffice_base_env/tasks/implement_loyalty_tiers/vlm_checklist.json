@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_loyalty_tiers@1",
+  "task_completion": [
+    {
+      "id": "database_opened",
+      "description": "Open the Chinook database file",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the database file (/home/ga/chinook.odb) opened in a database management tool such as LibreOffice Base."
+    },
+    {
+      "id": "column_added",
+      "description": "Add the LoyaltyTier column to the Customer table",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the table design view or an executed SQL ALTER TABLE command adding a 'LoyaltyTier' column of type VARCHAR (or Text) to the 'Customer' table."
+    },
+    {
+      "id": "platinum_tier_logic",
+      "description": "Implement logic for the Platinum tier",
+      "points": 15,
+      "visual_evidence": "Screenshots showing an SQL query (UPDATE or SELECT) or GUI filter that calculates the sum of 'Total' from the 'Invoice' table and assigns 'Platinum' to customers with a total spending strictly greater than 45.00."
+    },
+    {
+      "id": "gold_tier_logic",
+      "description": "Implement logic for the Gold tier",
+      "points": 15,
+      "visual_evidence": "Screenshots showing an SQL query or GUI filter assigning 'Gold' to customers with a total spending between 40.00 and 45.00 inclusive (e.g., >= 40.00 AND <= 45.00)."
+    },
+    {
+      "id": "silver_tier_logic",
+      "description": "Implement logic for the Silver tier",
+      "points": 15,
+      "visual_evidence": "Screenshots showing an SQL query or GUI filter assigning 'Silver' to customers with a total spending strictly less than 40.00."
+    },
+    {
+      "id": "table_data_verified",
+      "description": "Verify the populated LoyaltyTier data in the Customer table",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the data view of the 'Customer' table with the 'LoyaltyTier' column successfully populated with 'Platinum', 'Gold', and 'Silver' values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with the actual database file",
+      "visual_evidence": "Screenshots show interaction with the actual database interface (e.g., LibreOffice Base) executing changes, rather than just writing SQL commands in a text editor without running them."
+    },
+    {
+      "id": "dynamic_calculation_used",
+      "description": "Agent calculated tiers dynamically using Invoice totals",
+      "visual_evidence": "Screenshots show SQL queries using SUM(), JOINs between Customer and Invoice tables, or equivalent dynamic calculations, rather than manually hardcoding tier values for specific customer IDs."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "Results are shown in the genuine database application",
+      "visual_evidence": "The final populated table is viewed within the database application's table viewer, not in a separate mocked spreadsheet or text document."
+    }
+  ],
+  "privileged_info_for_vlm": "Database path: /home/ga/chinook.odb. Total customers: 59. Total invoices: 412. Correct tier distribution: 5 Platinum (> 45.00), 9 Gold (40.00 to 45.00 inclusive), 45 Silver (< 40.00). The VLM should verify that the logic used strictly follows these boundaries (e.g., Platinum is strictly greater than 45.00, not >= 45.00)."
+}

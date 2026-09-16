@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_compose_external_bridge@1",
+  "task_completion": [
+    {
+      "id": "networks_created",
+      "description": "Create the two external Docker networks.",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands like 'docker network create infra-db-net' and 'docker network create infra-cache-net', or 'docker network ls' listing both networks."
+    },
+    {
+      "id": "shared_infra_compose_modified",
+      "description": "Modify the shared-infra docker-compose.yml to use the external networks.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing '/home/ga/Documents/docker-projects/shared-infra/docker-compose.yml' with a 'networks:' block defining 'infra-db-net' and 'infra-cache-net' as 'external: true', and the database and cache services attached to them."
+    },
+    {
+      "id": "flask_api_compose_modified",
+      "description": "Modify the flask-api docker-compose.yml to use the external networks.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing '/home/ga/Documents/docker-projects/flask-api/docker-compose.yml' with a 'networks:' block defining 'infra-db-net' and 'infra-cache-net' as 'external: true', and the API service attached to them."
+    },
+    {
+      "id": "health_checks_verified",
+      "description": "Verify connectivity via the Flask app's health checks.",
+      "points": 20,
+      "visual_evidence": "A web browser or terminal (using curl) showing successful HTTP responses from 'http://localhost:5050/health/db' and 'http://localhost:5050/health/redis'."
+    },
+    {
+      "id": "report_saved",
+      "description": "Save a report confirming the network configuration and connection status.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the creation or content of '/home/ga/Documents/docker-projects/connectivity-report.txt' containing confirmation of the network setup and connection status."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "containers_running",
+      "description": "Ensure the agent actually started the Docker containers to test connectivity.",
+      "visual_evidence": "Terminal showing 'docker compose up' or 'docker ps' with the containers 'shared-postgres', 'shared-redis', and 'flask-api' running."
+    },
+    {
+      "id": "actual_health_check_performed",
+      "description": "Ensure the agent actually performed the health checks rather than just assuming they work.",
+      "visual_evidence": "Visible output from a browser or curl command showing the actual JSON or text response from the health check endpoints, not just a script or text file being edited."
+    },
+    {
+      "id": "genuine_report",
+      "description": "Ensure the report is written based on actual verification rather than copy-pasting the task description.",
+      "visual_evidence": "The content of 'connectivity-report.txt' should contain specific details or status messages confirming the setup, rather than just repeating the prompt's instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "The project root is '/home/ga/Documents/docker-projects'. The expected external networks are 'infra-db-net' and 'infra-cache-net'. The expected container names are 'shared-postgres', 'shared-redis', and 'flask-api'. The API application exposes port 5050. The final report must be saved to '/home/ga/Documents/docker-projects/connectivity-report.txt'."
+}

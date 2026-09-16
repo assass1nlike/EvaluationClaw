@@ -1,0 +1,36 @@
+{
+  "id": "export_selected_cases_ris@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Export the US Supreme Court cases 'Brown v. Board of Education', 'Miranda v. Arizona', and 'Gideon v. Wainwright' from the Juris-M library to a RIS file at /home/ga/Documents/landmark_cases.ris. Ensure only these three items are included in the export.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_selected_cases_ris/setup_task.sh",
+    "post_task": "/workspace/tasks/export_selected_cases_ris/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/landmark_cases.ris",
+    "required_cases": [
+      "Brown v. Board of Education",
+      "Miranda v. Arizona",
+      "Gideon v. Wainwright"
+    ],
+    "unwanted_cases": [
+      "Marbury v. Madison",
+      "Obergefell v. Hodges",
+      "Tinker v. Des Moines"
+    ],
+    "expected_item_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_selected_cases_ris"
+    }
+  }
+}

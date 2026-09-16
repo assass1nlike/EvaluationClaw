@@ -1,0 +1,33 @@
+{
+  "id": "vecm_gdp_inflation@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a Vector Error Correction Model (VECM) analysis on US GDP and Inflation data using the 'usa.gdt' dataset. Create a new variable named 'l_gdp' as the natural logarithm of 'gdp'. Estimate a VECM for 'l_gdp' and 'inf' using a lag order of 4 and a cointegration rank of 1. Save the complete estimation output to /home/ga/Documents/gretl_output/vecm_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vecm_gdp_inflation/setup_task.sh",
+    "post_task": "/workspace/tasks/vecm_gdp_inflation/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "expected_output_path": "/home/ga/Documents/gretl_output/vecm_results.txt",
+    "required_vars": [
+      "l_gdp",
+      "inf"
+    ],
+    "required_method": "VECM",
+    "required_rank": 1,
+    "data_source": "Federal Reserve Bank of St. Louis (FRED) via Principles of Econometrics 5th Ed."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vecm_gdp_inflation"
+    }
+  }
+}

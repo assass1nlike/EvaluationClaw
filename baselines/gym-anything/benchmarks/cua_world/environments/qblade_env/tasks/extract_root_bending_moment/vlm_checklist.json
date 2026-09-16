@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_root_bending_moment@1",
+  "task_completion": [
+    {
+      "id": "create_airfoil_and_polar",
+      "description": "Create a NACA 0012 airfoil (100 panels) and generate a polar at Re=1,000,000, Alpha -5 to 25.",
+      "points": 15,
+      "visual_evidence": "QBlade interface showing 'NACA 0012' in the airfoil list and a generated polar graph or table for Re=1,000,000 with an Alpha range of -5 to 25."
+    },
+    {
+      "id": "extrapolate_polar",
+      "description": "Extrapolate the generated polar to 360 degrees.",
+      "points": 10,
+      "visual_evidence": "A 360-degree polar graph visible (typically showing a full circular or extended alpha range) or the extrapolation module showing 360 deg applied to the NACA 0012 polar."
+    },
+    {
+      "id": "design_rotor",
+      "description": "Design a 3-blade rotor with a 10m length, 0.5m hub radius, 1m chord, and 0 twist.",
+      "points": 20,
+      "visual_evidence": "Rotor design module showing the blade geometry table with chord=1, twist=0, blade length extending to 10m (or total radius 10.5m), and the number of blades set to 3."
+    },
+    {
+      "id": "run_bem_simulation",
+      "description": "Run a Wind Speed Sweep BEM Simulation from 5 to 25 m/s at 60 RPM and 0 pitch.",
+      "points": 25,
+      "visual_evidence": "Simulation definition window or results graph showing 'Wind Speed Sweep' selected, range 5-25 m/s, RPM=60, and Pitch=0."
+    },
+    {
+      "id": "view_bending_moment_results",
+      "description": "Identify the Maximum Root Flapwise Bending Moment (My) from the simulation results.",
+      "points": 10,
+      "visual_evidence": "QBlade results graph or table displaying 'Root Flapwise Bending Moment' or 'My' vs Wind Speed, with the maximum value visible or selected."
+    },
+    {
+      "id": "write_output_file",
+      "description": "Write the extracted maximum moment value in Nm (rounded to the nearest integer) to the specified text file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the file '/home/ga/Documents/projects/root_moment_report.txt' containing a single integer value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qblade_gui_used",
+      "description": "The agent used the QBlade GUI to perform the simulation rather than faking the output.",
+      "visual_evidence": "Screenshots must show the QBlade application open with the specific airfoil, rotor, and simulation data populated, not just a text editor or terminal."
+    },
+    {
+      "id": "plausible_moment_value",
+      "description": "The extracted moment value is physically plausible based on the simulation parameters.",
+      "visual_evidence": "The value written to the text file must be an integer between 20000 and 60000."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The agent saved the file in the exact requested directory.",
+      "visual_evidence": "The text editor or terminal should show the correct absolute path '/home/ga/Documents/projects/root_moment_report.txt' in its title bar, status bar, or command prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/projects/root_moment_report.txt. Based on the physics of the specified 10m blade configuration at 25 m/s wind speed and 60 RPM, the maximum root flapwise bending moment (My) should be an integer between 20000 and 60000 Nm. The VLM should verify that the final text file contains a value within this range."
+}

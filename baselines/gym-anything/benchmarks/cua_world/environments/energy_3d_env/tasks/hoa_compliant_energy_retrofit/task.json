@@ -1,0 +1,28 @@
+{
+  "id": "hoa_compliant_energy_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Retrofit the residential building to reduce energy use by adding solar and insulation, WITHOUT modifying the South-facing facade or South-facing roof (simulating strict HOA constraints). The starting file 'building-passive-heating.ng3' is open. The South facade is the one with the large main windows and front door.\n\nPerform the following:\n1. Decrease the U-value of the non-South walls (North, East, West) to 0.5 or lower. Leave the South wall unchanged.\n2. Decrease the U-value of the windows on the non-South walls to 1.5 or lower. Leave the South windows unchanged.\n3. Add at least 6 solar panels (or a solar rack array) to the East, West, or North roof facets.\n4. Ensure ZERO solar panels are placed on the South-facing roof facet.\n5. Run the Annual Energy Analysis to confirm net energy reduction.\n6. Save the modified project as ~/Documents/Energy3D/hoa_compliant_retrofit.ng3",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hoa_compliant_energy_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/hoa_compliant_energy_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Homeowner / Energy Auditor",
+    "industry": "Residential Real Estate",
+    "starter_file": "building-passive-heating.ng3",
+    "expected_output_path": "/home/ga/Documents/Energy3D/hoa_compliant_retrofit.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hoa_compliant_retrofit"
+    }
+  }
+}

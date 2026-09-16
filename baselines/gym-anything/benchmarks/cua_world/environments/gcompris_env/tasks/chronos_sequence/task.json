@@ -1,0 +1,30 @@
+{
+  "id": "chronos_sequence@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete the 'Chronos' activity in GCompris using the 'Transportation' theme (or 'Plants' if unavailable). Arrange the timeline images in the correct chronological order and save a screenshot of the completed state to /home/ga/Documents/chronos_completion.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chronos_sequence/setup_task.sh",
+    "post_task": "/workspace/tasks/chronos_sequence/export_result.sh"
+  },
+  "metadata": {
+    "target_activity": "Chronos",
+    "themes": [
+      "Transportation",
+      "Plants"
+    ],
+    "expected_action": "drag_and_drop_sort"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chronos_sequence"
+    }
+  }
+}

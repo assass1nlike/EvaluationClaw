@@ -1,0 +1,65 @@
+{
+  "task_id": "sakila_legacy_normalization@1",
+  "task_completion": [
+    {
+      "id": "create_database_and_tables",
+      "description": "Create the 'rental_norm' database and the four normalized tables.",
+      "points": 20,
+      "visual_evidence": "A database client (e.g., DBeaver, MySQL Workbench, or terminal) showing the 'rental_norm' database in the schema explorer with the four tables: 'norm_customers', 'norm_films', 'norm_stores', and 'norm_rentals', or the successful execution of their CREATE statements."
+    },
+    {
+      "id": "migrate_norm_customers",
+      "description": "Migrate and deduplicate customer data into 'norm_customers'.",
+      "points": 15,
+      "visual_evidence": "A query result, table data view, or execution log showing 'norm_customers' populated with data. Look for a row count of exactly 599 rows or an INSERT query grouping/deduplicating by email."
+    },
+    {
+      "id": "migrate_norm_films",
+      "description": "Migrate and deduplicate film data into 'norm_films'.",
+      "points": 15,
+      "visual_evidence": "A query result, table data view, or execution log showing 'norm_films' populated with data. Look for a row count of exactly 958 rows or an INSERT query grouping/deduplicating by title and release_year."
+    },
+    {
+      "id": "migrate_norm_stores",
+      "description": "Migrate store data into 'norm_stores'.",
+      "points": 10,
+      "visual_evidence": "A query result, table data view, or execution log showing 'norm_stores' populated with data. Look for a row count of exactly 2 rows."
+    },
+    {
+      "id": "migrate_norm_rentals",
+      "description": "Migrate rental transaction data into 'norm_rentals'.",
+      "points": 15,
+      "visual_evidence": "A query result, table data view, or execution log showing 'norm_rentals' populated with data. Look for a row count of exactly 16044 rows and the presence of foreign keys mapping to customers, films, and stores."
+    },
+    {
+      "id": "create_denormalized_view",
+      "description": "Create the view 'v_rental_denormalized' joining the four tables.",
+      "points": 15,
+      "visual_evidence": "The database client showing the view 'v_rental_denormalized' created within the 'rental_norm' database, or a successful execution of a CREATE VIEW statement that joins the four normalized tables."
+    },
+    {
+      "id": "export_customers_csv",
+      "description": "Export the 'norm_customers' table to a CSV file.",
+      "points": 10,
+      "visual_evidence": "A file manager, terminal (e.g., ls command), or text editor showing the file 'normalized_customers.csv' successfully created in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent interacted with a real database client or CLI to perform the normalization.",
+      "visual_evidence": "Screenshots should show a genuine database tool (like DBeaver, MySQL CLI, or a script running SQL) executing queries, rather than the agent just typing expected row counts into a text file."
+    },
+    {
+      "id": "actual_data_migration",
+      "description": "Verify the agent actually migrated data from the source table.",
+      "visual_evidence": "SQL queries visible in the screenshots should show SELECT statements pulling from 'legacy_data.rental_flat' to INSERT into the new tables, rather than mocking or generating fake data."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify the CSV export was generated from the database.",
+      "visual_evidence": "The CSV file should be generated via a database export tool, an 'INTO OUTFILE' SQL command, or a script, rather than being manually typed or copied from an unrelated source."
+    }
+  ],
+  "privileged_info_for_vlm": "The source database is 'legacy_data' containing the flat table 'rental_flat'. The target database must be 'rental_norm' with exactly four tables. Expected row counts after correct deduplication and migration: 'norm_customers' = 599 rows, 'norm_films' = 958 rows, 'norm_stores' = 2 rows, and 'norm_rentals' = 16044 rows. The final view must be named 'v_rental_denormalized'. The exported CSV must be located exactly at '/home/ga/Documents/exports/normalized_customers.csv'."
+}

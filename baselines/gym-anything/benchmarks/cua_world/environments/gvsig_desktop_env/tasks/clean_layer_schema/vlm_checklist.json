@@ -1,0 +1,53 @@
+{
+  "task_id": "clean_layer_schema@1",
+  "task_completion": [
+    {
+      "id": "layer_selected",
+      "description": "The agent selects the 'ne_110m_admin_0_countries' layer in the GIS application.",
+      "points": 10,
+      "visual_evidence": "The GIS application (e.g., gvSIG) is open, and the 'ne_110m_admin_0_countries' layer is visible and highlighted/selected in the Table of Contents or layer list."
+    },
+    {
+      "id": "schema_editing_mode",
+      "description": "The agent opens the schema editing or table manager dialog for the layer.",
+      "points": 10,
+      "visual_evidence": "A 'Table Manager', 'Field Properties', 'Edit Schema', or similar dialog box is open, displaying the list of attribute fields for the layer."
+    },
+    {
+      "id": "fields_removed",
+      "description": "The agent removes the 'ECONOMY' and 'MAPCOLOR7' fields.",
+      "points": 20,
+      "visual_evidence": "The fields 'ECONOMY' and 'MAPCOLOR7' are selected for deletion, or the schema list is shown updated with these specific fields no longer present."
+    },
+    {
+      "id": "field_added",
+      "description": "The agent adds the 'LICENSE' field with the correct type and length.",
+      "points": 30,
+      "visual_evidence": "A new field named 'LICENSE' is visible in the schema list or 'Add Field' dialog. Its type is set to String/Text (or 'C' for Character) and its length/size is set to 20 or greater."
+    },
+    {
+      "id": "export_path_specified",
+      "description": "The agent exports the modified layer to the specified shapefile path.",
+      "points": 30,
+      "visual_evidence": "An 'Export', 'Save As', or 'Export to Shapefile' dialog is visible with the exact file path '/home/ga/gvsig_data/exports/countries_cleaned.shp' entered, or a success message confirming this path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_schema",
+      "description": "The agent used the application's GUI to modify the schema.",
+      "visual_evidence": "Schema changes (adding/removing fields) are performed in the GIS software's dialog windows, not by typing terminal commands (like ogr2ogr or python scripts)."
+    },
+    {
+      "id": "gui_used_for_export",
+      "description": "The agent used the application's GUI to export the shapefile.",
+      "visual_evidence": "The export process is handled via the GIS software's menus and export dialogs, rather than using terminal commands to copy or convert files."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not bypass the task by creating a fake file.",
+      "visual_evidence": "There are no terminal windows showing commands like 'touch /home/ga/gvsig_data/exports/countries_cleaned.shp' or text editors saving empty files to the target path."
+    }
+  ],
+  "privileged_info_for_vlm": "The original dataset contains exactly 177 records. The fields to remove are 'ECONOMY' and 'MAPCOLOR7'. The field to add is 'LICENSE' (Type: C / String / Text). The expected output path is exactly '/home/ga/gvsig_data/exports/countries_cleaned.shp' and its corresponding DBF is '/home/ga/gvsig_data/exports/countries_cleaned.dbf'."
+}

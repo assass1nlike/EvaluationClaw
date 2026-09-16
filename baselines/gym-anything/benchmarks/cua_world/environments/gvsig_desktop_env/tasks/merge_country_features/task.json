@@ -1,0 +1,34 @@
+{
+  "id": "merge_country_features@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Create a specific sales region by merging Belgium, Netherlands, and Luxembourg from the 'ne_110m_admin_0_countries' layer into a single feature. Set the 'NAME' attribute of the new merged feature to \"Benelux Region\" and export the result to a new shapefile named 'sales_regions.shp' at /home/ga/gvsig_data/exports/. The final layer should contain the \"Benelux Region\" feature in place of the individual countries.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_country_features/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_country_features/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "sales_regions.shp",
+    "expected_path": "/home/ga/gvsig_data/exports/sales_regions.shp",
+    "target_name": "Benelux Region",
+    "source_names": [
+      "Belgium",
+      "Netherlands",
+      "Luxembourg"
+    ],
+    "original_feature_count": 177,
+    "expected_feature_count": 175
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_country_features"
+    }
+  }
+}

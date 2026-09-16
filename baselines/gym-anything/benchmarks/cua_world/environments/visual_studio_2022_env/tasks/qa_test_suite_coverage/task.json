@@ -1,0 +1,33 @@
+{
+  "id": "qa_test_suite_coverage@1",
+  "version": "1.0",
+  "env_id": "visual_studio_2022_env@0.1",
+  "description": "You are a QA engineer at a fintech company. The FinancialCalc library was recently shipped with zero automated tests. The CI/CD pipeline requires 80% code coverage, but the build currently fails the coverage gate. Write a comprehensive xUnit test suite for the FinancialCalc library within the FinancialCalc.Tests project. The library includes the LoanCalculator (monthly payments and total interest), CompoundInterestEngine (future value with periodic compounding), and CurrencyConverter (direct and multi-hop conversions). Your test suite must cover happy path calculations, edge cases (e.g., zero interest, single payment), and error cases (e.g., negative principal, invalid currency codes). Implement at least three test methods for each calculator class for a minimum of nine total tests. The solution is open in Visual Studio 202",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\qa_test_suite_coverage\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\qa_test_suite_coverage\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "FinancialCalc",
+    "project_path": "C:\\Users\\Docker\\source\\repos\\FinancialCalc",
+    "test_project": "FinancialCalc.Tests",
+    "test_file": "FinancialCalcTests.cs",
+    "min_test_methods": 9,
+    "classes_under_test": [
+      "LoanCalculator",
+      "CompoundInterestEngine",
+      "CurrencyConverter"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_qa_test_suite_coverage"
+    }
+  }
+}

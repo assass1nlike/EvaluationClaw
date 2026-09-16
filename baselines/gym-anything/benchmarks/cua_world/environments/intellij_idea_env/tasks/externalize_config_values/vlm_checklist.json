@@ -1,0 +1,59 @@
+{
+  "task_id": "externalize_config_values@1",
+  "task_completion": [
+    {
+      "id": "create_properties_file",
+      "description": "Create a config.properties file containing the externalized configuration values.",
+      "points": 20,
+      "visual_evidence": "Look for an editor or terminal output showing a new file named 'config.properties' located in 'src/main/resources/'. It should contain key-value pairs for the database, API, and file processing configurations (e.g., db.url=jdbc:postgresql://...)."
+    },
+    {
+      "id": "implement_properties_loader",
+      "description": "Implement a mechanism to load the properties from the config.properties file.",
+      "points": 20,
+      "visual_evidence": "Look for Java code (either in a new utility class or within the existing service classes) that uses java.util.Properties and loads the file, typically using ClassLoader.getResourceAsStream('config.properties') or a similar file reading approach."
+    },
+    {
+      "id": "refactor_database_service",
+      "description": "Update DatabaseService.java to use the loaded properties instead of hardcoded strings.",
+      "points": 15,
+      "visual_evidence": "Look at DatabaseService.java in the editor. The hardcoded values for the DB URL, username, password, and pool size should be removed and replaced with variables or method calls that retrieve the values from the properties object."
+    },
+    {
+      "id": "refactor_api_client",
+      "description": "Update ApiClient.java to use the loaded properties instead of hardcoded strings.",
+      "points": 15,
+      "visual_evidence": "Look at ApiClient.java in the editor. The hardcoded values for the API base URL, API key, and timeout should be removed and replaced with dynamic property retrievals."
+    },
+    {
+      "id": "refactor_file_processor",
+      "description": "Update FileProcessor.java to use the loaded properties instead of hardcoded strings.",
+      "points": 15,
+      "visual_evidence": "Look at FileProcessor.java in the editor. The hardcoded values for the input directory, output directory, and max file size should be removed and replaced with dynamic property retrievals."
+    },
+    {
+      "id": "successful_compilation",
+      "description": "The project must compile successfully after the refactoring.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window showing the execution of a build command like 'mvn compile' or 'mvn clean install' with a 'BUILD SUCCESS' message, or an IDE build output window indicating that the compilation finished without errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_project_directory",
+      "description": "The agent modified the files in the correct project directory.",
+      "visual_evidence": "Check the file paths in the editor tabs, file explorer, or terminal prompts. They should point to '/home/ga/IdeaProjects/config-app' and not a mock or temporary directory."
+    },
+    {
+      "id": "no_hardcoded_bypass",
+      "description": "The agent did not simply move the hardcoded strings to another Java class.",
+      "visual_evidence": "Ensure the values are actually being read from a '.properties' file (or similar external configuration file) and not just stored as static final strings in a new 'Constants.java' or 'Config.java' file."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "The compilation success is genuine and not a printed mock statement.",
+      "visual_evidence": "The build output should look like standard Maven or IDE output, showing the scanning of projects, compiling of source files, and a realistic execution time, rather than a simple 'echo BUILD SUCCESS'."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/IdeaProjects/config-app. The 10 specific values that MUST be moved to src/main/resources/config.properties are: 1) jdbc:postgresql://prod-db.internal:5432/appworks 2) app_user 3) s3cureP@ss! 4) 10 5) https://api.external-service.com/v2 6) ak_live_7f8g9h0j1k2l3m4n 7) 5000 8) /data/incoming 9) /data/processed 10) 50. The source files DatabaseService.java, ApiClient.java, and FileProcessor.java must no longer contain these literal values."
+}

@@ -1,0 +1,78 @@
+{
+  "dataset_id": "abcc59fd",
+  "name": "Pedestrian Semantic Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 160,
+  "description": "The Pedestrian Semantic Segmentation dataset pairs urban street images with natural language prompts instructing the segmentation of pedestrians, and provides pixel-level ground-truth masks. It evaluates text-guided image semantic segmentation in driving scenes.",
+  "card_text": "This dataset consists of 160 samples from urban driving scenes (Cityscapes-style). Each sample includes an RGB image (input.image_file), a short text prompt (input.prompt) such as 'Segment out the pedestrian in the image', and a corresponding ground-truth label ID mask (output.map_file) that encodes pixel-level semantic classes. The images show complex street scenes with multiple objects; the prompt specifies the target class to segment. The mask uses integer label IDs for all classes, including the pedestrian class. The task requires the model to produce a segmentation map that correctly segments the instructed class. Assumptions: images and masks are spatially aligned, labels follow a fixed ID scheme, and the prompt is a direct segmentation instruction.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "autonomous driving / urban street scenes",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "The input RGB image shows an urban street scene from a driving perspective, typically containing pedestrians and other objects; it serves as the visual input that the model must segment.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short natural language instruction that tells the model which object class to segment (e.g., 'Segment out the pedestrian in the image').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The ground-truth semantic segmentation mask corresponding to the input image, stored as a label ID PNG. It provides pixel-level class annotations, including the pedestrian category, and serves as the target output for the segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image_file path and a text prompt instructing pedestrian segmentation, and an output object with a map_file path to the corresponding ground-truth label ID mask. The image and mask are spatially aligned; the prompt defines the target category for the pixel-level segmentation. No additional structured fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/pedestrian_semantic_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "pedestrian semantic segmentation",
+      "type": "comprehension",
+      "skill": "Image Semantic Segmentation (Img Sem Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

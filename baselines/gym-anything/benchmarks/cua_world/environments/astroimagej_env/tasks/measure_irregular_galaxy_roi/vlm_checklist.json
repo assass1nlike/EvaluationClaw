@@ -1,0 +1,59 @@
+{
+  "task_id": "measure_irregular_galaxy_roi@1",
+  "task_completion": [
+    {
+      "id": "open_fits_file",
+      "description": "Verify that the uit_galaxy_sample.fits file is opened in AstroImageJ.",
+      "points": 10,
+      "visual_evidence": "AstroImageJ window displaying an image with the title bar showing 'uit_galaxy_sample.fits'."
+    },
+    {
+      "id": "set_measurements",
+      "description": "Verify that the required measurement parameters (Area, Mean gray value, Integrated density) are configured.",
+      "points": 10,
+      "visual_evidence": "The 'Set Measurements' dialog box in AstroImageJ showing checkboxes ticked for 'Area', 'Mean gray value', and 'Integrated density'."
+    },
+    {
+      "id": "draw_polygon_roi",
+      "description": "Verify that a polygon selection with at least 6 vertices is drawn around the bright central core of the galaxy.",
+      "points": 20,
+      "visual_evidence": "A yellow polygon outline visible on the galaxy image in AstroImageJ, clearly having 6 or more distinct vertices (corners) enclosing the bright central region."
+    },
+    {
+      "id": "perform_measurement",
+      "description": "Verify that the measurement has been performed and the Results table is displayed.",
+      "points": 20,
+      "visual_evidence": "A 'Results' window in AstroImageJ showing a row of data with columns corresponding to Area, Mean, and IntDen."
+    },
+    {
+      "id": "save_measurement_csv",
+      "description": "Verify that the measurement table is saved as galaxy_measurements.csv in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing 'galaxy_measurements.csv' being saved to the '~/AstroImages/measurements/' directory, or a terminal/file manager confirming the file's existence."
+    },
+    {
+      "id": "save_roi_coordinates",
+      "description": "Verify that the polygon selection's XY coordinates are saved as roi_coordinates.txt in the correct directory.",
+      "points": 20,
+      "visual_evidence": "AstroImageJ 'Save XY Coordinates' dialog showing 'roi_coordinates.txt' being saved to '~/AstroImages/measurements/', or a terminal/file manager confirming the file's existence."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_astroimagej_gui",
+      "description": "Ensure the agent used AstroImageJ to perform the measurements rather than generating mock files via terminal commands or scripts.",
+      "visual_evidence": "Screenshots showing the AstroImageJ interface, image window, and Results table being actively used."
+    },
+    {
+      "id": "genuine_roi_selection",
+      "description": "Ensure the polygon selection was actually drawn on the image and not just simulated.",
+      "visual_evidence": "The polygon tool must be visibly active in the toolbar and the yellow selection outline must be seen on the actual galaxy image in the AstroImageJ window."
+    },
+    {
+      "id": "authentic_file_saving",
+      "description": "Ensure the output files were saved from AstroImageJ's export/save functions, not manually typed into a text editor.",
+      "visual_evidence": "AstroImageJ 'Save As' or 'Save XY Coordinates' dialog boxes appearing in the screenshots, rather than a text editor like nano or vim being used to write the CSV/TXT files from scratch."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the file 'uit_galaxy_sample.fits'. The polygon ROI must contain a minimum of 6 vertices. The expected output files are exactly '/home/ga/AstroImages/measurements/galaxy_measurements.csv' for the measurement table and '/home/ga/AstroImages/measurements/roi_coordinates.txt' for the ROI coordinates."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "chinook_acquisition_merger@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "The company has acquired 'QuickTunes', and their lead data needs to be merged into our main database. Merge leads from the 'leads' table in '/home/ga/Documents/databases/acquisitions.db' into the 'customers' table of the Chinook database ('/home/ga/Documents/databases/chinook.db'). During the merge, split 'full_name' into 'FirstName' and 'LastName' (using a space separator), map 'iso_country' codes ('US' to 'USA', 'CA' to 'Canada', 'MX' to 'Mexico'), and set 'SupportRepId' to 3 for all new entries. Prevent importing any lead whose email already exists in the 'customers' table. Export the newly added customers to '/home/ga/Documents/exports/new_acquisitions.csv' (including CustomerId, FirstName, LastName, Email, and Country) and save the migration SQL script to '/home/ga/Documents/scripts/merge_leads.sql'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_acquisition_merger/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_acquisition_merger/export_result.sh"
+  },
+  "metadata": {
+    "main_db_path": "/home/ga/Documents/databases/chinook.db",
+    "source_db_path": "/home/ga/Documents/databases/acquisitions.db",
+    "output_csv_path": "/home/ga/Documents/exports/new_acquisitions.csv",
+    "output_sql_path": "/home/ga/Documents/scripts/merge_leads.sql",
+    "expected_new_records": 15,
+    "target_support_rep": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_acquisition_merger"
+    }
+  }
+}

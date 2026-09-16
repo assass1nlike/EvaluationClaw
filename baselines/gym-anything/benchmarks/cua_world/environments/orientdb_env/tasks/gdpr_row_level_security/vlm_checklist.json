@@ -1,0 +1,53 @@
+{
+  "task_id": "gdpr_row_level_security@1",
+  "task_completion": [
+    {
+      "id": "role_created",
+      "description": "Verify the 'us_analytics' role is created and inherits from 'reader'",
+      "points": 15,
+      "visual_evidence": "Look for OrientDB Studio's Security -> Roles tab or console output showing the role 'us_analytics' exists and has 'reader' listed as its inherited/parent role."
+    },
+    {
+      "id": "user_created",
+      "description": "Verify the 'us_partner' user is created and assigned to the 'us_analytics' role",
+      "points": 15,
+      "visual_evidence": "Look for OrientDB Studio's Security -> Users tab or console output showing the user 'us_partner' exists and is associated with the 'us_analytics' role."
+    },
+    {
+      "id": "policy_created",
+      "description": "Verify the 'us_only_policy' security policy is created",
+      "points": 20,
+      "visual_evidence": "Look for OrientDB Studio's Security -> Policies tab or console output showing a policy named 'us_only_policy' has been created."
+    },
+    {
+      "id": "policy_predicate_configured",
+      "description": "Verify the 'us_only_policy' has the correct read predicate",
+      "points": 25,
+      "visual_evidence": "Look for the configuration details of 'us_only_policy' showing the 'Read' predicate is set to \"Nationality = 'American'\" (or equivalent valid SQL syntax)."
+    },
+    {
+      "id": "policy_applied_to_role",
+      "description": "Verify the policy is applied to the 'Profiles' class for the 'us_analytics' role",
+      "points": 25,
+      "visual_evidence": "Look for the 'us_analytics' role configuration (under Policies or Resources) showing that 'us_only_policy' is applied to the 'Profiles' class (often represented as 'database.class.Profiles')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "orientdb_interface_used",
+      "description": "Verify the agent interacted with the actual OrientDB interface",
+      "visual_evidence": "Screenshots should show the OrientDB Studio web interface or the OrientDB console in a terminal, rather than a text editor or a script just being written without execution."
+    },
+    {
+      "id": "commands_actually_executed",
+      "description": "Verify that if terminal commands were used, they were actually executed",
+      "visual_evidence": "If the agent used the OrientDB console, look for server success responses or output tables confirming the execution of CREATE/ALTER commands, not just typed text."
+    },
+    {
+      "id": "no_faked_results",
+      "description": "Verify the results are not mocked or faked",
+      "visual_evidence": "The UI or console output should look consistent with genuine OrientDB behavior, without signs of text pasted over the screen or HTML inspect-element tampering."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a user 'us_partner' with role 'us_analytics' (inheriting from 'reader'). A security policy 'us_only_policy' must be created with a read predicate \"Nationality = 'American'\" and applied to the 'Profiles' class for the 'us_analytics' role. If the agent tests the configuration by querying the Profiles class as 'us_partner', it should return exactly 2 records (john.smith@example.com and domi@nek.gov) out of the 17 total profiles in the database."
+}

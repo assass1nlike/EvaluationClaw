@@ -1,0 +1,59 @@
+{
+  "task_id": "measurement_quality_audit@1",
+  "task_completion": [
+    {
+      "id": "error_identification",
+      "description": "The audit report correctly identifies the erroneous measurements.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal displaying the contents of measurement_audit_report.json shows 'trainee_aorta_diameter' and 'trainee_celiac_distance' in the 'erroneous_measurements' list."
+    },
+    {
+      "id": "no_false_positives",
+      "description": "The audit report correctly identifies the correct measurements.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal displaying the contents of measurement_audit_report.json shows 'trainee_ivc_diameter' and 'trainee_renal_bifurcation' in the 'correct_measurements' list."
+    },
+    {
+      "id": "report_details",
+      "description": "The audit report includes descriptions of the errors and the corrected values.",
+      "points": 20,
+      "visual_evidence": "The measurement_audit_report.json file contains populated 'errors' and 'corrected_values' fields with relevant text descriptions and numerical values."
+    },
+    {
+      "id": "aorta_correction",
+      "description": "A corrected measurement for the aorta diameter is created in Slicer.",
+      "points": 25,
+      "visual_evidence": "The 3D Slicer GUI shows a markup named 'corrected_aorta_diameter' (or similar starting with 'corrected_') in the Markups module list or visible in the 2D/3D views."
+    },
+    {
+      "id": "celiac_correction",
+      "description": "A corrected measurement for the celiac distance is created in Slicer.",
+      "points": 10,
+      "visual_evidence": "The 3D Slicer GUI shows a markup named 'corrected_celiac_distance' (or similar starting with 'corrected_') in the Markups module list or visible in the 2D/3D views."
+    },
+    {
+      "id": "files_saved",
+      "description": "The corrected markups and audit report are saved to the specified directory.",
+      "points": 5,
+      "visual_evidence": "A terminal, file explorer, or Slicer save dialog shows 'corrected_measurements.mrk.json' and 'measurement_audit_report.json' in the '~/Documents/SlicerData/AMOS/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "slicer_used",
+      "description": "The agent used 3D Slicer to load the CT scan and trainee measurements.",
+      "visual_evidence": "Screenshots show the 3D Slicer application open with the abdominal CT scan and markups loaded in the viewers."
+    },
+    {
+      "id": "manual_correction",
+      "description": "The agent interacted with the Slicer GUI to create or adjust the corrected markups.",
+      "visual_evidence": "Screenshots show the agent using the Markups module or interacting with the control points in the 2D/3D views to place the corrected measurements."
+    },
+    {
+      "id": "genuine_audit",
+      "description": "The agent actually inspected the measurements before writing the report.",
+      "visual_evidence": "Screenshots show the agent viewing the specific slices where the trainee measurements are located to evaluate their correctness."
+    }
+  ],
+  "privileged_info_for_vlm": "The erroneous measurements are 'trainee_aorta_diameter' and 'trainee_celiac_distance'. The correct measurements are 'trainee_ivc_diameter' and 'trainee_renal_bifurcation'. The audit report must classify these correctly. Corrected measurements must be created for the erroneous ones."
+}

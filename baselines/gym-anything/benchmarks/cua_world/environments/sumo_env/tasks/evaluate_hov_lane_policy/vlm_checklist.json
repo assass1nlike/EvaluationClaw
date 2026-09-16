@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_hov_lane_policy@1",
+  "task_completion": [
+    {
+      "id": "demand_file_created",
+      "description": "Verify the creation of the HOV demand file with the correct vehicle classes.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command (e.g., cat, nano, vim) showing the contents of /home/ga/SUMO_Output/hov_demand.rou.xml. It should contain definitions for 160 standard vehicles (vClass=\"passenger\") and 40 HOV vehicles (vClass=\"hov\", color=\"0,255,0\")."
+    },
+    {
+      "id": "traci_script_created",
+      "description": "Verify the creation of the Python TraCI script to run the simulation and restrict lanes.",
+      "points": 30,
+      "visual_evidence": "Look for the contents of /home/ga/SUMO_Output/run_hov_sim.py in an editor or terminal. It should import traci, start a simulation using /home/ga/SUMO_Scenarios/bologna_acosta/run.sumocfg, and contain logic to dynamically restrict the leftmost lane of multi-lane edges to HOV traffic (e.g., using traci.lane.setAllowed or traci.lane.setDisallowed)."
+    },
+    {
+      "id": "traci_script_executed",
+      "description": "Verify the TraCI script was executed successfully.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command like 'python3 /home/ga/SUMO_Output/run_hov_sim.py' being executed, followed by SUMO TraCI execution logs indicating the simulation started and ended without fatal errors."
+    },
+    {
+      "id": "tripinfo_file_generated",
+      "description": "Verify the tripinfo.xml file was generated as a result of the simulation.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'ls -l /home/ga/SUMO_Output/tripinfo.xml' or 'cat' showing the XML output containing trip records for the vehicles."
+    },
+    {
+      "id": "analysis_file_created",
+      "description": "Verify the analysis file was created with the calculated average trip durations.",
+      "points": 30,
+      "visual_evidence": "Look for the contents of /home/ga/SUMO_Output/hov_analysis.txt (e.g., via 'cat'). It must contain exactly two lines formatted as 'avg_duration_standard=<value>' and 'avg_duration_hov=<value>', where <value> is a number rounded to two decimal places."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Ensure the agent actually ran the SUMO simulation and did not just mock the output files.",
+      "visual_evidence": "Check terminal history for the actual execution of the Python TraCI script and the presence of SUMO loading/stepping logs. The tripinfo.xml should not be created manually via 'echo' or a static script."
+    },
+    {
+      "id": "headless_execution",
+      "description": "Ensure the simulation was run headlessly without the GUI.",
+      "visual_evidence": "The TraCI script should use 'sumo' as the binary, not 'sumo-gui'. There should be no SUMO graphical interface windows visible in any screenshots."
+    },
+    {
+      "id": "calculated_not_hardcoded",
+      "description": "Ensure the average durations were actually calculated from the tripinfo.xml file.",
+      "visual_evidence": "Look for a Python script, awk, or grep commands that parse tripinfo.xml to compute the averages. The agent should not just write arbitrary numbers directly to hov_analysis.txt without evidence of calculation."
+    }
+  ],
+  "privileged_info_for_vlm": "The demand file must be located at /home/ga/SUMO_Output/hov_demand.rou.xml and contain exactly 160 standard vehicles and 40 HOV vehicles. The TraCI script must be at /home/ga/SUMO_Output/run_hov_sim.py. The tripinfo output must be at /home/ga/SUMO_Output/tripinfo.xml. The final analysis file must be at /home/ga/SUMO_Output/hov_analysis.txt."
+}

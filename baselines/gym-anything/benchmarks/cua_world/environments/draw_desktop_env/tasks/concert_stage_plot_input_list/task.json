@@ -1,0 +1,30 @@
+{
+  "id": "concert_stage_plot_input_list@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Tour Manager for the band 'The Midnight Alibi'. Create a technical Stage Plot and Input List for the venue's sound engineer using draw.io, based on the requirements provided in '~/Desktop/band_requirements.txt'. The Stage Plot must show the spatial layout of the band (Drums, Bass, Guitar, Keys, Vocals), AC Power drops, and Monitor Wedges, oriented with the Back of the Stage (Upstage) at the top and the Front (Downstage) at the bottom according to Stage Right/Left conventions. Include an Input List table transcribing the 10-channel list (Channel #, Instrument, Mic/DI) from the text file. Save the diagram as '~/Desktop/midnight_alibi_rider.drawio' and export it as a PNG to '~/Desktop/midnight_alibi_rider.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/concert_stage_plot_input_list/setup_task.sh",
+    "post_task": "/workspace/tasks/concert_stage_plot_input_list/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename_drawio": "midnight_alibi_rider.drawio",
+    "expected_filename_png": "midnight_alibi_rider.png",
+    "save_location": "/home/ga/Desktop",
+    "requirements_file": "/home/ga/Desktop/band_requirements.txt",
+    "min_shapes": 5,
+    "min_text_labels": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_concert_stage_plot_input_list"
+    }
+  }
+}

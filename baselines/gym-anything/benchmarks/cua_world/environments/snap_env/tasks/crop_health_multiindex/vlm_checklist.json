@@ -1,0 +1,53 @@
+{
+  "task_id": "crop_health_multiindex@1",
+  "task_completion": [
+    {
+      "id": "open_landsat_file",
+      "description": "Open the Landsat multispectral GeoTIFF in ESA SNAP Desktop",
+      "points": 10,
+      "visual_evidence": "SNAP Desktop interface is open with 'landsat_multispectral' visible in the Product Explorer pane."
+    },
+    {
+      "id": "compute_spectral_indices",
+      "description": "Compute three different vegetation or moisture spectral indices as virtual bands",
+      "points": 30,
+      "visual_evidence": "The 'Band Maths' dialog is used to create new bands, and the Product Explorer eventually shows at least 3 new derived index bands (e.g., NDVI, NDWI, SAVI) added under the product's 'Bands' folder. The 'Virtual' checkbox should be checked in the Band Maths dialog."
+    },
+    {
+      "id": "compute_conditional_classification",
+      "description": "Compute one classification band using conditional logic as a virtual band",
+      "points": 20,
+      "visual_evidence": "The 'Band Maths' dialog shows an expression containing conditional logic (e.g., using 'IF ... THEN ... ELSE' or '? : ' syntax) to create a new classification band."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the enriched product in BEAM-DIMAP format",
+      "points": 20,
+      "visual_evidence": "A 'Save Product As' dialog or file manager showing the file 'crop_health_assessment.dim' being saved to the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the enriched product as a GeoTIFF",
+      "points": 20,
+      "visual_evidence": "An 'Export' dialog (specifically for GeoTIFF format) or file manager showing the file 'crop_health_assessment.tif' being saved to the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the SNAP Desktop GUI to perform the task",
+      "visual_evidence": "Screenshots show active interaction with the SNAP Desktop graphical interface (menus, dialogs, Product Explorer) rather than terminal commands (like 'gpt') or Python scripts."
+    },
+    {
+      "id": "genuine_band_maths",
+      "description": "The agent genuinely constructed the band math expressions",
+      "visual_evidence": "The 'Band Maths' dialog is visibly opened and expressions are seen being typed or constructed in the expression text box."
+    },
+    {
+      "id": "correct_band_count_visible",
+      "description": "The final product contains the expected total number of bands before exporting",
+      "visual_evidence": "The Product Explorer tree is expanded to show the 'Bands' folder containing both the original 4 bands and the 4 newly created virtual bands (8 bands total) before the save/export actions."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif and contains exactly 4 original spectral bands. The task requires generating 4 virtual derived bands (3 spectral indices and 1 conditional classification band), bringing the expected total number of bands in the output BEAM-DIMAP and GeoTIFF files to 8."
+}

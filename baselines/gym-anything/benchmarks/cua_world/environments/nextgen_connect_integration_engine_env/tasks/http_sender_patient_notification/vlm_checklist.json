@@ -1,0 +1,59 @@
+{
+  "task_id": "http_sender_patient_notification@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel is created with the correct name",
+      "points": 10,
+      "visual_evidence": "Look for a channel named exactly 'Patient_Notification_API' in the NextGen Connect Administrator Channels list."
+    },
+    {
+      "id": "source_tcp_listener",
+      "description": "Verify the source is configured as a TCP Listener on the correct port",
+      "points": 15,
+      "visual_evidence": "Look at the Source tab for the channel. The Connector Type should be 'TCP Listener' and the Port should be '6661'."
+    },
+    {
+      "id": "destination_http_sender",
+      "description": "Verify the destination is configured as an HTTP Sender with the correct URL and Content-Type",
+      "points": 20,
+      "visual_evidence": "Look at the Destinations tab. The Connector Type should be 'HTTP Sender'. The URL must be 'http://webhook-server:8888/api/patient-notification' and the Content-Type (or headers) should specify 'application/json'."
+    },
+    {
+      "id": "json_payload_mapping",
+      "description": "Verify the JSON payload structure and HL7 field mappings",
+      "points": 25,
+      "visual_evidence": "Look at the Destination Template or Transformer scripts. There should be a JSON structure containing the keys 'mrn', 'firstName', 'lastName', 'dateOfBirth', and 'eventType'. These should be mapped to HL7 fields (e.g., PID.3.1, PID.5.2, PID.5.1, PID.7.1, MSH.9.2) or corresponding variables."
+    },
+    {
+      "id": "channel_started",
+      "description": "Verify the channel is deployed and in a STARTED state",
+      "points": 15,
+      "visual_evidence": "Look at the Dashboard view in NextGen Connect. The 'Patient_Notification_API' channel should be listed with a green 'Started' status."
+    },
+    {
+      "id": "successful_test_execution",
+      "description": "Verify the channel successfully processed the sample HL7 message",
+      "points": 15,
+      "visual_evidence": "Look for message statistics on the Dashboard showing Received and Sent counts > 0 for this channel, OR a terminal/log window showing the webhook server received the JSON payload with the expected values (e.g., PAT78432, ELENA)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_nextgen_gui",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI to configure the channel",
+      "visual_evidence": "Screenshots should show interaction with the Java-based NextGen Connect (Mirth Connect) Administrator interface, not just API calls via curl or a text editor."
+    },
+    {
+      "id": "dynamic_mapping_used",
+      "description": "Verify the agent did not hardcode the expected JSON values",
+      "visual_evidence": "In the payload template or transformer, the agent must use variables or HL7 path references (like msg['PID']...) rather than typing the literal strings 'PAT78432', 'ELENA', 'MARTINEZ', etc."
+    },
+    {
+      "id": "genuine_deployment",
+      "description": "Verify the channel is actually deployed in the engine",
+      "visual_evidence": "The Dashboard should show the actual engine status with the channel active, rather than just a saved draft in the Channels view."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel Name: 'Patient_Notification_API'. Webhook URL: 'http://webhook-server:8888/api/patient-notification'. If the agent tests the channel using the sample HL7 message, the expected JSON payload sent to the webhook should contain: mrn='PAT78432', firstName='ELENA', lastName='MARTINEZ', dateOfBirth='19780622', and eventType='A01'."
+}

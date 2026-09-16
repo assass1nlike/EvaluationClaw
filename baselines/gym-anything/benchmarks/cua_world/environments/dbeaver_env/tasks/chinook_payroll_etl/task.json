@@ -1,0 +1,33 @@
+{
+  "id": "chinook_payroll_etl@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Calculate 2011 sales commissions for each Support Representative from the Chinook database (/home/ga/Documents/databases/chinook.db) and export the results to a new table named 'commissions_2011' in the payroll database (/home/ga/Documents/databases/payroll.db). \n\nCommissions are calculated for items sold in 2011 using the formula Sum(Quantity * UnitPrice * Rate) with the following rates by track genre: \n- Rock: 15%\n- Latin: 10%\n- All other genres: 5%\n\nThe 'commissions_2011' table must include the following columns:\n- EmployeeId (Integer)\n- FullName (Text, format: 'FirstName LastName')\n- TotalCommission (Numeric, rounded to 2 decimal places)\n\nSave the SQL script used for these calculations to /home/ga/Documents/scripts/calculate_commissions.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_payroll_etl/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_payroll_etl/export_result.sh"
+  },
+  "metadata": {
+    "source_db": "/home/ga/Documents/databases/chinook.db",
+    "target_db": "/home/ga/Documents/databases/payroll.db",
+    "script_path": "/home/ga/Documents/scripts/calculate_commissions.sql",
+    "required_table": "commissions_2011",
+    "required_columns": [
+      "EmployeeId",
+      "FullName",
+      "TotalCommission"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_payroll_etl"
+    }
+  }
+}

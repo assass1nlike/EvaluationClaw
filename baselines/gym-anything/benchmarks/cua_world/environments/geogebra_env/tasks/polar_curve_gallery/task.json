@@ -1,0 +1,28 @@
+{
+  "id": "polar_curve_gallery@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are a tutor preparing an interactive polar curve gallery in GeoGebra for a Calculus II student who struggles to visualize polar equations. Create a construction that includes a three-petal rose ($r = \\sin(3\\theta)$), a cardioid ($r = 1 + \\cos(\\theta)$), and a parameterized rose ($r = \\sin(n\\theta)$) controlled by a slider named 'n' with a range of 1 to 8 and an increment of 1. Add text annotations identifying the curves, such as \"Three-petal rose: r = sin(3θ)\" and \"Cardioid: r = 1 + cos(θ)\". Save the construction as polar_curves.ggb in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/polar_curve_gallery/setup_task.sh",
+    "post_task": "/workspace/tasks/polar_curve_gallery/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "polar_curves.ggb",
+    "rose_pattern": "sin(3",
+    "cardioid_pattern": "1+cos",
+    "min_text_elements": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_polar_curve_gallery"
+    }
+  }
+}

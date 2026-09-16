@@ -1,0 +1,81 @@
+{
+  "dataset_id": "2101758e",
+  "name": "Deep Fake Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset comprises images paired with a textual prompt asking the model to judge whether the image is real or artificially generated. It evaluates binary classification of image authenticity in the context of deepfake detection.",
+  "card_text": "The Deep Fake Detection dataset contains 200 samples, each consisting of an image file, a short instruction prompt, and a binary textual answer. The images are either real photographs or deepfake manipulations, and the prompt uniformly asks the model to 'Detect whether the image is real or fake'. The output is a single word, either 'real' or 'fake'. This setup supports straightforward binary classification of visual authenticity. The dataset is intended for research in media forensics and content recognition, specifically testing a model's ability to distinguish genuine imagery from synthetic or manipulated content. Modalities include image input and text input/output, with no additional metadata or reasoning required.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "media forensics",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The image under evaluation, which may be a real photograph or a deepfake-manipulated image; it is the primary visual content the model must analyze to determine authenticity.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A direct instruction asking the model to determine whether the accompanying image is real or fake.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target binary label, either 'real' or 'fake', indicating the authenticity of the image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image file path (context), a short textual prompt (question), and a short textual label (answer). The image is the main content to be judged, the prompt instructs the model to perform the detection, and the answer provides the binary authenticity label. No other components such as dialog, options, or bounding boxes are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/deep_fake_detection/json/annotation_v1.json",
+    "existing_tags": {
+      "task": "deep fake detection",
+      "type": "comprehension",
+      "skill": "Object Recognition",
+      "domain": "Ethics",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Ethics"
+  }
+}

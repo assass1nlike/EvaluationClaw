@@ -1,0 +1,54 @@
+{
+  "id": "seo_migration_sitemap_architecture@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are an Information Architect working on a platform migration for 'Summit Outdoor Gear'. Create a 'Target State' hierarchical sitemap diagram starting with 'Home' based on the audit data in ~/Desktop/site_audit_data.csv and the migration rules in ~/Desktop/migration_strategy_brief.txt. The sitemap must exclude pages with fewer than 100 monthly views unless they are core utility pages (e.g., Contact, Returns). Apply the following color coding to the diagram elements: Blue (#dae8fc) for retained pages, Green (#d5e8d4) for new pages, and Orange (#ffe6cc) for consolidated or redirected pages (labeled with the new URL). Save the diagram to ~/Diagrams/sitemap_architecture.drawio and export it as a PDF to ~/Diagrams/exports/sitemap.pdf.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/seo_migration_sitemap_architecture/setup_task.sh",
+    "post_task": "/workspace/tasks/seo_migration_sitemap_architecture/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "sitemap_architecture.drawio",
+    "expected_pdf": "sitemap.pdf",
+    "traffic_threshold": 100,
+    "required_nodes": [
+      "Home",
+      "Journal",
+      "Footwear",
+      "Apparel",
+      "Contact",
+      "Returns"
+    ],
+    "forbidden_nodes": [
+      "/shop/mens/discontinued-boots",
+      "Old News 2018",
+      "legacy-sitemap"
+    ],
+    "color_codes": {
+      "blue": [
+        "#dae8fc",
+        "rgb(218, 232, 252)"
+      ],
+      "green": [
+        "#d5e8d4",
+        "rgb(213, 232, 212)"
+      ],
+      "orange": [
+        "#ffe6cc",
+        "rgb(255, 230, 204)"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_seo_migration_sitemap"
+    }
+  }
+}

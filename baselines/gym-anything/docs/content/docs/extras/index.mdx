@@ -1,0 +1,132 @@
+---
+title: Extras
+description: Adjacent tools that consume or produce gym-anything artifacts but are not part of the core library.
+---
+
+The `extras/` tree is for code that lives alongside the gym-anything
+library: tooling that reads or writes the same artifacts as the
+runtime — `env.json`, `task.json`, `vlm_checklist.json`,
+`*_split.json`, `seed_tasks.json` — but is not part of the runtime
+itself.
+
+<Callout type="info">
+You don't need any of this to use gym-anything. It's optional. Methods
+under extras are research and infrastructure tools that operate on
+gym-anything environments and tasks.
+</Callout>
+
+## How to invoke
+
+Every extras method is reachable through one binary:
+
+```bash
+gym-anything-extras
+```
+
+Run with no arguments to list groups, then drill in:
+
+```bash
+gym-anything-extras                              # list groups
+gym-anything-extras research                     # list categories
+gym-anything-extras research software_as_env    # list methods
+gym-anything-extras research software_as_env creation_audit --help
+```
+
+The first three positional args are always `<group> <category> <method>`.
+Everything after gets handed straight to that method's own
+argument parser.
+
+## What ships today
+
+<Cards>
+  <Card title="creation_audit" href="/extras/creation-audit">
+    Convert a software application name into a working gym-anything
+    environment using a creation–audit loop.
+  </Card>
+  <Card title="propose_and_amplify" href="/extras/propose-and-amplify">
+    Generate hard, realistic task folders for an existing environment
+    via an agentic proposer plus a non-agentic amplifier.
+  </Card>
+</Cards>
+
+## How the dispatcher works
+
+`gym-anything-extras` is a thin filesystem walker. It looks for any path
+matching:
+
+```
+extras/<group>/<category>/<method>/method.py
+```
+
+Each `method.py` exposes a `run(argv: list[str] | None) -> int`
+function. The dispatcher imports that module on demand and calls
+`run` with whatever args came after `<group> <category> <method>`.
+
+There is no plugin manifest and no registry to update. Drop a folder
+in the right place, give it a `method.py` with `run`, and it shows up
+in the listing automatically.
+
+## Layout on disk
+
+```text
+extras/
+└── research/
+    ├── software_as_env/
+    │   └── creation_audit/
+    │       ├── method.py        # exposes run(argv)
+    │       ├── memory/          # M_general + M_software (per-env shards)
+    │       ├── mcp/             # optional MCP server (manual setup)
+    │       ├── README.md
+    │       └── tests/
+    └── task_generation/
+        └── propose_and_amplify/
+            ├── method.py
+            ├── memory/          # M for task creation
+            ├── pipeline/        # internal stage scripts
+            ├── README.md
+            └── tests/
+```
+
+The `memory/` folders are the agents' shared memory `M`, accumulated
+across runs as the methods author and refine environments and tasks.
+Per the paper, this is `M_general` (cross-cutting patterns) and
+`M_software` (per-environment shards). The methods read from and
+append to this memory as they run.
+
+## Adding a new method
+
+The dispatcher is generic, so adding a method is a matter of writing
+the right files and putting them in the right place.
+
+1. **Pick a group and a category.** New research code goes under
+   `extras/research/<category>/<method>/`. If your method represents
+   a new pillar entirely (`auto`, `community`, …), introduce it
+   alongside `research/`.
+2. **Create the directory.** It needs at least:
+   - `method.py` with a top-level `def run(argv: list[str] | None) -> int:`
+   - an `__init__.py` (can be empty)
+3. **Use argparse inside `run`.** The dispatcher passes whatever
+   arguments came after the method name; your method owns its own
+   `--help`, defaults, validation. Keep it self-contained.
+4. **Conform to the artifact contracts.** If your method writes
+   `task.json`, `env.json`, `*_split.json`, or any other file the
+   runtime consumes, follow the spec on the
+   [Spec Reference](/reference/specs) page. Anything else is up to
+   you.
+5. **Add a README and tests.** README at method level — what it does,
+   what the user needs, how to run it, what it produces. Tests under
+   `<method>/tests/`. Use a unique test filename
+   (`test_<method>_contract.py`) so pytest doesn't clash with another
+   method's tests.
+
+After that, `gym-anything-extras <group> <category> <method>` will
+discover and dispatch to it without any change to the library.
+
+## Why this exists
+
+Gym-anything is a general library. The CUA-World paper is one
+particular set of tasks built on top of it. Code that produced (or
+analyzes) the paper's environments and task corpus belongs adjacent
+to the library, not inside it. Extras is the place for that, and for
+any future tooling that wants to live next to the runtime without
+becoming part of the runtime's stable surface.

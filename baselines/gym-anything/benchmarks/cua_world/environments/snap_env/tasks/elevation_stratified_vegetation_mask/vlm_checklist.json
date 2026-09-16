@@ -1,0 +1,59 @@
+{
+  "task_id": "elevation_stratified_vegetation_mask@1",
+  "task_completion": [
+    {
+      "id": "load_input_files",
+      "description": "Load the Landsat multispectral and SRTM DEM files into SNAP.",
+      "points": 10,
+      "visual_evidence": "The Product Explorer window in SNAP shows both 'landsat_multispectral' and 'srtm_dem' loaded as products."
+    },
+    {
+      "id": "collocate_products",
+      "description": "Produce a collocated product with the Landsat image as the master.",
+      "points": 20,
+      "visual_evidence": "The Collocation tool dialog is visible with Landsat set as the master product, or a new collocated product (e.g., 'collocate') appears in the Product Explorer containing bands from both inputs."
+    },
+    {
+      "id": "create_ndvi_band",
+      "description": "Create an 'ndvi' band using the formula (NIR - Red) / (NIR + Red).",
+      "points": 20,
+      "visual_evidence": "The Band Maths dialog shows the target band name 'ndvi' and an expression equivalent to '(band_2 - band_3) / (band_2 + band_3)', or an 'ndvi' band is visible under the collocated product's bands in the Product Explorer."
+    },
+    {
+      "id": "create_alpine_veg_mask",
+      "description": "Create a binary mask band named 'alpine_veg_mask' where ndvi > 0.2 and elevation > 150.",
+      "points": 20,
+      "visual_evidence": "The Band Maths dialog shows the target band name 'alpine_veg_mask' and an expression checking for ndvi > 0.2 and elevation (or band_1 from the DEM) > 150, or the 'alpine_veg_mask' band is visible in the Product Explorer."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Save the enriched collocated product to ~/snap_projects/alpine_study.dim.",
+      "points": 15,
+      "visual_evidence": "The 'Save Product As' dialog shows the path '/home/ga/snap_projects/alpine_study.dim', or the Product Explorer shows the product renamed to 'alpine_study'."
+    },
+    {
+      "id": "export_geotiff_mask",
+      "description": "Export the 'alpine_veg_mask' band as a GeoTIFF to ~/snap_exports/alpine_mask.tif.",
+      "points": 15,
+      "visual_evidence": "The Export dialog for GeoTIFF shows the output path '/home/ga/snap_exports/alpine_mask.tif' with subsetting applied to select only the 'alpine_veg_mask' band, or a file manager/terminal verifies the file's creation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "The agent used the SNAP (Sentinel Application Platform) GUI to perform the tasks.",
+      "visual_evidence": "Screenshots show the SNAP graphical interface being actively used (Product Explorer, Band Maths, Collocation tools) rather than terminal commands like 'gpt' or Python scripts."
+    },
+    {
+      "id": "genuine_band_maths",
+      "description": "The agent actually calculated the bands using the Band Maths tool.",
+      "visual_evidence": "The Band Maths dialog is opened and the mathematical expressions for NDVI and the alpine mask are entered into the expression editor."
+    },
+    {
+      "id": "no_mocked_outputs",
+      "description": "The agent did not simply create empty files or rename existing files to match the expected output paths.",
+      "visual_evidence": "The save and export actions are performed through SNAP's native 'Save Product' and 'Export' dialogs, ensuring the files contain the actual processed data."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output BEAM-DIMAP product must be saved to '/home/ga/snap_projects/alpine_study.dim'. The exported GeoTIFF mask must be saved to '/home/ga/snap_exports/alpine_mask.tif'."
+}

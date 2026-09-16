@@ -1,0 +1,53 @@
+{
+  "task_id": "url_rewrite_migration_simulation@1",
+  "task_completion": [
+    {
+      "id": "target_url_entered",
+      "description": "The agent entered the target URL into a web crawling tool.",
+      "points": 10,
+      "visual_evidence": "Look for 'https://books.toscrape.com/' entered into the starting URL bar of a GUI web crawler (such as Screaming Frog SEO Spider)."
+    },
+    {
+      "id": "rewrite_configuration",
+      "description": "The agent configured a URL rewrite rule to change 'catalogue' to 'store'.",
+      "points": 20,
+      "visual_evidence": "Look for a settings or configuration window (e.g., 'URL Rewriting' or 'Regex Replace') showing a rule that replaces the word 'catalogue' with 'store'."
+    },
+    {
+      "id": "crawl_progress",
+      "description": "The agent executed the crawl of the target website.",
+      "points": 20,
+      "visual_evidence": "Look for a populated list of URLs in the main interface of the crawling tool and a progress bar indicating the crawl is running or has reached 100%."
+    },
+    {
+      "id": "rewritten_urls_displayed",
+      "description": "The crawled URLs reflect the rewrite rule.",
+      "points": 20,
+      "visual_evidence": "Look at the list of crawled URLs in the tool's main window. You should see multiple URLs containing the '/store/' path segment (e.g., '/store/category/books/...') instead of the original '/catalogue/' path."
+    },
+    {
+      "id": "export_to_csv",
+      "description": "The agent exported the Internal HTML data to the specified CSV file path.",
+      "points": 30,
+      "visual_evidence": "Look for a 'Save As' or 'Export' dialog box showing the file being saved as 'migration_simulation.csv' inside the '/home/ga/Documents/SEO/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_tool_used",
+      "description": "The agent used a graphical web crawling tool rather than a terminal script.",
+      "visual_evidence": "Check that a GUI application (like Screaming Frog) is open and being interacted with, rather than the agent writing a Python/Bash script in the terminal to generate a mock CSV."
+    },
+    {
+      "id": "genuine_crawl_data",
+      "description": "The crawler interface shows realistic site data indicating a real crawl.",
+      "visual_evidence": "Verify the crawler displays various columns of data (Status Codes, Content Type, Title, etc.) for multiple URLs, proving it actually fetched data from books.toscrape.com."
+    },
+    {
+      "id": "no_manual_csv_creation",
+      "description": "The CSV was exported from the tool, not manually typed.",
+      "visual_evidence": "Ensure the agent uses the 'Export' or 'Save' function of the crawling tool and does not manually type or paste URLs into a text editor or spreadsheet program to fake the output."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL is 'https://books.toscrape.com/'. The site naturally contains many URLs with the '/catalogue/' path segment. The agent must configure a rewrite rule to change 'catalogue' to 'store'. The VLM should verify that at least 10 URLs in the crawl results show the new '/store/' path. The final export must be saved exactly to '/home/ga/Documents/SEO/exports/migration_simulation.csv'."
+}

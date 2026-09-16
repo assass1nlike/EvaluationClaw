@@ -1,0 +1,44 @@
+{
+  "id": "cox_survival_cancer@1",
+  "version": "1.0",
+  "env_id": "rstudio_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a biostatistician at an oncology research center analyzing data from the German Breast Cancer Study Group (GBSG) randomized trial. Using the GBSG2 dataset from the TH.data R package, perform a survival analysis on 686 patients with primary node-positive breast cancer. Fit a multivariable Cox proportional hazards model using covariates hormonal therapy (horTh), tumor size (tsize), number of positive nodes (pnodes), progesterone receptor level (progrec), estrogen receptor level (estrec), menopausal status (menostat), and tumor grade (tgrade). Export the model summary to /home/ga/RProjects/output/gbsg_cox_results.csv with columns for covariate, hazard_ratio, hr_lower95, hr_upper95, and p_value.",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 85
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cox_survival_cancer/setup_task.sh",
+    "post_task": "/workspace/tasks/cox_survival_cancer/export_result.sh",
+    "pre_task_timeout": 360
+  },
+  "metadata": {
+    "dataset": "GBSG2 from TH.data package — German Breast Cancer Study Group randomized trial",
+    "n_patients": 686,
+    "cox_results_csv": "/home/ga/RProjects/output/gbsg_cox_results.csv",
+    "ph_test_csv": "/home/ga/RProjects/output/gbsg_ph_test.csv",
+    "km_plot_png": "/home/ga/RProjects/output/gbsg_km_curves.png",
+    "forest_plot_png": "/home/ga/RProjects/output/gbsg_forest_plot.png",
+    "script_path": "/home/ga/RProjects/survival_analysis.R",
+    "key_covariates": [
+      "horTh",
+      "tsize",
+      "pnodes",
+      "progrec",
+      "estrec",
+      "menostat",
+      "tgrade"
+    ],
+    "expected_hr_horTh": "less_than_1 (hormonal therapy is protective)",
+    "expected_pnodes_direction": "greater_than_1 (more nodes = worse prognosis)",
+    "occupation": "Biomedical Engineer / Clinical Biostatistician",
+    "task_note": "Uses survival (base R recommended) + TH.data + survminer packages"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cox_survival_cancer"
+    }
+  }
+}

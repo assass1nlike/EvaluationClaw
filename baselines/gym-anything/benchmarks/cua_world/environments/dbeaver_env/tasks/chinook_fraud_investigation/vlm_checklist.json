@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_fraud_investigation@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Agent connects to the chinook_fraud.db database to begin the audit.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, DB Browser, sqlite3 CLI) open with /home/ga/Documents/databases/chinook_fraud.db, or a Python/bash script containing the database path."
+    },
+    {
+      "id": "financial_mismatch_logic",
+      "description": "Agent constructs a query to identify Financial Mismatches.",
+      "points": 20,
+      "visual_evidence": "SQL query or script logic joining the Invoice table with the InvoiceLine (or invoice_items) table, calculating the sum of UnitPrice * Quantity, and comparing it to the Invoice Total with a $0.01 tolerance (e.g., using ABS() > 0.01)."
+    },
+    {
+      "id": "geo_mismatch_logic",
+      "description": "Agent constructs a query to identify Geo Mismatches.",
+      "points": 20,
+      "visual_evidence": "SQL query or script logic joining the Invoice table with the Customer table and comparing BillingCountry to the customer's Country."
+    },
+    {
+      "id": "csv_export_formatting",
+      "description": "Agent formats the output with the required columns and exports to the correct path.",
+      "points": 20,
+      "visual_evidence": "Code, query, or GUI action exporting data to /home/ga/Documents/exports/fraud_audit.csv with the exact columns: InvoiceId, ViolationType, InvoiceTotal, CalculatedTotal, BillingCountry, and CustomerCountry."
+    },
+    {
+      "id": "fraudulent_records_output",
+      "description": "Agent successfully identifies and exports the 5 fraudulent records.",
+      "points": 30,
+      "visual_evidence": "Query results, terminal output, or the opened CSV showing the specific fraudulent Invoice IDs: 99, 128, 256 (Financial) and 44, 300 (Geo). If the agent uses a silent script, the script must be executed without errors and the logic must be flawlessly correct to yield these exact records."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_ids",
+      "description": "The agent must not hardcode the fraudulent invoice IDs into the script or output.",
+      "visual_evidence": "Check that the agent uses genuine SQL queries to find the mismatches, rather than typing out the expected IDs (44, 99, 128, 256, 300) directly."
+    },
+    {
+      "id": "genuine_database_query",
+      "description": "The agent must actually execute queries against the SQLite database.",
+      "visual_evidence": "Look for execution of a script, CLI commands, or GUI interactions that run queries against chinook_fraud.db, rather than just creating a text file that looks like the expected output."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent must save the CSV to the specified path.",
+      "visual_evidence": "Verify that a file is actually written to /home/ga/Documents/exports/fraud_audit.csv, not just printed to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/Documents/databases/chinook_fraud.db. The expected output is a CSV at /home/ga/Documents/exports/fraud_audit.csv containing exactly 5 fraudulent records. Financial Mismatches: Invoices 99, 128, and 256. Geo Mismatches: Invoices 44 and 300. The CSV must contain the columns: InvoiceId, ViolationType, InvoiceTotal, CalculatedTotal, BillingCountry, CustomerCountry. The agent must derive these by querying the database (tables are typically named Invoice, InvoiceLine, and Customer), not by hardcoding."
+}

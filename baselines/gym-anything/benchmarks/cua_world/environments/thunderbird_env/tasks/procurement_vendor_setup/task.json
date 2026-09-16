@@ -1,0 +1,34 @@
+{
+  "id": "procurement_vendor_setup@1",
+  "version": "1.0",
+  "env_id": "thunderbird_env@0.1",
+  "description": "You are the Procurement Director at Summit Manufacturing, a mid-size industrial components manufacturer. The purchasing inbox has been unmanaged for two weeks while you covered a colleague's leave. Before the weekly procurement committee meeting, organize the inbox by creating a 'Vendors' folder in Local Folders with subfolders 'Active_RFQs' (for quotation and bid correspondence) and 'Contract_Review' (for documents requiring review or signature). Sort all current emails into these subfolders, add Sandra Chen (s.chen@globalsupplyco.com) from Global Supply Co to your address book, and configure a filter to automatically route future emails from the @globalsupplyco.com domain to the 'Active_RFQs' folder. Login: local account, no password needed.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/procurement_vendor_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/procurement_vendor_setup/export_result.sh"
+  },
+  "metadata": {
+    "parent_folder": "Vendors",
+    "subfolders": [
+      "Active_RFQs",
+      "Contract_Review"
+    ],
+    "rfq_email_count": 4,
+    "contract_email_count": 3,
+    "vendor_contact_name": "Sandra Chen",
+    "vendor_contact_email": "s.chen@globalsupplyco.com",
+    "filter_domain": "@globalsupplyco.com",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_procurement_vendor_setup"
+    }
+  }
+}

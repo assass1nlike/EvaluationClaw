@@ -1,0 +1,26 @@
+{
+  "id": "change_log_type_to_observation@1",
+  "env_id": "example.farmos_field_kit_env@0.1",
+  "difficulty": "medium",
+  "description": "The farmOS Field Kit app is open on the Tasks screen. Create a new 'Observation' log named 'Pest check - aphids on tomatoes' with the note 'Found aphids on 3 tomato plants in row 5. Will need treatment.'. Mark the log as an incomplete task and verify that it appears in the Tasks list.",
+  "init": {
+    "timeout_sec": 150,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/change_log_type_to_observation/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/change_log_type_to_observation/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_observation_log"
+    }
+  },
+  "metadata": {
+    "log_name": "Pest check - aphids on tomatoes",
+    "log_type": "Observation",
+    "done": false
+  }
+}

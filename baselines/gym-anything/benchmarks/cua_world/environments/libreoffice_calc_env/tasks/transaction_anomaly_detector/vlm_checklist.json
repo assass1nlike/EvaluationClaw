@@ -1,0 +1,59 @@
+{
+  "task_id": "transaction_anomaly_detector@1",
+  "task_completion": [
+    {
+      "id": "access_data",
+      "description": "Access or load the bank transaction data.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening the bank data file in a spreadsheet application, text editor, or writing a script (e.g., using Python/pandas) to load the dataset."
+    },
+    {
+      "id": "detect_duplicates",
+      "description": "Detect and flag duplicate transactions.",
+      "points": 15,
+      "visual_evidence": "The agent's output (terminal, text file, or highlighted spreadsheet) identifies duplicate transaction pairs (e.g., rows 44/45, 101/102, or 200/201)."
+    },
+    {
+      "id": "detect_date_errors",
+      "description": "Detect and flag date errors.",
+      "points": 15,
+      "visual_evidence": "The agent's output identifies transactions with dates outside the expected Q1 2024 range, specifically future dates (years 2025, 2026) or ancient dates (year 2015)."
+    },
+    {
+      "id": "detect_impossible_amounts",
+      "description": "Detect and flag impossible transaction amounts.",
+      "points": 20,
+      "visual_evidence": "The agent's output identifies the $45,000 coffee transaction and the negative (-$50) transaction."
+    },
+    {
+      "id": "detect_outliers",
+      "description": "Detect and flag statistical outliers.",
+      "points": 20,
+      "visual_evidence": "The agent's output identifies transactions with unusually high amounts for their category (e.g., amounts 5x the normal maximum)."
+    },
+    {
+      "id": "detect_balance_errors",
+      "description": "Detect and flag balance calculation errors.",
+      "points": 20,
+      "visual_evidence": "The agent's output identifies transactions where the running balance is incorrect (e.g., +$500 discrepancies compared to the expected math)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_cheating_files",
+      "description": "The agent did not cheat by reading the setup or verification scripts.",
+      "visual_evidence": "Screenshots do not show the agent opening, reading, or grepping `setup_task.sh`, `verifier.py`, or any other backend files to extract the planted anomaly locations."
+    },
+    {
+      "id": "genuine_analysis_performed",
+      "description": "The agent actively analyzed the data rather than magically knowing the answers.",
+      "visual_evidence": "The agent used a script (e.g., Python/pandas), shell commands, or spreadsheet functions to filter, sort, or calculate anomalies, showing genuine data processing steps."
+    },
+    {
+      "id": "output_matches_data",
+      "description": "The flagged anomalies correspond to the actual dataset.",
+      "visual_evidence": "The anomalies reported by the agent match the data format and content of the provided bank data file, proving the output was generated from the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves a synthetic bank dataset with 287 transactions and 18 planted anomalies. The VLM should look for the agent identifying the following specific anomalies:\n1. Duplicates: 3 pairs (rows 44/45, 101/102, 200/201).\n2. Date errors: 2 future dates (2025-06-15, 2026-03-20) and 1 ancient date (2015-08-10).\n3. Impossible amounts: $45,000 for Coffee (row 66) and -$50.00 (row 177).\n4. Outliers: 4 transactions with amounts 5x their category normal maximum (rows 22, 88, 155, 233).\n5. Balance errors: 3 rows with +$500 discrepancies in the running balance (rows 98, 149, 219).\nNote: Row indices might vary slightly in the agent's output (e.g., 0-indexed vs 1-indexed, or depending on whether the header row is counted)."
+}

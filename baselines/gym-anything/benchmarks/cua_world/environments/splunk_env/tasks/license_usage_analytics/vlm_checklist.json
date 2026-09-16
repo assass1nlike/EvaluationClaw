@@ -1,0 +1,53 @@
+{
+  "task_id": "license_usage_analytics@1",
+  "task_completion": [
+    {
+      "id": "alert_created",
+      "description": "Verifies the creation of an alert named 'High_License_Usage_Warning' querying internal metrics.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Alerts' page or a saved search configuration screen showing the name 'High_License_Usage_Warning' and a search string containing 'index=_internal' and 'kb'."
+    },
+    {
+      "id": "alert_threshold_set",
+      "description": "Verifies the alert trigger condition is set to exceed 1000.",
+      "points": 20,
+      "visual_evidence": "Look for the alert trigger conditions in the Splunk GUI showing a threshold configuration such as '> 1000' or 'is greater than 1000'."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verifies the creation of a dashboard named 'License_Consumption_Audit'.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk Dashboards list or an active dashboard view displaying the title 'License_Consumption_Audit'."
+    },
+    {
+      "id": "dashboard_panel_index",
+      "description": "Verifies the dashboard includes a visualization for volume by index.",
+      "points": 20,
+      "visual_evidence": "Look for a dashboard panel (chart or table) showing volume by index. Evidence includes the search string containing 'group=\"per_index_thruput\"' and 'kb', or a chart clearly displaying index names on an axis/legend."
+    },
+    {
+      "id": "dashboard_panel_sourcetype",
+      "description": "Verifies the dashboard includes a visualization for volume by sourcetype.",
+      "points": 20,
+      "visual_evidence": "Look for a second dashboard panel showing volume by sourcetype. Evidence includes the search string containing 'group=\"per_sourcetype_thruput\"' and 'kb', or a chart clearly displaying sourcetypes on an axis/legend."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensures the agent used the Splunk Web GUI to complete the task.",
+      "visual_evidence": "A web browser window showing the Splunk Enterprise interface (http://localhost:8000) should be visible, rather than terminal commands executing API calls."
+    },
+    {
+      "id": "genuine_metrics",
+      "description": "Ensures the visualizations and alerts are based on actual Splunk searches.",
+      "visual_evidence": "Splunk UI elements like search bars, time pickers, and native Splunk charts/tables are visible, rather than mocked HTML pages or static text files."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "Ensures the agent didn't bypass the UI by directly editing Splunk configuration files.",
+      "visual_evidence": "Absence of text editors (like nano, vim, gedit) open with Splunk configuration files such as savedsearches.conf or dashboards.xml."
+    }
+  ],
+  "privileged_info_for_vlm": "The target alert must be named 'High_License_Usage_Warning'. The target dashboard must be named 'License_Consumption_Audit'. The Splunk web interface credentials are 'admin' and 'SplunkAdmin1!'."
+}

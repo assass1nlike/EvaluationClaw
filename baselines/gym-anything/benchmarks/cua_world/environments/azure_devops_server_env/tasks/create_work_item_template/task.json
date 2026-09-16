@@ -1,0 +1,40 @@
+{
+  "id": "create_work_item_template@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Create a reusable work item template named 'Frontend Bug Report' for the 'TailwindTraders' project in Azure DevOps to standardize bug reporting. Configure the template to pre-fill the Title as '[Frontend] <short description>', Priority as 2, Severity as '2 - High', Area Path as 'TailwindTraders', and Tags as 'frontend' and 'needs-triage'. The Repro Steps or Description field must include a markdown template with the following headers: '**Environment:**', '**Steps to Reproduce:**', '**Expected Result:**', and '**Actual Result:**'. Save the template so it is available for the team.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_work_item_template\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_work_item_template\\export_result.ps1"
+  },
+  "metadata": {
+    "target_template_name": "Frontend Bug Report",
+    "target_work_item_type": "Bug",
+    "expected_fields": {
+      "System.AreaPath": "TailwindTraders",
+      "Microsoft.VSTS.Common.Priority": "2",
+      "Microsoft.VSTS.Common.Severity": "2 - High",
+      "System.Tags": [
+        "frontend",
+        "needs-triage"
+      ]
+    },
+    "required_description_text": [
+      "Steps to Reproduce",
+      "Expected Result",
+      "Actual Result"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_work_item_template"
+    }
+  }
+}

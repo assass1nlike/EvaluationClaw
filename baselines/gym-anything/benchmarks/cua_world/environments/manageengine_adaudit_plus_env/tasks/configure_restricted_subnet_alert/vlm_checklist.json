@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_restricted_subnet_alert@1",
+  "task_completion": [
+    {
+      "id": "adaudit_plus_accessed",
+      "description": "Access the ADAudit Plus web interface",
+      "points": 10,
+      "visual_evidence": "The web browser shows the ADAudit Plus interface, typically after logging in with the provided credentials."
+    },
+    {
+      "id": "alert_profile_name_severity_category",
+      "description": "Set the alert profile name, severity, and category",
+      "points": 20,
+      "visual_evidence": "In the new alert profile form, the name field contains 'WiFi_DC_Logon_Violation', the severity dropdown is set to 'Critical', and the category is set to 'Logon'."
+    },
+    {
+      "id": "alert_profile_condition",
+      "description": "Configure the trigger condition for the target subnet",
+      "points": 30,
+      "visual_evidence": "The alert criteria or condition section shows 'Client IP Address' with the operator 'starts with' (or equivalent) and the value '192.168.50'."
+    },
+    {
+      "id": "alert_profile_message",
+      "description": "Set the custom alert message",
+      "points": 20,
+      "visual_evidence": "The alert message field contains exactly 'Unauthorized access detected from Wi-Fi subnet'."
+    },
+    {
+      "id": "alert_profile_saved",
+      "description": "Save the new alert profile",
+      "points": 20,
+      "visual_evidence": "A success message indicating the profile was created, or the 'WiFi_DC_Logon_Violation' profile is visible in the list of configured alert profiles."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "The agent used a web browser to interact with the application",
+      "visual_evidence": "Screenshots show a web browser navigating to localhost:8081, not a terminal using curl or API requests."
+    },
+    {
+      "id": "no_db_manipulation",
+      "description": "The agent did not bypass the UI by directly modifying the database",
+      "visual_evidence": "There should be no terminal windows open showing SQL commands (like INSERT INTO AlertProfile) or database management tools like pgAdmin."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "The agent genuinely interacted with the ADAudit Plus UI",
+      "visual_evidence": "Screenshots show the actual ADAudit Plus web interface with dropdowns and text fields being actively filled out, rather than a text editor or mock file."
+    }
+  ],
+  "privileged_info_for_vlm": "Alert Profile Name: 'WiFi_DC_Logon_Violation'. Severity: 'Critical'. Category: 'Logon'. Trigger Condition: Client IP Address starts with '192.168.50'. Alert Message: 'Unauthorized access detected from Wi-Fi subnet'."
+}

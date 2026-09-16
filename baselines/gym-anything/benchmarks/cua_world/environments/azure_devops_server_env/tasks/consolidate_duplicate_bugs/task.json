@@ -1,0 +1,30 @@
+{
+  "id": "consolidate_duplicate_bugs@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "A recent 'Bug Bash' session resulted in multiple testers reporting the same file upload crash. Triage the three active bugs related to 'File Upload' or 'Crash' in the TailwindTraders project. Designate the bug with the lowest ID as the 'Primary' bug and ensure it remains 'Active' or 'New'. Link the other two bugs as duplicates of the Primary bug, setting their state to 'Resolved' and the reason to 'Duplicate'.\n\nLogin credentials:\n- URL: http://localhost/DefaultCollection\n- User: Docker\n- Password: GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\consolidate_duplicate_bugs\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\consolidate_duplicate_bugs\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "TailwindTraders",
+    "bug_titles": [
+      "Application crashes when uploading 4GB file",
+      "Upload fails for large files (> 3GB)",
+      "Crash during large video upload"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_consolidate_duplicate_bugs"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "enterprise_support_onboarding@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the Customer Support Operations Manager at a SaaS company. Your company has just signed enterprise contracts and needs a dedicated support channel. In FreeScout (http://localhost:8080, admin@helpdesk.local / Admin123!), set up a new mailbox named 'Enterprise Support' (enterprise@helpdesk.local). Create two support agents: James Kowalski (james.kowalski@helpdesk.local, User) and Priya Sharma (priya.sharma@helpdesk.local, User). Grant James access to both 'Technical Support' and 'Enterprise Support' mailboxes, and grant Priya access to 'Enterprise Support' only. Create a saved reply named 'Enterprise Acknowledgment' with the body: 'Thank you for contacting our Enterprise Support team. A dedicated support agent will be assigned to your case within 2 business hours.' Tag all conversations in the Technical Support mailbox as 'technical' and assign all conversations in the Billing Support mailbox to Sarah Mitchell.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enterprise_support_onboarding/setup_task.sh",
+    "post_task": "/workspace/tasks/enterprise_support_onboarding/export_result.sh"
+  },
+  "metadata": {
+    "new_mailbox_name": "Enterprise Support",
+    "new_mailbox_email": "enterprise@helpdesk.local",
+    "agent1_first": "James",
+    "agent1_last": "Kowalski",
+    "agent1_email": "james.kowalski@helpdesk.local",
+    "agent2_first": "Priya",
+    "agent2_last": "Sharma",
+    "agent2_email": "priya.sharma@helpdesk.local",
+    "saved_reply_name": "Enterprise Acknowledgment",
+    "technical_mailbox_name": "Technical Support",
+    "billing_mailbox_name": "Billing Support",
+    "existing_agent_first": "Sarah",
+    "existing_agent_last": "Mitchell",
+    "existing_agent_email": "sarah.mitchell@helpdesk.local",
+    "technical_tag": "technical",
+    "technical_conv_count": 5,
+    "billing_conv_count": 3,
+    "data_source": "Kaggle Customer Support Ticket Dataset (chiapudding/kaggle-customer-service)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enterprise_support_onboarding"
+    }
+  }
+}

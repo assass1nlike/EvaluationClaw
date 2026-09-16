@@ -1,0 +1,53 @@
+{
+  "task_id": "incident_correlation_response@1",
+  "task_completion": [
+    {
+      "id": "wazuh_dashboard_investigation",
+      "description": "Investigate alerts and security events in the Wazuh dashboard",
+      "points": 10,
+      "visual_evidence": "A web browser open to the Wazuh dashboard (https://localhost) showing security events, alerts, or the modules interface."
+    },
+    {
+      "id": "correlation_rule_creation",
+      "description": "Create a correlation rule with frequency, timeframe, if_matched_sid, and level >= 13",
+      "points": 30,
+      "visual_evidence": "A text editor or the Wazuh UI showing an XML rule definition containing the attributes 'frequency', 'timeframe', 'if_matched_sid', and a 'level' attribute set to 13 or higher."
+    },
+    {
+      "id": "active_response_configuration",
+      "description": "Configure a Wazuh active response in ossec.conf triggered by the new rule",
+      "points": 30,
+      "visual_evidence": "A text editor showing the 'ossec.conf' file with an '<active-response>' block being added or modified, referencing the newly created rule ID."
+    },
+    {
+      "id": "incident_report_creation",
+      "description": "Create the incident report at the specified Desktop path",
+      "points": 10,
+      "visual_evidence": "A text editor open to '/home/ga/Desktop/incident_report.txt' or a file manager showing 'incident_report.txt' on the Desktop."
+    },
+    {
+      "id": "incident_report_content",
+      "description": "Document the investigation details in the report (minimum 300 characters)",
+      "points": 20,
+      "visual_evidence": "The contents of 'incident_report.txt' are visible and contain substantial text (several paragraphs) detailing rule IDs, correlation patterns, thresholds, and the automated response configuration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_dashboard_interaction",
+      "description": "The agent interacted with the actual Wazuh web interface to investigate alerts.",
+      "visual_evidence": "Screenshots show the Wazuh GUI loaded in a browser, rather than the agent just guessing rule IDs or skipping the investigation step entirely."
+    },
+    {
+      "id": "actual_configuration_modification",
+      "description": "The agent modified the actual Wazuh configuration files rather than mock files.",
+      "visual_evidence": "File paths for the rule creation and ossec.conf edits point to actual system directories (e.g., /var/ossec/etc/) or are done through the official Wazuh UI."
+    },
+    {
+      "id": "genuine_report_content",
+      "description": "The agent wrote a meaningful incident report rather than pasting the prompt or gibberish.",
+      "visual_evidence": "The text in incident_report.txt reads like a genuine SOC investigation report and does not simply copy-paste the task instructions to meet the character limit."
+    }
+  ],
+  "privileged_info_for_vlm": "The minimum required rule level for the correlation rule is 13. The incident report must be saved exactly at '/home/ga/Desktop/incident_report.txt' and contain at least 300 characters. The underlying events being investigated are synthetically generated failed SSH and sudo attempts."
+}

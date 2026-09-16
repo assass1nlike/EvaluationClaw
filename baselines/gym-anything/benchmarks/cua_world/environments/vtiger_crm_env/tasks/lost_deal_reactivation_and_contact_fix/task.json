@@ -1,0 +1,40 @@
+{
+  "id": "lost_deal_reactivation_and_contact_fix@1",
+  "version": "1.0",
+  "env_id": "vtiger_crm_env@0.1",
+  "description": "You are a Sales Manager at Meridian Technology Partners. A senior partner has requested an urgent correction for Blackstone Industrial records where the 'IronShield Network Hardening' deal was marked 'Closed Lost' by mistake. Reactivate the deal by changing the stage to 'Value Proposition', setting probability to 55%, updating the close date to 2026-08-31, and updating the amount to $198,500. Additionally, update the contact records for Victoria Blackwell (Email: victoria.blackwell@blackstone-industrial.com, Title: 'Director of IT Security') and Thomas Park.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lost_deal_reactivation_and_contact_fix/setup_task.sh",
+    "post_task": "/workspace/tasks/lost_deal_reactivation_and_contact_fix/export_result.sh"
+  },
+  "metadata": {
+    "target_deal": "IronShield Network Hardening",
+    "target_org": "Blackstone Industrial",
+    "contact_a": "Victoria Blackwell",
+    "contact_a_email": "victoria.blackwell@blackstone-industrial.com",
+    "contact_a_title": "Director of IT Security",
+    "contact_b": "Thomas Park",
+    "contact_b_phone": "+1-312-555-0847",
+    "contact_b_title": "VP of Operations",
+    "expected_deal_stage": "Value Proposition",
+    "expected_deal_probability": 55,
+    "expected_deal_amount": 198500,
+    "expected_deal_closedate": "2026-08-31",
+    "expected_call_subject": "Blackstone Industrial IronShield Reactivation Call",
+    "expected_call_date": "2026-03-18",
+    "expected_call_start": "14:00",
+    "pass_threshold": 65
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lost_deal_reactivation_and_contact_fix"
+    }
+  }
+}

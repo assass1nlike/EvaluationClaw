@@ -1,0 +1,52 @@
+{
+  "id": "ace3_episodic_memory@1",
+  "version": "1.0",
+  "env_id": "psychopy_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a clinical neuropsychologist at a memory clinic digitizing the episodic memory subscale of the Addenbrooke's Cognitive Examination III (ACE-III) for tablet-based administration. Using PsychoPy Builder, create an experiment that implements the three-word registration and delayed recall procedure. The experiment must include a learning phase presenting the target words (Lemon, Key, Ball) individually, an interference task, a free recall phase with keyboard input, and a recognition phase using a conditions file with 'y'/'n' responses. Include a code component to tally and store free-recall and recognition scores, and a final scoring summary screen. Create the recognition conditions file at /home/ga/PsychoPyExperiments/conditions/ace3_recognition.csv with 12 rows containing columns for the word, 'is_target' flag (1 or 0), and 'correct_response' ('y' or 'n'). Save the experiment to /home/ga/PsychoPyExperiments/ace3_episodic_memory.psyexp. Login: user ga, password password123",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ace3_episodic_memory/setup_task.sh",
+    "post_task": "/workspace/tasks/ace3_episodic_memory/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/PsychoPyExperiments/ace3_episodic_memory.psyexp",
+    "conditions_file": "/home/ga/PsychoPyExperiments/conditions/ace3_recognition.csv",
+    "target_words": [
+      "Lemon",
+      "Key",
+      "Ball"
+    ],
+    "foil_words": [
+      "Apple",
+      "Chair",
+      "Table",
+      "Window",
+      "Pen",
+      "Doctor",
+      "House",
+      "River",
+      "Clock"
+    ],
+    "required_conditions_rows": 12,
+    "required_target_rows": 3,
+    "required_foil_rows": 9,
+    "required_columns": [
+      "word",
+      "is_target",
+      "correct_response"
+    ],
+    "interference_min_sec": 60,
+    "target_display_sec": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ace3_episodic_memory"
+    }
+  }
+}

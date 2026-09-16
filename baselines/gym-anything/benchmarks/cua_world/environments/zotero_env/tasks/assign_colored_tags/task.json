@@ -1,0 +1,42 @@
+{
+  "id": "assign_colored_tags@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A postdoctoral researcher needs to visually triage their literature library containing 18 papers tagged with 'deep-learning', 'foundational', 'computer-vision', and 'NLP'. Assign a unique color and a specific position number to each of these four tags: 'deep-learning' at Position 1, 'foundational' at Position 2, 'computer-vision' at Position 3, and 'NLP' at Position 4. Ensure each tag is assigned a visually distinct color.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assign_colored_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/assign_colored_tags/export_result.sh"
+  },
+  "metadata": {
+    "required_tags": [
+      {
+        "name": "deep-learning",
+        "position": 1
+      },
+      {
+        "name": "foundational",
+        "position": 2
+      },
+      {
+        "name": "computer-vision",
+        "position": 3
+      },
+      {
+        "name": "NLP",
+        "position": 4
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assign_colored_tags"
+    }
+  }
+}

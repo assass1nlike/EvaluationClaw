@@ -1,0 +1,38 @@
+{
+  "id": "depth_coded_projection@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Depth-Coded Color Projection of Confocal Stack",
+  "description": "Create a depth-coded (or Z-coded) color projection of the 'Fly Brain' sample stack where color represents the Z-depth of structures. Use the 'Fire' LUT (or a similar spectrum LUT) to project the full stack range. Save the resulting RGB color image as 'depth_coded_fly_brain.png' to '~/ImageJ_Data/results/'.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "visualization",
+    "3d-projection",
+    "hyperstack",
+    "confocal",
+    "depth-coding"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/depth_coded_projection/setup_task.sh",
+    "post_task": "/workspace/tasks/depth_coded_projection/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/depth_coded_fly_brain.png",
+    "sample_image": "Fly Brain",
+    "expected_width": 256,
+    "expected_height": 256,
+    "ground_truth_mip_path": "/var/lib/imagej/ground_truth/fly_brain_mip.tif"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_depth_coded_projection"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_hydraulic_geometry@1",
+  "task_completion": [
+    {
+      "id": "access_geometry_data",
+      "description": "Access or parse the Muncie geometry data file.",
+      "points": 10,
+      "visual_evidence": "Look for a script (e.g., Python using h5py/pandas), terminal command, or application opening 'Muncie.g04' or 'Muncie.p04.tmp.hdf'."
+    },
+    {
+      "id": "identify_upstream_cross_section",
+      "description": "Identify the most upstream cross-section (highest River Station value).",
+      "points": 20,
+      "visual_evidence": "Look for terminal output, script logic, or a text file identifying River Station '15696.24' as the target cross-section."
+    },
+    {
+      "id": "compute_hydraulic_properties",
+      "description": "Compute hydraulic properties at 0.5-ft elevation increments.",
+      "points": 30,
+      "visual_evidence": "Look for code, terminal output, or a spreadsheet showing calculations for Area, Wetted Perimeter, Hydraulic Radius, and Top Width at 0.5-ft increments (starting from the thalweg elevation of ~936.99 ft)."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the computed properties to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "Look for the creation or viewing of '/home/ga/Documents/hec_ras_results/hydraulic_properties.csv' containing the columns: Elevation_ft, Area_sqft, WettedPerimeter_ft, HydraulicRadius_ft, and TopWidth_ft."
+    },
+    {
+      "id": "export_summary_file",
+      "description": "Export the cross-section summary to the specified text file.",
+      "points": 20,
+      "visual_evidence": "Look for the creation or viewing of '/home/ga/Documents/hec_ras_results/cross_section_summary.txt' containing the River Station identifier (15696.24) and the count of stations (134)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Verifies the agent wrote a script or used a tool to compute the properties rather than hardcoding the final answers.",
+      "visual_evidence": "Look for a script (e.g., Python) or a calculation tool being executed to perform the math, rather than simple 'echo' commands with hardcoded numbers."
+    },
+    {
+      "id": "correct_dataset_usage",
+      "description": "Verifies the agent parsed the actual Muncie geometry files.",
+      "visual_evidence": "Look for file paths like 'Muncie.g04' or 'Muncie.p04.tmp.hdf' being actively read in the script or application used by the agent."
+    },
+    {
+      "id": "meaningful_output_content",
+      "description": "Verifies the output files contain actual computed data.",
+      "visual_evidence": "Look at the contents of the generated CSV and summary files to ensure they contain multiple rows of computed data and the correct summary statistics, not just empty files or dummy placeholders."
+    }
+  ],
+  "privileged_info_for_vlm": "The most upstream cross-section has River Station (RS) '15696.24'. Its geometry contains 134 station-elevation points, with a thalweg (minimum) elevation of 936.99 ft and a maximum ground elevation of 963.04 ft. The geometry data is in 'Muncie.p04.tmp.hdf' or 'Muncie.g04'. The CSV must be at '/home/ga/Documents/hec_ras_results/hydraulic_properties.csv' with columns: Elevation_ft, Area_sqft, WettedPerimeter_ft, HydraulicRadius_ft, TopWidth_ft. The summary text file must be at '/home/ga/Documents/hec_ras_results/cross_section_summary.txt' and include the RS (15696.24) and station count (134). Elevation increments must be exactly 0.5 ft."
+}

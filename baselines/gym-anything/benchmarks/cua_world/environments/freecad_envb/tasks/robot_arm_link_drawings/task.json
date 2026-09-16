@@ -1,0 +1,30 @@
+{
+  "id": "robot_arm_link_drawings@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "You are a Robotics Engineer preparing manufacturing documentation for a machining shop. Create a 2D engineering drawing package from the FreeCAD model at /home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd. The drawing must include front, right-side, and top orthographic views, an isometric or auxiliary view, and at least 6 critical dimension annotations covering overall envelope dimensions and key feature locations. Log in as ga / password123. Export the drawing as a PDF to /home/ga/Documents/FreeCAD/bracket_drawing.pdf and save the updated FreeCAD document to /home/ga/Documents/FreeCAD/bracket_drawing.FCStd.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/robot_arm_link_drawings/setup_task.sh",
+    "post_task": "/workspace/tasks/robot_arm_link_drawings/export_result.sh"
+  },
+  "metadata": {
+    "source_model": "/home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd",
+    "output_fcstd": "/home/ga/Documents/FreeCAD/bracket_drawing.FCStd",
+    "output_pdf": "/home/ga/Documents/FreeCAD/bracket_drawing.pdf",
+    "result_json": "/tmp/robot_arm_link_drawings_result.json",
+    "required_views": 3,
+    "required_dimensions": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_robot_arm_link_drawings"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "mmo_distance_estimation_setup@1",
+  "task_completion": [
+    {
+      "id": "scenario_directory_created",
+      "description": "Create the scenario directory 'm) MMO Calibration' in '/opt/bridgecommand/Scenarios/'",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'mkdir -p \"/opt/bridgecommand/Scenarios/m) MMO Calibration\"' or a file manager displaying the newly created directory."
+    },
+    {
+      "id": "environment_file_created",
+      "description": "Create environment.ini with the specified settings",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing 'environment.ini' containing settings for 'Solent', a time between 08:00 and 16:00, visibility of 10 or more, and weather of 1 or less."
+    },
+    {
+      "id": "ownship_file_created",
+      "description": "Create ownship.ini with the specified ownship details",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing 'ownship.ini' containing 'Ocean Explorer', latitude 50.7000, longitude -1.3000 (or 1.3000 W), heading 090, and speed 0."
+    },
+    {
+      "id": "othership_file_created",
+      "description": "Create othership.ini with four stationary targets",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing 'othership.ini' containing four target entries (e.g., 'Buoy-Can-Black') with calculated latitude and longitude coordinates."
+    },
+    {
+      "id": "calibration_card_created",
+      "description": "Save the calculated coordinates to calibration_card.txt",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the file '/home/ga/Documents/calibration_card.txt' containing the calculated coordinates for the four targets."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "coordinate_calculation_script",
+      "description": "The agent should calculate the coordinates using a script or tool rather than hallucinating them.",
+      "visual_evidence": "Look for a Python script, calculator usage, or terminal commands where the agent actively calculates the new latitudes and longitudes using the Haversine formula or similar geographic math."
+    },
+    {
+      "id": "correct_file_locations",
+      "description": "The agent creates the files in the exact required directories.",
+      "visual_evidence": "Check the file paths in the text editor or terminal to ensure they are exactly '/opt/bridgecommand/Scenarios/m) MMO Calibration/' for the INI files and '/home/ga/Documents/' for the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The ownship is at 50.7000\u00b0N, 1.3000\u00b0W (longitude -1.3), heading 90\u00b0 True. The targets must be placed at: Target 1: 500m at True Bearing 90\u00b0 (Dead Ahead). Target 2: 500m at True Bearing 180\u00b0 (Starboard Beam). Target 3: 1000m at True Bearing 0\u00b0 (Port Beam). Target 4: 200m at True Bearing 270\u00b0 (Dead Astern). The agent must calculate the new coordinates for these targets and place them in both othership.ini and calibration_card.txt."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "analyze_crop_health_ndvi_zonal_stats@1",
+  "task_completion": [
+    {
+      "id": "load_input_files",
+      "description": "Load the input raster and vector files into the GIS software.",
+      "points": 10,
+      "visual_evidence": "The Layers panel in QGIS shows both 'farm_imagery' (raster) and 'field_boundaries' (vector) loaded."
+    },
+    {
+      "id": "calculate_ndvi",
+      "description": "Calculate the NDVI using the provided formula.",
+      "points": 25,
+      "visual_evidence": "The Raster Calculator dialog is open with a formula subtracting Band 1 from Band 2 and dividing by their sum (e.g., `(\"farm_imagery@2\" - \"farm_imagery@1\") / (\"farm_imagery@2\" + \"farm_imagery@1\")`), or a newly created NDVI raster layer is visible in the map/Layers panel."
+    },
+    {
+      "id": "save_ndvi_raster",
+      "description": "Save the resulting NDVI raster to the specified path.",
+      "points": 20,
+      "visual_evidence": "A save dialog, Raster Calculator output field, or layer properties window shows the output file path as `/home/ga/GIS_Data/agriculture/ndvi_output.tif`."
+    },
+    {
+      "id": "calculate_zonal_statistics",
+      "description": "Calculate the mean NDVI for each field.",
+      "points": 25,
+      "visual_evidence": "The Zonal Statistics tool dialog is open with the NDVI raster selected as the Raster layer and field boundaries as the Vector layer, or an attribute table is visible showing the calculated mean statistics for each field."
+    },
+    {
+      "id": "export_vector_output",
+      "description": "Export the final layer containing the statistics to the specified path.",
+      "points": 20,
+      "visual_evidence": "The 'Save Vector Layer as...' dialog or an export tool shows the output file path as `/home/ga/GIS_Data/exports/fields_with_yield_potential.geojson`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the QGIS GUI to perform the analysis.",
+      "visual_evidence": "Look for screenshots showing interaction with QGIS menus, Raster Calculator, and Zonal Statistics tools, rather than terminal windows running GDAL or Python scripts."
+    },
+    {
+      "id": "actual_computation",
+      "description": "The agent genuinely computed the results rather than creating fake files.",
+      "visual_evidence": "Ensure the tools were actually executed (e.g., progress bars, newly added layers with rendered data) rather than just using terminal commands like `touch` to create empty files."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "The agent did not manually type the expected mean values into the attribute table.",
+      "visual_evidence": "Check that the agent used the Zonal Statistics tool to generate the means, rather than opening the attribute table in edit mode and manually typing values like 0.77, 0.25, or -0.5."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses synthetic data. Band 1 is Red, Band 2 is Near-Infrared (NIR). The NDVI formula is (NIR - Red) / (NIR + Red). The expected mean NDVI values for the fields are approximately: Field_A = 0.77, Field_B = 0.25, Field_C = -0.50. The output raster must be saved to /home/ga/GIS_Data/agriculture/ndvi_output.tif and the output vector to /home/ga/GIS_Data/exports/fields_with_yield_potential.geojson."
+}

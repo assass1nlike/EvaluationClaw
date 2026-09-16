@@ -1,0 +1,30 @@
+{
+  "id": "record_investment_purchase@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Enable the Investments module in Manager.io and record a new investment purchase. Create a new investment named 'Northwind Strategic Fund' (Code: NSF). Record a payment from 'Cash on Hand' dated 2025-08-15 for 100 units of 'Northwind Strategic Fund' at a unit price of 45.00 (Total: 4,500.00), ensuring the payment is allocated to the corresponding investment account.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_investment_purchase/setup_task.sh",
+    "post_task": "/workspace/tasks/record_investment_purchase/export_result.sh"
+  },
+  "metadata": {
+    "investment_name": "Northwind Strategic Fund",
+    "investment_code": "NSF",
+    "payment_date": "2025-08-15",
+    "payment_amount": 4500.0,
+    "payment_qty": 100,
+    "bank_account": "Cash on Hand"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_investment_purchase"
+    }
+  }
+}

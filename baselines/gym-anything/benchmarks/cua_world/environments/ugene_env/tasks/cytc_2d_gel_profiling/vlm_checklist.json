@@ -1,0 +1,53 @@
+{
+  "task_id": "cytc_2d_gel_profiling@1",
+  "task_completion": [
+    {
+      "id": "profile_sequences",
+      "description": "Profile the theoretical Isoelectric Points (pI) and Molecular Weights (MW) of the sequences.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent using a bioinformatics tool (like UGENE) or running a script to calculate or view the pI and MW for the sequences in the provided FASTA file."
+    },
+    {
+      "id": "create_csv_file",
+      "description": "Generate a CSV file containing the Accession, Length, MW, and pI.",
+      "points": 20,
+      "visual_evidence": "A text editor, spreadsheet viewer, or terminal output showing the creation or content of 'cytc_2d_gel_profile.csv' with the four required columns: Accession, Length, MW, and pI."
+    },
+    {
+      "id": "csv_contains_all_sequences",
+      "description": "The CSV file contains data for all 8 Cytochrome c sequences.",
+      "points": 10,
+      "visual_evidence": "The displayed 'cytc_2d_gel_profile.csv' file clearly contains 8 data rows corresponding to the 8 sequences from the FASTA file."
+    },
+    {
+      "id": "identify_extreme_pi",
+      "description": "Identify the accessions with the highest (most basic) and lowest (most acidic) pI values in a recommendation file.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the contents of 'ief_strip_recommendation.txt', explicitly stating which accession has the highest pI and which has the lowest pI."
+    },
+    {
+      "id": "suggest_ph_range",
+      "description": "Suggest an appropriate pH range for the IEF strip based on the results.",
+      "points": 25,
+      "visual_evidence": "The 'ief_strip_recommendation.txt' file includes a recommendation for a specific pH range (e.g., 3-10, 7-10, etc.) for the Isoelectric Focusing (IEF) strip."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "The agent actually calculated the MW and pI values using a tool or script.",
+      "visual_evidence": "The trajectory shows the agent interacting with UGENE, another bioinformatics tool, or executing a custom script to compute the values, rather than hallucinating or typing made-up numbers directly into the CSV."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "The output files are saved in the correct requested directory.",
+      "visual_evidence": "The file paths for both the CSV and TXT files are clearly visible in the terminal or file explorer as being inside '~/UGENE_Data/results/' (or '/home/ga/UGENE_Data/results/')."
+    },
+    {
+      "id": "no_hallucinated_accessions",
+      "description": "The agent used the actual accessions from the provided FASTA file.",
+      "visual_evidence": "The accessions listed in the CSV and TXT files match the expected UniProt IDs (e.g., P99999, P67881, P00048, etc.) and are not hallucinated or generic names."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses 8 UniProt Cytochrome c orthologs (P99999, P67881, P00048, P00053, P00044, P04657, P00004, P62895). Expected output paths are /home/ga/UGENE_Data/results/cytc_2d_gel_profile.csv and /home/ga/UGENE_Data/results/ief_strip_recommendation.txt. Note: Sequence P00053 (Cannabis sativa) contains ambiguous amino acids 'B' and 'Z'. A true MW calculation yields ~12,044 Da, but some naive scripts might calculate ~11,185 Da by ignoring these. Accept either as long as the agent genuinely calculated it using a tool or script."
+}

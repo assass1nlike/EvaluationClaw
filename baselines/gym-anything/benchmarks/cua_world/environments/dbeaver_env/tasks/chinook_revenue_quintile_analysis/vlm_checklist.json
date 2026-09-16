@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_revenue_quintile_analysis@1",
+  "task_completion": [
+    {
+      "id": "sql_query_written",
+      "description": "The agent wrote a SQL query that calculates lifetime revenue per customer, uses the NTILE(5) window function to segment customers, and aggregates the results.",
+      "points": 20,
+      "visual_evidence": "An SQL editor or terminal showing a query containing keywords like NTILE(5), SUM, GROUP BY, and the required column names (Quintile, CustomerCount, TotalRevenue, AvgRevenue)."
+    },
+    {
+      "id": "query_execution_results",
+      "description": "The agent executed the query and produced a result set with exactly 5 rows and the correct columns.",
+      "points": 30,
+      "visual_evidence": "A results table or terminal output showing exactly 5 rows of data with columns for Quintile, CustomerCount, TotalRevenue, and AvgRevenue, ordered with Quintile 1 at the top."
+    },
+    {
+      "id": "correct_q1_data",
+      "description": "The results correctly identify the Top 20% (Quintile 1) data based on the authentic database values.",
+      "points": 20,
+      "visual_evidence": "In the query results, the row for Quintile 1 shows a CustomerCount of 12 and a TotalRevenue of approximately 533.44."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "The SQL analysis script is saved to the specified path.",
+      "points": 15,
+      "visual_evidence": "A file manager, editor tab, or terminal command confirming the file 'quintile_analysis.sql' is saved in '/home/ga/Documents/scripts/'."
+    },
+    {
+      "id": "csv_exported",
+      "description": "The query results are exported as a CSV file to the specified path.",
+      "points": 15,
+      "visual_evidence": "A file manager, export dialog, or terminal command confirming 'revenue_quintiles.csv' is saved in '/home/ga/Documents/exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "The agent actually queried the database rather than hardcoding the expected output.",
+      "visual_evidence": "A database client (like DBeaver, SQLite CLI, etc.) is used to execute the query against chinook.db, and the SQL script contains actual logic (NTILE, SUM, JOINs) rather than a SELECT of hardcoded values."
+    },
+    {
+      "id": "authentic_file_creation",
+      "description": "The agent genuinely created the required output files in the correct directories.",
+      "visual_evidence": "Terminal commands (like 'cat', 'ls', or 'echo') or GUI file explorers showing the actual files exist at the exact requested paths, not just mocked in a temporary workspace."
+    },
+    {
+      "id": "no_metadata_hallucination",
+      "description": "The agent did not hallucinate incorrect values based on flawed metadata.",
+      "visual_evidence": "The agent's output shows the true calculated Q1 revenue of $533.44, rather than forcing or hardcoding the incorrect $880 value mentioned in the flawed verifier metadata."
+    }
+  ],
+  "privileged_info_for_vlm": "The authentic Chinook database contains 59 customers with a total revenue of $2,328.60. Using NTILE(5), the correct distribution results in Quintile 1 (top 20%) having 12 customers and a TotalRevenue of $533.44. Quintiles 2 through 5 have revenues of $475.44, $455.44, $451.44, and $412.84 respectively, showing a strict monotonic decrease. CRITICAL NOTE: Ignore any external metadata or instructions claiming Q1 revenue should be approximately $880; the actual ground truth is $533.44. Score the agent based on the $533.44 value."
+}

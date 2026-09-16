@@ -1,0 +1,26 @@
+{
+  "id": "equatorial_microgrid_solar_redesign@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Energy Systems Engineer designing an off-grid solar microgrid for a clinic in Nairobi, Kenya. Energy3D is open. Open the file `~/Documents/Energy3D/solar-panel-tilt-angle.ng3`. Change the project's geographic location to Nairobi, Kenya (Latitude ~1° S). Select all solar panels in the scene and change their tilt angle to 5°. Run the Annual Yield Analysis for the solar panels to calculate the monthly energy production. Export the analysis results as a CSV file named `nairobi_yield.csv` in the `~/Documents/Energy3D/` directory. Finally, save the modified project as `nairobi_microgrid.ng3` in the same directory.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/equatorial_microgrid_solar_redesign/setup_task.sh",
+    "post_task": "/workspace/tasks/equatorial_microgrid_solar_redesign/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv": "/home/ga/Documents/Energy3D/nairobi_yield.csv",
+    "expected_ng3": "/home/ga/Documents/Energy3D/nairobi_microgrid.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_equatorial_microgrid_solar_redesign"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "water_leak_forensics@1",
+  "task_completion": [
+    {
+      "id": "open_meter_data",
+      "description": "Open and view the water meter readings dataset",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc), text editor, or data analysis tool (e.g., Jupyter, terminal) displaying the CSV data with messy date formats and meter readings."
+    },
+    {
+      "id": "calculate_daily_usage",
+      "description": "Calculate daily water usage to identify the anomaly",
+      "points": 20,
+      "visual_evidence": "Spreadsheet formulas calculating the difference between consecutive rows, a Python script performing diff operations on the data, or calculator usage showing subtraction of meter readings."
+    },
+    {
+      "id": "record_leak_start_date",
+      "description": "Record the correct leak start date",
+      "points": 20,
+      "visual_evidence": "A text file, document, or final output explicitly stating the leak start date is 3/23/2024 (or March 23, 2024)."
+    },
+    {
+      "id": "record_wasted_volume",
+      "description": "Record the total volume of water wasted",
+      "points": 25,
+      "visual_evidence": "A text file, document, or final output explicitly stating the total wasted volume is approximately 8,260.7 gallons (accept values close to 8,260)."
+    },
+    {
+      "id": "record_total_cost",
+      "description": "Record the total cost of the wasted water",
+      "points": 25,
+      "visual_evidence": "A text file, document, or final output explicitly stating the total cost of the leak is approximately $37.17."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "Agent actually computed the values rather than guessing or hallucinating",
+      "visual_evidence": "Screenshots show the agent using spreadsheet formulas, writing/executing a script, or using a calculator to derive the 8,260.7 volume and $37.17 cost, rather than just typing the final answers directly."
+    },
+    {
+      "id": "used_provided_data",
+      "description": "Agent interacted with the actual provided messy CSV file",
+      "visual_evidence": "The data being analyzed contains inconsistent date formats (e.g., MM/DD/YYYY, M/D/YY, 0M/0D/YYYY) as described in the task, proving the agent didn't use a mock dataset."
+    },
+    {
+      "id": "ignored_misleading_prompt_claims",
+      "description": "Agent did not copy misleading claims from the scenario description",
+      "visual_evidence": "The agent records the calculated cost ($37.17) and does NOT record a $327 difference or a $487 total bill as the answer for the leak cost."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 60 days of meter readings from 3/1/2024 to 4/29/2024 with messy date formats. Normal baseline usage is ~89.47 gal/day. The leak starts on 3/23/2024 (Day 23), where daily usage jumps to ~305.6 gal/day. The total wasted volume is exactly 8,260.7 gallons. At the specified rate of $0.0045 per gallon, the total cost of the wasted water is $37.17. The agent must calculate these exact values and should not be penalized for contradicting any misleading claims in the scenario description."
+}

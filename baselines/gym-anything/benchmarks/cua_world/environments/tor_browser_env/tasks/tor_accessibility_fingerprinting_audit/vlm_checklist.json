@@ -1,0 +1,53 @@
+{
+  "task_id": "tor_accessibility_fingerprinting_audit@1",
+  "task_completion": [
+    {
+      "id": "tor_browser_navigated",
+      "description": "Navigate to the target URL in Tor Browser",
+      "points": 10,
+      "visual_evidence": "Tor Browser is open and the address bar shows 'https://check.torproject.org/'."
+    },
+    {
+      "id": "accessibility_protection_overridden",
+      "description": "Override Tor Browser's default accessibility protection",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent modifying accessibility settings (e.g., unchecking 'Prevent accessibility services from accessing your browser' in about:preferences#privacy, or changing 'accessibility.force_disabled' in about:config), OR the Accessibility tab in Developer Tools is fully functional and not showing a warning that accessibility is disabled."
+    },
+    {
+      "id": "accessibility_tree_inspected",
+      "description": "Inspect the accessibility tree for the required elements",
+      "points": 20,
+      "visual_evidence": "The Developer Tools panel is open to the 'Accessibility' tab, showing the accessibility tree of the check.torproject.org page, specifically inspecting the status message heading or the 'Donate' link."
+    },
+    {
+      "id": "page_bookmarked",
+      "description": "Bookmark the page with the specified title",
+      "points": 20,
+      "visual_evidence": "The bookmark star in the address bar is highlighted, and/or the bookmark edit popup or library shows the bookmark saved with the exact name 'Tor A11y Target'."
+    },
+    {
+      "id": "report_created",
+      "description": "Create the plain-text accessibility audit report",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output displays the contents of '/home/ga/Documents/a11y_audit.txt', matching the requested format with 'Accessibility Enabled: Yes' and the extracted Role and Name for both the Status Element and Donate Element."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_used",
+      "description": "The agent used the Tor Browser GUI for the task",
+      "visual_evidence": "Check that Tor Browser is visibly open and used for navigation and settings modification, rather than relying solely on terminal commands or scripts."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "The agent genuinely extracted the accessibility values",
+      "visual_evidence": "Ensure there are screenshots showing the Developer Tools Accessibility tab being used to inspect the specific elements, proving the Role and Name values were extracted from the tree and not hallucinated."
+    },
+    {
+      "id": "manual_bookmarking",
+      "description": "The bookmark was created via the browser UI",
+      "visual_evidence": "Verify that the bookmark was created through the browser's UI (e.g., bookmark popup visible), rather than by running a script to modify the browser's SQLite database directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: 'https://check.torproject.org/'. Bookmark Title: 'Tor A11y Target'. Report File: '/home/ga/Documents/a11y_audit.txt'. The report must contain 'Accessibility Enabled: Yes' and the extracted Role and Name for the main status message heading and the 'Donate' link."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "capacity_planning_percentile_report@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the dashboard is named 'Capacity Planning Q4'.",
+      "points": 10,
+      "visual_evidence": "Look for 'Capacity Planning Q4' displayed as the dashboard name at the top of the Graphite interface."
+    },
+    {
+      "id": "graph1_title",
+      "description": "Verify the first graph is titled 'P95 CPU Utilization'.",
+      "points": 10,
+      "visual_evidence": "Look for the title 'P95 CPU Utilization' displayed above one of the graphs."
+    },
+    {
+      "id": "graph1_function",
+      "description": "Verify the first graph uses the correct percentileOfSeries function and wildcard pattern.",
+      "points": 30,
+      "visual_evidence": "Look for the target string 'percentileOfSeries(servers.ec2_instance_*.cpu.utilization, 95)' in the graph's legend, tooltip, or metric editor."
+    },
+    {
+      "id": "graph2_title",
+      "description": "Verify the second graph is titled 'CPU Variability'.",
+      "points": 10,
+      "visual_evidence": "Look for the title 'CPU Variability' displayed above the second graph."
+    },
+    {
+      "id": "graph2_function",
+      "description": "Verify the second graph uses the correct stddevSeries function and wildcard pattern.",
+      "points": 40,
+      "visual_evidence": "Look for the target string 'stddevSeries(servers.ec2_instance_*.cpu.utilization)' in the graph's legend, tooltip, or metric editor."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "Verify the agent interacted with the Graphite web interface to create the dashboard.",
+      "visual_evidence": "Screenshots should show the Graphite web UI being used, rather than terminal commands or API requests."
+    },
+    {
+      "id": "graphs_rendered",
+      "description": "Verify the graphs actually render data.",
+      "visual_evidence": "The graphs should display plotted lines, indicating real metric data is being queried and not just an empty configuration."
+    },
+    {
+      "id": "no_json_editing",
+      "description": "Verify the agent didn't bypass the UI by editing the dashboard JSON file directly in a text editor.",
+      "visual_evidence": "There should be no screenshots of a text editor (like nano or vim) modifying dashboard JSON files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Capacity Planning Q4'. The expected graph titles are 'P95 CPU Utilization' and 'CPU Variability'. The first graph must use percentileOfSeries with a percentile of 95 and the wildcard pattern servers.ec2_instance_*.cpu.utilization. The second graph must use stddevSeries with the same wildcard pattern."
+}

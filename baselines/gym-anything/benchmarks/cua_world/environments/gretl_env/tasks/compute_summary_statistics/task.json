@@ -1,0 +1,31 @@
+{
+  "id": "compute_summary_statistics@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "The food.gdt dataset is open in Gretl, containing household survey data for 'food_exp' (weekly food expenditure in dollars) and 'income' (weekly income in $100 units) for 40 households. Compute descriptive summary statistics for all variables in the dataset and save the output as a text file to /home/ga/Documents/gretl_output/summary_stats.txt.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_summary_statistics/setup_task.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "variables": [
+      "food_exp",
+      "income"
+    ],
+    "expected_output": "/home/ga/Documents/gretl_output/summary_stats.txt",
+    "data_source": "Hill, Griffiths, Lim - Principles of Econometrics 5th ed, household survey data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_summary_statistics"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "build_master_detail_explorer@1",
+  "task_completion": [
+    {
+      "id": "tiddler_metadata",
+      "description": "Verify the tiddler is created with the correct title and tag.",
+      "points": 10,
+      "visual_evidence": "Look for a tiddler titled exactly 'Medication Explorer' with a 'Dashboard' tag pill visible at the top."
+    },
+    {
+      "id": "two_column_layout",
+      "description": "Verify the dashboard features a two-column layout.",
+      "points": 10,
+      "visual_evidence": "Look for a visual left/right split in the rendered tiddler, or wikitext in the editor using HTML/CSS (e.g., flexbox, grid, or side-by-side divs) to create two columns."
+    },
+    {
+      "id": "medication_list",
+      "description": "Verify the left pane lists all tiddlers tagged 'Medication'.",
+      "points": 20,
+      "visual_evidence": "Look for a list of medication names (rendered as links or buttons) in the left column, or wikitext using a list widget like `<$list filter=\"[tag[Medication]]\">`."
+    },
+    {
+      "id": "empty_state",
+      "description": "Verify the right pane displays the correct empty state text when no medication is selected.",
+      "points": 15,
+      "visual_evidence": "Look for the exact text 'Please select a medication.' rendered in the right pane, or wikitext conditionally displaying this text when the state tiddler (e.g., `$:/state/selected-med`) is empty."
+    },
+    {
+      "id": "detail_fields",
+      "description": "Verify the right pane displays the required labels and field values for the selected medication.",
+      "points": 30,
+      "visual_evidence": "Look for the labels 'Class:', 'Indications:', and 'Side Effects:' rendered in the right pane with accompanying data, or wikitext transcluding the fields `drug-class`, `indications`, and `common-side-effects`."
+    },
+    {
+      "id": "detail_heading_and_body",
+      "description": "Verify the right pane displays the selected medication's title as a heading and its body text.",
+      "points": 15,
+      "visual_evidence": "Look for the selected medication's name formatted as a heading (e.g., H1, H2, H3) followed by descriptive paragraph text in the right pane, or wikitext transcluding the title as a heading and the text body."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "web_ui_used",
+      "description": "Verify the agent interacted with the TiddlyWiki web interface.",
+      "visual_evidence": "Screenshots should show the TiddlyWiki application running in a web browser, with evidence of using the UI to create or edit the tiddler."
+    },
+    {
+      "id": "dynamic_list_used",
+      "description": "Verify the medication list is generated dynamically rather than hardcoded.",
+      "visual_evidence": "In the wikitext editor, look for a filter or list widget (e.g., `[tag[Medication]]`) rather than a manually typed list of 15 medication names."
+    },
+    {
+      "id": "dynamic_details_used",
+      "description": "Verify the details pane uses dynamic transclusion for the selected medication.",
+      "visual_evidence": "In the wikitext editor, look for variables or transclusions (e.g., `{{!!drug-class}}` or `<$transclude/>`) rather than hardcoded text about a specific medication."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected tiddler title is exactly 'Medication Explorer' and must have the tag 'Dashboard'. The empty state text in the right pane must be exactly 'Please select a medication.' The medication data is pre-populated, so the left pane should dynamically list them using TiddlyWiki filter logic."
+}

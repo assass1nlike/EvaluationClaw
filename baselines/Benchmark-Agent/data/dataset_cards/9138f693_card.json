@@ -1,0 +1,84 @@
+{
+  "dataset_id": "9138f693",
+  "name": "Tomato-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 358,
+  "description": "Tomato-Detection is an object detection dataset where images of tomatoes are paired with a text prompt instructing the model to detect all tomato regions. Each output provides bounding box coordinates for each detected tomato.",
+  "card_text": "The Tomato-Detection dataset contains 358 samples of images featuring tomatoes in various natural scenes. Each sample includes an image file and a fixed text prompt: 'Detect all tomato regions in the given image.' The target annotation is a structured dictionary keyed by instance indices, each mapping to a bounding box specified as coordinates. The dataset evaluates a model's ability to localize and detect tomatoes in images based solely on the visual content and the detection instruction. Images vary in complexity, from single tomatoes to multiple tomatoes in different arrangements. The task requires precise spatial localization rather than classification or counting alone.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "agriculture",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "The image file displaying tomatoes in various scenes, serving as the visual input for detecting tomato regions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed text instruction asking the model to detect all tomato regions in the given image; it defines the detection task and target object.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category: bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Bounding box annotations for each detected tomato, stored as a dictionary with integer keys and coordinate lists. These boxes are the target output corresponding to the image and prompt.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference (input.image_file) and a text instruction (input.prompt) that asks to detect all tomato regions. The target output is a mapping under 'output.category: bbox' where each integer key corresponds to a detected tomato instance and its value is a bounding box coordinate list. No separate context passage, answer text, or multiple-choice options are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/tomato-detection/json/annotation.json",
+    "existing_tags": {
+      "task": "tomato detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "ct_cardiac_measurements@1",
+  "version": "1.0",
+  "env_id": "weasis_env@0.1",
+  "description": "You are a hospitalist reviewing a chest CT for a patient admitted with hypertension and exertional dyspnea. Assess for cardiomegaly by calculating the cardiothoracic ratio (CTR) using the CT series at /home/ga/DICOM/studies/chest_ct/. On the axial slice showing the maximum transverse cardiac diameter, measure both the cardiac width and the widest inner thoracic diameter. Export the annotated slice to /home/ga/DICOM/exports/cardiac_analysis.png and save a report containing the cardiac width (mm), thoracic width (mm), and calculated CTR (decimal) to /home/ga/DICOM/exports/cardiac_report.txt. A CTR above 0.50 suggests cardiomegaly.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ct_cardiac_measurements/setup_task.sh",
+    "post_task": "/workspace/tasks/ct_cardiac_measurements/export_result.sh"
+  },
+  "metadata": {
+    "target_directory": "/home/ga/DICOM/studies/chest_ct/",
+    "export_image": "/home/ga/DICOM/exports/cardiac_analysis.png",
+    "export_report": "/home/ga/DICOM/exports/cardiac_report.txt",
+    "occupation": "Hospitalist",
+    "clinical_scenario": "Cardiothoracic ratio assessment for cardiomegaly",
+    "expected_ctr_min": 0.3,
+    "expected_ctr_max": 0.75,
+    "required_features": [
+      "window_level",
+      "measurements",
+      "export_image",
+      "text_report"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ct_cardiac_measurements"
+    }
+  }
+}

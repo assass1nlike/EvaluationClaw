@@ -1,0 +1,33 @@
+{
+  "id": "chinook_invoice_sequence_audit@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Database Administrator performing a compliance audit for a tax authority. Using the modified Chinook database at /home/ga/Documents/databases/chinook_audit.db, identify all gaps in the InvoiceId sequence within the 'invoices' table. Export a gap analysis report to /home/ga/Documents/exports/gap_analysis.csv with the columns 'GapStartId' (the first missing ID in the range), 'GapEndId' (the last missing ID in the range), and 'MissingCount' (total IDs missing in that range). Save the SQL query used for this analysis to /home/ga/Documents/scripts/audit_query.sql. Use the connection name 'ChinookAudit' for the database.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_invoice_sequence_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_invoice_sequence_audit/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_audit.db",
+    "connection_name": "ChinookAudit",
+    "output_csv": "/home/ga/Documents/exports/gap_analysis.csv",
+    "output_sql": "/home/ga/Documents/scripts/audit_query.sql",
+    "required_columns": [
+      "GapStartId",
+      "GapEndId",
+      "MissingCount"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_invoice_sequence_audit"
+    }
+  }
+}

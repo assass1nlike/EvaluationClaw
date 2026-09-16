@@ -1,0 +1,42 @@
+{
+  "id": "update_feed_tags@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "A facilities management company has taken over energy monitoring for a commercial building campus. Reorganize the feeds on the Emoncms Feeds page by building zone. Update the tags for 'North_Wing_Power' and 'North_Wing_Temp' to 'zone_north', 'Rooftop_Solar' to 'zone_roof', and 'Parking_EV_Charger' to 'zone_parking'.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_feed_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/update_feed_tags/export_result.sh"
+  },
+  "metadata": {
+    "target_feeds": {
+      "North_Wing_Power": "zone_north",
+      "North_Wing_Temp": "zone_north",
+      "Rooftop_Solar": "zone_roof",
+      "Parking_EV_Charger": "zone_parking"
+    },
+    "scoring": {
+      "per_feed_points": 20,
+      "anti_gaming_points": 10,
+      "vlm_points": 10
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_feed_tags"
+    }
+  },
+  "tags": [
+    "feeds",
+    "metadata",
+    "organization",
+    "inline-editing",
+    "tag-management"
+  ]
+}

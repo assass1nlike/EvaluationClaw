@@ -1,0 +1,29 @@
+{
+  "id": "correct_reversed_polarity@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "A solar PV installation is reporting negative power values because the Current Transformer (CT) sensor was installed backwards. Correct the polarity for node 'garage_solar', input 'power' by inverting the values. Log the corrected real-time power to a PHPFina feed named 'solar_yield' (10s interval) and the cumulative energy to a PHPFina feed named 'solar_energy' (10s interval) using the 'Power to kWh' processor. The processing sequence must follow the order: Scale, Log, then Accumulate.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_reversed_polarity/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_reversed_polarity/export_result.sh"
+  },
+  "metadata": {
+    "target_node": "garage_solar",
+    "target_input": "power",
+    "feed_power_name": "solar_yield",
+    "feed_energy_name": "solar_energy",
+    "scaling_factor": -1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_correct_reversed_polarity"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "export_uddf@1",
+  "task_completion": [
+    {
+      "id": "open_export_dialog",
+      "description": "Agent opens the export dialog in the dive log application.",
+      "points": 15,
+      "visual_evidence": "The 'Export' dialog window or menu is visible on the screen within the dive log application."
+    },
+    {
+      "id": "select_uddf_format",
+      "description": "Agent selects the UDDF format for export.",
+      "points": 25,
+      "visual_evidence": "The 'UDDF' (Universal Dive Data Format) option is explicitly selected, checked, or highlighted in the export dialog's format list."
+    },
+    {
+      "id": "specify_file_name_and_path",
+      "description": "Agent specifies the correct save path and filename.",
+      "points": 30,
+      "visual_evidence": "The file save dialog shows the destination folder as '/home/ga/Documents' (or the Documents folder) and the filename entered is exactly 'exported_dives.uddf'."
+    },
+    {
+      "id": "execute_export",
+      "description": "Agent confirms the export operation.",
+      "points": 10,
+      "visual_evidence": "The agent clicks the 'Save', 'Export', or 'OK' button in the file dialog to finalize the export process."
+    },
+    {
+      "id": "verify_exported_file",
+      "description": "The exported file is successfully created in the target directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window displays 'exported_dives.uddf' existing inside the '/home/ga/Documents' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "Verifies the agent used the actual dive log application to perform the export.",
+      "visual_evidence": "The screenshots show interaction with a genuine dive log GUI (e.g., Subsurface) to trigger the export, rather than writing a script or manually typing XML."
+    },
+    {
+      "id": "no_mocked_file",
+      "description": "Verifies the agent didn't just create an empty or dummy file to bypass the task.",
+      "visual_evidence": "The agent does not use terminal commands like 'touch exported_dives.uddf' or 'echo > exported_dives.uddf' to fake the output file."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "Verifies the export process was genuinely executed through the application's native features.",
+      "visual_evidence": "The export dialog and save prompts belong to the dive log application and match standard OS file dialogs, without the agent copy-pasting expected XML answers from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/Documents/exported_dives.uddf'. The exported UDDF file must be a valid XML containing at least 5 dives (the loaded file actually contains 29 dives) and be at least 1024 bytes in size."
+}

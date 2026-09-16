@@ -1,0 +1,65 @@
+{
+  "task_id": "audit_benfords_law_analysis@1",
+  "task_completion": [
+    {
+      "id": "file_opened",
+      "description": "Verify the correct Excel file is opened.",
+      "points": 10,
+      "visual_evidence": "Look for a spreadsheet application (like LibreOffice Calc) open with 'vendor_payments_FY23.xlsx' visible in the title bar."
+    },
+    {
+      "id": "sheet_created",
+      "description": "Verify the 'Benford_Analysis' sheet has been created.",
+      "points": 10,
+      "visual_evidence": "Look for a sheet tab named 'Benford_Analysis' at the bottom of the spreadsheet interface."
+    },
+    {
+      "id": "headers_created",
+      "description": "Verify the required table headers are present on the new sheet.",
+      "points": 10,
+      "visual_evidence": "Look for the exact column headers: 'Digit', 'Count', 'Actual_Freq', 'Expected_Freq', 'Variance', and 'Flag' in the 'Benford_Analysis' sheet."
+    },
+    {
+      "id": "digits_populated",
+      "description": "Verify the leading digits 1 through 9 are listed in the table.",
+      "points": 10,
+      "visual_evidence": "Look for the numbers 1 through 9 listed sequentially in the rows under the 'Digit' column."
+    },
+    {
+      "id": "frequencies_calculated",
+      "description": "Verify the Count, Actual_Freq, Expected_Freq, and Variance columns are populated with numerical data.",
+      "points": 20,
+      "visual_evidence": "Look for numerical values filling the rows for these columns. Expected_Freq should show values consistent with Benford's Law (e.g., ~0.301 for digit 1, ~0.176 for digit 2)."
+    },
+    {
+      "id": "anomalies_flagged",
+      "description": "Verify the Flag column correctly identifies anomalies based on the 2% variance threshold.",
+      "points": 20,
+      "visual_evidence": "Look for the text 'OK' and 'Investigate' in the Flag column. Specifically, check if digit '8' is flagged as 'Investigate' due to the seeded anomaly."
+    },
+    {
+      "id": "chart_created",
+      "description": "Verify a chart comparing actual and expected frequencies is included on the sheet.",
+      "points": 20,
+      "visual_evidence": "Look for a bar, column, or line chart embedded in the 'Benford_Analysis' sheet that displays two distinct data series (Actual vs. Expected) across the digits 1-9."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "spreadsheet_app_used",
+      "description": "Verify the agent used a graphical spreadsheet application to perform the task.",
+      "visual_evidence": "The screenshots should show the interface of a spreadsheet program (e.g., LibreOffice Calc) being interacted with, rather than just a terminal window running a Python script."
+    },
+    {
+      "id": "embedded_chart_object",
+      "description": "Verify the chart is genuinely created within the spreadsheet.",
+      "visual_evidence": "The chart should appear as an embedded object within the spreadsheet grid, not as a separate image file opened in a standalone image viewer."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "Verify the agent used formulas rather than hardcoding the answers.",
+      "visual_evidence": "If a cell in the calculated columns (Count, Freq, Variance, Flag) is selected in any screenshot, the formula bar at the top should display an Excel formula (e.g., containing COUNTIF, LOG10, ABS, or IF) instead of a static number or text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /home/ga/Documents/vendor_payments_FY23.xlsx. Required sheets: 'Payments' and 'Benford_Analysis'. Required formulas: COUNTIF, LOG10, ABS, IF. Variance threshold: 0.02 (2%). The dataset has a seeded anomaly spiking the leading digit '8', so digit 8 should trigger the 'Investigate' flag."
+}

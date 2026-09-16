@@ -1,0 +1,53 @@
+{
+  "task_id": "create_virtual_feed_aggregation@1",
+  "task_completion": [
+    {
+      "id": "feed_created_with_name_and_tag",
+      "description": "Verifies that a feed named 'GuestHouse_Total' with the tag 'GuestHouse' has been created.",
+      "points": 15,
+      "visual_evidence": "Look for a row in the Feeds list/table where the 'Name' column is 'GuestHouse_Total' and the 'Tag' column is 'GuestHouse'."
+    },
+    {
+      "id": "feed_engine_is_virtual",
+      "description": "Verifies that the newly created feed uses the 'Virtual' engine.",
+      "points": 15,
+      "visual_evidence": "Look at the 'Engine' column for the 'GuestHouse_Total' feed row; it should display 'Virtual' or 'Virtual Feed'."
+    },
+    {
+      "id": "virtual_feed_includes_sources",
+      "description": "Verifies that the virtual feed configuration includes the three required source feeds.",
+      "points": 30,
+      "visual_evidence": "Look at the virtual feed configuration window or process list. It should explicitly list 'guest_lights', 'guest_ac', and 'guest_water' as inputs or source feeds."
+    },
+    {
+      "id": "virtual_feed_sums_sources",
+      "description": "Verifies that the virtual feed is configured to sum (add) the source feeds together.",
+      "points": 20,
+      "visual_evidence": "Look for addition operators (e.g., '+ feed', 'add', or '+') between the source feeds in the virtual feed process configuration list."
+    },
+    {
+      "id": "correct_aggregated_value",
+      "description": "Verifies that the final calculated value of the virtual feed is correct based on the synthetic data.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Value' column for the 'GuestHouse_Total' feed in the Feeds table. It should display exactly or approximately 3851.5."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Verifies the agent used the Emoncms web interface to configure the virtual feed.",
+      "visual_evidence": "Screenshots should show interaction with the Emoncms web UI (browser window, clicking through menus, opening the virtual feed configuration modal) rather than relying solely on terminal/curl commands."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Verifies the agent actually configured the virtual feed processes rather than just creating a standard feed and manually setting its value.",
+      "visual_evidence": "The configuration modal for the Virtual Feed should be visible in at least one screenshot, showing the step-by-step process list (e.g., Source feed -> + feed -> + feed)."
+    },
+    {
+      "id": "no_html_manipulation",
+      "description": "Verifies the agent did not use browser developer tools to fake the final value.",
+      "visual_evidence": "The browser's developer console/inspector should not be open and actively modifying the DOM elements of the Feeds table to display '3851.5'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target feed must be named 'GuestHouse_Total' with the tag 'GuestHouse'. It must use the 'Virtual Feed' engine (Engine ID 7). The virtual feed must aggregate three source feeds: 'guest_lights' (150.5 W), 'guest_ac' (1200.2 W), and 'guest_water' (2500.8 W). The expected total aggregated value shown in the UI should be 3851.5 W (tolerance \u00b10.1 W)."
+}

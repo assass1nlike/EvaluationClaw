@@ -1,0 +1,96 @@
+{
+  "dataset_id": "10ff7c44",
+  "name": "Openset Complex Multi-Scenario Dialogue",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multi-image, multi-hop question-answering dataset where a model must answer a final question by integrating a global table, a history of prior Q&A exchanges over text and tabular images, and the current visual/textual context across varied open-domain topics.",
+  "card_text": "Openset Complex Multi-Scenario Dialogue is a 200-sample image-and-text benchmark. Each sample provides an ordered list of image files plus a single long text prompt that frames the task as an instruction. Inside the prompt, the model is given a 'Global Table' reference, several numbered 'History Context' turns (each pairing a text or table image with an earlier Question/Answer), and a 'Current Context' followed by the final Question. Images are referenced inside the prompt through <ImageHere> placeholders that map onto the image_file list. The expected output is a short free-form text answer, often listing one or several entities, which can only be produced by combining the current context with the tabular images and the prior reasoning history. Content spans many domains (television, sports, biographies, etc.), making this an open-domain, multi-hop, multimodal reading-comprehension task.",
+  "tasks": [
+    "question_answering",
+    "visual_question_answering",
+    "table_question_answering",
+    "multi_hop_response"
+  ],
+  "domain": "open-domain knowledge QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "mixed",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "The single prompt string that frames the task and carries all evidence: a global table reference, several numbered history contexts (prior Question/Answer turns over text passages and table images), and the current context plus the final question. Placeholders such as <ImageHere> inside this text point to the entries listed in image_file. It is the main content the model reads.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The final query embedded at the end of the prompt after 'Question:' (and before the trailing 'Answer:'). It asks for a specific fact that must be resolved using the global table, the history contexts and the current context; earlier 'Question:' strings inside the history serve as paraphrase/prior turns of the same kind.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Short free-form text answer, typically one entity name or a concatenated list of entities copied from the evidence. It corresponds to the final Question in the prompt and demonstrates the resolved multi-hop result.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "Ordered list of image files that the <ImageHere> placeholders in the prompt refer to. They contain tables, charts and graphical evidence (e.g., rosters, schedules, statistics) required together with the text to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has an id, an input object and an output object. The input holds image_file, an ordered list of image references addressed by <ImageHere> markers, and prompt, one long mixed text field that contains the task instruction, a global table reference, several history Question/Answer turns over text and table images, and the current context ending in the final Question and a trailing 'Answer:'. The output holds a single text field with the short answer. The question is embedded at the end of the prompt rather than stored separately, and the images supply the tabular/graphic evidence that the prompt text points to via placeholders."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ComplexMulti-ScenarioDialogue/openset_complex_multi-scenario_dialogue.json",
+    "existing_tags": {
+      "task": "Complex Multi-Scenario Dialogue",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

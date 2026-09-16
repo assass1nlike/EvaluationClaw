@@ -1,0 +1,59 @@
+{
+  "task_id": "linux_pam_execution_audit@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Dashboard named 'Privileged_Execution_Audit' is created.",
+      "points": 10,
+      "visual_evidence": "Splunk dashboard page or 'Save As' dialog showing the exact title 'Privileged_Execution_Audit'."
+    },
+    {
+      "id": "dashboard_panels",
+      "description": "Dashboard contains at least three visualization panels.",
+      "points": 15,
+      "visual_evidence": "The dashboard view displays three or more distinct charts, graphs, or tables."
+    },
+    {
+      "id": "dashboard_searches",
+      "description": "Dashboard panel searches use rex/regex on the correct indexes for successful sudo/su logs.",
+      "points": 25,
+      "visual_evidence": "Splunk search bar, panel edit view, or SPL source showing a query containing 'index=system_logs' or 'index=security_logs', 'sudo' or 'su', and the 'rex' or 'regex' command."
+    },
+    {
+      "id": "alert_created",
+      "description": "Scheduled alert named 'Failed_Privileged_Escalation' is created.",
+      "points": 10,
+      "visual_evidence": "Splunk Alerts page or 'Save As Alert' dialog showing the exact name 'Failed_Privileged_Escalation'."
+    },
+    {
+      "id": "alert_search",
+      "description": "Alert search query targets failed sudo or su attempts.",
+      "points": 20,
+      "visual_evidence": "Search query in the search bar or alert configuration includes terms like 'sudo' or 'su', along with failure keywords (e.g., 'fail', 'incorrect password', 'authentication failure')."
+    },
+    {
+      "id": "alert_schedule",
+      "description": "Alert is scheduled to run hourly.",
+      "points": 20,
+      "visual_evidence": "Alert configuration dialog or details page showing the schedule set to Cron with the expression '0 * * * *' or explicitly set to run 'Hourly'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_gui_used",
+      "description": "The agent interacted with the actual Splunk web interface.",
+      "visual_evidence": "A web browser window showing the Splunk Web UI (typically at localhost:8000), not just mocked up text."
+    },
+    {
+      "id": "no_config_file_cheating",
+      "description": "The agent created the dashboard and alert via the GUI, not by directly editing Splunk .conf files.",
+      "visual_evidence": "Screenshots show interaction with Splunk's 'Save As Dashboard' or 'Save As Alert' dialogs, rather than a terminal text editor modifying files like savedsearches.conf."
+    },
+    {
+      "id": "genuine_search_results",
+      "description": "The searches actually execute within Splunk.",
+      "visual_evidence": "The search interface shows the timeline, event list, or visualization tabs typical of Splunk, indicating real execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named exactly 'Privileged_Execution_Audit' and contain at least 3 panels. The alert must be named exactly 'Failed_Privileged_Escalation'."
+}

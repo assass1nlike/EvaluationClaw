@@ -1,0 +1,53 @@
+{
+  "task_id": "vegetation_density_slicing@1",
+  "task_completion": [
+    {
+      "id": "load_image",
+      "description": "The agent loaded the multispectral image into the application.",
+      "points": 10,
+      "visual_evidence": "The SNAP Product Explorer pane shows 'landsat_multispectral' as an opened product."
+    },
+    {
+      "id": "ndvi_calculation",
+      "description": "The agent calculated NDVI using the specified formula.",
+      "points": 20,
+      "visual_evidence": "A Band Maths dialog or expression editor is visible containing the exact formula '(band_2 - band_3) / (band_2 + band_3)'."
+    },
+    {
+      "id": "management_zones_classification",
+      "description": "The agent created a classification band named 'management_zones' using the specified thresholds.",
+      "points": 30,
+      "visual_evidence": "A dialog showing the target band name 'management_zones' and an expression applying the thresholds (e.g., < 0.2, < 0.5) to assign values 1, 2, and 3."
+    },
+    {
+      "id": "save_dim_file",
+      "description": "The agent saved the product in DIMAP format to the specified projects directory.",
+      "points": 20,
+      "visual_evidence": "A 'Save Product As' dialog or file explorer showing the save location as '/home/ga/snap_projects/vegetation_zones.dim'."
+    },
+    {
+      "id": "export_tif_file",
+      "description": "The agent exported the product as a GeoTIFF to the specified exports directory.",
+      "points": 20,
+      "visual_evidence": "An 'Export' dialog or file explorer showing the export location as '/home/ga/snap_exports/vegetation_zones.tif' with GeoTIFF format selected."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the SNAP GUI to process the data.",
+      "visual_evidence": "Screenshots show interaction with the SNAP graphical interface (menus, dialogs, Band Maths) rather than terminal commands executing scripts."
+    },
+    {
+      "id": "actual_application",
+      "description": "The agent interacted with the genuine SNAP application.",
+      "visual_evidence": "The SNAP application window is visible, not a text editor or mock interface."
+    },
+    {
+      "id": "no_mock_files",
+      "description": "The agent did not use terminal commands to create mock output files.",
+      "visual_evidence": "No terminal windows showing commands like 'touch' or 'cp' to create the .dim or .tif files."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data file is located at /home/ga/snap_data/landsat_multispectral.tif. The agent must use the exact formula (band_2 - band_3) / (band_2 + band_3) for NDVI calculation. The classification thresholds are 0.2 and 0.5. The expected output files are /home/ga/snap_projects/vegetation_zones.dim and /home/ga/snap_exports/vegetation_zones.tif."
+}

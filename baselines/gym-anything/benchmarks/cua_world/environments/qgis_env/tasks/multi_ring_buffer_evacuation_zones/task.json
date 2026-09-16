@@ -1,0 +1,30 @@
+{
+  "id": "multi_ring_buffer_evacuation_zones@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "An emergency management analyst needs to create concentric evacuation zones around three hazard locations in the San Francisco Bay Area. Using the point data from /home/ga/GIS_Data/sample_points.geojson, generate a multi-ring buffer with 3 rings at 500-meter intervals. Ensure the processing uses a metric CRS (EPSG:32610) for accurate distance measurement. Export the final evacuation zones as a GeoJSON file in WGS84 (EPSG:4326) to /home/ga/GIS_Data/exports/evacuation_zones.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multi_ring_buffer_evacuation_zones/setup_task.sh",
+    "post_task": "/workspace/tasks/multi_ring_buffer_evacuation_zones/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/GIS_Data/exports/evacuation_zones.geojson",
+    "source_file": "/home/ga/GIS_Data/sample_points.geojson",
+    "expected_feature_count": 9,
+    "rings": 3,
+    "distance": 500,
+    "expected_geometry_type": "Polygon"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_ring_buffer"
+    }
+  }
+}

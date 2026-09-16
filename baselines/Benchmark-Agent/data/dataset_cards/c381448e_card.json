@@ -1,0 +1,74 @@
+{
+  "dataset_id": "c381448e",
+  "name": "Analogical-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A dataset of 200 text-based multiple-choice word analogy questions. Each item presents a proportional analogy and four candidate completions, and the task is to select the correct option. It evaluates analogical reasoning and semantic relation mapping over everyday concepts.",
+  "card_text": "The Analogical-Reasoning dataset contains 200 text-only multiple-choice items. Each sample consists of a short analogy prompt of the form 'A is to B as C is to what?', a list of four candidate answer words, and a single-letter correct answer. The content covers everyday entities such as ice, fire, pine, rose, and other common objects, animals, and plants. The questions are concise, quiz-like, and require recognizing the semantic relationship in the first pair and applying it to the second pair. No passage or external context is provided; the model must rely on common knowledge and relational reasoning. The dataset is suitable for evaluating multiple-choice question answering and verbal analogical reasoning.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "word analogies",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The analogy prompt, e.g. 'Ice is to Cold as Fire is to what?', asking the model to identify the word that completes the proportional relationship. It is the main query to be answered.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of four candidate completion words for the analogy prompt. The model must select the option that best matches the relation expressed in the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The letter label (A-D) of the correct option from the options list. It provides the supervision signal for evaluating the model's choice.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an analogy question in input.question, a four-item multiple-choice list in input.options, and a single-letter correct answer in output.answer. The question states a proportional analogy, the options provide candidate words, and the answer points to the correct option index. No passage or additional context is provided."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Analogical-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "analogical reasoning",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

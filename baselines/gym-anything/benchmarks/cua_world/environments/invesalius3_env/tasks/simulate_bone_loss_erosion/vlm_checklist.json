@@ -1,0 +1,53 @@
+{
+  "task_id": "simulate_bone_loss_erosion@1",
+  "task_completion": [
+    {
+      "id": "dicom_loaded",
+      "description": "Verify that the CT Cranium DICOM scan is loaded in InVesalius 3.",
+      "points": 10,
+      "visual_evidence": "The InVesalius 3 main interface should be visible, displaying the 2D axial, sagittal, and coronal views of a human skull/cranium."
+    },
+    {
+      "id": "baseline_mask_created",
+      "description": "Verify that a baseline bone mask is created using the standard Bone threshold.",
+      "points": 20,
+      "visual_evidence": "In the 'Masks' panel (usually on the left), there should be a mask listed (e.g., 'Mask 1' or 'Bone') with its threshold range starting at exactly 226 HU."
+    },
+    {
+      "id": "morphological_tool_opened",
+      "description": "Verify that the morphological operations tool is accessed.",
+      "points": 10,
+      "visual_evidence": "A dialog or panel for 'Morphological operations' or mask edition should be open, showing options like Erode, Dilate, Open, or Close."
+    },
+    {
+      "id": "eroded_mask_created",
+      "description": "Verify that an eroded mask is created from the baseline mask.",
+      "points": 30,
+      "visual_evidence": "The 'Masks' panel should now display exactly two masks (e.g., the baseline mask and a new mask representing the eroded version). The 2D/3D views may show a slightly thinner or reduced mask overlay."
+    },
+    {
+      "id": "project_saved",
+      "description": "Verify that the project is saved to the correct path.",
+      "points": 30,
+      "visual_evidence": "A 'Save Project As' dialog showing the path '/home/ga/Documents/' and the filename 'bone_loss_simulation.inv3', OR the main InVesalius window title bar displaying 'bone_loss_simulation.inv3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the InVesalius 3 GUI to perform the tasks.",
+      "visual_evidence": "Screenshots should show mouse clicks, dropdown selections, and panel interactions within InVesalius 3, rather than terminal commands executing Python scripts to bypass the GUI."
+    },
+    {
+      "id": "genuine_image_processing",
+      "description": "Ensure the masks are genuinely generated and applied to the scan.",
+      "visual_evidence": "The 2D slice views (axial, coronal, sagittal) should show colored overlays corresponding to the masks on the actual bone structures, confirming real segmentation occurred."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "Ensure the project file was saved via the application.",
+      "visual_evidence": "The file save operation must happen through the InVesalius 'Save Project' menu, not by using 'touch' or 'cp' commands in a terminal to create a dummy '.inv3' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating exactly 2 segmentation masks in InVesalius 3: a baseline bone mask using a threshold starting at 226 HU, and an eroded mask. The final output must be saved as an InVesalius project file exactly at '/home/ga/Documents/bone_loss_simulation.inv3'."
+}

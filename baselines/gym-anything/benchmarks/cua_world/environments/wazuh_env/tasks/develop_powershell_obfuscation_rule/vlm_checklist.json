@@ -1,0 +1,53 @@
+{
+  "task_id": "develop_powershell_obfuscation_rule@1",
+  "task_completion": [
+    {
+      "id": "inspect_sample_logs",
+      "description": "Verify the agent viewed the sample logs to understand the data format.",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor showing the contents of /home/ga/data/powershell_samples.json."
+    },
+    {
+      "id": "open_local_rules_file",
+      "description": "Verify the agent opened the Wazuh local rules file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) open with the file /var/ossec/etc/rules/local_rules.xml, or terminal commands appending to this file."
+    },
+    {
+      "id": "configure_rule_id_level",
+      "description": "Verify the custom rule is defined with the correct ID and Level.",
+      "points": 20,
+      "visual_evidence": "XML content visible in the editor or terminal showing `<rule id=\"100300\" level=\"10\">`."
+    },
+    {
+      "id": "configure_rule_regex",
+      "description": "Verify the rule contains a case-insensitive regular expression matching the required PowerShell flags.",
+      "points": 30,
+      "visual_evidence": "XML content showing a `<regex>` or `<match>` tag with case-insensitive modifiers (like `(?i)` or `type=\"pcre2\"`) and patterns capturing `-EncodedCommand`, `-enc`, `-en`, or `-e`."
+    },
+    {
+      "id": "verify_and_restart_wazuh",
+      "description": "Verify the agent tested the rule configuration and restarted the Wazuh manager to make it active.",
+      "points": 30,
+      "visual_evidence": "Terminal showing commands like `/var/ossec/bin/wazuh-control check` or `systemctl restart wazuh-manager` with successful output indicating the service restarted or the rules were validated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the agent modified the actual local_rules.xml file.",
+      "visual_evidence": "Use of a text editor or standard file redirection commands writing to the correct path (/var/ossec/etc/rules/local_rules.xml), not just a mock file or echoing text without saving."
+    },
+    {
+      "id": "genuine_regex_creation",
+      "description": "Verify the agent wrote a functional regular expression rather than just hardcoding exact string matches.",
+      "visual_evidence": "The rule definition uses regex syntax (e.g., `|`, `.*`, `(?i)`) rather than multiple literal `<match>` tags for the exact sample strings provided in the prompt."
+    },
+    {
+      "id": "genuine_service_interaction",
+      "description": "Verify the agent genuinely restarted or checked the Wazuh manager service.",
+      "visual_evidence": "Terminal output showing the actual system response from wazuh-control or systemctl, not just typed commands without execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /var/ossec/etc/rules/local_rules.xml. The rule must have exactly id=\"100300\" and level=\"10\". The regex must be case-insensitive and successfully match strings like 'powershell.exe -enc JAB', 'powershell -EncodedCommand JAB', 'powershell.exe -e JAB', and 'POWERSHELL.EXE -ENCODEDCOMMAND JAB'. It should logically NOT match benign commands like 'powershell.exe -ExecutionPolicy Bypass' or 'powershell.exe -File script.ps1'."
+}

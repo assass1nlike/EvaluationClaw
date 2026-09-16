@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_user_profile_config@1",
+  "task_completion": [
+    {
+      "id": "create_verify_function",
+      "description": "Create the STRICT_PASS_VERIFY password verification function",
+      "points": 20,
+      "visual_evidence": "Look for SQL execution (e.g., CREATE OR REPLACE FUNCTION STRICT_PASS_VERIFY) or a GUI screen showing the successful compilation of a function named STRICT_PASS_VERIFY in the SYSTEM schema."
+    },
+    {
+      "id": "create_secure_profile",
+      "description": "Create the SECURE_DEV_PROFILE with the specified limits and verification function",
+      "points": 20,
+      "visual_evidence": "Look for the creation of 'SECURE_DEV_PROFILE' with SESSIONS_PER_USER=2, IDLE_TIME=15, FAILED_LOGIN_ATTEMPTS=3, PASSWORD_LOCK_TIME=1, PASSWORD_LIFE_TIME=90, and PASSWORD_VERIFY_FUNCTION=STRICT_PASS_VERIFY via SQL command or GUI profile properties."
+    },
+    {
+      "id": "assign_profile_to_user",
+      "description": "Assign the SECURE_DEV_PROFILE to the HR user",
+      "points": 15,
+      "visual_evidence": "Look for an ALTER USER HR PROFILE SECURE_DEV_PROFILE command execution or a GUI user properties screen showing the HR user assigned to the SECURE_DEV_PROFILE."
+    },
+    {
+      "id": "change_user_password",
+      "description": "Change the HR user's password to Oracle_2026",
+      "points": 15,
+      "visual_evidence": "Look for an ALTER USER HR IDENTIFIED BY Oracle_2026 command execution or a GUI action successfully updating the HR user's password."
+    },
+    {
+      "id": "generate_failed_logins",
+      "description": "Generate intentional failed login attempts for the HR user",
+      "points": 15,
+      "visual_evidence": "Look for multiple failed connection attempts for the HR user in a terminal or SQL client, typically showing 'ORA-01017: invalid username/password; logon denied'."
+    },
+    {
+      "id": "verify_account_locked",
+      "description": "Verify the HR account becomes locked after the failed attempts",
+      "points": 15,
+      "visual_evidence": "Look for an 'ORA-28000: the account is locked' error message during a subsequent login attempt, or a database query showing the HR user's account_status as 'LOCKED'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Ensure the agent interacted with a real database client or terminal",
+      "visual_evidence": "Check that the commands were executed in a genuine database client (like SQL*Plus, SQL Developer, or a terminal) and not just typed into a text editor."
+    },
+    {
+      "id": "actual_failed_logins",
+      "description": "Ensure the account was locked via failed logins, not a manual lock command",
+      "visual_evidence": "Verify there are actual failed login attempts visible in the screenshots, rather than the agent simply executing 'ALTER USER HR ACCOUNT LOCK' to bypass the policy demonstration."
+    },
+    {
+      "id": "no_mocked_outputs",
+      "description": "Ensure system responses are genuine",
+      "visual_evidence": "Check that error messages like ORA-01017 and ORA-28000 are actual system outputs and not simulated via echo or print statements."
+    }
+  ],
+  "privileged_info_for_vlm": "The target profile name is 'SECURE_DEV_PROFILE' with limits: SESSIONS_PER_USER=2, IDLE_TIME=15, FAILED_LOGIN_ATTEMPTS=3, PASSWORD_LOCK_TIME=1, PASSWORD_LIFE_TIME=90. The password verification function must be named 'STRICT_PASS_VERIFY'. The target user is 'HR', whose password must be changed to 'Oracle_2026'. The final expected account status for HR is 'LOCKED' due to intentional failed logins."
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "merge_sort_waveforms_scmssort@1",
+  "task_completion": [
+    {
+      "id": "merged_file_exists",
+      "description": "Verify that the merged waveform file is created at the correct location.",
+      "points": 20,
+      "visual_evidence": "Look for 'merged_waveforms.mseed' in the /home/ga/ directory, typically visible in an 'ls' command output or a file manager."
+    },
+    {
+      "id": "merged_file_size_valid",
+      "description": "Verify that the merged waveform file has a valid size.",
+      "points": 20,
+      "visual_evidence": "Look for the file size of 'merged_waveforms.mseed' in an 'ls -l', 'du', or similar command output. The size must be at least 51200 bytes (or ~51 KB)."
+    },
+    {
+      "id": "inventory_file_exists",
+      "description": "Verify that the inventory text file is created at the correct location.",
+      "points": 20,
+      "visual_evidence": "Look for 'waveform_inventory.txt' in the /home/ga/ directory."
+    },
+    {
+      "id": "inventory_contains_stations",
+      "description": "Verify that the inventory file lists the correct network and station codes.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of 'waveform_inventory.txt' (e.g., via 'cat', 'less', or a text editor). It must contain the network code 'GE' and station codes 'BKB', 'GSI', and 'SANI'."
+    },
+    {
+      "id": "inventory_contains_time_ranges",
+      "description": "Verify that the inventory file includes channel codes and time ranges for each trace.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of 'waveform_inventory.txt'. Each trace entry must include a channel code (e.g., BHZ, BHN, BHE) and a start/end time range."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_manual_echo_inventory",
+      "description": "Ensure the agent did not manually type out the inventory file contents.",
+      "visual_evidence": "Check the terminal history. The agent should use a command-line utility (like scmssort, scart, or a python script) to generate the inventory, rather than using 'echo' or a text editor to manually write the expected output."
+    },
+    {
+      "id": "genuine_merge_command",
+      "description": "Ensure the agent actually merged the files using a utility.",
+      "visual_evidence": "Look for commands like 'scmssort', 'scart', or python scripts being executed to process the files in /home/ga/seiscomp/var/lib/archive/, rather than just copying a single file or creating a dummy file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected merged file is /home/ga/merged_waveforms.mseed with a minimum size of 51,200 bytes. The expected inventory file is /home/ga/waveform_inventory.txt. The inventory must contain at least 3 lines, corresponding to the GE network and stations BKB, GSI, and SANI."
+}

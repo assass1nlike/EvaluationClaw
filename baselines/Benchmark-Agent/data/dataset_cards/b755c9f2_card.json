@@ -1,0 +1,94 @@
+{
+  "dataset_id": "b755c9f2",
+  "name": "Openset Cloth Color Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visual question answering dataset about clothing color, where each sample contains four images of clothes and a text prompt asking whether the items share the same hue or identical color. The model must answer True or False based on multimodal comparison of the images.",
+  "card_text": "This dataset evaluates multimodal reasoning on fashion images. Each of the 200 samples provides four clothing images and a short natural-language prompt that asks a binary comparison question about the color or hue of the garments. The prompt includes a choice list with 'True' and 'False', and the expected output is a single text answer. The images are product-style photos of clothing items, so the task requires comparing color attributes across multiple images. There is no additional context passage, rationale, or annotation; the core challenge is visually grounding the color comparison and selecting the correct binary option.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "fashion / clothing color",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of four image file references per sample, each showing a clothing item. The model must inspect the colors/hues of these items to answer the comparison question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short prompt asking whether the clothes in the four images share the same hue or identical color. It also embeds a choice list of 'True' and 'False' and an answer cue, directing the model to produce a binary response.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The binary answer choices ('True', 'False') are embedded within the prompt text as a choice list. They define the candidate answers for the multiple-choice visual question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold answer is a single token, either 'True' or 'False', indicating whether the clothing items across the four images have the same hue or identical color.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object containing a list of four image file names and a text prompt, and an output object containing a single text answer. The prompt holds a comparison question, an embedded choice list of 'True' and 'False', and an answer cue. There is no separate context passage, rationale, dialog, bounding boxes, or segmentation annotations. The images provide the visual input that must be compared to select the correct binary answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ClothColorVisualQuestionAnswering/openset_cloth_color_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Cloth Color Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "Fashion",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Fashion"
+  }
+}

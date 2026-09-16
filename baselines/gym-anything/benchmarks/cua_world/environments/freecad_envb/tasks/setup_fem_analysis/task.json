@@ -1,0 +1,31 @@
+{
+  "id": "setup_fem_analysis@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Perform a static setup for Finite Element Analysis (FEM) on the mechanical part located at /home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd. Assign 'Steel-Generic' material to the bracket body and apply a fixed constraint to the flat bottom face lying on the XY plane. Save the project to /home/ga/Documents/FreeCAD/T8_bracket_fem.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_fem_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_fem_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd",
+    "expected_output_file": "/home/ga/Documents/FreeCAD/T8_bracket_fem.FCStd",
+    "required_objects": [
+      "Fem::FemAnalysis",
+      "Fem::ConstraintFixed"
+    ],
+    "material_keyword": "Steel"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_fem_analysis"
+    }
+  }
+}

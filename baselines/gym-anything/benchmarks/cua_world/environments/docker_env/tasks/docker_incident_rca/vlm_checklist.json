@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_incident_rca@1",
+  "task_completion": [
+    {
+      "id": "investigate_logs_or_config",
+      "description": "Agent investigates the failure by checking docker logs or inspecting the docker-compose.yml file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'docker logs' for the exited containers, or a text editor/cat command opening '~/projects/store-app/docker-compose.yml'."
+    },
+    {
+      "id": "fix_max_connections",
+      "description": "Agent fixes the root cause by increasing the max_connections setting for the database.",
+      "points": 30,
+      "visual_evidence": "A text editor (like nano or vim) or a terminal command (like sed) modifying '~/projects/store-app/docker-compose.yml' to set 'max_connections' to 20 or higher (originally 5)."
+    },
+    {
+      "id": "restart_services",
+      "description": "Agent restarts the docker-compose stack to apply the fix.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'docker compose up -d' or 'docker-compose up -d' inside the '~/projects/store-app' directory, and output indicating services are starting."
+    },
+    {
+      "id": "verify_api_health",
+      "description": "Agent verifies that the stack is running and the API responds with 200 OK.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'docker ps' with store-db, store-api, store-worker, and store-web in 'Up' state, AND a 'curl http://localhost:8080/api/health' command returning a successful response (200 OK)."
+    },
+    {
+      "id": "create_incident_report",
+      "description": "Agent creates the post-incident report documenting the timeline, root cause, and fix.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '~/Desktop/incident_report.txt' being written or viewed, explicitly mentioning the database connection exhaustion (max_connections) and the applied fix."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Agent actually interacted with the Docker daemon to manage the stack.",
+      "visual_evidence": "Terminal shows genuine output from 'docker ps', 'docker logs', or 'docker compose' commands, rather than just echoing text or skipping the restart step."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Agent modified the actual docker-compose.yml file rather than just stating the fix.",
+      "visual_evidence": "Visible use of a text editor (nano/vim) or stream editor (sed) altering '/home/ga/projects/store-app/docker-compose.yml'."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The incident report was actually saved to the correct path on the desktop.",
+      "visual_evidence": "Terminal commands showing 'echo ... > ~/Desktop/incident_report.txt' or a text editor saving to that specific path, not just outputting the report to the chat interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The root cause of the cascading failure is PostgreSQL 'max_connections' set to 5 in /home/ga/projects/store-app/docker-compose.yml. The fix requires increasing this value to at least 20. The required services are store-db, store-api, store-worker, and store-web. The health endpoint is http://localhost:8080/api/health. The incident report must be saved to /home/ga/Desktop/incident_report.txt."
+}

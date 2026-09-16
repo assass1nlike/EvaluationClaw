@@ -1,0 +1,53 @@
+{
+  "task_id": "sar_drift_modeling@1",
+  "task_completion": [
+    {
+      "id": "drift_analysis_documented",
+      "description": "Document the vector mathematics for the 2-hour drift in drift_analysis.txt",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the contents of /home/ga/Documents/drift_analysis.txt, which must include step-by-step vector math calculations (combining wind leeway and current over 2 hours)."
+    },
+    {
+      "id": "scenario_directory_created",
+      "description": "Create the specific scenario directory for Bridge Command",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal showing the creation or existence of the directory '/opt/bridgecommand/Scenarios/s) Solent SAR Kayak/'."
+    },
+    {
+      "id": "environment_ini_configured",
+      "description": "Create environment.ini with the specified weather and time parameters",
+      "points": 20,
+      "visual_evidence": "Contents of environment.ini showing StartTime=15:00, WindDirection=315, WindSpeed=20, Weather=3, and VisibilityRange=5.0."
+    },
+    {
+      "id": "ownship_ini_configured",
+      "description": "Create ownship.ini with the rescue vessel at the Last Known Position",
+      "points": 20,
+      "visual_evidence": "Contents of ownship.ini showing the vessel positioned at 50\u00b0 46.5' N, 001\u00b0 18.0' W (or decimal equivalent 50.775, -1.300)."
+    },
+    {
+      "id": "othership_ini_configured",
+      "description": "Create othership.ini with the target vessel at the calculated Datum",
+      "points": 30,
+      "visual_evidence": "Contents of othership.ini showing the target vessel positioned at the calculated Datum (approximately 50.752\u00b0N, 1.200\u00b0W or 50\u00b0 45.1' N, 001\u00b0 12.0' W)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "authentic_calculation",
+      "description": "The agent actually performed the vector math calculations rather than just outputting the final coordinates.",
+      "visual_evidence": "The drift_analysis.txt file shows intermediate steps like calculating leeway speed (0.6 knots), leeway direction (135\u00b0), and combining it with the current vector."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "The scenario files are placed in the exact specified directory.",
+      "visual_evidence": "The file paths for the .ini files explicitly show they are inside '/opt/bridgecommand/Scenarios/s) Solent SAR Kayak/'."
+    },
+    {
+      "id": "proper_ini_formatting",
+      "description": "The agent created properly formatted INI files for the simulator.",
+      "visual_evidence": "The .ini files use standard key=value pairs expected in configuration files, rather than plain text sentences."
+    }
+  ],
+  "privileged_info_for_vlm": "Ground truth datum position calculated from vector mathematics is 50.752175\u00b0N, 1.199794\u00b0W (or 50\u00b0 45.13' N, 001\u00b0 11.99' W). The tolerance for verification is 0.5 nautical miles. The leeway factor is 3% of wind speed (0.03 * 20 = 0.6 knots). Wind direction is from 315\u00b0, so leeway drift is towards 135\u00b0. Current is 1.5 knots towards 100\u00b0. Drift duration is 2.0 hours. The scenario files must be located exactly in /opt/bridgecommand/Scenarios/s) Solent SAR Kayak/."
+}

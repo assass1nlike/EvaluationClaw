@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_deduplication_utility@1",
+  "task_completion": [
+    {
+      "id": "open_project_file",
+      "description": "Open the smart_dedup.py file in the project directory.",
+      "points": 10,
+      "visual_evidence": "An editor (like PyCharm, VSCode, nano, or vim) or terminal output (like cat or less) displaying the contents of /home/ga/PycharmProjects/smart_dedup/smart_dedup.py."
+    },
+    {
+      "id": "fix_size_filter_bug",
+      "description": "Fix the bug that ignores small configuration files.",
+      "points": 20,
+      "visual_evidence": "Code in smart_dedup.py showing the removal or correction of a condition that skips or ignores files smaller than 1024 bytes (e.g., removing an 'if size < 1024:' check)."
+    },
+    {
+      "id": "fix_partial_hashing_bug",
+      "description": "Fix the bug that causes incorrect duplicate detection by only hashing part of the file.",
+      "points": 20,
+      "visual_evidence": "Code in smart_dedup.py showing the hashing function reading the entire file (e.g., using a loop to read chunks until the end of the file) instead of just reading the first 2048 bytes."
+    },
+    {
+      "id": "fix_link_crash_bug",
+      "description": "Fix the bug that causes a FileExistsError during hardlinking.",
+      "points": 20,
+      "visual_evidence": "Code in smart_dedup.py showing the target file being safely removed (e.g., using os.remove() or os.unlink()) before os.link() is called, or equivalent error handling to prevent the crash."
+    },
+    {
+      "id": "pass_all_tests",
+      "description": "Run the test suite and ensure all tests pass.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the execution of a test runner (like pytest or python -m unittest) on 'tests/test_dedup.py' with a successful result (e.g., 'OK', 'passed', or green text indicating all tests passed)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_modification",
+      "description": "Ensure the test file was not modified to bypass failures.",
+      "visual_evidence": "No screenshots should show the agent editing 'tests/test_dedup.py' or commenting out test assertions."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Ensure the test results are from a genuine test runner execution.",
+      "visual_evidence": "The terminal output should show standard test runner formatting (like pytest headers, collected items, and execution times) rather than a simple echoed string."
+    },
+    {
+      "id": "actual_code_changes",
+      "description": "Ensure the code changes were actually saved to the file.",
+      "visual_evidence": "The editor should not show an 'unsaved changes' indicator (like a dot in the tab) when the tests are run, or terminal commands should show the file was successfully written."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/PycharmProjects/smart_dedup. The file smart_dedup.py contains three specific bugs to fix: 1) partial_hashing (hashes only the first 2048 bytes), 2) link_crash (fails to remove an existing target file before calling os.link, causing FileExistsError), and 3) size_filter (arbitrarily ignores files smaller than 1024 bytes). The agent must fix these bugs and pass the tests in tests/test_dedup.py without modifying the test file itself. A passing score is 85 or higher."
+}

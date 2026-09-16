@@ -1,0 +1,59 @@
+{
+  "task_id": "process_landed_cost@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verifies the agent logged into the iDempiere application using the correct credentials.",
+      "points": 10,
+      "visual_evidence": "Look for 'GardenAdmin' and 'GardenWorld' in the user profile, session information, or top menu bar of the iDempiere web interface."
+    },
+    {
+      "id": "material_receipt_header",
+      "description": "Verifies a Material Receipt was created for the correct vendor.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Material Receipt' window with 'Seed Farm Inc.' entered or selected in the Business Partner / Vendor field."
+    },
+    {
+      "id": "material_receipt_line",
+      "description": "Verifies the Material Receipt includes the correct product and quantity.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Receipt Line' tab within the Material Receipt showing the Product as 'Oak Tree' and the Quantity (Movement Qty) as '100'."
+    },
+    {
+      "id": "vendor_invoice_header",
+      "description": "Verifies a Vendor Invoice was created for the correct vendor.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Invoice (Vendor)' window with 'Seed Farm Inc.' entered or selected in the Business Partner field."
+    },
+    {
+      "id": "vendor_invoice_line",
+      "description": "Verifies the Vendor Invoice includes the correct freight charge.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Invoice Line' tab within the Vendor Invoice showing the Charge as 'Freight' and the Price/Amount as '250' or '250.00'."
+    },
+    {
+      "id": "landed_cost_allocation",
+      "description": "Verifies the freight cost was allocated to the material receipt.",
+      "points": 40,
+      "visual_evidence": "Look for the 'Landed Cost' or 'Landed Cost Allocation' window showing a record that links the $250.00 freight invoice/cost to the specific Material Receipt (or receipt line) for the Oak Trees."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_used",
+      "description": "Verifies the agent interacted with the iDempiere web interface rather than using backend scripts.",
+      "visual_evidence": "Screenshots must show the iDempiere ERP web application running in a browser, not terminal commands, SQL queries, or API testing tools."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Verifies the agent didn't simply write the expected outcome in a text editor.",
+      "visual_evidence": "Ensure there are no screenshots of text editors (like Notepad, nano, or vim) just displaying the task description or a fake success message."
+    },
+    {
+      "id": "genuine_records_saved",
+      "description": "Verifies the records were actually saved in the system.",
+      "visual_evidence": "Look for indicators of saved records in the iDempiere UI, such as generated Document Numbers, status changing to 'Completed' or 'Draft', or the save icon being greyed out/successful."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts for the VLM verifier: The target vendor is exactly 'Seed Farm Inc.' (a standard vendor in GardenWorld). The target product is exactly 'Oak Tree'. The charge type for the invoice must be 'Freight', which is a valid charge type for landed cost allocation in iDempiere. The receipt quantity is 100 units and the freight amount is $250.00."
+}

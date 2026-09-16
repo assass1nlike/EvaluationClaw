@@ -1,0 +1,32 @@
+{
+  "id": "add_exception_handling@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Fix all unhandled checked exception compilation errors in the 'DataProcessor' Java project located at `~/eclipse-workspace/DataProcessor` to ensure the project compiles with zero errors. Implement proper exception handling in the source files within `src/com/dataprocessor/` by using try-with-resources for file I/O in `FileProcessor.java` and `ConfigParser.java`, and applying exception chaining (wrapping caught exceptions like `ClassNotFoundException`, `SQLException`, `IOException`, and `ParseException` into a `ProcessingException`) in `DatabaseConnector.java` and `ConfigParser.java`. The `App.java` main method must include a top-level try-catch block to handle `ProcessingException` and print the stack trace. Ensure there are no empty catch blocks and that exception chaining is used in at least two files.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_exception_handling/setup_task.sh",
+    "post_task": "/workspace/tasks/add_exception_handling/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/DataProcessor",
+    "src_path": "/home/ga/eclipse-workspace/DataProcessor/src/com/dataprocessor",
+    "required_files": [
+      "FileProcessor.java",
+      "DatabaseConnector.java",
+      "ConfigParser.java",
+      "App.java"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_exception_handling"
+    }
+  }
+}

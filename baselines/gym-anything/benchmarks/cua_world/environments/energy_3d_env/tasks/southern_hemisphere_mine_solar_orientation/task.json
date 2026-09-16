@@ -1,0 +1,28 @@
+{
+  "id": "southern_hemisphere_mine_solar_orientation@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a QA Engineer for a renewable-energy consultancy. The Energy3D project 'mine_site_draft.ng3' is open. A junior engineer mistakenly drafted this solar array using default Northern Hemisphere settings (Boston, facing South). Correct this design for a mining site in the Southern Hemisphere (Pilbara, Western Australia):\n\n1. Change the project Latitude to -21.0° (or 21° South) using the location/environment settings.\n2. Select the solar panels/racks and reverse their azimuth/orientation so they face North instead of South (use the N/S/E/W compass on the ground to verify).\n3. Adjust the panel Tilt Angle to approximately 21° to optimize for the new latitude.\n4. Run the Annual Energy Analysis (via the Analysis menu) to verify the new yield.\n5. Save the corrected project as 'mine_site_corrected.ng3' in the ~/Documents/Energy3D/ directory.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/southern_hemisphere_mine_solar_orientation/setup_task.sh",
+    "post_task": "/workspace/tasks/southern_hemisphere_mine_solar_orientation/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar QA Engineer",
+    "industry": "Renewable Energy",
+    "target_latitude": -21.0,
+    "target_direction": "North"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_southern_hemisphere_correction"
+    }
+  }
+}

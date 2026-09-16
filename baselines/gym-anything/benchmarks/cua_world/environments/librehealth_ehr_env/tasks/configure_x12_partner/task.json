@@ -1,0 +1,30 @@
+{
+  "id": "configure_x12_partner@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Log in to LibreHealth EHR (admin/password) and configure a new X12 Billing Partner for 'Availity Clearinghouse'. Use the following technical specifications: Name: Availity Clearinghouse, ID Number: AVAIL001, Processing Format: 5010, Sender ID (ISA06): 193847502, Receiver ID (ISA08): AVAILITY, and Version: 005010X222A1. Ensure the record is saved and visible in the partner list.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_x12_partner/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_x12_partner/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Availity Clearinghouse",
+    "expected_id_number": "AVAIL001",
+    "expected_sender_id": "193847502",
+    "expected_receiver_id": "AVAILITY",
+    "expected_format": "5010",
+    "expected_version": "005010X222A1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_x12_partner"
+    }
+  }
+}

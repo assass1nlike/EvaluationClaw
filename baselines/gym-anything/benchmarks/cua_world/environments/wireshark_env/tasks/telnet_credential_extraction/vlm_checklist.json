@@ -1,0 +1,59 @@
+{
+  "task_id": "telnet_credential_extraction@1",
+  "task_completion": [
+    {
+      "id": "report_file_created",
+      "description": "The incident report file is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window showing the file /home/ga/Documents/captures/telnet_incident_report.txt being edited or displayed."
+    },
+    {
+      "id": "username_identified",
+      "description": "The report includes the correctly identified and labeled username.",
+      "points": 15,
+      "visual_evidence": "The text 'fake' is clearly visible in the report, labeled as the username."
+    },
+    {
+      "id": "password_identified",
+      "description": "The report includes the correctly identified and labeled password.",
+      "points": 15,
+      "visual_evidence": "The text 'user' is clearly visible in the report, labeled as the password."
+    },
+    {
+      "id": "os_banner_identified",
+      "description": "The report includes the correctly identified and labeled OS or system banner.",
+      "points": 15,
+      "visual_evidence": "The report contains a label for the OS/banner and includes 'OpenBSD/i386' or 'OpenBSD 2.6-beta'."
+    },
+    {
+      "id": "commands_identified",
+      "description": "The report includes all typed commands, listed one per line and properly labeled.",
+      "points": 25,
+      "visual_evidence": "The report contains a labeled section for commands, listing exactly: '/sbin/ping www.yahoo.com', 'ls', 'ls -a', and 'exit', each on its own line."
+    },
+    {
+      "id": "packet_count_identified",
+      "description": "The report includes the correctly identified and labeled count of Telnet data packets.",
+      "points": 20,
+      "visual_evidence": "The report contains a label for the packet count and specifies '46' (the number of Telnet protocol packets)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "pcap_analysis_tool_used",
+      "description": "The agent used a legitimate tool to analyze the pcap file.",
+      "visual_evidence": "Screenshots should show the agent using Wireshark, tshark, tcpdump, or a similar packet analysis tool to read 'telnet-cooked.pcap'."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent actually created and wrote to the report file.",
+      "visual_evidence": "Screenshots show a text editor (like nano, vim, gedit) or terminal commands (echo, cat) being used to construct 'telnet_incident_report.txt'."
+    },
+    {
+      "id": "no_hallucinated_credentials",
+      "description": "The agent extracted the real credentials from the file rather than guessing or hallucinating.",
+      "visual_evidence": "The agent's analysis steps (e.g., following the TCP stream in Wireshark) should be visible, showing the actual extraction of 'fake' and 'user' rather than just magically appearing in the final text."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct extracted values are: Username: 'fake'. Password: 'user'. OS/System Banner: 'OpenBSD/i386 (oof) (ttyp2) and OpenBSD 2.6-beta (OOF) #4: Tue Oct 12 20:42:32 CDT 1999' (accept reasonable substrings like 'OpenBSD 2.6-beta'). Commands (must be one per line): '/sbin/ping www.yahoo.com', 'ls', 'ls -a', 'exit'. Telnet data packet count: 46 (Note: Total packets in pcap is 92, but the task specifically asks for Telnet data packets, which is 46)."
+}

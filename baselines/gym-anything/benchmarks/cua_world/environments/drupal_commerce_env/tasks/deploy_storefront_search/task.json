@@ -1,0 +1,32 @@
+{
+  "id": "deploy_storefront_search@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a product search page for the store using Drupal Views. The View must be named 'Catalog Search' (machine name: catalog_search) and display 'Products' at the path '/search/catalog'. Ensure the page is accessible to anonymous users and includes exposed filters for both 'Title' and 'SKU'. Add a menu link titled 'Search' to the 'Main navigation' menu. The search results should display the products as rendered entities or a table of fields.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deploy_storefront_search/setup_task.sh",
+    "post_task": "/workspace/tasks/deploy_storefront_search/export_result.sh"
+  },
+  "metadata": {
+    "view_machine_name": "catalog_search",
+    "expected_path": "/search/catalog",
+    "expected_menu_link_title": "Search",
+    "required_relationship": "variations",
+    "required_filters": [
+      "title",
+      "sku"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deploy_storefront_search"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "forensic_dom_node_capture@1",
+  "task_completion": [
+    {
+      "id": "visit_wiki_page",
+      "description": "Navigate to the Wikipedia page for Tor (network).",
+      "points": 10,
+      "visual_evidence": "A web browser is open and the address bar displays 'https://en.wikipedia.org/wiki/Tor_(network)'."
+    },
+    {
+      "id": "capture_wiki_infobox",
+      "description": "Capture the native HTML element screenshot of the Software Infobox.",
+      "points": 20,
+      "visual_evidence": "Browser Developer Tools are open with the infobox DOM node selected and the 'Capture node screenshot' option used, or a saved image file named 'tor_wiki_infobox.png' is visible showing exactly the infobox."
+    },
+    {
+      "id": "visit_tor_check_page",
+      "description": "Navigate to the Tor Project check page.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and the address bar displays 'https://check.torproject.org/'."
+    },
+    {
+      "id": "capture_status_block",
+      "description": "Capture the native HTML element screenshot of the main central status block.",
+      "points": 20,
+      "visual_evidence": "Browser Developer Tools are open with the status block DOM node selected and captured, or a saved image file named 'tor_status_block.png' is visible showing exactly the status block (onion graphic and text)."
+    },
+    {
+      "id": "record_urls_in_log",
+      "description": "Record the two visited URLs in a text file.",
+      "points": 20,
+      "visual_evidence": "A text editor is open showing a file named 'capture_log.txt' that contains both 'https://en.wikipedia.org/wiki/Tor_(network)' and 'https://check.torproject.org/'."
+    },
+    {
+      "id": "verify_evidence_directory",
+      "description": "Save all files to the specified Forensic_Evidence directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window shows the directory '/home/ga/Documents/Forensic_Evidence' containing 'tor_wiki_infobox.png', 'tor_status_block.png', and 'capture_log.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "native_node_capture",
+      "description": "Ensure screenshots are native DOM node captures, not full-screen or manual crops.",
+      "visual_evidence": "The agent uses the browser's built-in 'Capture node screenshot' feature in Developer Tools. The resulting images should have clean boundaries matching the HTML element exactly, with no browser chrome, desktop UI, or uneven manual cropping edges."
+    },
+    {
+      "id": "genuine_browser_navigation",
+      "description": "Ensure the agent actually visited the live web pages.",
+      "visual_evidence": "The browser address bar shows the genuine external URLs, not local file paths (e.g., file://) or cached mockups."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "Ensure the agent used the GUI browser to capture the evidence rather than terminal scripts.",
+      "visual_evidence": "The screenshots show interaction with a graphical web browser and its Developer Tools, rather than using terminal commands like curl, wget, or python scripts to download images."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory is /home/ga/Documents/Forensic_Evidence. Required files are tor_wiki_infobox.png, tor_status_block.png, and capture_log.txt. The URLs to be logged are https://en.wikipedia.org/wiki/Tor_(network) and https://check.torproject.org/. The screenshots must be native DOM node captures (clean boundaries matching the element, no browser UI), not full-screen or manual crops."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "public_procurement_collusion_detection@1",
+  "task_completion": [
+    {
+      "id": "func_normalize_address",
+      "description": "Create the PL/SQL function FUNC_NORMALIZE_ADDRESS",
+      "points": 15,
+      "visual_evidence": "Look for SQL code defining 'FUNC_NORMALIZE_ADDRESS' with string manipulation functions (e.g., REPLACE, REGEXP_REPLACE) removing commas, periods, hyphens, and replacing words like STREET with ST, AVENUE with AVE, etc., along with a success message indicating the function was compiled/created."
+    },
+    {
+      "id": "shared_contacts_vw",
+      "description": "Create the SHARED_CONTACTS_VW view",
+      "points": 15,
+      "visual_evidence": "Look for 'CREATE VIEW SHARED_CONTACTS_VW' in a SQL editor or terminal. The query should show a self-join on vendors where 'vendor_id_1 < vendor_id_2' and conditions matching either the normalized address or phone number."
+    },
+    {
+      "id": "market_concentration_vw",
+      "description": "Create the MARKET_CONCENTRATION_VW view calculating HHI",
+      "points": 20,
+      "visual_evidence": "Look for 'CREATE VIEW MARKET_CONCENTRATION_VW'. The SQL should include mathematical operations to calculate market share (wins / total * 100) and square it (e.g., using POWER(..., 2) or multiplying by itself), then summing these values."
+    },
+    {
+      "id": "complementary_bids_vw",
+      "description": "Create the COMPLEMENTARY_BIDS_VW view",
+      "points": 20,
+      "visual_evidence": "Look for 'CREATE VIEW COMPLEMENTARY_BIDS_VW'. The query must contain logic comparing losing bids to winning bids (margin > 0 and <= 5%), a COUNT or HAVING clause checking for >= 3 incidences, and an average margin calculation."
+    },
+    {
+      "id": "vendor_risk_scores",
+      "description": "Populate the VENDOR_RISK_SCORES table",
+      "points": 15,
+      "visual_evidence": "Look for an INSERT or CREATE TABLE statement for 'VENDOR_RISK_SCORES'. The code should show conditional logic (e.g., CASE WHEN or subqueries) adding 50 points for shared contacts, 30 points for complementary bids, and 20 points for high HHI (> 2500)."
+    },
+    {
+      "id": "export_high_risk_vendors_csv",
+      "description": "Export high-risk vendors to a CSV file",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command, script, or database client export dialog saving a file to '/home/ga/Documents/exports/high_risk_vendors.csv'. The query being exported should filter for risk_score > 0 and order by score descending."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "db_execution_verified",
+      "description": "The agent actually executed the SQL commands against the database.",
+      "visual_evidence": "Look for execution success messages (e.g., 'Function created', 'View created', 'Table created', or rows inserted) in a database client (like DBeaver) or terminal (sqlplus), rather than just SQL text sitting unexecuted in an editor."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file was generated programmatically or via a DB tool, not manually typed.",
+      "visual_evidence": "Look for evidence of a SQL export command (like spool in sqlplus), a Python/bash script, or a GUI export wizard being used to create the CSV, rather than the agent opening a text editor and typing out CSV rows."
+    },
+    {
+      "id": "correct_db_connection",
+      "description": "The agent connected to the specified Oracle database.",
+      "visual_evidence": "Look for connection details in the terminal or DB client matching User: audit_mgr, Service: XEPDB1, Port: 1521."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

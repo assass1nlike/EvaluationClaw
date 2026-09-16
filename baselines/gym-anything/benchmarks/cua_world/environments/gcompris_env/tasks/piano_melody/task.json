@@ -1,0 +1,33 @@
+{
+  "id": "piano_melody@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the Piano Composition activity in GCompris. Play an ascending C major scale using the first five white keys (C, D, E, F, G). Save a screenshot of the activity to /tmp/piano_result.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/piano_melody/setup_task.sh",
+    "post_task": "/workspace/tasks/piano_melody/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot": "/tmp/piano_result.png",
+    "activity_name": "Piano Composition",
+    "notes_sequence": [
+      "C",
+      "D",
+      "E",
+      "F",
+      "G"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_piano_melody"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "survival_weibull_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Load the kennan.gdt dataset into Gretl",
+      "points": 10,
+      "visual_evidence": "The Gretl main window shows 'kennan.gdt' loaded with variables 'duration' and 'prod', or a script is visible with the command 'open kennan.gdt'."
+    },
+    {
+      "id": "estimate_weibull_model",
+      "description": "Estimate a Weibull duration model with 'duration' as dependent and 'prod' as regressor",
+      "points": 30,
+      "visual_evidence": "A Gretl model output window or console log showing a Weibull duration model estimation. The dependent variable must be 'duration' and the independent variables must include 'const' and 'prod'."
+    },
+    {
+      "id": "save_hansl_script",
+      "description": "Save the hansl script to strike_analysis.inp",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or text editor showing a file named 'strike_analysis.inp' saved in the '~/Documents/gretl_output/' directory."
+    },
+    {
+      "id": "save_report_format",
+      "description": "Save the report to strike_report.txt with the required format",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of 'strike_report.txt' in '~/Documents/gretl_output/'. It must contain the exact lines: 'Prod_Coefficient: <value>', 'Sigma: <value>', and 'Hazard_Shape: <Interpretation>'."
+    },
+    {
+      "id": "correct_hazard_interpretation",
+      "description": "Correctly interpret the Hazard Shape based on the Sigma value",
+      "points": 20,
+      "visual_evidence": "In 'strike_report.txt', the 'Hazard_Shape' value must correctly match the logic for the 'Sigma' value shown: 'Increasing' if Sigma < 1, 'Constant' if Sigma = 1, or 'Decreasing' if Sigma > 1."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gretl_usage",
+      "description": "The agent actually used Gretl to estimate the model",
+      "visual_evidence": "Screenshots should show the Gretl GUI, Gretl console (gretlcli), or a genuine Gretl model output window, rather than just a text editor fabricating the statistical results."
+    },
+    {
+      "id": "no_hardcoded_fabrication",
+      "description": "The agent did not hardcode the final report without running the analysis",
+      "visual_evidence": "There should be evidence of the model being estimated (e.g., script execution, model window) before the report is generated. The values in the report should match the Gretl output."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Files are saved in the correct directory",
+      "visual_evidence": "The file paths for both 'strike_analysis.inp' and 'strike_report.txt' should clearly be inside '~/Documents/gretl_output/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The Weibull hazard shape interpretation depends on the scale parameter (sigma): sigma < 1 indicates an 'Increasing' hazard, sigma = 1 indicates a 'Constant' hazard, and sigma > 1 indicates a 'Decreasing' hazard. The Gretl command to estimate this is 'duration duration const prod --weibull'. The expected dataset 'kennan.gdt' has 62 observations."
+}

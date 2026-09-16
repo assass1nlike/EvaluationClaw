@@ -1,0 +1,37 @@
+{
+  "id": "record_app_info@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "You are using the Flight Crew View app and need to file a support ticket about a sync issue. Locate the app's version number and the developer's contact email. Save both pieces of information to a plain text file at /sdcard/app_info_report.txt in the following format:\n\nApp Version: <version string as displayed>\nDeveloper Email: <email address as displayed>\n\nThe file must contain exactly these two labeled lines.",
+  "difficulty": "medium",
+  "category": "information_extraction",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/record_app_info/setup_task.sh",
+    "post_task": "/sdcard/tasks/record_app_info/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/sdcard/app_info_report.txt",
+    "required_format_lines": [
+      "App Version:",
+      "Developer Email:"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_app_info"
+    }
+  },
+  "tags": [
+    "navigation",
+    "settings",
+    "text-extraction",
+    "android",
+    "file-system"
+  ]
+}

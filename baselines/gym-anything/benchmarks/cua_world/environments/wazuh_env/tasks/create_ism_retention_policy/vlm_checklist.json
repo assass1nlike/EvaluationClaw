@@ -1,0 +1,53 @@
+{
+  "task_id": "create_ism_retention_policy@1",
+  "task_completion": [
+    {
+      "id": "policy_hot_state",
+      "description": "Create the ISM policy with the correct name and a 'hot' state transitioning at 30 days.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation of an ISM policy named 'wazuh-alert-retention' (either in OpenSearch Dashboards UI or via Dev Tools/curl JSON). The policy must have a 'hot' state with a transition to 'warm' configured with a minimum index age of 30 days (30d)."
+    },
+    {
+      "id": "policy_warm_actions",
+      "description": "Configure the 'warm' state with force_merge and read_only actions.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 'warm' state configuration containing a 'force_merge' action with 'max_num_segments' set to 1, and a 'read_only' action."
+    },
+    {
+      "id": "policy_delete_transition",
+      "description": "Configure the 'warm' state to transition to 'delete' at 90 days, and define the 'delete' state.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 'warm' state has a transition to a 'delete' state with a minimum index age of 90 days (90d), and the 'delete' state contains a 'delete' action."
+    },
+    {
+      "id": "ism_template_pattern",
+      "description": "Configure an ISM template to apply the policy to the correct index pattern.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing an ISM template (ism_template) configured within the policy (or separately) that targets the index pattern 'wazuh-alerts-*'."
+    },
+    {
+      "id": "apply_to_existing_indices",
+      "description": "Attach the policy to all existing indices matching the pattern.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent applying the policy to existing indices. This could be a success toast in the OpenSearch Dashboards UI after clicking 'Apply policy' for 'wazuh-alerts-*', or a successful API response (e.g., HTTP 200 OK) from an _ism/add API call targeting 'wazuh-alerts-*'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_opensearch_interaction",
+      "description": "Verify the agent interacted with OpenSearch.",
+      "visual_evidence": "Screenshots should show the agent using OpenSearch Dashboards in a browser, the Dev Tools console, or executing curl commands in a terminal targeting https://localhost:9200. It should not just be typing JSON into a local text editor without sending it."
+    },
+    {
+      "id": "executed_not_just_drafted",
+      "description": "Verify the policy and attachments were actually saved/executed.",
+      "visual_evidence": "Look for confirmation messages, success toasts (e.g., 'Policy created successfully'), or HTTP 200/201 responses in the terminal/Dev Tools, rather than just a filled-out form that was never submitted."
+    },
+    {
+      "id": "no_hardcoded_echo",
+      "description": "Verify the agent didn't just print a fake success message.",
+      "visual_evidence": "The terminal or browser output should reflect genuine system responses from OpenSearch, not a simple 'echo' command or a manually typed success string."
+    }
+  ],
+  "privileged_info_for_vlm": "The ISM policy MUST be named 'wazuh-alert-retention'. The 'hot' state must transition to 'warm' at exactly 30 days ('30d'). The 'warm' state must transition to 'delete' at exactly 90 days ('90d'). The ISM template and existing index attachment must target the exact pattern 'wazuh-alerts-*'. The OpenSearch instance is located at https://localhost:9200 with credentials admin:SecretPassword."
+}

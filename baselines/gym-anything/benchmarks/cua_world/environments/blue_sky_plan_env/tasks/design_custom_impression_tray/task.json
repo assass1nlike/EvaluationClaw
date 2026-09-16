@@ -1,0 +1,32 @@
+{
+  "id": "design_custom_impression_tray@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "As a lab technician needing a custom tray for a final denture impression, design a custom impression tray for the edentulous maxilla model located at 'C:\\workspace\\data\\stl\\maxilla_edentulous.stl'. The tray must cover the entire ridge and palate, utilizing a 2.0 mm spacer/offset and a 2.0 mm thickness. Include an outward-angled handle in the anterior midline region. Save the completed project to 'C:\\workspace\\data\\output\\custom_tray_case.bsp'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\design_custom_impression_tray\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\design_custom_impression_tray\\export_result.ps1"
+  },
+  "metadata": {
+    "model_path": "C:\\workspace\\data\\stl\\maxilla_edentulous.stl",
+    "output_path": "C:\\workspace\\data\\output\\custom_tray_case.bsp",
+    "expected_spacer_mm": 2.0,
+    "feature_requirements": [
+      "handle",
+      "boundary_curve",
+      "mesh_generation"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_custom_impression_tray"
+    }
+  }
+}

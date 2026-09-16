@@ -1,0 +1,26 @@
+{
+  "id": "link_asset_to_vendor@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "Your organization is mapping operational dependencies for DORA compliance. Link the Business Asset 'HR Employee Portal' to the Third Party vendor 'Workday Inc.' in Eramba GRC to document the relationship between the asset and the supplier.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/link_asset_to_vendor/setup_task.sh",
+    "post_task": "/workspace/tasks/link_asset_to_vendor/export_result.sh"
+  },
+  "metadata": {
+    "asset_name": "HR Employee Portal",
+    "vendor_name": "Workday Inc."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_link_asset_to_vendor"
+    }
+  }
+}

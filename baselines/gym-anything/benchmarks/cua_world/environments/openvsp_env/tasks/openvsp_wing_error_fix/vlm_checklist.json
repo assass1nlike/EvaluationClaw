@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_wing_error_fix@1",
+  "task_completion": [
+    {
+      "id": "open_corrupt_model",
+      "description": "Open the corrupted Cessna 210 model in OpenVSP",
+      "points": 10,
+      "visual_evidence": "OpenVSP window is open with 'cessna210_corrupt.vsp3' loaded. The 3D viewport should initially display a highly distorted, physically implausible wing."
+    },
+    {
+      "id": "select_normal_wing",
+      "description": "Select the NormalWing component for editing",
+      "points": 10,
+      "visual_evidence": "The OpenVSP Geometry Browser window shows the 'NormalWing' component selected or highlighted, and its corresponding geometry editing dialog is open."
+    },
+    {
+      "id": "fix_root_sweep",
+      "description": "Correct the Root Sweep parameter",
+      "points": 20,
+      "visual_evidence": "In the Wing geometry dialog (typically under the 'Section' or 'Plan' tab), the Sweep parameter is changed from the corrupted 42.0 to a realistic value between -3.0 and 8.0."
+    },
+    {
+      "id": "fix_root_twist",
+      "description": "Correct the Root Twist parameter",
+      "points": 20,
+      "visual_evidence": "In the Wing geometry dialog (typically under the 'Section' or 'Design' tab), the Twist parameter is changed from the corrupted 22.0 to a realistic value between -1.0 and 6.0."
+    },
+    {
+      "id": "fix_outboard_dihedral",
+      "description": "Correct the Outboard Dihedral parameter",
+      "points": 20,
+      "visual_evidence": "In the Wing geometry dialog (typically under the 'Section' tab for the outboard section), the Dihedral parameter is changed from the corrupted -25.0 to a realistic value between 0.0 and 8.0."
+    },
+    {
+      "id": "save_corrected_model",
+      "description": "Save the corrected model back to the original file path",
+      "points": 20,
+      "visual_evidence": "The File -> Save or Save As dialog is used to overwrite '/home/ga/Documents/OpenVSP/cessna210_corrupt.vsp3'. The 3D viewport should now display a realistic, straight high-wing configuration typical of a Cessna 210."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openvsp_gui",
+      "description": "Verify the agent used the OpenVSP GUI to make changes",
+      "visual_evidence": "Screenshots should show interaction with the OpenVSP graphical interface (Geometry Browser, parameter dialogs) rather than editing the .vsp3 XML file directly in a text editor."
+    },
+    {
+      "id": "genuine_parameter_modification",
+      "description": "Verify genuine interaction with the parameter fields",
+      "visual_evidence": "The agent is seen actively typing or adjusting sliders in the OpenVSP parameter input fields for Sweep, Twist, and Dihedral."
+    },
+    {
+      "id": "plausible_visual_result",
+      "description": "Verify the 3D model updates reflect the changes",
+      "visual_evidence": "The OpenVSP 3D viewport must visually update from a distorted wing to a normal wing, proving the parameters were successfully applied in the software."
+    }
+  ],
+  "privileged_info_for_vlm": "The corrupted parameters injected into the model are Root Sweep (42.0), Root Twist (22.0), and Outboard Dihedral (-25.0). To successfully complete the task, the agent must correct these to physically plausible ranges: Sweep must be between [-3.0, 8.0], Twist must be between [-1.0, 6.0], and Dihedral must be between [0.0, 8.0]. The agent must save the corrected model back to the original file path."
+}

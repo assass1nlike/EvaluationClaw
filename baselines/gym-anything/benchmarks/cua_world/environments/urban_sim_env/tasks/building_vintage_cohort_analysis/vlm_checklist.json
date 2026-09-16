@@ -1,0 +1,59 @@
+{
+  "task_id": "building_vintage_cohort_analysis@1",
+  "task_completion": [
+    {
+      "id": "create_notebook",
+      "description": "Create the Jupyter notebook for building vintage analysis",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook or JupyterLab interface is open with the file named 'building_vintage_analysis.ipynb' in the '/home/ga/urbansim_projects/notebooks/' directory."
+    },
+    {
+      "id": "load_and_join_data",
+      "description": "Load the HDF5 dataset and join buildings with parcels",
+      "points": 10,
+      "visual_evidence": "Code cells showing pandas reading 'sanfran_public.h5' and merging/joining the 'buildings' and 'parcels' tables to link buildings to zones."
+    },
+    {
+      "id": "filter_and_categorize_cohorts",
+      "description": "Filter invalid years and categorize buildings into vintage cohorts",
+      "points": 20,
+      "visual_evidence": "Code cells showing filtering of missing or zero 'year_built' values, and logic (like pd.cut or custom functions) categorizing years into Pre-1940, 1940-1960, 1960-1980, 1980-2000, and 2000+."
+    },
+    {
+      "id": "aggregate_by_zone",
+      "description": "Calculate zone-level statistics including counts, percentages, and median year built",
+      "points": 20,
+      "visual_evidence": "Code cells showing a groupby operation on zone (e.g., 'zone_id') calculating the total building count, the count and percentage for each vintage cohort, and the median 'year_built'."
+    },
+    {
+      "id": "export_top_10_csv",
+      "description": "Identify top 10 aging zones and export to CSV",
+      "points": 20,
+      "visual_evidence": "Code filtering for zones with >= 20 buildings, sorting by 'pre_1940_pct' descending, taking the top 10, and saving to '/home/ga/urbansim_projects/output/aging_building_zones.csv' with columns: zone_id, total_buildings, pre_1940_count, pre_1940_pct, and median_year_built."
+    },
+    {
+      "id": "generate_stacked_bar_chart",
+      "description": "Generate and save a stacked bar chart of the vintage cohorts",
+      "points": 20,
+      "visual_evidence": "Code creating a stacked bar chart for the top 10 zones, including a title, axis labels, and a legend, followed by saving the figure to '/home/ga/urbansim_projects/output/building_vintage_chart.png'. The chart output should ideally be visible in the notebook."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "notebook_executed",
+      "description": "Ensure all notebook cells have been executed",
+      "visual_evidence": "Execution numbers (e.g., [1], [2], [3]) are present next to the code cells in the Jupyter notebook, indicating the code was actually run."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the results are derived from data analysis, not hardcoded",
+      "visual_evidence": "The top 10 zones and their statistics are calculated using pandas dataframe operations (e.g., sort_values, head) rather than manually typed lists or dictionaries."
+    },
+    {
+      "id": "genuine_file_paths",
+      "description": "Ensure the agent used the correct absolute or relative paths for outputs",
+      "visual_evidence": "The code explicitly writes to the requested paths in '/home/ga/urbansim_projects/output/' rather than saving to a generic local directory and moving them via GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is '/home/ga/urbansim_projects/notebooks/building_vintage_analysis.ipynb'. The expected CSV output is '/home/ga/urbansim_projects/output/aging_building_zones.csv' with exact columns: 'zone_id', 'total_buildings', 'pre_1940_count', 'pre_1940_pct', 'median_year_built'. The expected chart output is '/home/ga/urbansim_projects/output/building_vintage_chart.png'. The dataset used is 'sanfran_public.h5'. A correct analysis will show Zone 6 as having the highest pre-1940 percentage (approx 97.08%)."
+}

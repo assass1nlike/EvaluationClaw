@@ -1,0 +1,53 @@
+{
+  "task_id": "graph_traversal_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Agent accesses the OrientDB database.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the OrientDB Studio interface at http://localhost:2480, or a terminal/script establishing a connection to the 'demodb' database."
+    },
+    {
+      "id": "query_basic_stats",
+      "description": "Agent queries the total number of vertices and edges.",
+      "points": 15,
+      "visual_evidence": "SQL-like queries in the OrientDB Studio query editor or within a script intended to count total vertices (e.g., `SELECT count(*) FROM V`) and total edges (e.g., `SELECT count(*) FROM E`), along with their results."
+    },
+    {
+      "id": "query_hotel_stats",
+      "description": "Agent queries the statistics related to hotels.",
+      "points": 20,
+      "visual_evidence": "Queries executed to count 5-star hotels (e.g., filtering by Stars = 5) and to count distinct countries where hotels are located."
+    },
+    {
+      "id": "query_network_size",
+      "description": "Agent queries the network size for Luca Rossi.",
+      "points": 25,
+      "visual_evidence": "A graph traversal query (e.g., using `TRAVERSE` or `MATCH`) starting from the Profile with email 'luca.rossi@example.com', following outgoing 'HasFriend' edges up to a maximum depth of 2."
+    },
+    {
+      "id": "create_and_format_report",
+      "description": "Agent creates the final report file with the exact required format.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the creation of `/home/ga/graph_analysis_report.txt`. The file must contain exactly five lines with the keys: TOTAL_VERTICES, TOTAL_EDGES, FIVE_STAR_HOTELS, HOTEL_COUNTRIES, and LUCA_NETWORK_SIZE, each followed by an integer result."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Agent actually interacted with the OrientDB database to gather the statistics.",
+      "visual_evidence": "Screenshots should show the agent executing queries and receiving results from the database, rather than guessing or hallucinating the numbers."
+    },
+    {
+      "id": "verifiable_results",
+      "description": "The numbers in the final report match the query results.",
+      "visual_evidence": "The integer values entered into the report file should correspond exactly to the output of the queries seen in previous steps."
+    },
+    {
+      "id": "exact_file_path",
+      "description": "The report is saved in the correct location.",
+      "visual_evidence": "The file path `/home/ga/graph_analysis_report.txt` is clearly visible in the text editor, terminal command, or file manager."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is an OrientDB instance accessible at http://localhost:2480. Database name: 'demodb', User: 'admin', Password: 'admin'. The report must be saved exactly at '/home/ga/graph_analysis_report.txt'. The database contains synthetic data including 15 Hotels, 17 Profiles, 12 Countries, and 11 Restaurants. The agent must find counts for TOTAL_VERTICES, TOTAL_EDGES, FIVE_STAR_HOTELS, HOTEL_COUNTRIES, and LUCA_NETWORK_SIZE."
+}

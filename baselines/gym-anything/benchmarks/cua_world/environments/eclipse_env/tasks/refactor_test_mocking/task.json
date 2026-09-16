@@ -1,0 +1,37 @@
+{
+  "id": "refactor_test_mocking@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the failing integration test in the 'PaymentSystem' project (~/eclipse-workspace/PaymentSystem) into a unit test using Mockito. The current test in src/test/java/com/example/payment/OrderServiceTest.java fails because it instantiates StripePaymentProcessor, which attempts a real network connection. Refactor this test to mock the PaymentProcessor interface, configuring the mock to return true when processPayment is called, and ensure the test passes without the real implementation.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_test_mocking/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_test_mocking/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/PaymentSystem",
+    "test_file_path": "src/test/java/com/example/payment/OrderServiceTest.java",
+    "forbidden_string": "new StripePaymentProcessor",
+    "required_imports": [
+      "org.mockito",
+      "org.junit.jupiter"
+    ],
+    "required_method_calls": [
+      "when",
+      "given",
+      "doReturn",
+      "mock"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_test_mocking"
+    }
+  }
+}

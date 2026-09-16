@@ -1,0 +1,27 @@
+{
+  "id": "create_path_array_layout@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a procedural architectural layout in FreeCAD consisting of a curved colonnade. Construct a curved path on the XY plane with a minimum length of 500mm and distribute at least five vertical columns along this path using an array that aligns the columns to the curve's orientation. Save the resulting model to /home/ga/Documents/FreeCAD/curved_colonnade.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_path_array_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/create_path_array_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/curved_colonnade.FCStd",
+    "min_count": 5,
+    "check_alignment": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_path_array"
+    }
+  }
+}

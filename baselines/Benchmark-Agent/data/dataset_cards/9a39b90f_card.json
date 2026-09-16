@@ -1,0 +1,78 @@
+{
+  "dataset_id": "9a39b90f",
+  "name": "Tuberculosis Xray Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 281,
+  "description": "The Tuberculosis Xray Segmentation dataset contains chest X-ray images paired with natural language instructions to segment tuberculosis-affected regions. It evaluates a model's ability to produce pixel-level segmentation masks for medical images from textual prompts.",
+  "card_text": "This dataset consists of 281 samples, each containing a chest X-ray image (input.image_file), a short instruction prompt (input.prompt) asking to segment the tuberculosis region, and a corresponding binary segmentation mask (output.map_file). The images are medical radiographs, typically grayscale chest X-rays, and the masks highlight areas indicative of tuberculosis. The task is open-set instruction-based segmentation: the model receives the image and the fixed prompt, and must output a mask matching the ground-truth annotation. No bounding boxes or textual answers are provided. The dataset is intended for evaluating medical image segmentation methods, particularly those that can follow natural language instructions. Assumptions include that the region of interest is identifiable from the X-ray and that the prompt is uniform across all samples.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "medical imaging",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Chest X-ray image that serves as the main visual context for segmentation.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction asking to segment the tuberculosis-affected region from the chest X-ray.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Binary segmentation mask image delineating the tuberculosis region in the corresponding X-ray.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with an image_file (chest X-ray) and a text prompt instructing segmentation, and an output object with a map_file (binary segmentation mask). The id field is ignored for modeling. The prompt is a fixed instruction, and the mask is spatially aligned with the input image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/tuberculosis_xray_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "tuberculosis xray segmentation",
+      "type": "comprehension",
+      "skill": "Medical Segmentation(Med Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

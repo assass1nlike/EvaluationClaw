@@ -1,0 +1,53 @@
+{
+  "task_id": "statefulset_peer_discovery@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_namespace",
+      "description": "Navigate to the data-grid namespace in the Rancher UI.",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible with the namespace dropdown or filter set to 'data-grid'."
+    },
+    {
+      "id": "configure_headless_service",
+      "description": "Configure the cache-discovery Service as a headless service.",
+      "points": 20,
+      "visual_evidence": "The Service configuration or YAML view for 'cache-discovery' shows the Cluster IP set to 'None' or the service type explicitly marked as Headless."
+    },
+    {
+      "id": "configure_service_selector",
+      "description": "Update the cache-discovery Service selector to target the StatefulSet pods.",
+      "points": 20,
+      "visual_evidence": "The Selectors section in the 'cache-discovery' Service configuration shows key-value pairs that match the labels of the 'cache-nodes' pods."
+    },
+    {
+      "id": "associate_statefulset_service",
+      "description": "Associate the cache-nodes StatefulSet with the cache-discovery service.",
+      "points": 25,
+      "visual_evidence": "The StatefulSet configuration or YAML view for 'cache-nodes' shows the 'Service Name' (serviceName) field explicitly set to 'cache-discovery'."
+    },
+    {
+      "id": "update_env_variable",
+      "description": "Update the CLUSTER_DOMAIN environment variable in the pod template.",
+      "points": 25,
+      "visual_evidence": "The Environment Variables section of the 'cache-nodes' StatefulSet configuration shows a variable named 'CLUSTER_DOMAIN' with its value set to 'cache-discovery.data-grid.svc.cluster.local'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Rancher GUI in a web browser to perform the tasks.",
+      "visual_evidence": "Screenshots show the Rancher web interface being used in a browser, rather than a terminal window executing kubectl commands."
+    },
+    {
+      "id": "genuine_modification",
+      "description": "The agent actually applied or saved the configuration changes.",
+      "visual_evidence": "Screenshots show the agent clicking 'Save' or 'Update' buttons in the Rancher UI, or show success notifications confirming the resources were updated."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "The agent did not use a text editor to spoof the expected answers.",
+      "visual_evidence": "The modifications are made within the actual Rancher application interface (forms or built-in YAML editor), not in a standalone text editor like Notepad or Vim."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Namespace: data-grid. Headless Service Name: cache-discovery. StatefulSet Name: cache-nodes. Expected Cluster Domain (FQDN) for the environment variable: cache-discovery.data-grid.svc.cluster.local."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_fullstack_containerization@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_created",
+      "description": "Agent creates a docker-compose.yml file defining the required services.",
+      "points": 10,
+      "visual_evidence": "Look for a docker-compose.yml file open in a text editor or displayed in the terminal via 'cat'. It should contain service definitions for an API, database (postgres), redis, worker (celery), and reverse proxy (nginx)."
+    },
+    {
+      "id": "dockerfiles_and_nginx_config_created",
+      "description": "Agent creates Dockerfiles for the Python applications and an Nginx configuration file.",
+      "points": 10,
+      "visual_evidence": "Look for 'Dockerfile' (often multiple, for API and worker) and 'nginx.conf' (or similar Nginx config file) being edited in a text editor or created via terminal commands."
+    },
+    {
+      "id": "db_init_ordering_resolved",
+      "description": "Agent resolves the alphabetical sorting issue between data.sql and schema.sql to ensure tables are created before data insertion.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands renaming the SQL files (e.g., 'mv db/schema.sql db/01-schema.sql' and 'mv db/data.sql db/02-data.sql'), or an IDE file explorer showing the renamed files, or a custom entrypoint script being written to source them in the correct order."
+    },
+    {
+      "id": "containers_running",
+      "description": "Agent successfully starts the Docker Compose stack with all 5 services running.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output of 'docker compose up -d' followed by 'docker compose ps' or 'docker ps' showing 5 containers (postgres, redis, api, worker, nginx) in a running state ('Up'). Nginx should show port 8080 mapped."
+    },
+    {
+      "id": "api_accessible_via_nginx",
+      "description": "Agent verifies the API is accessible through the Nginx reverse proxy on port 8080.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command like 'curl http://localhost:8080/api/products' or 'curl http://localhost:8080/health' returning a successful JSON response (e.g., a list of 25 products or a health status)."
+    },
+    {
+      "id": "async_order_processed",
+      "description": "Agent tests the full asynchronous pipeline by creating an order and verifying the Celery worker processes it.",
+      "points": 30,
+      "visual_evidence": "Look for a POST request to 'http://localhost:8080/api/orders' (via curl or a script) followed by either Celery worker logs showing 'tasks.process_order' executing successfully, or a subsequent GET request to '/api/inventory' showing decremented stock quantities."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_deployment",
+      "description": "Verify the agent actually deployed the containers using Docker rather than just writing the configuration files.",
+      "visual_evidence": "Look for actual Docker daemon output, build logs, or 'docker ps' execution. The agent should not just write the files and claim success without running them."
+    },
+    {
+      "id": "no_mocked_api_responses",
+      "description": "Verify the agent is interacting with the actual deployed Flask API and PostgreSQL database, not a mocked server.",
+      "visual_evidence": "Ensure the curl requests are directed to localhost:8080 and the responses match the expected database seed data (e.g., 25 products, specific SKUs) rather than hardcoded mock scripts."
+    },
+    {
+      "id": "genuine_worker_execution",
+      "description": "Verify the inventory decrement was performed by the Celery worker, not manually altered by the agent.",
+      "visual_evidence": "Look for Celery worker logs processing the task. The agent should not be executing raw SQL UPDATE queries in the terminal to fake the inventory decrement."
+    }
+  ],
+  "privileged_info_for_vlm": "The application requires exactly 5 Docker services: Flask API, PostgreSQL 14, Redis, Celery worker, and Nginx reverse proxy. A critical friction point is the database initialization: 'data.sql' sorts alphabetically before 'schema.sql'. If mounted directly to /docker-entrypoint-initdb.d/ without renaming (e.g., to 01-schema.sql and 02-data.sql), the seed data runs before table creation, causing empty tables. The API must be exposed via Nginx on port 8080. The database contains exactly 25 products and 3 warehouses. A successful deployment requires the Celery worker to be running and connected to both Redis (broker) and PostgreSQL (database) to process orders asynchronously and decrement inventory."
+}

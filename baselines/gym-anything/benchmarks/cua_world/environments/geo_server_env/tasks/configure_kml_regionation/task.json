@@ -1,0 +1,28 @@
+{
+  "id": "configure_kml_regionation@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Configure KML Regionation optimization for the 'ne_populated_places' layer in the 'ne' workspace to allow large datasets to be efficiently streamed to Google Earth. Log in to the GeoServer web admin interface at http://localhost:8080/geoserver/web/ (Username: admin, Password: Admin123!) and configure the 'ne:ne_populated_places' layer to use the 'external-sorting' Regionation Strategy with 'pop_max' as the Regionation Attribute.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_kml_regionation/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_kml_regionation/export_result.sh"
+  },
+  "metadata": {
+    "workspace": "ne",
+    "layer": "ne_populated_places",
+    "expected_strategy": "external-sorting",
+    "expected_attribute": "pop_max"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_kml_regionation"
+    }
+  }
+}

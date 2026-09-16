@@ -1,0 +1,31 @@
+{
+  "id": "create_machine_status_indicator@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Configure a processing chain for the 'press_power' input to generate a binary status feed named 'press_running' (0 = Off, 1 = On) based on the machine's power draw (~25W standby, ~1500W running). Create a dashboard named 'Factory Monitor' with an LED widget linked to the 'press_running' feed.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_machine_status_indicator/setup_task.sh",
+    "post_task": "/workspace/tasks/create_machine_status_indicator/export_result.sh"
+  },
+  "metadata": {
+    "input_name": "press_power",
+    "feed_name": "press_running",
+    "dashboard_name": "Factory Monitor",
+    "standby_power": 25,
+    "active_power": 1500,
+    "threshold_high": 1000,
+    "threshold_low": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_machine_status"
+    }
+  }
+}

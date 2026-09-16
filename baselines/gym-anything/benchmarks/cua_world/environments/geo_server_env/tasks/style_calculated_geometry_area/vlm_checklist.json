@@ -1,0 +1,53 @@
+{
+  "task_id": "style_calculated_geometry_area@1",
+  "task_completion": [
+    {
+      "id": "create_style_in_workspace",
+      "description": "Create a new style named 'area_classification' in the 'ne' workspace.",
+      "points": 15,
+      "visual_evidence": "In the GeoServer web interface, the Styles list or Style Editor page shows a style named 'area_classification' assigned to the workspace 'ne'."
+    },
+    {
+      "id": "sld_rule_small_area",
+      "description": "Configure SLD rule for features with an area less than 15.0 square degrees to have a red fill.",
+      "points": 20,
+      "visual_evidence": "The SLD code editor shows an OGC filter using '<ogc:Function name=\"area\">', a '<ogc:PropertyIsLessThan>' operator with a literal value of '15.0', and a PolygonSymbolizer with a fill color of '#FF0000'."
+    },
+    {
+      "id": "sld_rule_large_area",
+      "description": "Configure SLD rule for features with an area greater than or equal to 15.0 square degrees to have a gray fill.",
+      "points": 20,
+      "visual_evidence": "The SLD code editor shows an OGC filter using '<ogc:Function name=\"area\">', a '<ogc:PropertyIsGreaterThanOrEqualTo>' operator with a literal value of '15.0', and a PolygonSymbolizer with a fill color of '#AAAAAA'."
+    },
+    {
+      "id": "set_default_layer_style",
+      "description": "Set 'area_classification' as the default style for the 'ne:ne_countries' layer.",
+      "points": 20,
+      "visual_evidence": "In the GeoServer Edit Layer page for 'ne_countries', under the Publishing tab, the Default Style dropdown is set to 'ne:area_classification'."
+    },
+    {
+      "id": "export_map_preview",
+      "description": "Export an 800x400 PNG map preview of the global extent to /home/ga/area_map.png.",
+      "points": 25,
+      "visual_evidence": "A file manager or image viewer shows a file named 'area_map.png' in the '/home/ga/' directory. The image displays a world map where smaller countries are colored red and larger countries are colored gray."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "geoserver_gui_interaction",
+      "description": "The agent used the GeoServer web interface to create and apply the style.",
+      "visual_evidence": "Screenshots show the agent navigating the GeoServer web administration GUI (e.g., Styles page, Layer Publishing page) rather than exclusively using terminal curl commands to interact with the REST API."
+    },
+    {
+      "id": "genuine_sld_editing",
+      "description": "The agent actually inputted the SLD code into the GeoServer style editor.",
+      "visual_evidence": "Screenshots show the SLD XML code present inside the GeoServer style editor text area."
+    },
+    {
+      "id": "genuine_map_export",
+      "description": "The exported map image is generated from GeoServer rather than being a downloaded or fabricated image.",
+      "visual_evidence": "Screenshots show the agent using GeoServer's Layer Preview, WMS request URL, or a terminal command (like curl/wget) querying the local GeoServer instance to generate and save the PNG file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected style name is 'area_classification' within the 'ne' workspace. The SLD must use the OGC function 'area' to calculate geometry area dynamically. The threshold is 15.0 (square degrees). Features < 15.0 must be colored red (#FF0000). Features >= 15.0 must be colored gray (#AAAAAA). The layer to style is 'ne:ne_countries'. The final output must be an 800x400 PNG saved to '/home/ga/area_map.png'."
+}

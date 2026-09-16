@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_network_speed_heatmap@1",
+  "task_completion": [
+    {
+      "id": "create_edgedata_xml",
+      "description": "Create the additional XML file to output macroscopic edge data.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the creation of '/home/ga/SUMO_Output/edgedata.add.xml' containing an edgeData definition with frequency '1000' and output file '/home/ga/SUMO_Output/edge_metrics.xml'."
+    },
+    {
+      "id": "create_sumocfg",
+      "description": "Create the SUMO configuration file linking the network, routes, and additional files.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing '/home/ga/SUMO_Output/run_heatmap.sumocfg' that references the Acosta network ('acosta_buslanes.net.xml'), the three route files ('acosta_vtypes.add.xml', 'acosta.rou.xml', 'acosta_busses.rou.xml'), the new additional file ('edgedata.add.xml'), and sets the simulation end time to 1000."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation to generate the edge metrics.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of the SUMO simulation (e.g., 'sumo -c /home/ga/SUMO_Output/run_heatmap.sumocfg') and completing successfully, which generates the 'edge_metrics.xml' file."
+    },
+    {
+      "id": "develop_python_script",
+      "description": "Develop a Python script to parse the edge metrics and map speeds to the network geometry.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the code for '/home/ga/SUMO_Output/plot_heatmap.py'. The code should import 'sumolib', parse the generated XML metrics, extract average speeds, and use a plotting library (like matplotlib) to draw the network edges."
+    },
+    {
+      "id": "generate_heatmap_image",
+      "description": "Run the Python script to generate and save the spatial speed heatmap image.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the execution of 'python plot_heatmap.py' (or similar) and an image viewer, file explorer, or terminal listing confirming the creation of '/home/ga/SUMO_Output/speed_heatmap.png'. If the image is opened, it should display a road network with edges colored according to a speed scale."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify that the agent actually ran the SUMO simulation rather than mocking the output files.",
+      "visual_evidence": "Look for SUMO simulation logs in the terminal showing step execution and summary statistics, rather than simple 'touch' or 'echo' commands creating 'edge_metrics.xml'."
+    },
+    {
+      "id": "genuine_script_execution",
+      "description": "Verify that the agent executed the Python script to generate the image.",
+      "visual_evidence": "Look for the terminal command executing the Python script (e.g., 'python3 plot_heatmap.py') without syntax or runtime errors, rather than downloading or copying a pre-existing image."
+    },
+    {
+      "id": "authentic_heatmap_content",
+      "description": "Verify that the generated heatmap visually corresponds to a real road network.",
+      "visual_evidence": "If the image 'speed_heatmap.png' is visible, it should depict a complex, interconnected road network (the Bologna Acosta network) with varying colors for edges, not a generic placeholder, random noise, or a blank image."
+    }
+  ],
+  "privileged_info_for_vlm": "The task operates on the real-world Bologna Acosta network. The following file paths are verified as correct and must be used: Output directory is '/home/ga/SUMO_Output'. Edge data configuration must be at '/home/ga/SUMO_Output/edgedata.add.xml'. SUMO configuration must be at '/home/ga/SUMO_Output/run_heatmap.sumocfg'. Edge metrics output must be at '/home/ga/SUMO_Output/edge_metrics.xml'. Python script must be at '/home/ga/SUMO_Output/plot_heatmap.py'. The final heatmap image must be saved to '/home/ga/SUMO_Output/speed_heatmap.png'."
+}

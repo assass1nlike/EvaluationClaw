@@ -1,0 +1,59 @@
+{
+  "task_id": "cluster_partitioning@1",
+  "task_completion": [
+    {
+      "id": "access_orientdb_studio",
+      "description": "Access OrientDB Studio and connect to the demodb database",
+      "points": 10,
+      "visual_evidence": "A web browser showing the OrientDB Studio interface (http://localhost:2480/studio/index.html) successfully logged into the 'demodb' database."
+    },
+    {
+      "id": "create_hotel_clusters",
+      "description": "Create the three geographic clusters and add them to the Hotels class",
+      "points": 20,
+      "visual_evidence": "The Schema/Class view in OrientDB Studio showing the 'Hotels' class with 'hotels_europe', 'hotels_americas', and 'hotels_asiapacific' listed as its clusters, or successful execution of SQL commands creating these clusters for the class."
+    },
+    {
+      "id": "move_europe_hotels",
+      "description": "Move European hotels to the hotels_europe cluster",
+      "points": 15,
+      "visual_evidence": "Execution of SQL commands (e.g., UPDATE or MOVE VERTEX) targeting countries like Italy, Germany, France, etc., or a query result showing 11 records in the 'hotels_europe' cluster."
+    },
+    {
+      "id": "move_americas_hotels",
+      "description": "Move Americas hotels to the hotels_americas cluster",
+      "points": 15,
+      "visual_evidence": "Execution of SQL commands targeting United States, Canada, and Brazil, or a query result showing 2 records in the 'hotels_americas' cluster."
+    },
+    {
+      "id": "move_asiapacific_hotels",
+      "description": "Move AsiaPacific hotels to the hotels_asiapacific cluster",
+      "points": 15,
+      "visual_evidence": "Execution of SQL commands targeting Japan and Australia, or a query result showing 2 records in the 'hotels_asiapacific' cluster."
+    },
+    {
+      "id": "generate_partitioning_report",
+      "description": "Generate a report containing the hotel count for each new cluster and the total count",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/partitioning_report.txt' with the counts for the three clusters (Europe: 11, Americas: 2, AsiaPacific: 2) and the total count (15)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "The agent used the OrientDB Studio web interface for database operations",
+      "visual_evidence": "Database queries and schema modifications should be visible within the OrientDB Studio browser interface, not just executed via terminal scripts."
+    },
+    {
+      "id": "genuine_data_movement",
+      "description": "The agent actually queried or moved the data rather than guessing the counts",
+      "visual_evidence": "Screenshots should show the agent executing SQL commands in OrientDB Studio to move the vertices or count the records per cluster."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The report file was actually created at the specified path",
+      "visual_evidence": "A terminal or file explorer showing the file '/home/ga/partitioning_report.txt' being created or edited, rather than just printing the text to the screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected clusters are 'hotels_europe', 'hotels_americas', and 'hotels_asiapacific'. The report must be saved to '/home/ga/partitioning_report.txt'. There are exactly 15 hotels in total. The correct counts for the clusters are: hotels_europe = 11, hotels_americas = 2 (Canada has 0 hotels in the seeded data), and hotels_asiapacific = 2."
+}

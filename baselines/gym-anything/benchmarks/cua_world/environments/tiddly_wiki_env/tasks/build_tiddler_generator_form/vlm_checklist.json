@@ -1,0 +1,59 @@
+{
+  "task_id": "build_tiddler_generator_form@1",
+  "task_completion": [
+    {
+      "id": "tiddler_created_with_title",
+      "description": "Create a new tiddler titled 'New Patient Registration Form'",
+      "points": 10,
+      "visual_evidence": "In the TiddlyWiki interface, a tiddler exists (either in edit or view mode) with the exact title 'New Patient Registration Form'."
+    },
+    {
+      "id": "form_inputs_and_state",
+      "description": "Include input fields for patient_name, dob, and physician using the specified temporary state tiddler",
+      "points": 20,
+      "visual_evidence": "The tiddler's source code (in edit mode) shows input widgets (e.g., <$edit-text>) that reference the tiddler '$:/temp/NewPatient' and the fields 'patient_name', 'dob', and 'physician'."
+    },
+    {
+      "id": "register_button_present",
+      "description": "Include a button labeled 'Register Patient'",
+      "points": 10,
+      "visual_evidence": "The tiddler's source code contains a <$button> widget with the text 'Register Patient', or the rendered tiddler shows a clickable button with this label."
+    },
+    {
+      "id": "button_action_create_tiddler",
+      "description": "Configure the button to create a new tiddler with the patient's name as the title, tagged 'Patient', and including the dob and physician fields",
+      "points": 25,
+      "visual_evidence": "Inside the <$button> widget in the source code, there is an action widget (like <$action-createtiddler> or <$action-setfield>) that sets the title using the patient_name value, sets tags='Patient', and assigns the dob and physician fields from the state tiddler."
+    },
+    {
+      "id": "button_action_set_body",
+      "description": "Set the body of the newly created patient tiddler to the exact required intake notes format",
+      "points": 15,
+      "visual_evidence": "The tiddler creation action in the source code includes a text attribute setting the body to exactly '!! Intake Notes\\n* ' (often represented with a line break or HTML entity like &#10; for the newline)."
+    },
+    {
+      "id": "button_action_reset_form",
+      "description": "Configure the button to delete the temporary state tiddler to reset the form",
+      "points": 20,
+      "visual_evidence": "Inside the <$button> widget in the source code, there is an <$action-deletetiddler> widget targeting '$:/temp/NewPatient'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent interacted with the TiddlyWiki web interface to create the form",
+      "visual_evidence": "Screenshots show the TiddlyWiki application running in a web browser with the tiddler editor open, rather than terminal commands or a raw text editor modifying backend files."
+    },
+    {
+      "id": "genuine_form_logic",
+      "description": "The agent wrote actual TiddlyWiki widget code rather than hardcoding a visual mock-up",
+      "visual_evidence": "The edit mode shows genuine TiddlyWiki syntax (<$edit-text>, <$button>, <$action-...>) rather than just plain text mimicking the final output."
+    },
+    {
+      "id": "no_pre_made_shortcuts",
+      "description": "The agent typed or constructed the code manually",
+      "visual_evidence": "Screenshots show progressive construction of the tiddler content in the editor, rather than instantly pasting a complete, pre-existing script from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected tiddler title is exactly 'New Patient Registration Form'. The form must use the state tiddler '$:/temp/NewPatient'. The form must include input fields for 'patient_name', 'dob', and 'physician'. The button must create a tiddler with the tag 'Patient' and the exact body text '!! Intake Notes\\n* ' (newline before the asterisk and a space after it), and then delete '$:/temp/NewPatient'."
+}

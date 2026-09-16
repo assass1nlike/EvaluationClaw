@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_conformal_radome@1",
+  "task_completion": [
+    {
+      "id": "open_baseline_model",
+      "description": "Open the baseline eCRM-001 model in OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The OpenVSP main window is open and displays the eCRM-001 aircraft model (fuselage, wings, tail). The window title or geometry browser should indicate the baseline model is loaded."
+    },
+    {
+      "id": "add_and_name_component",
+      "description": "Add a 'Conformal' geometry component and name it 'Satcom_Radome'.",
+      "points": 15,
+      "visual_evidence": "The OpenVSP Geometry browser lists a new component named 'Satcom_Radome'. Its icon or type should indicate it is a 'Conformal' component."
+    },
+    {
+      "id": "set_parent_fuselage",
+      "description": "Ensure the parent of 'Satcom_Radome' is set to the 'Fuselage' component.",
+      "points": 15,
+      "visual_evidence": "In the OpenVSP Geometry browser, 'Satcom_Radome' is visually nested under 'Fuselage', or the component properties window for 'Satcom_Radome' explicitly shows 'Fuselage' as its Parent."
+    },
+    {
+      "id": "apply_geometry_limits",
+      "description": "Apply the U/V limits and thickness from the specification document.",
+      "points": 20,
+      "visual_evidence": "The OpenVSP component properties window for 'Satcom_Radome' (likely under the 'Design' or 'Conformal' tab) shows Umin = 0.25, Umax = 0.30, Vmin = 0.45, Vmax = 0.55, and Thickness (or Thick) = 0.35."
+    },
+    {
+      "id": "run_compgeom_analysis",
+      "description": "Run a CompGeom analysis to compute the new total wetted area.",
+      "points": 20,
+      "visual_evidence": "The OpenVSP 'CompGeom' analysis dialog is open, and a results window or log is visible showing the computed Total Wetted Area."
+    },
+    {
+      "id": "write_radome_report",
+      "description": "Write the numeric Total Wetted Area value to radome_report.txt.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window displays the contents of '/home/ga/Desktop/radome_report.txt', containing a numeric value between 1100.0 and 1300.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the OpenVSP GUI to modify the model and run the analysis.",
+      "visual_evidence": "Screenshots should show the OpenVSP graphical interface being interacted with (e.g., open dialogs, geometry browser selections), rather than just terminal commands editing the .vsp3 XML file directly."
+    },
+    {
+      "id": "genuine_compgeom_result",
+      "description": "The CompGeom results come from the actual OpenVSP analysis tool.",
+      "visual_evidence": "The wetted area value should be visible in a genuine OpenVSP CompGeom results window or log, not just typed directly into a text file without running the tool."
+    },
+    {
+      "id": "report_contains_only_number",
+      "description": "The report file contains just the numeric value as requested, without extra conversational text.",
+      "visual_evidence": "The file radome_report.txt should contain only the numeric wetted area value (e.g., '1145.67'), not a full sentence like 'The total wetted area is 1145.67'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target specifications for the conformal radome are: Component Name: 'Satcom_Radome', Parent: 'Fuselage', U_Min: 0.25, U_Max: 0.30, V_Min: 0.45, V_Max: 0.55, Thickness: 0.35. The expected total wetted area from the CompGeom analysis should be a numeric value in the range [1100.0, 1300.0]."
+}

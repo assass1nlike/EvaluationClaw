@@ -1,0 +1,94 @@
+{
+  "dataset_id": "1c8e4d92",
+  "name": "Openset Attribute Congruity Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Attribute Congruity Reasoning dataset evaluates multimodal models on judging whether two sets of images depict objects in the same or opposite states. Each sample provides four images plus a natural-language instruction with a True/False choice list, and the model must output a single verdict. It probes fine-grained visual attribute/state comparison and congruity reasoning.",
+  "card_text": "This dataset contains 200 image-text samples designed to test attribute congruity reasoning over paired visual sets. Every item supplies a list of four image files together with a text prompt that frames the task: the model is told it will see two sets of pictures showing an object in opposite states and must decide whether the two sets share the same state. The prompt embeds four <ImageHere> placeholders aligned with the four images and an explicit choice list of ['True', 'False']. The supervision is a single short text label, either 'True' or 'False'. The images are everyday-object photographs, and prompts vary in phrasing across samples, so the task stresses visual state recognition, cross-image comparison, and instruction following with a constrained answer format. It is an open-set style binary multimodal reasoning benchmark.",
+  "tasks": [
+    "classification_binary",
+    "visual_question_answering"
+  ],
+  "domain": "visual attribute and state reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The natural-language instruction that frames the task, telling the model that two sets of pictures show an object in opposite states and asking whether the two sets share the same state. It contains four <ImageHere> placeholders that anchor the accompanying images and ends with an explicit choice list and an answer cue.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of four image file references corresponding positionally to the <ImageHere> placeholders in the prompt. The images form two pairs, each pair depicting an everyday object in a particular state, and they are the visual evidence the model must compare to judge state congruity.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The candidate answer set is embedded inside the prompt as an inline choice list ['True', 'False'], constraining the model's response to one of two options. It is not a standalone field but is textually delimited within input.prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold label for the sample, a single token 'True' or 'False' indicating whether the two sets of images depict the same state. It is the direct target for the instruction posed in input.prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a text instruction (input.prompt) and a list of four image references (input.image_file), with the images aligned to four <ImageHere> placeholders inside the prompt. The prompt itself carries the question, the inline True/False choice list, and the answer cue, so no separate question or options field exists. The single answer label lives in output.text as either 'True' or 'False'. The four images form two pairs depicting an object in a state, and the answer expresses whether the two pairs are congruent in state; thus the model must jointly interpret the instruction and compare the images to produce the binary label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/AttributeCongruityReasoning/openset_attribute_congruity_reasoning.json",
+    "existing_tags": {
+      "task": "Attribute Congruity Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

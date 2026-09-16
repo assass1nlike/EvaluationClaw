@@ -1,0 +1,31 @@
+{
+  "id": "record_payment_with_withholding@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Record a payment for Invoice #INV-CONS-001 from customer 'Alfreds Futterkiste' that accounts for the tax withheld by the customer. The payment should clear the invoice in full, with the received funds allocated to 'Cash on Hand' and the withheld portion to the 'Withholding Tax Receivable' asset account. Ensure the invoice status is updated to 'Paid in Full'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_payment_with_withholding/setup_task.sh",
+    "post_task": "/workspace/tasks/record_payment_with_withholding/export_result.sh"
+  },
+  "metadata": {
+    "invoice_ref": "INV-CONS-001",
+    "customer_name": "Alfreds Futterkiste",
+    "total_invoice_amount": 1000.0,
+    "withheld_amount": 100.0,
+    "net_received": 900.0,
+    "tax_account": "Withholding Tax Receivable",
+    "bank_account": "Cash on Hand"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_payment_with_withholding"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "scheduled_analytics_job_config@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "As the DHIS2 System Administrator, you need to configure automated maintenance jobs to ensure data on dashboards is up-to-date. Log in to DHIS2 (admin / district) and configure two enabled scheduled jobs: 'Nightly Analytics Tables' (job type: 'Analytics table') to run daily at 2:00 AM, and 'Weekly Resource Tables' (job type: 'Resource table') to run every Sunday at 3:00 AM.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scheduled_analytics_job_config/setup_task.sh",
+    "post_task": "/workspace/tasks/scheduled_analytics_job_config/export_result.sh"
+  },
+  "metadata": {
+    "analytics_job": {
+      "name_pattern": "Nightly Analytics",
+      "type": "ANALYTICS_TABLE",
+      "cron_hour": 2,
+      "cron_frequency": "daily"
+    },
+    "resource_job": {
+      "name_pattern": "Weekly Resource",
+      "type": "RESOURCE_TABLE",
+      "cron_hour": 3,
+      "cron_frequency": "weekly"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scheduled_analytics_job_config"
+    }
+  }
+}

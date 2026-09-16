@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_world_writable_file_fim@1",
+  "task_completion": [
+    {
+      "id": "fim_directory_configured",
+      "description": "Verify that the target directory is configured for FIM realtime monitoring.",
+      "points": 20,
+      "visual_evidence": "Look for a configuration file (like ossec.conf) showing a <directories> tag that includes 'realtime=\"yes\"' (and ideally 'check_all=\"yes\"' or 'check_perm=\"yes\"') for the path '/opt/secure_configs'."
+    },
+    {
+      "id": "custom_rule_metadata",
+      "description": "Verify the custom rule has the correct ID, level, and parent rule.",
+      "points": 20,
+      "visual_evidence": "Look for local_rules.xml showing a <rule> tag with id=\"110001\" and level=\"12\". Inside this rule block, there must be an <if_sid>550</if_sid> tag."
+    },
+    {
+      "id": "custom_rule_logic",
+      "description": "Verify the custom rule targets the correct directory and permission regex.",
+      "points": 20,
+      "visual_evidence": "Inside the rule 110001 block in local_rules.xml, look for conditions matching the directory '/opt/secure_configs' (e.g., <match> or <field name=\"syscheck.path\">) and the exact regex 'w.$' for permissions (e.g., <field name=\"syscheck.perm_after\">w.$</field> or <regex>w.$</regex>)."
+    },
+    {
+      "id": "custom_rule_description",
+      "description": "Verify the custom rule has the exact required description.",
+      "points": 10,
+      "visual_evidence": "Inside the rule 110001 block in local_rules.xml, look for the tag: <description>Critical: File became world-writable in secure directory</description>."
+    },
+    {
+      "id": "trigger_file_permission",
+      "description": "Verify the agent triggered the alert by changing a file's permissions to 777 in the target directory.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command executing 'chmod 777' on a file located within '/opt/secure_configs'."
+    },
+    {
+      "id": "alert_generated",
+      "description": "Verify that the alert was successfully generated and captured.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output (e.g., tailing /var/ossec/logs/alerts/alerts.log or alerts.json) or a Wazuh dashboard screenshot showing an alert triggered for rule ID 110001."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_paths",
+      "description": "Ensure the agent edited the actual Wazuh configuration files, not dummy files.",
+      "visual_evidence": "Check terminal prompts, file paths in text editors (like nano/vim headers), or cat commands to ensure files edited are in the actual Wazuh directory (e.g., /var/ossec/etc/ossec.conf and /var/ossec/etc/rules/local_rules.xml)."
+    },
+    {
+      "id": "service_restart_executed",
+      "description": "Ensure the Wazuh manager/agent was restarted to apply the new configurations.",
+      "visual_evidence": "Look for terminal commands like 'systemctl restart wazuh-manager', 'systemctl restart wazuh-agent', or '/var/ossec/bin/wazuh-control restart'."
+    },
+    {
+      "id": "authentic_alert_log",
+      "description": "Ensure the generated alert is authentic and not manually fabricated.",
+      "visual_evidence": "The alert output should display standard Wazuh log formatting (JSON structure or standard alert format with timestamps, agent info, and syscheck metadata), rather than a simple echo'd string."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Directory: '/opt/secure_configs'. Rule ID: 110001. Parent Rule ID: 550 (Wazuh's standard 'Integrity checksum changed' event). Alert Level: 12. Permission Regex: 'w.$' (matches world-writable permissions in Wazuh's 9-character format). Exact Description: 'Critical: File became world-writable in secure directory'."
+}

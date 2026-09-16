@@ -1,0 +1,53 @@
+{
+  "task_id": "nonlinear_gamma_radiometric_enhancement@1",
+  "task_completion": [
+    {
+      "id": "open_input_image",
+      "description": "Open the input Landsat multispectral image",
+      "points": 10,
+      "visual_evidence": "The file 'landsat_multispectral.tif' should be visible in the application's Product Explorer or main viewing area."
+    },
+    {
+      "id": "apply_gamma_transformation",
+      "description": "Apply a square root (gamma=0.5) transformation to the Green, Red, and NIR bands",
+      "points": 30,
+      "visual_evidence": "A Band Math dialog, Raster Calculator, or radiometric enhancement tool should be visible, showing an expression like 'sqrt(band)' or 'band ^ 0.5' being applied to the Green, Red, and NIR bands."
+    },
+    {
+      "id": "create_three_band_product",
+      "description": "Create a new product containing exactly and only the three enhanced bands",
+      "points": 20,
+      "visual_evidence": "A new product should be visible in the Product Explorer, and its 'Bands' folder should contain exactly 3 bands (the enhanced Green, Red, and NIR bands). Alternatively, a Subset dialog showing exactly 3 bands selected for the new product."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Save the resulting product in BEAM-DIMAP format",
+      "points": 20,
+      "visual_evidence": "A 'Save Product' dialog or file manager showing the file 'enhanced_coastal.dim' being saved to or existing in the '~/snap_exports/' directory."
+    },
+    {
+      "id": "export_geotiff_product",
+      "description": "Export the resulting product as a GeoTIFF",
+      "points": 20,
+      "visual_evidence": "An 'Export' dialog or file manager showing the file 'enhanced_coastal.tif' being saved to or existing in the '~/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the application GUI rather than terminal commands to process the image",
+      "visual_evidence": "Screenshots should show interaction with the remote sensing software's graphical interface (e.g., SNAP), such as clicking menus, opening dialogs, and using the Product Explorer, rather than typing commands in a terminal."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "Agent genuinely performed the mathematical transformation",
+      "visual_evidence": "Screenshots should show the actual Band Math or Raster Calculator dialogs being configured with the correct mathematical expressions, rather than just renaming existing bands or files."
+    },
+    {
+      "id": "no_file_spoofing",
+      "description": "Agent did not spoof the output files using a text editor or basic terminal commands",
+      "visual_evidence": "The output files (.dim and .tif) should be generated via the application's Save/Export dialogs, not by using 'touch' in the terminal or saving empty files in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif. The final outputs must be saved exactly to /home/ga/snap_exports/enhanced_coastal.dim (BEAM-DIMAP format) and /home/ga/snap_exports/enhanced_coastal.tif (GeoTIFF format). The final exported product must contain exactly 3 bands (the gamma-enhanced Green, Red, and NIR bands)."
+}

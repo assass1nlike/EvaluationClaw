@@ -1,0 +1,96 @@
+---
+title: creation_audit
+description: Convert a software application name into a working gym-anything environment.
+---
+
+Path: `extras/research/software_as_env/creation_audit/`
+
+A coding+computer-use agent reads a creation prompt, writes the
+install / configure / per-task scripts, runs the environment to
+gather evidence, and an independent audit agent reviews that evidence
+and reports issues. The creation agent then ingests the audit and
+fixes whatever was flagged. This is the §3 pipeline from the
+CUA-World paper.
+
+A run typically takes 30 minutes to several hours per environment
+depending on how complex the target software is. Plan for it.
+
+## Prerequisites
+
+- `gym-anything` installed (`pip install -e ".[all]"`).
+- An agent CLI on `PATH`:
+  - [Claude Code](https://docs.claude.com/en/docs/claude-code)
+    (`claude`), used by default.
+  - [Codex CLI](https://github.com/openai/codex) (`codex`), enabled
+    with `--backend codex`.
+- A runtime that can boot the target environment — typically QEMU +
+  Apptainer for cluster work, or Docker locally. Run
+  `gym-anything doctor` to see what your machine has.
+- Disk + memory headroom for VM images (10–40 GB per env), plus
+  network access for installing the target software inside the VM.
+- Optional: the `visual_grounding` MCP server in
+  [`mcp/`](https://github.com/cmu-l3/gym-anything/tree/main/extras/research/software_as_env/creation_audit/mcp).
+  The creation prompt asks the agent to call it for pixel-coordinate
+  UI grounding. Setup is manual and one-time.
+
+## Quickstart
+
+```bash
+gym-anything-extras research software_as_env creation_audit \
+    --software "Moodle" --env-dir moodle_env
+```
+
+What happens after you press enter:
+
+1. **Initial pass** — the creation agent reads the creation prompt
+   and spends most of the run authoring scripts and booting the
+   environment.
+2. **Blind nudge ×N** (default 1) — the agent is re-prompted to
+   recheck the creation prompt. Recovers omissions caused by
+   long-context drift.
+3. **Audit ×M** (default 2) — a fresh audit agent (no chain-of-thought
+   from the creator) reviews `evidence_docs/` and writes
+   `audits/audit_<env>.md`. The creation agent ingests that audit and
+   fixes issues, then the next audit round runs.
+
+Each phase is logged to `creation_audit_logs/<env>.txt`. Tail it to
+see progress.
+
+## Common variations
+
+```bash
+# Use Codex instead of Claude Code
+... creation_audit --software "Inkscape" --env-dir inkscape_env --backend codex
+
+# Heavier auditing for tricky software
+... creation_audit --software "Bahmni" --env-dir bahmni_env --audit-rounds 4
+
+# Resume from phase 2 (after the first nudge) of a previous session
+... creation_audit --software "Moodle" --env-dir moodle_env \
+    --start-idx 2 --session-id <existing-session-uuid>
+```
+
+Run `... creation_audit --help` for the full flag list.
+
+## Output
+
+- `benchmarks/cua_world/environments/<env_dir>/` — the new
+  environment. Contains `env.json`, `scripts/`, `config/`, `tasks/`,
+  `evidence_docs/`. Conforms to the gym-anything `EnvSpec` / `TaskSpec`
+  contract.
+- `audits/audit_<env_dir>.md` — the final audit report.
+- `creation_audit_logs/<env_dir>.txt` — phase-by-phase run log.
+
+## After it finishes
+
+```bash
+# Validate the new env spec
+gym-anything verify spec <env_dir>
+
+# Boot it and watch the desktop
+gym-anything run <env_dir> -i --open-vnc
+```
+
+If `verify spec` fails or the VNC view shows the env in a wrong
+state, look at `audits/audit_<env_dir>.md` for what the auditor
+flagged in the last round.

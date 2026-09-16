@@ -1,0 +1,82 @@
+{
+  "dataset_id": "49179276",
+  "name": "Smoke-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A small image-based dataset for detecting smoke and cigarette objects in real-world scenes. Each sample pairs an image with a generic prompt and provides bounding-box annotations for the target objects, evaluating object detection and localization capabilities.",
+  "card_text": "Smoke-Detection contains 200 image-text samples intended for visual smoke and cigarette detection. The input consists of a JPEG image and a short placeholder prompt. The output is a list of bounding boxes, each labeled with a class such as 'smoke' or 'cigarette' and four coordinates. Images vary in scene complexity and background, but all focus on safety-related objects. The dataset is designed for object detection and localization, not for text generation. Typical use cases include fire-safety monitoring, smoking detection, and visual object localization. The prompt text is generic and likely serves as a template for model-specific instructions.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "smoke detection / safety",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short, generic instruction prompt (e.g., 'users' specifically-defined prompts for different models') that tells the model to perform object detection based on user specifications. It acts as the textual task context and is paired with an image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A color photograph (JPEG) showing a scene where smoke or cigarettes may appear. The image is the primary visual input and contains the objects to be detected.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of bounding-box annotations. Each entry is a dictionary with a single class key ('smoke' or 'cigarette') mapping to four coordinates that define the object's location in the image. This is the target output for detection.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with an image file path and a short instruction prompt, and an output object with a list of bounding boxes. The bounding boxes are the only annotations, each naming the detected object class (smoke or cigarette) and providing four coordinates. The prompt and image together specify the detection task, while the bbox list provides the localization answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/smoke-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "smoke-detection",
+      "type": "comprehension",
+      "skill": "Safety Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

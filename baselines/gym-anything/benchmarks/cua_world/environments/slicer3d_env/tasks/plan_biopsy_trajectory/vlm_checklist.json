@@ -1,0 +1,65 @@
+{
+  "task_id": "plan_biopsy_trajectory@1",
+  "task_completion": [
+    {
+      "id": "markup_exists",
+      "description": "A Line markup is created in the scene",
+      "points": 20,
+      "visual_evidence": "A Line markup is visible in the 3D Slicer viewer (either in the 3D view or 2D slice views)."
+    },
+    {
+      "id": "correct_name",
+      "description": "The markup is named 'Biopsy_Trajectory'",
+      "points": 15,
+      "visual_evidence": "The Markups module or Data module shows the Line markup explicitly named 'Biopsy_Trajectory'."
+    },
+    {
+      "id": "has_two_points",
+      "description": "The markup consists of exactly two control points",
+      "points": 15,
+      "visual_evidence": "The control points list in the Markups module shows exactly two points defining the line."
+    },
+    {
+      "id": "valid_entry_point",
+      "description": "The entry point is located on the scalp superior to the tumor",
+      "points": 15,
+      "visual_evidence": "In the 3D or 2D views, one end of the line clearly originates at the outer surface of the head (scalp) and is positioned superiorly (above) relative to the tumor."
+    },
+    {
+      "id": "target_accuracy",
+      "description": "The target point terminates inside the tumor region",
+      "points": 25,
+      "visual_evidence": "In the 2D slice views, the second end of the line terminates within the visible tumor mass, corresponding to the coordinates from the target text file."
+    },
+    {
+      "id": "reasonable_length",
+      "description": "The trajectory length is between 30 and 120 mm",
+      "points": 5,
+      "visual_evidence": "The Markups module displays the length of the line, and the value is between 30 mm and 120 mm."
+    },
+    {
+      "id": "scene_saved",
+      "description": "The scene is saved",
+      "points": 5,
+      "visual_evidence": "The 'Save Data' dialog is visible and shows the scene being saved, or there is a terminal/file explorer window showing the newly saved scene file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the 3D Slicer GUI to create the markup",
+      "visual_evidence": "Screenshots show the 3D Slicer interface with the Markups module open and mouse interactions (placing points), rather than just a terminal executing a script to bypass the UI."
+    },
+    {
+      "id": "read_target_file",
+      "description": "The agent read the tumor_target.txt file to get the coordinates",
+      "visual_evidence": "A terminal window, text editor, or Python console is visible at some point showing the contents of /home/ga/Documents/SlicerData/BraTS/tumor_target.txt."
+    },
+    {
+      "id": "no_precomputed_scene",
+      "description": "The agent did not load a pre-computed solution",
+      "visual_evidence": "The screenshots show the step-by-step creation of the markup (e.g., placing the entry and target points sequentially) rather than the final markup appearing instantly in the first few steps."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected markup name is exactly 'Biopsy_Trajectory'. It must be a Line markup with exactly 2 control points. The valid length of the trajectory is between 30 mm and 120 mm. The target point must be within a 15.0 mm tolerance of the coordinates specified in the tumor_target.txt file. The entry point must be on the scalp superior to the tumor."
+}

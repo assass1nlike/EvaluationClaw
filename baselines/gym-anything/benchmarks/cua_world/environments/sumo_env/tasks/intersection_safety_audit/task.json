@@ -1,0 +1,34 @@
+{
+  "id": "intersection_safety_audit@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "You are an occupational health and safety specialist contracted by the City of Bologna to conduct a surrogate safety analysis of the signalized intersections in the Acosta corridor using the scenario data at /home/ga/SUMO_Scenarios/bologna_acosta/. Your objective is to produce a safety audit report at /home/ga/SUMO_Output/intersection_safety_report.csv and a summary finding at /home/ga/SUMO_Output/safety_audit_summary.txt based on Surrogate Safety Measures (SSM) data. Configure the simulation to output SSM data for all vehicles to /home/ga/SUMO_Output/ssm_output.xml, tracking Time-To-Collision (TTC threshold <= 3.0s) and Deceleration Rate to Avoid Crash",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/intersection_safety_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/intersection_safety_audit/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Occupational Health and Safety Specialists (29-9011.00)",
+    "industry": "Protective Service",
+    "scenario": "bologna_acosta",
+    "ssm_output_path": "/home/ga/SUMO_Output/ssm_output.xml",
+    "report_path": "/home/ga/SUMO_Output/intersection_safety_report.csv",
+    "summary_path": "/home/ga/SUMO_Output/safety_audit_summary.txt",
+    "ttc_threshold": 3.0,
+    "drac_threshold": 3.5,
+    "ttc_critical": 1.5,
+    "drac_critical": 5.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_intersection_safety_audit"
+    }
+  }
+}

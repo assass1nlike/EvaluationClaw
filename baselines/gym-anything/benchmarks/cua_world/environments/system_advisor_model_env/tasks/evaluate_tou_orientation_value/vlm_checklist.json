@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_tou_orientation_value@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_initialization",
+      "description": "Create a Python script to use PySAM for the PV simulation.",
+      "points": 10,
+      "visual_evidence": "A code editor or terminal showing a Python script being written with imports for PySAM (e.g., import PySAM.Pvwattsv8 or similar)."
+    },
+    {
+      "id": "system_parameters_configuration",
+      "description": "Configure the 500 kW system parameters and weather file.",
+      "points": 20,
+      "visual_evidence": "Code setting the system capacity to 500, DC/AC ratio to 1.2, array type to 1, tilt to 20, system losses to 14, inverter efficiency to 96, and specifying the phoenix_az_tmy.csv weather file path."
+    },
+    {
+      "id": "azimuth_scenarios_setup",
+      "description": "Set up simulations for both South (180 degrees) and West (270 degrees) orientations.",
+      "points": 20,
+      "visual_evidence": "Code showing the azimuth parameter being set to 180 for one run/scenario and 270 for another, either in a loop or as separate sequential blocks."
+    },
+    {
+      "id": "tou_financial_logic",
+      "description": "Implement the Time-of-Use (TOU) pricing logic for the 8760 hours.",
+      "points": 25,
+      "visual_evidence": "Code containing logic to apply $0.35/kWh during months 6-9 for hours 16, 17, and 18, and $0.08/kWh for all other hours, multiplying these rates by the hourly generated power."
+    },
+    {
+      "id": "json_schema_formatting",
+      "description": "Format the output according to the requested JSON schema.",
+      "points": 15,
+      "visual_evidence": "Code constructing a dictionary with keys: 'south_annual_energy_kwh', 'west_annual_energy_kwh', 'south_annual_value_usd', 'west_annual_value_usd', and 'higher_value_orientation', and writing it to /home/ga/Documents/SAM_Projects/tou_orientation_value.json."
+    },
+    {
+      "id": "script_execution_and_output",
+      "description": "Execute the script to generate the final JSON file.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the Python script being run without errors, or a file explorer/terminal showing the newly created tou_orientation_value.json file in the correct directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pysam_usage",
+      "description": "Verify the agent actually used PySAM to compute the energy values.",
+      "visual_evidence": "The Python script must contain actual PySAM execution calls (e.g., model.execute()) rather than hardcoding guessed or pre-calculated energy values."
+    },
+    {
+      "id": "dynamic_financial_calculation",
+      "description": "Verify the financial values are calculated dynamically based on the simulation output.",
+      "visual_evidence": "The script should show mathematical operations multiplying the PySAM hourly generation output by the TOU rates, rather than hardcoding the final USD values."
+    },
+    {
+      "id": "no_gui_shortcut",
+      "description": "Verify the agent used PySAM via code as requested, rather than using the SAM desktop GUI.",
+      "visual_evidence": "The agent should be writing and executing Python code, not interacting with the System Advisor Model graphical user interface to generate the results."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is exactly '/home/ga/Documents/SAM_Projects/tou_orientation_value.json'. The weather file used must be '/home/ga/SAM_Weather_Data/phoenix_az_tmy.csv'. The final mathematical values in the JSON are evaluated with a strict 5% tolerance."
+}

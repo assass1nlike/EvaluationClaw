@@ -1,0 +1,53 @@
+{
+  "task_id": "create_voice_forensics_tool@1",
+  "task_completion": [
+    {
+      "id": "create_forensics_directory",
+      "description": "Verify the creation of the forensics directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal, or editor tree showing the directory C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\forensics\\ exists."
+    },
+    {
+      "id": "create_python_clipboard_hash",
+      "description": "Verify forensics.py contains actions for clipboard retrieval and SHA-256 calculation.",
+      "points": 20,
+      "visual_evidence": "A text editor showing forensics.py with code implementing clipboard reading (incorporating a 100ms delay like time.sleep(0.1) and whitespace stripping like .strip()) and SHA-256 hashing (e.g., hashlib.sha256)."
+    },
+    {
+      "id": "create_python_malware_lookup",
+      "description": "Verify forensics.py contains code to search malware_bazaar.csv for the SHA-256 hash.",
+      "points": 20,
+      "visual_evidence": "A text editor showing forensics.py with code reading C:\\workspace\\data\\malware_bazaar.csv and searching the 'sha256_hash' column."
+    },
+    {
+      "id": "create_python_logging_actions",
+      "description": "Verify forensics.py contains actions for system notifications and appending formatted logs to evidence_log.txt.",
+      "points": 30,
+      "visual_evidence": "A text editor showing forensics.py with notification code (e.g., app.notify), file append operations to C:\\workspace\\data\\evidence_log.txt, and the specific log formats '[YYYY-MM-DD HH:MM:SS] Path: <path> | Hash: <hash> | Signature: <signature>' and '[YYYY-MM-DD HH:MM:SS] NOTE: <note>'."
+    },
+    {
+      "id": "create_talon_commands",
+      "description": "Verify forensics.talon maps the required voice commands to their respective actions.",
+      "points": 20,
+      "visual_evidence": "A text editor showing forensics.talon with lines mapping the exact voice commands 'triage file' and 'evidence note <user.text>' to the corresponding Python actions defined in forensics.py."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_creation",
+      "description": "Ensure the agent actually created the files in the specified directory rather than just writing text in an unsaved editor or a different location.",
+      "visual_evidence": "The file paths in the editor tab, title bar, or terminal explicitly show the files are saved at C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\forensics\\forensics.py and forensics.talon."
+    },
+    {
+      "id": "no_hardcoded_hashes",
+      "description": "Check if the agent hardcoded malware signatures instead of writing the code to parse the CSV.",
+      "visual_evidence": "The code should dynamically read the CSV file path C:\\workspace\\data\\malware_bazaar.csv rather than hardcoding a dictionary or list of hashes and signatures."
+    },
+    {
+      "id": "genuine_file_operations",
+      "description": "Ensure the agent wrote code to append to the log file rather than just printing to the console.",
+      "visual_evidence": "Code shows genuine file operations (e.g., open(..., 'a') or equivalent pathlib methods) targeting C:\\workspace\\data\\evidence_log.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "The task environment is defective: the required input file C:\\workspace\\data\\malware_bazaar.csv is missing from the environment. The agent may encounter errors if it attempts to test the script. Score based on the code written in forensics.py and forensics.talon matching the prompt requirements, even if the agent could not successfully execute or test the module due to the missing CSV file."
+}

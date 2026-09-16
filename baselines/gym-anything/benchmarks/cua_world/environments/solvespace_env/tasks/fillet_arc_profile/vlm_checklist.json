@@ -1,0 +1,59 @@
+{
+  "task_id": "fillet_arc_profile@1",
+  "task_completion": [
+    {
+      "id": "lines_drawn",
+      "description": "Verify that a horizontal and a vertical line segment forming an approximate 90-degree corner are drawn.",
+      "points": 10,
+      "visual_evidence": "Two straight line segments, one roughly horizontal and one roughly vertical, forming an L-shape on the SolveSpace canvas."
+    },
+    {
+      "id": "arc_drawn",
+      "description": "Verify that an arc (fillet) is added at the inside corner of the lines.",
+      "points": 15,
+      "visual_evidence": "A curved line segment (arc) is visible connecting the inside corner of the two straight lines."
+    },
+    {
+      "id": "tangent_constraints",
+      "description": "Verify that the arc is constrained to be tangent to both line segments.",
+      "points": 15,
+      "visual_evidence": "The transition between the straight lines and the arc is perfectly smooth with no sharp angles. SolveSpace tangent constraint icons (a line touching a circle) should be visible at the junction points."
+    },
+    {
+      "id": "dimension_added",
+      "description": "Verify that a dimension constraint is applied to the arc.",
+      "points": 10,
+      "visual_evidence": "A dimension line with text is attached to the arc."
+    },
+    {
+      "id": "dimension_correct",
+      "description": "Verify that the arc dimension is exactly 20mm (diameter) or 10mm (radius).",
+      "points": 30,
+      "visual_evidence": "The dimension text on the arc reads '20' (if measuring diameter) or '10' (if measuring radius). It may include prefixes like 'd' or 'r'."
+    },
+    {
+      "id": "file_saved",
+      "description": "Verify that the file is saved as fillet_profile.slvs.",
+      "points": 20,
+      "visual_evidence": "The SolveSpace window title bar displays 'fillet_profile.slvs' or a save dialog confirms the file is being saved to '/home/ga/Documents/SolveSpace/fillet_profile.slvs'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "Verify the agent used the SolveSpace GUI to create the sketch.",
+      "visual_evidence": "The SolveSpace application window is visible with its toolbars, property panels, and canvas, rather than just a terminal or text editor."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Verify the agent interacted with the canvas to draw the shapes step-by-step.",
+      "visual_evidence": "Progressive drawing steps (e.g., drawing lines first, then adding the arc, then applying constraints and dimensions) are visible across the screenshot history."
+    },
+    {
+      "id": "no_scripting_shortcut",
+      "description": "Verify the agent did not bypass the GUI by running a script to generate the .slvs file.",
+      "visual_evidence": "The screenshots show the agent actively selecting tools (line, arc, dimension) and clicking on the SolveSpace canvas."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file name is 'fillet_profile.slvs'. The arc must have a diameter of exactly 20.0 mm (which is equivalent to a radius of 10.0 mm). The tolerance for the dimension is 0.5 mm. The agent must draw an arc (not a full circle) and apply tangent constraints between the arc and both lines. Note: The programmatic verifier has bugs regarding arc and tangent constraint types, but visually you should strictly look for an actual arc with tangent constraints and the correct 20mm diameter / 10mm radius dimension."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "style_dynamic_geometry_buffer@1",
+  "task_completion": [
+    {
+      "id": "style_name_entered",
+      "description": "Create a new style named 'river_buffer'.",
+      "points": 10,
+      "visual_evidence": "In the GeoServer 'New Style' or 'Edit Style' page, the 'Name' field is filled with 'river_buffer'."
+    },
+    {
+      "id": "sld_buffer_geometry",
+      "description": "SLD includes a dynamic buffer function with a distance of 0.1.",
+      "points": 40,
+      "visual_evidence": "In the SLD text editor, look for a <Geometry> tag containing a buffer function (e.g., <ogc:Function name=\"buffer\">) with a distance value of 0.1."
+    },
+    {
+      "id": "sld_styling_properties",
+      "description": "SLD includes a red fill with 0.5 opacity in a PolygonSymbolizer.",
+      "points": 20,
+      "visual_evidence": "In the SLD text editor, look for a <PolygonSymbolizer> containing fill color '#FF0000' and fill-opacity '0.5' (usually in <CssParameter> or <SvgParameter> tags)."
+    },
+    {
+      "id": "layer_publishing_tab",
+      "description": "Navigate to the publishing settings of the 'ne:ne_rivers' layer.",
+      "points": 10,
+      "visual_evidence": "The GeoServer 'Edit Layer' page for 'ne_rivers' is open, specifically on the 'Publishing' tab."
+    },
+    {
+      "id": "style_assigned_to_layer",
+      "description": "Assign the 'river_buffer' style to the 'ne:ne_rivers' layer.",
+      "points": 20,
+      "visual_evidence": "In the 'Publishing' tab of the layer settings, 'river_buffer' is selected in the 'Default Style' dropdown or is present in the 'Available Styles' list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_geoserver_gui",
+      "description": "The agent used the GeoServer web administration interface.",
+      "visual_evidence": "Screenshots show the GeoServer web interface (http://localhost:8080/geoserver/web/) being used, not just terminal commands or API requests."
+    },
+    {
+      "id": "genuine_sld_editor",
+      "description": "The agent edited the SLD within the GeoServer style editor.",
+      "visual_evidence": "The SLD XML code is visible inside the GeoServer style editor text area, not just in a local text editor like nano or VS Code."
+    },
+    {
+      "id": "no_pre_buffered_data",
+      "description": "The agent used SLD dynamic rendering for the buffer, not pre-processing the data.",
+      "visual_evidence": "The buffer is achieved via SLD <ogc:Function name=\"buffer\"> rather than running SQL or QGIS to create a new buffered shapefile/table."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an SLD style named 'river_buffer'. The SLD must use a <PolygonSymbolizer> with a dynamic buffer function (distance 0.1) and styling properties: fill '#FF0000' and opacity 0.5. This style must be assigned to the 'ne:ne_rivers' layer in GeoServer."
+}

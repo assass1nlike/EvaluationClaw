@@ -1,0 +1,65 @@
+{
+  "task_id": "telco_churn_mrr_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_wps_spreadsheet",
+      "description": "Open the raw telco customer churn CSV data in WPS Spreadsheet",
+      "points": 10,
+      "visual_evidence": "WPS Spreadsheet application is open displaying the raw customer churn data with columns like MonthlyCharges and Churn."
+    },
+    {
+      "id": "data_sheet_lost_mrr",
+      "description": "Create 'Data' sheet and add 'Lost_MRR' column",
+      "points": 15,
+      "visual_evidence": "A sheet named 'Data' is visible. Column V has the header 'Lost_MRR' and contains values corresponding to MonthlyCharges for churned customers."
+    },
+    {
+      "id": "data_sheet_high_value_churn",
+      "description": "Add 'High_Value_Churn' column to the 'Data' sheet",
+      "points": 15,
+      "visual_evidence": "Column W has the header 'High_Value_Churn' and contains indicators (e.g., TRUE/FALSE, Yes/No, 1/0) for churned customers with MonthlyCharges over 80."
+    },
+    {
+      "id": "dashboard_summary_tables",
+      "description": "Create 'Dashboard' sheet with summary tables for Contract Type and Internet Service",
+      "points": 20,
+      "visual_evidence": "A sheet named 'Dashboard' is active. It contains tables grouping data by Contract Type (Month-to-month, One year, Two year) and Internet Service (DSL, Fiber optic, No), with columns for Total Customers, Churned Customers, Churn Rate, and Total Lost MRR."
+    },
+    {
+      "id": "dashboard_kpis",
+      "description": "Include overall KPIs in the Dashboard",
+      "points": 20,
+      "visual_evidence": "The 'Dashboard' sheet displays specific standalone KPI values for Overall Churn Rate, Total Lost MRR, Avg Tenure (for churned customers), and High Value Churned Count."
+    },
+    {
+      "id": "correct_formatting",
+      "description": "Format rates as percentages and MRR as currency",
+      "points": 10,
+      "visual_evidence": "In the Dashboard, Churn Rate cells display with a '%' sign, and Total Lost MRR cells display with a currency symbol (e.g., '$')."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the workbook as churn_analysis.xlsx",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet window title bar or a save dialog shows the file name 'churn_analysis.xlsx'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the analysis",
+      "visual_evidence": "Screenshots show interaction with the WPS Spreadsheet interface (ribbon, cells, sheet tabs) rather than a terminal running a Python/Pandas script to generate the file."
+    },
+    {
+      "id": "formula_usage",
+      "description": "The agent used spreadsheet formulas rather than hardcoding calculated values",
+      "visual_evidence": "The formula bar in WPS Spreadsheet shows actual formulas (e.g., IF, COUNTIF, SUMIFS, AVERAGEIF) when a calculated cell is selected, rather than static numbers."
+    },
+    {
+      "id": "genuine_data_manipulation",
+      "description": "The agent worked with the full dataset rather than a mocked subset",
+      "visual_evidence": "Row numbers in the 'Data' sheet indicate thousands of rows (the Telco dataset has ~7000 rows), and the dashboard aggregations reflect large numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is '/home/ga/Documents/churn_analysis.xlsx'. The workbook must contain exactly two sheets named 'Data' and 'Dashboard'. The 'Data' sheet must include the columns 'Lost_MRR' and 'High_Value_Churn'. The agent is expected to use formulas such as 'IF', 'COUNTIF', 'SUMIFS', and 'AVERAGEIF' to compute the dashboard metrics."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "enrich_customer_profile_from_signature@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are a Property Manager at Skyline Heights. A tenant has emailed the Leasing Office with a question, but their customer profile in the help desk is incomplete. Locate the ticket 'Lease Renewal Question' in the 'Leasing Office' mailbox and update the tenant's Customer Profile—including their Full Name, Phone Number, and Job Title—using the specific details provided in the email signature. Do not invent information; use only what is found in the signature and save the updated profile.",
+  "difficulty": "medium",
+  "tags": [
+    "vlm",
+    "crm",
+    "data_entry",
+    "freescout"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enrich_customer_profile_from_signature/setup_task.sh",
+    "post_task": "/workspace/tasks/enrich_customer_profile_from_signature/export_result.sh"
+  },
+  "metadata": {
+    "mailbox_name": "Leasing Office",
+    "ticket_subject": "Lease Renewal Question"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enrich_customer_profile"
+    }
+  }
+}

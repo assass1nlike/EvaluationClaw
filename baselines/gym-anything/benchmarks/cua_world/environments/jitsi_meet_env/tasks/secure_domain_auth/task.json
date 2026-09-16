@@ -1,0 +1,35 @@
+{
+  "id": "secure_domain_auth@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure Jitsi Meet to require internal authentication for moderators while allowing guest access. The configuration in /home/ga/jitsi/.env must be updated to set ENABLE_AUTH=1, AUTH_TYPE=internal, and ENABLE_GUESTS=1. Register a moderator user named 'admin' with password 'Moderator2024!'. Verify the setup at http://localhost:8080/SecureDomainTest and save a confirmation report to /home/ga/jitsi/auth_config_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/secure_domain_auth/setup_task.sh",
+    "post_task": "/workspace/tasks/secure_domain_auth/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "env_file": "/home/ga/jitsi/.env",
+    "report_file": "/home/ga/jitsi/auth_config_report.txt",
+    "required_env_vars": {
+      "ENABLE_AUTH": "1",
+      "AUTH_TYPE": "internal",
+      "ENABLE_GUESTS": "1"
+    },
+    "moderator_user": "admin",
+    "moderator_domain": "meet.jitsi",
+    "test_url": "http://localhost:8080/SecureDomainTest"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_secure_domain_auth"
+    }
+  }
+}

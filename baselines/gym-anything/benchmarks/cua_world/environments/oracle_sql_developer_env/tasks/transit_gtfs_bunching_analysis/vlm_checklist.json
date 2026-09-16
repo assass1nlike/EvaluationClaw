@@ -1,0 +1,53 @@
+{
+  "task_id": "transit_gtfs_bunching_analysis@1",
+  "task_completion": [
+    {
+      "id": "create_gtfs_to_minutes_function",
+      "description": "Create the PL/SQL function GTFS_TO_MINUTES to convert 'HH:MM:SS' strings to total minutes.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing SQL code for 'CREATE OR REPLACE FUNCTION GTFS_TO_MINUTES' and a success message like 'Function created' in a database client or terminal."
+    },
+    {
+      "id": "create_schedule_adherence_vw",
+      "description": "Create the SCHEDULE_ADHERENCE_VW view joining the required tables and categorizing delay status.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the SQL 'CREATE VIEW SCHEDULE_ADHERENCE_VW' with logic for 'EARLY', 'ON_TIME', and 'LATE' based on delay_minutes, and a success message."
+    },
+    {
+      "id": "create_bunching_events_mv",
+      "description": "Create the BUNCHING_EVENTS_MV materialized view using the LAG window function to identify headway < 3 minutes.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing 'CREATE MATERIALIZED VIEW BUNCHING_EVENTS_MV' utilizing the 'LAG' function partitioned by route/direction/stop, checking for headway_minutes < 3."
+    },
+    {
+      "id": "create_and_execute_scorecard_procedure",
+      "description": "Create the PROC_GENERATE_SCORECARD procedure and use it to populate the ROUTE_SCORECARD table.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation of 'PROC_GENERATE_SCORECARD' and the 'ROUTE_SCORECARD' table, along with evidence of the procedure being executed (e.g., 'PL/SQL procedure successfully completed')."
+    },
+    {
+      "id": "export_scorecard_csv",
+      "description": "Export the ROUTE_SCORECARD table to /home/ga/Documents/exports/route_scorecard.csv.",
+      "points": 20,
+      "visual_evidence": "Screenshots of a terminal or file explorer showing the file 'route_scorecard.csv' located in '/home/ga/Documents/exports/', preferably with a command like 'cat' or 'head' showing the exported data rows."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_interaction",
+      "description": "Verify the agent actually interacted with the Oracle database.",
+      "visual_evidence": "Look for a genuine database client interface (like SQL*Plus in the terminal, SQL Developer, or DBeaver) showing active connections and query execution times, not just text files with SQL code."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the exported CSV file contains genuine aggregated data.",
+      "visual_evidence": "The CSV file contents should look like real database output (comma-separated values matching the ROUTE_SCORECARD schema) rather than a manually typed mock file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent didn't bypass the SQL logic by hardcoding the final table or view results.",
+      "visual_evidence": "The SQL scripts should contain the actual logic (CASE statements, LAG functions, joins) rather than simple 'INSERT INTO' statements with pre-calculated mock data."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires specific Oracle SQL features: PL/SQL Functions, LAG Window Function, Materialized Views, and String Parsing. The GTFS times are in 'HH:MM:SS' format and can exceed 24 hours (e.g., '25:15:30'), so the GTFS_TO_MINUTES function must handle parsing this correctly. The final output must be exported exactly to /home/ga/Documents/exports/route_scorecard.csv. Note: Programmatic verification is broken for this task, so visual verification of the SQL logic and the final CSV export is the only way to confirm success."
+}

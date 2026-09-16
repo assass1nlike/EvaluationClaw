@@ -1,0 +1,29 @@
+{
+  "id": "configure_multires_logging@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Configure the 'rack_power_main' input (Node: server_room) to log data to two new feeds: 'rack_power_live' with a 10-second interval and 'rack_power_archive' with a 30-minute (1800s) interval. Ensure the input processing chain is updated and saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_multires_logging/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_multires_logging/export_result.sh"
+  },
+  "metadata": {
+    "input_name": "rack_power_main",
+    "feed_live_name": "rack_power_live",
+    "feed_live_interval": 10,
+    "feed_archive_name": "rack_power_archive",
+    "feed_archive_interval": 1800
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_multires_logging"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "process_delivery_order@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Process a Home Delivery order for Maria Santos (Phone: 555-0147, Address: 742 Evergreen Terrace). The order must include at least two different items and be finalized using Cash as the payment method.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/process_delivery_order/setup_task.sh",
+    "post_task": "/workspace/tasks/process_delivery_order/export_result.sh"
+  },
+  "metadata": {
+    "expected_customer_name": "Maria Santos",
+    "expected_phone": "555-0147",
+    "expected_address_fragment": "Evergreen",
+    "min_items": 2,
+    "order_type": "HOME_DELIVERY"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_process_delivery_order"
+    }
+  }
+}

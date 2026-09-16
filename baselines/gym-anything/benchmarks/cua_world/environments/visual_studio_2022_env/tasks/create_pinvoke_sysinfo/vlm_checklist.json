@@ -1,0 +1,59 @@
+{
+  "task_id": "create_pinvoke_sysinfo@1",
+  "task_completion": [
+    {
+      "id": "project_creation",
+      "description": "Verify the C# Console App project named 'SystemDiagnostic' is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "File explorer, terminal, or IDE showing a folder or solution named 'SystemDiagnostic' located in 'C:\\Users\\Docker\\source\\repos'."
+    },
+    {
+      "id": "pinvoke_implementation",
+      "description": "Verify the C# code implements the required P/Invoke functions from kernel32.dll.",
+      "points": 25,
+      "visual_evidence": "Code editor showing C# source code with [DllImport(\"kernel32.dll\")] and declarations for GetComputerNameW, GetSystemDirectoryW, GetCurrentProcessId, and GetTickCount64."
+    },
+    {
+      "id": "report_generation_logic",
+      "description": "Verify the C# code contains logic to format the report and write it to the specified output path.",
+      "points": 20,
+      "visual_evidence": "Code editor showing string formatting matching the required keys (ComputerName, SystemDirectory, ProcessId, UptimeMilliseconds) and file writing logic targeting 'C:\\Users\\Docker\\Documents\\DiagnosticOutput\\sysinfo_report.txt'."
+    },
+    {
+      "id": "release_build",
+      "description": "Verify the solution is built in 'Release' configuration.",
+      "points": 15,
+      "visual_evidence": "IDE build configuration dropdown set to 'Release', terminal showing a 'dotnet build -c Release' command, or a 'bin\\Release' folder visible in the project directory."
+    },
+    {
+      "id": "output_file_exists",
+      "description": "Verify the diagnostic output directory and report file were successfully created.",
+      "points": 10,
+      "visual_evidence": "File explorer or terminal showing the file 'sysinfo_report.txt' exists inside 'C:\\Users\\Docker\\Documents\\DiagnosticOutput'."
+    },
+    {
+      "id": "output_file_content",
+      "description": "Verify the generated report file contains the correct format and system data.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of 'sysinfo_report.txt' with exactly four lines: 'ComputerName: [...]', 'SystemDirectory: [...]', 'ProcessId: [...]', and 'UptimeMilliseconds: [...]' populated with actual system values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_system_values",
+      "description": "Ensure the output file contains realistic dynamic system data, not hardcoded placeholders.",
+      "visual_evidence": "The values in 'sysinfo_report.txt' should look like real system data (e.g., SystemDirectory is likely 'C:\\Windows\\System32', ProcessId is a valid integer, UptimeMilliseconds is a large integer), not literal strings like '[YourPID]'."
+    },
+    {
+      "id": "code_matches_output",
+      "description": "Ensure the C# code is genuinely responsible for generating the output file.",
+      "visual_evidence": "The visible C# code should logically match the generated output file, without evidence of a separate script (like a Python or PowerShell script) being used to fake the text file creation."
+    },
+    {
+      "id": "execution_evidence",
+      "description": "Ensure the application was actually executed to generate the file.",
+      "visual_evidence": "Terminal showing the execution command (e.g., 'dotnet run' or running the compiled .exe) or the IDE showing a successful run/debug session."
+    }
+  ],
+  "privileged_info_for_vlm": "Project Name: SystemDiagnostic. Expected Output Directory: C:\\Users\\Docker\\Documents\\DiagnosticOutput. Expected Output File: sysinfo_report.txt. The C# code must use P/Invoke for GetComputerNameW, GetSystemDirectoryW, GetCurrentProcessId, and GetTickCount64 from kernel32.dll. The output file must exactly match the format: 'ComputerName: [val]\\nSystemDirectory: [val]\\nProcessId: [val]\\nUptimeMilliseconds: [val]'."
+}

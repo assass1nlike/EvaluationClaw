@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_resurrected_customer_analysis@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Chinook database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, DB Browser for SQLite) is open and shows a connection to 'chinook.db' located at /home/ga/Documents/databases/chinook.db."
+    },
+    {
+      "id": "sql_logic_formulation",
+      "description": "Formulate the SQL query to identify resurrected customers",
+      "points": 30,
+      "visual_evidence": "An SQL editor shows a query that selects from customers and invoices, includes filtering logic for years 2009 (active), 2010 (dormant/excluded), and 2011 (active), and calculates a SUM of invoice totals for 2011."
+    },
+    {
+      "id": "query_execution_and_results",
+      "description": "Execute the query and display the correct columns sorted descending",
+      "points": 20,
+      "visual_evidence": "A results grid showing the columns 'CustomerId', 'FirstName', 'LastName', and 'ReturnSpend2011'. The results should be sorted by 'ReturnSpend2011' in descending order (highest values first)."
+    },
+    {
+      "id": "csv_export_saved",
+      "description": "Export the query results to the specified CSV file",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or text editor showing the file 'resurrected_customers.csv' successfully created in the /home/ga/Documents/exports/ directory."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "Save the SQL query to the specified script file",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or text editor showing the file 'resurrected_analysis.sql' successfully created in the /home/ga/Documents/scripts/ directory containing the executed query."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with a genuine database client rather than just writing text files",
+      "visual_evidence": "Screenshots should show a database GUI (like DBeaver or DB Browser) being used to write and execute the query, not just a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent wrote a functional SQL query rather than hardcoding the expected output",
+      "visual_evidence": "The SQL query must contain actual database logic (JOINs, WHERE clauses, SUM, GROUP BY) rather than a simple 'SELECT ...' with hardcoded customer names and values."
+    },
+    {
+      "id": "genuine_execution_indicators",
+      "description": "The query was actually executed against the database",
+      "visual_evidence": "The database client should show execution statistics, a success message, or a populated results grid corresponding to the written query."
+    }
+  ],
+  "privileged_info_for_vlm": "Database path: /home/ga/Documents/databases/chinook.db. Expected CSV: /home/ga/Documents/exports/resurrected_customers.csv. Expected SQL: /home/ga/Documents/scripts/resurrected_analysis.sql. Required columns: CustomerId, FirstName, LastName, ReturnSpend2011. Target logic: active in 2009, dormant in 2010, active in 2011. Ground truth: Customers 1 and 5 are the target resurrected customers."
+}

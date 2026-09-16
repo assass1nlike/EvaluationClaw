@@ -1,0 +1,59 @@
+{
+  "task_id": "shared_credential_detection@1",
+  "task_completion": [
+    {
+      "id": "event_type_creation",
+      "description": "Verify the creation of an Event Type named 'successful_auth'.",
+      "points": 10,
+      "visual_evidence": "Splunk 'Event types' settings page showing 'successful_auth' in the list, or the creation screen with this name."
+    },
+    {
+      "id": "event_type_search",
+      "description": "Verify the Event Type searches the 'security_logs' index for successful SSH authentications.",
+      "points": 15,
+      "visual_evidence": "The search string for the Event Type includes 'index=\"security_logs\"' and terms related to successful SSH authentication (e.g., 'sshd', 'Accepted', 'success')."
+    },
+    {
+      "id": "alert_creation",
+      "description": "Verify the creation of a scheduled alert named 'Shared_Credential_Violation'.",
+      "points": 10,
+      "visual_evidence": "Splunk 'Alerts' page showing 'Shared_Credential_Violation' in the list, or the alert configuration/save screen with this name."
+    },
+    {
+      "id": "alert_logic",
+      "description": "Verify the alert logic identifies users authenticating from three or more distinct source IP addresses.",
+      "points": 25,
+      "visual_evidence": "The alert search query includes a distinct count function for IPs grouped by user (e.g., 'stats dc(ip) by user') and a condition checking for 3 or more (e.g., 'where dc(ip) >= 3' or '> 2')."
+    },
+    {
+      "id": "dashboard_creation",
+      "description": "Verify the creation of a dashboard named 'IAM_Security_Posture'.",
+      "points": 15,
+      "visual_evidence": "Splunk 'Dashboards' page showing 'IAM_Security_Posture' in the list, or the dashboard view itself with this title."
+    },
+    {
+      "id": "dashboard_panels",
+      "description": "Verify the dashboard contains at least two panels: one for alert results and one for login volume over time.",
+      "points": 25,
+      "visual_evidence": "The 'IAM_Security_Posture' dashboard displays at least two distinct panels (e.g., a table/list showing shared credential violations and a timechart/line chart showing login volume over time)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Verify the agent used the Splunk Web UI to configure the components.",
+      "visual_evidence": "Screenshots show interaction with the Splunk web interface (http://localhost:8000) rather than terminal commands modifying Splunk .conf files directly."
+    },
+    {
+      "id": "genuine_data_interaction",
+      "description": "Verify the agent interacted with actual log data in Splunk.",
+      "visual_evidence": "Search results, event counts, or populated charts are visible in the Splunk UI, indicating real data is being queried."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Verify the agent did not bypass the UI by manually crafting XML or configuration files in a text editor.",
+      "visual_evidence": "Absence of text editors (like nano, vim, gedit) being used to manually write Splunk configuration files or dashboard XML files outside the Splunk UI."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Event Type Name: 'successful_auth'. Target Alert Name: 'Shared_Credential_Violation'. Target Dashboard Name: 'IAM_Security_Posture'. Minimum Dashboard Panels: 2."
+}

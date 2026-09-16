@@ -1,0 +1,93 @@
+{
+  "dataset_id": "1780a00a",
+  "name": "Openset Multi-Image Next-Frame Description",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates multi-image visual storytelling: given a sequence of frames from an animated story plus their captions, the model must write the caption/description for the final (next) frame. It tests comprehension of visual progression and narrative continuity across images.",
+  "card_text": "Openset Multi-Image Next-Frame Description is a 200-sample image-plus-text benchmark in which each item provides five ordered images (the first four with captions) and asks the model to produce the missing caption for the last image, completing the story. Inputs mix an instruction prompt with a numbered caption thread ('Caption#1' ... 'Caption#5:'), interleaved with <ImageHere> placeholders that mark where each frame is inserted. The images are frames from everyday-life cartoon narratives (e.g., characters driving, talking on the phone), and the target output is a single short sentence describing the final frame consistently with the preceding action. The task requires visual comprehension, temporal reasoning over a frame sequence, and fluent narrative text generation under open-ended (openset) conditions rather than fixed answer options.",
+  "tasks": [
+    "captioning"
+  ],
+  "domain": "visual storytelling (animated everyday-life scenes)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "mixed",
+        "content_extent": "medium",
+        "style": "narrative",
+        "semantics": "The prompt string carries the whole task context: an instruction sentence, then a numbered sequence of captions ('Caption#1' ... 'Caption#4') interleaved with '<ImageHere>' placeholders that mark where each of the previous frames appears, ending with the empty 'Caption#5:' slot to be filled. It summarizes the unfolding story that the last image must continue.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Embedded at the start of the prompt is the actual instruction (e.g., 'Given the progression of the story with the first few images, can you write a fitting end considering the last image?'), which defines what output the model must generate for the final frame.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "illustration",
+        "semantics": "An ordered list of five image filenames forming a short cartoon/animated story; the first four correspond to the existing captions and the fifth is the next frame that the model must describe in the answer.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "A single short sentence that serves as the ground-truth caption for the last image, describing the ongoing action and characters in a way that is consistent with the preceding frames and captions.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains one text field 'input.prompt' holding an instruction followed by a numbered caption thread for prior story frames (with '<ImageHere>' placeholders and a trailing empty 'Caption#5:'), one 'input.image_file' list of five ordered image filenames representing the story frames, and one 'output.text' field with the target caption for the final image. The images supply the visual story, the prompt supplies both the task instruction and the textual history of that story, and the answer is the next-frame caption that must be consistent with both."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-imageNext-frameDescription/openset_multi-image_next-frame_description.json",
+    "existing_tags": {
+      "task": "Multi-image Next-frame Description",
+      "type": "image comprehension",
+      "skill": "Visual Storytelling Generation",
+      "domain": "General",
+      "general_capability": [
+        "Commense Understanding"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

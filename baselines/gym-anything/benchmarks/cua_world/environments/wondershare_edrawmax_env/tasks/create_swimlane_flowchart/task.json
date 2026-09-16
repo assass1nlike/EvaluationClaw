@@ -1,0 +1,44 @@
+{
+  "id": "create_swimlane_flowchart@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a horizontal cross-functional flowchart in Wondershare EdrawMax documenting an IT incident management process. The diagram must include four swimlanes: 'Help Desk (Tier 1)', 'Technical Support (Tier 2)', 'Engineering (Tier 3)', and 'Management'.\n\nThe process flow should map the following:\n- Help Desk (Tier 1): Start at 'Incident Reported', followed by 'Log Incident', 'Classify Severity', and a 'Can Resolve?' decision. If resolved, proceed to 'Resolve & Document' and 'Close Ticket'. If not, escalate to 'Investigate Issue' in the Technical Support lane.\n- Technical Support (Tier 2): From 'Investigate Issue', include a 'Can Resolve?' decision. If resolved, 'Apply Fix' and 'Verify Fix' (connecting back to 'Close Ticket'). If not, escalate to 'Root Cause Analysis' in the Engineering lane.\n- Engineering (Tier 3): Include 'Root Cause Analysis', 'Develop Fix', 'Test Fix', and 'Deploy Fix', then connect back to 'Verify Fix' in the Technical Support lane.\n- Management: Include 'Notify Stakeholders' (connected from 'Classify Severity') and 'Monitor Resolution'.\n\nSave the diagram as /home/ga/Diagrams/incident_management_swimlane.eddx and export it as /home/ga/Diagrams/incident_management_swimlane.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_swimlane_flowchart/setup_task.sh",
+    "post_task": "/workspace/tasks/create_swimlane_flowchart/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/incident_management_swimlane.eddx",
+    "expected_png_path": "/home/ga/Diagrams/incident_management_swimlane.png",
+    "required_lanes": [
+      "Help Desk",
+      "Technical Support",
+      "Engineering",
+      "Management"
+    ],
+    "required_shapes": [
+      "Incident Reported",
+      "Log Incident",
+      "Classify Severity",
+      "Investigate Issue",
+      "Root Cause Analysis",
+      "Deploy Fix",
+      "Notify Stakeholders",
+      "Close Ticket"
+    ],
+    "min_shape_count": 10,
+    "min_connector_count": 8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_swimlane_flowchart"
+    }
+  }
+}

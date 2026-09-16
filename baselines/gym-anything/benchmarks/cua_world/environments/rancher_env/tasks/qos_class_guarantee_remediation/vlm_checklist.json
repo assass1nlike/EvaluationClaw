@@ -1,0 +1,59 @@
+{
+  "task_id": "qos_class_guarantee_remediation@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent logs into the Rancher interface.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows the Rancher login page at https://localhost with credentials being entered, or the Rancher dashboard after a successful login."
+    },
+    {
+      "id": "qos_policy_viewed",
+      "description": "Agent opens and reads the QoS policy document.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows a text editor, file viewer, or terminal displaying the contents of '/home/ga/Desktop/qos_policy.md'."
+    },
+    {
+      "id": "auth_service_reconfigured",
+      "description": "Agent reconfigures the resource requests and limits for the auth-service deployment.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the Rancher UI deployment edit page or a terminal (e.g., kubectl edit/apply) modifying the CPU and Memory requests/limits for the 'auth-service' deployment."
+    },
+    {
+      "id": "payment_api_reconfigured",
+      "description": "Agent reconfigures the resource requests and limits for the payment-api deployment.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the Rancher UI deployment edit page or a terminal modifying the CPU and Memory requests/limits for the 'payment-api' deployment."
+    },
+    {
+      "id": "data_warehouse_sync_reconfigured",
+      "description": "Agent reconfigures the resource requests and limits for the data-warehouse-sync deployment.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the Rancher UI deployment edit page or a terminal modifying the CPU and Memory requests/limits for the 'data-warehouse-sync' deployment."
+    },
+    {
+      "id": "pods_running_correct_qos",
+      "description": "Agent verifies that the pods are in the Running state and have the correct QoS class.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the Rancher UI pod details or terminal output (e.g., kubectl get pods -o yaml) confirming the pods for the modified deployments are 'Running' and displaying their '.status.qosClass'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_rancher_used",
+      "description": "Agent interacted with the actual Rancher web interface or genuine kubectl commands.",
+      "visual_evidence": "Screenshots show a real web browser navigating Rancher or a real terminal executing kubectl commands, not a simulated environment or text file."
+    },
+    {
+      "id": "policy_file_genuine",
+      "description": "Agent opened the actual QoS policy file.",
+      "visual_evidence": "Screenshots show the file '/home/ga/Desktop/qos_policy.md' being opened, rather than the agent guessing or hallucinating the policy."
+    },
+    {
+      "id": "real_cluster_interaction",
+      "description": "Agent applied changes to the actual Kubernetes cluster.",
+      "visual_evidence": "Screenshots show confirmation of deployments being updated in Rancher or successful 'deployment.apps modified' messages in the terminal, not just unapplied local YAML edits."
+    }
+  ],
+  "privileged_info_for_vlm": "The target deployments are located in the 'critical-path' and 'background-tasks' namespaces. The QoS policy document is located at '/home/ga/Desktop/qos_policy.md'. A minimum score of 75 is required to pass."
+}

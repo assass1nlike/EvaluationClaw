@@ -1,0 +1,29 @@
+{
+  "id": "configure_google_analytics@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure the Jitsi Meet instance to track meeting analytics using Google Analytics with Tracking ID 'UA-88224411-1'. Verify that the configuration is active and save a screenshot of the verification to '~/analytics_verification.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_google_analytics/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_google_analytics/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/config.js",
+    "custom_config_path": "/home/ga/.jitsi-meet-cfg/web/custom-config.js",
+    "expected_tracking_id": "UA-88224411-1",
+    "expected_script": "libs/analytics-ga.min.js",
+    "evidence_path": "/home/ga/analytics_verification.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_google_analytics"
+    }
+  }
+}

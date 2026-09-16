@@ -1,0 +1,35 @@
+{
+  "id": "organize_working_sets@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Organize the Eclipse workspace by creating a Java Working Set named 'ActiveDoseDev' containing the active development projects: 'DoseEngine', 'DoseUI', and 'DoseTests'. Exclude 'Legacy-Converter' and 'ThirdParty-Utils' from this working set. Configure the Package Explorer to display projects grouped by Working Sets so the 'ActiveDoseDev' group is visible.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_working_sets/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_working_sets/export_result.sh"
+  },
+  "metadata": {
+    "target_workingset_name": "ActiveDoseDev",
+    "required_projects": [
+      "DoseEngine",
+      "DoseUI",
+      "DoseTests"
+    ],
+    "excluded_projects": [
+      "Legacy-Converter",
+      "ThirdParty-Utils"
+    ],
+    "workingset_file_path": "/home/ga/eclipse-workspace/.metadata/.plugins/org.eclipse.ui.workbench/workingsets.xml"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_working_sets"
+    }
+  }
+}

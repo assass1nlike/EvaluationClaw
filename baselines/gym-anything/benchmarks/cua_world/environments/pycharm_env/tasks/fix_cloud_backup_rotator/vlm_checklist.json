@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_cloud_backup_rotator@1",
+  "task_completion": [
+    {
+      "id": "fix_retention_logic",
+      "description": "Agent modifies the retention logic in rotator/policy.py to delete old backups instead of recent ones.",
+      "points": 25,
+      "visual_evidence": "Code editor shows modifications to rotator/policy.py adjusting date comparisons, sorting orders, or list slicing to target older files."
+    },
+    {
+      "id": "fix_pagination_logic",
+      "description": "Agent modifies the pagination logic in rotator/policy.py to handle S3 buckets with over 1000 files.",
+      "points": 25,
+      "visual_evidence": "Code editor shows the addition of S3 paginators (e.g., get_paginator('list_objects_v2')) or continuation token handling in rotator/policy.py."
+    },
+    {
+      "id": "add_glacier_protection",
+      "description": "Agent adds logic to rotator/policy.py to prevent deletion of GLACIER storage class archival data.",
+      "points": 20,
+      "visual_evidence": "Code editor shows an if-condition checking for 'GLACIER' storage class and skipping/excluding those files from deletion."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Agent executes the test suite to verify the fixes.",
+      "points": 10,
+      "visual_evidence": "Terminal shows a command like 'pytest tests/test_policy.py' or 'python -m pytest' being executed."
+    },
+    {
+      "id": "tests_pass_successfully",
+      "description": "The test suite executes successfully, confirming all logic errors are fixed.",
+      "points": 20,
+      "visual_evidence": "Terminal output shows all tests passing (e.g., green 'passed' text, 'OK', or '100%')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "test_file_unmodified",
+      "description": "The agent did not modify the tests/test_policy.py file.",
+      "visual_evidence": "No evidence of tests/test_policy.py being edited in the IDE or via command line. The file should only be executed, not changed."
+    },
+    {
+      "id": "genuine_code_editing",
+      "description": "The agent genuinely edited the Python file using an editor or standard tools.",
+      "visual_evidence": "Screenshots show an IDE (like PyCharm or VSCode) or a terminal editor (like nano/vim) being used to modify rotator/policy.py, rather than just echoing a complete script."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The test execution output is genuine and not faked.",
+      "visual_evidence": "The terminal shows standard pytest/unittest output formatting with execution time and test counts, rather than a simple printed string."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/PycharmProjects/cloud_rotator. The target file to fix is rotator/policy.py. The test file is tests/test_policy.py. The agent must fix three specific bugs: retention logic (deleting old instead of recent), pagination logic (handling >1000 files), and GLACIER storage class protection. The agent is strictly forbidden from modifying the test file."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "image_registration_alignment@1",
+  "task_completion": [
+    {
+      "id": "open_images",
+      "description": "Open both the reference and shifted micrographs in Fiji.",
+      "points": 10,
+      "visual_evidence": "Fiji interface showing two open image windows: 'reference_micrograph.tif' and 'shifted_micrograph.tif'."
+    },
+    {
+      "id": "perform_registration",
+      "description": "Register the shifted image to the reference image using a registration tool.",
+      "points": 25,
+      "visual_evidence": "A registration plugin dialog (e.g., TurboReg, Linear Stack Alignment with SIFT, Register Virtual Stack Slices) open in Fiji, or a new image window showing the aligned result."
+    },
+    {
+      "id": "save_registered_image",
+      "description": "Save the aligned image to the specified results directory.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog in Fiji pointing to '~/Fiji_Data/results/registration/registered_micrograph.tif', or terminal/file explorer evidence showing the file was created."
+    },
+    {
+      "id": "create_difference_image",
+      "description": "Create a difference image by subtracting the registered image from the reference image.",
+      "points": 20,
+      "visual_evidence": "The 'Image Calculator' dialog in Fiji with the 'Subtract' operation selected between the reference and registered images, or a resulting image window showing the difference (which should appear mostly dark if well-aligned)."
+    },
+    {
+      "id": "save_difference_image",
+      "description": "Save the difference image to the specified results directory.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog in Fiji pointing to '~/Fiji_Data/results/registration/difference_image.tif', or terminal/file explorer evidence showing the file was created."
+    },
+    {
+      "id": "create_alignment_report",
+      "description": "Record the estimated transformation parameters and registration method in a text report.",
+      "points": 15,
+      "visual_evidence": "A text editor open showing 'alignment_report.txt' with recorded values for Translation X, Translation Y, Rotation, and the name of the method used."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_fiji_gui",
+      "description": "The agent used the Fiji GUI to perform the image registration and difference calculation.",
+      "visual_evidence": "Screenshots should show interaction with Fiji's menus, dialogs, and image windows, rather than relying entirely on terminal commands (like ImageMagick or Python scripts) to bypass the GUI."
+    },
+    {
+      "id": "genuine_difference_calculation",
+      "description": "The difference image was genuinely calculated using image math.",
+      "visual_evidence": "The difference image should look like a real subtraction result (mostly dark with potential edge artifacts or slight misalignments), not a completely blank canvas or a direct copy of one of the original images."
+    },
+    {
+      "id": "parameters_derived_from_tool",
+      "description": "The transformation parameters in the report were obtained from the registration tool's output.",
+      "visual_evidence": "The Fiji 'Log' window or a results table should be visible at some point displaying the transformation matrix or parameters, proving the agent read them from the software rather than hallucinating them."
+    }
+  ],
+  "privileged_info_for_vlm": "The true synthetic misalignment parameters are: Rotation = 2.5 degrees, Translation X = 23.0 pixels, Translation Y = 17.0 pixels. The alignment report should contain values close to these. The required output paths are exactly: ~/Fiji_Data/results/registration/registered_micrograph.tif, ~/Fiji_Data/results/registration/difference_image.tif, and ~/Fiji_Data/results/registration/alignment_report.txt."
+}

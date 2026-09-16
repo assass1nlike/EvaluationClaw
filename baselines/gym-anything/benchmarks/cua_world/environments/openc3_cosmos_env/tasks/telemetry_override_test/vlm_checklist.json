@@ -1,0 +1,59 @@
+{
+  "task_id": "telemetry_override_test@1",
+  "task_completion": [
+    {
+      "id": "open_script_runner",
+      "description": "OpenC3 COSMOS Script Runner is opened.",
+      "points": 10,
+      "visual_evidence": "The OpenC3 COSMOS interface is visible in a browser with the 'Script Runner' tool active."
+    },
+    {
+      "id": "write_override_commands",
+      "description": "Python script contains commands to override TEMP1 and TEMP2.",
+      "points": 20,
+      "visual_evidence": "The code editor in Script Runner shows Python commands setting 'INST HEALTH_STATUS TEMP1' to 42.0 and 'INST HEALTH_STATUS TEMP2' to -15.5."
+    },
+    {
+      "id": "write_normalize_command",
+      "description": "Python script contains a command to normalize TEMP2.",
+      "points": 15,
+      "visual_evidence": "The code editor in Script Runner shows a Python command to normalize or remove the override for 'INST HEALTH_STATUS TEMP2'."
+    },
+    {
+      "id": "execute_script",
+      "description": "The script is executed in Script Runner.",
+      "points": 15,
+      "visual_evidence": "The Script Runner execution log/output pane shows that the script is running or has completed successfully."
+    },
+    {
+      "id": "create_json_report",
+      "description": "The JSON test report is created on the Desktop.",
+      "points": 15,
+      "visual_evidence": "A file named 'override_test_report.json' is visible on the Desktop, or an open text editor shows the file saved at '/home/ga/Desktop/override_test_report.json'."
+    },
+    {
+      "id": "verify_json_content",
+      "description": "The JSON report contains the correct final states.",
+      "points": 25,
+      "visual_evidence": "The contents of the JSON report show 'final' temp1 as 42.0, 'final' temp2 as a numerical value other than -15.5, 'temp1_override_active' as true, and 'temp2_normalized' as true."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_cosmos_script_runner",
+      "description": "The agent used the actual COSMOS Script Runner to execute the test.",
+      "visual_evidence": "The script is written and executed within the OpenC3 COSMOS web interface, not just in a local terminal or standalone text editor."
+    },
+    {
+      "id": "genuine_baseline_values",
+      "description": "The JSON report contains actual telemetry values for the baseline, not placeholders.",
+      "visual_evidence": "The 'baseline' dictionary in the JSON report contains actual floating-point numbers for temp1 and temp2, not the literal string '<float>' copied from the prompt."
+    },
+    {
+      "id": "genuine_final_temp2",
+      "description": "The JSON report contains an actual normalized value for final temp2.",
+      "visual_evidence": "The 'final' dictionary shows a realistic floating-point number for temp2 that is not -15.5 and not the literal string '<float>'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected test report must be located at '/home/ga/Desktop/override_test_report.json'. In the final JSON report, 'temp1' must be exactly 42.0, and 'temp2' must NOT be -15.5 (indicating it was successfully normalized). The result export file is '/tmp/telemetry_override_result.json'."
+}

@@ -1,0 +1,45 @@
+{
+  "id": "spatial_join_summary_concatenation@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Create a precinct inventory by performing a spatial summary join using the voting precincts polygon layer (/home/ga/GIS_Data/election_data/precincts.geojson) and the polling places point layer (/home/ga/GIS_Data/election_data/polling_places.geojson). The output must be a polygon layer where each precinct contains fields for the total count of polling places and a concatenated string of their 'place_name' values. Export the result to /home/ga/GIS_Data/exports/precinct_inventory.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spatial_join_summary_concatenation/setup_task.sh",
+    "post_task": "/workspace/tasks/spatial_join_summary_concatenation/export_result.sh"
+  },
+  "metadata": {
+    "precinct_path": "/home/ga/GIS_Data/election_data/precincts.geojson",
+    "polling_path": "/home/ga/GIS_Data/election_data/polling_places.geojson",
+    "output_path": "/home/ga/GIS_Data/exports/precinct_inventory.geojson",
+    "expected_precinct_count": 2,
+    "ground_truth": {
+      "Precinct A": {
+        "count": 2,
+        "names": [
+          "Lincoln Elementary",
+          "Central Library"
+        ]
+      },
+      "Precinct B": {
+        "count": 3,
+        "names": [
+          "Westside Community Center",
+          "Fire Station 4",
+          "Veterans Hall"
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spatial_join_summary_concatenation"
+    }
+  }
+}

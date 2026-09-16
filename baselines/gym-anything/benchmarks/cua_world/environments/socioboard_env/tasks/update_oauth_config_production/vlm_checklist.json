@@ -1,0 +1,59 @@
+{
+  "task_id": "update_oauth_config_production@1",
+  "task_completion": [
+    {
+      "id": "update_user_google_client_id",
+      "description": "Update the Google API client_id in the user microservice configuration.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the file /opt/socioboard/socioboard-api/user/development.json open in an editor or modified via command line, with the Google API 'client_id' field changed to '5544332211-prod.apps.googleusercontent.com'."
+    },
+    {
+      "id": "update_user_urls",
+      "description": "Replace localhost URLs with the production domain in the user microservice configuration.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the callback and redirect URLs in the user microservice development.json updated to use 'https://app.socioboard.com' instead of localhost or 127.0.0.1."
+    },
+    {
+      "id": "update_feeds_urls",
+      "description": "Replace localhost URLs with the production domain in the feeds microservice configuration.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the callback and redirect URLs in the feeds microservice development.json updated to use 'https://app.socioboard.com' instead of localhost."
+    },
+    {
+      "id": "update_publish_urls",
+      "description": "Replace localhost URLs with the production domain in the publish microservice configuration.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the callback and redirect URLs in the publish microservice development.json updated to use 'https://app.socioboard.com' instead of localhost."
+    },
+    {
+      "id": "update_notification_urls",
+      "description": "Replace localhost URLs with the production domain in the notification microservice configuration.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the callback and redirect URLs in the notification microservice development.json updated to use 'https://app.socioboard.com' instead of localhost."
+    },
+    {
+      "id": "save_modifications",
+      "description": "Save all modified JSON configuration files.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent saving the files and exiting the text editor (e.g., returning to the terminal prompt), or successfully executing in-place replacement commands (like 'sed -i' or 'jq')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "authentic_file_editing",
+      "description": "Verify the agent actually edited the files in the correct directory.",
+      "visual_evidence": "The agent modifies the actual files in /opt/socioboard/socioboard-api/ using a text editor (like nano, vim) or valid terminal commands, rather than just printing the expected output to the console."
+    },
+    {
+      "id": "path_preservation",
+      "description": "Verify the original URL paths were preserved during the domain replacement.",
+      "visual_evidence": "The URL paths (the part after the domain, e.g., '/v1/auth/google/callback') are preserved in the updated URLs. The agent did not just paste a bare domain without the specific endpoints."
+    },
+    {
+      "id": "json_syntax_maintained",
+      "description": "Verify the modifications do not break the JSON structure.",
+      "visual_evidence": "The modifications do not introduce obvious JSON syntax errors (like missing quotes, unescaped characters, or trailing commas). The files appear to remain valid JSON."
+    }
+  ],
+  "privileged_info_for_vlm": "Target production domain: 'https://app.socioboard.com'. Target Google Client ID for the user microservice: '5544332211-prod.apps.googleusercontent.com'."
+}

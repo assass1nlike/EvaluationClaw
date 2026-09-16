@@ -1,0 +1,61 @@
+{
+  "id": "state_dept_travel_advisory_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "Act as a Corporate Travel Security Manager. Research the current travel status for Egypt, Japan, and India on travel.state.gov. For each destination, identify the Travel Advisory Level, the visa requirement for US citizens (short-term travel), and the physical address of the U.S. Embassy in the capital city. Create a Firefox bookmark folder named 'Travel Risk Brief' containing the country information pages for all three destinations. Save the findings to ~/Documents/travel_risk_brief.json using the following structure:\n{\n  \"egypt\": {\n    \"advisory_level\": \"...\",\n    \"visa_required\": true/false,\n    \"embassy_address\": \"...\"\n  },\n  \"japan\": {\n    \"advisory_level\": \"...\",\n    \"visa_required\": true/false,\n    \"embassy_address\": \"...\"\n  },\n  \"india\": {\n    \"advisory_level\": \"...\",\n    \"visa_required\": true/false,\n    \"embassy_address\": \"...\"\n  }\n}",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "government",
+    "travel",
+    "json",
+    "bookmarks"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/state_dept_travel_advisory_research/setup_task.sh",
+    "post_task": "/workspace/tasks/state_dept_travel_advisory_research/export_result.sh"
+  },
+  "metadata": {
+    "target_countries": [
+      "egypt",
+      "japan",
+      "india"
+    ],
+    "required_bookmark_folder": "Travel Risk Brief",
+    "output_file": "/home/ga/Documents/travel_risk_brief.json",
+    "required_domains": [
+      "travel.state.gov"
+    ],
+    "address_keywords": {
+      "egypt": [
+        "Cairo",
+        "Tawfik"
+      ],
+      "japan": [
+        "Tokyo",
+        "Akasaka"
+      ],
+      "india": [
+        "New Delhi",
+        "Shantipath"
+      ]
+    },
+    "visa_expectations": {
+      "egypt": true,
+      "japan": false,
+      "india": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_travel_advisory_research"
+    }
+  }
+}

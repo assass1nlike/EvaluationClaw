@@ -1,0 +1,59 @@
+{
+  "task_id": "remove_patient_identifier@1",
+  "task_completion": [
+    {
+      "id": "read_patient_file",
+      "description": "Open the text file to identify the target patient.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Desktop/task_patient.txt' with a patient name visible."
+    },
+    {
+      "id": "search_patient",
+      "description": "Search for the identified patient in the OpenMRS system.",
+      "points": 10,
+      "visual_evidence": "The OpenMRS 'Find Patient Record' screen showing a search query that matches the patient name found in the text file."
+    },
+    {
+      "id": "view_patient_record",
+      "description": "Open the target patient's dashboard or record.",
+      "points": 10,
+      "visual_evidence": "The OpenMRS patient dashboard displaying the details of the target patient."
+    },
+    {
+      "id": "locate_identifiers",
+      "description": "Navigate to the patient's identifier management section.",
+      "points": 20,
+      "visual_evidence": "A screen in OpenMRS (e.g., 'Edit Patient Identifier' or 'Patient Demographics') showing the list of identifiers for the patient, including the '999-ERROR' Old Identification Number."
+    },
+    {
+      "id": "remove_error_identifier",
+      "description": "Remove or void the erroneous '999-ERROR' identifier.",
+      "points": 30,
+      "visual_evidence": "A screenshot showing the deletion/voiding action of the '999-ERROR' identifier (e.g., clicking a delete/void button next to it), or a subsequent screen showing the identifier list where '999-ERROR' is no longer present."
+    },
+    {
+      "id": "verify_primary_id_intact",
+      "description": "Ensure the primary OpenMRS ID and patient record remain intact.",
+      "points": 20,
+      "visual_evidence": "The patient dashboard or identifier list is visible, clearly showing that the primary 'OpenMRS ID' is still present and the patient record itself is active (not deleted or voided)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the OpenMRS web interface to modify the record.",
+      "visual_evidence": "The agent should be interacting with the OpenMRS GUI in a web browser, not using terminal commands, API scripts, or direct database queries to delete the identifier."
+    },
+    {
+      "id": "no_full_record_deletion",
+      "description": "Verify the agent did not delete or void the entire patient record.",
+      "visual_evidence": "There should be no 'Delete Patient' or 'Void Patient' confirmation screens, and the patient dashboard should remain accessible after the identifier is removed."
+    },
+    {
+      "id": "genuine_file_access",
+      "description": "Verify the agent actually read the patient file to get the name.",
+      "visual_evidence": "A screenshot showing the file '/home/ga/Desktop/task_patient.txt' being opened or read (via cat, gedit, etc.) before the patient search occurs."
+    }
+  ],
+  "privileged_info_for_vlm": "The target identifier to be removed is exactly '999-ERROR'. The patient's name is located in the file '/home/ga/Desktop/task_patient.txt'. The task requires voiding/deleting ONLY the '999-ERROR' identifier. The primary 'OpenMRS ID' and the patient record itself must remain intact and unvoided."
+}

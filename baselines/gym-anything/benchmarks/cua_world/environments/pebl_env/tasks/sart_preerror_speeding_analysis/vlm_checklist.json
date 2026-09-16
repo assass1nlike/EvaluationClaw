@@ -1,0 +1,59 @@
+{
+  "task_id": "sart_preerror_speeding_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Verify the agent accesses the SART dataset.",
+      "points": 5,
+      "visual_evidence": "Look for a script in a code editor or a terminal command reading the file `~/pebl/data/sart_data.csv`."
+    },
+    {
+      "id": "exclude_cand_99",
+      "description": "Verify the agent excludes the artifact candidate 'cand_99'.",
+      "points": 10,
+      "visual_evidence": "Look for code filtering out `participant_id == 'cand_99'` or the final JSON output showing `cand_99` in the `excluded` array with a stated reason."
+    },
+    {
+      "id": "calculate_error_rates",
+      "description": "Verify the agent calculates commission and omission error rates correctly.",
+      "points": 15,
+      "visual_evidence": "Look for code calculating the ratio of `response == 1` when `stimulus == 3` (commission error rate) and `response == 0` when `stimulus != 3` (omission error rate)."
+    },
+    {
+      "id": "calculate_pre_error_rts",
+      "description": "Verify the agent calculates pre-error reaction times using up to 3 preceding valid Go trials.",
+      "points": 30,
+      "visual_evidence": "Look for complex logic (e.g., loops, rolling windows, or shift operations) finding up to 3 previous trials where `stimulus != 3`, `response == 1`, and `rt_ms > 0`. It should average these RTs for CE trials (stimulus 3, response 1) and CW trials (stimulus 3, response 0)."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Verify the agent creates the output JSON report in the correct location.",
+      "points": 10,
+      "visual_evidence": "Look for code writing to `~/pebl/analysis/sart_report.json` or terminal output (like `ls` or `cat`) confirming the file exists in the `~/pebl/analysis/` directory."
+    },
+    {
+      "id": "verify_json_schema_and_values",
+      "description": "Verify the final JSON report matches the schema and contains the correct ground truth value.",
+      "points": 30,
+      "visual_evidence": "Look at the printed or displayed contents of `sart_report.json`. It must contain the top-level keys `participants`, `excluded`, and `group_mean_speeding_effect_ms`. The value for `group_mean_speeding_effect_ms` should be approximately 61.64."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent computed the results rather than hardcoding the expected answer.",
+      "visual_evidence": "Check the script to ensure the agent actually processes the CSV data to calculate the speeding effect, rather than just writing `61.64` directly into a JSON file."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Verify the agent executed the data processing script.",
+      "visual_evidence": "Look for terminal commands showing the execution of the Python (or other language) script (e.g., `python analyze_sart.py`) and that it completes without unhandled errors."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Verify the agent used the exact requested file paths.",
+      "visual_evidence": "Ensure the script reads from `~/pebl/data/sart_data.csv` and writes to `~/pebl/analysis/sart_report.json` instead of using alternative or temporary directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected ground truth for `group_mean_speeding_effect_ms` is exactly 61.64 (allow minor floating-point variations like 61.6). The excluded participant `cand_99` must be listed in the `excluded` array. The JSON must strictly follow the schema with keys: `participants`, `excluded`, and `group_mean_speeding_effect_ms`."
+}

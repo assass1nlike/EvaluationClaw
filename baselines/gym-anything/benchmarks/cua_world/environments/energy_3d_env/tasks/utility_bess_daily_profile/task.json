@@ -1,0 +1,27 @@
+{
+  "id": "utility_bess_daily_profile@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are sizing a utility-scale Battery Energy Storage System (BESS) for a solar array. The project 'solar_array_starter.ng3' is open. Relocate the solar array to Phoenix, AZ, set the date to June 21st (Summer Solstice), and run a Daily Energy Analysis (Analysis > Solar Panels > Daily Yield Analysis). Once the simulation completes and the graph appears, export or transcribe the resulting hourly energy generation data into a CSV file named '~/Documents/Energy3D/solstice_hourly_profile.csv'. Also, identify the hour of the day with the highest peak generation and save it in a text file at '~/Documents/Energy3D/peak_charge_hour.txt' (e.g., '12:00' or '13:00'). Finally, save the modified project as '~/Documents/Energy3D/phoenix_bess_array.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/utility_bess_daily_profile/setup_task.sh",
+    "post_task": "/workspace/tasks/utility_bess_daily_profile/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Storage Engineer",
+    "industry": "Renewable Energy",
+    "starter_file": "solar_array_starter.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_utility_bess_daily_profile"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "navigate_arm_around_obstacles@1",
+  "task_completion": [
+    {
+      "id": "scene_loaded",
+      "description": "Verify that CoppeliaSim is running with the obstacleAvoidanceAndIk scene.",
+      "points": 10,
+      "visual_evidence": "The CoppeliaSim window is open, and the 3D viewport shows a robot manipulator and several spherical obstacles. The scene hierarchy should indicate 'obstacleAvoidanceAndIk'."
+    },
+    {
+      "id": "ik_target_selected",
+      "description": "Verify that the IK target dummy is selected for manipulation.",
+      "points": 10,
+      "visual_evidence": "The IK target dummy (often a small crosshair or specific object at the end-effector) is highlighted in the 3D view or selected in the scene hierarchy panel."
+    },
+    {
+      "id": "first_target_reached",
+      "description": "Verify the robot's IK target dummy is moved to the first position [0.3, 0.3, 0.4].",
+      "points": 20,
+      "visual_evidence": "Look for the position/translation dialog box showing coordinates close to X: 0.3, Y: 0.3, Z: 0.4, or the robot arm visibly extended into the corresponding positive X/Y quadrant of the workspace."
+    },
+    {
+      "id": "second_target_reached",
+      "description": "Verify the robot's IK target dummy is moved to the second position [-0.3, 0.2, 0.3].",
+      "points": 20,
+      "visual_evidence": "Look for the position/translation dialog box showing coordinates close to X: -0.3, Y: 0.2, Z: 0.3, or the robot arm visibly moved to the negative X quadrant. The final pose should reflect this position."
+    },
+    {
+      "id": "collision_avoidance",
+      "description": "Verify that the robot arm avoids collisions with the obstacle spheres.",
+      "points": 20,
+      "visual_evidence": "Throughout the visible trajectory and in the final pose, the robot links and end-effector must not visually intersect or overlap with any of the obstacle spheres."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify that a screenshot of the final robot pose is saved to the specified path.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window showing 'obstacle_nav_done.png' in '/home/ga/Documents/CoppeliaSim/exports/', a terminal command executing the screenshot save, or a CoppeliaSim export dialog confirming the exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_coppeliasim_interaction",
+      "description": "Ensure the agent interacted with the actual CoppeliaSim application.",
+      "visual_evidence": "The screenshots should show the CoppeliaSim GUI with its toolbars, scene hierarchy, and 3D viewport being actively used, rather than just viewing a static image or text file."
+    },
+    {
+      "id": "genuine_arm_movement",
+      "description": "Ensure the robot arm actually moved in the simulation.",
+      "visual_evidence": "Compare earlier and later screenshots to confirm the robot arm's joint angles and end-effector position physically changed in the 3D viewport, proving the IK solver was active."
+    },
+    {
+      "id": "no_fake_screenshot_file",
+      "description": "Ensure the agent didn't mock the final screenshot file.",
+      "visual_evidence": "The agent should use a legitimate method to capture the screen or export the view (e.g., using an OS screenshot tool or CoppeliaSim's export function) rather than just renaming an unrelated image file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires moving the IK target dummy to exactly [0.3, 0.3, 0.4] and then to [-0.3, 0.2, 0.3]. The final screenshot must be saved to the exact path: /home/ga/Documents/CoppeliaSim/exports/obstacle_nav_done.png."
+}

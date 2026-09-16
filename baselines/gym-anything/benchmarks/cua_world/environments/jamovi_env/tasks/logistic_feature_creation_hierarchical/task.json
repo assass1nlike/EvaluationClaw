@@ -1,0 +1,31 @@
+{
+  "id": "logistic_feature_creation_hierarchical@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Using the dataset ~/Documents/Jamovi/ExamAnxiety.csv, create a nominal variable named 'Passed' where a score of 50 or higher on the Exam is 1 and lower is 0. Perform a hierarchical binomial logistic regression predicting 'Passed' using 'Revise' in the first block and adding 'Anxiety' in the second block. Save the project to ~/Documents/Jamovi/ExamPass_LogReg.omv. Record the AIC of the final model on the first line and the Odds Ratio for 'Anxiety' on the second line of ~/Documents/Jamovi/model_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/logistic_feature_creation_hierarchical/setup_task.sh",
+    "post_task": "/workspace/tasks/logistic_feature_creation_hierarchical/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/Jamovi/ExamAnxiety.csv",
+    "project_path": "/home/ga/Documents/Jamovi/ExamPass_LogReg.omv",
+    "results_path": "/home/ga/Documents/Jamovi/model_results.txt",
+    "expected_aic": 88.4,
+    "expected_aic_tolerance": 3.0,
+    "expected_or_anxiety": 0.875,
+    "expected_or_tolerance": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_logistic_feature_creation_hierarchical"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "complete_case_task@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Log in to ArkCase (https://localhost:9443/arkcase/) using the credentials 'arkcase-admin@dev.arkcase.com' and 'ArkCase1234!'. Within the complaint case titled 'Unauthorized Network Access - Incident Report IR-2024-3391', update the status of the active task 'Review Supporting Documentation for Evidence' to CLOSED or Completed.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/complete_case_task/setup_task.sh",
+    "post_task": "/workspace/tasks/complete_case_task/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "Unauthorized Network Access - Incident Report IR-2024-3391",
+    "task_title": "Review Supporting Documentation for Evidence",
+    "credentials": {
+      "username": "arkcase-admin@dev.arkcase.com",
+      "password": "ArkCase1234!"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_complete_case_task"
+    }
+  }
+}

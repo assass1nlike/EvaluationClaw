@@ -1,0 +1,24 @@
+{
+  "id": "export_protocol_hierarchy@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Analyze the protocol distribution of the capture file located at /home/ga/Documents/captures/http.cap. Export the protocol hierarchy data, including protocol names and their packet percentages, to /home/ga/Documents/captures/protocol_hierarchy.txt.",
+  "init": {
+    "timeout_sec": 150,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_protocol_hierarchy/setup_task.sh",
+    "post_task": "/workspace/tasks/export_protocol_hierarchy/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "http.cap",
+    "output_file": "protocol_hierarchy.txt"
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::verify_export_protocol_hierarchy"
+    }
+  }
+}

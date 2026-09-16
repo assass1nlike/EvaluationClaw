@@ -1,0 +1,82 @@
+{
+  "dataset_id": "ec53869a",
+  "name": "Gauge-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Gauge-Detection is an image-text benchmark for detecting and localizing the key components of gauges in photographs. Each sample pairs a gauge image with a prompt and requires bounding boxes for the gauge base, tip, minimum, and maximum regions.",
+  "card_text": "Gauge-Detection contains 200 image-text samples focused on visual object detection of analog gauge parts. Each item provides an image file path and a generic text prompt that asks a model to identify gauge components. The expected output is a set of bounding boxes for four gauge parts—base, tip, minimum, and maximum—each represented as a four-number coordinate box. The dataset is designed to evaluate object detection and spatial localization capabilities in real-world instrument imagery. Images are natural photographs of gauges with varying viewpoints and scales, and prompts are placeholders for model-specific instructions. Annotations are structured as a list of part-name-to-bbox mappings.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "instrumentation",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The image file path points to a photograph of a gauge or metering instrument. It is the main visual context from which the model must detect and localize gauge components.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short placeholder prompt instructing the model to perform gauge-part detection. It serves as the task instruction paired with the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A list of bounding-box annotations for four gauge parts: base, tip, minimum, and maximum. Each entry maps a part name to a four-number box (e.g., x, y, width, height) locating that part in the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image file path representing a gauge photograph, a short generic prompt instructing detection, and an output list of bounding boxes. The bbox output has four named entries—base, tip, minimum, and maximum—each with a four-number coordinate box that localizes the corresponding gauge component in the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/gauge-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "gauge-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

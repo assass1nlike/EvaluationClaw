@@ -1,0 +1,53 @@
+{
+  "task_id": "segment_genre_diversity@1",
+  "task_completion": [
+    {
+      "id": "db_client_opened",
+      "description": "Open the Chinook database in a database client or script editor.",
+      "points": 10,
+      "visual_evidence": "A database management tool (e.g., DB Browser for SQLite, DBeaver) or a code editor is open, showing the Chinook database loaded or referenced in the code."
+    },
+    {
+      "id": "column_added",
+      "description": "Add a 'Segment' column of type VARCHAR to the 'Customer' table.",
+      "points": 20,
+      "visual_evidence": "The database schema view, table structure UI, or an executed 'ALTER TABLE Customer ADD COLUMN Segment VARCHAR' SQL command showing the new column."
+    },
+    {
+      "id": "update_logic_executed",
+      "description": "Execute logic to count distinct genres per customer and update the Segment column.",
+      "points": 40,
+      "visual_evidence": "A SQL query or script is visible and executed that joins Customer, Invoice, InvoiceLine, and Track tables, counts DISTINCT GenreId, and updates the Segment column to 'Eclectic' (>=4) or 'Casual' (<4)."
+    },
+    {
+      "id": "data_populated",
+      "description": "Verify the 'Segment' column is populated correctly in the Customer table.",
+      "points": 20,
+      "visual_evidence": "A data grid or SELECT query result showing the 'Customer' table where the 'Segment' column is populated. (Note: All rows should show 'Eclectic')."
+    },
+    {
+      "id": "changes_saved",
+      "description": "Save the database to persist changes.",
+      "points": 10,
+      "visual_evidence": "A 'Write Changes' button clicked/grayed out in a DB GUI, a commit command executed, or the script successfully exiting after saving the SQLite file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "logic_actually_implemented",
+      "description": "The agent must implement the actual genre counting logic, not just hardcode the results.",
+      "visual_evidence": "The SQL query or script MUST contain JOINs to the track/genre data and a COUNT or similar logic. It should NOT be a simple 'UPDATE Customer SET Segment = \"Eclectic\"' shortcut."
+    },
+    {
+      "id": "actual_db_interaction",
+      "description": "The agent interacted with the actual database.",
+      "visual_evidence": "The screenshots show a real database client or terminal executing SQL/scripts against the .db file, not just text written in a notepad."
+    },
+    {
+      "id": "no_mocked_results",
+      "description": "The data view showing the populated column is a genuine query result.",
+      "visual_evidence": "The populated 'Segment' column appears in a standard database result grid or terminal output, consistent with the tool's UI, rather than a manually edited CSV or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is Chinook. The task requires adding a 'Segment' column to the 'Customer' table. The segmentation logic requires counting distinct genres per customer (joining Customer -> Invoice -> InvoiceLine -> Track). Crucially, in the standard Chinook database, ALL 59 customers have purchased from 4 or more distinct genres (ranging from 4 to 12). Therefore, a correct implementation will result in EVERY customer having the 'Segment' value set to 'Eclectic', and NO customers set to 'Casual'. Ensure the agent actually performs the JOIN and COUNT logic rather than cheating by simply updating all rows to 'Eclectic' without checking."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_purchase_order@1",
+  "task_completion": [
+    {
+      "id": "po_name_entered",
+      "description": "Verify the Purchase Order name is entered correctly.",
+      "points": 15,
+      "visual_evidence": "Look for a text input field for the PO Name or Title containing exactly 'Network Infrastructure - Office Buildout Phase 1'."
+    },
+    {
+      "id": "vendor_selected",
+      "description": "Verify the correct vendor is selected.",
+      "points": 15,
+      "visual_evidence": "Look for a vendor dropdown, selection field, or label displaying 'Cisco Systems'."
+    },
+    {
+      "id": "due_date_set",
+      "description": "Verify the due date is set to June 30, 2025.",
+      "points": 15,
+      "visual_evidence": "Look for a date picker or text field for the due date showing '06/30/2025', '2025-06-30', or 'Jun 30, 2025'."
+    },
+    {
+      "id": "line_item_catalyst",
+      "description": "Verify the first line item (Cisco Catalyst 9200-48P Switch) is added with correct quantity and price.",
+      "points": 20,
+      "visual_evidence": "Look for a line item row containing 'Catalyst 9200' (or the full name), a quantity of '10', and a unit price of '4250' or '4250.00'."
+    },
+    {
+      "id": "line_item_meraki",
+      "description": "Verify the second line item (Cisco Meraki MR46 Access Point) is added with correct quantity and price.",
+      "points": 20,
+      "visual_evidence": "Look for a line item row containing 'Meraki MR46' (or the full name), a quantity of '5', and a unit price of '1150' or '1150.00'."
+    },
+    {
+      "id": "po_saved_and_total",
+      "description": "Verify the purchase order is saved and the total amount is correct.",
+      "points": 15,
+      "visual_evidence": "Look for a confirmation message, a view-only screen of the created PO, or a total order amount of '48250' (or '48,250.00')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent interacted with the ServiceDesk Plus web interface.",
+      "visual_evidence": "Look for the ServiceDesk Plus application UI in a web browser. The agent should not be using a text editor or a mock interface."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Ensure the agent did not use terminal commands (like curl or python scripts) to bypass the UI.",
+      "visual_evidence": "The screenshots should show form filling and clicking within the browser, not a terminal window executing API requests."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Ensure the agent genuinely filled out the form.",
+      "visual_evidence": "Look for intermediate steps showing dropdown selections, typing in fields, and adding line items one by one, rather than just a sudden appearance of the final page via DOM manipulation."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected PO Name: 'Network Infrastructure - Office Buildout Phase 1'. Expected Vendor: 'Cisco Systems'. Expected Due Date: '2025-06-30' (or 06/30/2025). Expected Line Items: 1) 'Catalyst 9200' (Qty: 10, Price: $4250.00), 2) 'Meraki MR46' (Qty: 5, Price: $1150.00). Expected Total: $48,250.00 (tolerance of $1000)."
+}

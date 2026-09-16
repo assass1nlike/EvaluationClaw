@@ -1,0 +1,32 @@
+{
+  "id": "wolf_goat_cabbage_logic@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Solve the 'Wolf, Goat, and Cabbage' logic activity in GCompris by transporting the Wolf, Goat, and Cabbage to the opposite river bank without leaving incompatible pairs (Wolf/Goat or Goat/Cabbage) unattended. Document the process with two screenshots: an intermediate state where the Goat is alone on the Right bank and the Boat has returned to the Left bank (saved to ~/Documents/river_mid_step.png), and the final solved state with all items on the Right bank (saved to ~/Documents/river_solved.png).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wolf_goat_cabbage_logic/setup_task.sh",
+    "post_task": "/workspace/tasks/wolf_goat_cabbage_logic/export_result.sh"
+  },
+  "metadata": {
+    "mid_step_path": "/home/ga/Documents/river_mid_step.png",
+    "solved_path": "/home/ga/Documents/river_solved.png",
+    "scoring": {
+      "files_exist": 20,
+      "mid_step_correct": 30,
+      "solved_correct": 30,
+      "trajectory_valid": 20
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wolf_goat_cabbage_logic"
+    }
+  }
+}

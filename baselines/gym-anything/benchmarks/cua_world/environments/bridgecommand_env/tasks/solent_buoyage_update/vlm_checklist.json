@@ -1,0 +1,53 @@
+{
+  "task_id": "solent_buoyage_update@1",
+  "task_completion": [
+    {
+      "id": "read_ntm_document",
+      "description": "The agent opens and reads the Notice to Mariners document to obtain the new coordinates.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat' or 'less') displaying the contents of '/home/ga/Documents/NTM_12_26.txt'."
+    },
+    {
+      "id": "create_new_world_directory",
+      "description": "The agent creates the new world directory based on the existing Solent world.",
+      "points": 10,
+      "visual_evidence": "Terminal commands showing a copy operation (e.g., 'cp -r Solent Solent_v2026') or a file explorer showing the new '/opt/bridgecommand/World/Solent_v2026' directory."
+    },
+    {
+      "id": "update_world_name",
+      "description": "The agent updates the world description name to 'Solent v2026 (Updated)'.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing modifications to 'description.ini' inside the Solent_v2026 directory, specifically changing the name field to 'Solent v2026 (Updated)'."
+    },
+    {
+      "id": "relocate_horse_sand",
+      "description": "The agent updates the coordinates for the 'Horse Sand' buoy and its corresponding light to the new position in decimal degrees.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing modifications to both 'buoy.ini' and 'light.ini' in the Solent_v2026 directory, with the 'Horse Sand' entries updated to new decimal degree coordinates."
+    },
+    {
+      "id": "add_wreck_buoy",
+      "description": "The agent adds the new 'Wreck' buoy to the configuration using decimal degrees.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing 'buoy.ini' in the Solent_v2026 directory with a newly added entry for a 'Wreck' buoy, including its decimal degree coordinates."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_directory_modified",
+      "description": "The agent modifies files in the new 'Solent_v2026' directory, not the original 'Solent' directory.",
+      "visual_evidence": "File paths in text editors or terminal commands must explicitly point to '/opt/bridgecommand/World/Solent_v2026/'. The original '/opt/bridgecommand/World/Solent/' directory should remain untouched."
+    },
+    {
+      "id": "no_ground_truth_tampering",
+      "description": "The agent does not access or modify the hidden ground truth file.",
+      "visual_evidence": "The agent should never open, read, or edit '/var/lib/bridgecommand/task_data/ground_truth.json' in any terminal or editor."
+    },
+    {
+      "id": "genuine_coordinate_conversion",
+      "description": "The agent performs genuine conversion of coordinates to decimal degrees if required.",
+      "visual_evidence": "The agent may use a Python script, calculator, or terminal math to convert Degrees Minutes Seconds (DMS) to decimal degrees before entering them into the .ini files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires updating Bridge Command simulator files in a newly created '/opt/bridgecommand/World/Solent_v2026' directory. The target files to check for updates are 'description.ini' (for the world name 'Solent v2026 (Updated)'), 'buoy.ini' (for the relocated 'Horse Sand' buoy and the new 'Wreck' buoy), and 'light.ini' (for the relocated 'Horse Sand' light). The exact coordinates are randomized per task instance and provided in '/home/ga/Documents/NTM_12_26.txt'. The agent must use decimal degrees for all coordinates in the .ini files. The original 'Horse Sand' position was approximately 50.7588 N, -1.0878 W."
+}

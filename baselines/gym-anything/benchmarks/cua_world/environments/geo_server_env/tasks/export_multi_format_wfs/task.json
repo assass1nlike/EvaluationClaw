@@ -1,0 +1,41 @@
+{
+  "id": "export_multi_format_wfs@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Export the 'ne:ne_countries' layer from the GeoServer WFS service (http://localhost:8080/geoserver/wfs) for all countries where the 'continent' attribute is 'South America'. Generate the following four files in '~/exports/': 'south_america.geojson' (GeoJSON), 'south_america.kml' (KML), 'south_america.gml' (GML3), and 'south_america.csv' (CSV).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_multi_format_wfs/setup_task.sh",
+    "post_task": "/workspace/tasks/export_multi_format_wfs/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "south_america.geojson",
+      "south_america.kml",
+      "south_america.gml",
+      "south_america.csv"
+    ],
+    "export_dir": "/home/ga/exports",
+    "filter_continent": "South America",
+    "expected_min_count": 10,
+    "expected_max_count": 16,
+    "target_countries": [
+      "Argentina",
+      "Brazil",
+      "Chile",
+      "Colombia",
+      "Peru"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_multi_format_wfs"
+    }
+  }
+}

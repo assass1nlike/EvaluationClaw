@@ -1,0 +1,39 @@
+{
+  "id": "compare_anticoagulant_strategies_rcc@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Perform a comparative safety analysis for a Renal Cell Carcinoma (RCC) patient requiring anticoagulation. Using the Liverpool Cancer iChart Archive app, identify the drug-drug interaction traffic light colors (Red, Orange, Yellow, Green, or Grey) for Sunitinib and Pazopanib when paired with Warfarin and Apixaban. Create a summary matrix at /sdcard/rcc_anticoagulant_matrix.txt in the following format:\n\nSunitinib + Warfarin: [Color]\nSunitinib + Apixaban: [Color]\nPazopanib + Warfarin: [Color]\nPazopanib + Apixaban: [Color]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/compare_anticoagulant_strategies_rcc/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/compare_anticoagulant_strategies_rcc/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/sdcard/rcc_anticoagulant_matrix.txt",
+    "required_drugs": [
+      "Sunitinib",
+      "Pazopanib",
+      "Warfarin",
+      "Apixaban"
+    ],
+    "valid_colors": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "grey",
+      "gray"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anticoagulant_matrix"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "take_gui_screenshot@1",
+  "task_completion": [
+    {
+      "id": "gui_visible",
+      "description": "Verify the OpenBCI GUI is open and visible.",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI application window is clearly visible on the screen."
+    },
+    {
+      "id": "synthetic_data_active",
+      "description": "Verify the Synthetic EEG session is running.",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI displays active, moving EEG waveforms or graphs, indicating that the synthetic data stream is live."
+    },
+    {
+      "id": "screenshot_triggered",
+      "description": "Verify the agent triggers the built-in screenshot functionality.",
+      "points": 20,
+      "visual_evidence": "The agent focuses on the OpenBCI GUI window and inputs the 'm' keystroke, or a visual notification/log message appears within the GUI confirming a screenshot was taken."
+    },
+    {
+      "id": "target_directory_visible",
+      "description": "Verify the target Screenshots directory is accessed to show the result.",
+      "points": 30,
+      "visual_evidence": "A file explorer or terminal window is open and explicitly shows the path '~/Documents/OpenBCI_GUI/Screenshots/'."
+    },
+    {
+      "id": "screenshot_file_verified",
+      "description": "Verify the screenshot file was successfully saved in the correct location.",
+      "points": 30,
+      "visual_evidence": "A newly created image file (e.g., .jpg, .png) is visible inside the '~/Documents/OpenBCI_GUI/Screenshots/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_os_screenshot_tools",
+      "description": "Ensure the agent did not use external OS-level screenshot utilities.",
+      "visual_evidence": "Check terminal commands or GUI actions to ensure tools like 'scrot', 'gnome-screenshot', or OS keyboard shortcuts were NOT used to capture the screen."
+    },
+    {
+      "id": "no_manual_file_moving",
+      "description": "Ensure the agent did not manually move or copy an image to fake the output.",
+      "visual_evidence": "Check terminal history or file manager actions to ensure the agent did not use 'mv' or 'cp' commands to place an image into the Screenshots folder."
+    },
+    {
+      "id": "genuine_application_interaction",
+      "description": "Ensure the agent interacted directly with the OpenBCI GUI.",
+      "visual_evidence": "The agent should click on or focus the OpenBCI GUI window before pressing the shortcut key, rather than interacting with a different application or terminal to simulate the action."
+    }
+  ],
+  "privileged_info_for_vlm": "OpenBCI GUI v5.2.2 features an Expert Mode that enables specific keyboard shortcuts. Pressing the lowercase 'm' key while the GUI is focused automatically takes a screenshot of the application and saves it directly to the '~/Documents/OpenBCI_GUI/Screenshots/' directory. The task requires using this built-in feature, not OS-level screenshot tools."
+}

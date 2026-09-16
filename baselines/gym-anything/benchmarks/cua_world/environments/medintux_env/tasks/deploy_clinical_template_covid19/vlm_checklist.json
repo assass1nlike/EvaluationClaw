@@ -1,0 +1,53 @@
+{
+  "task_id": "deploy_clinical_template_covid19@1",
+  "task_completion": [
+    {
+      "id": "create_protocoles_urgence_dir",
+      "description": "Verify the creation of the 'Protocoles_Urgence' directory within the 'Masques' folder of the DrTux program.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window showing the 'Protocoles_Urgence' directory located inside the 'Masques' directory (typically within a Wine prefix)."
+    },
+    {
+      "id": "create_html_file",
+      "description": "Verify the creation of the 'Depistage_COVID19.html' file inside the 'Protocoles_Urgence' directory.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or text editor showing the file named 'Depistage_COVID19.html' located in the newly created 'Protocoles_Urgence' directory."
+    },
+    {
+      "id": "include_protocol_title",
+      "description": "Verify the HTML file contains the required title.",
+      "points": 20,
+      "visual_evidence": "The exact string 'PROTOCOLE DEPISTAGE RESPIRATOIRE' visible in the file content within a text editor or browser."
+    },
+    {
+      "id": "include_vital_signs",
+      "description": "Verify the HTML file contains the required vital sign fields.",
+      "points": 20,
+      "visual_evidence": "The strings 'Temp\u00e9rature' and 'Saturation O2' visible in the file content."
+    },
+    {
+      "id": "include_symptoms_and_severity",
+      "description": "Verify the HTML file contains the required symptom and severity score fields.",
+      "points": 20,
+      "visual_evidence": "The strings 'Toux', 'Dyspn\u00e9e', 'Anosmie/Agueusie', and 'Score de Gravit\u00e9' visible in the file content."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_directory_location",
+      "description": "Ensure the file and directory were created in the actual DrTux Wine prefix, not a mock directory.",
+      "visual_evidence": "File paths in the terminal or text editor should show a Wine prefix path (e.g., ~/.wine/drive_c/...) leading to the DrTux 'Masques' folder, rather than a generic local folder."
+    },
+    {
+      "id": "valid_html_structure",
+      "description": "Ensure the created file is a valid HTML file as requested, not just plain text.",
+      "visual_evidence": "Presence of standard HTML tags (e.g., <html>, <body>, <p>, <form>, <input>) visible in the text editor."
+    },
+    {
+      "id": "manual_file_creation",
+      "description": "Ensure the agent actually authored the file content.",
+      "visual_evidence": "A text editor (GUI like gedit, or terminal like nano/vim) open with the file being edited, rather than just a script executing a pre-made payload."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory must be named exactly 'Protocoles_Urgence' and the file must be named 'Depistage_COVID19.html'. The file must contain the following verified French medical terms: 'PROTOCOLE DEPISTAGE RESPIRATOIRE', 'Temp\u00e9rature', 'Saturation O2', 'Toux', 'Dyspn\u00e9e', and 'Anosmie'. Note: While the task description also mentions 'Agueusie' and 'Score de Gravit\u00e9', the automated system strictly verifies the six strings listed above. The VLM should look for all fields requested in the task description, but prioritize the verified strings."
+}

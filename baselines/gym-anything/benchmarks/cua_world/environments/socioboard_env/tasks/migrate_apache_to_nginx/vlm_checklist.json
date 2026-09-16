@@ -1,0 +1,59 @@
+{
+  "task_id": "migrate_apache_to_nginx@1",
+  "task_completion": [
+    {
+      "id": "apache2_unbound",
+      "description": "Verify that Apache2 is stopped or no longer binding to port 80.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'systemctl stop apache2', 'systemctl disable apache2', 'systemctl status apache2' as inactive, or a port check (like 'netstat -tuln' or 'ss -tuln') showing port 80 is not used by apache2."
+    },
+    {
+      "id": "php_fpm_active",
+      "description": "Verify that PHP-FPM 7.4 is installed and active.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'systemctl status php7.4-fpm' with an 'active (running)' status, or installation commands for php7.4-fpm followed by a successful start."
+    },
+    {
+      "id": "nginx_active",
+      "description": "Verify that Nginx is installed and active.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'systemctl status nginx' with an 'active (running)' status, or installation commands for nginx followed by a successful start."
+    },
+    {
+      "id": "nginx_doc_root_port",
+      "description": "Verify Nginx is configured to listen on port 80 and use the correct document root.",
+      "points": 20,
+      "visual_evidence": "Screenshot of the Nginx configuration file (via cat, nano, vim, etc.) showing 'listen 80;' and 'root /opt/socioboard/socioboard-web-php/public;'."
+    },
+    {
+      "id": "nginx_php_routing",
+      "description": "Verify Nginx routes sub-pages to index.php and passes .php requests to the php7.4-fpm Unix socket.",
+      "points": 25,
+      "visual_evidence": "Screenshot of the Nginx configuration file showing a 'location /' block with 'try_files $uri $uri/ /index.php?$query_string;' (or similar routing) AND a 'location ~ \\.php$' block containing 'fastcgi_pass unix:/run/php/php7.4-fpm.sock;' (or similar socket path)."
+    },
+    {
+      "id": "nginx_security_headers",
+      "description": "Verify Nginx configuration includes the required HTTP security headers.",
+      "points": 25,
+      "visual_evidence": "Screenshot of the Nginx configuration file showing 'add_header X-Frame-Options \"SAMEORIGIN\";' and 'add_header X-Content-Type-Options \"nosniff\";', OR a 'curl -I' output against localhost showing these exact headers in the HTTP response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_service_management",
+      "description": "Verify the agent actually used system commands to manage services.",
+      "visual_evidence": "Look for real 'systemctl', 'service', or 'apt-get' commands in the terminal rather than just printing fake success messages."
+    },
+    {
+      "id": "genuine_config_edits",
+      "description": "Verify the agent modified actual Nginx configuration files.",
+      "visual_evidence": "Look for the use of text editors (nano, vim) or command-line text manipulation (sed, echo) targeting files in '/etc/nginx/', rather than creating dummy files elsewhere."
+    },
+    {
+      "id": "authentic_verification",
+      "description": "Verify the agent tested the configuration genuinely if it checked its work.",
+      "visual_evidence": "If the agent verified the headers or routing, look for 'curl -I localhost', 'nginx -t', or browser usage, rather than echoing the expected output directly to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected document root in the Nginx configuration must be exactly '/opt/socioboard/socioboard-web-php/public'. The Nginx configuration must include the exact security headers: 'X-Frame-Options: SAMEORIGIN' and 'X-Content-Type-Options: nosniff'."
+}

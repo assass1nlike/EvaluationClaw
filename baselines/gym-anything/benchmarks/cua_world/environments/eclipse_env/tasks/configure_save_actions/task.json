@@ -1,0 +1,33 @@
+{
+  "id": "configure_save_actions@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Configure the 'LegacyCodebase' project to automatically clean up code whenever a Java file is saved. The configuration must enable formatting source code, organizing imports, and removing trailing whitespace. Apply these settings to 'src/main/java/com/legacy/MessyService.java' by saving a change to the file to ensure the code is automatically cleaned.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_save_actions/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_save_actions/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/LegacyCodebase",
+    "prefs_file": ".settings/org.eclipse.jdt.ui.prefs",
+    "target_file": "src/main/java/com/legacy/MessyService.java",
+    "expected_keys": [
+      "sp_cleanup.on_save=true",
+      "sp_cleanup.format_source_code=true",
+      "sp_cleanup.organize_imports=true",
+      "sp_cleanup.remove_trailing_whitespaces=true"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_save_actions"
+    }
+  }
+}

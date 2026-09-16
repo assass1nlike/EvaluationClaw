@@ -1,0 +1,74 @@
+{
+  "dataset_id": "3eed6039",
+  "name": "Mathematical-Proof-Generation",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset contains mathematical proof problems and their step-by-step proofs. It evaluates a model's ability to generate valid mathematical proofs from a given theorem or identity.",
+  "card_text": "This dataset is a text-to-text collection of 200 mathematical proof generation tasks. Each sample provides a problem statement asking to prove a mathematical theorem, identity, or geometric property (e.g., the perfect square formula or a circle chord property). The expected output is a structured proof consisting of a sequence of reasoning steps and a final conclusion. The proofs are written in natural language with mathematical notation and follow logical deduction. The dataset covers topics such as algebra and geometry. It is designed to evaluate open-ended generation of mathematical reasoning and explanation, requiring models to produce coherent, step-by-step arguments rather than just final answers. No images or external context are provided; all information is in the text prompt.",
+  "tasks": [
+    "explanation_required"
+  ],
+  "domain": "mathematical proofs",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "statement"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The mathematical problem statement or theorem to prove, phrased as an imperative instruction (e.g., 'Prove ...'). It is the main input the model must respond to.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "rationale": {
+        "paths": [
+          "output.proof.steps"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "structured",
+        "semantics": "The ordered list of reasoning steps that derive the proof, showing logical deductions from known facts or axioms to the conclusion.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.proof.conclusion"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The final conclusion of the proof, restating the proven theorem or result. It follows from the rationale steps.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a problem statement (context) and an output proof object. The statement is a mathematical theorem to prove, given as an instruction. The proof object contains an ordered list of reasoning steps (rationale) and a final conclusion (answer). The rationale steps lead to the conclusion; together they form the generated proof."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Mathematical-Proof-Generation/annotation.json",
+    "existing_tags": {
+      "task": "Mathematical Proof Generation",
+      "type": "Proof",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "optimize_label_placement@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Create an SLD style named 'optimized_places' in the 'ne' workspace and set it as the default style for the 'ne:ne_populated_places' layer. The style must feature a size 6 red circle (#FF0000) symbol and black (#000000) Arial 12px bold labels using the 'name' attribute. Configure VendorOptions for 'autoWrap' at 80 pixels, 'maxDisplacement' at 50 pixels, and 'spaceAround' at 10 pixels. Export a map preview image of the layer focused on Europe to /home/ga/places_optimized.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/optimize_label_placement/setup_task.sh",
+    "post_task": "/workspace/tasks/optimize_label_placement/export_result.sh"
+  },
+  "metadata": {
+    "expected_style_name": "optimized_places",
+    "expected_vendor_options": {
+      "autoWrap": "80",
+      "maxDisplacement": "50",
+      "spaceAround": "10"
+    },
+    "expected_output_path": "/home/ga/places_optimized.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_optimize_label_placement"
+    }
+  }
+}

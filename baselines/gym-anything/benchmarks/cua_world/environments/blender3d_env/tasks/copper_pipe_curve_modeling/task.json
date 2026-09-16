@@ -1,0 +1,41 @@
+{
+  "id": "copper_pipe_curve_modeling@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a 3D copper pipe system in Blender using at least three Bezier curve objects arranged in a plumbing layout. Each pipe must have a bevel depth between 0.02m and 0.08m to form solid tubes, with at least one pipe featuring a visible bend. Apply a realistic copper material to all pipes with a warm orange-brown color, high metallic value (above 0.8), and moderate roughness (0.2 to 0.5). Render the scene and save the image to /home/ga/BlenderProjects/pipe_render.png and the project file to /home/ga/BlenderProjects/pipe_system.blend. The desktop session is already active and Blender is open with a baseline scene.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/copper_pipe_curve_modeling/setup_task.sh",
+    "post_task": "/workspace/tasks/copper_pipe_curve_modeling/export_result.sh"
+  },
+  "metadata": {
+    "expected_blend_path": "/home/ga/BlenderProjects/pipe_system.blend",
+    "expected_render_path": "/home/ga/BlenderProjects/pipe_render.png",
+    "min_curve_count": 3,
+    "min_bevel_depth": 0.02,
+    "max_bevel_depth": 0.08,
+    "copper_color_min": [
+      0.5,
+      0.2,
+      0.05
+    ],
+    "copper_color_max": [
+      1.0,
+      0.7,
+      0.4
+    ],
+    "min_metallic": 0.8,
+    "min_render_size_kb": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_copper_pipes"
+    }
+  }
+}

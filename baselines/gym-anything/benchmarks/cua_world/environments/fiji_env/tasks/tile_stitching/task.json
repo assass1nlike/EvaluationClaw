@@ -1,0 +1,34 @@
+{
+  "id": "tile_stitching@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "A nanosystems engineer has imaged a nanostructured surface using an automated microscope, resulting in a 3x3 grid of overlapping tiles. Your task is to stitch these 9 tiles into a single seamless panoramic image using Fiji's 'Grid/Collection Stitching' plugin. The tiles are located in `~/Fiji_Data/raw/tiles/` named `tile_1.tif` through `tile_9.tif`. Use the grid layout parameters (3x3, Right & Down, ~15% overlap) found in `~/Fiji_Data/raw/tiles/grid_info.txt`. Save the fused result as a TIFF file to `~/Fiji_Data/results/stitched/stitched_panorama.tif` and a PNG copy to `~/Fiji_Data/results/stitched/stitched_panorama.png`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tile_stitching/setup_task.sh",
+    "post_task": "/workspace/tasks/tile_stitching/export_result.sh"
+  },
+  "metadata": {
+    "tile_dir": "/home/ga/Fiji_Data/raw/tiles",
+    "output_tif": "/home/ga/Fiji_Data/results/stitched/stitched_panorama.tif",
+    "output_png": "/home/ga/Fiji_Data/results/stitched/stitched_panorama.png",
+    "grid_x": 3,
+    "grid_y": 3,
+    "overlap_percent": 15,
+    "min_width": 850,
+    "max_width": 1150,
+    "min_height": 600,
+    "max_height": 900
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tile_stitching"
+    }
+  }
+}

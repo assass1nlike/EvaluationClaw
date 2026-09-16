@@ -1,0 +1,53 @@
+{
+  "task_id": "stack_reslicing_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_fly_brain",
+      "description": "Open the built-in 'Fly Brain' sample in Fiji/ImageJ.",
+      "points": 10,
+      "visual_evidence": "An image window titled 'flybrain' (or similar) showing a 2-channel (red/green) confocal brain structure. The Fiji/ImageJ toolbar should be visible."
+    },
+    {
+      "id": "convert_8_bit",
+      "description": "Convert the image stack to 8-bit grayscale.",
+      "points": 15,
+      "visual_evidence": "The image window header should update to indicate '8-bit' and the image itself should appear in grayscale instead of the original red/green colors."
+    },
+    {
+      "id": "reslice_stack",
+      "description": "Reslice the stack from the 'Top' using 1.0 pixel spacing.",
+      "points": 25,
+      "visual_evidence": "A 'Reslice' dialog box showing 'Start at: Top' and 'Spacing: 1.0', followed by a new image window (often titled 'Reslice of flybrain') showing an XZ cross-section. The new window's header should indicate dimensions of 256x57 pixels."
+    },
+    {
+      "id": "z_project_max",
+      "description": "Create a Maximum Intensity Projection of the resliced view.",
+      "points": 25,
+      "visual_evidence": "A 'ZProjection' dialog box with 'Projection type: Maximum Intensity' selected, followed by a new image window titled 'MAX_Reslice...' showing a single 2D projection image (no Z-slider at the bottom of the window)."
+    },
+    {
+      "id": "save_output",
+      "description": "Save the resulting projection image to ~/ImageJ_Data/results/side_view_projection.tif",
+      "points": 25,
+      "visual_evidence": "A 'Save As' dialog box saving the file as 'side_view_projection.tif' in the '/home/ga/ImageJ_Data/results' directory, or a file manager/terminal showing the successfully saved file at this path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_for_processing",
+      "description": "Verify the agent used the Fiji/ImageJ GUI to perform the image processing steps rather than running a script or terminal command.",
+      "visual_evidence": "Screenshots should show interaction with Fiji/ImageJ menus (e.g., Image > Type > 8-bit, Image > Stacks > Reslice, Image > Stacks > Z Project) and dialog boxes."
+    },
+    {
+      "id": "genuine_image_output",
+      "description": "Verify the final image is a genuine result of the processing steps and not a downloaded or manually created dummy file.",
+      "visual_evidence": "The final image should visually match a maximum intensity projection of a resliced brain stack (a distinct biological structure in grayscale), not a blank, random, or text-based image."
+    },
+    {
+      "id": "used_fiji_imagej",
+      "description": "Verify the agent actually interacted with the Fiji/ImageJ application.",
+      "visual_evidence": "The Fiji/ImageJ main toolbar and standard ImageJ image windows must be clearly visible in the screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'Fly Brain' sample is a built-in Fiji/ImageJ sample accessible via File > Open Samples > Fly Brain. The original stack is 256x256 pixels with 57 Z-slices. Converting to 8-bit changes the image from a 2-channel (red/green) view to grayscale. Reslicing from the 'Top' creates an XZ orthogonal view. The final Maximum Intensity Projection should be a single 2D image (1 slice) with dimensions 256x57 pixels, saved as 'side_view_projection.tif' in '/home/ga/ImageJ_Data/results/'."
+}

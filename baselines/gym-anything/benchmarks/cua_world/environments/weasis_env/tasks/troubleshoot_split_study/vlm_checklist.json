@@ -1,0 +1,59 @@
+{
+  "task_id": "troubleshoot_split_study@1",
+  "task_completion": [
+    {
+      "id": "access_qa_task_dir",
+      "description": "Agent accesses the directory containing the DICOM files.",
+      "points": 10,
+      "visual_evidence": "Terminal or file manager showing the path /home/ga/DICOM/qa_task and its contents."
+    },
+    {
+      "id": "inspect_dicom_metadata",
+      "description": "Agent inspects the metadata of the DICOM files to check the Patient IDs.",
+      "points": 20,
+      "visual_evidence": "Use of a tool (like dcmdump, strings, Python with pydicom, or a DICOM viewer) displaying the metadata of the files in the directory."
+    },
+    {
+      "id": "locate_mismatched_file",
+      "description": "Agent identifies the specific DICOM file with the mismatched Patient ID.",
+      "points": 20,
+      "visual_evidence": "Screen shows the mismatched Patient ID (which starts with 'ERR_') and its corresponding filename."
+    },
+    {
+      "id": "open_mismatch_report",
+      "description": "Agent opens or creates the required report file.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) or echo/cat command showing the file path /home/ga/DICOM/exports/mismatch_report.txt."
+    },
+    {
+      "id": "record_filename",
+      "description": "Agent records the filename of the anomalous DICOM file in the report.",
+      "points": 20,
+      "visual_evidence": "The report contains the exact text 'Filename: <filename>' where <filename> is the identified anomalous file."
+    },
+    {
+      "id": "record_patient_id",
+      "description": "Agent records the mismatched Patient ID in the report.",
+      "points": 20,
+      "visual_evidence": "The report contains the exact text 'PatientID: <id>' where <id> is the identified mismatched Patient ID (starting with 'ERR_')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent did not access the hidden ground truth file.",
+      "visual_evidence": "No commands or actions accessing /var/lib/app/ground_truth/qa_answer.json."
+    },
+    {
+      "id": "genuine_metadata_extraction",
+      "description": "Agent genuinely extracted the metadata from the DICOM files.",
+      "visual_evidence": "The agent used valid commands or scripts to read the DICOM files, rather than typing out the answer without prior inspection."
+    },
+    {
+      "id": "report_saved_correctly",
+      "description": "Agent saved the report to the correct file path.",
+      "visual_evidence": "The text editor or terminal command clearly indicates the file is being saved to /home/ga/DICOM/exports/mismatch_report.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "The DICOM files are located in /home/ga/DICOM/qa_task. The anomalous file has a mismatched Patient ID starting with 'ERR_'. The final report must be saved exactly at /home/ga/DICOM/exports/mismatch_report.txt. The ground truth containing the correct filename and Patient ID is stored in /var/lib/app/ground_truth/qa_answer.json, which the agent must not access."
+}

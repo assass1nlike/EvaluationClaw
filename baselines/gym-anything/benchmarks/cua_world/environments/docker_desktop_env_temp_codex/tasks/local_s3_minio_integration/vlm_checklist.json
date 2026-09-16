@@ -1,0 +1,53 @@
+{
+  "task_id": "local_s3_minio_integration@1",
+  "task_completion": [
+    {
+      "id": "minio_service_configured",
+      "description": "The docker-compose.yml file is updated to include the MinIO service with the correct image and command.",
+      "points": 20,
+      "visual_evidence": "A text editor showing docker-compose.yml with a 'minio' service block containing 'image: minio/minio' and 'command: server /data --console-address \":9001\"'."
+    },
+    {
+      "id": "web_service_env_vars",
+      "description": "The web service in docker-compose.yml is configured with the required AWS/S3 environment variables.",
+      "points": 20,
+      "visual_evidence": "A text editor showing the 'web' service block in docker-compose.yml with 'S3_ENDPOINT_URL', 'AWS_ACCESS_KEY_ID', and 'AWS_SECRET_ACCESS_KEY' environment variables pointing to the MinIO service."
+    },
+    {
+      "id": "bucket_auto_creation",
+      "description": "Automation is added to ensure the 'company-assets' bucket is created when the stack starts.",
+      "points": 20,
+      "visual_evidence": "A text editor showing a setup script, an entrypoint modification, or an additional service (like minio/mc) in docker-compose.yml that explicitly creates the 'company-assets' bucket."
+    },
+    {
+      "id": "stack_running",
+      "description": "The Docker Compose stack is successfully started with both web and minio services.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'docker compose up' logs or 'docker ps' listing both the web and minio containers in a running state."
+    },
+    {
+      "id": "flask_upload_success",
+      "description": "The Flask application successfully uploads a file to the MinIO bucket.",
+      "points": 30,
+      "visual_evidence": "A web browser navigated to http://localhost:5000 showing a successful file upload message, or terminal output showing a successful curl request/boto3 log confirming the upload."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "editor_used",
+      "description": "The agent used a real text editor to modify the project files.",
+      "visual_evidence": "Screenshots show the agent using an editor like VS Code, nano, or vim to edit docker-compose.yml, rather than just echoing text into the file blindly."
+    },
+    {
+      "id": "actual_docker_execution",
+      "description": "The agent genuinely started the Docker Compose stack.",
+      "visual_evidence": "The terminal displays actual Docker build/pull/start logs, proving the agent didn't just type the command without executing it."
+    },
+    {
+      "id": "genuine_upload_test",
+      "description": "The agent actively tested the file upload functionality.",
+      "visual_evidence": "The agent used a web browser or a terminal command (like curl) to interact with localhost:5000 and trigger an upload, rather than just writing the code and assuming it works."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is '/home/ga/s3-project'. The expected services in the docker-compose stack are 'web' and 'minio'. The target bucket name that must be automatically created and used for uploads is 'company-assets'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "rfm_customer_segmentation@1",
+  "task_completion": [
+    {
+      "id": "open_wps_spreadsheet",
+      "description": "Open the rfm_analysis.xlsx file in WPS Spreadsheet",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet application is open with 'rfm_analysis.xlsx' visible in the title bar or active tab."
+    },
+    {
+      "id": "calculate_recency_days",
+      "description": "Calculate Recency_Days in the Customer_Data sheet",
+      "points": 15,
+      "visual_evidence": "In the 'Customer_Data' sheet, a new column named 'Recency_Days' is visible containing numerical values representing the days since the last purchase."
+    },
+    {
+      "id": "calculate_rfm_scores",
+      "description": "Generate R_Score, F_Score, M_Score, and RFM_Score columns",
+      "points": 20,
+      "visual_evidence": "The 'Customer_Data' sheet contains new columns for 'R_Score', 'F_Score', and 'M_Score' (typically single digits), and an 'RFM_Score' column containing combined 3-digit numbers (e.g., 555, 123)."
+    },
+    {
+      "id": "assign_customer_segment",
+      "description": "Assign Customer_Segment based on the RFM_Score",
+      "points": 15,
+      "visual_evidence": "A 'Customer_Segment' column is present in the 'Customer_Data' sheet, populated with text labels (e.g., 'Champions', 'At Risk') corresponding to the segment mapping."
+    },
+    {
+      "id": "create_segment_summary_sheet",
+      "description": "Create a new sheet named Segment_Summary",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Segment_Summary' is visible at the bottom of the WPS Spreadsheet window."
+    },
+    {
+      "id": "populate_segment_summary",
+      "description": "Display Customer_Count and Total_Revenue for each segment in the Segment_Summary sheet",
+      "points": 30,
+      "visual_evidence": "The 'Segment_Summary' sheet is active and displays a table with unique customer segments, alongside their respective 'Customer_Count' (integers) and 'Total_Revenue' (currency/numerical sums)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_wps",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the analysis",
+      "visual_evidence": "Screenshots show the agent clicking through the WPS Spreadsheet interface, using ribbons, menus, or cell inputs, rather than executing a Python/Pandas script in a terminal to modify the file."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "The agent used spreadsheet formulas for calculations rather than pasting hardcoded answers",
+      "visual_evidence": "The formula bar in WPS Spreadsheet shows actual formulas (e.g., VLOOKUP, IF, CONCATENATE, COUNTIFS, SUMIFS) when cells in the new columns or summary sheet are selected."
+    },
+    {
+      "id": "no_terminal_scripting",
+      "description": "The agent did not use terminal commands to bypass the spreadsheet application",
+      "visual_evidence": "There are no terminal windows showing the execution of scripts (like python or bash) that directly write the expected output to the .xlsx file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying 'rfm_analysis.xlsx' using WPS Spreadsheet. The expected sheets in the final file are 'Customer_Data', 'Scoring_Rules', 'Segment_Mapping', and a newly created 'Segment_Summary'. The 'Customer_Data' sheet must contain exactly these new columns: 'Recency_Days', 'R_Score', 'F_Score', 'M_Score', 'RFM_Score', and 'Customer_Segment'. The 'Segment_Summary' sheet must aggregate 'Customer_Count' and 'Total_Revenue' per unique segment."
+}

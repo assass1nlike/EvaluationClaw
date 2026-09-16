@@ -1,0 +1,53 @@
+{
+  "task_id": "nationality_friendship_projection@1",
+  "task_completion": [
+    {
+      "id": "vertex_class_created",
+      "description": "Create the NationalityNode vertex class with required properties.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio schema page or console output showing the creation of a 'NationalityNode' class (extending V) with properties 'Name' (String) and 'ProfileCount' (Integer)."
+    },
+    {
+      "id": "edge_class_created",
+      "description": "Create the NationalityLink edge class with required properties.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio schema page or console output showing the creation of a 'NationalityLink' class (extending E) with the property 'FriendshipCount' (Integer)."
+    },
+    {
+      "id": "nodes_populated",
+      "description": "Populate NationalityNode vertices with distinct nationalities and correct profile counts.",
+      "points": 20,
+      "visual_evidence": "Query results (e.g., SELECT FROM NationalityNode) in OrientDB Studio or console showing 11 records, with correct ProfileCounts such as British: 3, American: 2, or Spanish: 1."
+    },
+    {
+      "id": "edges_populated",
+      "description": "Populate NationalityLink edges between different nationalities, directed alphabetically, with aggregated friendship counts.",
+      "points": 25,
+      "visual_evidence": "Query results or graph view showing NationalityLink edges connecting NationalityNodes. The edges must point from alphabetically earlier to later nationalities (e.g., American -> British) and show FriendshipCount properties."
+    },
+    {
+      "id": "report_generated_and_accurate",
+      "description": "Generate the final summary report at the specified path with accurate network statistics.",
+      "points": 35,
+      "visual_evidence": "A text editor or terminal output (e.g., cat) showing the contents of '/home/ga/nationality_network_report.txt'. The report must list 11 nationalities, 10 total connections, state that the strongest connection is 1 (or list all as tied), and include a list of the connections."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the OrientDB database to perform the projection.",
+      "visual_evidence": "Screenshots should show the agent using OrientDB Studio (web interface) or the OrientDB console to execute SQL/Gremlin queries, rather than just mocking the output."
+    },
+    {
+      "id": "programmatic_edge_creation",
+      "description": "The agent used a query or script to create edges alphabetically, rather than hardcoding them.",
+      "visual_evidence": "Look for SQL or script logic containing alphabetical comparisons (e.g., 'WHERE a.Name < b.Name') during the edge creation process."
+    },
+    {
+      "id": "data_driven_report",
+      "description": "The agent derived the report statistics from the database rather than hallucinating or copying from the prompt.",
+      "visual_evidence": "The agent should be seen running SELECT/COUNT queries to gather the statistics (like total nationalities and connections) before writing them into the report file."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: 1. Expected NationalityNode count is 11. 2. Specific profile counts to spot-check: British (3), American (2), French (2), German (2), Japanese (2), Spanish (1). 3. Expected NationalityLink count is exactly 10. 4. All edges have a FriendshipCount of exactly 1 (there is no French-German edge, contrary to what the agent might assume). 5. Report must be located at /home/ga/nationality_network_report.txt."
+}

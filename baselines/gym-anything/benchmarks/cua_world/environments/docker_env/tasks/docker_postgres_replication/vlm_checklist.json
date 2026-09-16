@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_postgres_replication@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_services_volumes",
+      "description": "Verify the docker-compose.yml file is updated with 'primary' and 'replica' services and the required named volumes.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the docker-compose.yml file containing 'services:' with 'primary:' and 'replica:' blocks, and a 'volumes:' block defining 'db-primary-data' and 'db-replica-data'."
+    },
+    {
+      "id": "primary_replication_user",
+      "description": "Verify the replication user is created on the primary database.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a SQL script or psql command executing 'CREATE ROLE repl_user WITH REPLICATION LOGIN PASSWORD 'repl_password';' or similar."
+    },
+    {
+      "id": "primary_streaming_config",
+      "description": "Verify the primary database is configured for streaming replication.",
+      "points": 15,
+      "visual_evidence": "Terminal or editor showing modifications to postgresql.conf (e.g., wal_level = replica) and pg_hba.conf (allowing replication connections for repl_user), or these settings being passed as command arguments in docker-compose.yml."
+    },
+    {
+      "id": "replica_pg_basebackup",
+      "description": "Verify the replica is configured to bootstrap via pg_basebackup.",
+      "points": 20,
+      "visual_evidence": "A script (e.g., entrypoint.sh) or docker-compose command for the replica service showing the execution of 'pg_basebackup -h primary -U repl_user -D ...' to pull the initial data from the primary."
+    },
+    {
+      "id": "containers_running",
+      "description": "Verify both the primary and replica containers are successfully running.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the output of 'docker compose ps' or 'docker ps' with both the primary and replica containers listed in an 'Up' state."
+    },
+    {
+      "id": "replication_verified",
+      "description": "Verify that data written to the primary synchronizes to the replica automatically.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a test where data is inserted into the primary database (via psql) and a subsequent SELECT query on the replica database shows the newly inserted data, confirming hot_standby and replication are working."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_execution",
+      "description": "Verify the agent actually executed Docker commands.",
+      "visual_evidence": "Terminal showing standard Docker output from commands like 'docker compose up -d', 'docker compose build', or 'docker ps', rather than just editing files without running them."
+    },
+    {
+      "id": "actual_psql_execution",
+      "description": "Verify the agent interacted with the databases using psql to test replication.",
+      "visual_evidence": "Terminal showing genuine psql interactive prompts (e.g., 'postgres=#') or standard tabular output from SQL queries, proving real database interaction."
+    },
+    {
+      "id": "no_mocked_success",
+      "description": "Verify the agent did not fake the replication success.",
+      "visual_evidence": "The verification of replication must show actual SQL query outputs from the replica container, not a simple bash script echoing 'Replication successful' or manually printing the expected output."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/projects/db-cluster. Database password is 'password123'. Replication user must be 'repl_user' with password 'repl_password'. Named volumes must be 'db-primary-data' and 'db-replica-data'. The database contains seed data with 5 product entries. Real-time replication verification might use canary tokens with prefix 'CANARY_'."
+}

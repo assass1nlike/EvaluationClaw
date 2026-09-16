@@ -1,0 +1,65 @@
+{
+  "task_id": "network_incident_har_capture@1",
+  "task_completion": [
+    {
+      "id": "open_devtools_network",
+      "description": "Open the browser's Developer Tools and navigate to the Network tab",
+      "points": 10,
+      "visual_evidence": "The browser window is open with the Developer Tools pane visible, and the 'Network' tab is actively selected."
+    },
+    {
+      "id": "enable_preserve_log",
+      "description": "Enable the 'Preserve log' setting in the Network tab",
+      "points": 20,
+      "visual_evidence": "The 'Preserve log' checkbox in the Developer Tools Network tab is checked. This is required to capture multiple page navigations in a single trace."
+    },
+    {
+      "id": "capture_forms_post",
+      "description": "Navigate to and capture the forms/post endpoint",
+      "points": 10,
+      "visual_evidence": "The browser address bar shows 'https://httpbin.org/forms/post' and/or the Network tab shows a recorded request to 'post' or 'forms/post'."
+    },
+    {
+      "id": "capture_delay_3",
+      "description": "Navigate to and capture the delay/3 endpoint",
+      "points": 10,
+      "visual_evidence": "The browser address bar shows 'https://httpbin.org/delay/3' and/or the Network tab shows a recorded request to 'delay/3'."
+    },
+    {
+      "id": "capture_status_503",
+      "description": "Navigate to and capture the status/503 endpoint",
+      "points": 10,
+      "visual_evidence": "The browser address bar shows 'https://httpbin.org/status/503' and/or the Network tab shows a recorded request to 'status/503' with a 503 status code."
+    },
+    {
+      "id": "export_har",
+      "description": "Export the network trace as a HAR file",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Export HAR' button (often a downward arrow icon in the Network tab) or right-clicks a request and selects 'Save all as HAR with content'."
+    },
+    {
+      "id": "save_to_desktop",
+      "description": "Save the HAR file as 'incident_trace.har' to the Desktop",
+      "points": 20,
+      "visual_evidence": "A file save dialog or file manager window is visible, showing the file being named 'incident_trace.har' and saved in the 'Desktop' directory (/home/ga/Desktop)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_real_browser",
+      "description": "The agent used a graphical web browser to perform the task",
+      "visual_evidence": "A standard web browser (like Edge, Chrome, or Firefox) is visible in the screenshots. The agent did not use terminal commands like 'curl' or 'wget' to bypass browser interaction."
+    },
+    {
+      "id": "gui_har_export",
+      "description": "The HAR file was exported using the browser's built-in tools",
+      "visual_evidence": "The HAR file is generated via the Developer Tools GUI export feature, not by writing a script (e.g., Python) or manually typing JSON into a text editor."
+    },
+    {
+      "id": "genuine_network_traffic",
+      "description": "The network tab shows genuine request data",
+      "visual_evidence": "The Network tab displays realistic request rows with varying times, sizes, and appropriate status codes (e.g., a 503 status for the status/503 endpoint), indicating actual network interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must capture network traffic from three specific URLs: https://httpbin.org/forms/post, https://httpbin.org/delay/3, and https://httpbin.org/status/503. To capture all three in a single HAR file without losing previous requests upon navigation, 'Preserve log' must be enabled in the browser's Developer Tools Network tab. The final file must be named exactly 'incident_trace.har' and saved to the Desktop (/home/ga/Desktop)."
+}

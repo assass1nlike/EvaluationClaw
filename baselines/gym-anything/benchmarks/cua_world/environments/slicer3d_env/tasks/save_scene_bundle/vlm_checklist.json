@@ -1,0 +1,53 @@
+{
+  "task_id": "save_scene_bundle@1",
+  "task_completion": [
+    {
+      "id": "volume_loaded",
+      "description": "The MRHead.nrrd volume is loaded and visible in the application.",
+      "points": 15,
+      "visual_evidence": "The 3D Slicer interface is open and shows the brain MRI in the axial, sagittal, and/or coronal slice views."
+    },
+    {
+      "id": "fiducials_placed",
+      "description": "Two distinct fiducial markers are placed on the MRI volume.",
+      "points": 15,
+      "visual_evidence": "Two markup points (typically colored dots or crosshairs) are visible at different locations in the 2D slice views or the 3D view."
+    },
+    {
+      "id": "fiducials_labeled",
+      "description": "The fiducials are correctly named 'Landmark_A' and 'Landmark_B'.",
+      "points": 20,
+      "visual_evidence": "The Markups module table in the left panel or the text labels next to the fiducials in the viewer explicitly show the names 'Landmark_A' and 'Landmark_B'."
+    },
+    {
+      "id": "save_dialog_mrb",
+      "description": "The scene is configured to be saved as an MRB (Medical Reality Bundle) file.",
+      "points": 20,
+      "visual_evidence": "The 'Save Data' dialog in 3D Slicer is open, and the file format for the scene is set to Medical Reality Bundle (.mrb)."
+    },
+    {
+      "id": "file_saved_explorer",
+      "description": "The MRB file is successfully saved to the correct export directory.",
+      "points": 30,
+      "visual_evidence": "A file manager, terminal window, or Slicer save confirmation shows the file 'annotated_brain_scene.mrb' located in the '~/Documents/SlicerData/Exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the 3D Slicer GUI to load the volume and place fiducials.",
+      "visual_evidence": "Screenshots show the 3D Slicer application open and being interacted with (e.g., clicking modules, placing points), rather than just running a headless Python script in the terminal."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent saved the file through the application rather than creating a dummy file.",
+      "visual_evidence": "The save process (Save Data dialog in Slicer) is visible in the trajectory, linking the active application state to the final output file."
+    },
+    {
+      "id": "distinct_locations_check",
+      "description": "The fiducials are placed at genuinely distinct 3D locations.",
+      "visual_evidence": "The fiducials are visually separated in the slice views/3D view, or their coordinates in the Markups table are clearly different, ensuring they are not stacked on the exact same coordinate."
+    }
+  ],
+  "privileged_info_for_vlm": "The resulting MRB file should have a minimum size of 1,000,000 bytes (~1 MB). If the file manager or terminal shows file sizes, verify that annotated_brain_scene.mrb is at least this large, which confirms the volume data was successfully bundled into the scene."
+}

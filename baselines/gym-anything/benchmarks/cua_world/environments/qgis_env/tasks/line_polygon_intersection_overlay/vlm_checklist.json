@@ -1,0 +1,53 @@
+{
+  "task_id": "line_polygon_intersection_overlay@1",
+  "task_completion": [
+    {
+      "id": "load_input_layers",
+      "description": "Load the input line and polygon layers into QGIS.",
+      "points": 15,
+      "visual_evidence": "The Layers panel shows both 'sample_lines' and 'sample_polygon' layers loaded in the QGIS project."
+    },
+    {
+      "id": "open_intersection_tool",
+      "description": "Open the Intersection geoprocessing tool.",
+      "points": 15,
+      "visual_evidence": "The 'Intersection' dialog window is visible on the screen (typically accessed via Vector -> Geoprocessing Tools -> Intersection)."
+    },
+    {
+      "id": "configure_intersection_inputs",
+      "description": "Configure the Intersection tool with the correct input and overlay layers.",
+      "points": 20,
+      "visual_evidence": "In the Intersection dialog, the 'Input layer' dropdown is set to 'sample_lines' and the 'Overlay layer' dropdown is set to 'sample_polygon'."
+    },
+    {
+      "id": "configure_output_path",
+      "description": "Specify the correct output file path for the intersected layer.",
+      "points": 20,
+      "visual_evidence": "The file path '/home/ga/GIS_Data/exports/roads_by_zone.geojson' is visible either in the 'Intersected' output field of the Intersection dialog, or in a 'Save Vector Layer as...' dialog if exporting a temporary layer."
+    },
+    {
+      "id": "complete_intersection_and_export",
+      "description": "Successfully generate and save the intersected layer.",
+      "points": 30,
+      "visual_evidence": "A QGIS success message indicates the file was saved to the correct path, the 'roads_by_zone' layer appears in the Layers panel, or the file is visible in the file manager at the correct path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis_gui",
+      "description": "The agent used the QGIS graphical user interface to perform the intersection.",
+      "visual_evidence": "Screenshots show interaction with QGIS menus, dialogs, and panels rather than executing a script or terminal command to perform the intersection."
+    },
+    {
+      "id": "genuine_intersection_result",
+      "description": "The output is a genuine result of the intersection operation.",
+      "visual_evidence": "The map canvas or attribute table shows the lines actually split by the polygons (resulting in 3 features), rather than just a renamed copy of the original lines."
+    },
+    {
+      "id": "no_direct_file_creation",
+      "description": "The agent did not bypass the GIS software by creating the output file using terminal commands.",
+      "visual_evidence": "No terminal commands like 'cp', 'mv', or 'echo' were used to artificially create the 'roads_by_zone.geojson' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires intersecting sample_lines.geojson (2 LineString features) with sample_polygon.geojson (2 Polygon features). The correct intersection produces exactly 3 LineString features (Road 1 splits into 2 segments, Road 2 remains 1 segment). The final output must be saved to /home/ga/GIS_Data/exports/roads_by_zone.geojson. The QGIS Intersection tool inherently preserves attributes from both input layers by default."
+}

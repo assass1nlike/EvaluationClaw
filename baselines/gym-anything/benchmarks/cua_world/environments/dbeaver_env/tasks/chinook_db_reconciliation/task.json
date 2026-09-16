@@ -1,0 +1,42 @@
+{
+  "id": "chinook_db_reconciliation@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Database Administrator reconciling a production database (/home/ga/Documents/databases/chinook_prod.db) against a pre-deployment snapshot (/home/ga/Documents/databases/chinook_snapshot.db). Identify all data discrepancies between these two databases across four categories: New Customers (present in production but not snapshot), Deleted Invoices (present in snapshot but missing from production), Price Changes (tracks where UnitPrice differs), and Country Updates (customers where Country differs). Save the comparison SQL queries to /home/ga/Documents/scripts/reconciliation.sql. Export a reconciliation report to /home/ga/Documents/exports/reconciliation_report.csv containing exactly four rows (one per category) with columns: ChangeCategory, TableName, RecordsAffected, Direction, and Details.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_db_reconciliation/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_db_reconciliation/export_result.sh"
+  },
+  "metadata": {
+    "prod_db_path": "/home/ga/Documents/databases/chinook_prod.db",
+    "snapshot_db_path": "/home/ga/Documents/databases/chinook_snapshot.db",
+    "expected_connection_name": "ChinookProd",
+    "expected_csv_path": "/home/ga/Documents/exports/reconciliation_report.csv",
+    "expected_sql_path": "/home/ga/Documents/scripts/reconciliation.sql",
+    "required_columns": [
+      "ChangeCategory",
+      "TableName",
+      "RecordsAffected",
+      "Direction",
+      "Details"
+    ],
+    "change_categories": [
+      "new_customers",
+      "deleted_invoices",
+      "price_changes",
+      "country_changes"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_db_reconciliation"
+    }
+  }
+}

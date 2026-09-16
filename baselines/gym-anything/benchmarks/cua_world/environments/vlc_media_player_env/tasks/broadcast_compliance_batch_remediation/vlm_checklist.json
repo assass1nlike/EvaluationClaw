@@ -1,0 +1,59 @@
+{
+  "task_id": "broadcast_compliance_batch_remediation@1",
+  "task_completion": [
+    {
+      "id": "output_directory_prepared",
+      "description": "Verify the output directory for broadcast-ready files exists.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager window or terminal output showing the directory `/home/ga/Videos/broadcast_ready/` has been created or accessed."
+    },
+    {
+      "id": "four_mp4_files_saved",
+      "description": "Verify that four remediated files have been saved with .mp4 extensions.",
+      "points": 20,
+      "visual_evidence": "Look for four files with `.mp4` extensions in the `/home/ga/Videos/broadcast_ready/` directory, keeping their original base filenames."
+    },
+    {
+      "id": "video_specifications_met",
+      "description": "Verify the output files meet the required video specifications.",
+      "points": 25,
+      "visual_evidence": "Look for terminal commands (e.g., `ffmpeg`, `ffprobe`) or media properties windows showing the output files have a resolution of 1920x1080, a framerate of 25fps, use the H.264/AVC codec, and have a video bitrate of at least 4Mbps."
+    },
+    {
+      "id": "audio_specifications_met",
+      "description": "Verify the output files meet the required audio specifications.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output or media properties showing the output files use the AAC codec, are in stereo (2 channels), and have a sample rate of 48kHz (48000Hz)."
+    },
+    {
+      "id": "compliance_report_created",
+      "description": "Verify the compliance audit report file has been created.",
+      "points": 10,
+      "visual_evidence": "Look for a file named `compliance_report.json` in the `/home/ga/Documents/` directory via a file manager or terminal list command."
+    },
+    {
+      "id": "compliance_report_contents_correct",
+      "description": "Verify the compliance report documents the original violations, remediations, and final status.",
+      "points": 20,
+      "visual_evidence": "Look for the `compliance_report.json` file open in a text editor or displayed in the terminal. It must contain JSON data explicitly identifying the specific violations using keywords (e.g., 'framerate', 'resolution', 'mono', 'codec'), the remediation actions taken, and the final status for each of the four files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_transcoding_performed",
+      "description": "Verify the agent actually transcoded the files rather than just renaming the extensions.",
+      "visual_evidence": "Look for evidence of video processing tools being used, such as `ffmpeg` commands with encoding flags (e.g., `-c:v libx264`, `-c:a aac`) or a GUI transcoding application like Handbrake in the activity history."
+    },
+    {
+      "id": "files_inspected_before_reporting",
+      "description": "Verify the agent inspected the original files to determine their violations before writing the report.",
+      "visual_evidence": "Look for terminal commands like `ffprobe`, `mediainfo`, or file properties being checked on the files in `/home/ga/Videos/qc_flagged/`."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "Verify the compliance report was generated based on actual findings and not just a generic template copy-pasted without modification.",
+      "visual_evidence": "Look for the agent typing out the JSON, using a script to generate it, or editing specific values in the JSON file that correspond to the unique violations of the synthetic media files."
+    }
+  ],
+  "privileged_info_for_vlm": "The output files must strictly be 1920x1080, 25fps, AAC stereo at 48kHz. The compliance report must explicitly identify the specific violation using keywords (e.g., 'framerate', 'resolution', 'mono', 'codec'). The media files are synthetic, generated using ffmpeg's 'lavfi' filter."
+}

@@ -1,0 +1,76 @@
+{
+  "dataset_id": "2f79d8e0",
+  "name": "Sketch2Html Code Generation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 205,
+  "description": "This dataset contains pairs of hand-drawn UI sketches and corresponding HTML code. It evaluates a model's ability to generate HTML code from a sketch image and a natural language instruction.",
+  "card_text": "This dataset is designed for sketch-to-HTML code generation. Each sample includes a hand-drawn sketch of a web user interface (image), a natural language instruction asking to generate HTML code, and a target HTML code annotation (provided as a path to a .gui file). The sketches depict various UI layouts with components such as buttons, input fields, and text blocks. The input prompt is consistently 'Generate html code according to the sketch'. The dataset is multimodal, requiring the model to interpret the visual sketch and produce syntactically valid HTML. The annotations are stored externally in .gui files, which are assumed to contain the ground-truth HTML code. This set is open-set and intended for evaluating code generation from visual inputs.",
+  "tasks": [],
+  "domain": "web UI code generation",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "illustration",
+        "semantics": "A hand-drawn sketch of a web UI layout, given as a PNG file path. It depicts the visual structure and components that the generated HTML should follow.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed textual instruction, 'Generate html code according to the sketch', which tells the model to produce HTML code based on the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.html code"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "structured",
+        "semantics": "A file path pointing to a .gui annotation file that contains the ground-truth HTML code corresponding to the sketch. The code is expected to reproduce the UI layout and elements shown in the image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image file (a hand-drawn UI sketch), a text prompt (instruction), and an output field that references an external HTML code annotation file. The image and prompt together form the input, and the answer is the HTML code. The output code is not inline but stored in a separate .gui file, and its path is provided in the output field."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/sketch2html_code_generation/json/annotation.json",
+    "existing_tags": {
+      "task": "sketch-to-html code generation",
+      "type": "comprehension",
+      "skill": "Code Generation(Code Gen)",
+      "domain": "Code",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Code"
+  }
+}

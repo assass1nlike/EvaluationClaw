@@ -1,0 +1,41 @@
+{
+  "id": "edge_security_compliance@1",
+  "version": "1.0",
+  "env_id": "microsoft_edge_env@0.1",
+  "description": "A company security policy document is located at /home/ga/Desktop/security_policy.txt. Microsoft Edge on this workstation currently violates this policy. Reconfigure Edge's settings to ensure full compliance with all requirements in the document. Create a compliance confirmation report at /home/ga/Desktop/compliance_report.txt listing each requirement, the specific setting changed, and its location within the Edge Settings interface.",
+  "difficulty": "hard",
+  "tags": [
+    "edge",
+    "security",
+    "settings",
+    "compliance",
+    "it-admin",
+    "privacy"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/edge_security_compliance/setup_task.sh",
+    "post_task": "/workspace/tasks/edge_security_compliance/export_result.sh"
+  },
+  "metadata": {
+    "policy_path": "/home/ga/Desktop/security_policy.txt",
+    "compliance_report_path": "/home/ga/Desktop/compliance_report.txt",
+    "required_settings": {
+      "safebrowsing_enabled": true,
+      "password_manager_disabled": true,
+      "address_autofill_disabled": true,
+      "search_engine": "DuckDuckGo",
+      "tracking_prevention": "Strict"
+    },
+    "occupation_context": "IT Administrator / Regulatory Affairs Manager - browser security policy enforcement"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_edge_security_compliance"
+    }
+  }
+}

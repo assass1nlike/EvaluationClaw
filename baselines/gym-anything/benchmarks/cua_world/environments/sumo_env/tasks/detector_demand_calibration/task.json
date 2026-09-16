@@ -1,0 +1,36 @@
+{
+  "id": "detector_demand_calibration@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "You are a traffic data analyst at TPER (Trasporto Passeggeri Emilia-Romagna), Bologna's transit and traffic authority. The Acosta corridor's traffic demand model needs recalibration against real detector data. Using the Bologna Acosta scenario at /home/ga/SUMO_Scenarios/bologna_acosta/, generate baseline vehicle counts from the simulation and save them to /home/ga/SUMO_Output/baseline_detector_counts.csv with columns: detector_id, interval_begin, interval_end, vehicle_count. Create a synthetic 'observed' reference dataset by applying a systematic scaling factor to the baseline counts and save it to /home/ga/SUMO_Output/observed_detector_counts.csv using the same format. Calibrate the traffic demand by modifying the route file to match these observed counts, saving the new route file to /home/ga/SUMO_Scenarios/bologna_acosta/acosta_calibrated.rou.xml and the simulation configuration to /home/ga/SUMO_Scenarios/bologna_acosta/run_calibrated.sumocfg. Extract the calibrated simulation counts to /home/ga/SUMO_Output/calibrated_detector_counts.csv. Produce a calibration assessment report at /home/ga/SUMO_Output/calibration_report.csv with columns: detector_id, observed_count, baseline_count, calibrated_count, baseline_geh, calibrated_geh. Document the calibration methodology and GEH statistics in a summary at /home/ga/SUMO_Output/calibration_summary.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/detector_demand_calibration/setup_task.sh",
+    "post_task": "/workspace/tasks/detector_demand_calibration/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Operations Research Analysts (15-2031.00)",
+    "industry": "Transportation and Warehousing",
+    "scenario": "bologna_acosta",
+    "num_detectors": 58,
+    "detector_freq": 1800,
+    "geh_threshold": 5.0,
+    "baseline_counts_path": "/home/ga/SUMO_Output/baseline_detector_counts.csv",
+    "observed_counts_path": "/home/ga/SUMO_Output/observed_detector_counts.csv",
+    "calibrated_counts_path": "/home/ga/SUMO_Output/calibrated_detector_counts.csv",
+    "calibrated_route_path": "/home/ga/SUMO_Scenarios/bologna_acosta/acosta_calibrated.rou.xml",
+    "calibration_report_path": "/home/ga/SUMO_Output/calibration_report.csv",
+    "summary_path": "/home/ga/SUMO_Output/calibration_summary.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_detector_demand_calibration"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_station_distances@1",
+  "task_completion": [
+    {
+      "id": "query_seiscomp_data",
+      "description": "Query the SeisComP database or use CLI tools to find earthquake origin and station coordinates",
+      "points": 15,
+      "visual_evidence": "Terminal showing execution of 'mysql', 'scinv', 'scevtls', or 'scorgls' commands, or Python scripts querying the database to extract latitude/longitude for the Noto Peninsula earthquake and the GE network stations."
+    },
+    {
+      "id": "write_haversine_script",
+      "description": "Write a Python script to calculate the Haversine distances",
+      "points": 20,
+      "visual_evidence": "An open text editor or terminal output showing Python code implementing the Haversine formula (using math.sin, math.cos, math.radians, and R=6371) to calculate distances between the epicenter and stations."
+    },
+    {
+      "id": "create_csv_file",
+      "description": "Create the station_distances.csv file with the correct header",
+      "points": 10,
+      "visual_evidence": "Terminal showing the creation or content (via 'cat', 'head', or editor) of '~/Documents/station_distances.csv' starting with the exact header: 'station,network,latitude,longitude,distance_km'."
+    },
+    {
+      "id": "csv_content_sorted",
+      "description": "Populate the CSV with all 5 GE stations sorted by ascending distance",
+      "points": 25,
+      "visual_evidence": "The contents of 'station_distances.csv' showing 5 rows of data for stations TOLI, SANI, BKB, GSI, and KWP, ordered from top to bottom by the distance_km column (lowest to highest)."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Create the distance_summary.txt report with origin parameters and total stations",
+      "points": 15,
+      "visual_evidence": "Terminal showing the creation or content of '~/Documents/distance_summary.txt' containing the earthquake's latitude, longitude, depth, origin time, and stating that 5 stations were processed."
+    },
+    {
+      "id": "summary_report_extremes",
+      "description": "Include the nearest and farthest stations with their distances in the summary report",
+      "points": 15,
+      "visual_evidence": "The contents of 'distance_summary.txt' explicitly naming TOLI as the nearest station (approx 4381.7 km) and KWP as the farthest station (approx 8397.6 km)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "Verify the agent actually extracted data from the provided SeisComP database or tools.",
+      "visual_evidence": "Look for terminal history showing actual interaction with mysql or sc* CLI tools, rather than hallucinating or hardcoding coordinates from external knowledge."
+    },
+    {
+      "id": "genuine_distance_calculation",
+      "description": "Verify the agent calculated the distances programmatically.",
+      "visual_evidence": "Look for a Python script or calculator usage performing the Haversine math, rather than just echoing pre-calculated or hallucinated distances directly into the files."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the output files were actually saved to the correct paths.",
+      "visual_evidence": "Look for commands like 'ls ~/Documents' showing the files exist, or terminal commands redirecting output (>) to the exact required paths, not just printing to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected CSV path: /home/ga/Documents/station_distances.csv. Expected Summary path: /home/ga/Documents/distance_summary.txt. Earthquake origin: 37.4874 lat, 137.271 lon. Correct distances (\u00b15.0 km tolerance): TOLI (4381.7 km), SANI (4547.5 km), BKB (4775.5 km), GSI (5712.5 km), KWP (8397.6 km). The CSV must be sorted in this exact order (TOLI first, KWP last). The summary report must identify TOLI as nearest and KWP as farthest, and state 5 stations were processed."
+}

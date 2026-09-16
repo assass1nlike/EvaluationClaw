@@ -1,0 +1,53 @@
+{
+  "task_id": "visual_search_slope_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Agent accesses the visual search CSV data.",
+      "points": 10,
+      "visual_evidence": "Look for a script containing the path '~/pebl/data/visual_search_data.csv' (or absolute equivalent) being read, or the file being opened in a spreadsheet/viewer."
+    },
+    {
+      "id": "implement_exclusion_criteria",
+      "description": "Agent implements logic to filter out incorrect trials and exclude participants with low accuracy.",
+      "points": 20,
+      "visual_evidence": "Look for code or spreadsheet formulas filtering 'response_correct' != 0 (or == 1) and calculating accuracy on 'target_present' trials to exclude participants with < 20% (0.2) accuracy."
+    },
+    {
+      "id": "calculate_regression_slopes",
+      "description": "Agent calculates mean RT per set size and performs linear regression to find slopes.",
+      "points": 30,
+      "visual_evidence": "Look for code grouping data by participant, search type, and set_size to find mean RT, followed by a linear regression function (e.g., scipy.stats.linregress, numpy.polyfit, or statsmodels) where mean_RT is predicted by set_size."
+    },
+    {
+      "id": "construct_json_structure",
+      "description": "Agent formats the output data into the requested JSON structure.",
+      "points": 20,
+      "visual_evidence": "Look for code constructing dictionaries/lists with the exact keys: 'participants', 'id', 'slopes_ms_per_item', 'excluded', 'reason', and 'group_mean_slopes'."
+    },
+    {
+      "id": "save_results_file",
+      "description": "Agent saves the final JSON report to the specified path.",
+      "points": 20,
+      "visual_evidence": "Look for code writing the JSON output to '~/pebl/analysis/visual_search_report.json' (or '/home/ga/pebl/analysis/visual_search_report.json'), or terminal commands showing the file was created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "Agent performed actual data analysis rather than hallucinating the output.",
+      "visual_evidence": "Look for a complete script (e.g., Python with pandas/scipy) or genuine use of statistical software, rather than simply echoing a hardcoded JSON string."
+    },
+    {
+      "id": "no_hardcoded_exclusions",
+      "description": "Agent dynamically calculates exclusions rather than hardcoding the known contaminated participant.",
+      "visual_evidence": "Ensure the agent's code calculates the < 20% accuracy threshold to exclude participants, rather than explicitly hardcoding 'sub-99' to be excluded."
+    },
+    {
+      "id": "no_mock_data",
+      "description": "Agent uses the provided dataset rather than creating mock data.",
+      "visual_evidence": "Check that the agent does not generate its own CSV file or mock dataframe to bypass reading the actual dataset."
+    }
+  ],
+  "privileged_info_for_vlm": "The explicitly contaminated participant with 0% target_present accuracy is 'sub-99'. The expected output file path is '/home/ga/pebl/analysis/visual_search_report.json'."
+}

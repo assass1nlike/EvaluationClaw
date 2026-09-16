@@ -1,0 +1,28 @@
+{
+  "id": "compare_fixed_vs_variable_aep@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Compare the performance of Fixed Speed vs Variable Speed wind turbine control strategies using the 'HAWT_Review.wpa' project. For the 'Fixed_Turbine' configuration, use Fixed Rotational Speed at 30 RPM and run simulation 'Sim_Fixed' (3-25 m/s). For the 'Variable_Turbine' configuration, use Variable Rotational Speed (Optimized Cp) with a Design TSR of 7.0 and run simulation 'Sim_Variable' (3-25 m/s). Export the Power vs Wind Speed results, including Rotational Speed columns, for both simulations to /home/ga/Documents/fixed_power_curve.txt and /home/ga/Documents/variable_power_curve.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compare_fixed_vs_variable_aep/setup_task.sh",
+    "post_task": "/workspace/tasks/compare_fixed_vs_variable_aep/export_result.sh"
+  },
+  "metadata": {
+    "fixed_output_path": "/home/ga/Documents/fixed_power_curve.txt",
+    "variable_output_path": "/home/ga/Documents/variable_power_curve.txt",
+    "fixed_rpm_target": 30,
+    "variable_tsr_target": 7.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compare_fixed_vs_variable_aep"
+    }
+  }
+}

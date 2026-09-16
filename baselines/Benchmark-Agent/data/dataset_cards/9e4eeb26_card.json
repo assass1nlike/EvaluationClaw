@@ -1,0 +1,79 @@
+{
+  "dataset_id": "9e4eeb26",
+  "name": "Hubmap Organ Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 132,
+  "description": "The Hubmap Organ Segmentation dataset contains medical images paired with segmentation masks for organ segmentation. Each sample provides an image and a fixed task prompt, and the model is evaluated on producing a segmentation mask for the organ(s) in the image.",
+  "card_text": "This dataset evaluates image segmentation in the medical domain, specifically organ segmentation as part of the HuBMAP effort. Each sample consists of an input image (referenced by image_file), a fixed text prompt 'Hubmap Organ Segmentation.', and an output mask file (map_file). The images are likely microscopy or medical scans, and the masks indicate organ boundaries or tissue regions. The task is to segment the relevant organ structures from the input image. The dataset is small (132 samples) and uses image and text modalities, with the text serving as an instruction rather than a rich question. No multiple-choice options or free-form answers are present; the output is a spatial mask.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "medical imaging",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "The input image file (e.g., hos_0295.png) is the medical image to be segmented. It is the primary visual context for the organ segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed task instruction ('Hubmap Organ Segmentation.') that tells the model to perform organ segmentation on the associated image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "The output mask file (e.g., hos_0295.png) is the segmentation map corresponding to the input image, marking organ regions. It serves as the ground-truth target for the segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image reference, a fixed text instruction, and an output mask reference. The image and instruction together define the segmentation task, and the mask is the target output."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/HubmapOrganSegmentation/hubmap_organ_segmentation.json",
+    "existing_tags": {
+      "task": "Hubmap Organ Segmentation",
+      "type": "image comprehension",
+      "skill": "Medical Segmentation",
+      "domain": "Medicine",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Medicine"
+  }
+}

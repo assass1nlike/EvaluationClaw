@@ -1,0 +1,53 @@
+{
+  "task_id": "viral_churn_risk_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_demodb",
+      "description": "Access the 'demodb' database in OrientDB.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio open in a web browser showing 'demodb' as the active database, or a terminal showing the OrientDB console connected to 'demodb'."
+    },
+    {
+      "id": "create_edge_class",
+      "description": "Create a new edge class named 'FiledTicket'.",
+      "points": 15,
+      "visual_evidence": "Schema view in OrientDB Studio showing 'FiledTicket' listed under Edge classes, or a successful execution of a command like 'CREATE CLASS FiledTicket EXTENDS E'."
+    },
+    {
+      "id": "link_profiles_to_tickets",
+      "description": "Create 'FiledTicket' edges linking 'Profiles' to 'Tickets' where email addresses match.",
+      "points": 25,
+      "visual_evidence": "Execution of a CREATE EDGE command matching out.email to in.email with a success message indicating edges were created, or a graph visualization showing Profile vertices connected to Ticket vertices via FiledTicket edges."
+    },
+    {
+      "id": "mark_churn_risk",
+      "description": "Identify friends of 'High' severity ticket filers and mark them with a boolean property 'ChurnRisk' set to true.",
+      "points": 30,
+      "visual_evidence": "Execution of an UPDATE command setting 'ChurnRisk = true' for the appropriate profiles (traversing HasFriend and FiledTicket edges), or a query result showing the property 'ChurnRisk: true' added to the profile of maria.garcia@example.com."
+    },
+    {
+      "id": "export_json_array",
+      "description": "Export the list of at-risk friend emails as a JSON array to ~/at_risk_users.json.",
+      "points": 20,
+      "visual_evidence": "A terminal command writing the JSON array to ~/at_risk_users.json (e.g., using echo or jq), or a text editor/cat command showing the file contents as a valid JSON array containing the at-risk email(s)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with OrientDB to perform the graph operations rather than faking the output.",
+      "visual_evidence": "Screenshots must show actual OrientDB queries being executed in the Studio interface, console, or via a written script interacting with the database."
+    },
+    {
+      "id": "no_hardcoded_output",
+      "description": "The agent derived the at-risk user from the database queries rather than guessing or hardcoding the final JSON file.",
+      "visual_evidence": "The agent should execute a SELECT query to retrieve the emails of users with ChurnRisk=true before creating the JSON file, rather than blindly typing the target email into the file."
+    },
+    {
+      "id": "correct_json_format",
+      "description": "The output file is formatted as a genuine JSON array.",
+      "visual_evidence": "The contents of ~/at_risk_users.json must be enclosed in square brackets with string values in double quotes (e.g., [\"maria.garcia@example.com\"])."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be located at /home/ga/at_risk_users.json. The correct at-risk user to be marked and exported is 'maria.garcia@example.com' (friend of high-risk user 'john.smith@example.com'). The user 'sophie.martin@example.com' is a friend of a low-risk user and must NOT be marked as ChurnRisk or included in the output."
+}

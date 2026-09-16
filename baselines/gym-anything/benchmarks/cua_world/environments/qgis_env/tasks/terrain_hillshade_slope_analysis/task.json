@@ -1,0 +1,30 @@
+{
+  "id": "terrain_hillshade_slope_analysis@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform terrain analysis on the Digital Elevation Model (DEM) located at /home/ga/GIS_Data/rasters/bay_area_dem.tif. Generate a Hillshade map with an Azimuth of 315 and Altitude of 45, saving the result to /home/ga/GIS_Data/exports/hillshade.tif. Generate a Slope map in degrees and save it to /home/ga/GIS_Data/exports/slope.tif. Save the final QGIS project as terrain_analysis.qgz in /home/ga/GIS_Data/projects/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/terrain_hillshade_slope_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/terrain_hillshade_slope_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_dem": "/home/ga/GIS_Data/rasters/bay_area_dem.tif",
+    "expected_hillshade": "/home/ga/GIS_Data/exports/hillshade.tif",
+    "expected_slope": "/home/ga/GIS_Data/exports/slope.tif",
+    "expected_project": "/home/ga/GIS_Data/projects/terrain_analysis.qgz",
+    "hillshade_azimuth": 315,
+    "hillshade_altitude": 45
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_terrain_hillshade_slope_analysis"
+    }
+  }
+}

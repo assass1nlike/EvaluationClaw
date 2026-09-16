@@ -1,0 +1,31 @@
+{
+  "id": "ground_floor_cafeteria_conversion@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "You are an energy modeler tasked with a tenant improvement project. The office space on the Ground Floor East ('G.E02') is being converted into a high-intensity cafeteria. Update the eQUEST model to reflect this change of use by setting the internal loads for Space 'G.E02' to 1.5 W/ft² for lighting, 8.0 W/ft² for equipment, and 15 ft²/person for occupancy. Additionally, add a kitchen hood exhaust airflow of 2000 CFM for Zone 'G.E02'. Run the annual simulation and save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ground_floor_cafeteria_conversion\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ground_floor_cafeteria_conversion\\export_result.ps1"
+  },
+  "metadata": {
+    "target_space": "G.E02",
+    "target_zone": "G.E02",
+    "expected_lighting_lpd": 1.5,
+    "expected_equip_lpd": 8.0,
+    "expected_area_per_person": 15,
+    "expected_exhaust_flow": 2000,
+    "project_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ground_floor_cafeteria_conversion"
+    }
+  }
+}

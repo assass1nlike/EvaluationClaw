@@ -1,0 +1,38 @@
+{
+  "id": "resolve_merge_conflicts@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "You are a developer on the 'TaskMaster' team. A merge conflict has occurred while trying to merge the 'feature/login-ui' branch into the 'main' branch. Resolve the conflicts in 'app/build.gradle.kts' and 'app/src/main/res/layout/activity_main.xml' by preserving the work from both branches. In 'app/build.gradle.kts', keep both the 'MPAndroidChart' and 'Retrofit' dependencies. In 'activity_main.xml', keep both the 'LineChart' view and the 'LinearLayout' login form. Ensure the project builds successfully and commit the merge resolution.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/resolve_merge_conflicts/setup_task.sh",
+    "post_task": "/workspace/tasks/resolve_merge_conflicts/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/TaskMaster",
+    "required_gradle_strings": [
+      "com.github.PhilJay:MPAndroidChart",
+      "com.squareup.retrofit2:retrofit"
+    ],
+    "required_layout_strings": [
+      "com.github.mikephil.charting.charts.LineChart",
+      "@+id/login_container"
+    ],
+    "forbidden_strings": [
+      "<<<<<<<",
+      "=======",
+      ">>>>>>>"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_resolve_merge_conflicts"
+    }
+  }
+}

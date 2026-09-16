@@ -1,0 +1,35 @@
+{
+  "id": "physics_test_creation@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "A high school physics teacher needs to digitize a handwritten draft of a 'Work and Energy' unit test into a professional exam paper in Apache OpenOffice Writer. Configure the document with 0.75-inch margins on all sides. Include a header with 'Westview Academy' (Centered, Bold, 14pt) and 'Physics 301 - Unit 3: Work and Energy' (Centered, 12pt), followed by a student details area for Name, Date, and Period. Populate the exam with the 4 questions from /home/ga/Documents/exam_draft.txt. For any math formula codes in the draft, create proper mathematical formula objects using the provided syntax. Insert the image /home/ga/Documents/roller_coaster.png under Question 3. Save the final document as /home/ga/Documents/Physics_Unit3_Exam.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/physics_test_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/physics_test_creation/export_result.sh"
+  },
+  "metadata": {
+    "draft_file": "/home/ga/Documents/exam_draft.txt",
+    "image_file": "/home/ga/Documents/roller_coaster.png",
+    "output_file": "/home/ga/Documents/Physics_Unit3_Exam.odt",
+    "expected_formulas": 3,
+    "required_strings": [
+      "Westview Academy",
+      "Physics 301",
+      "Work and Energy",
+      "kinetic energy",
+      "loop-the-loop"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_physics_test"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "stream_filtered_playback_lsl@1",
+  "task_completion": [
+    {
+      "id": "playback_file_loaded",
+      "description": "Verify that the correct playback file is loaded in the OpenBCI GUI.",
+      "points": 15,
+      "visual_evidence": "Look for the filename 'OpenBCI-EEG-S001-EyesOpen.txt' visible in the System Control panel, playback settings, or data source indicator of the OpenBCI GUI."
+    },
+    {
+      "id": "notch_filter_applied",
+      "description": "Verify that the Notch filter is configured to 60 Hz.",
+      "points": 15,
+      "visual_evidence": "Look for '60 Hz' (or '60Hz') selected in the Notch filter dropdown or toggle, typically located in the top control bar or hardware settings panel."
+    },
+    {
+      "id": "bandpass_filter_applied",
+      "description": "Verify that the Bandpass filter is configured to 1-50 Hz.",
+      "points": 15,
+      "visual_evidence": "Look for '1-50 Hz' (or '1-50Hz') selected in the Bandpass (BP) filter dropdown or toggle, typically located near the Notch filter settings."
+    },
+    {
+      "id": "lsl_protocol_selected",
+      "description": "Verify that the Networking widget is active and LSL is selected.",
+      "points": 15,
+      "visual_evidence": "Look for the Networking widget panel in the GUI interface with 'LSL' (Lab Streaming Layer) selected as the active protocol."
+    },
+    {
+      "id": "lsl_stream_name_configured",
+      "description": "Verify that the LSL stream name is set to 'NeuroPrep_Stream'.",
+      "points": 20,
+      "visual_evidence": "Look for the exact text 'NeuroPrep_Stream' entered into the Stream Name text field within the Networking widget."
+    },
+    {
+      "id": "lsl_filtered_data_enabled",
+      "description": "Verify that the LSL stream is configured to transmit filtered data.",
+      "points": 20,
+      "visual_evidence": "Look for a toggle, button, or checkbox in the Networking widget (associated with the TimeSeries data stream) that is set to 'Filtered' or indicates that filters are applied to the outgoing stream."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gui_interaction",
+      "description": "Ensure the screenshot shows the actual OpenBCI GUI application.",
+      "visual_evidence": "The image must be a screenshot of the OpenBCI GUI interface with its distinct dark theme, widgets, and layout, not a text editor, terminal window, or mocked image."
+    },
+    {
+      "id": "active_session_running",
+      "description": "Ensure the GUI is in an active session state, not just the startup configuration screen.",
+      "visual_evidence": "Look for active widgets like the Time Series graph, FFT plot, or the Networking widget being actively displayed, indicating the session has been started."
+    },
+    {
+      "id": "no_text_overlay_spoofing",
+      "description": "Ensure the required settings aren't just typed into a random text field or overlaid on the image.",
+      "visual_evidence": "The stream name 'NeuroPrep_Stream' and filter settings must appear in their proper, respective UI elements within the OpenBCI GUI, not as floating text or terminal outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring the OpenBCI GUI for a specific playback session. The playback file is 'OpenBCI-EEG-S001-EyesOpen.txt' (a real PhysioNet dataset file with 8 channels at 250 Hz). The GUI must have the Notch filter set to 60Hz and the Bandpass filter set to 1-50Hz. In the Networking widget, the protocol must be LSL, the Stream Name must be exactly 'NeuroPrep_Stream', and the transmission must be set to send filtered data (there is a specific toggle/button for 'Filtered' vs 'Unfiltered' in the Networking widget for TimeSeries data)."
+}

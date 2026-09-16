@@ -1,0 +1,53 @@
+{
+  "task_id": "measure_pulmonary_artery@1",
+  "task_completion": [
+    {
+      "id": "markup_exists",
+      "description": "A measurement markup is placed on the chest CT scan.",
+      "points": 15,
+      "visual_evidence": "A line or ruler tool markup is visible on the axial, coronal, or sagittal slice of the CT scan in the medical imaging viewer."
+    },
+    {
+      "id": "correct_anatomy_measured",
+      "description": "The measurement is taken at the main pulmonary artery (MPA) at the level of its bifurcation.",
+      "points": 15,
+      "visual_evidence": "The measurement line is placed across the main pulmonary artery (the large vessel exiting the right ventricle) specifically at or just before it splits into the left and right pulmonary arteries."
+    },
+    {
+      "id": "measurement_file_saved",
+      "description": "The measurement results are saved to the specified JSON file path.",
+      "points": 30,
+      "visual_evidence": "A terminal, file explorer, or text editor shows the file /home/ga/Documents/SlicerData/Exports/pa_measurement.json being created, edited, or successfully saved."
+    },
+    {
+      "id": "valid_measurement_value",
+      "description": "The JSON file contains a valid diameter_mm value.",
+      "points": 25,
+      "visual_evidence": "The contents of the JSON file are visible on screen and contain a 'diameter_mm' field with a numerical value between 14.9 and 45."
+    },
+    {
+      "id": "clinical_interpretation_included",
+      "description": "The JSON file contains a clinical_interpretation field.",
+      "points": 15,
+      "visual_evidence": "The contents of the JSON file are visible on screen and contain a 'clinical_interpretation' field with a string value (e.g., 'normal', 'enlarged')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verified",
+      "description": "The agent used the medical imaging software GUI to perform the measurement.",
+      "visual_evidence": "Screenshots show the agent actively interacting with the 3D Slicer (or similar viewer) interface, placing fiducials or ruler lines, rather than just writing a script or guessing values."
+    },
+    {
+      "id": "measurement_match",
+      "description": "The value saved in the JSON file matches the measurement taken in the imaging software.",
+      "visual_evidence": "The length displayed on the measurement markup in the CT viewer matches the 'diameter_mm' value written to the JSON file."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not copy-paste a hardcoded answer without performing the task.",
+      "visual_evidence": "The agent actually opens the CT scan and performs a measurement before creating the JSON file, rather than immediately creating the JSON file with a fabricated number."
+    }
+  ],
+  "privileged_info_for_vlm": "The valid range for the main pulmonary artery (MPA) diameter is 14.9 mm to 45 mm. The normal range is 19.5 mm to 29 mm. A diameter of 29 mm or greater is considered enlarged. The measurement should be taken at the level of the MPA bifurcation."
+}

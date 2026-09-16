@@ -1,0 +1,65 @@
+{
+  "task_id": "longitudinal_seizure_gee@1",
+  "task_completion": [
+    {
+      "id": "create_analysis_script",
+      "description": "Create or edit the specified R script for the analysis.",
+      "points": 10,
+      "visual_evidence": "An editor (like RStudio, VS Code, or nano/vim) is open showing a file named 'seizure_analysis.R' in the '/home/ga/RProjects/' directory."
+    },
+    {
+      "id": "load_data_and_packages",
+      "description": "Load the required packages and the epilepsy dataset.",
+      "points": 10,
+      "visual_evidence": "The R script contains code to load the 'MASS' and 'geepack' libraries, and references the 'epil' dataset."
+    },
+    {
+      "id": "fit_gee_model",
+      "description": "Fit a Generalized Estimating Equations (GEE) model with the specified parameters.",
+      "points": 20,
+      "visual_evidence": "The R script contains a function call to 'geeglm()' (from geepack) with arguments specifying 'family = poisson' (or similar) and 'corstr = \"exchangeable\"'."
+    },
+    {
+      "id": "fit_nb_model",
+      "description": "Fit a Negative Binomial GLMM or Negative Binomial GEE model.",
+      "points": 20,
+      "visual_evidence": "The R script contains a function call to 'glmmPQL()' (from MASS) with a negative binomial family, OR a GEE function call specifying a negative binomial distribution."
+    },
+    {
+      "id": "generate_model_comparison_csv",
+      "description": "Generate a CSV file containing model results and AIC comparisons.",
+      "points": 15,
+      "visual_evidence": "Code writing to '/home/ga/RProjects/output/seizure_model_comparison.csv' is visible, or the file is seen in a file explorer/terminal listing."
+    },
+    {
+      "id": "generate_diagnostics_csv",
+      "description": "Generate a CSV file containing model diagnostics.",
+      "points": 10,
+      "visual_evidence": "Code writing to '/home/ga/RProjects/output/seizure_diagnostics.csv' is visible, or the file is seen in a file explorer/terminal listing."
+    },
+    {
+      "id": "generate_analysis_plot",
+      "description": "Generate an analysis plot as a PNG file.",
+      "points": 15,
+      "visual_evidence": "Code saving a plot to '/home/ga/RProjects/output/seizure_analysis.png' (e.g., using ggsave or png()) is visible, or the image file is seen in a file explorer/terminal listing."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The R script was actually executed to produce the outputs.",
+      "visual_evidence": "The terminal or R console shows the script being run (e.g., 'Rscript seizure_analysis.R' or execution within RStudio) without syntax errors halting the process."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected results into the CSV files.",
+      "visual_evidence": "The script dynamically extracts model coefficients, AIC values, and diagnostics from the fitted model objects (e.g., using summary(), AIC(), or broom::tidy()) rather than writing static strings/numbers to the CSVs."
+    },
+    {
+      "id": "correct_dataset_usage",
+      "description": "The agent used the actual MASS::epil dataset.",
+      "visual_evidence": "The script uses 'epil' directly from the MASS package and does not mock or manually create a dummy dataset with 59 patients."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires analyzing the 'MASS::epil' dataset (59 patients, 4 periods). The expected deliverables must be saved exactly at: 1) /home/ga/RProjects/output/seizure_model_comparison.csv, 2) /home/ga/RProjects/output/seizure_diagnostics.csv, and 3) /home/ga/RProjects/output/seizure_analysis.png. The script must be at /home/ga/RProjects/seizure_analysis.R. The treatment effect (RR) is expected to be less than 1 (negative coefficient in the models)."
+}

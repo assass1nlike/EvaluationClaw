@@ -1,0 +1,53 @@
+{
+  "task_id": "lecture_speed_variants_study_package@1",
+  "task_completion": [
+    {
+      "id": "verify_output_directory",
+      "description": "Verify the study_package directory was created.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., mkdir, ls) or file manager showing the directory /home/ga/Videos/study_package/ exists."
+    },
+    {
+      "id": "verify_speed_variants",
+      "description": "Verify three speed-adjusted video variants were created.",
+      "points": 30,
+      "visual_evidence": "Terminal (ls) or file manager showing three new video files in the study_package directory, typically named to indicate 0.75x, 1.5x, and 2.0x speeds."
+    },
+    {
+      "id": "verify_keyframes",
+      "description": "Verify seven keyframe snapshots were extracted.",
+      "points": 20,
+      "visual_evidence": "Terminal or file manager showing exactly seven image files (e.g., .jpg or .png) in the study_package directory."
+    },
+    {
+      "id": "verify_mp3_audio",
+      "description": "Verify the MP3 audio version was produced.",
+      "points": 20,
+      "visual_evidence": "Terminal or file manager showing an .mp3 file in the study_package directory."
+    },
+    {
+      "id": "verify_json_manifest",
+      "description": "Verify the structured JSON manifest was generated.",
+      "points": 20,
+      "visual_evidence": "Terminal or file manager showing a .json file in the study_package directory, and ideally a text editor or cat command showing its structured contents."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_transcoding_commands",
+      "description": "Verify the agent actually processed the media using appropriate tools (like ffmpeg) rather than creating dummy files.",
+      "visual_evidence": "Terminal history showing ffmpeg commands with complex arguments for speed adjustment (e.g., atempo, setpts), audio extraction (-b:a 192k), and frame extraction (-vf fps=...)."
+    },
+    {
+      "id": "realistic_file_sizes",
+      "description": "Verify the generated files are actual media files and not empty.",
+      "visual_evidence": "Terminal output (like ls -lh) or file manager showing non-zero file sizes for the generated videos, images, and audio."
+    },
+    {
+      "id": "no_manual_dummy_json",
+      "description": "Verify the JSON manifest contains actual data reflecting the generated files.",
+      "visual_evidence": "If the JSON file is visible, it should contain specific filenames and metadata corresponding to the deliverables, not just placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "The source video is a 90-second clip. The agent must use tools like ffmpeg to create three speed-adjusted videos (0.75x, 1.5x, 2.0x) with pitch-preserved audio, extract exactly seven keyframe images at 15-second intervals, extract a 192kbps MP3 audio file, and create a JSON manifest. All outputs must be saved in /home/ga/Videos/study_package/."
+}

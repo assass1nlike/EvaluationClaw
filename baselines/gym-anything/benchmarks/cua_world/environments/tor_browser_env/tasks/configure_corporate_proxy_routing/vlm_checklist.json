@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_corporate_proxy_routing@1",
+  "task_completion": [
+    {
+      "id": "read_network_briefing",
+      "description": "Verify that the agent opened and read the Network Briefing document.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show a text editor, document viewer, or terminal displaying the contents of '/home/ga/Documents/Network_Briefing.md'."
+    },
+    {
+      "id": "access_tor_configuration",
+      "description": "Verify that the agent accessed the Tor Browser network settings or the torrc configuration file.",
+      "points": 20,
+      "visual_evidence": "Screenshots should show the Tor Browser 'Connection'/'Network Settings' GUI open, or a text editor editing the actual 'torrc' file located within the Tor Browser installation directory."
+    },
+    {
+      "id": "configure_proxy_settings",
+      "description": "Verify that the proxy settings were correctly applied.",
+      "points": 40,
+      "visual_evidence": "Screenshots should show the IP '10.200.5.99' and port '8080' entered into the Tor Browser proxy settings GUI (HTTP/HTTPS), OR the exact line 'HTTPSProxy 10.200.5.99:8080' added to the torrc file."
+    },
+    {
+      "id": "create_torrc_backup",
+      "description": "Verify that a backup of the torrc file was saved to the specified location.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show a file manager, terminal (e.g., cp command), or text editor saving a file named 'torrc_backup.txt' in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "verify_backup_contents",
+      "description": "Verify that the backup file contains the correct proxy directive.",
+      "points": 20,
+      "visual_evidence": "Screenshots should show the contents of '/home/ga/Documents/torrc_backup.txt' being viewed, clearly displaying the 'HTTPSProxy 10.200.5.99:8080' directive among the configuration lines."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "read_briefing_first",
+      "description": "Ensure the agent extracted the proxy details from the briefing document rather than using hardcoded knowledge.",
+      "visual_evidence": "The agent must be seen opening '/home/ga/Documents/Network_Briefing.md' in earlier screenshots before any proxy configuration is typed or applied."
+    },
+    {
+      "id": "authentic_torrc_backup",
+      "description": "Ensure the backup is a genuine copy of the torrc file.",
+      "visual_evidence": "The 'torrc_backup.txt' file should contain standard Tor configuration lines (multiple lines of settings/comments) rather than being a newly created file containing only the proxy directive."
+    },
+    {
+      "id": "actual_tor_configuration",
+      "description": "Ensure the agent actually configured Tor Browser and didn't just create a fake backup file.",
+      "visual_evidence": "The agent must interact with the actual Tor Browser GUI or the real 'torrc' file in the Tor installation path, rather than exclusively creating/editing the backup text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct proxy configuration requires setting an HTTP/HTTPS proxy to IP 10.200.5.99 on port 8080. In the torrc file, this must appear exactly as the directive 'HTTPSProxy 10.200.5.99:8080'. The backup of the configuration must be saved exactly to '/home/ga/Documents/torrc_backup.txt'."
+}

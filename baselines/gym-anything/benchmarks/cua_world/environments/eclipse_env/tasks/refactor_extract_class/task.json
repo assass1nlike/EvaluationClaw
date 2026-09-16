@@ -1,0 +1,33 @@
+{
+  "id": "refactor_extract_class@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the legacy \"God Class\" com.medtech.device.RadiationTreatmentUnit in the 'MedTechCore' medical device project. Extract the network-related fields ipAddress, port, protocol, and connectionTimeout into a new class named NetworkConfiguration, using the field name networkConfig in the original class. Ensure the new class includes getters and setters for the extracted fields. Verify the refactoring by running the included JUnit tests to ensure functionality is preserved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_extract_class/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_extract_class/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/MedTechCore",
+    "original_class": "src/main/java/com/medtech/device/RadiationTreatmentUnit.java",
+    "new_class": "src/main/java/com/medtech/device/NetworkConfiguration.java",
+    "extracted_fields": [
+      "ipAddress",
+      "port",
+      "protocol",
+      "connectionTimeout"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_extract_class"
+    }
+  }
+}

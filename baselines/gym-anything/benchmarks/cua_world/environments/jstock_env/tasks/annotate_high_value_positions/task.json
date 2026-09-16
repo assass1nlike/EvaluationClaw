@@ -1,0 +1,33 @@
+{
+  "id": "annotate_high_value_positions@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Perform a risk audit on the current portfolio in JStock's 'My Portfolio' view. Identify positions where the initial 'Purchase Value' exceeds $16,000.00. For each position meeting this criterion, add the note 'High Value - Review Quarterly' to the 'Comment' field. Positions with a Purchase Value of $16,000.00 or less must remain unchanged.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/annotate_high_value_positions/setup_task.sh",
+    "post_task": "/workspace/tasks/annotate_high_value_positions/export_result.sh"
+  },
+  "metadata": {
+    "target_comment": "High Value - Review Quarterly",
+    "threshold_value": 16000.0,
+    "targets": [
+      "AAPL",
+      "MSFT"
+    ],
+    "non_targets": [
+      "NVDA"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annotate_high_value_positions"
+    }
+  }
+}

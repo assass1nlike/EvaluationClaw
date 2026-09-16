@@ -1,0 +1,29 @@
+{
+  "id": "correct_patient_weight@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "A data entry error was made for patient 'Kevin Peterson' in the Bahmni clinical system. His weight was recorded as 850 kg, but the correct weight should be 85 kg. Log in using the credentials 'superman' / 'Admin123' and correct the erroneous weight observation for Kevin Peterson to 85 kg, ensuring the incorrect value is no longer listed as his current active weight.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_patient_weight/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_patient_weight/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "patient_name": "Kevin Peterson",
+    "erroneous_weight": 850,
+    "correct_weight": 85,
+    "weight_concept_uuid": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_correct_patient_weight"
+    }
+  }
+}

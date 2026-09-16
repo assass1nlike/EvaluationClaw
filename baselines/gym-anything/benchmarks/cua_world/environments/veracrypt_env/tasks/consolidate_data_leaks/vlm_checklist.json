@@ -1,0 +1,59 @@
+{
+  "task_id": "consolidate_data_leaks@1",
+  "task_completion": [
+    {
+      "id": "volume_mounted",
+      "description": "Mount the encrypted VeraCrypt volume.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt GUI showing '/home/ga/Volumes/legal_vault.hc' mounted in one of the drive slots, or a successful terminal command mounting the volume."
+    },
+    {
+      "id": "files_identified",
+      "description": "Identify files containing the classified phrase.",
+      "points": 10,
+      "visual_evidence": "Look for evidence of the agent searching for 'CLASSIFIED INFORMATION NONDISCLOSURE AGREEMENT', such as a file search GUI, a terminal 'grep' command, or the agent opening the sensitive files to inspect their contents."
+    },
+    {
+      "id": "sensitive_files_moved",
+      "description": "Move the sensitive files to the mounted volume.",
+      "points": 30,
+      "visual_evidence": "Look for a file manager window showing 'draft_nda.txt', 'SF312_Copy.txt', and 'agreement_scan.txt' inside the mounted VeraCrypt volume's directory, or terminal 'mv' commands moving these specific files to the mount point."
+    },
+    {
+      "id": "original_files_removed",
+      "description": "Ensure the sensitive files are removed from their original insecure locations.",
+      "points": 20,
+      "visual_evidence": "Look for file manager views of the Desktop, Documents, and Downloads folders showing that the sensitive files are no longer there, or terminal 'mv'/'rm' commands indicating they were removed from their original paths."
+    },
+    {
+      "id": "distractors_untouched",
+      "description": "Do not move or delete distractor files.",
+      "points": 20,
+      "visual_evidence": "Look for the absence of 'shopping_list.txt' and 'meeting_notes.txt' in the mounted volume. Ensure no terminal commands or GUI actions were used to move or delete these distractor files."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Dismount the encrypted volume when finished.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt GUI showing all drive slots as empty/unmounted at the end of the task, or a terminal command like 'veracrypt -d' being executed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_operations",
+      "description": "Verify that the agent actually moved the files using a file manager or valid terminal commands.",
+      "visual_evidence": "Look for genuine file movement actions (drag-and-drop, cut/paste, or 'mv' commands) rather than the agent just echoing success messages or creating empty files with the same names."
+    },
+    {
+      "id": "correct_volume_used",
+      "description": "Verify that the agent interacted with the actual VeraCrypt volume.",
+      "visual_evidence": "Look for interaction with the VeraCrypt application or CLI to mount '/home/ga/Volumes/legal_vault.hc'. The agent should not just create a regular directory named 'legal_vault' to bypass decryption."
+    },
+    {
+      "id": "no_distractor_tampering",
+      "description": "Verify that the agent did not tamper with the distractor files.",
+      "visual_evidence": "Ensure there are no commands or GUI actions that rename, modify, or delete 'shopping_list.txt' or 'meeting_notes.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The encrypted volume is located at '/home/ga/Volumes/legal_vault.hc' with password 'Compliance2024!'. The sensitive files containing the target phrase are '/home/ga/Desktop/draft_nda.txt', '/home/ga/Documents/SF312_Copy.txt', and '/home/ga/Downloads/agreement_scan.txt'. The distractor files that must not be moved or deleted are '/home/ga/Desktop/shopping_list.txt' and '/home/ga/Documents/meeting_notes.txt'."
+}

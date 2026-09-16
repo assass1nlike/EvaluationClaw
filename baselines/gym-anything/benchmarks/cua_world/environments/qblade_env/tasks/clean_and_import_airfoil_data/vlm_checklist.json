@@ -1,0 +1,53 @@
+{
+  "task_id": "clean_and_import_airfoil_data@1",
+  "task_completion": [
+    {
+      "id": "open_raw_csv",
+      "description": "Open or view the raw airfoil CSV file",
+      "points": 10,
+      "visual_evidence": "A text editor, spreadsheet tool, or terminal showing the contents of 'project_falcon_foil.csv', which includes commas and extra columns like Index, Z-values, or Notes."
+    },
+    {
+      "id": "format_to_selig",
+      "description": "Clean and format the data into Selig format",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the cleaned data: the exact text 'Project_Falcon_Foil' on the first line, followed by rows of just X and Y coordinates separated by whitespace. There must be no commas, indices, or Z-values visible in the cleaned data."
+    },
+    {
+      "id": "open_qblade_airfoil_design",
+      "description": "Open QBlade and navigate to the Airfoil Design module",
+      "points": 10,
+      "visual_evidence": "The QBlade application window is open, and the active module or workspace is clearly set to 'Airfoil Design'."
+    },
+    {
+      "id": "import_airfoil_to_qblade",
+      "description": "Import the cleaned airfoil data into QBlade",
+      "points": 30,
+      "visual_evidence": "The airfoil 'Project_Falcon_Foil' is visible in QBlade's airfoil list/manager, or the airfoil shape is successfully plotted in the main graphical view of the Airfoil Design module."
+    },
+    {
+      "id": "save_qblade_project",
+      "description": "Save the QBlade project to the specified path",
+      "points": 30,
+      "visual_evidence": "A 'Save' or 'Save As' dialog box showing the path '~/Documents/projects/' and the filename 'falcon_design.wpa', or the QBlade window title bar displaying 'falcon_design.wpa' after saving."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qblade_gui_used",
+      "description": "Verify the agent used the QBlade GUI to import and save the project",
+      "visual_evidence": "Screenshots should show actual interaction with the QBlade graphical interface (menus, import dialogs, save dialogs), not just terminal commands attempting to mock or touch a .wpa file."
+    },
+    {
+      "id": "genuine_data_conversion",
+      "description": "Verify the imported data forms a valid airfoil",
+      "visual_evidence": "The plot in QBlade should show a recognizable, continuous airfoil curve (S809 profile), indicating the 54 coordinate points were properly parsed, rather than a broken shape or a few dummy points."
+    },
+    {
+      "id": "no_wpa_text_spoofing",
+      "description": "Verify the agent did not attempt to manually write text into the .wpa file",
+      "visual_evidence": "The agent should not be seen using a text editor (like nano or vim) or echo commands to write plain text directly into 'falcon_design.wpa', as it is a proprietary project file format."
+    }
+  ],
+  "privileged_info_for_vlm": "The input CSV is located at /home/ga/Documents/incoming/project_falcon_foil.csv. The cleaned file must strictly follow Selig format: the exact name 'Project_Falcon_Foil' on the first line, followed by X and Y coordinates separated by whitespace, with absolutely no commas (,). The final QBlade project must be saved to /home/ga/Documents/projects/falcon_design.wpa."
+}

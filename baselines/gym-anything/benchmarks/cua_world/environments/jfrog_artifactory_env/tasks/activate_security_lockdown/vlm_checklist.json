@@ -1,0 +1,53 @@
+{
+  "task_id": "activate_security_lockdown@1",
+  "task_completion": [
+    {
+      "id": "login_admin",
+      "description": "Verify the agent logged into JFrog Artifactory as 'admin'.",
+      "points": 10,
+      "visual_evidence": "The JFrog Artifactory web interface is visible in a browser, and the UI indicates the 'admin' user is logged in (typically visible in the top-right corner of the screen)."
+    },
+    {
+      "id": "navigate_administration",
+      "description": "Verify the agent navigated to the Administration settings.",
+      "points": 10,
+      "visual_evidence": "The Administration module is open, typically indicated by a highlighted gear icon in the left sidebar or an 'Administration' page header."
+    },
+    {
+      "id": "enable_offline_mode",
+      "description": "Verify 'Offline Mode' is enabled.",
+      "points": 25,
+      "visual_evidence": "In the Artifactory settings, the 'Offline Mode' checkbox or toggle is checked or switched to the 'on' position."
+    },
+    {
+      "id": "disable_anonymous_access",
+      "description": "Verify 'Anonymous Access' is disabled.",
+      "points": 25,
+      "visual_evidence": "In the Security settings, the 'Allow Anonymous Access' checkbox or toggle is unchecked or switched to the 'off' position."
+    },
+    {
+      "id": "set_system_message",
+      "description": "Verify the System Message is set to the required alert text.",
+      "points": 30,
+      "visual_evidence": "The System Message text box contains exactly 'SECURITY ALERT: System in Offline Lockdown' and the message display is enabled."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Verify the agent used the web browser GUI to make changes.",
+      "visual_evidence": "Screenshots should show interaction with the JFrog Artifactory web interface in a browser, not terminal commands (like curl) or scripts."
+    },
+    {
+      "id": "actual_application",
+      "description": "Verify the agent interacted with the real Artifactory instance.",
+      "visual_evidence": "The browser address bar should show the URL http://localhost:8082 or a similar local address, rather than a text editor or unrelated site."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Verify changes were made via the standard UI forms.",
+      "visual_evidence": "There should be no browser developer tools (Inspect Element) open to fake the UI changes."
+    }
+  ],
+  "privileged_info_for_vlm": "The Artifactory instance is located at http://localhost:8082. The agent must log in as 'admin' with password 'password'. The required configuration changes are: Offline Mode must be enabled, Anonymous Access must be disabled, and the System Message must be exactly 'SECURITY ALERT: System in Offline Lockdown'."
+}

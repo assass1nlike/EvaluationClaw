@@ -1,0 +1,53 @@
+{
+  "task_id": "account_dedup_consolidation@1",
+  "task_completion": [
+    {
+      "id": "boeing_accounts_merged",
+      "description": "Verify that the duplicate Boeing accounts have been consolidated into a single canonical account.",
+      "points": 20,
+      "visual_evidence": "In the SuiteCRM Accounts list view or search results, there should be exactly one 'Boeing' account remaining. Evidence of the agent using the 'Merge' screen for Boeing accounts is also valid."
+    },
+    {
+      "id": "ge_accounts_merged",
+      "description": "Verify that the duplicate GE accounts have been consolidated into a single canonical account.",
+      "points": 20,
+      "visual_evidence": "In the SuiteCRM Accounts list view or search results, there should be exactly one 'GE' (or General Electric) account remaining. Evidence of the agent using the 'Merge' screen for GE accounts is also valid."
+    },
+    {
+      "id": "contacts_preserved",
+      "description": "Verify that the contacts associated with the duplicates were preserved and reassigned to the canonical accounts.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Contacts list view or the Account detail subpanels should show the contacts 'Mark Richardson', 'Sandra Mitchell', and 'Jason Park' still exist and are linked to the remaining canonical accounts."
+    },
+    {
+      "id": "opps_and_cases_preserved",
+      "description": "Verify that the opportunities and cases associated with the duplicates were preserved and reassigned to the canonical accounts.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Opportunities/Cases list views or Account detail subpanels should show the 2 opportunities and the case ('Turbine blade inspection data gap') still exist and are linked to the remaining canonical accounts."
+    },
+    {
+      "id": "contamination_account_untouched",
+      "description": "Verify that the contamination account was not incorrectly merged or deleted.",
+      "points": 20,
+      "visual_evidence": "In the SuiteCRM Accounts list view, 'Johnson Controls International' must still be visible as a distinct, separate account."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Verify the agent used the SuiteCRM web interface to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with the SuiteCRM web application in a browser, not terminal commands, API calls, or direct database manipulation."
+    },
+    {
+      "id": "used_merge_feature",
+      "description": "Verify the agent used the proper merge functionality rather than just deleting records.",
+      "visual_evidence": "Screenshots should show the agent navigating to the 'Find Duplicates' or 'Merge' screens in SuiteCRM, rather than simply selecting duplicate accounts and clicking 'Delete' (which would orphan or delete related records)."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Verify the agent did not use browser developer tools to fake the results.",
+      "visual_evidence": "There should be no browser developer tools (Inspect Element) open to modify the DOM text of the Accounts list."
+    }
+  ],
+  "privileged_info_for_vlm": "The CRM contains 4 duplicate accounts to merge: 2 for Boeing and 2 for GE. There are exactly 3 contacts (Mark Richardson, Sandra Mitchell, Jason Park), 2 opportunities, and 1 case ('Turbine blade inspection data gap') that must be preserved and linked to the canonical Boeing and GE accounts. 'Johnson Controls International' is a contamination account that must NOT be merged."
+}

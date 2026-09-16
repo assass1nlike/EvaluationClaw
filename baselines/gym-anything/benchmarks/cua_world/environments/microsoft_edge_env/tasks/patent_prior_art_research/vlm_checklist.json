@@ -1,0 +1,59 @@
+{
+  "task_id": "patent_prior_art_research@1",
+  "task_completion": [
+    {
+      "id": "browser_patent_search",
+      "description": "Verifies the agent navigated to a patent database to research the target patent.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser open to a patent database (e.g., Google Patents) showing US Patent 5,255,452 ('Method and means for creating anti-gravity illusion')."
+    },
+    {
+      "id": "patent_pdf_saved",
+      "description": "Verifies the full patent PDF was saved to the expected directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager showing 'US5255452.pdf' inside the '/home/ga/Documents/Patents/' directory, a browser download completion dialog showing this path, or a PDF viewer open with this file."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "Verifies the summary text file was created at the expected path.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (e.g., gedit, nano, mousepad) open with the file path '/home/ga/Documents/Patents/patent_summary.txt' or the file visible in the file manager."
+    },
+    {
+      "id": "inventor_name_correct",
+      "description": "Verifies the summary file contains the correct first listed inventor.",
+      "points": 20,
+      "visual_evidence": "Look at the text written inside 'patent_summary.txt' and verify it contains the name 'Michael J. Jackson'."
+    },
+    {
+      "id": "filing_date_correct",
+      "description": "Verifies the summary file contains the correct filing date in YYYY-MM-DD format.",
+      "points": 20,
+      "visual_evidence": "Look at the text written inside 'patent_summary.txt' and verify it contains the date '1992-06-29'."
+    },
+    {
+      "id": "cited_patent_correct",
+      "description": "Verifies the summary file contains the correct patent number for the cited document.",
+      "points": 20,
+      "visual_evidence": "Look at the text written inside 'patent_summary.txt' and verify it contains the patent number '1059284' or 'US1059284A'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "Verifies the agent used a real web browser to search for the patent information.",
+      "visual_evidence": "Look for a GUI web browser (like Chromium or Firefox) being actively used to search for the patent and its citations, rather than the agent hallucinating the information or using curl/python scripts exclusively."
+    },
+    {
+      "id": "genuine_pdf_download",
+      "description": "Verifies the agent actually downloaded or printed the patent to PDF from the source.",
+      "visual_evidence": "Look for interaction with a 'Download PDF' button on the patent website or a 'Print to PDF' dialog, rather than the agent creating a blank or dummy PDF file via terminal commands."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verifies the agent didn't just type the answers from prior knowledge without looking them up.",
+      "visual_evidence": "Look for evidence that the agent actually viewed the filing date, inventor list, and the specific citation ('Ladder-gripping attachment for shoes') on the patent page before typing them into the summary file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Patent: US5255452. First Inventor: Michael J. Jackson. Filing Date: 1992-06-29. Cited Document ('Ladder-gripping attachment for shoes') Patent Number: 1059284 (or US1059284A). Expected PDF path: /home/ga/Documents/Patents/US5255452.pdf. Expected summary path: /home/ga/Documents/Patents/patent_summary.txt."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_concurrency_race_condition@1",
+  "task_completion": [
+    {
+      "id": "open_program_cs",
+      "description": "Open Program.cs in Visual Studio 2022",
+      "points": 10,
+      "visual_evidence": "Visual Studio 2022 is the active window, and 'Program.cs' is open in the main code editor tab."
+    },
+    {
+      "id": "retain_parallel_foreach",
+      "description": "Retain the Parallel.ForEach loop structure",
+      "points": 10,
+      "visual_evidence": "The code editor shows that the 'Parallel.ForEach' loop is still present in Program.cs and has not been replaced by a standard sequential 'foreach' loop."
+    },
+    {
+      "id": "apply_synchronization",
+      "description": "Apply synchronization to shared-state updates",
+      "points": 40,
+      "visual_evidence": "The code editor shows synchronization constructs (such as a 'lock' statement block, 'Interlocked' methods, or usage of a thread-safe collection like 'ConcurrentDictionary') specifically wrapping or handling the updates to 'totalFare' and 'fareByPaymentType' inside the Parallel.ForEach loop."
+    },
+    {
+      "id": "successful_build_and_run",
+      "description": "Application builds and runs without errors",
+      "points": 20,
+      "visual_evidence": "The Visual Studio Output window shows 'Build succeeded' (or 0 failed), or a console window is visible showing the application executing and completing without throwing unhandled exceptions."
+    },
+    {
+      "id": "results_json_generated",
+      "description": "Deterministic totals produced in out/results.json",
+      "points": 20,
+      "visual_evidence": "The file 'results.json' (located in the 'out' folder) is visible in the Solution Explorer, or its contents are displayed in the editor showing the aggregated JSON data (total fare and fares by payment type)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "visual_studio_used",
+      "description": "The agent used Visual Studio 2022 to edit the code",
+      "visual_evidence": "Code modifications to Program.cs are made within the Visual Studio 2022 IDE, not in a separate text editor like Notepad or VS Code."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "The agent actually compiled and ran the C# application",
+      "visual_evidence": "There is evidence of the build process or execution (e.g., Visual Studio build logs, diagnostic tools running, or a terminal executing the compiled .exe/dotnet run), rather than the agent just manually creating the output file."
+    },
+    {
+      "id": "no_hardcoded_output",
+      "description": "The agent did not manually hardcode the JSON output",
+      "visual_evidence": "The agent does not manually type the JSON contents into 'out/results.json' or use a separate script (e.g., Python) to bypass fixing the C# concurrency issue."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

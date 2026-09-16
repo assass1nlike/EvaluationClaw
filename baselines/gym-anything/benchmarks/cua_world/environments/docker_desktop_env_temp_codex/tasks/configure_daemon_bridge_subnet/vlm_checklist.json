@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_daemon_bridge_subnet@1",
+  "task_completion": [
+    {
+      "id": "open_docker_settings",
+      "description": "Open Docker Desktop settings",
+      "points": 10,
+      "visual_evidence": "The Docker Desktop application is open and the Settings (gear icon) window is visible."
+    },
+    {
+      "id": "navigate_docker_engine",
+      "description": "Navigate to the Docker Engine configuration",
+      "points": 10,
+      "visual_evidence": "The 'Docker Engine' tab is selected in the left sidebar of the Docker Desktop settings window."
+    },
+    {
+      "id": "add_bip_key",
+      "description": "Add the 'bip' configuration key",
+      "points": 20,
+      "visual_evidence": "The JSON configuration editor in the Docker Engine settings shows the 'bip' key added to the JSON object."
+    },
+    {
+      "id": "set_bip_value",
+      "description": "Set the 'bip' value to the required subnet gateway",
+      "points": 30,
+      "visual_evidence": "The 'bip' key in the JSON editor is assigned the exact string value '192.168.200.1/24'."
+    },
+    {
+      "id": "apply_and_restart",
+      "description": "Apply the configuration changes",
+      "points": 10,
+      "visual_evidence": "The 'Apply & restart' button is clicked, or there is a visual indicator that Docker Desktop is restarting/applying changes."
+    },
+    {
+      "id": "verify_bridge_network",
+      "description": "Verify the engine reflects the new bridge subnet",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the output of a network inspection (e.g., 'docker network inspect bridge'), clearly displaying the Subnet as '192.168.200.0/24' and Gateway as '192.168.200.1'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_desktop",
+      "description": "Agent used the actual Docker Desktop application",
+      "visual_evidence": "The screenshots show the genuine Docker Desktop GUI being used to edit the configuration, rather than a generic text editor mocking the file."
+    },
+    {
+      "id": "no_terminal_echo_spoofing",
+      "description": "Agent did not spoof the verification output",
+      "visual_evidence": "The terminal output verifying the network configuration comes from a genuine Docker command (like 'docker network inspect bridge'), not from an 'echo' command printing the expected text."
+    },
+    {
+      "id": "valid_json_syntax",
+      "description": "Agent maintained valid JSON syntax",
+      "visual_evidence": "The edited JSON in the Docker Engine configuration has proper formatting (quotes, commas, braces) and does not show any red syntax error highlights that would prevent Docker from starting."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected subnet for the default bridge network is '192.168.200.0/24'. The expected gateway is '192.168.200.1'. The required configuration key to set in the Docker Engine JSON is 'bip', which must be set to '192.168.200.1/24'."
+}

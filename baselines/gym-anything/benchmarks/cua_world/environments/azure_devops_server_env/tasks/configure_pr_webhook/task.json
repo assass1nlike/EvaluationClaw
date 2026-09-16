@@ -1,0 +1,29 @@
+{
+  "id": "configure_pr_webhook@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Configure a new Service Hook in the TailwindTraders project to trigger a compliance scan. Create a Web Hook subscription for the 'Pull request created' event in the 'TailwindTraders' repository (specifically this repository, not 'All'). The hook should target http://localhost:9090/api/compliance-scan using Basic Authentication with username 'compliance_bot' and password 'ScanMyCode2024!'. Note: The target service is offline, so save the subscription even if the connection test fails.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_pr_webhook\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_pr_webhook\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_url": "http://localhost:9090/api/compliance-scan",
+    "expected_event": "git.pullrequest.created",
+    "expected_username": "compliance_bot",
+    "project_name": "TailwindTraders",
+    "repo_name": "TailwindTraders"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_pr_webhook"
+    }
+  }
+}

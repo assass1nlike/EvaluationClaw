@@ -1,0 +1,53 @@
+{
+  "task_id": "agile_eo_target_accessibility@1",
+  "task_completion": [
+    {
+      "id": "read_targets",
+      "description": "Read the target coordinates from the provided text file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displaying the contents of ~/Desktop/eo_targets.txt, showing coordinates for Washington DC, Beijing, and Moscow."
+    },
+    {
+      "id": "configure_orbit_and_targets",
+      "description": "Configure the spacecraft orbit and ground targets in GMAT.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI or a script editor showing a Spacecraft configured with a 500 km sun-synchronous orbit, and GroundStations or targets created for Washington DC, Beijing, and Moscow."
+    },
+    {
+      "id": "set_elevation_or_fov",
+      "description": "Apply the calculated minimum elevation angle or corresponding field of view constraint.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI or script showing the minimum elevation angle set to approximately 57.37 degrees (between 56.0 and 58.5) for the ground stations, or a ConicalFOV sensor configured with a 60-degree full cone angle."
+    },
+    {
+      "id": "save_script",
+      "description": "Save the GMAT simulation script to the required directory.",
+      "points": 20,
+      "visual_evidence": "File manager, terminal, or GMAT GUI showing the script being saved as 'agile_targeting.script' in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Create the accessibility summary text file with the required pass counts.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing 'accessibility_summary.txt' in ~/GMAT_output/ containing the names Washington DC, Beijing, and Moscow, each with an associated number representing the total valid passes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "simulation_execution",
+      "description": "Verify that the agent actually ran the GMAT simulation to determine the pass counts.",
+      "visual_evidence": "Look for the GMAT run/animation window, a message window showing run completion, or terminal output indicating GMAT was executed, rather than the agent just guessing the numbers."
+    },
+    {
+      "id": "genuine_script_creation",
+      "description": "Verify the agent actively configured the mission rather than copying a pre-made solution.",
+      "visual_evidence": "Look for the agent interacting with GMAT's GUI dialogs or typing out the script in an editor."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "Verify the results in the summary file come from actual simulation outputs.",
+      "visual_evidence": "Look for GMAT output reports or ContactLocator text files being viewed by the agent to extract the pass counts before writing them to the summary file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target coordinates are located in /home/ga/Desktop/eo_targets.txt. The calculated minimum elevation angle should be approximately 57.37 degrees (acceptable range 56.0 to 58.5 degrees), or alternatively, a full-cone FOV of 60 degrees (acceptable range 59.9 to 60.1 degrees) should be used. The final script must be saved to /home/ga/GMAT_output/agile_targeting.script and the summary report to /home/ga/GMAT_output/accessibility_summary.txt."
+}

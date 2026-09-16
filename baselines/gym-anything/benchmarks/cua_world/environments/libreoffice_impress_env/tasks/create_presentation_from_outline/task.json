@@ -1,0 +1,50 @@
+{
+  "id": "create_presentation_from_outline@1",
+  "version": "1.0",
+  "env_id": "libreoffice_impress_env@0.1",
+  "description": "Create a 4-slide presentation in LibreOffice Impress based on the text outline provided in /home/ga/Documents/TaskData/ethics_lecture_outline.txt. Ensure the structure results in 4 distinct slides with top-level titles and indented bullet points. Save the presentation to /home/ga/Documents/Presentations/ethics_lecture.odp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_presentation_from_outline/setup_task.sh",
+    "post_task": "/workspace/tasks/create_presentation_from_outline/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/Documents/TaskData/ethics_lecture_outline.txt",
+    "expected_output_path": "/home/ga/Documents/Presentations/ethics_lecture.odp",
+    "expected_slide_count": 4,
+    "expected_titles": [
+      "Foundations of Moral Philosophy",
+      "Utilitarianism",
+      "Deontology",
+      "Virtue Ethics"
+    ],
+    "content_keywords": {
+      "Utilitarianism": [
+        "Bentham",
+        "Mill",
+        "Happiness"
+      ],
+      "Deontology": [
+        "Kant",
+        "Imperative",
+        "Duty"
+      ],
+      "Virtue Ethics": [
+        "Aristotle",
+        "Eudaimonia",
+        "Golden Mean"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_presentation_from_outline"
+    }
+  }
+}

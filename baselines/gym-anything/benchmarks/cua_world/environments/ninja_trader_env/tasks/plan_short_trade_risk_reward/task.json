@@ -1,0 +1,31 @@
+{
+  "id": "plan_short_trade_risk_reward@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "A swing trader needs to map out a potential short trade on SPY using NinjaTrader 8's planning tools. On a Daily chart for SPY, create a short position setup using the Risk-Reward tool with an Entry Price of 450.00, a Stop Loss Price of 455.00, and a Profit Target Price of 435.00. Save the workspace to persist the drawing.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\plan_short_trade_risk_reward\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\plan_short_trade_risk_reward\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "entry_price": 450.0,
+    "stop_price": 455.0,
+    "target_price": 435.0,
+    "tolerance": 0.5,
+    "tool_name": "RiskReward",
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_plan_short_trade"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "bayesian_sequential_sleep@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Using the 'Sleep' dataset (Student, 1908) already loaded in JASP, perform a Bayesian Independent Samples T-Test. Use 'extra' as the dependent variable and 'group' as the grouping variable. Configure the analysis with a Normal prior distribution (Mean = 0, Standard Deviation = 1). Include sequential analysis plots and descriptive statistics in the output. Save the analysis to /home/ga/Documents/JASP/Sleep_Sequential_Bayes.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bayesian_sequential_sleep/setup_task.sh",
+    "post_task": "/workspace/tasks/bayesian_sequential_sleep/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/Sleep_Sequential_Bayes.jasp",
+    "analysis_type": "TTestBayesianIndependentSamples",
+    "required_settings": {
+      "priorFamily": "Normal",
+      "sequentialAnalysis": true,
+      "descriptives": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bayesian_sequential_sleep"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "analyze_aerodynamic_braking_effectiveness@1",
+  "task_completion": [
+    {
+      "id": "load_sample_project",
+      "description": "Load the 'NREL 5MW Reference' project in QBlade",
+      "points": 10,
+      "visual_evidence": "QBlade GUI is open with the 'NREL 5MW Reference' project visible in the project tree, workspace, or title bar."
+    },
+    {
+      "id": "configure_bem_parameters",
+      "description": "Configure the Rotor BEM Simulation parameters",
+      "points": 15,
+      "visual_evidence": "A simulation setup window or panel in QBlade showing the TSR range configured from 0 to 20 with a step size of 0.5."
+    },
+    {
+      "id": "run_0deg_pitch_simulation",
+      "description": "Run the BEM simulation for 0\u00b0 Pitch",
+      "points": 15,
+      "visual_evidence": "Simulation results (graphs showing Cp vs TSR curves or data tables) explicitly indicating data for a 0\u00b0 pitch angle."
+    },
+    {
+      "id": "run_5deg_pitch_simulation",
+      "description": "Run the BEM simulation for 5\u00b0 Pitch",
+      "points": 15,
+      "visual_evidence": "Simulation results (graphs showing Cp vs TSR curves or data tables) explicitly indicating data for a 5\u00b0 pitch angle."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the project as braking_analysis.wpa",
+      "points": 15,
+      "visual_evidence": "The QBlade title bar, a 'Save As' dialog, or a file explorer window showing the project saved as 'braking_analysis.wpa' in the ~/Documents/projects/ directory."
+    },
+    {
+      "id": "create_report",
+      "description": "Create the runaway_report.txt with the correct format and values",
+      "points": 30,
+      "visual_evidence": "A text editor open showing a file named 'runaway_report.txt' in ~/Documents/projects/ containing exactly the lines 'Runaway_TSR_0deg: [Value]' and 'Runaway_TSR_5deg: [Value]'. The values should be numbers (expected ~11.0-16.0 for 0deg and ~7.0-12.0 for 5deg)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qblade_gui",
+      "description": "The agent actually interacted with the QBlade graphical interface to perform the analysis.",
+      "visual_evidence": "Screenshots must show the QBlade application open and being interacted with (e.g., clicking menus, setting parameters), rather than just using terminal commands or writing a script to bypass the UI."
+    },
+    {
+      "id": "actual_simulation_results",
+      "description": "The agent generated genuine simulation data rather than empty workspaces.",
+      "visual_evidence": "The QBlade interface should display actual plotted curves or populated data tables for the Cp vs TSR data."
+    },
+    {
+      "id": "consistent_report_values",
+      "description": "The values in the report match the simulation results.",
+      "visual_evidence": "The Runaway TSR values typed into the text report should logically match the zero-crossing points (where Cp = 0) visible in the QBlade plots or tables."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses QBlade's Rotor BEM submodule to analyze the NREL 5MW Reference turbine. The 'Runaway TSR' is the Tip Speed Ratio where the Power Coefficient (Cp) drops to 0. Expected Runaway TSR values are approximately 11.0-16.0 for 0\u00b0 pitch, and 7.0-12.0 for 5\u00b0 pitch. Higher pitch angles shift the Cp curve, requiring lower TSR values for zero power generation."
+}

@@ -1,0 +1,54 @@
+{
+  "task_id": "quilt_fabric_calculator@1",
+  "task_completion": [
+    {
+      "id": "fabric_data_loaded",
+      "description": "The agent opens the initial fabric data in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open, displaying rows of fabric data including 'Blue Floral' and 'Red Stripe' with columns for Blocks, Width, Height, and Directional flag."
+    },
+    {
+      "id": "square_inches_calculated",
+      "description": "The agent calculates the total square inches for each fabric.",
+      "points": 15,
+      "visual_evidence": "A column (e.g., Column F) shows the product of Blocks, Width, and Height. Look for the value 768 for Blue Floral and 480 for Red Stripe. The formula bar may show a multiplication formula like =B2*C2*D2."
+    },
+    {
+      "id": "conditional_yardage_calculated",
+      "description": "The agent calculates the raw yards needed using conditional logic for directional fabrics.",
+      "points": 25,
+      "visual_evidence": "A column (e.g., Column G) shows the raw yardage. For non-directional Blue Floral, it should be approximately 0.508 (Square Inches / 1512). For directional Red Stripe, it should be approximately 1.333 (Blocks * Height / 36). The formula bar should ideally show an IF statement handling this logic."
+    },
+    {
+      "id": "safety_margin_calculated",
+      "description": "The agent calculates a 10% safety margin on the raw yardage.",
+      "points": 15,
+      "visual_evidence": "A column (e.g., Column H) shows the raw yardage increased by 10%. For Blue Floral, it should be approximately 0.559. For Red Stripe, it should be approximately 1.467."
+    },
+    {
+      "id": "retail_rounding_calculated",
+      "description": "The agent rounds the safety margin up to the nearest 1/8 yard (0.125 increments).",
+      "points": 20,
+      "visual_evidence": "A column (e.g., Column I) shows the final purchase yards. For Blue Floral, it should be exactly 0.625. For Red Stripe, it should be exactly 1.5. The formula bar may show a CEILING or ROUNDUP function with 0.125."
+    },
+    {
+      "id": "file_saved_as_xlsx",
+      "description": "The agent saves the completed calculator as fabric_calculator.xlsx in the Documents folder.",
+      "points": 15,
+      "visual_evidence": "The spreadsheet title bar shows 'fabric_calculator.xlsx' or a 'Save As' dialog is visible saving the file to the /home/ga/Documents/ directory with the .xlsx extension."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent used a GUI spreadsheet application to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with a spreadsheet GUI (like LibreOffice Calc), not just terminal commands or a Python script generating the file."
+    },
+    {
+      "id": "formulas_visible",
+      "description": "The agent used actual spreadsheet formulas rather than hardcoding the expected answers.",
+      "visual_evidence": "The formula bar in the spreadsheet GUI should display formulas (e.g., =B2*C2*D2, =IF(...), =CEILING(...)) when cells are selected, rather than plain numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a fabric calculator with specific formulas. Expected values for verification:\n1. Blue Floral (12 blocks, 8x8, non-directional): Square Inches = 768; Raw Yards = 0.5079 (768/1512); Safety Margin = 0.559 (0.5079 * 1.1); Purchase Yards = 0.625 (rounded up to nearest 0.125).\n2. Red Stripe (8 blocks, 10x6, directional): Square Inches = 480; Raw Yards = 1.333 (8 blocks * 6 height / 36); Safety Margin = 1.467 (1.333 * 1.1); Purchase Yards = 1.5 (rounded up to nearest 0.125).\nFormulas expected:\n- Square Inches: Blocks * Width * Height\n- Raw Yards: IF Directional='YES', then (Blocks * Height / 36), else (Square Inches / 1512)\n- Safety Margin: Raw Yards * 1.1\n- Purchase Yards: CEILING(Safety Margin, 0.125)\nThe final file must be saved as /home/ga/Documents/fabric_calculator.xlsx."
+}

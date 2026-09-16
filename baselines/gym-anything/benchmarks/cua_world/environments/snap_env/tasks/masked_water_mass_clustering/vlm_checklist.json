@@ -1,0 +1,59 @@
+{
+  "task_id": "masked_water_mass_clustering@1",
+  "task_completion": [
+    {
+      "id": "load_image",
+      "description": "Agent loaded the Landsat multispectral image into ESA SNAP Desktop.",
+      "points": 10,
+      "visual_evidence": "The Product Explorer panel in SNAP shows the loaded 'landsat_multispectral' product."
+    },
+    {
+      "id": "create_water_mask",
+      "description": "Agent created a binary water mask.",
+      "points": 15,
+      "visual_evidence": "The Band Maths dialog, Mask Manager, or Product Explorer shows the creation or existence of a new mask or band specifically for water."
+    },
+    {
+      "id": "create_masked_bands",
+      "description": "Agent created at least two masked spectral bands where land pixels are assigned NaN values.",
+      "points": 25,
+      "visual_evidence": "The Band Maths dialog shows an expression with conditional logic (e.g., 'if water_mask then band else NaN') being applied to create new virtual bands, or the Product Explorer shows at least two newly created masked bands."
+    },
+    {
+      "id": "execute_kmeans_clustering",
+      "description": "Agent executed a K-Means Cluster Analysis using only the masked bands as the source.",
+      "points": 20,
+      "visual_evidence": "The K-Means Cluster Analysis dialog is open, and the 'Processing Parameters' or 'Source Bands' tab shows ONLY the newly created masked bands selected for clustering."
+    },
+    {
+      "id": "save_dimap_output",
+      "description": "Agent saved the clustered product in BEAM-DIMAP format to the specified export path.",
+      "points": 15,
+      "visual_evidence": "A Save or Export dialog shows the path '/home/ga/snap_exports/water_clusters.dim' with the BEAM-DIMAP format selected, or the Product Explorer shows the new 'water_clusters' product."
+    },
+    {
+      "id": "export_geotiff_output",
+      "description": "Agent exported the clustered product as a GeoTIFF to the specified export path.",
+      "points": 15,
+      "visual_evidence": "An Export dialog shows the path '/home/ga/snap_exports/water_clusters.tif' with the GeoTIFF format selected, or a file manager window shows the exported '.tif' file in the snap_exports folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the ESA SNAP Desktop GUI to perform the tasks.",
+      "visual_evidence": "Screenshots show active interaction with the SNAP Desktop interface (menus, dialogs, Product Explorer) rather than executing SNAP GPT commands in a terminal."
+    },
+    {
+      "id": "genuine_processing",
+      "description": "Agent genuinely ran the K-Means clustering tool.",
+      "visual_evidence": "Screenshots show the K-Means tool dialog being configured or a progress bar indicating the clustering process is running, rather than just renaming an existing file."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Agent did not use terminal commands to bypass the GUI export steps.",
+      "visual_evidence": "The terminal window is either absent or does not contain commands like 'touch', 'cp', or 'mv' directly creating the output files '/home/ga/snap_exports/water_clusters.dim' or '.tif'."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/snap_data/landsat_multispectral.tif. Expected BEAM-DIMAP output: /home/ga/snap_exports/water_clusters.dim. Expected GeoTIFF output: /home/ga/snap_exports/water_clusters.tif. The agent must use the SNAP Desktop GUI to create a water mask, use it to mask at least two bands (setting land to NaN), and run K-Means clustering specifically on those masked bands."
+}

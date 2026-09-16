@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_junk_and_classify@1",
+  "task_completion": [
+    {
+      "id": "read_spam_subjects",
+      "description": "Read the spam subjects from the provided text file.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (e.g., gedit) or a terminal window displaying the contents of '/home/ga/Desktop/spam_subjects.txt', showing a list of 5 email subjects."
+    },
+    {
+      "id": "enable_adaptive_junk_controls",
+      "description": "Enable adaptive junk mail controls for the 'Local Folders' account.",
+      "points": 25,
+      "visual_evidence": "Look for the Thunderbird 'Account Settings' window, specifically the 'Junk Settings' section for 'Local Folders'. The checkbox 'Enable adaptive junk mail controls for this account' must be checked."
+    },
+    {
+      "id": "configure_move_to_junk",
+      "description": "Configure Thunderbird to move new junk messages to the 'Junk' folder.",
+      "points": 25,
+      "visual_evidence": "In the 'Junk Settings' section for 'Local Folders', look for the 'Destination and Retention' area. The checkbox 'Move new junk messages to:' must be checked, and the target must be set to the 'Junk' folder on 'Local Folders'."
+    },
+    {
+      "id": "mark_messages_as_junk",
+      "description": "Identify and mark the 5 spam messages in the Inbox as junk.",
+      "points": 20,
+      "visual_evidence": "Look for the agent selecting the 5 specific spam messages in the Inbox (matching the subjects from the text file) and marking them as junk using the 'Junk' button on the toolbar, the junk column icon, or the right-click context menu."
+    },
+    {
+      "id": "verify_junk_folder",
+      "description": "Verify the 5 spam messages have been moved to the 'Junk' folder.",
+      "points": 20,
+      "visual_evidence": "Look for the Thunderbird main window with the 'Junk' folder selected in the left pane under 'Local Folders'. The message list must show exactly the 5 spam emails."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent configures Thunderbird settings through the graphical user interface.",
+      "visual_evidence": "Look for the Thunderbird Account Settings window being opened and interacted with, rather than terminal commands modifying Thunderbird configuration files (like prefs.js)."
+    },
+    {
+      "id": "authentic_file_read",
+      "description": "The agent actually opens and reads the spam subjects file.",
+      "visual_evidence": "Look for the file '/home/ga/Desktop/spam_subjects.txt' being opened on the screen (via GUI text editor or terminal command like 'cat') rather than the agent magically knowing which emails to select."
+    },
+    {
+      "id": "actual_junk_marking",
+      "description": "The agent uses Thunderbird's junk marking feature rather than manually moving the emails.",
+      "visual_evidence": "Look for interaction with the 'Junk' button, junk column, or 'Mark -> As Junk' menu option, rather than the agent simply dragging and dropping the emails from the Inbox to the Junk folder."
+    }
+  ],
+  "privileged_info_for_vlm": "The environment contains exactly 5 spam emails in the Thunderbird Inbox under 'Local Folders'. The exact subjects of these 5 emails are dynamically generated and listed in the file '/home/ga/Desktop/spam_subjects.txt'. The VLM should verify that the agent reads this file and that exactly these 5 emails are marked as junk and moved to the 'Junk' folder."
+}

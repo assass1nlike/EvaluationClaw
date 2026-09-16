@@ -1,0 +1,53 @@
+{
+  "task_id": "detect_survey_logic_errors@1",
+  "task_completion": [
+    {
+      "id": "epi_info_data_loaded",
+      "description": "Epi Info 7 Classic Analysis is opened and the raw_health_survey dataset is loaded.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Epi Info 7 Classic Analysis window. The output/record count area or the command log should indicate that 'raw_health_survey.csv' has been READ or loaded successfully."
+    },
+    {
+      "id": "gender_conflict_identified",
+      "description": "Logic to identify Gender Conflicts (Male and IsPregnant='Yes') is applied.",
+      "points": 20,
+      "visual_evidence": "The command log or script editor in Epi Info shows an IF statement or SELECT command checking for Gender='Male' AND IsPregnant='Yes'. Alternatively, a data grid shows the filtered records (RespondentIDs 15, 42, 78, 91)."
+    },
+    {
+      "id": "skip_conflict_identified",
+      "description": "Logic to identify Skip Pattern Conflicts (EverSmoked='No' and CigsPerDay>0) is applied.",
+      "points": 20,
+      "visual_evidence": "The command log or script editor in Epi Info shows an IF statement or SELECT command checking for EverSmoked='No' AND CigsPerDay>0. Alternatively, a data grid shows the filtered records (RespondentIDs 5, 33, 60)."
+    },
+    {
+      "id": "error_type_variable_created",
+      "description": "An 'ErrorType' variable is created and assigned the correct conflict labels.",
+      "points": 20,
+      "visual_evidence": "The command log shows DEFINE ErrorType and ASSIGN commands setting the value to 'GenderConflict' or 'SkipConflict' based on the conditions, or a data grid displays the new 'ErrorType' column populated with these values."
+    },
+    {
+      "id": "validation_errors_exported",
+      "description": "The problematic records are exported to 'validation_errors.csv' with the required columns.",
+      "points": 30,
+      "visual_evidence": "The Epi Info command log shows a WRITE or EXPORT command saving data to 'C:\\Users\\Docker\\Documents\\SurveyData\\validation_errors.csv', or a file explorer/text editor shows the final CSV containing exactly 7 records with 'RespondentID' and 'ErrorType' columns."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_gui",
+      "description": "The agent used Epi Info 7 Classic Analysis to process the data.",
+      "visual_evidence": "Screenshots must show interaction with the Epi Info 7 Classic Analysis interface (command tree, program editor, or output window). The agent should not be using Python, R, or PowerShell scripts to bypass the requested software."
+    },
+    {
+      "id": "no_manual_csv_typing",
+      "description": "The agent did not manually type the expected output into a text editor.",
+      "visual_evidence": "The 'validation_errors.csv' file should be generated via an export process from Epi Info, not by opening Notepad and manually typing the RespondentIDs and ErrorTypes."
+    },
+    {
+      "id": "genuine_software_interaction",
+      "description": "The agent actually executed the commands in Epi Info.",
+      "visual_evidence": "The Epi Info output window should show the execution results of the READ, DEFINE, ASSIGN, and WRITE commands, rather than just typing them without running."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is 'C:\\Users\\Docker\\Documents\\SurveyData\\raw_health_survey.csv'. The expected output file is 'C:\\Users\\Docker\\Documents\\SurveyData\\validation_errors.csv'. The output must contain exactly 7 error records with columns 'RespondentID' and 'ErrorType'. The Gender Conflict records (Male and IsPregnant=Yes) have RespondentIDs: 15, 42, 78, 91 (ErrorType: 'GenderConflict'). The Skip Pattern Conflict records (EverSmoked=No and CigsPerDay>0) have RespondentIDs: 5, 33, 60 (ErrorType: 'SkipConflict')."
+}

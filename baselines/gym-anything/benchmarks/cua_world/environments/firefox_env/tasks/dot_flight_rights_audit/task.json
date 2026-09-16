@@ -1,0 +1,45 @@
+{
+  "id": "dot_flight_rights_audit@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "Audit the official US Department of Transportation (DOT) Airline Customer Service Dashboard to compare the 'Commitments for Controllable Cancellations' of American, Delta, Southwest, and Spirit airlines. Create a JSON file at ~/Documents/airline_rights_audit.json containing boolean values for 'meal_voucher', 'hotel_accommodation', and 'rebook_partner' for each airline based on the dashboard's data. Download the official 'Fly Rights' or 'Consumer Guide to Air Travel' PDF to ~/Downloads/. In Firefox, create a bookmark folder named 'Travel Policy Resources' containing bookmarks for the DOT Dashboard and the 'Tarmac Delay' consumer page.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "compliance",
+    "json",
+    "bookmarks"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dot_flight_rights_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/dot_flight_rights_audit/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/airline_rights_audit.json",
+    "required_airlines": [
+      "American",
+      "Delta",
+      "Southwest",
+      "Spirit"
+    ],
+    "required_keys": [
+      "meal_voucher",
+      "hotel_accommodation",
+      "rebook_partner"
+    ],
+    "dot_domain": "transportation.gov",
+    "bookmark_folder": "Travel Policy Resources"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dot_flight_rights_audit"
+    }
+  }
+}

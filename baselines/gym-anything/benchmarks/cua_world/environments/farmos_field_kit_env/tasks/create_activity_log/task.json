@@ -1,0 +1,25 @@
+{
+  "id": "create_activity_log@1",
+  "env_id": "example.farmos_field_kit_env@0.1",
+  "difficulty": "easy",
+  "description": "Create a new Activity log named 'Planted corn in field A' in the farmOS Field Kit app and verify it appears in the Tasks list.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 15,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/create_activity_log/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/create_activity_log/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_activity_log"
+    }
+  },
+  "metadata": {
+    "log_name": "Planted corn in field A",
+    "log_type": "Activity"
+  }
+}

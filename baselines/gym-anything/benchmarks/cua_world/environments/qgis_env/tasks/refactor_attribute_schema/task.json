@@ -1,0 +1,38 @@
+{
+  "id": "refactor_attribute_schema@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Clean and standardize the 'legacy_stations' layer by refactoring its fields. Rename 'STN_ID_X' to 'station_id' (String), 'LOC_NM' to 'name' (String), 'READ_VAL' to 'temperature' (changing the type to Double/Real), and 'OBS_DT' to 'date' (Date). Remove the 'LEGACY_CD' and 'TECH_N' fields. Export the processed layer to /home/ga/GIS_Data/exports/clean_stations.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_attribute_schema/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_attribute_schema/export_result.sh"
+  },
+  "metadata": {
+    "expected_output": "/home/ga/GIS_Data/exports/clean_stations.geojson",
+    "required_fields": [
+      "station_id",
+      "name",
+      "temperature",
+      "date"
+    ],
+    "forbidden_fields": [
+      "STN_ID_X",
+      "LOC_NM",
+      "READ_VAL",
+      "LEGACY_CD",
+      "TECH_N"
+    ],
+    "expected_count": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_attribute_schema"
+    }
+  }
+}

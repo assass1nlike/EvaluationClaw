@@ -1,0 +1,28 @@
+{
+  "id": "utility_scale_solar_tracker_upgrade@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Project Developer evaluating an upgrade for a planned solar farm. The project file 'solar-rack-array.ng3' is available in your ~/Documents/Energy3D/ directory. Open this project in Energy3D. Change the geographic location of the project to Phoenix, AZ to simulate a high-insolation environment. Select all solar racks in the model and change their tracker property to 'Horizontal Single Axis Tracker'. Finally, run the 'Annual Yield Analysis' (via the Analysis menu) to generate the monthly production graph. Close the analysis window and save the modified project as '~/Documents/Energy3D/phoenix_hsat_array.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/utility_scale_solar_tracker_upgrade/setup_task.sh",
+    "post_task": "/workspace/tasks/utility_scale_solar_tracker_upgrade/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_filename": "phoenix_hsat_array.ng3",
+    "expected_city": "Phoenix",
+    "occupation": "Solar Project Developer",
+    "industry": "Renewable Energy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_tracker_upgrade"
+    }
+  }
+}

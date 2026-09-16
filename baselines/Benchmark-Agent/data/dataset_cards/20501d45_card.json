@@ -1,0 +1,82 @@
+{
+  "dataset_id": "20501d45",
+  "name": "Traffic-Light-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visual object detection dataset of street-level and driving images annotated with traffic light bounding boxes, each tagged by light color (red, yellow, green). Each sample pairs an image and a detection prompt with box coordinates, evaluating traffic light detection and localization in road scenes.",
+  "card_text": "Traffic-Light-Detection is an image-to-structured-output dataset of road and street scenes captured under varied conditions (e.g., day, night, different countries). Every sample provides a single image file plus a short instruction-style prompt asking a model to locate traffic lights. The target output is a list of bounding boxes, where each box is given as [x, y, width, height] and is associated with a color key indicating the state of the detected light (green, yellow, or red). Images range from simple scenes containing one distant light to busier urban frames with multiple lights of different colors. The dataset probes fine-grained visual grounding: models must both find small, sometimes partially occluded lights and assign the correct color category to each box.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "road-scene traffic light detection / autonomous driving",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "Path to the driving or street-scene photograph that the model must inspect. It is the primary visual input and contains one or more traffic lights, sometimes small, distant, or partially occluded, set against urban or roadside backdrops.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short, generic instruction-style prompt that directs the model to perform traffic light detection on the accompanying image. It carries no dataset-specific content besides specifying the task the model should execute.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "A list of ground-truth bounding boxes for the traffic lights in the image. Each entry is a single-key object whose key is the light color category (green, yellow, or red) and whose value is the box in [x, y, width, height] pixel coordinates, so the field jointly encodes localization and color class.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains one image reference (input.image_file), one short instruction prompt (input.prompt), and one structured target (output.bbox). The image is the visual context to be inspected; the prompt states the detection task in natural language; the target is a list of boxes where each box is keyed by the traffic light color (green/yellow/red) and holds [x, y, width, height] coordinates, linking the color category annotation directly to the spatial localization of that light."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/traffic-light-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "traffic-light-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

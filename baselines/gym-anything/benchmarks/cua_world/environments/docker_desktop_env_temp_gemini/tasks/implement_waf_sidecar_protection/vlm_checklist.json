@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_waf_sidecar_protection@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file for editing",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output showing the contents of /home/ga/legacy-app/docker-compose.yml."
+    },
+    {
+      "id": "remove_app_port_mapping",
+      "description": "Remove direct external access to the app service",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, the 'app' service no longer has a 'ports' section mapping to host port 8080 (it should be deleted or commented out)."
+    },
+    {
+      "id": "add_waf_service",
+      "description": "Add the WAF service with the correct image",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, a new service (e.g., 'waf' or 'modsec') is defined with the image explicitly set to 'owasp/modsecurity-crs:3-nginx'."
+    },
+    {
+      "id": "configure_waf_backend",
+      "description": "Configure the WAF to proxy traffic to the app service",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, the new WAF service has an 'environment' section containing the 'BACKEND' variable pointing to the app service (e.g., 'BACKEND: http://app:8080' or similar)."
+    },
+    {
+      "id": "expose_waf_port",
+      "description": "Expose the WAF service on port 8080",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, the new WAF service has a 'ports' section mapping host port 8080 to the container (e.g., '- \"8080:80\"' or '- \"8080:8080\"')."
+    },
+    {
+      "id": "start_docker_services",
+      "description": "Start or restart the Docker Compose services",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of 'docker-compose up -d', 'docker compose up', or 'docker ps' displaying both the app and the new WAF containers running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the agent actually modified the docker-compose.yml file",
+      "visual_evidence": "Look for genuine text editor interfaces (nano, vim) or valid shell commands (sed, echo) being used to modify the file, rather than just printing the expected file contents to the terminal."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Verify Docker commands were actually executed",
+      "visual_evidence": "Terminal output for 'docker-compose' or 'docker' commands should show standard Docker daemon responses (e.g., 'Creating network...', 'Starting...', container IDs) rather than simulated or echoed text."
+    },
+    {
+      "id": "no_port_spoofing",
+      "description": "Verify the WAF image is genuinely used",
+      "visual_evidence": "Ensure the agent didn't just rename the 'app' service or change its port without actually adding the 'owasp/modsecurity-crs:3-nginx' image as a separate proxy service."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is /home/ga/legacy-app. The required WAF image is exactly 'owasp/modsecurity-crs:3-nginx'. The target port for external traffic is 8080. The VLM must verify that the docker-compose.yml file is modified to include a new service using this exact WAF image, that the new service is exposed on port 8080, that it uses the 'BACKEND' environment variable to route to the app, and that the original 'app' service no longer exposes port 8080 directly to the host."
+}

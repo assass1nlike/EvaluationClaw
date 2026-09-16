@@ -1,0 +1,75 @@
+{
+  "dataset_id": "bbc5d26d",
+  "name": "Disease-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Disease-Ner dataset contains biomedical scientific text excerpts and asks models to extract disease entities and classify them into types such as SpecificDisease, DiseaseClass, CompositeMention, or Modifier. It evaluates entity recognition and typing in the biomedical domain.",
+  "card_text": "Disease-Ner is a text-to-text dataset of 200 biomedical samples. Each sample consists of a raw_text sentence or passage from scientific literature, a prompt instruction to extract all disease entities and their types, and a target output listing entities in the format 'entity => type'. The possible entity types are CompositeMention, DiseaseClass, Modifier, and SpecificDisease. The data is factual, scientific, and focuses on disease mentions in genetics and clinical research. The task requires identifying disease-related terms and assigning the correct type, which tests biomedical entity recognition and typing. The dataset is openset in the sense that entities are not predefined; they must be extracted from the given text.",
+  "tasks": [
+    "entity_recognition",
+    "attribute_extraction"
+  ],
+  "domain": "biomedical",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The input.raw_text field contains biomedical scientific text, such as sentences from research abstracts, which mention diseases and genetic terms. It serves as the source text from which disease entities must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The input.prompt field is an instruction that tells the model to extract all disease entities from the raw_text and classify them into one of four possible types, formatting each as 'entity => type' and separating multiple entities with commas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The output.text field contains the extracted disease entities and their types, formatted as 'entity => type' and separated by commas. It provides the gold annotation for the entity recognition and typing task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains two input fields and one output field. The input.raw_text provides the biomedical context passage, while input.prompt gives the extraction instruction specifying the entity types. The output.text holds the extracted entities and their types in a structured string, linking each entity to its category."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Disease-NER/annotation.json",
+    "existing_tags": {
+      "task": "disease_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

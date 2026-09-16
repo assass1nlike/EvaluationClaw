@@ -1,0 +1,33 @@
+{
+  "id": "convert_list_to_process_diagram@1",
+  "version": "1.0",
+  "env_id": "libreoffice_impress_env@0.1",
+  "description": "Transform the bulleted list on Slide 2 ('Phase Roadmap') into a visual process diagram using three horizontally aligned chevron shapes. Use the text 'Market Analysis', 'Prototype Development', and 'Global Release' from the original list. Apply a blue color gradient to the shapes and save the presentation.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_list_to_process_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_list_to_process_diagram/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/Documents/Presentations/product_launch_roadmap.odp",
+    "slide_index": 1,
+    "expected_texts": [
+      "Market Analysis",
+      "Prototype Development",
+      "Global Release"
+    ],
+    "expected_shape_type": "chevron",
+    "min_shapes": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_process_diagram"
+    }
+  }
+}

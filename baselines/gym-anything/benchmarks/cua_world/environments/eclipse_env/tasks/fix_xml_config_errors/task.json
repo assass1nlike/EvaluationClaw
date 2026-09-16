@@ -1,0 +1,32 @@
+{
+  "id": "fix_xml_config_errors@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Import the medical physics project located at '/home/ga/eclipse-workspace/RadOncPhysics' into the Eclipse workspace. Resolve all validation errors in 'beam_model.xml' to ensure compliance with the 'beam_schema.xsd' schema. The configuration must use 'Photon' for the radiation type, '600' for the reference dose rate, and include a Dmax value of '1.5' within the depth dose parameters. Format and save the file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_xml_config_errors/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_xml_config_errors/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/RadOncPhysics",
+    "xml_file": "beam_model.xml",
+    "xsd_file": "beam_schema.xsd",
+    "expected_values": {
+      "RadiationType": "Photon",
+      "ReferenceDoseRate": "600",
+      "Dmax": "1.5"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_xml_config_errors"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "dataset_id": "54f39f1e",
+  "name": "Mathematical Statistical Reasoning Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 46,
+  "description": "A visual question answering dataset for mathematical and statistical reasoning over charts and graphs. Each sample provides a chart image, a question about quantitative relationships (e.g., comparisons, area under curve), embedded candidate choices, and a yes/no answer. It evaluates a model's ability to interpret visual data and perform statistical reasoning.",
+  "card_text": "The dataset consists of 46 image-text samples focused on mathematical and statistical reasoning. Each item contains a chart or graph image (input.image_file) rendered in a diagram style, a natural language question (input.question) that asks about comparisons, minimum/maximum values, or area under curves, often including the candidate answer choices inline (e.g., ['yes','no']), and a short instruction prompt (input.prompt) telling the model to answer based on the image. The target output (output.text) is a single word, typically 'yes' or 'no'. Questions reference colored data series (e.g., 'Web Green', 'Yellow', 'Aqua') and require reading values from the visual. The dataset is small (46 examples) and designed to test multimodal reasoning in mathematical and statistical contexts.",
+  "tasks": [
+    "visual_question_answering",
+    "classification_binary"
+  ],
+  "domain": "mathematical statistical chart reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction that tells the model to answer the question based on the provided image and to select one of the given choices. It sets the task format but does not contain the question content.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question about the chart, asking for a quantitative comparison or statistical property. The question also embeds the candidate answer choices (e.g., ['yes', 'no']) at the end, so it defines both the query and the answer space.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target answer, a single word (typically 'yes' or 'no') that indicates whether the chart satisfies the condition stated in the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "A reference to a chart or graph image that visualizes numerical data with colored series (e.g., lines or bars). The image is the primary source of information needed to answer the question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a chart image (input.image_file), a short instruction prompt (input.prompt) that asks the model to answer based on the image, a question (input.question) about the chart that includes embedded candidate choices, and a textual answer (output.text) containing 'yes' or 'no'. The image provides the visual data; the prompt sets the task; the question specifies the query and answer format; the answer is the target label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/mathematical_statistical_reasoning_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "mathematical statistical reasoning vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Mathematics"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Mathematics"
+    ]
+  }
+}

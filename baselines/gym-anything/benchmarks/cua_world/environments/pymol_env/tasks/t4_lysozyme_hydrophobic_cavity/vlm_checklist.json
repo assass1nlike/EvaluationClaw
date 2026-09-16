@@ -1,0 +1,59 @@
+{
+  "task_id": "t4_lysozyme_hydrophobic_cavity@1",
+  "task_completion": [
+    {
+      "id": "load_structures",
+      "description": "Fetch and load the wild-type (2LZM) and mutant (4W52) structures.",
+      "points": 10,
+      "visual_evidence": "The PyMOL object panel (usually on the right) lists both '2LZM' and '4W52' as loaded objects."
+    },
+    {
+      "id": "superimpose_structures",
+      "description": "Superimpose the 4W52 structure onto the 2LZM structure.",
+      "points": 15,
+      "visual_evidence": "The 3D viewer shows the two protein backbones closely overlapping, or the PyMOL command history shows an 'align', 'super', or 'cealign' command between the two structures."
+    },
+    {
+      "id": "measure_distance",
+      "description": "Measure the distance between the C-alpha atoms of residue 99 in both structures.",
+      "points": 15,
+      "visual_evidence": "A dashed measurement line with a numerical value (approximately 0.3) is visible between the structures in the viewer, or a 'distance' command targeting residue 99 CA atoms is visible in the console."
+    },
+    {
+      "id": "highlight_visualization",
+      "description": "Highlight the side chains of residue 99 and the bound benzene (BNZ) ligand.",
+      "points": 15,
+      "visual_evidence": "The BNZ ligand and the side chains of residue 99 are shown in a distinct representation (e.g., sticks or spheres) compared to the rest of the protein backbone."
+    },
+    {
+      "id": "save_image",
+      "description": "Save the visualization as a PNG to the specified path.",
+      "points": 20,
+      "visual_evidence": "The PyMOL console shows a 'png' command saving to '/home/ga/PyMOL_Data/images/t4_cavity_superposition.png', or a file manager/terminal shows this file exists."
+    },
+    {
+      "id": "save_report",
+      "description": "Write the structural analysis report containing the distance and cavity-lining residues.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat') shows the contents of '/home/ga/PyMOL_Data/t4_cavity_report.txt', including the measured distance (~0.3 \u00c5) and a list of residue numbers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_measurement",
+      "description": "Verifies the agent actually measured the distance rather than hallucinating a value.",
+      "visual_evidence": "The distance value written in the report exactly matches the measurement output shown in the PyMOL viewer or console."
+    },
+    {
+      "id": "genuine_cavity_calculation",
+      "description": "Verifies the agent calculated the cavity residues geometrically using the 4.0 \u00c5 cutoff rather than copying a canonical literature list from the web.",
+      "visual_evidence": "The report lists the true geometric residues (84, 87, 88, 99, 111, 118, 121, 153) and correctly omits literature residues that are >4.0 \u00c5 away (such as 102, 103, 114)."
+    },
+    {
+      "id": "exact_file_paths",
+      "description": "Verifies the agent used the exact requested file paths for the outputs.",
+      "visual_evidence": "The terminal or text editor explicitly shows the paths '/home/ga/PyMOL_Data/images/t4_cavity_superposition.png' and '/home/ga/PyMOL_Data/t4_cavity_report.txt' being used, without typos or shortcuts."
+    }
+  ],
+  "privileged_info_for_vlm": "The true C-alpha distance between residue 99 in 2LZM and 4W52 after superposition is approximately 0.3 \u00c5. The true geometric cavity-lining residues in 4W52 (within 4.0 \u00c5 of the BNZ ligand) are 84, 87, 88, 99, 111, 118, 121, and 153. If the agent reports residues 102, 103, or 114, it likely cheated by copying a canonical literature list instead of performing the geometric measurement, as these residues are technically > 4.0 \u00c5 away from the ligand."
+}

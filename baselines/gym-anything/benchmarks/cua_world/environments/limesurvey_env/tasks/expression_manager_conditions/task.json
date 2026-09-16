@@ -1,0 +1,31 @@
+{
+  "id": "expression_manager_conditions@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "A professional conference organizer needs to configure intelligent branching logic on the post-event attendee feedback survey 'Annual Tech Summit 2024 — Attendee Feedback'. Log in at http://localhost/index.php/admin with admin/Admin123!. Configure the survey so that the 'Session Feedback' question group only displays if the respondent answered 'Yes' to question ATTENDED_SESSIONS ('Did you attend any breakout sessions?'). Set the 'IMPROVE_COMMENTS' question ('What specific improvements would you suggest?') to only display if the respondent gave an overall satisfaction rating of 6 or below on question OVERALL_RATING. Finally, configure the survey's end redirect URL to 'http://techsummit.example.com/thank-you'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/expression_manager_conditions/setup_task.sh",
+    "post_task": "/workspace/tasks/expression_manager_conditions/export_result.sh"
+  },
+  "metadata": {
+    "survey_title": "Annual Tech Summit 2024 — Attendee Feedback",
+    "target_group_condition_question": "ATTENDED_SESSIONS",
+    "target_question_condition": "IMPROVE_COMMENTS",
+    "overall_rating_question": "OVERALL_RATING",
+    "expected_end_url_keyword": "techsummit.example.com",
+    "session_group_name_keyword": "Session Feedback",
+    "occupation_context": "Meeting, Convention, and Event Planners",
+    "instrument_source": "Professional conference post-event evaluation (PCMA/MPI best practices)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_expression_manager_conditions"
+    }
+  }
+}

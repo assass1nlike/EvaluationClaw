@@ -1,0 +1,71 @@
+{
+  "task_id": "image_policy_compliance@1",
+  "task_completion": [
+    {
+      "id": "read_policy_spec",
+      "description": "Open and read the image policy specification file",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit, nano, or cat in terminal) displaying the contents of '/home/ga/Desktop/image_policy_spec.md'."
+    },
+    {
+      "id": "login_rancher",
+      "description": "Access and log into the Rancher environment",
+      "points": 10,
+      "visual_evidence": "A web browser showing the Rancher dashboard at 'https://localhost', indicating successful login (e.g., seeing the cluster dashboard or welcome screen)."
+    },
+    {
+      "id": "navigate_namespace",
+      "description": "Navigate to the target namespace deployments",
+      "points": 10,
+      "visual_evidence": "The Rancher UI displaying the Workloads or Deployments page, specifically filtered for or showing the 'platform-services' namespace."
+    },
+    {
+      "id": "remediate_web_proxy",
+      "description": "Remediate the web-proxy deployment",
+      "points": 15,
+      "visual_evidence": "Rancher UI showing the edit screen (form or YAML view) for the 'web-proxy' deployment, with modifications to image tags, pull policies, or security contexts."
+    },
+    {
+      "id": "remediate_cache_store",
+      "description": "Remediate the cache-store deployment",
+      "points": 15,
+      "visual_evidence": "Rancher UI showing the edit screen (form or YAML view) for the 'cache-store' deployment, with modifications to image tags, pull policies, or security contexts."
+    },
+    {
+      "id": "remediate_task_runner",
+      "description": "Remediate the task-runner deployment",
+      "points": 15,
+      "visual_evidence": "Rancher UI showing the edit screen (form or YAML view) for the 'task-runner' deployment, with modifications to image tags, pull policies, or security contexts."
+    },
+    {
+      "id": "remediate_log_agent",
+      "description": "Remediate the log-agent deployment",
+      "points": 15,
+      "visual_evidence": "Rancher UI showing the edit screen (form or YAML view) for the 'log-agent' deployment, with modifications to image tags, pull policies, or security contexts."
+    },
+    {
+      "id": "verify_deployments_active",
+      "description": "Verify all modified deployments are active or updating",
+      "points": 10,
+      "visual_evidence": "Rancher UI showing the deployments list in 'platform-services' with status indicators showing 'Active', 'Updating', or 'Redeploying' after the changes have been saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_ui",
+      "description": "Agent used the Rancher web interface as instructed rather than relying solely on terminal kubectl commands",
+      "visual_evidence": "Browser windows showing interaction with the Rancher GUI at https://localhost."
+    },
+    {
+      "id": "genuine_policy_read",
+      "description": "Agent actually opened the policy file rather than hallucinating policy rules",
+      "visual_evidence": "A screenshot showing the actual contents of '/home/ga/Desktop/image_policy_spec.md' open on the screen."
+    },
+    {
+      "id": "actual_deployment_edits",
+      "description": "Agent interacted with the actual deployment configurations in Rancher",
+      "visual_evidence": "Screenshots showing the Rancher deployment edit forms or Rancher's built-in YAML editor being actively modified, not just a local text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace is exactly 'platform-services'. There are exactly 4 deployments that must be remediated: 'web-proxy', 'cache-store', 'task-runner', and 'log-agent'. The policy specification is located at '/home/ga/Desktop/image_policy_spec.md'. The agent must access Rancher at https://localhost using the provided credentials."
+}

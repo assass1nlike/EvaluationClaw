@@ -1,0 +1,59 @@
+{
+  "task_id": "projected_volume_secret_config_merge@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent logged into the Rancher interface.",
+      "points": 10,
+      "visual_evidence": "Rancher dashboard is visible in the web browser with the URL pointing to https://localhost."
+    },
+    {
+      "id": "navigate_to_deployment",
+      "description": "Agent navigated to the target deployment.",
+      "points": 10,
+      "visual_evidence": "Rancher UI shows the 'sftp-worker' deployment details or edit screen within the 'batch-jobs' namespace."
+    },
+    {
+      "id": "configure_volume_sources",
+      "description": "Agent configured a volume (or volumes) to include both the Secret and ConfigMap.",
+      "points": 20,
+      "visual_evidence": "Rancher UI or YAML view shows a projected volume combining the 'sftp-key' Secret and 'sftp-config' ConfigMap, OR separate volumes configured for each."
+    },
+    {
+      "id": "configure_file_permissions",
+      "description": "Agent set the correct file paths and specific 0400 permissions for the private key.",
+      "points": 20,
+      "visual_evidence": "UI or YAML configuration explicitly shows 'id_rsa' with a mode of 0400 (or 256 in decimal) and 'known_hosts' included in the volume items."
+    },
+    {
+      "id": "configure_volume_mount_path",
+      "description": "Agent mounted the volume(s) to the correct directory in the container.",
+      "points": 20,
+      "visual_evidence": "Volume Mounts section in the UI or YAML shows the configured volume(s) mapped to the mount path '/home/worker/.ssh/'."
+    },
+    {
+      "id": "verify_pod_running",
+      "description": "The deployment successfully updated and the pod reached a stable Running state.",
+      "points": 20,
+      "visual_evidence": "Rancher UI shows the 'sftp-worker' deployment as active, with the pod status indicator showing green/Running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_interface_usage",
+      "description": "Agent used the Rancher UI or kubectl terminal commands to perform the task.",
+      "visual_evidence": "Screenshots show interaction with the actual Rancher web interface or a terminal executing kubectl commands, rather than just typing text into a generic text editor."
+    },
+    {
+      "id": "actual_deployment_modification",
+      "description": "The deployment changes were actually applied and saved.",
+      "visual_evidence": "A 'Save' or 'Upgrade' button was clicked in the Rancher UI, or a 'kubectl apply' / 'kubectl edit' command was successfully executed in the terminal."
+    },
+    {
+      "id": "correct_namespace_maintained",
+      "description": "Agent modified the existing deployment in the correct namespace rather than creating a workaround.",
+      "visual_evidence": "The namespace remains 'batch-jobs' and the deployment name remains 'sftp-worker' throughout the configuration process."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace is 'batch-jobs'. Target deployment is 'sftp-worker'. The task requires mounting 'id_rsa' from the 'sftp-key' Secret (with 0400 permissions) and 'known_hosts' from the 'sftp-config' ConfigMap into the container path '/home/worker/.ssh/'."
+}

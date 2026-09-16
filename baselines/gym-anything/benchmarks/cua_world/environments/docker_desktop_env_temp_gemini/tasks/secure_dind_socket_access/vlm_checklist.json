@@ -1,0 +1,53 @@
+{
+  "task_id": "secure_dind_socket_access@1",
+  "task_completion": [
+    {
+      "id": "inspect_project_files",
+      "description": "Navigate to the project directory and open the configuration files.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the agent navigating to /home/ga/build-agent/ and viewing or opening docker-compose.yml or Dockerfile in a text editor (like nano or vim) or using cat/less."
+    },
+    {
+      "id": "mount_docker_socket",
+      "description": "Configure the container to mount the host's Docker socket.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal output showing the addition of a volume mount for the Docker socket, typically '/var/run/docker.sock:/var/run/docker.sock' in the docker-compose.yml file."
+    },
+    {
+      "id": "configure_user_permissions",
+      "description": "Configure the container to run as the 'agent' user and grant access to the docker group.",
+      "points": 20,
+      "visual_evidence": "Text editor showing configuration to run as user 'agent' or '1000' and handling group permissions securely (e.g., adding 'group_add' with the host's docker gid in docker-compose.yml, or modifying the Dockerfile to add the agent user to the docker group)."
+    },
+    {
+      "id": "apply_configuration",
+      "description": "Apply the configuration changes by starting or rebuilding the container.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a command like 'docker-compose up -d', 'docker compose up -d --build', or similar, resulting in the 'build-agent' container being created or recreated."
+    },
+    {
+      "id": "test_docker_access",
+      "description": "Verify that the 'agent' user can successfully execute docker commands from within the container.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a successful docker command (e.g., 'docker ps', 'docker info') executed inside the container. This could be via 'docker exec -it build-agent docker ps' or from an interactive shell session inside the container, showing standard docker output without permission denied errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_host_socket_chmod",
+      "description": "Verify the agent did not modify the permissions of the host's Docker socket to bypass the security requirement.",
+      "visual_evidence": "Ensure there are no commands like 'sudo chmod 777 /var/run/docker.sock' or 'chmod a+rw /var/run/docker.sock' executed on the host terminal."
+    },
+    {
+      "id": "genuine_terminal_usage",
+      "description": "Verify the agent genuinely edited files and executed commands.",
+      "visual_evidence": "Look for actual text editor interfaces (nano, vim) or standard sed/echo commands being used to modify files, rather than just printing the expected final state."
+    },
+    {
+      "id": "actual_container_test",
+      "description": "Verify the docker test command was actually run inside the container.",
+      "visual_evidence": "Check the command prompt or the command structure (e.g., using 'docker exec') to ensure the 'docker ps' or similar test was executed within the 'build-agent' container context, not just on the host machine."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/build-agent. Container name is 'build-agent'. Target user inside the container is 'agent' with UID 1000. The agent must configure the container to access the host's Docker socket securely without changing the host's socket permissions (e.g., no chmod 777 on /var/run/docker.sock)."
+}

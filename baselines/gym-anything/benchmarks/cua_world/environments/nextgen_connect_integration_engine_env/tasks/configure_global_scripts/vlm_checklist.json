@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_global_scripts@1",
+  "task_completion": [
+    {
+      "id": "deploy_script_configured",
+      "description": "The Deploy script is configured to initialize variables and log the required message.",
+      "points": 20,
+      "visual_evidence": "Look for a script payload, file, or API request body containing the Deploy script. It must show initialization of 'systemStartTime' and 'auditMessageCount' (set to 0) using globalMap (e.g., globalMap.put), and a logger statement: logger.info('AUDIT_DEPLOY: Global audit trail initialized')."
+    },
+    {
+      "id": "undeploy_script_configured",
+      "description": "The Undeploy script is configured to log the required finalized message.",
+      "points": 15,
+      "visual_evidence": "Look for the Undeploy script in the payload/file. It must contain the logger statement: logger.info('AUDIT_UNDEPLOY: Global audit trail finalized')."
+    },
+    {
+      "id": "preprocessor_script_configured",
+      "description": "The Preprocessor script is configured to add timestamp, UUID, log the message, and return the message.",
+      "points": 25,
+      "visual_evidence": "Look for the Preprocessor script in the payload/file. It must show channelMap being used to store 'auditReceivedTimestamp' (ISO string) and 'auditTraceId' (UUID). It must also contain logger.info('AUDIT_PREPROCESSOR: Processing new message') and explicitly end with 'return message;'."
+    },
+    {
+      "id": "postprocessor_script_configured",
+      "description": "The Postprocessor script is configured to increment the message count and log the result.",
+      "points": 20,
+      "visual_evidence": "Look for the Postprocessor script in the payload/file. It must show logic retrieving 'auditMessageCount' from globalMap, incrementing it, saving it back, and a logger statement starting with 'AUDIT_POSTPROCESSOR: Message processed. Count: ' followed by the variable."
+    },
+    {
+      "id": "api_request_executed",
+      "description": "A PUT request is executed against the globalScripts API endpoint with the correct authentication and headers.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command (like curl), a Python script execution, or an API client (like Postman) making a PUT request to 'https://localhost:8443/api/server/globalScripts'. The request must include Basic Auth (admin/admin) and the header 'X-Requested-With: OpenAPI'. There should be visual evidence of a successful HTTP response (e.g., HTTP 200 OK or the server returning the updated scripts)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "The agent actually executed the API request rather than just writing the script files.",
+      "visual_evidence": "Look for terminal output showing the execution of curl/python, or an API client showing a real network response from the server, not just a text editor with the payload."
+    },
+    {
+      "id": "correct_endpoint_used",
+      "description": "The agent interacted with the real NextGen Connect API endpoint.",
+      "visual_evidence": "Verify the URL in the request is exactly 'https://localhost:8443/api/server/globalScripts' and not a mocked or alternative local server."
+    },
+    {
+      "id": "no_mocked_responses",
+      "description": "The response from the server appears genuine.",
+      "visual_evidence": "Look for standard HTTP response artifacts (status codes, server headers, XML/JSON response bodies) that match a real NextGen Connect server response, rather than manually typed 'Success' messages."
+    }
+  ],
+  "privileged_info_for_vlm": "NextGen Connect 4.5.0 exposes its REST API at https://localhost:8443/api. The endpoint for global scripts is /server/globalScripts and requires a PUT request. Authentication is Basic Auth (admin/admin) and the header 'X-Requested-With: OpenAPI' is strictly required. The payload is typically XML but JSON is also supported. The Deploy, Undeploy, and Postprocessor scripts use 'globalMap' (e.g., globalMap.put(), globalMap.get()), while the Preprocessor script uses 'channelMap'. The Preprocessor script must explicitly include 'return message;'. Java objects like 'new java.util.Date().toISOString()' and 'java.util.UUID.randomUUID().toString()' are valid in this JavaScript context."
+}

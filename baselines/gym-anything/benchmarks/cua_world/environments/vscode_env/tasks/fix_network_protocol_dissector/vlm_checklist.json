@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_network_protocol_dissector@1",
+  "task_completion": [
+    {
+      "id": "fix_ip_checksum",
+      "description": "Fix the IP checksum carry fold bug",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to the IP parsing module to correct the checksum carry fold logic, or terminal output from a test script indicating IP packets are no longer flagged as corrupt."
+    },
+    {
+      "id": "fix_tcp_wraparound",
+      "description": "Fix the TCP sequence wraparound bug",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to the TCP parsing module to handle sequence number wraparound correctly, or terminal output indicating TCP streams no longer break."
+    },
+    {
+      "id": "fix_dns_pointer",
+      "description": "Fix the DNS pointer offset bug",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to the DNS parsing module to correct pointer offsets, or terminal output indicating DNS names are parsed correctly and no longer garbled."
+    },
+    {
+      "id": "fix_http_content_length",
+      "description": "Fix the HTTP Content-Length string comparison bug",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to the HTTP parsing module to properly handle Content-Length (e.g., converting string to integer before comparison), or terminal output indicating HTTP body lengths are calculated correctly."
+    },
+    {
+      "id": "fix_tls_version",
+      "description": "Fix the TLS version record layer check bug",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to the TLS parsing module to correctly identify the TLS 1.3 version in the record layer, or terminal output indicating TLS 1.3 connections are properly classified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_modification",
+      "description": "Verify the agent actually edited the Python source files",
+      "visual_evidence": "Screenshots should show the agent opening and modifying the Python files inside /home/ga/workspace/packet_dissector/ using a text editor or IDE (like VS Code, vim, or nano), rather than just echoing text or mocking test results."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify that test results come from actual script execution",
+      "visual_evidence": "If test results are visible, they should appear as genuine output from a Python test runner or script execution in the terminal, not from a script designed to simply print 'success' messages."
+    },
+    {
+      "id": "no_hardcoded_bypasses",
+      "description": "Verify the agent fixed the logic rather than hardcoding answers",
+      "visual_evidence": "The code changes should alter the parsing logic (e.g., math operations, type conversions) rather than adding 'if' statements that hardcode the expected output for specific test packets."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing exactly 5 bugs in the Python code at /home/ga/workspace/packet_dissector/. The specific bugs to verify are: 1) IP checksum carry fold, 2) TCP sequence wraparound, 3) DNS pointer offset, 4) HTTP Content-Length string comparison, and 5) TLS version record layer check. A passing score requires fixing at least 3 of these (threshold 60/100)."
+}

@@ -1,0 +1,22 @@
+{
+  "id": "commercial_truck_route_plan@1",
+  "version": "1.0",
+  "env_id": "garmin_basecamp_env@0.1",
+  "description": "You are a Transportation Dispatcher at a commercial freight company planning the weekly Boston-to-Fall River delivery run for a heavy tractor-trailer. Create a GPS data package in Garmin BaseCamp containing the following waypoints and route, then export the collection as a GPX file to C:\\Users\\Docker\\Desktop\\BostonFallRiver_FreightRoute.gpx.\n\nWaypoints:\n- DEPOT SOUTH BOSTON (42.3388, -71.0502), Symbol: Building, Comment: Home depot. Loading dock hrs 05:00-22:00. Truck entrance off Tide St.\n- BRIDGE HAZARD RT116 (42.1875, -71.3285), Symbol: Danger",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\commercial_truck_route_plan\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\commercial_truck_route_plan\\export_result.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_commercial_truck_route_plan"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "dual_mic_time_alignment@1",
+  "task_completion": [
+    {
+      "id": "tracks_imported_named",
+      "description": "Audio file imported onto two tracks named 'Lav Mic' and 'Boom Mic'",
+      "points": 10,
+      "visual_evidence": "Two tracks are visible in the DAW timeline or mixer, specifically named 'Lav Mic' and 'Boom Mic'. Both tracks contain audio regions with visible waveforms."
+    },
+    {
+      "id": "boom_mic_aligned",
+      "description": "Boom Mic region aligned at the start of the timeline",
+      "points": 20,
+      "visual_evidence": "The audio region on the 'Boom Mic' track starts exactly at the beginning of the timeline (Position 0 / 0:00:00:00)."
+    },
+    {
+      "id": "lav_mic_aligned",
+      "description": "Lav Mic region aligned at sample 220",
+      "points": 25,
+      "visual_evidence": "The audio region on the 'Lav Mic' track is shifted slightly to the right compared to the Boom Mic track, starting at sample 220 (or a very small time offset depending on the timeline ruler format)."
+    },
+    {
+      "id": "track_gains_set",
+      "description": "Lav Mic fader set to 0 dB and Boom Mic fader set to -6 dB",
+      "points": 20,
+      "visual_evidence": "In the mixer panel or track headers, the volume fader/slider for 'Lav Mic' is set to 0 dB (unity gain) and 'Boom Mic' is set to approximately -6 dB."
+    },
+    {
+      "id": "tracks_grouped",
+      "description": "Tracks grouped into a 'Dialogue Sync' group with 'Edit' sharing enabled",
+      "points": 25,
+      "visual_evidence": "A group indicator (e.g., a colored tab, group list, or linked selection icon) shows that both tracks belong to a group (ideally named 'Dialogue Sync'), and edit grouping/sharing is active."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the DAW graphical user interface to perform the task",
+      "visual_evidence": "Screenshots show a Digital Audio Workstation (DAW) application open and being interacted with, rather than terminal commands or text editors."
+    },
+    {
+      "id": "genuine_audio",
+      "description": "The agent actually imported the audio file rather than creating empty dummy tracks",
+      "visual_evidence": "Waveforms are clearly visible inside the audio regions on both tracks."
+    },
+    {
+      "id": "no_scripting",
+      "description": "The agent did not bypass the GUI by directly editing the DAW session file (e.g., XML) via terminal",
+      "visual_evidence": "The progression of screenshots shows menus, dragging, and typing within the DAW interface, with no terminal windows showing session file manipulation."
+    }
+  ],
+  "privileged_info_for_vlm": "Boom Mic target position is exactly sample 0 (tolerance \u00b110 samples). Lav Mic target position is sample 220 (tolerance \u00b120 samples), which will appear as a very slight visual shift to the right of the Boom Mic. Boom Mic target gain is -6.0 dB (tolerance \u00b11.5 dB). Lav Mic target gain is 0.0 dB (tolerance \u00b11.5 dB). The tracks must be in an edit-enabled group; while the task asks for the name 'Dialogue Sync', the system verifier only checks that an edit-enabled group exists for these tracks."
+}

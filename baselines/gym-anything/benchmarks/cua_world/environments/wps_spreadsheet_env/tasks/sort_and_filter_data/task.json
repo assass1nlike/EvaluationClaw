@@ -1,0 +1,25 @@
+{
+  "id": "sort_and_filter_data@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "Update /home/ga/Documents/customer_orders.xlsx by sorting the data by Amount in descending order and filtering the records to show only 'Completed' orders with an Amount greater than 100. Ensure the header row is frozen and save the changes to the file.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sort_and_filter_data/setup_task.sh",
+    "post_task": "/workspace/tasks/sort_and_filter_data/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Realistic customer order data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sort_filter"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "megacity_country_summary@1",
+  "task_completion": [
+    {
+      "id": "load_datasets",
+      "description": "Load the countries and populated places GeoJSON files.",
+      "points": 10,
+      "visual_evidence": "Layers panel in a GIS application (like QGIS) showing 'ne_110m_admin_0_countries' and 'ne_110m_populated_places', or a script reading these specific file paths."
+    },
+    {
+      "id": "filter_megacities",
+      "description": "Filter the populated places to only include megacities with a population greater than 5,000,000.",
+      "points": 20,
+      "visual_evidence": "A filter dialog, query builder showing 'POP_MAX > 5000000', an attribute table showing only the filtered cities, or a script performing this filtering operation."
+    },
+    {
+      "id": "spatial_aggregation",
+      "description": "Perform a spatial join or aggregation to calculate the count of megacities and the sum of their populations for each country.",
+      "points": 30,
+      "visual_evidence": "A tool dialog like 'Join attributes by location (summary)' in QGIS with 'count' and 'sum' selected for the POP_MAX field, or a script executing a spatial join and groupby aggregation."
+    },
+    {
+      "id": "correct_aggregation_results",
+      "description": "Verify that the spatial aggregation produced the correct counts and population sums for the countries.",
+      "points": 20,
+      "visual_evidence": "An attribute table or output preview showing correct values for any of the check countries (e.g., China: count 3, sum 33299000; USA: count 4, sum 46115000; Japan: count 2, sum 46970000)."
+    },
+    {
+      "id": "export_geojson",
+      "description": "Export the resulting country-level dataset as a GeoJSON file to the specified exports directory.",
+      "points": 20,
+      "visual_evidence": "A 'Save Vector Layer as...' dialog showing the format as GeoJSON and the file path '/home/ga/GIS_Data/exports/megacity_stats_by_country.geojson', or a file manager/terminal showing the file was successfully created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_software_usage",
+      "description": "The agent used genuine GIS software (e.g., QGIS) or a data processing script (e.g., Python with GeoPandas) to perform the task.",
+      "visual_evidence": "Screenshots show interaction with QGIS GUI tools, attribute tables, or a terminal running a legitimate Python script, rather than just a text editor manually typing a JSON response."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "The agent calculated the values dynamically rather than hardcoding the ground truth values for the check countries.",
+      "visual_evidence": "The agent uses spatial join/aggregation tools or functions instead of manually typing '33299000' or '46115000' into a script or table."
+    },
+    {
+      "id": "full_dataset_processed",
+      "description": "The agent processed the entire countries dataset rather than just the 5 check countries.",
+      "visual_evidence": "The resulting layer or attribute table shows multiple countries (up to 177), including those with 0 megacities, rather than just China, USA, Japan, India, and Brazil."
+    }
+  ],
+  "privileged_info_for_vlm": "The countries dataset contains 177 features. The population threshold for megacities is POP_MAX > 5,000,000. Ground truth results for specific countries after spatial join and aggregation: China (Count: 3, Pop Sum: 33,299,000), USA (Count: 4, Pop Sum: 46,115,000), Japan (Count: 2, Pop Sum: 46,970,000), India (Count: 3, Pop Sum: 40,552,000), Brazil (Count: 2, Pop Sum: 30,593,000). The final output must be saved exactly to /home/ga/GIS_Data/exports/megacity_stats_by_country.geojson."
+}

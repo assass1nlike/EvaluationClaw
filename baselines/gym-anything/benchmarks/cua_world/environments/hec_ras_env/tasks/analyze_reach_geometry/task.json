@@ -1,0 +1,34 @@
+{
+  "id": "analyze_reach_geometry@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a geometric quality control analysis on the Muncie HEC-RAS model. Create a Python script at ~/Documents/hec_ras_results/geometry_analysis.py that uses h5py to parse the HEC-RAS HDF5 geometry data (e.g., ~/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf). The script must extract River Stations, Channel Reach Lengths, and Minimum Channel Elevations (Invert) to calculate the slope between consecutive cross-sections using the formula: Slope = (Invert_upstream - Invert_downstream) / Reach_Length. Export a CSV report to ~/Documents/hec_ras_results/reach_stats.csv with the columns: 'Upstream_RS', 'Downstream_RS', 'Reach_Length_ft', 'Upstream_Invert_ft', 'Downstream_Invert_ft', and 'Slope_ft_ft'. Ensure the HDF5 geometry data is generated via the preprocessor or simulation if it is not already available.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_reach_geometry/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_reach_geometry/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/hec_ras_results/reach_stats.csv",
+    "expected_script_path": "/home/ga/Documents/hec_ras_results/geometry_analysis.py",
+    "required_columns": [
+      "Upstream_RS",
+      "Downstream_RS",
+      "Reach_Length_ft",
+      "Upstream_Invert_ft",
+      "Downstream_Invert_ft",
+      "Slope_ft_ft"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_reach_geometry"
+    }
+  }
+}

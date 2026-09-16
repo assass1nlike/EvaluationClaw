@@ -1,0 +1,59 @@
+{
+  "task_id": "cdk2_phosphorylation_network@1",
+  "task_completion": [
+    {
+      "id": "fetch_pdb_1fin",
+      "description": "Fetch PDB 1FIN into PyMOL",
+      "points": 10,
+      "visual_evidence": "PyMOL interface shows '1FIN' loaded in the object panel on the right side of the screen."
+    },
+    {
+      "id": "isolate_chain_a_and_residues",
+      "description": "Isolate CDK2 (Chain A) and locate residue 160 and the Arginine triad (50, 126, 150)",
+      "points": 20,
+      "visual_evidence": "The PyMOL viewer shows Chain A isolated, with focus or selection on residue 160 (which will be THR instead of TPO in 1FIN) and Arginine residues 50, 126, and 150."
+    },
+    {
+      "id": "measure_distances",
+      "description": "Measure at least three distances between residue 160 and the three Arginines",
+      "points": 20,
+      "visual_evidence": "Distance measurement dashes are visible in the PyMOL 3D viewer connecting residue 160 to the Arginine triad (Arg 50, 126, 150). Note: Distances will likely be ~10-15 Angstroms due to the unphosphorylated state in 1FIN."
+    },
+    {
+      "id": "stick_representation",
+      "description": "Render the residues as sticks",
+      "points": 20,
+      "visual_evidence": "Residue 160 and the Arginine triad (50, 126, 150) are displayed using the 'sticks' representation in the PyMOL viewer."
+    },
+    {
+      "id": "save_png_figure",
+      "description": "Save a high-resolution PNG figure to ~/PyMOL_Data/images/cdk2_activation.png",
+      "points": 15,
+      "visual_evidence": "Terminal commands, PyMOL command line, or file manager shows the image being saved to or existing at ~/PyMOL_Data/images/cdk2_activation.png."
+    },
+    {
+      "id": "write_text_report",
+      "description": "Write a plain-text report documenting the interacting residues and measured distances",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output shows the creation and content of ~/PyMOL_Data/cdk2_phospho_report.txt, containing the residue names/numbers and the measured distances in Angstroms."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pymol_interaction",
+      "description": "Agent actually used PyMOL to load the structure and measure distances",
+      "visual_evidence": "Screenshots show the PyMOL GUI open with the 3D structure visible, manipulated, and distance objects created, rather than just writing a script without running it."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Agent did not hallucinate the presence of 'TPO' or fake the distances to match expected coordination values",
+      "visual_evidence": "The report and PyMOL viewer show the actual residues present in 1FIN (THR 160) and the actual measured distances (~10-15 Angstroms). The agent should not falsely claim 1FIN has TPO with 2.4-4.1 Angstrom distances."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Agent created the required files in the correct directories",
+      "visual_evidence": "File explorer or terminal commands (like 'ls' or 'cat') confirm the actual existence of cdk2_activation.png and cdk2_phospho_report.txt in the specified ~/PyMOL_Data/ directories."
+    }
+  ],
+  "privileged_info_for_vlm": "CRITICAL DEFECT IN TASK: The prompt asks the agent to use PDB '1FIN' and locate phosphorylated Threonine 160 ('TPO') with coordination distances to Arginines 50, 126, and 150. However, 1FIN actually contains an unphosphorylated Threonine ('THR') at position 160, and the distances to the Arginine triad are physically between 10.6 and 14.9 Angstroms. The true phosphorylated structure is '1JST'. Do not penalize the agent if it selects 'THR 160' instead of 'TPO' or if the measured distances are in the 10-15 Angstrom range, as long as it correctly loaded 1FIN and measured the distances between residue 160 and the Arginine triad. The expected output paths are ~/PyMOL_Data/images/cdk2_activation.png and ~/PyMOL_Data/cdk2_phospho_report.txt."
+}

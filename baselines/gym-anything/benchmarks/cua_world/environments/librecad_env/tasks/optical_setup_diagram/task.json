@@ -1,0 +1,63 @@
+{
+  "id": "optical_setup_diagram@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create an optical schematic diagram in LibreCAD featuring a Z-fold beam path. The project requires three layers: 'COMPONENTS' (Cyan), 'BEAM' (Red), and 'LABELS' (White). The 'COMPONENTS' layer must contain a Laser Source (50x20mm rectangle, right edge centered at 0,0), Mirror 1 (40mm line centered at 300,0, oriented for 90-degree upward reflection), Mirror 2 (40mm line centered at 300,200, oriented for 90-degree leftward reflection), a Lens (Ellipse centered at 150,200 with 40mm vertical major axis and 10mm horizontal minor axis), and a Detector (20x20mm square, right edge centered at 0,200). The 'BEAM' layer should feature a polyline connecting the Laser (0,0), Mirror 1 (300,0), Mirror 2 (300,200), and Detector (0,200). On the 'LABELS' layer, annotate the components as 'LASER', 'M1', 'M2', and 'DETECTOR', and include a note stating the calculated total path length in the format 'Total Path: [Value] mm'. Save the completed schematic to /home/ga/Documents/LibreCAD/optical_setup.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/optical_setup_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/optical_setup_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/optical_setup.dxf",
+    "layer_specs": {
+      "COMPONENTS": 4,
+      "BEAM": 1,
+      "LABELS": 7
+    },
+    "geometry_specs": {
+      "beam_points": [
+        [
+          0,
+          0
+        ],
+        [
+          300,
+          0
+        ],
+        [
+          300,
+          200
+        ],
+        [
+          0,
+          200
+        ]
+      ],
+      "mirror1_center": [
+        300,
+        0
+      ],
+      "mirror2_center": [
+        300,
+        200
+      ],
+      "lens_center": [
+        150,
+        200
+      ],
+      "expected_path_length": 800
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_optical_setup"
+    }
+  }
+}

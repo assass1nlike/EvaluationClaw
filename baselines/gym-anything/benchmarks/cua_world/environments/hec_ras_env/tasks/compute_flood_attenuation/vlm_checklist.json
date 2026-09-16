@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_flood_attenuation@1",
+  "task_completion": [
+    {
+      "id": "read_hdf5_file",
+      "description": "Agent accesses and reads the Muncie.p04.hdf file.",
+      "points": 10,
+      "visual_evidence": "A Python script, terminal command, or HDF5 viewer showing the agent opening or extracting data from 'Muncie.p04.hdf'."
+    },
+    {
+      "id": "generate_csv_output",
+      "description": "Agent creates flood_attenuation_data.csv with the required columns.",
+      "points": 20,
+      "visual_evidence": "File explorer, terminal output, or text editor showing 'flood_attenuation_data.csv' containing the headers: Time_hours, Flow_Upstream_cfs, Flow_Downstream_cfs."
+    },
+    {
+      "id": "generate_summary_report",
+      "description": "Agent creates flood_attenuation_summary.txt containing all required metrics.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal output showing 'flood_attenuation_summary.txt' with computed values for peak flows (both locations), peak attenuation (cfs and %), timing lag (hours), and cumulative volumes (acre-ft) with difference (%)."
+    },
+    {
+      "id": "verify_computed_metrics",
+      "description": "The computed metrics in the summary report match the expected simulation results.",
+      "points": 20,
+      "visual_evidence": "The summary text file shows an upstream peak flow of ~21,000 cfs, downstream peak of ~20,998 cfs, and a timing lag of ~5.17 hours."
+    },
+    {
+      "id": "generate_hydrograph_plot",
+      "description": "Agent creates flood_attenuation_plot.png showing overlaid hydrographs.",
+      "points": 20,
+      "visual_evidence": "An image viewer or file explorer preview showing 'flood_attenuation_plot.png' with a graph displaying two overlaid curves (upstream and downstream flows over time)."
+    },
+    {
+      "id": "save_to_correct_directory",
+      "description": "All three output files are saved in the correct results directory.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., ls /home/ga/Documents/hec_ras_results/) or file explorer showing the CSV, TXT, and PNG files located exactly in '/home/ga/Documents/hec_ras_results/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_metrics",
+      "description": "Agent computed the metrics programmatically rather than hardcoding the expected answers.",
+      "visual_evidence": "Python scripts or terminal commands should show mathematical operations or data extraction logic (e.g., max(), argmax(), integration) rather than simple print statements with the final numbers."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The hydrograph plot was generated from the data, not downloaded or copied.",
+      "visual_evidence": "Script contains plotting code (e.g., matplotlib) corresponding to the generated image, and the plot reflects the actual extracted data."
+    },
+    {
+      "id": "used_correct_source_file",
+      "description": "Agent extracted data from the provided HDF5 file.",
+      "visual_evidence": "The code or commands explicitly reference 'Muncie.p04.hdf' rather than a mock dataset or external file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the Muncie.p04.hdf file. Expected results: Peak upstream flow is ~21,000 cfs, peak downstream flow is ~20,998 cfs. Flood peak attenuation is ~0.01%, travel lag is ~5.17 hours, and volume difference is ~8.8%. The outputs must be saved in /home/ga/Documents/hec_ras_results/ and include flood_attenuation_data.csv (with columns Time_hours, Flow_Upstream_cfs, Flow_Downstream_cfs), flood_attenuation_summary.txt, and flood_attenuation_plot.png."
+}

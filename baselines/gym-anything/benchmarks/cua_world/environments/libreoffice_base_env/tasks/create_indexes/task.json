@@ -1,0 +1,50 @@
+{
+  "id": "create_indexes@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are a library technician managing a digital media catalog database (Chinook) in LibreOffice Base. To optimize query performance, create three indexes: \"idx_Track_Name\" on the \"Track\" table's \"Name\" column; \"idx_Track_Composer\" on the \"Track\" table's \"Composer\" column; and a composite index \"idx_Invoice_Cust_Date\" on the \"Invoice\" table's \"CustomerId\" and \"InvoiceDate\" columns (in that order). Save the changes to the database file at /home/ga/chinook.odb.",
+  "difficulty": "medium",
+  "category": "database_administration",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_indexes/setup_task.sh",
+    "post_task": "/workspace/tasks/create_indexes/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/chinook.odb",
+    "required_indexes": [
+      {
+        "name": "idx_Track_Name",
+        "table": "Track",
+        "columns": [
+          "Name"
+        ]
+      },
+      {
+        "name": "idx_Track_Composer",
+        "table": "Track",
+        "columns": [
+          "Composer"
+        ]
+      },
+      {
+        "name": "idx_Invoice_Cust_Date",
+        "table": "Invoice",
+        "columns": [
+          "CustomerId",
+          "InvoiceDate"
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_indexes"
+    }
+  }
+}

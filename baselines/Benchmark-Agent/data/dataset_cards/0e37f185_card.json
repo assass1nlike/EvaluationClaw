@@ -1,0 +1,93 @@
+{
+  "dataset_id": "0e37f185",
+  "name": "Openset Sequential Photo Storytelling",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Sequential Photo Storytelling dataset evaluates a model's ability to generate a concluding narrative caption for a final image in a sequence, given the previous images and their captions. Each sample provides a five-image story with captions for the first four images and asks for the conclusion using the fifth image.",
+  "card_text": "The dataset consists of 200 multimodal samples pairing sequences of five images with textual narratives. Each sample contains an input prompt that combines an instruction with captions for the initial four images, and an output text that is the concluding caption for the final image. The images are everyday photos depicting a story, and the captions are short narrative sentences. The task requires visual comprehension across a sequence and narrative generation, evaluating whether the model can maintain story coherence and produce an appropriate ending based on the visual and textual context.",
+  "tasks": [
+    "captioning"
+  ],
+  "domain": "visual storytelling",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "narrative",
+        "semantics": "The prompt contains the narrative captions for the first four images in the sequence, providing the preceding story context. It also includes a task instruction, but the captions are the main contextual content used to infer the conclusion.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Embedded within the prompt string is the instruction 'From the narratives given with the initial images, write the conclusion using the final image'. It directs the model to generate the concluding caption for the last image based on the provided narrative context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "A list of five image filenames forming a sequential photo story. The first four images correspond to Caption#1 through Caption#4 in the prompt, and the fifth is the final image for which the model must generate a concluding caption.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "The target text is the concluding caption for the final image, completing the sequential photo story. It is a short narrative sentence that follows from the previous captions and the visual content of the final image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with an image_file list of five image filenames and a prompt that combines an instruction with narrative captions for the first four images, using <ImageHere> placeholders to indicate image positions. The output object holds a single text string, which is the concluding caption for the final image. The prompt asks the model to use the final image to write the conclusion based on the preceding narratives, and the answer is a short narrative sentence that completes the story."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/SequentialPhotoStorytelling/openset_sequential_photo_storytelling.json",
+    "existing_tags": {
+      "task": "Sequential Photo Storytelling",
+      "type": "image comprehension",
+      "skill": "Visual Storytelling Generation",
+      "domain": "Humanities",
+      "general_capability": [
+        "Commense Understanding"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Humanities"
+  }
+}

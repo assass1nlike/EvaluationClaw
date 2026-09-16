@@ -1,0 +1,53 @@
+{
+  "task_id": "ct_cardiac_measurements@1",
+  "task_completion": [
+    {
+      "id": "open_dicom_study",
+      "description": "Open the DICOM viewer and load the study from the target directory.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application is open and displaying a medical image loaded from /home/ga/DICOM/studies/chest_ct/."
+    },
+    {
+      "id": "measure_cardiac_width",
+      "description": "Measure the maximum transverse cardiac diameter on the image.",
+      "points": 20,
+      "visual_evidence": "A measurement tool (e.g., a line with a numerical value in mm) is drawn across the widest part of the heart shadow in the DICOM viewer."
+    },
+    {
+      "id": "measure_thoracic_width",
+      "description": "Measure the widest inner thoracic diameter on the image.",
+      "points": 20,
+      "visual_evidence": "A second measurement tool (e.g., a line with a numerical value in mm) is drawn across the widest part of the inner thorax in the DICOM viewer."
+    },
+    {
+      "id": "export_annotated_slice",
+      "description": "Export the annotated image showing the measurements.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'Export' dialog box showing the image being saved as 'cardiac_analysis.png' in the /home/ga/DICOM/exports/ directory, or a file manager showing the created file."
+    },
+    {
+      "id": "save_cardiac_report",
+      "description": "Save a text report containing the cardiac width, thoracic width, and calculated CTR.",
+      "points": 30,
+      "visual_evidence": "A text editor is open showing the cardiac width (mm), thoracic width (mm), and a calculated CTR decimal value, being saved as 'cardiac_report.txt' in the /home/ga/DICOM/exports/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_measurement_used",
+      "description": "The agent used the DICOM viewer's built-in measurement tools rather than generating fake images via terminal commands.",
+      "visual_evidence": "Screenshots show the DICOM viewer interface with active measurement lines and annotations overlaid directly on the medical image."
+    },
+    {
+      "id": "genuine_ctr_calculation",
+      "description": "The CTR in the report is genuinely calculated from the two measurements taken in the viewer.",
+      "visual_evidence": "The CTR decimal value in the text report mathematically matches (or is very close to) the ratio of the cardiac width divided by the thoracic width shown in the DICOM viewer screenshots."
+    },
+    {
+      "id": "actual_image_interaction",
+      "description": "The agent loaded and interacted with the provided DICOM file rather than a stock image.",
+      "visual_evidence": "The image in the viewer matches an X-Ray Angiographic (XA) cine image (as per the privileged information), rather than a standard axial chest CT."
+    }
+  ],
+  "privileged_info_for_vlm": "The DICOM file provided is actually a 96-frame X-Ray Angiographic (XA) cine image, not a standard chest CT. The agent should evaluate this image regardless. The exported image must be saved to /home/ga/DICOM/exports/cardiac_analysis.png. The text report must be saved to /home/ga/DICOM/exports/cardiac_report.txt and contain at least two distinct numerical measurements (expected between 40 and 300mm) and a calculated Cardiothoracic Ratio (CTR) between 0.25 and 0.80."
+}

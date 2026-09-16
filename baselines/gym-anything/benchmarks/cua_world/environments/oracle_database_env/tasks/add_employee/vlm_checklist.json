@@ -1,0 +1,53 @@
+{
+  "task_id": "add_employee@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Verify the agent connected to the correct Oracle database.",
+      "points": 10,
+      "visual_evidence": "Look for a database client (e.g., DBeaver, SQL Developer, or terminal) showing an active connection to 'localhost:1521/XEPDB1' or the 'hr' schema."
+    },
+    {
+      "id": "basic_details_entered",
+      "description": "Verify the employee's basic personal and contact details are entered.",
+      "points": 20,
+      "visual_evidence": "Look for an INSERT SQL statement or GUI form containing the values 'Sarah' (First Name), 'Johnson' (Last Name), 'SJOHNSON' (Email), and '650.555.1234' (Phone)."
+    },
+    {
+      "id": "job_details_entered",
+      "description": "Verify the employee's job, salary, and hire date details are entered.",
+      "points": 20,
+      "visual_evidence": "Look for an INSERT SQL statement or GUI form containing 'IT_PROG' (Job ID), '5500' (Salary), and a date representing January 15, 2024 (e.g., '15-JAN-24' or '2024-01-15')."
+    },
+    {
+      "id": "org_details_entered",
+      "description": "Verify the employee's manager and department details are entered.",
+      "points": 20,
+      "visual_evidence": "Look for an INSERT SQL statement or GUI form containing the values '103' (Manager ID) and '60' (Department ID)."
+    },
+    {
+      "id": "record_insertion_confirmed",
+      "description": "Verify the new employee record was successfully saved or committed to the database.",
+      "points": 30,
+      "visual_evidence": "Look for a success message (e.g., '1 row inserted', 'Commit successful'), or a SELECT query result grid displaying Sarah Johnson's newly added record in the database."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_actual_db_client",
+      "description": "Verify the agent interacted with a genuine database client or terminal.",
+      "visual_evidence": "The screenshots should show a real database management tool (like DBeaver, DataGrip, SQL Developer) or a terminal running SQL*Plus, rather than a plain text editor like Notepad."
+    },
+    {
+      "id": "executed_not_just_typed",
+      "description": "Verify the SQL commands or GUI actions were actually executed.",
+      "visual_evidence": "Look for execution logs, status bar updates, or result grids that prove the query was run against the database, not just typed into an editor."
+    },
+    {
+      "id": "no_text_file_mocking",
+      "description": "Verify the agent didn't mock the output in a text file.",
+      "visual_evidence": "The success messages or query results must appear in the appropriate console or data grid of the database tool, not as plain text written by the agent in a document."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must insert a record with the following exact values: First Name: 'Sarah', Last Name: 'Johnson', Email: 'SJOHNSON', Phone: '650.555.1234', Hire Date: 'January 15, 2024' (format may vary), Job ID: 'IT_PROG', Salary: 5500, Manager ID: 103, Department ID: 60. The database connection must use Username: 'hr', Password: 'hr123', and Connection String: 'localhost:1521/XEPDB1'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_isolated_territories@1",
+  "task_completion": [
+    {
+      "id": "load_countries_layer",
+      "description": "Load the countries shapefile into gvSIG.",
+      "points": 10,
+      "visual_evidence": "The layer 'ne_110m_admin_0_countries' is visible in the gvSIG Table of Contents (left panel) and the countries are rendered on the map."
+    },
+    {
+      "id": "load_cities_layer",
+      "description": "Load the populated places shapefile into gvSIG.",
+      "points": 10,
+      "visual_evidence": "The layer 'ne_110m_populated_places' is visible in the gvSIG Table of Contents and the points are rendered on the map."
+    },
+    {
+      "id": "spatial_selection_configuration",
+      "description": "Configure a spatial selection to find isolated territories.",
+      "points": 20,
+      "visual_evidence": "A 'Selection by spatial query' (or similar) dialog is open, showing the countries layer as the target/active layer and the populated places as the reference layer, with a disjoint or 'does not intersect' condition."
+    },
+    {
+      "id": "correct_features_selected",
+      "description": "Verify that the correct countries are selected on the map.",
+      "points": 30,
+      "visual_evidence": "A subset of countries is highlighted (usually in yellow) on the map. Crucially, none of the forbidden countries (United States of America, China, Brazil, India, Russia, Australia, Canada) should be highlighted."
+    },
+    {
+      "id": "export_shapefile_path",
+      "description": "Export the selected features to the specified shapefile path.",
+      "points": 30,
+      "visual_evidence": "An export or save dialog is visible showing the exact path '/home/ga/gvsig_data/exports/isolated_territories.shp', OR a success message is displayed, OR the new 'isolated_territories' layer appears in the Table of Contents."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gvsig_gui",
+      "description": "The agent used the gvSIG Desktop application to perform the tasks.",
+      "visual_evidence": "All spatial operations and exports are performed through the gvSIG graphical user interface."
+    },
+    {
+      "id": "no_cli_gis_tools",
+      "description": "The agent did not use command-line GIS tools to bypass the GUI.",
+      "visual_evidence": "There are no terminal windows open where tools like ogr2ogr, GDAL, or Python scripts are being used to perform the spatial selection or export."
+    },
+    {
+      "id": "no_manual_selection_shortcut",
+      "description": "The agent used spatial query tools rather than manually clicking to select countries.",
+      "visual_evidence": "The agent is seen using spatial selection dialogs rather than the manual selection pointer tool to click on individual countries one by one."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is /home/ga/gvsig_data/exports/isolated_territories.shp. The correct spatial selection will result in exactly 15 countries being selected. The following forbidden countries contain populated places and MUST NOT be selected: United States of America, China, Brazil, India, Russia, Australia, Canada."
+}

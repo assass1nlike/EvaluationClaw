@@ -1,0 +1,35 @@
+{
+  "id": "campfire_fire_smoke_sim@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A VFX artist is building a campfire scene for an animated short film. Starting from the baseline scene, set up a Mantaflow gas simulation for fire and smoke. Configure a 3m cube as a gas domain with at least 32 resolution divisions and a Principled Volume material. Include a flow emitter set to 'Fire + Smoke' within the domain. Set the scene frame range from 1 to 100 and save the project to /home/ga/BlenderProjects/campfire_sim.blend.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/campfire_fire_smoke_sim/setup_task.sh",
+    "post_task": "/workspace/tasks/campfire_fire_smoke_sim/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/BlenderProjects/campfire_sim.blend",
+    "min_resolution": 32,
+    "expected_frame_range": [
+      1,
+      100
+    ],
+    "required_shaders": [
+      "PRINCIPLED_VOLUME",
+      "VOLUME_SCATTER",
+      "VOLUME_ABSORPTION"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_campfire_sim"
+    }
+  }
+}

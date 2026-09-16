@@ -1,0 +1,59 @@
+{
+  "task_id": "eol_hardware_refresh_cycle@1",
+  "task_completion": [
+    {
+      "id": "status_label_created",
+      "description": "Verify the 'Pending E-Waste' status label was created with the 'Undeployable' type.",
+      "points": 10,
+      "visual_evidence": "Look for a status label named exactly 'Pending E-Waste' in the Status Labels settings or list, showing its type as 'Undeployable'."
+    },
+    {
+      "id": "eol_assets_reclaimed",
+      "description": "Verify that EOL laptops (purchased before 2022-06-01) have been checked in from their users.",
+      "points": 20,
+      "visual_evidence": "Look for the asset list or history showing the old laptops (Purchase Date before 2022-06-01) are no longer checked out to users (e.g., check-in confirmation banners or an empty 'Checked Out To' column for these specific assets)."
+    },
+    {
+      "id": "eol_status_updated",
+      "description": "Verify that the reclaimed EOL laptops have their status updated to 'Pending E-Waste'.",
+      "points": 15,
+      "visual_evidence": "Look for the asset list showing the old laptops (Purchase Date before 2022-06-01) with the status explicitly set to 'Pending E-Waste'."
+    },
+    {
+      "id": "replacements_issued",
+      "description": "Verify that replacement laptops from the 'Ready to Deploy' pool were checked out to the users who had their EOL laptops reclaimed.",
+      "points": 30,
+      "visual_evidence": "Look for checkout confirmations or the asset list showing new laptops (which were previously 'Ready to Deploy') now checked out to the affected users."
+    },
+    {
+      "id": "date_constraint_valid",
+      "description": "Verify that laptops purchased on or after 2022-06-01 were NOT modified.",
+      "points": 15,
+      "visual_evidence": "Look for laptops with purchase dates >= 2022-06-01 in the asset list; they should still be checked out to their original users and must NOT have the 'Pending E-Waste' status."
+    },
+    {
+      "id": "category_constraint_valid",
+      "description": "Verify that assets in categories other than 'Laptops' were NOT modified.",
+      "points": 10,
+      "visual_evidence": "Look for non-laptop assets (e.g., Monitors) in the asset list; their status and checkout state should remain completely unchanged."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the web interface to perform the actions.",
+      "visual_evidence": "Screenshots should show the web application (Snipe-IT) in a browser being interacted with, not terminal commands or API scripts."
+    },
+    {
+      "id": "authentic_modification",
+      "description": "The agent actually modified the assets in the system rather than typing the expected answers into a text file.",
+      "visual_evidence": "Changes should be visible within the application's asset tables, status label lists, or action confirmation banners."
+    },
+    {
+      "id": "no_db_manipulation",
+      "description": "The agent did not use direct database queries to bypass the UI.",
+      "visual_evidence": "Absence of terminal windows showing SQL commands (like MySQL/SQLite CLI) updating the assets table directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Target category is 'Laptops'. EOL date threshold is '2022-06-01' (assets purchased before this date are EOL). The expected status label is exactly 'Pending E-Waste' with the type 'undeployable'. Assets purchased on or after 2022-06-01, or assets in other categories (like Monitors), must remain untouched."
+}

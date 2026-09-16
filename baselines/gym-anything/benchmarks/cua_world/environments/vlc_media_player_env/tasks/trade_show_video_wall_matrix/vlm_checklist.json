@@ -1,0 +1,53 @@
+{
+  "task_id": "trade_show_video_wall_matrix@1",
+  "task_completion": [
+    {
+      "id": "output_directory_exists",
+      "description": "Verify the creation of the target output directory for the video panels.",
+      "points": 10,
+      "visual_evidence": "A file manager window or terminal showing the existence of the directory '/home/ga/Videos/video_wall/'."
+    },
+    {
+      "id": "panels_exported",
+      "description": "Verify all four video panels have been exported with the correct naming convention.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal listing showing 'panel_TL.mp4', 'panel_TR.mp4', 'panel_BL.mp4', and 'panel_BR.mp4' inside the '/home/ga/Videos/video_wall/' directory."
+    },
+    {
+      "id": "panel_properties_correct",
+      "description": "Verify the exported panels are 1920x1080, H.264, and have no audio track.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., ffprobe, file command) or a GUI media properties window showing the exported MP4 files have a resolution of 1920x1080, use the H.264 codec, and lack an audio stream."
+    },
+    {
+      "id": "manifest_created",
+      "description": "Verify the JSON layout manifest file has been created at the correct path.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal showing the file 'wall_manifest.json' exists in '/home/ga/Documents/'."
+    },
+    {
+      "id": "manifest_content_correct",
+      "description": "Verify the contents of the JSON manifest match the required structure and contain correct crop coordinates.",
+      "points": 30,
+      "visual_evidence": "An open text editor or terminal output (e.g., cat, less) displaying the contents of 'wall_manifest.json', showing a valid JSON structure with entries for all four panels (TL, TR, BL, BR) and their respective spatial crop coordinates (e.g., TL at 0,0; TR at 1920,0; BL at 0,1080; BR at 1920,1080)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Ensure the agent actually processed the video to create the panels.",
+      "visual_evidence": "Screenshots should show the agent using a video processing tool (like ffmpeg commands in the terminal or a GUI video editor) to generate the outputs, rather than just renaming or copying dummy files."
+    },
+    {
+      "id": "no_scaling_used",
+      "description": "Ensure the agent used spatial cropping and did not scale or squish the video.",
+      "visual_evidence": "Look at the ffmpeg commands or GUI settings used by the agent; they must use a cropping filter (e.g., 'crop=1920:1080:x:y') and must NOT use a scale filter ('scale=1920:1080')."
+    },
+    {
+      "id": "genuine_manifest_creation",
+      "description": "Ensure the agent actively created the JSON manifest.",
+      "visual_evidence": "Screenshots should show the agent typing the JSON content in a text editor (like nano, vim, or gedit) or using a script to generate it, rather than copying a pre-existing solution file."
+    }
+  ],
+  "privileged_info_for_vlm": "The master video is located at '/home/ga/Videos/tradeshow_master_4k.mp4' with a duration of exactly 30.0 seconds. The expected output directory is '/home/ga/Videos/video_wall/'. The task requires exactly four panels named 'panel_TL.mp4', 'panel_TR.mp4', 'panel_BL.mp4', and 'panel_BR.mp4', each with a resolution of 1920x1080. The JSON manifest must be saved to '/home/ga/Documents/wall_manifest.json'."
+}

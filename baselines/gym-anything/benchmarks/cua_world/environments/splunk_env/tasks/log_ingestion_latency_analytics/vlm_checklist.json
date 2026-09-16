@@ -1,0 +1,65 @@
+{
+  "task_id": "log_ingestion_latency_analytics@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Verify the agent logged into the Splunk Web interface.",
+      "points": 5,
+      "visual_evidence": "The Splunk Web interface is visible in a web browser navigated to localhost:8000."
+    },
+    {
+      "id": "scheduled_report_created",
+      "description": "Verify a scheduled report named 'Index_Latency_Summary' was created.",
+      "points": 15,
+      "visual_evidence": "A report named 'Index_Latency_Summary' is visible in the Splunk Reports list or save dialog, with an indication that it is scheduled (e.g., a time interval or cron schedule is set)."
+    },
+    {
+      "id": "report_query_logic",
+      "description": "Verify the report calculates ingestion latency and aggregates by index.",
+      "points": 20,
+      "visual_evidence": "The search query for the report includes a calculation for latency (e.g., 'eval latency = _indextime - _time') and an aggregation command grouping by index (e.g., 'stats avg(latency) by index')."
+    },
+    {
+      "id": "alert_created",
+      "description": "Verify an alert named 'Critical_Latency_Alert' was created.",
+      "points": 15,
+      "visual_evidence": "An alert named 'Critical_Latency_Alert' is visible in the Splunk Alerts list or the alert configuration screen."
+    },
+    {
+      "id": "alert_threshold_configured",
+      "description": "Verify the alert is configured to trigger when latency exceeds 3600 seconds.",
+      "points": 20,
+      "visual_evidence": "The alert's trigger condition or underlying search query explicitly checks for latency greater than 3600 (e.g., 'where latency > 3600' or a custom trigger condition set to > 3600)."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verify a dashboard named 'Data_Quality_Monitoring' was created.",
+      "points": 10,
+      "visual_evidence": "A dashboard titled 'Data_Quality_Monitoring' is visible in the Splunk Dashboards list or is currently open."
+    },
+    {
+      "id": "dashboard_panel_visualized",
+      "description": "Verify the dashboard contains a visualization panel showing latency metrics by index.",
+      "points": 15,
+      "visual_evidence": "The 'Data_Quality_Monitoring' dashboard contains at least one rendered panel (such as a chart, graph, or table) that displays latency data categorized or grouped by index."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Verify the agent used the Splunk Web UI to complete the task.",
+      "visual_evidence": "Screenshots should show interaction with the Splunk web interface in a browser, rather than API calls via curl or Python scripts."
+    },
+    {
+      "id": "actual_splunk_artifacts",
+      "description": "Verify the artifacts are genuine Splunk objects.",
+      "visual_evidence": "The reports, alerts, and dashboards must appear within the actual Splunk application interface, not as text files, HTML mockups, or notes in an editor."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Verify the agent did not bypass the UI by directly editing configuration files.",
+      "visual_evidence": "There should be no evidence of the agent directly modifying Splunk .conf files (like savedsearches.conf) in a terminal to create the objects."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected report name: 'Index_Latency_Summary'. Expected alert name: 'Critical_Latency_Alert'. Expected dashboard name: 'Data_Quality_Monitoring'. Alert latency threshold: 3600 seconds. The latency calculation must involve the difference between _indextime and _time."
+}

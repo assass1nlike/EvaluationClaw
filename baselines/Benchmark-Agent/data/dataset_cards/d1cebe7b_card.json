@@ -1,0 +1,78 @@
+{
+  "dataset_id": "d1cebe7b",
+  "name": "Portrait Matting",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A dataset for portrait image matting, where models receive a portrait photograph and a text instruction to produce an alpha matte separating the portrait from the background. It evaluates fine-grained segmentation and alpha estimation for human portraits.",
+  "card_text": "Portrait Matting is a dataset of 200 samples pairing portrait photographs with ground-truth alpha masks. Each sample includes an input image file path and a short instruction prompt asking to perform image matting on the portrait. The output is a mask file path pointing to the expected alpha matte. The data is multimodal: the model receives both visual (image) and textual (instruction) input, and must output a pixel-level mask. The portraits likely vary in composition, lighting, and background complexity, requiring the model to handle hair, edges, and transparency. The dataset is intended for evaluating segmentation and matting capabilities in the specific domain of human portraits.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "portrait matting",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A file path to a portrait photograph that serves as the input image for matting. It shows one or more people against a background, and the model must estimate the alpha matte for the portrait foreground.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction that tells the model to perform image matting on the portrait. It is the same prompt across samples and specifies the task to execute on the associated input image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A file path to the ground-truth alpha mask (matte) for the input portrait. The mask indicates the opacity of the portrait foreground at each pixel, and it is the target output the model should produce.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image (a portrait photograph), a text prompt instructing to perform image matting on the portrait, and an output mask (alpha matte) for that portrait. The input image and prompt are provided as model input, while the mask is the expected output. No question-answer pairs or other auxiliary annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/portrait_matting/json/annotation.json",
+    "existing_tags": {
+      "task": "portrait matting",
+      "type": "comprehension",
+      "skill": "Object Matting (Object Mat)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "reactivate_patient_record@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verify the agent successfully logged into the NOSH EHR system.",
+      "points": 10,
+      "visual_evidence": "The NOSH ChartingSystem dashboard or home screen is visible, indicating a successful login (likely showing the 'admin' user profile)."
+    },
+    {
+      "id": "search_inactive_patient",
+      "description": "Verify the agent searched for the patient including inactive/archived records.",
+      "points": 20,
+      "visual_evidence": "A patient search interface is visible with a query for 'Maria Garcia' and a specific filter, checkbox, or tab selected to include 'Inactive', 'Archived', or 'All' patients, since the record does not appear in standard active searches."
+    },
+    {
+      "id": "locate_target_patient",
+      "description": "Verify the agent located the correct existing patient record.",
+      "points": 20,
+      "visual_evidence": "Search results or a patient chart header explicitly displaying the name 'Maria Garcia' and the Date of Birth '1980-03-25'."
+    },
+    {
+      "id": "open_patient_demographics",
+      "description": "Verify the agent opened the patient's demographics or settings to edit the status.",
+      "points": 20,
+      "visual_evidence": "An edit screen, demographics form, or patient settings page for Maria Garcia is open, displaying fields where the patient's active/inactive status can be modified."
+    },
+    {
+      "id": "status_changed_to_active",
+      "description": "Verify the patient's status was changed to 'Active'.",
+      "points": 30,
+      "visual_evidence": "The status dropdown, toggle, or radio button for Maria Garcia is visibly set to 'Active', or there is a system success message/notification confirming the patient record has been updated/reactivated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "Verify the agent used the web browser GUI to complete the task.",
+      "visual_evidence": "The actions should take place within a web browser showing the NOSH interface. There should be no terminal windows open executing SQL commands (e.g., 'UPDATE demographics SET active=1...') or curl requests to bypass the UI."
+    },
+    {
+      "id": "no_new_patient_created",
+      "description": "Verify the agent did not create a new patient record.",
+      "visual_evidence": "The screenshots should not show the agent filling out a 'New Patient', 'Add Patient', or blank registration form with Maria Garcia's details. The interaction must clearly be editing an existing inactive record."
+    },
+    {
+      "id": "genuine_system_interaction",
+      "description": "Verify the agent interacted with the actual NOSH application.",
+      "visual_evidence": "The screenshots should show continuous and logical navigation through the NOSH EHR interface, rather than static text editors, manipulated HTML files, or copy-pasted text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Patient: Maria Garcia. DOB: 1980-03-25. Credentials: username 'admin', password 'Admin1234!'. The task requires reactivating an existing inactive record in the NOSH ChartingSystem EHR. The agent must NOT create a new patient record."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "zone_employment_accessibility@1",
+  "task_completion": [
+    {
+      "id": "notebook_and_data_loading",
+      "description": "Open the correct Jupyter notebook and load the UrbanSim dataset.",
+      "points": 10,
+      "visual_evidence": "Look for a Jupyter Notebook interface open to '/home/ga/urbansim_projects/notebooks/employment_accessibility.ipynb'. There should be code cells importing pandas/geopandas and reading the 'sanfran_public.h5' file."
+    },
+    {
+      "id": "spatial_calculations",
+      "description": "Calculate zone centroids and find the 10 nearest neighboring zones.",
+      "points": 25,
+      "visual_evidence": "Look for code cells computing centroids from parcel coordinates and using a spatial algorithm (like KDTree, NearestNeighbors, or distance matrices) to find the 10 nearest neighbors for each zone."
+    },
+    {
+      "id": "score_and_tier_assignment",
+      "description": "Calculate accessibility scores, normalize them, and assign tiers.",
+      "points": 20,
+      "visual_evidence": "Look for code cells summing the jobs in the zone and its 10 neighbors, normalizing the result to a 0-100 scale, and classifying them into 'High' (>=67), 'Medium' (33 to <67), and 'Low' (<33) tiers."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the analysis to the specified CSV file with correct columns.",
+      "points": 15,
+      "visual_evidence": "Look for code executing a `.to_csv()` command saving to '/home/ga/urbansim_projects/output/zone_accessibility.csv' with columns: zone_id, total_jobs_in_zone, accessible_jobs_k10, accessibility_score, accessibility_tier. Alternatively, look for this file in a file explorer or terminal output."
+    },
+    {
+      "id": "plot_generation",
+      "description": "Generate and save the accessibility map scatter plot.",
+      "points": 15,
+      "visual_evidence": "Look for an inline plot in the notebook or an opened image file ('accessibility_map.png') showing a scatter plot of zone centroids colored by tier. It must have a legend and the exact title 'Zone Employment Accessibility (K=10 Nearest Neighbors)'."
+    },
+    {
+      "id": "summary_export",
+      "description": "Generate and save the accessibility summary text file.",
+      "points": 15,
+      "visual_evidence": "Look for code writing to '/home/ga/urbansim_projects/output/accessibility_summary.txt' or the file opened in a text editor. It should contain the total zones analyzed (should be 190), counts per tier, mean accessibility score, and the 5 zone IDs with the lowest scores."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_jupyter_usage",
+      "description": "The agent used the Jupyter Notebook interface to write and execute code.",
+      "visual_evidence": "Check that the agent is actively typing and running cells in the Jupyter Notebook web interface, rather than just echoing text into files via terminal commands."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "The agent actually processed the .h5 dataset rather than hardcoding answers.",
+      "visual_evidence": "Look at the code cells to ensure the agent is dynamically calculating the centroids, neighbors, and scores from the loaded dataframe, not printing hardcoded strings or arrays."
+    },
+    {
+      "id": "programmatic_file_generation",
+      "description": "Output files were generated programmatically.",
+      "visual_evidence": "Ensure the CSV, PNG, and TXT files are created as a result of Python code execution (e.g., `df.to_csv()`, `plt.savefig()`, `with open(...)`) and not manually created and typed out by the agent."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/employment_accessibility.ipynb. The dataset is located at /home/ga/urbansim_projects/data/sanfran_public.h5. The expected CSV output path is /home/ga/urbansim_projects/output/zone_accessibility.csv and must contain exactly these columns: zone_id, total_jobs_in_zone, accessible_jobs_k10, accessibility_score, accessibility_tier. The expected plot path is /home/ga/urbansim_projects/output/accessibility_map.png. The expected summary path is /home/ga/urbansim_projects/output/accessibility_summary.txt. The dataset contains exactly 190 valid zones and 225,439 jobs; the summary text file should reflect 190 total zones analyzed."
+}

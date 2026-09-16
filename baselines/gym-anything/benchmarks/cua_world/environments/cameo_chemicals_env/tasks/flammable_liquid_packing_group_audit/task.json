@@ -1,0 +1,57 @@
+{
+  "id": "flammable_liquid_packing_group_audit@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are a logistics coordinator auditing a shipping manifest. Determine the Department of Transportation (DOT) Packing Group for the following flammable liquids based on physical properties from the CAMEO Chemicals website (https://cameochemicals.noaa.gov/):\n- Propylene Oxide (CAS 75-56-9)\n- Toluene (CAS 108-88-3)\n- Cyclohexanone (CAS 108-94-1)\n- Acetonitrile (CAS 75-05-8)\n\nApply the following classification rules (49 CFR 173.121):\n- Packing Group I: Boiling Point <= 35°C\n- Packing Group II: Boiling Point > 35°C AND Flash Point < 23°C\n- Packing Group III: Boiling Point > 35°C AND Flash Point >= 23°C\nNote: Use Celsius values and the lowest value if a range is provided.\n\nCreate a CSV report at /home/ga/Documents/packing_group_audit.csv with the header 'Chemical,Boiling_Point_C,Flash_Point_C,Packing_Group' containing the findings for each chemical.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "dot",
+    "packing-group",
+    "classification",
+    "flammable-liquid",
+    "audit"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flammable_liquid_packing_group_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/flammable_liquid_packing_group_audit/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/packing_group_audit.csv",
+    "chemicals": {
+      "Propylene Oxide": {
+        "bp": 34,
+        "fp": -37,
+        "pg": "I"
+      },
+      "Toluene": {
+        "bp": 110,
+        "fp": 4,
+        "pg": "II"
+      },
+      "Cyclohexanone": {
+        "bp": 155,
+        "fp": 44,
+        "pg": "III"
+      },
+      "Acetonitrile": {
+        "bp": 82,
+        "fp": 2,
+        "pg": "II"
+      }
+    },
+    "tolerance_bp": 10,
+    "tolerance_fp": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_packing_group_audit"
+    }
+  }
+}

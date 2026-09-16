@@ -1,0 +1,59 @@
+{
+  "task_id": "upgrade_volume_security@1",
+  "task_completion": [
+    {
+      "id": "select_volume",
+      "description": "Select the target volume in VeraCrypt",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt main window is visible with the volume path '/home/ga/Volumes/legacy_project.hc' entered or selected in the volume field."
+    },
+    {
+      "id": "open_change_password_dialog",
+      "description": "Open the Change Volume Password dialog",
+      "points": 10,
+      "visual_evidence": "The 'Change Password or Keyfiles' dialog box is open in VeraCrypt."
+    },
+    {
+      "id": "enter_current_parameters",
+      "description": "Enter the current volume parameters",
+      "points": 20,
+      "visual_evidence": "In the 'Current' section of the dialog, the password field contains masked input (dots/asterisks) and the PIM field is explicitly set to '485'."
+    },
+    {
+      "id": "enter_new_parameters",
+      "description": "Enter the new target volume parameters",
+      "points": 30,
+      "visual_evidence": "In the 'New' section of the dialog, the password field contains masked input, the 'PKCS-5 PRF' dropdown is set to 'HMAC-SHA-512', and the PIM field is set to '0' (or left blank for default)."
+    },
+    {
+      "id": "random_pool_generation",
+      "description": "Generate random pool for the new header",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt Random Pool Enrichment window is visible, showing a progress bar for gathering entropy via mouse movements."
+    },
+    {
+      "id": "success_confirmation",
+      "description": "Confirm the volume parameters were successfully changed",
+      "points": 20,
+      "visual_evidence": "A VeraCrypt popup dialog is visible displaying a success message indicating that the volume password/parameters have been successfully changed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_veracrypt_gui",
+      "description": "Agent used the VeraCrypt GUI as instructed",
+      "visual_evidence": "Screenshots show interaction with the graphical VeraCrypt application windows rather than relying solely on terminal commands."
+    },
+    {
+      "id": "no_cli_bypass",
+      "description": "Agent did not use CLI commands to bypass the GUI requirement",
+      "visual_evidence": "The terminal window does not show execution of VeraCrypt command-line arguments like '--change-password' or '-C'."
+    },
+    {
+      "id": "authentic_dialogs",
+      "description": "Dialogs and success messages are genuine",
+      "visual_evidence": "The parameter entry windows and success confirmations are authentic VeraCrypt UI elements, not text files, scripts, or mocked outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Volume: '/home/ga/Volumes/legacy_project.hc'. Password: 'UpgradeMe2024'. Original PIM: 485. Target PIM: 0. Target PRF: HMAC-SHA-512. The task requires using the VeraCrypt GUI 'Change Volume Password' feature."
+}

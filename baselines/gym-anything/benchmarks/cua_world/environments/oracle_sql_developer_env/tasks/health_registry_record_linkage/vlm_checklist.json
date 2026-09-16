@@ -1,0 +1,48 @@
+{
+  "task_id": "health_registry_record_linkage@1",
+  "task_completion": [
+    {
+      "id": "create_probable_matches_view",
+      "description": "Create the PROBABLE_MATCHES_VW view with exact and fuzzy matching conditions",
+      "points": 30,
+      "visual_evidence": "Look for a SQL statement starting with 'CREATE [OR REPLACE] VIEW PROBABLE_MATCHES_VW AS'. The query must join CLINIC_A_PATIENTS and CLINIC_B_PATIENTS on exact date_of_birth and gender, and include fuzzy matching conditions: UTL_MATCH.JARO_WINKLER_SIMILARITY >= 85 (for first and last names) and UTL_MATCH.EDIT_DISTANCE <= 2 (for SSN). The SELECT clause should include a_pat_id, b_pat_id, a_first_name, b_first_name, fname_score, a_ssn, b_ssn, and ssn_distance."
+    },
+    {
+      "id": "create_mpi_sequence",
+      "description": "Create the MPI_SEQ sequence starting at 1000000",
+      "points": 15,
+      "visual_evidence": "Look for a SQL statement 'CREATE SEQUENCE MPI_SEQ START WITH 1000000 INCREMENT BY 1' in the SQL editor, or the sequence MPI_SEQ visible in the database object explorer with a starting value of 1000000."
+    },
+    {
+      "id": "create_mpi_crosswalk_table",
+      "description": "Create the MPI_CROSSWALK table with the required columns",
+      "points": 15,
+      "visual_evidence": "Look for a SQL statement 'CREATE TABLE MPI_CROSSWALK' defining columns golden_mpi_id (NUMBER), clinic_a_pat_id (VARCHAR2), and clinic_b_pat_id (VARCHAR2), or the table visible in the database object explorer."
+    },
+    {
+      "id": "populate_mpi_crosswalk",
+      "description": "Populate the MPI_CROSSWALK table using the view and sequence",
+      "points": 20,
+      "visual_evidence": "Look for an INSERT statement (e.g., 'INSERT INTO MPI_CROSSWALK SELECT MPI_SEQ.NEXTVAL, a_pat_id, b_pat_id FROM PROBABLE_MATCHES_VW'). There should ideally be a script output or confirmation message indicating rows were inserted (expected: 45 rows)."
+    },
+    {
+      "id": "export_crosswalk_csv",
+      "description": "Export the MPI_CROSSWALK table to the specified CSV path",
+      "points": 20,
+      "visual_evidence": "Look for an export wizard in the SQL client, a terminal command, or a file manager window showing the file 'mpi_crosswalk.csv' successfully created in the directory '/home/ga/Documents/exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "Verify that SQL commands were actually executed in a database client",
+      "visual_evidence": "Look for execution confirmations in the SQL client's output pane (e.g., 'View PROBABLE_MATCHES_VW created.', 'Sequence MPI_SEQ created.', 'Table MPI_CROSSWALK created.', '45 rows inserted.'). The agent should not just be typing queries into a text editor without running them."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Verify the CSV export was generated from the database",
+      "visual_evidence": "The export should be performed via the SQL client's export tool, a spool command, or a script, rather than the agent manually creating a CSV file and typing mock data into it."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct execution of the fuzzy matching logic (Jaro-Winkler >= 85 and Edit Distance <= 2) will result in exactly 45 matching records. When the agent populates the MPI_CROSSWALK table, look for a confirmation of 45 rows inserted. The sequence MPI_SEQ must explicitly start at 1000000. The final export must be saved exactly to '/home/ga/Documents/exports/mpi_crosswalk.csv'."
+}

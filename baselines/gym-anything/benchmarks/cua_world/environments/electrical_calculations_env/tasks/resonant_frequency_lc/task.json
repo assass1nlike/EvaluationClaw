@@ -1,0 +1,30 @@
+{
+  "id": "resonant_frequency_lc@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "An industrial electrician is designing an LC harmonic filter for a VFD installation. Using the Electrical Engineering Calculations app, calculate the resonant frequency of an LC circuit with inductance L = 10 mH and capacitance C = 100 nF. Save the calculated frequency value in Hz to /sdcard/tasks/resonant_frequency_lc/result.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/resonant_frequency_lc/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/resonant_frequency_lc/export_result.sh"
+  },
+  "metadata": {
+    "expected_frequency_hz": 5032.9,
+    "tolerance_loose_percent": 5.0,
+    "tolerance_tight_percent": 2.0,
+    "input_l": "10 mH",
+    "input_c": "100 nF",
+    "result_file_path": "/sdcard/tasks/resonant_frequency_lc/result.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_resonant_frequency"
+    }
+  }
+}

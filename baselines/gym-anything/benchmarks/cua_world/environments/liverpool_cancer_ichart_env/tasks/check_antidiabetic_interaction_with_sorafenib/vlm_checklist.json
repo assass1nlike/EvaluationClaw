@@ -1,0 +1,59 @@
+{
+  "task_id": "check_antidiabetic_interaction_with_sorafenib@1",
+  "task_completion": [
+    {
+      "id": "app_opened",
+      "description": "Open the Liverpool Cancer iChart Archive app",
+      "points": 10,
+      "visual_evidence": "The Liverpool Cancer iChart app is launched and its home screen or main interface is visible."
+    },
+    {
+      "id": "cancer_drug_selected",
+      "description": "Select 'Sorafenib' as the cancer drug",
+      "points": 15,
+      "visual_evidence": "The agent searches for and selects 'Sorafenib' from the cancer drugs list within the app."
+    },
+    {
+      "id": "co_medication_selected",
+      "description": "Select 'Metformin' as the co-medication",
+      "points": 15,
+      "visual_evidence": "The agent searches for and selects 'Metformin' from the co-medications list within the app."
+    },
+    {
+      "id": "interaction_result_viewed",
+      "description": "View the interaction result between Sorafenib and Metformin",
+      "points": 20,
+      "visual_evidence": "A results screen in the app displaying both 'Sorafenib' and 'Metformin', showing a color-coded interaction severity and clinical recommendation."
+    },
+    {
+      "id": "output_file_color",
+      "description": "Write the interaction color to the first line of the output file",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal screen showing the creation or editing of '/sdcard/interaction_result.txt'. The first line contains exactly one of the valid colors (Red, Orange, Yellow, Green, or Grey)."
+    },
+    {
+      "id": "output_file_summary",
+      "description": "Write the clinical recommendation summary to the second line of the output file",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal screen showing the contents of '/sdcard/interaction_result.txt'. The second line contains a brief text summary of the clinical recommendation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_app_used",
+      "description": "The agent used the Liverpool Cancer iChart app to find the interaction",
+      "visual_evidence": "Screenshots show interaction with the actual Liverpool Cancer iChart app interface, not a web browser search or terminal curl command to an external API."
+    },
+    {
+      "id": "result_matches_app",
+      "description": "The recorded result matches the app's output",
+      "visual_evidence": "The color and recommendation written to the text file accurately reflect the information displayed on the app's interaction result screen."
+    },
+    {
+      "id": "no_premature_file_creation",
+      "description": "The agent viewed the result before creating the file",
+      "visual_evidence": "The agent only creates and populates '/sdcard/interaction_result.txt' AFTER successfully viewing the interaction result in the app, proving it didn't use pre-programmed knowledge."
+    }
+  ],
+  "privileged_info_for_vlm": "Sorafenib is a cancer drug and Metformin is an anti-diabetic medication. There is a documented clinical interaction between them (metformin reduces sorafenib exposure by 40%). The Liverpool Cancer iChart app uses a traffic light system (Red, Orange, Yellow, Green, Grey) to display interactions. The agent must check this specific interaction in the app and record the exact color and clinical recommendation displayed by the app into '/sdcard/interaction_result.txt'."
+}

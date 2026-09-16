@@ -1,0 +1,60 @@
+{
+  "task_id": "record_spinoff_transaction@1",
+  "task_completion": [
+    {
+      "id": "open_msft_transaction",
+      "description": "Check if the agent opened the existing MSFT transaction for editing.",
+      "points": 10,
+      "visual_evidence": "A dialog box for editing the existing MSFT buy transaction is visible on the screen."
+    },
+    {
+      "id": "update_msft_cost_basis",
+      "description": "Check if the MSFT transaction's cost basis was updated to reflect the 90% allocation.",
+      "points": 15,
+      "visual_evidence": "In the edit dialog or the portfolio list, the MSFT transaction shows a price of 337.05 or a total cost of 16,852.50."
+    },
+    {
+      "id": "update_msft_comment",
+      "description": "Check if the MSFT transaction's comment was updated.",
+      "points": 10,
+      "visual_evidence": "In the edit dialog or the portfolio list, the MSFT transaction has the comment 'Spinoff Adjustment'."
+    },
+    {
+      "id": "open_new_nvda_transaction",
+      "description": "Check if the agent initiated a new buy transaction for NVDA.",
+      "points": 10,
+      "visual_evidence": "A 'Buy' dialog box is open with the stock symbol set to NVDA."
+    },
+    {
+      "id": "set_nvda_shares_and_cost",
+      "description": "Check if the new NVDA transaction has the correct number of shares and cost basis.",
+      "points": 20,
+      "visual_evidence": "The new NVDA transaction shows 5 shares and a price of 374.50 or a total cost of 1,872.50."
+    },
+    {
+      "id": "set_nvda_comment",
+      "description": "Check if the new NVDA transaction has the correct comment.",
+      "points": 10,
+      "visual_evidence": "The new NVDA transaction shows the comment 'Received from MSFT Spinoff'."
+    },
+    {
+      "id": "verify_portfolio_state",
+      "description": "Check if the final portfolio state reflects all required changes without altering the original NVDA shares.",
+      "points": 25,
+      "visual_evidence": "The JStock portfolio view shows the updated MSFT transaction, the new NVDA transaction (5 shares), and the original NVDA transaction (25 shares) which must remain unmodified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Check if the agent used the JStock GUI to perform the task.",
+      "visual_evidence": "Screenshots should show the JStock application interface being interacted with (e.g., clicking buttons, typing in dialog boxes)."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "Check if the agent avoided editing the portfolio CSV file directly.",
+      "visual_evidence": "There should be no screenshots showing a text editor or terminal open with the `buyportfolio.csv` file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires updating an existing MSFT transaction and creating a new NVDA transaction in JStock.\n- Adjusted MSFT: 50 shares, $16,852.50 total cost ($337.05/share).\n- New NVDA: 5 shares, $1,872.50 total cost ($374.50/share).\n- Original NVDA: 25 shares (must remain unmodified).\n- Comments must exactly match 'Spinoff Adjustment' for MSFT and 'Received from MSFT Spinoff' for NVDA."
+}

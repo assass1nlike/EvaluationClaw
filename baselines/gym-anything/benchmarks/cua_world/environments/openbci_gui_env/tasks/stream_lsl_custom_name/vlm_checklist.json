@@ -1,0 +1,59 @@
+{
+  "task_id": "stream_lsl_custom_name@1",
+  "task_completion": [
+    {
+      "id": "select_playback_mode",
+      "description": "Verify that the OpenBCI GUI is set to Playback mode.",
+      "points": 10,
+      "visual_evidence": "The 'PLAYBACK' option is selected in the OpenBCI GUI System Control Panel."
+    },
+    {
+      "id": "select_recording_file",
+      "description": "Verify that the correct recording file is selected for playback.",
+      "points": 20,
+      "visual_evidence": "The file 'OpenBCI-EEG-S001-EyesOpen.txt' is visible in the file selection area of the System Control Panel."
+    },
+    {
+      "id": "start_data_playback",
+      "description": "Verify that the EEG data playback is active.",
+      "points": 20,
+      "visual_evidence": "EEG data traces are visible and scrolling in the Time Series widget, or the system control panel shows 'Stop Data Stream' indicating it is currently running."
+    },
+    {
+      "id": "select_lsl_protocol",
+      "description": "Verify that the Networking widget is open and configured for the LSL protocol.",
+      "points": 10,
+      "visual_evidence": "The Networking widget is visible in one of the GUI panels, and 'LSL' is selected as the active protocol."
+    },
+    {
+      "id": "set_lsl_stream_name",
+      "description": "Verify that the LSL stream name is set to the custom target name.",
+      "points": 20,
+      "visual_evidence": "The text 'OpenBCI_Station_A' is entered into the Stream Name (or equivalent) text field within the Networking widget's LSL configuration."
+    },
+    {
+      "id": "start_lsl_broadcast",
+      "description": "Verify that the LSL broadcast has been started.",
+      "points": 20,
+      "visual_evidence": "The 'Start' button in the Networking widget has been clicked (often changing to 'Stop' or showing an active/broadcasting status indicator next to the LSL configuration)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent interacted with the actual OpenBCI GUI application.",
+      "visual_evidence": "The OpenBCI GUI window is visible, and the configurations are made within its interface, not in a text editor or terminal."
+    },
+    {
+      "id": "no_terminal_mocking",
+      "description": "Verify that the agent did not use a terminal script to mock the LSL stream.",
+      "visual_evidence": "There should be no terminal windows running Python scripts (e.g., using pylsl directly) to fake the LSL broadcast."
+    },
+    {
+      "id": "genuine_file_selection",
+      "description": "Verify that the recording file was loaded through the GUI.",
+      "visual_evidence": "The file path 'Documents/OpenBCI_GUI/Recordings/OpenBCI-EEG-S001-EyesOpen.txt' is seen in the GUI's file explorer or system control panel, not just typed into a separate document."
+    }
+  ],
+  "privileged_info_for_vlm": "The target LSL stream name must be exactly 'OpenBCI_Station_A' and the stream type is 'EEG' (TimeSeries data broadcasts as EEG by default). The playback file is 'OpenBCI-EEG-S001-EyesOpen.txt'. The protocol must be LSL. Verification relies on seeing these exact names and settings actively running in the OpenBCI GUI."
+}

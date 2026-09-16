@@ -1,0 +1,34 @@
+{
+  "id": "ddd_event_storming_library@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Digitize a 'Big Picture' Event Storming workshop from the text transcript at ~/Desktop/storming_transcript.txt into the diagram file ~/Diagrams/library_event_storming.drawio. Create the process flow from left to right using rectangle shapes with exact text labels and the specific hex colors defined in the transcript's Legend (e.g., Domain Events must be #FF9900). Connect the shapes with arrows to show the flow. Export the completed diagram as a PNG image to ~/Diagrams/exports/library_event_storming.png. Verification depends on the application of correct hex codes to the corresponding text labels.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ddd_event_storming_library/setup_task.sh",
+    "post_task": "/workspace/tasks/ddd_event_storming_library/export_result.sh"
+  },
+  "metadata": {
+    "transcript_path": "/home/ga/Desktop/storming_transcript.txt",
+    "diagram_path": "/home/ga/Diagrams/library_event_storming.drawio",
+    "export_path": "/home/ga/Diagrams/exports/library_event_storming.png",
+    "required_colors": {
+      "Event": "#FF9900",
+      "Command": "#0099FF",
+      "Aggregate": "#FFFF99",
+      "Policy": "#CC00CC",
+      "System": "#FFCCE6"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ddd_event_storming"
+    }
+  }
+}

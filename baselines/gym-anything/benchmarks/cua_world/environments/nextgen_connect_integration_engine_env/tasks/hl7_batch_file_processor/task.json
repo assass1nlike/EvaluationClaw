@@ -1,0 +1,30 @@
+{
+  "id": "hl7_batch_file_processor@1",
+  "version": "1.0",
+  "env_id": "nextgen_connect_integration_engine_env@0.1",
+  "description": "You are a Healthcare IT Integration Specialist at a reference laboratory that receives nightly batch HL7 files from 12 hospital clients. To eliminate a manual processing backlog, build and deploy a NextGen Connect channel named 'Nightly HL7 Batch Processor'. The channel must poll the directory /home/ga/hl7_batch_inbox/ for files matching the pattern *.hl7 every 30 seconds. It should process these batch files by stripping BHS/BTS envelopes and splitting the content into individual HL7 messages. For each message, extract the patient MRN from PID-3 and the message type from MSH-9, then insert a record into the PostgreSQL table 'batch_processing_log' with the following columns: batch_file (VARCHAR(255)), message_seq (INTEGER), patient_mrn (VARCHAR(50)), message_type (VARCHAR(20)), and processed_at (TIMESTAMP). After processing, move the files to /home/ga/hl7_batch_archive/. Ensure the required directories and table are created during setup.\n\nEnvironment Details:\n- Sample batch file: /home/ga/hl7_batch_inbox/nightly_batch_20240115.hl7\n- PostgreSQL: jdbc:postgresql://nextgen-postgres:5432/mirthdb (user: postgres, password: postgres)\n- Direct DB access: docker exec nextgen-postgres psql -U postgres -d mirthdb\n- REST API: https://localhost:8443/api (admin:admin)\n- API Header: X-Requested-With: OpenAPI",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hl7_batch_file_processor/setup_task.sh",
+    "post_task": "/workspace/tasks/hl7_batch_file_processor/export_result.sh"
+  },
+  "metadata": {
+    "channel_name": "Nightly HL7 Batch Processor",
+    "inbox_dir": "/home/ga/hl7_batch_inbox",
+    "archive_dir": "/home/ga/hl7_batch_archive",
+    "db_table": "batch_processing_log",
+    "occupation": "Healthcare IT Integration Specialist",
+    "soc_code": "15-1211.01"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hl7_batch_file_processor"
+    }
+  }
+}

@@ -125,6 +125,8 @@ def _run_final_native_evaluation(
     )
     if artifact_dir is not None:
         write_json(artifact_dir / "evaluator-evidence.json", evidence)
+        if getattr(env, "judge_evaluator", None) is not None:
+            env.judge_artifact_dir = artifact_dir / "judge"
     evaluate(evidence)
 
 
@@ -411,7 +413,8 @@ def _run_agent_interaction_native_tools(
             started_at=started_at,
             started=started,
         )
-        return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
+        reasoning = env.last_test["stdout"] if getattr(env, "judge_evaluator", None) else env.summary()
+        return json.dumps(raw, ensure_ascii=False), env.score(), reasoning
     finally:
         if controller is not None:
             controller.stop()
@@ -521,7 +524,8 @@ def _run_agent_interaction_json_actions(
             started_at=started_at,
             started=started,
         )
-        return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
+        reasoning = env.last_test["stdout"] if getattr(env, "judge_evaluator", None) else env.summary()
+        return json.dumps(raw, ensure_ascii=False), env.score(), reasoning
     finally:
         if controller is not None:
             controller.stop()
@@ -542,10 +546,14 @@ def run_agent_interaction(
 ) -> tuple[str, float, str]:
     artifact_path = Path(artifact_dir) if artifact_dir is not None else None
     env_metadata = item.metadata.get("agent_env") if isinstance(item.metadata, dict) else None
+    if isinstance(env_metadata, dict) and env_metadata.get("judge"):
+        from ..execution.agent_judge import judge_spec
+
+        judge_spec(item)
     has_actors = isinstance(env_metadata, dict) and bool(env_metadata.get("actors"))
-    if has_actors and target.harness != "openclaw":
+    if has_actors and not target.harness:
         raise RuntimeError(
-            "Environment actors currently require a Docker task run with the OpenClaw harness."
+            "Environment actors require a Docker task run with an external shell harness."
         )
     if item.workflow is not None and target.harness:
         raise RuntimeError(

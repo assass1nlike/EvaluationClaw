@@ -1,0 +1,29 @@
+{
+  "id": "configure_billing_profile_fields@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Customize the 'Customer' profile type in Drupal Commerce at http://localhost to enforce B2B data requirements. Rename the profile type to 'Business Customer'. Configure the 'Address' field to make the 'Organization' component required and add a new required plain text field labeled 'Contact Phone' with the machine name 'field_contact_phone'. Use the credentials admin / Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_billing_profile_fields/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_billing_profile_fields/export_result.sh"
+  },
+  "metadata": {
+    "expected_profile_label": "Business Customer",
+    "expected_address_override_org": "required",
+    "expected_field_name": "field_contact_phone",
+    "expected_field_type": "string",
+    "expected_field_required": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_billing_profile_fields"
+    }
+  }
+}

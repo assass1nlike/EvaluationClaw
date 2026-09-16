@@ -1,0 +1,26 @@
+{
+  "id": "ohms_law_current@1",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "difficulty": "easy",
+  "description": "Calculate the current for a voltage of 12V and a resistance of 4Ω using the Ohm's Law Current Calculator in the Electrical Engineering Calculations app.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/ohms_law_current/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/ohms_law_current/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_ohms_law_current"
+    }
+  },
+  "metadata": {
+    "voltage": 12,
+    "resistance": 4,
+    "expected_current": 3
+  }
+}

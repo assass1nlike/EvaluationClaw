@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_java_concurrency_matching_engine@1",
+  "task_completion": [
+    {
+      "id": "fix_cpu_spinning_order_processor",
+      "description": "Fix CPU spinning in OrderProcessor.java",
+      "points": 15,
+      "visual_evidence": "Code editor showing OrderProcessor.java with a fix for CPU spinning, such as using a blocking queue (e.g., take() instead of poll()), wait()/notify(), or Thread.sleep() inside the processing loop."
+    },
+    {
+      "id": "fix_visibility_matching_engine",
+      "description": "Fix thread visibility for the shutdown flag in MatchingEngine.java",
+      "points": 15,
+      "visual_evidence": "Code editor showing MatchingEngine.java with the 'volatile' keyword added to the shutdown/running boolean flag (e.g., 'private volatile boolean isRunning')."
+    },
+    {
+      "id": "fix_race_condition_order_book",
+      "description": "Fix race condition when caching the best bid in OrderBook.java",
+      "points": 15,
+      "visual_evidence": "Code editor showing OrderBook.java with synchronization (e.g., 'synchronized' block/method, ReentrantLock, or AtomicReference) applied to the best bid caching logic."
+    },
+    {
+      "id": "fix_deadlock_balance_transfer",
+      "description": "Fix cyclic deadlock in BalanceTransfer.java",
+      "points": 20,
+      "visual_evidence": "Code editor showing BalanceTransfer.java implementing lock ordering (e.g., comparing account IDs and locking the smaller ID first) or using tryLock() to prevent cyclic deadlocks during transfers."
+    },
+    {
+      "id": "fix_thread_safety_market_publisher",
+      "description": "Fix thread-safety in the subscriber list in MarketPublisher.java",
+      "points": 15,
+      "visual_evidence": "Code editor showing MarketPublisher.java using a thread-safe collection for the subscriber list, such as CopyOnWriteArrayList, ConcurrentLinkedQueue, or Collections.synchronizedList."
+    },
+    {
+      "id": "run_load_test_success",
+      "description": "Verify the fixes by running the load test script",
+      "points": 20,
+      "visual_evidence": "Terminal window showing the execution of 'bash run_load_test.sh' and the output explicitly displaying 'status: SUCCESS'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_method_signature_changes",
+      "description": "Ensure method signatures and overall architecture were not changed",
+      "visual_evidence": "Code editor shows that the core class structures and public method signatures remain intact, with changes limited to internal concurrency mechanisms."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Ensure the load test was genuinely executed and not spoofed",
+      "visual_evidence": "Terminal shows the actual execution of the script without using 'echo status: SUCCESS' or modifying the run_load_test.sh script to unconditionally print success."
+    },
+    {
+      "id": "actual_file_modifications",
+      "description": "Ensure the Java files were actually modified",
+      "visual_evidence": "An IDE, text editor (like vim/nano), or sed/awk commands are visible in the history showing actual edits to the .java files in src/matching/."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific Java concurrency bugs: 1) OrderProcessor.java needs a blocking mechanism to stop CPU spinning. 2) MatchingEngine.java needs a 'volatile' modifier on its shutdown flag. 3) OrderBook.java needs synchronization/locks for its best bid cache. 4) BalanceTransfer.java needs lock ordering (e.g., locking lower ID first) to prevent cyclic deadlocks. 5) MarketPublisher.java needs a thread-safe collection (like CopyOnWriteArrayList) for its subscribers. The final verification requires running 'bash run_load_test.sh' which must output 'status: SUCCESS'."
+}

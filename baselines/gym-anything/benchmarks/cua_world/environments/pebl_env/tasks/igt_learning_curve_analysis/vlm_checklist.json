@@ -1,0 +1,53 @@
+{
+  "task_id": "igt_learning_curve_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "The agent accesses and inspects the input IGT CSV data.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (like head, cat, or pandas read_csv in a script) showing the agent opening or reading ~/pebl/data/igt_data.csv."
+    },
+    {
+      "id": "implement_scoring_logic",
+      "description": "The agent writes code to calculate the required IGT metrics (block net scores, overall net score, and learning effect).",
+      "points": 20,
+      "visual_evidence": "A script in a text editor or terminal showing calculations for net scores ((C+D) - (A+B)) across five 20-trial blocks, overall net score, and the learning effect (mean of blocks 4 & 5 minus mean of blocks 1 & 2)."
+    },
+    {
+      "id": "implement_exclusion_criteria",
+      "description": "The agent implements logic to exclude participants with completely perseverative strategies.",
+      "points": 20,
+      "visual_evidence": "Code showing a filter or conditional statement designed to drop participants who select a single deck 100% of the time."
+    },
+    {
+      "id": "generate_output_file",
+      "description": "The agent executes the analysis and generates the output JSON file at the specified location.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the analysis script and the creation of ~/pebl/analysis/igt_report.json."
+    },
+    {
+      "id": "verify_output_contents",
+      "description": "The output JSON contains the correct structure and successfully excludes the perseverative participant.",
+      "points": 30,
+      "visual_evidence": "Terminal output (e.g., using cat or jq on the output file) showing a 'participants' list with 'id' and calculated metrics, and explicitly showing that the perseverative participant (sub-999) is missing from the final list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_calculations",
+      "description": "The agent calculates the metrics programmatically rather than hardcoding the final JSON output.",
+      "visual_evidence": "Presence of a script containing actual mathematical operations and data grouping, rather than a simple echo or print of a pre-written JSON string."
+    },
+    {
+      "id": "dynamic_participant_exclusion",
+      "description": "The agent dynamically identifies the perseverative participant based on the rules, rather than hardcoding the ID.",
+      "visual_evidence": "The exclusion logic checks for choice frequencies (e.g., count == 100 for one deck) rather than explicitly checking for 'sub-999'."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The agent saves the file to the exact requested path without using shortcuts or aliases that might mask the true location.",
+      "visual_evidence": "The path '/home/ga/pebl/analysis/igt_report.json' or '~/pebl/analysis/igt_report.json' is clearly visible in the script's save function or terminal commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be located at '/home/ga/pebl/analysis/igt_report.json'. The dataset contains a deliberately contaminated participant with ID 'sub-999' who always chooses Deck A (100% perseveration). This participant MUST be excluded from the final JSON report. Verify that 'sub-999' does not appear in the final output's 'participants' list."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "monte_carlo_uncertainty@1",
+  "task_completion": [
+    {
+      "id": "import_databases",
+      "description": "Verify that the USLCI database and LCIA methods have been imported into openLCA.",
+      "points": 10,
+      "visual_evidence": "The openLCA navigation pane on the left shows the USLCI database and LCIA methods loaded in the 'Databases' section."
+    },
+    {
+      "id": "define_uncertainty_parameters",
+      "description": "Verify that at least three process input parameters have uncertainty distributions defined for a coal electricity process.",
+      "points": 20,
+      "visual_evidence": "A process tab for 'coal electricity' (or similar) is open in openLCA, specifically showing the 'Parameters' or 'Inputs/Outputs' section where at least three parameters have an 'Uncertainty' field filled out (e.g., normal, lognormal, uniform distributions)."
+    },
+    {
+      "id": "create_product_system",
+      "description": "Verify that a product system has been created for the coal electricity generation process.",
+      "points": 10,
+      "visual_evidence": "A product system tab is open in the main editor area for the coal electricity process, or it is clearly visible under the 'Product systems' folder in the navigation pane."
+    },
+    {
+      "id": "run_monte_carlo",
+      "description": "Verify that a Monte Carlo simulation was performed with at least 500 iterations.",
+      "points": 30,
+      "visual_evidence": "A Monte Carlo simulation setup dialog or results tab is visible in openLCA, explicitly showing the number of iterations set to 500 (or more) and displaying calculation progress or results."
+    },
+    {
+      "id": "export_results",
+      "description": "Verify that the mean GWP, standard deviation, and 95% confidence interval were exported to monte_carlo_results.csv.",
+      "points": 30,
+      "visual_evidence": "A file manager, terminal, or text/CSV viewer shows the file 'monte_carlo_results.csv' in the '~/LCA_Results' directory, and its contents include columns or rows for Global Warming Potential (GWP) along with its mean, standard deviation, and 95% confidence interval."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent actually used the openLCA graphical user interface to perform the analysis.",
+      "visual_evidence": "Screenshots must show the openLCA application window open with active tabs for processes, product systems, or Monte Carlo results, rather than just terminal commands or text editors."
+    },
+    {
+      "id": "genuine_simulation_results",
+      "description": "Check that the exported CSV contains actual numerical simulation data and not just hardcoded placeholder text.",
+      "visual_evidence": "The contents of monte_carlo_results.csv should show plausible numerical values (decimals/scientific notation) for the mean, standard deviation, and confidence intervals, not just the words copied from the prompt."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Verify the output file was saved to the exact requested directory and not a temporary or incorrect path.",
+      "visual_evidence": "Terminal commands (like 'cat' or 'ls') or a file explorer window should confirm the file path is exactly /home/ga/LCA_Results/monte_carlo_results.csv."
+    }
+  ],
+  "privileged_info_for_vlm": "Target process: coal electricity. Simulation iterations: exactly 500. Output file: /home/ga/LCA_Results/monte_carlo_results.csv. Required statistics in output: mean, standard_deviation, and confidence_interval."
+}

@@ -1,0 +1,42 @@
+{
+  "id": "soil_report_image_insertion@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Complete the draft soil survey report for Tallahatchie County located at /home/ga/Documents/soil_survey_draft.docx. Replace the placeholders [INSERT FIGURE 1 HERE], [INSERT FIGURE 2 HERE], and [INSERT FIGURE 3 HERE] with their corresponding images from /home/ga/Documents/images/ (fig1_site_overview.jpg, fig2_soil_profile.jpg, and fig3_sampling.jpg). Each image must include its specific caption: 'Figure 1: Aerial view of Tallahatchie County survey area showing predominant Sharkey clay landscape position.', 'Figure 2: Typical Sharkey clay soil profile (0–150 cm) showing vertic properties and slickensides in the Bt horizon.', and 'Figure 3: Soil sampling at transect point T-14 using a bucket auger, illustrating the gleyed Bg horizon at 85 cm depth.' Ensure all placeholder text is removed and save the final document as /home/ga/Documents/soil_survey_complete.docx.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/soil_report_image_insertion/setup_task.sh",
+    "post_task": "/workspace/tasks/soil_report_image_insertion/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/soil_survey_draft.docx",
+    "output_path": "/home/ga/Documents/soil_survey_complete.docx",
+    "image_dir": "/home/ga/Documents/images",
+    "images": [
+      "fig1_site_overview.jpg",
+      "fig2_soil_profile.jpg",
+      "fig3_sampling.jpg"
+    ],
+    "placeholders": [
+      "[INSERT FIGURE 1 HERE]",
+      "[INSERT FIGURE 2 HERE]",
+      "[INSERT FIGURE 3 HERE]"
+    ],
+    "captions": [
+      "Figure 1: Aerial view of Tallahatchie County survey area showing predominant Sharkey clay landscape position.",
+      "Figure 2: Typical Sharkey clay soil profile (0–150 cm) showing vertic properties and slickensides in the Bt horizon.",
+      "Figure 3: Soil sampling at transect point T-14 using a bucket auger, illustrating the gleyed Bg horizon at 85 cm depth."
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_soil_report_images"
+    }
+  }
+}

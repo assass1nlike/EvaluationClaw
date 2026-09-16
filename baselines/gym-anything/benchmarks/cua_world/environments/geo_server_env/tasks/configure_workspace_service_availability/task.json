@@ -1,0 +1,31 @@
+{
+  "id": "configure_workspace_service_availability@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Configure the 'ne' workspace in GeoServer (http://localhost:8080/geoserver/web/, credentials: admin / Admin123!) to restrict service access. Disable WFS and WCS for this workspace while keeping WMS enabled. Update the workspace-specific WMS Service Title to 'Natural Earth Visualization Service'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_workspace_service_availability/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_workspace_service_availability/export_result.sh"
+  },
+  "metadata": {
+    "target_workspace": "ne",
+    "expected_wms_title": "Natural Earth Visualization Service",
+    "forbidden_services": [
+      "wfs",
+      "wcs"
+    ],
+    "allowed_service": "wms"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_workspace_service_availability"
+    }
+  }
+}

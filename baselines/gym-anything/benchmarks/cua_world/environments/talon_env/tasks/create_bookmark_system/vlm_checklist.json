@@ -1,0 +1,59 @@
+{
+  "task_id": "create_bookmark_system@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Verify the bookmarks directory was created in the correct location.",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer window, terminal prompt, or editor file tree showing the path 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bookmarks'."
+    },
+    {
+      "id": "categories_list_created",
+      "description": "Verify bookmarks_list.py defines at least 5 categories.",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'bookmarks_list.py' open in a text editor. It must contain a Talon Module/Context defining a static list for 'user.bookmark_categories' with at least 5 distinct string items (e.g., 'documentation', 'project', 'tool', 'reference', 'personal')."
+    },
+    {
+      "id": "python_actions_defined",
+      "description": "Verify bookmarks.py defines the required Talon actions.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'bookmarks.py' open in an editor. It must contain Python functions for 'bookmark_add', 'bookmark_remove', 'bookmark_open', 'bookmark_list', and 'bookmark_list_all', typically under a '@mod.action_class' decorator."
+    },
+    {
+      "id": "python_context_defined",
+      "description": "Verify bookmarks.py declares a Context for dynamic bookmark names.",
+      "points": 10,
+      "visual_evidence": "Look for 'bookmarks.py' showing a Talon 'Context()' declaration (e.g., 'ctx = Context()') that assigns or updates a dynamic list named 'user.bookmark_names' (e.g., 'ctx.lists[\"user.bookmark_names\"] = ...')."
+    },
+    {
+      "id": "talon_commands_defined",
+      "description": "Verify bookmarks.talon maps voice commands to the actions.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'bookmarks.talon' open in an editor. It must contain Talon voice command syntax mapping commands like 'bookmark add {user.bookmark_categories} <user.text>' and 'bookmark open {user.bookmark_names}' to their respective 'user.bookmark_...' actions."
+    },
+    {
+      "id": "json_data_populated",
+      "description": "Verify bookmarks_data.json contains at least 8 valid entries across 3 categories.",
+      "points": 25,
+      "visual_evidence": "Look for a file named 'bookmarks_data.json' open in an editor. It must show a JSON structure containing at least 8 distinct bookmark entries. Each entry must have 'name', 'target', 'category', and 'type' keys. The entries must span at least 3 different categories and use real targets (like URLs or .exe files)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "editor_used",
+      "description": "Verify the agent used a text editor to create the files.",
+      "visual_evidence": "Screenshots should show a text editor (e.g., VS Code, Notepad, Vim, Nano) being used to write the code and JSON, rather than just echoing text blindly from a terminal."
+    },
+    {
+      "id": "correct_directory_saved",
+      "description": "Verify files are saved in the correct target directory.",
+      "visual_evidence": "The editor's title bar, file explorer pane, or terminal commands should confirm the files are actually located in 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bookmarks\\' and not a temporary folder."
+    },
+    {
+      "id": "realistic_targets_used",
+      "description": "Verify the JSON data contains realistic targets and not lazy placeholders.",
+      "visual_evidence": "In 'bookmarks_data.json', the 'target' values should be actual URLs (e.g., 'https://...') or file/app paths (e.g., 'notepad.exe'), not generic placeholders like 'target1' or 'test'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory for the bookmark system is C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bookmarks. The system requires exactly four specific files to be created and populated: bookmarks.py, bookmarks.talon, bookmarks_list.py, and bookmarks_data.json."
+}

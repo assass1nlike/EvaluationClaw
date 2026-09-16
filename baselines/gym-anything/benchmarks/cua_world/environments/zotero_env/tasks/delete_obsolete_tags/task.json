@@ -1,0 +1,39 @@
+{
+  "id": "delete_obsolete_tags@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Clean up the Zotero library by deleting specific obsolete tags while preserving meaningful topic tags. Delete the following six tags: 'imported', 'to-read-maybe', 'uncategorized', 'DUPLICATE', '_temp', and 'needs-review'. Ensure that the tags 'deep-learning', 'computer-science', 'information-theory', 'physics', and 'NLP' are preserved. Do not delete any library items (papers), only the specified tags.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/delete_obsolete_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/delete_obsolete_tags/export_result.sh"
+  },
+  "metadata": {
+    "junk_tags": [
+      "imported",
+      "to-read-maybe",
+      "uncategorized",
+      "DUPLICATE",
+      "_temp",
+      "needs-review"
+    ],
+    "good_tags": [
+      "deep-learning",
+      "computer-science",
+      "information-theory",
+      "physics",
+      "NLP"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_delete_obsolete_tags"
+    }
+  }
+}

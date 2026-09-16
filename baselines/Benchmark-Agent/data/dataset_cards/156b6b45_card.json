@@ -1,0 +1,86 @@
+{
+  "dataset_id": "156b6b45",
+  "name": "Sheet Docvqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 98,
+  "description": "Sheet Docvqa is a document visual question answering dataset where models must answer natural-language questions by reading text and visual elements from one or more document page images. It evaluates the ability to extract specific information such as logo text or form fields from document scans.",
+  "card_text": "The dataset consists of 98 samples, each pairing one or more document images with a natural-language question and a list of text answers. Questions target fine-grained visual and textual information in documents, including logos, forms, and property records. The answers are short text spans, often single words or numeric values, that must be located and transcribed from the images. The images are JPG scans or photographs of printed documents, varying in number per sample (typically 3 to 6 pages). The task requires models to jointly process visual layout and text content to extract the requested answer. It is a small-scale benchmark for document visual question answering, focusing on open-ended answer generation rather than multiple-choice selection.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "document visual question answering",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A variable number of document page images (JPG files) that serve as the visual context for the question. The images contain text, logos, forms, and other document elements that the model must read to answer the prompt.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question asking for specific information from the document images, such as the text of a logo or properties of a parcel.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of short text strings that constitute the answer extracted from the document images. The answer may consist of one or more pieces of text (e.g., a single word or multiple values).",
+        "path_types": [
+          "list"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an id, an input object with a list of image_file paths (document page images) and a prompt string, and an output object with a text list. The prompt asks a question about the content of the images, and the text list provides the answer, which is derived directly from reading the images."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/sheet_docvqa/json/annotation.json",
+    "existing_tags": {
+      "task": "document vqa",
+      "type": "comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition",
+        "Commonsense Knowledge"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

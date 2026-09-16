@@ -1,0 +1,54 @@
+{
+  "task_id": "pilot_boarding_exercise@1",
+  "task_completion": [
+    {
+      "id": "scenario_directory_created",
+      "description": "Verify that the scenario directory for the exercise was created.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., using 'mkdir', 'ls') or a file manager showing the existence of the directory '/opt/bridgecommand/Scenarios/p) Solent Pilot Boarding Exercise/'."
+    },
+    {
+      "id": "environment_ini_configured",
+      "description": "Verify the creation and correct configuration of the environment.ini file.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing 'environment.ini' inside the scenario directory containing: Setting='Solent', StartTime between 06:00-08:00, StartDay=15, StartMonth=9, StartYear=2024, VisibilityRange=8.0, Weather=3.0, WindDirection=220, and WindSpeed=15."
+    },
+    {
+      "id": "ownship_ini_configured",
+      "description": "Verify the creation and correct configuration of the ownship.ini file.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing 'ownship.ini' inside the scenario directory containing: ShipName='MV Pacific Trader', InitialLat=50.7650, InitialLong=-1.0500, InitialBearing=340, and InitialSpeed=10.0."
+    },
+    {
+      "id": "othership_ini_configured",
+      "description": "Verify the creation and correct configuration of the othership.ini file with 5 traffic vessels and waypoints.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing 'othership.ini' defining 5 vessels: 'Doris T' (Type='pilot', Lat 50.7750, Long -1.0600), 'Ever Forward', 'Solent Spirit', 'FV Doreen', and 'Svitzer Doris'. Each vessel must have at least one waypoint leg defined."
+    },
+    {
+      "id": "bc5_ini_updated",
+      "description": "Verify that the main Bridge Command configuration file (bc5.ini) was updated with the required radar and view settings.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing 'bc5.ini' containing the updated values: arpa_on=1, full_radar=1, radar_range_resolution=256, max_radar_range=72, radar_angular_resolution=720, hide_instruments=0, and view_angle=90."
+    },
+    {
+      "id": "checklist_file_created",
+      "description": "Verify the creation of the Pilot Boarding Checklist text file with the required information.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing the file '/home/ga/Documents/pilot_boarding_checklist.txt' containing the vessel name, boarding position (~50.775N, 1.060W), approach speed limit (6 kts), VHF channels (12, 9, 80), and references to IMO Resolution A.1045(27)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "authentic_file_creation",
+      "description": "Ensure the files were genuinely created in their specified absolute paths.",
+      "visual_evidence": "Look for absolute paths in terminal commands (e.g., nano /opt/bridgecommand/...) or text editor title bars, confirming the agent didn't just create them in a temporary or home directory."
+    },
+    {
+      "id": "proper_ini_formatting",
+      "description": "Ensure the configuration files are formatted properly and not just a copy-paste of the prompt.",
+      "visual_evidence": "The .ini files should use standard key=value pair formatting appropriate for configuration files, rather than containing conversational text or raw sentences from the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Solent is a real environment model in Bridge Command. VisibilityRange=8.0, Weather=3.0, arpa_on=1, full_radar=1, radar_range_resolution=256, max_radar_range=72 are all valid Bridge Command settings. MV Pacific Trader (IMO 9406922) and MV Ever Forward (IMO 9850551) are real container ships. IMO Resolution A.1045(27) is a real maritime standard for Pilot Transfer Arrangements. The coordinates 50.775N, 1.060W are approximately in the Solent area. VHF channels 12, 9, 80 are standard maritime channels. Note: The task specifies an approach speed limit of 6 kts, even though the standard is 8 kts; the agent must use 6 kts as requested."
+}

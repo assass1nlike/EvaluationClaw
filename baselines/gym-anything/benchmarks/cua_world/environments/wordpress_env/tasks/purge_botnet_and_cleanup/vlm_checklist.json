@@ -1,0 +1,59 @@
+{
+  "task_id": "purge_botnet_and_cleanup@1",
+  "task_completion": [
+    {
+      "id": "disable_registration",
+      "description": "Disable the 'Anyone can register' setting.",
+      "points": 10,
+      "visual_evidence": "In the WordPress Settings -> General page, the checkbox next to 'Membership: Anyone can register' should be unchecked, followed by saving the changes."
+    },
+    {
+      "id": "set_default_role",
+      "description": "Set the 'New User Default Role' to 'Subscriber'.",
+      "points": 10,
+      "visual_evidence": "In the WordPress Settings -> General page, the dropdown for 'New User Default Role' should be set to 'Subscriber', followed by saving the changes."
+    },
+    {
+      "id": "delete_contributors",
+      "description": "Bulk delete all users with the 'Contributor' role.",
+      "points": 20,
+      "visual_evidence": "In the Users page, evidence of selecting all users with the 'Contributor' role and applying the 'Delete' bulk action. A success message like 'Users deleted' should be visible, or the Contributor count should be 0."
+    },
+    {
+      "id": "delete_spam_master_user",
+      "description": "Delete the user 'spam_master'.",
+      "points": 20,
+      "visual_evidence": "In the Users page, evidence of clicking 'Delete' on the 'spam_master' account, followed by a success message or the absence of 'spam_master' in the user list."
+    },
+    {
+      "id": "delete_spam_master_content",
+      "description": "Delete all content associated with the 'spam_master' user.",
+      "points": 15,
+      "visual_evidence": "During the deletion of 'spam_master', the radio button 'Delete all content' must be selected before confirming deletion. Alternatively, the Posts page should show no posts authored by 'spam_master'."
+    },
+    {
+      "id": "delete_empty_tags",
+      "description": "Bulk delete all tags that have 0 posts associated with them.",
+      "points": 25,
+      "visual_evidence": "In the Posts -> Tags page, evidence of selecting tags with '0' in the Count column and applying the 'Delete' bulk action. A success message should appear, and no tags with a count of 0 should remain."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the WordPress Admin GUI to perform the tasks.",
+      "visual_evidence": "Screenshots should show the agent navigating through the WordPress Admin dashboard (Settings, Users, Tags) rather than using a terminal or text editor."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Agent did not use WP-CLI or terminal commands to bypass the UI.",
+      "visual_evidence": "Absence of terminal windows or command-line interfaces executing `wp user delete`, `wp term delete`, or `wp option update` commands."
+    },
+    {
+      "id": "preserved_legitimate_data",
+      "description": "Agent did not delete legitimate users or tags.",
+      "visual_evidence": "Users with roles like Administrator, Editor, Author, or Subscriber are still present. Tags with a count of 1 or more in the Posts -> Tags page are still present."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must uncheck the 'Anyone can register' box and set the default role to 'Subscriber' in WordPress Settings. There are 12 synthetic 'Contributor' users that must be bulk deleted. The user 'spam_master' must be deleted along with their 3 malicious posts (ensure 'Delete all content' is selected during user deletion). Finally, 15 empty spam tags (tags with 0 posts) must be bulk deleted from the Tags page. Legitimate users and tags with 1+ posts must remain untouched."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_dcac_ratio_impact@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "The agent creates a Python script or notebook that imports PySAM's Pvwattsv8 module.",
+      "points": 15,
+      "visual_evidence": "A code editor or terminal showing `import PySAM.Pvwattsv8` or similar PySAM initialization."
+    },
+    {
+      "id": "system_parameters_set",
+      "description": "The agent configures the required system specifications in the script.",
+      "points": 20,
+      "visual_evidence": "Code showing parameters being set: system_capacity=100000, module_type=0, array_type=2, tilt=0, azimuth=180, losses=14.08, gcr=0.4, inv_eff=96."
+    },
+    {
+      "id": "dcac_ratios_configured",
+      "description": "The agent models both Configuration A and Configuration B with their respective DC/AC ratios.",
+      "points": 20,
+      "visual_evidence": "Code showing the `dc_ac_ratio` parameter being set to 1.2 and then 1.4 for two separate simulation runs."
+    },
+    {
+      "id": "script_execution",
+      "description": "The agent executes the Python script successfully.",
+      "points": 15,
+      "visual_evidence": "A terminal window showing the command to run the script (e.g., `python script.py`) with no resulting error messages, or a successfully executed Jupyter notebook cell."
+    },
+    {
+      "id": "json_results_saved",
+      "description": "The agent saves the comparison results to the specified JSON file.",
+      "points": 30,
+      "visual_evidence": "The terminal or an editor displaying the contents of `/home/ga/Documents/SAM_Projects/dcac_ratio_comparison.json`, which must include `config_a`, `config_b`, `energy_gain_percent`, and `weather_file_used`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation",
+      "description": "The agent actually runs the PySAM simulation to generate the results.",
+      "visual_evidence": "The presence of a complete PySAM script and its execution, rather than just a script that prints a hardcoded JSON string."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "The agent calculates the energy, capacity factor, and energy gain dynamically.",
+      "visual_evidence": "The code extracts `annual_energy` and `capacity_factor` from the PySAM model outputs and calculates the gain mathematically, rather than hardcoding numbers."
+    },
+    {
+      "id": "correct_weather_source",
+      "description": "The agent retrieves the weather file from the correct directory.",
+      "visual_evidence": "The code reads the directory path from `/home/ga/.SAM/solar_resource_dir.txt` or explicitly uses a TMY CSV file from that directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/SAM_Projects/dcac_ratio_comparison.json. The annual energy for both configurations should be between 150,000,000 and 300,000,000 kWh (typically around 207.1M kWh). The capacity factor should be between 17.0% and 35.0% (typically around 23.6%). Note: Increasing the DC/AC ratio from 1.2 to 1.4 with a fixed DC capacity results in a smaller inverter and more clipping, so the `energy_gain_percent` will be negative (approximately -0.33%)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "mars_aerobraking_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_specifications",
+      "description": "Verify the agent opened and read the mission specifications and Vis-Viva formulas.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the contents of ~/Desktop/aerobraking_spec.txt open in a text editor or displayed in the terminal."
+    },
+    {
+      "id": "configure_simulation_parameters",
+      "description": "Verify the agent configured the spacecraft parameters and force model correctly in a script or GUI.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing GMAT GUI or a text editor with the script containing spacecraft mass (1200 kg), drag area (35), drag coefficient (2.2), and the force model set to Mars Point Mass (Degree 0, Order 0) with Mars Exponential atmosphere."
+    },
+    {
+      "id": "save_simulation_script",
+      "description": "Verify the agent saved the simulation script to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the file 'mars_aerobraking.script' saved in the '~/Documents/missions/' directory (e.g., via terminal 'ls' command, file explorer, or editor title bar)."
+    },
+    {
+      "id": "calculate_deltav_savings",
+      "description": "Verify the agent performed the mathematical calculation for the equivalent retrograde burn and delta-V savings.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing a Python script, calculator, or spreadsheet being used to compute the delta-V using the Vis-Viva equations and the simulation's final periapsis/apoapsis values."
+    },
+    {
+      "id": "write_final_report",
+      "description": "Verify the agent created the final results report with the required format and values.",
+      "points": 30,
+      "visual_evidence": "Screenshot showing the file 'aerobraking_results.txt' in '~/GMAT_output/' containing the exact four lines: 'initial_apoapsis_radius_km: 23396.19', 'final_periapsis_radius_km: [value]', 'final_apoapsis_radius_km: [value]', and 'deltav_saved_mps: [value]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Ensure the agent actually ran the simulation to obtain the final orbital parameters.",
+      "visual_evidence": "Look for evidence of GMAT executing the script or a terminal output showing the simulation run completing, rather than the agent just guessing the final apoapsis/periapsis."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "Ensure the delta-V savings were genuinely calculated based on the simulation results.",
+      "visual_evidence": "Look for the intermediate math steps (e.g., a Python script output or calculator history) matching the final reported delta-V, proving the value wasn't hallucinated."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Ensure the agent did not take shortcuts by saving files in the default or home directory.",
+      "visual_evidence": "Check terminal commands or file explorer paths to confirm the script is exactly in '~/Documents/missions/' and the report is exactly in '~/GMAT_output/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The specification file is at ~/Desktop/aerobraking_spec.txt. The simulation script must be saved to ~/Documents/missions/mars_aerobraking.script. The results report must be saved to ~/GMAT_output/aerobraking_results.txt. The initial apoapsis is 23396.19 km, initial periapsis is 3521.19 km, and initial SMA is 13458.69 km. The Mars gravitational parameter (mu_mars) is 42828.31. The minimum expected orbit decay is 200.0 km. The final report must contain the exact four keys specified in the prompt."
+}

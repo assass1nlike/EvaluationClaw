@@ -1,0 +1,28 @@
+{
+  "id": "restore_deleted_work_items@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are a Scrum Master for the TailwindTraders project. Three work items ('Implement user authentication middleware', 'Fix cart total rounding error', and 'Add product image lazy loading') were accidentally deleted and must be recovered. Restore these items from the Recycle Bin, ensure they are assigned to 'Sprint 2', and add the comment 'Recovered from Recycle Bin - accidental deletion' to each. Save all changes.\n\nAzure DevOps Login:\nURL: http://localhost/DefaultCollection\nUser: Docker\nPassword: GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\restore_deleted_work_items\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\restore_deleted_work_items\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "TailwindTraders",
+    "target_sprint": "Sprint 2",
+    "required_comment_text": "Recovered from Recycle Bin",
+    "result_file_path": "C:\\Users\\Docker\\task_results\\restore_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restore_deleted_work_items"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "repair_epidemiological_data_pipeline@1",
+  "task_completion": [
+    {
+      "id": "open_pipeline_code",
+      "description": "Agent opens the pipeline code files to inspect the data processing logic.",
+      "points": 10,
+      "visual_evidence": "A text editor, IDE, or terminal (e.g., using cat/less) displays the contents of python files from /home/ga/workspace/surveillance_pipeline/."
+    },
+    {
+      "id": "fix_date_issue",
+      "description": "Agent fixes the scrambled dates bug.",
+      "points": 10,
+      "visual_evidence": "Code editor or terminal shows modifications to date handling, such as adding sort_values('date') or fixing a date parsing format."
+    },
+    {
+      "id": "fix_missing_data",
+      "description": "Agent fixes the missing early data bug.",
+      "points": 10,
+      "visual_evidence": "Code editor or terminal shows the removal or correction of a date filter that was incorrectly excluding data before March."
+    },
+    {
+      "id": "fix_daily_cases",
+      "description": "Agent fixes the 'Daily New Cases' staircase bug.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal shows modifications to the daily cases calculation, such as replacing a cumulative sum (cumsum) with a difference (diff) function."
+    },
+    {
+      "id": "fix_scaling",
+      "description": "Agent fixes the 'Cases per 100k' scaling bug.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal shows the correction of a multiplier or denominator to properly scale the rate by 100,000."
+    },
+    {
+      "id": "fix_rolling_avg",
+      "description": "Agent fixes the chaotic 7-day rolling average bug.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal shows modifications to the rolling average calculation, such as adding .rolling(7).mean() or ensuring the data is sorted before applying the rolling window."
+    },
+    {
+      "id": "test_suite_passes",
+      "description": "Agent runs the test suite and verifies that all tests pass.",
+      "points": 25,
+      "visual_evidence": "Terminal shows the execution of the test suite (e.g., running pytest or a test script) with output indicating that all tests have passed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_edits",
+      "description": "Agent genuinely edited the python files rather than faking the test output.",
+      "visual_evidence": "Screenshots show actual file modifications in an editor or via standard terminal commands (e.g., sed, nano, vim), not just echoing a 'PASSED' message."
+    },
+    {
+      "id": "logic_based_fixes",
+      "description": "Agent used pandas data wrangling logic to fix the bugs rather than hardcoding expected test values.",
+      "visual_evidence": "Code changes involve pandas functions (e.g., diff, rolling, sort_values) and mathematical corrections, not hardcoded arrays or strings."
+    },
+    {
+      "id": "actual_test_execution",
+      "description": "Agent ran the real test suite provided in the workspace.",
+      "visual_evidence": "Terminal shows the execution of a standard test runner (like pytest) on the workspace directory, rather than a newly created fake test script."
+    }
+  ],
+  "privileged_info_for_vlm": "The task strictly evaluates pandas time-series debugging skills. The agent must fix 5 distinct bugs in the data pipeline at /home/ga/workspace/surveillance_pipeline/: 1) scrambled dates, 2) missing pre-March data, 3) cumulative instead of daily cases, 4) incorrect per 100k scaling, and 5) chaotic 7-day rolling average. A passing score (threshold 60) requires the test suite to pass."
+}

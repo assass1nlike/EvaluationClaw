@@ -1,0 +1,39 @@
+{
+  "id": "organize_into_subcollections@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a researcher starting a deep learning literature review project. Your Zotero library has been pre-loaded with 18 research papers. Organize these papers by creating a hierarchical collection structure. Create a top-level collection named 'Deep Learning Survey' containing two subcollections: 'NLP Papers' and 'Vision Papers'. \n\nPopulate the 'NLP Papers' subcollection with:\n- 'Attention Is All You Need'\n- 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding'\n- 'Language Models are Few-Shot Learners'\n\nPopulate the 'Vision Papers' subcollection with:\n- 'ImageNet Classification with Deep Convolutional Neural Networks'\n- 'Deep Residual Learning for Image Recognition'\n- 'Generative Adversarial Nets'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_into_subcollections/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_into_subcollections/export_result.sh"
+  },
+  "metadata": {
+    "parent_collection": "Deep Learning Survey",
+    "subcollections": [
+      "NLP Papers",
+      "Vision Papers"
+    ],
+    "nlp_papers": [
+      "Attention Is All You Need",
+      "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "Language Models are Few-Shot Learners"
+    ],
+    "vision_papers": [
+      "ImageNet Classification with Deep Convolutional Neural Networks",
+      "Deep Residual Learning for Image Recognition",
+      "Generative Adversarial Nets"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_into_subcollections"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_grid_network@1",
+  "task_completion": [
+    {
+      "id": "create_working_directory",
+      "description": "Create and navigate to the required working directory for the SUMO scenario.",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands like 'mkdir -p /home/ga/SUMO_Scenarios/grid_development/' and 'cd' into that directory."
+    },
+    {
+      "id": "generate_grid_network",
+      "description": "Generate the grid network file (grid.net.xml) using SUMO command-line tools with the specified parameters.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'netgenerate' command with parameters for a grid (--grid), 4x3 junctions (--grid.x-number 4, --grid.y-number 3), 200m length (--grid.length 200), 2 lanes (-L 2), and speed limit 13.89 (--default.speed 13.89), outputting to 'grid.net.xml'. Alternatively, an 'ls' command showing 'grid.net.xml' was created."
+    },
+    {
+      "id": "generate_random_routes",
+      "description": "Generate random traffic demand (routes.rou.xml) for a 3600-second duration with an 18-second trip period.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'randomTrips.py' command (or similar SUMO tool) with parameters for end time 3600 (-e 3600) and period 18 (-p 18), outputting to 'routes.rou.xml'. Alternatively, an 'ls' command showing 'routes.rou.xml' was created."
+    },
+    {
+      "id": "create_sumo_config",
+      "description": "Create the SUMO configuration file (grid.sumocfg) referencing the network, routes, end time, and tripinfo output.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor (nano, vim) or 'cat'/'echo' commands creating 'grid.sumocfg' containing XML tags for <net-file value=\"grid.net.xml\"/>, <route-files value=\"routes.rou.xml\"/>, <end value=\"3600\"/>, and <tripinfo-output value=\"tripinfo.xml\"/>."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation to produce the final tripinfo.xml output.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the execution of 'sumo -c grid.sumocfg' (or similar) followed by SUMO execution logs (e.g., Step numbers, simulation statistics) and an 'ls' command confirming 'tripinfo.xml' was generated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_cli_tools",
+      "description": "Verify the agent used SUMO command-line tools (netgenerate, randomTrips.py, sumo) rather than GUI applications.",
+      "visual_evidence": "Screenshots should show terminal commands being executed. There should be no evidence of 'netedit' or 'sumo-gui' graphical windows being used to generate the files."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "Verify the simulation was actually executed to generate the output.",
+      "visual_evidence": "Terminal output should show genuine SUMO simulation logs (e.g., 'Simulation ended at time: 3600.00', routing stats, vehicle counts) rather than the agent manually creating a fake 'tripinfo.xml' file."
+    },
+    {
+      "id": "no_hardcoded_xml",
+      "description": "Verify the agent did not just copy-paste or manually type out the XML files from an external source.",
+      "visual_evidence": "The network and route files should be generated via CLI scripts. The agent should not be seen pasting massive XML blocks for 'grid.net.xml' or 'routes.rou.xml' into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The working directory must be '/home/ga/SUMO_Scenarios/grid_development'. The expected files are 'grid.net.xml', 'routes.rou.xml', 'grid.sumocfg', and 'tripinfo.xml'. The network should have a speed limit of 13.89 m/s and exactly 12 non-internal junctions (4x3 grid). The simulation should generate at least 50 trips and complete at least 30 trips, which can be verified if the terminal shows SUMO execution logs upon running the simulation."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_bare_earth_model@1",
+  "task_completion": [
+    {
+      "id": "load_survey_dataset",
+      "description": "Load the survey dataset denver_site_unclassified.csv into the TopoCal application.",
+      "points": 15,
+      "visual_evidence": "TopoCal application is open with a point cloud visible in the viewport, and the file name 'denver_site_unclassified.csv' is visible in the interface (e.g., window title, layer manager, or import dialog)."
+    },
+    {
+      "id": "remove_roof_points",
+      "description": "Remove building roof points identified as anomalous flat clusters.",
+      "points": 25,
+      "visual_evidence": "The agent selects, filters, or deletes high-elevation point clusters (roofs, Z > 1608.0). The viewport should show the point cloud updating to exclude these top clusters, leaving approximately 800 ground points."
+    },
+    {
+      "id": "generate_tin_mdt",
+      "description": "Generate a Triangulated Irregular Network (TIN / MDT) from the resulting ground points.",
+      "points": 25,
+      "visual_evidence": "A triangulated mesh surface (TIN/MDT) is generated and visible in the TopoCal 3D viewport, connecting the remaining ground points."
+    },
+    {
+      "id": "export_cleaned_csv",
+      "description": "Export the cleaned ground points to C:\\Users\\Docker\\Documents\\bare_earth_points.csv.",
+      "points": 15,
+      "visual_evidence": "An export dialog in TopoCal or a File Explorer window showing 'bare_earth_points.csv' being saved to or existing in the C:\\Users\\Docker\\Documents\\ directory."
+    },
+    {
+      "id": "save_topocal_project",
+      "description": "Save the TopoCal project to C:\\Users\\Docker\\Documents\\bare_earth_model.top.",
+      "points": 20,
+      "visual_evidence": "A save dialog in TopoCal or a File Explorer window showing 'bare_earth_model.top' being saved to or existing in the C:\\Users\\Docker\\Documents\\ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "The agent used the TopoCal graphical user interface to process the data rather than bypassing it with scripts.",
+      "visual_evidence": "Screenshots show the agent clicking through TopoCal menus, toolbars, and dialog boxes to filter points and generate the TIN."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent exported the results using the application's native export features, not by creating dummy files.",
+      "visual_evidence": "The files 'bare_earth_points.csv' and 'bare_earth_model.top' are created via TopoCal's 'Save' or 'Export' dialogs, rather than being created empty via terminal commands or a text editor."
+    },
+    {
+      "id": "authentic_point_cloud_rendering",
+      "description": "The agent interacted with a genuine 3D point cloud and mesh.",
+      "visual_evidence": "The TopoCal viewport displays actual 3D points and a triangulated mesh that changes in response to the agent's filtering actions."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output CSV must be saved exactly to 'C:\\Users\\Docker\\Documents\\bare_earth_points.csv'. The building roof points to be removed correspond to points with an elevation (Z) greater than 1608.0. The final cleaned dataset should contain approximately 800 ground points."
+}

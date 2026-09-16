@@ -1,0 +1,33 @@
+{
+  "id": "create_product_api_endpoint@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a public REST API endpoint named 'Product API' at the path /api/v1/products that exposes store products in JSON format. The endpoint must be accessible to anonymous users and include the Product ID, Title, SKU, and Price for at least 10 products. Sort the results by the creation date in descending order. The endpoint can be verified at http://localhost/api/v1/products.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_product_api_endpoint/setup_task.sh",
+    "post_task": "/workspace/tasks/create_product_api_endpoint/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "/api/v1/products",
+    "expected_limit": 10,
+    "required_fields": [
+      "title",
+      "product_id",
+      "sku",
+      "price"
+    ],
+    "content_type": "application/json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_product_api_endpoint"
+    }
+  }
+}

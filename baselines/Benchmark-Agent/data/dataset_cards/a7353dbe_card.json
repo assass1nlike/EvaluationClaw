@@ -1,0 +1,95 @@
+{
+  "dataset_id": "a7353dbe",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for generating open-ended textual descriptions of the spatial relationship between two objects in an image. Each sample provides an image, a question naming two objects with bounding box coordinates, and expects one or more short descriptions of their spatial relation.",
+  "card_text": "This dataset contains image-text pairs for spatial relation description. The input is a natural image paired with a question that identifies two objects by name and bounding box coordinates, and asks for textual descriptions of their single spatial relationship. An auxiliary prompt specifies the output format. The target output is a list of short, open-ended natural language descriptions (e.g., 'In front of the plane is the windshield.'). The images are everyday scenes containing objects such as vehicles, containers, and people. The task evaluates visual comprehension, spatial perception, and relation reasoning. Although the question asks for three descriptions, the provided outputs may contain one or more sentences.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "spatial relation reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The image provides the visual scene containing the two objects whose spatial relationship is to be described.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language query that names two objects and specifies their bounding box coordinates, asking for textual descriptions of their single spatial relationship.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.description"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of one or more short sentences describing the spatial relationship between the two objects, such as 'In front of the plane is the windshield.'",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An auxiliary instruction specifying that the output should be a description about the relationship between subject and object.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image file, a question that names two objects with their bounding boxes and asks for spatial relationship descriptions, an auxiliary prompt specifying the output format, and an answer as a list of short textual descriptions."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Description_of_Open-ended_Spatial_Relationship/annotation_open.json",
+    "existing_tags": {
+      "task": "Description_of_Open-ended_Spatial_Relationship",
+      "type": "comprehension",
+      "skill": "Relation Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition",
+        "Spatial Perception"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

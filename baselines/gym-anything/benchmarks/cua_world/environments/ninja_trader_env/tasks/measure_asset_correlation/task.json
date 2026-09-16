@@ -1,0 +1,35 @@
+{
+  "id": "measure_asset_correlation@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Calculate the 20-period correlation between AAPL and MSFT using Daily data. Identify the correlation value for the final trading day of the period (December 31, 2024) and record only the numeric value in C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\correlation_report.txt. Save the NinjaTrader workspace upon completion.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\measure_asset_correlation\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\measure_asset_correlation\\export_result.ps1"
+  },
+  "metadata": {
+    "report_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\correlation_report.txt",
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces",
+    "ground_truth_value": 0.42,
+    "tolerance": 0.1,
+    "required_indicators": [
+      "Correlation"
+    ],
+    "required_instruments": [
+      "AAPL",
+      "MSFT"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_asset_correlation"
+    }
+  }
+}

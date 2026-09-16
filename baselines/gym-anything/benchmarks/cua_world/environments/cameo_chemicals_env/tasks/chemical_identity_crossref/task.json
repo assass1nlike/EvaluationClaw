@@ -1,0 +1,85 @@
+{
+  "id": "chemical_identity_crossref@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are a laboratory safety officer reconciling a chemical inventory against authoritative reference data. Using the CAMEO Chemicals website (https://cameochemicals.noaa.gov/), create a structured identity report for the following five chemicals: Acrolein, Methyl isocyanate, Boron trifluoride, Dimethyl sulfate, and Titanium tetrachloride. For each chemical, record the name, CAS Registry Number (in XXX-XX-X format), chemical formula, and molecular weight. Save the report as a plain text file at ~/Documents/chemical_identity_report.txt, formatting each entry with the chemical name followed by its CAS, formula, and molecular weight.",
+  "difficulty": "medium",
+  "category": [
+    "web",
+    "chemistry",
+    "data-extraction"
+  ],
+  "tags": [
+    "cameo-chemicals",
+    "cas-number",
+    "chemical-identity",
+    "lookup",
+    "report-generation"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chemical_identity_crossref/setup_task.sh",
+    "post_task": "/workspace/tasks/chemical_identity_crossref/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/chemical_identity_report.txt",
+    "chemicals": [
+      {
+        "name": "Acrolein",
+        "cas": "107-02-8",
+        "formula": [
+          "C3H4O",
+          "CH2CHCHO"
+        ],
+        "mw": 56.06
+      },
+      {
+        "name": "Methyl isocyanate",
+        "cas": "624-83-9",
+        "formula": [
+          "C2H3NO",
+          "CH3NCO"
+        ],
+        "mw": 57.05
+      },
+      {
+        "name": "Boron trifluoride",
+        "cas": "7637-07-2",
+        "formula": [
+          "BF3"
+        ],
+        "mw": 67.81
+      },
+      {
+        "name": "Dimethyl sulfate",
+        "cas": "77-78-1",
+        "formula": [
+          "C2H6O4S",
+          "(CH3)2SO4",
+          "C2H6SO4"
+        ],
+        "mw": 126.13
+      },
+      {
+        "name": "Titanium tetrachloride",
+        "cas": "7550-45-0",
+        "formula": [
+          "TiCl4",
+          "Cl4Ti"
+        ],
+        "mw": 189.68
+      }
+    ],
+    "mw_tolerance": 1.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chemical_identity_crossref"
+    }
+  }
+}

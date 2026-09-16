@@ -1,0 +1,59 @@
+{
+  "task_id": "create_rgb_composite@1",
+  "task_completion": [
+    {
+      "id": "snap_and_file_loaded",
+      "description": "ESA SNAP Desktop is open and the Landsat GeoTIFF is loaded.",
+      "points": 10,
+      "visual_evidence": "The SNAP Desktop application window is visible. In the 'Product Explorer' pane, a product corresponding to the Landsat multispectral TIFF (e.g., landsat_multispectral) is listed."
+    },
+    {
+      "id": "rgb_dialog_opened",
+      "description": "The RGB image configuration dialog is opened.",
+      "points": 10,
+      "visual_evidence": "A dialog box titled 'Select RGB-Image Channels' (or similar) is visible on the screen, showing dropdowns or lists for selecting Red, Green, and Blue channels."
+    },
+    {
+      "id": "red_channel_assigned",
+      "description": "The Red channel is assigned to band_2.",
+      "points": 20,
+      "visual_evidence": "In the RGB configuration dialog, the Red channel dropdown or selection explicitly shows 'band_2'."
+    },
+    {
+      "id": "green_channel_assigned",
+      "description": "The Green channel is assigned to band_3.",
+      "points": 20,
+      "visual_evidence": "In the RGB configuration dialog, the Green channel dropdown or selection explicitly shows 'band_3'."
+    },
+    {
+      "id": "blue_channel_assigned",
+      "description": "The Blue channel is assigned to band_4.",
+      "points": 20,
+      "visual_evidence": "In the RGB configuration dialog, the Blue channel dropdown or selection explicitly shows 'band_4'."
+    },
+    {
+      "id": "rgb_composite_displayed",
+      "description": "The false-color RGB composite is created and displayed in the main view.",
+      "points": 20,
+      "visual_evidence": "A new image view window is open in the main SNAP workspace displaying the rendered RGB image, typically with a tab title indicating it is an RGB composite of the loaded product."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the SNAP Desktop GUI to perform the task rather than terminal commands.",
+      "visual_evidence": "Screenshots show interaction with SNAP menus (e.g., right-clicking the product or using the Window menu to open the RGB dialog) and dialog boxes, rather than terminal commands or Python scripts (like snappy) being executed."
+    },
+    {
+      "id": "genuine_snap_rendering",
+      "description": "The RGB composite is displayed genuinely within the SNAP Desktop application.",
+      "visual_evidence": "The rendered image appears inside the SNAP internal window system with standard SNAP toolbars, navigation tabs, and panels surrounding it, not in an external image viewer or web browser."
+    },
+    {
+      "id": "no_metadata_manipulation",
+      "description": "The agent did not edit text files or rename bands to fake the task completion.",
+      "visual_evidence": "The band assignments are made through the standard SNAP dropdown menus. There is no evidence of text editors or terminal windows being used to alter product metadata files directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is '/home/ga/snap_data/landsat_multispectral.tif' containing 4 bands. The agent must use the ESA SNAP Desktop GUI. Crucially, the agent must assign the RGB channels exactly as instructed: Red = band_2, Green = band_3, Blue = band_4. The VLM should look for these exact string matches in the RGB channel selection dialog, regardless of the actual physical wavelengths those bands represent."
+}

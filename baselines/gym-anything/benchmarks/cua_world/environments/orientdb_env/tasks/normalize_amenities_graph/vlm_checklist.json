@@ -1,0 +1,53 @@
+{
+  "task_id": "normalize_amenities_graph@1",
+  "task_completion": [
+    {
+      "id": "create_amenity_vertex_class",
+      "description": "Verify the creation of the 'Amenity' Vertex class with a 'Name' property.",
+      "points": 15,
+      "visual_evidence": "OrientDB Studio Schema section showing 'Amenity' listed under Vertex classes with a 'Name' property of type STRING, or terminal console output confirming 'CREATE CLASS Amenity EXTENDS V' and 'CREATE PROPERTY Amenity.Name STRING' executed successfully."
+    },
+    {
+      "id": "create_hasamenity_edge_class",
+      "description": "Verify the creation of the 'HasAmenity' Edge class.",
+      "points": 15,
+      "visual_evidence": "OrientDB Studio Schema section showing 'HasAmenity' listed under Edge classes, or terminal console output confirming 'CREATE CLASS HasAmenity EXTENDS E' executed successfully."
+    },
+    {
+      "id": "amenity_vertices_migrated",
+      "description": "Verify that the distinct Amenity vertices were successfully created from the legacy data.",
+      "points": 20,
+      "visual_evidence": "A query result in OrientDB Studio (e.g., 'SELECT FROM Amenity') or console showing the creation/existence of exactly 8 Amenity records (WiFi, Bar, Restaurant, Gym, Spa, Concierge, Valet, Pool)."
+    },
+    {
+      "id": "hasamenity_edges_migrated",
+      "description": "Verify that 'HasAmenity' edges were created to link Hotels to their respective Amenities.",
+      "points": 30,
+      "visual_evidence": "A Graph view or query result showing edges between 'Hotels' and 'Amenity' vertices. Specifically, look for evidence that 'The Plaza Hotel' is connected via 'HasAmenity' edges to 'WiFi', 'Gym', 'Spa', and 'Concierge'."
+    },
+    {
+      "id": "drop_legacy_property",
+      "description": "Verify the legacy 'Amenities' property was dropped from the 'Hotels' class.",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio Schema page for the 'Hotels' class showing that the 'Amenities' property (previously EMBEDDEDLIST STRING) is no longer listed, or console output confirming 'DROP PROPERTY Hotels.Amenities' executed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_interface",
+      "description": "Ensure the agent interacted with the actual OrientDB Studio or Console.",
+      "visual_evidence": "Screenshots must show the OrientDB Studio web interface at localhost:2480/studio/index.html or a terminal window running the OrientDB console, not a text editor with standalone scripts."
+    },
+    {
+      "id": "genuine_query_execution",
+      "description": "Verify that the results shown are from actual executed queries.",
+      "visual_evidence": "Query results should be displayed in the OrientDB Studio UI data tables/graph views or standard OrientDB console output formatting, showing execution times or record IDs."
+    },
+    {
+      "id": "full_database_migration",
+      "description": "Ensure the agent migrated the entire database and didn't just hardcode mock data for a single hotel.",
+      "visual_evidence": "Query results or graph views should indicate the presence of multiple hotels or all 8 distinct amenities, proving a systemic migration rather than manual insertion of just 'The Plaza Hotel' data."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains exactly 8 distinct amenities to be migrated: WiFi, Bar, Restaurant, Gym, Spa, Concierge, Valet, and Pool. The target hotel 'The Plaza Hotel' should have exactly 4 'HasAmenity' edges connecting it to the following Amenity vertices: WiFi, Gym, Spa, and Concierge."
+}

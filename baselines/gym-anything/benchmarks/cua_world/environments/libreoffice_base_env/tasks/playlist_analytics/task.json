@@ -1,0 +1,31 @@
+{
+  "id": "playlist_analytics@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are a content curator at a digital music platform using the Chinook database in LibreOffice Base. Within chinook.odb, create a saved SQL query named 'PlaylistSummary' that joins Playlist, PlaylistTrack, and Track tables to compute PlaylistId, Name, TrackCount, TotalMilliseconds, and TotalRevenue per playlist. Create a saved SQL query named 'TopArtistsInPlaylists' that joins Artist, Album, Track, and PlaylistTrack tables to compute the number of distinct playlists each artist appears in, ordered by playlist count descending. Establish a table named 'PlaylistTag' with at least columns TagId (integer, primary key), PlaylistId (integer), TagName (text), and AddedDate (date), including at least 5 rows of data using valid Chinook playlist IDs and realistic tags. Create a form named 'Playlist Tagger' for adding playlist tags.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/playlist_analytics/setup_task.sh",
+    "post_task": "/workspace/tasks/playlist_analytics/export_result.sh"
+  },
+  "metadata": {
+    "required_queries": [
+      "PlaylistSummary",
+      "TopArtistsInPlaylists"
+    ],
+    "required_table": "PlaylistTag",
+    "required_table_min_rows": 5,
+    "required_form_keyword": "playlist",
+    "db_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_playlist_analytics"
+    }
+  }
+}

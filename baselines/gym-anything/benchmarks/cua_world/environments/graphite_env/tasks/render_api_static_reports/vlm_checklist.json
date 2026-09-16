@@ -1,0 +1,59 @@
+{
+  "task_id": "render_api_static_reports@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Checks if the shell script generate_reports.sh was created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output (like cat) showing the file /home/ga/reports/generate_reports.sh being edited or viewed."
+    },
+    {
+      "id": "script_executable",
+      "description": "Checks if the script was made executable.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'chmod +x generate_reports.sh' or an 'ls -l' output showing executable ('x') permissions for the script."
+    },
+    {
+      "id": "graph1_command",
+      "description": "Checks if the script includes the correct API call for the Fleet CPU Overview graph.",
+      "points": 20,
+      "visual_evidence": "Script contents showing a curl or wget request to http://localhost/render with parameters including the 3 specified CPU utilization targets, from=-7d, width=800, height=400, format=png, and saving to fleet_cpu_overview.png."
+    },
+    {
+      "id": "graph2_command",
+      "description": "Checks if the script includes the correct API call for the Disk Write Rate graph.",
+      "points": 20,
+      "visual_evidence": "Script contents showing a curl or wget request to http://localhost/render with parameters including the 2 specified derivative disk write targets, from=-3d, width=800, height=400, format=png, and saving to disk_write_rate.png."
+    },
+    {
+      "id": "graph3_command",
+      "description": "Checks if the script includes the correct API call for the Temperature Analysis graph.",
+      "points": 20,
+      "visual_evidence": "Script contents showing a curl or wget request to http://localhost/render with parameters including the raw and movingAverage temperature targets, from=-7d, width=800, height=400, format=png, and saving to temperature_analysis.png."
+    },
+    {
+      "id": "files_downloaded",
+      "description": "Checks if the script was executed and the PNG files were successfully generated.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the script (e.g., ./generate_reports.sh) and/or an 'ls -l' command showing fleet_cpu_overview.png, disk_write_rate.png, and temperature_analysis.png present in /home/ga/reports/ with file sizes greater than 0 (ideally > 2KB)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_usage",
+      "description": "Verifies that the script genuinely interacts with the Graphite Render API rather than creating dummy files.",
+      "visual_evidence": "The script must contain actual HTTP requests (curl/wget) to http://localhost/render. Look out for 'touch' commands or 'echo' commands creating fake PNG files."
+    },
+    {
+      "id": "script_execution_used",
+      "description": "Verifies that the agent used the script to generate the reports, rather than downloading them manually.",
+      "visual_evidence": "Terminal history should show the script being executed. The agent should not be using a web browser to manually save the images to the directory."
+    },
+    {
+      "id": "no_base64_hardcoding",
+      "description": "Verifies that the agent didn't hardcode image data into the script.",
+      "visual_evidence": "The script should be concise and contain API URLs, not large blocks of base64 encoded text being piped into .png files."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory is /home/ga/reports. The script must be named generate_reports.sh. The script should download three images: fleet_cpu_overview.png, disk_write_rate.png, and temperature_analysis.png. Each image should be requested with width=800 and height=400. Valid generated PNG files will have a minimum file size of 2KB."
+}

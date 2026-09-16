@@ -1,0 +1,29 @@
+{
+  "id": "register_inventory_vendor@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Register a new inventory vendor in HospitalRun using the following details: Name 'Global Pharma Supplies', Address '42 Logistics Blvd, Metro City, NY 10001', and Phone '555-0199'. Include 'GPS-2026-X' in the account number or description field and ensure the profile is saved in the system.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/register_inventory_vendor/setup_task.sh",
+    "post_task": "/workspace/tasks/register_inventory_vendor/export_result.sh"
+  },
+  "metadata": {
+    "vendor_name": "Global Pharma Supplies",
+    "vendor_address": "42 Logistics Blvd, Metro City, NY 10001",
+    "vendor_phone": "555-0199",
+    "vendor_account_note": "GPS-2026-X",
+    "expected_doc_type": "supplier"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_register_inventory_vendor"
+    }
+  }
+}

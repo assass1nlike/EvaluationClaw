@@ -1,0 +1,37 @@
+{
+  "id": "granger_causality_var@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are an economist preparing a briefing on the dynamic relationship between US output growth and inflation using the USA quarterly macroeconomic dataset (usa.gdt). Create a GDP growth rate variable named 'gdp_growth' from the 'gdp' levels using the formula: series gdp_growth = 100 * diff(log(gdp)). Estimate a VAR model with 4 lags on 'gdp_growth' and 'inf'. Save the complete VAR estimation results, including coefficient estimates for both equations and F-test statistics for Granger causality, to /home/ga/Documents/gretl_output/granger_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/granger_causality_var/setup_task.sh",
+    "post_task": "/workspace/tasks/granger_causality_var/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/gretl_output/granger_results.txt",
+    "dataset": "usa.gdt",
+    "required_vars": [
+      "gdp_growth",
+      "inf"
+    ],
+    "var_lags": 4,
+    "keywords": [
+      "VAR system",
+      "F-test",
+      "Granger",
+      "p-value"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_granger_causality_var"
+    }
+  }
+}

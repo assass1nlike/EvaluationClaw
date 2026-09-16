@@ -1,0 +1,59 @@
+{
+  "task_id": "ntfs_ads_concealment_detection@1",
+  "task_completion": [
+    {
+      "id": "tool_usage_disk_analysis",
+      "description": "Initialize the investigation using Autopsy or Sleuth Kit CLI on the suspect drive.",
+      "points": 10,
+      "visual_evidence": "Look for the Autopsy GUI open with case name 'ADS_Investigation_2024' and number 'INV-ADS-009', OR a terminal showing Sleuth Kit commands (like 'fls', 'mmls', 'icat') being run against '/home/ga/evidence/suspect_drive.dd'."
+    },
+    {
+      "id": "ads_discovery",
+      "description": "Locate and extract the hidden Alternate Data Streams.",
+      "points": 20,
+      "visual_evidence": "Look for the Autopsy interface or terminal output displaying the hidden streams ('config.ini', 'wallet.dat', 'service_cfg') and their contents being viewed or extracted."
+    },
+    {
+      "id": "csv_header_creation",
+      "description": "Create the findings CSV file with the correct pipe-delimited header.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or terminal output showing the file '/home/ga/Reports/ads_findings.csv' with the exact header 'PARENT_FILENAME|STREAM_NAME|STREAM_CONTENT'."
+    },
+    {
+      "id": "csv_findings_populated",
+      "description": "Document the extracted ADS findings in the CSV file.",
+      "points": 30,
+      "visual_evidence": "Look for the CSV file containing the three expected rows: 'alpha_spec.txt|config.ini|192.168.100.55', 'hawaii_trip.txt|wallet.dat|abandon ability...', and 'backup.log|service_cfg|22222'."
+    },
+    {
+      "id": "summary_total_ads",
+      "description": "Create the summary report documenting the total number of ADS found.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output showing the file '/home/ga/Reports/ads_summary.txt' containing the exact text 'TOTAL_ADS_FOUND: 3'."
+    },
+    {
+      "id": "summary_conclusion",
+      "description": "Include an investigation conclusion in the summary report.",
+      "points": 15,
+      "visual_evidence": "Look for the summary text file containing the text 'INVESTIGATION_CONCLUSION:' followed by a brief assessment of the payloads."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_tool_usage",
+      "description": "Verify the agent used Autopsy or Sleuth Kit CLI to read the disk image.",
+      "visual_evidence": "Check that the agent actually interacted with Autopsy or ran Sleuth Kit commands in the terminal to find the data, rather than just echoing the expected text into the report files without analysis."
+    },
+    {
+      "id": "base_filenames_used",
+      "description": "Verify the CSV contains only base filenames as requested.",
+      "visual_evidence": "Check the CSV file to ensure the PARENT_FILENAME column contains only the base names (e.g., 'alpha_spec.txt') and not full paths (e.g., '/dir/alpha_spec.txt')."
+    },
+    {
+      "id": "no_system_streams",
+      "description": "Verify the agent ignored standard NTFS system metadata streams.",
+      "visual_evidence": "Check the CSV file to ensure it does NOT contain entries for system streams like '$BadClus:$Bad' or '$Secure:$SDS'."
+    }
+  ],
+  "privileged_info_for_vlm": "The disk image is located at /home/ga/evidence/suspect_drive.dd. There are exactly 3 user-created ADS to find: 1) Parent: 'alpha_spec.txt', Stream: 'config.ini', Content: '192.168.100.55'. 2) Parent: 'hawaii_trip.txt', Stream: 'wallet.dat', Content: 'abandon ability...'. 3) Parent: 'backup.log', Stream: 'service_cfg', Content: '22222'. If using Autopsy, the case name should be 'ADS_Investigation_2024' and case number 'INV-ADS-009'."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "environmental_metagenome_primer_design@1",
+  "version": "1.0",
+  "env_id": "ugene_env@0.1",
+  "description": "You are an environmental microbiologist studying microbial communities in contaminated groundwater. Design PCR primers that specifically amplify the 16S rRNA gene from sulfate-reducing bacteria (SRB) in the Desulfovibrio/Desulfobulbus clade while excluding common soil bacteria. The primers must target a conserved motif in the V3-V4 hypervariable region (approximately positions 340-800) identified from the sequences in ~/UGENE_Data/environmental/ (srb_16S_sequences.fasta, nontarget_16S_sequences.fasta, and all_16S_combined.fasta). The primer pair should have a product size of 200-500 bp, Tm of 55-65°C, and length of 18-25 bp. Save the sequence alignment to ~/UGENE_Data/environmental/results/srb_alignment.fasta. Record the forward and reverse primer sequences, their Tm, the expected amplicon size, and target region coordinates in ~/UGENE_Data/environmental/results/primer_design.txt. Additionally, create an analysis report at ~/UGENE_Data/environmental/results/primer_specificity_report.txt describing the variable region selection, the method of discrimination from non-target organisms, a specificity assessment, and recommended PCR conditions.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/environmental_metagenome_primer_design/setup_task.sh",
+    "post_task": "/workspace/tasks/environmental_metagenome_primer_design/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "NCBI 16S rRNA sequences: SRB targets - PV992576.1 (D. vulgaris), PV110867.1 (D. desulfuricans), NR_117122.1 (D. giganteus), PX448252.1 (Db. propionicus), NR_122091.1 (D. africanus), PP977854.1 (D. piger), PX240737.1 (Dm. baculatum), PP882851.1 (Db. postgatei). Non-targets - PV810134.1 (E. coli), PZ050675.1 (B. subtilis), PZ049890.1 (P. aeruginosa), PZ050804.1 (S. aureus), PZ028441.1 (S. coelicolor), PZ049452.1 (C. butyricum)",
+    "occupation": "Environmental Microbiologist",
+    "industry": "Environmental Remediation / Water Treatment",
+    "difficulty": "very_hard",
+    "alignment_algorithm": "Kalign",
+    "target_group": "Sulfate-reducing bacteria (Desulfovibrio/Desulfobulbus)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_environmental_metagenome_primer_design"
+    }
+  }
+}

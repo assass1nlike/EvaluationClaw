@@ -1,0 +1,59 @@
+{
+  "task_id": "model_multimodal_transit_passengers@1",
+  "task_completion": [
+    {
+      "id": "create_pedestrian_file",
+      "description": "Create a new demand file named pedestrians.rou.xml containing at least 10 persons.",
+      "points": 15,
+      "visual_evidence": "Screenshot showing the contents of /home/ga/SUMO_Scenarios/bologna_pasubio/pedestrians.rou.xml (e.g., via cat, nano, or vim) with at least 10 distinct <person> elements defined."
+    },
+    {
+      "id": "define_multistage_trips",
+      "description": "Define multi-stage trips for the persons: walking, riding the bus, and walking to a final destination.",
+      "points": 25,
+      "visual_evidence": "Screenshot of pedestrians.rou.xml showing <person> elements containing a sequence of <walk>, <ride lines=\"--\">, and another <walk> tag. The ride tag must specifically use lines=\"--\"."
+    },
+    {
+      "id": "update_config_input",
+      "description": "Update run.sumocfg to include the new pedestrians.rou.xml demand file.",
+      "points": 15,
+      "visual_evidence": "Screenshot of run.sumocfg showing the <route-files> tag updated to include pedestrians.rou.xml alongside the existing route files."
+    },
+    {
+      "id": "update_config_output",
+      "description": "Configure run.sumocfg to generate person information output at the specified path.",
+      "points": 15,
+      "visual_evidence": "Screenshot of run.sumocfg showing an <output> section containing <personinfo-output value=\"/home/ga/SUMO_Output/personinfo.xml\"/>."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the SUMO simulation to completion.",
+      "points": 15,
+      "visual_evidence": "Terminal screenshot showing the execution of the SUMO simulation (e.g., 'sumo -c run.sumocfg') and the final summary logs indicating the simulation ended successfully."
+    },
+    {
+      "id": "verify_output_generation",
+      "description": "Verify the personinfo.xml output file was successfully generated.",
+      "points": 15,
+      "visual_evidence": "Terminal screenshot showing the existence and/or contents of /home/ga/SUMO_Output/personinfo.xml (e.g., using 'ls -l' or 'head' commands on the file)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "The agent actually ran the SUMO simulation to generate the output.",
+      "visual_evidence": "Terminal output showing genuine SUMO execution logs (step routing, simulation steps, end time) rather than just a silent command or manually creating the output file."
+    },
+    {
+      "id": "authentic_file_modification",
+      "description": "The agent used standard text editors or command-line tools to modify the XML files.",
+      "visual_evidence": "Screenshots showing the use of tools like nano, vim, sed, or python to edit run.sumocfg and pedestrians.rou.xml."
+    },
+    {
+      "id": "no_hardcoded_output",
+      "description": "The agent did not manually create or copy-paste the final personinfo.xml file.",
+      "visual_evidence": "The personinfo.xml file should only appear as a direct result of running the sumo command, with no evidence of the agent manually writing XML tags into this specific output file."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario directory is /home/ga/SUMO_Scenarios/bologna_pasubio. The pedestrian demand file must be named pedestrians.rou.xml and contain at least 10 persons. The bus line ID required for the <ride> stage in the pedestrian routes is exactly '--' (i.e., <ride lines=\"--\">). The configuration file run.sumocfg must be updated to include the new demand and output person information to /home/ga/SUMO_Output/personinfo.xml."
+}

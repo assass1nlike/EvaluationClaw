@@ -1,0 +1,40 @@
+{
+  "id": "dynamic_subquestion_relevance_config@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create an active 'smart' IT provisioning survey in LimeSurvey (admin / Admin123!) titled 'New Hire IT Provisioning 2025'. The survey must contain a 'Role and Software' group with a department selection question (code 'DEPT', text 'Select the department for the new hire:') featuring options 'SALES'/'Sales', 'ENG'/'Engineering', and 'LEGAL'/'Legal'. Include a software license selection question (code 'TOOLS', text 'Select the required software licenses:') with dynamic subquestions: 'SF' (Salesforce CRM) visible only for SALES; 'VS' (Visual Studio) visible only for ENG; 'LN' (LexisNexis) visible only for LEGAL; 'SL' (Slack) visible for SALES or ENG; and 'OFF' (Microsoft Office) always visible.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dynamic_subquestion_relevance_config/setup_task.sh",
+    "post_task": "/workspace/tasks/dynamic_subquestion_relevance_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_survey_title": "New Hire IT Provisioning 2025",
+    "dept_codes": [
+      "SALES",
+      "ENG",
+      "LEGAL"
+    ],
+    "tool_logic": {
+      "SF": "SALES",
+      "VS": "ENG",
+      "LN": "LEGAL",
+      "SL": [
+        "SALES",
+        "ENG"
+      ],
+      "OFF": "ALWAYS"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dynamic_subquestion_relevance_config"
+    }
+  }
+}

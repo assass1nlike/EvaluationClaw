@@ -1,0 +1,26 @@
+{
+  "id": "connection_quality_diagnostics@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "You are an IT manager benchmarking your organization's self-hosted Jitsi Meet deployment at http://localhost:8080. Join the meeting room 'QualityTestRoom' to evaluate the session's performance and features. Assess the connection statistics, set the video quality to the highest available option, use the tile/grid view, and review the speaker statistics. Compile a diagnostic report at /home/ga/Desktop/meeting_quality_report.txt including the meeting room URL, the observed network performance metrics (such as packet loss, latency, jitter, or bitrate), the selected video quality, and observations on the display mode and speaker data.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 65
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/connection_quality_diagnostics/setup_task.sh",
+    "post_task": "/workspace/tasks/connection_quality_diagnostics/export_result.sh"
+  },
+  "metadata": {
+    "room_name": "QualityTestRoom",
+    "report_path": "/home/ga/Desktop/meeting_quality_report.txt",
+    "jitsi_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_connection_quality_diagnostics"
+    }
+  }
+}

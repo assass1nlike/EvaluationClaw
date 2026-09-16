@@ -1,0 +1,27 @@
+{
+  "id": "calculate_carbon_footprint@1",
+  "version": "1.0",
+  "env_id": "openlca_env@0.1",
+  "description": "Calculate Life Cycle Impact Assessment (LCIA) results for an electricity product system in openLCA using the USLCI database (~/LCA_Imports/uslci_database.zip) and available impact assessment methods (~/LCA_Imports/lcia_methods.zip). Export the calculated impact category results to ~/LCA_Results/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/calculate_carbon_footprint/setup_task.sh",
+    "post_task": "/workspace/tasks/calculate_carbon_footprint/export_result.sh"
+  },
+  "metadata": {
+    "expected_impact_category": "global warming",
+    "results_dir": "/home/ga/LCA_Results",
+    "product_system_keyword": "electricity"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calculate_carbon_footprint"
+    }
+  }
+}

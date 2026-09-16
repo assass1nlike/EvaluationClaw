@@ -1,0 +1,36 @@
+{
+  "id": "ada_ramp_plan@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a plan-view drawing of an ADA-compliant U-shaped switchback ramp system in LibreCAD (1 unit = 1 inch). The drawing must include a 'CONCRETE' layer (Color: Gray or White) and a 'HANDRAILS' layer (Color: Red or Cyan). The concrete structure consists of a 60\" x 60\" top landing, a 48\" x 360\" first ramp run, a 60\" x 108\" intermediate switchback landing, and a 48\" x 360\" second ramp run parallel to the first with a 12\" gap. Continuous handrails on the 'HANDRAILS' layer must be inset 2\" from all concrete edges. Save the final drawing to /home/ga/Documents/LibreCAD/ada_ramp_plan.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ada_ramp_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/ada_ramp_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/ada_ramp_plan.dxf",
+    "layers": [
+      "CONCRETE",
+      "HANDRAILS"
+    ],
+    "geometry_specs": {
+      "ramp_width": 48,
+      "ramp_length": 360,
+      "landing_size": 60,
+      "gap_size": 12,
+      "handrail_inset": 2
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ada_ramp_plan"
+    }
+  }
+}

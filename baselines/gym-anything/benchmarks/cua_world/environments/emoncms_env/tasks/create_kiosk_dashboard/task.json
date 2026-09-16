@@ -1,0 +1,30 @@
+{
+  "id": "create_kiosk_dashboard@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Create a dashboard named 'Facility Kiosk' to serve as a navigation hub. The dashboard must include a text widget containing HTML links to the 'Solar Array A', 'HVAC Main', and 'Lighting Zones' dashboards using their respective Dashboard IDs.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_kiosk_dashboard/setup_task.sh",
+    "post_task": "/workspace/tasks/create_kiosk_dashboard/export_result.sh"
+  },
+  "metadata": {
+    "target_dashboards": [
+      "Solar Array A",
+      "HVAC Main",
+      "Lighting Zones"
+    ],
+    "kiosk_name": "Facility Kiosk"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_kiosk_dashboard"
+    }
+  }
+}

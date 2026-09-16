@@ -1,0 +1,32 @@
+{
+  "id": "dna_cell_cycle_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Perform quantitative DNA content analysis on a fluorescence microscopy image of human cancer cells located at ~/Fiji_Data/raw/cell_cycle/nuclei.tif. The analysis should include background subtraction (50-pixel rolling ball), nuclei segmentation using Otsu thresholding and watershed separation, and measurement of Integrated Density for particles with a size of 100-Infinity. Identify the G1 phase peak (mode) from the intensity distribution. Save the measurements table to ~/Fiji_Data/results/cell_cycle/measurements.csv, the histogram plot to ~/Fiji_Data/results/cell_cycle/histogram.png, and a text report containing the numeric G1 peak value to ~/Fiji_Data/results/cell_cycle/g1_peak_report.txt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dna_cell_cycle_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/dna_cell_cycle_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "~/Fiji_Data/raw/cell_cycle/nuclei.tif",
+    "expected_outputs": [
+      "~/Fiji_Data/results/cell_cycle/measurements.csv",
+      "~/Fiji_Data/results/cell_cycle/histogram.png",
+      "~/Fiji_Data/results/cell_cycle/g1_peak_report.txt"
+    ],
+    "ground_truth_method": "Python skimage analysis (Otsu + watershed)",
+    "tolerance_percent": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dna_cell_cycle_analysis"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_build_variants@1",
+  "task_completion": [
+    {
+      "id": "flavor_dimension_and_flavors",
+      "description": "Verify that a 'tier' flavor dimension and 'free' and 'premium' product flavors are added to the app's build.gradle file.",
+      "points": 20,
+      "visual_evidence": "Look for 'flavorDimensions' containing 'tier' (e.g., flavorDimensions += \"tier\") and a 'productFlavors' block defining 'free' and 'premium' in the editor window showing app/build.gradle or app/build.gradle.kts."
+    },
+    {
+      "id": "flavor_application_id_suffixes",
+      "description": "Verify that the 'free' and 'premium' flavors have the correct applicationIdSuffixes.",
+      "points": 20,
+      "visual_evidence": "Look for 'applicationIdSuffix = \".free\"' inside the 'free' flavor block and 'applicationIdSuffix = \".premium\"' inside the 'premium' flavor block in the build.gradle file."
+    },
+    {
+      "id": "staging_build_type",
+      "description": "Verify that a 'staging' build type is added with the correct applicationIdSuffix.",
+      "points": 15,
+      "visual_evidence": "Look for a 'staging' block inside the 'buildTypes' block containing 'applicationIdSuffix = \".staging\"' in the build.gradle file."
+    },
+    {
+      "id": "flavor_specific_strings_xml",
+      "description": "Verify that flavor-specific strings.xml files are created with the correct app names.",
+      "points": 25,
+      "visual_evidence": "Look at the Project tool window for directories like 'src/free/res/values/strings.xml' and 'src/premium/res/values/strings.xml', or editor tabs showing these files containing '<string name=\"app_name\">Calculator Free</string>' and '<string name=\"app_name\">Calculator Pro</string>' respectively."
+    },
+    {
+      "id": "gradle_sync_and_compile_freedebug",
+      "description": "Verify that the project syncs and compiles successfully for the freeDebug variant.",
+      "points": 20,
+      "visual_evidence": "Look for 'BUILD SUCCESSFUL' or a successful Gradle sync message in the Build/Sync tool window at the bottom. Additionally, check if the 'Build Variants' tool window (usually on the left) shows 'freeDebug' selected as the active build variant for the app module."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_android_studio",
+      "description": "Verify the agent used Android Studio to edit files and sync the project.",
+      "visual_evidence": "The screenshots should show the Android Studio IDE interface being used to edit the build.gradle and XML files, rather than a plain text editor in a terminal."
+    },
+    {
+      "id": "genuine_gradle_sync",
+      "description": "Verify that the Gradle sync was actually executed by Android Studio.",
+      "visual_evidence": "Look for the standard Android Studio Gradle sync progress bar, build output window, or the 'Sync Project with Gradle Files' elephant icon being clicked or active."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Verify the agent didn't just use terminal commands to blindly write the files without opening the project.",
+      "visual_evidence": "File edits and directory creations should be visible within the Android Studio Project view or editor tabs, not just terminal prompts with 'echo' or 'cat' commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/AndroidStudioProjects/CalculatorApp. The expected product flavors are 'free' and 'premium' within a 'tier' dimension. The expected build types are 'debug', 'release', and 'staging'. The 'free' flavor needs applicationIdSuffix '.free' and app name 'Calculator Free'. The 'premium' flavor needs applicationIdSuffix '.premium' and app name 'Calculator Pro'. The 'staging' build type needs applicationIdSuffix '.staging'."
+}

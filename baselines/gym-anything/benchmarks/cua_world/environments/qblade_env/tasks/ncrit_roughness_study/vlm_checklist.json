@@ -1,0 +1,59 @@
+{
+  "task_id": "ncrit_roughness_study@1",
+  "task_completion": [
+    {
+      "id": "naca_4412_generated",
+      "description": "Generate NACA 4412 airfoil with 100 panels in QBlade",
+      "points": 10,
+      "visual_evidence": "Look at the QBlade interface (Airfoil Design module). Check that 'NACA 4412' is listed in the airfoil manager or visible on the screen, and verify evidence that it was generated with 100 panels (e.g., in the generation dialog or airfoil details)."
+    },
+    {
+      "id": "clean_polar_run",
+      "description": "Conduct Clean polar analysis (Re=1,000,000, Ncrit=9)",
+      "points": 15,
+      "visual_evidence": "Look at the QBlade interface (XFoil Direct Analysis module). Check for a polar definition, table, or graph showing Re=1,000,000 (or 1e6) and Ncrit=9, with Alpha ranging from -5 to 20."
+    },
+    {
+      "id": "rough_polar_run",
+      "description": "Conduct Rough polar analysis (Re=1,000,000, Ncrit=5)",
+      "points": 15,
+      "visual_evidence": "Look at the QBlade interface. Check for a second polar definition, table, or graph showing Re=1,000,000 (or 1e6) and Ncrit=5, with Alpha ranging from -5 to 20."
+    },
+    {
+      "id": "qblade_project_saved",
+      "description": "Save the QBlade project to the specified path",
+      "points": 10,
+      "visual_evidence": "Look for the QBlade window title showing 'roughness_study.wpa', a save dialog confirming the path '/home/ga/Documents/projects/roughness_study.wpa', or a file manager/terminal showing the file exists."
+    },
+    {
+      "id": "results_file_created_and_formatted",
+      "description": "Create and format the summary text file correctly",
+      "points": 25,
+      "visual_evidence": "Look for a text editor showing the file '/home/ga/Documents/roughness_study_results.txt'. Verify it contains the exact headers: 'ROUGHNESS SENSITIVITY STUDY - NACA 4412', 'Reynolds Number: 1000000', 'CLEAN CASE (Ncrit=9):', 'ROUGH CASE (Ncrit=5):', and 'COMPARISON:' with the requested variables (Cl_max, Alpha_Cl_max, Cd_min, Cl_max_reduction_percent, Cd_min_increase_percent)."
+    },
+    {
+      "id": "results_physics_and_math_correct",
+      "description": "Verify the physical correctness of the results and the math for the percentage differences",
+      "points": 25,
+      "visual_evidence": "Examine the text file contents. Verify that the 'ROUGH CASE' Cl_max is lower than the 'CLEAN CASE' Cl_max, and the 'ROUGH CASE' Cd_min is higher than the 'CLEAN CASE' Cd_min. Verify the 'CLEAN CASE' Cl_max is approximately 1.62-1.63. Check that the percentages in the COMPARISON section are calculated correctly using the formula: 100 * |rough - clean| / clean."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qblade_gui_used",
+      "description": "Verify the agent actually used the QBlade GUI to perform the analysis",
+      "visual_evidence": "Look for screenshots showing the QBlade application open and being interacted with (e.g., configuring polars, viewing graphs), rather than just a text editor or terminal."
+    },
+    {
+      "id": "data_consistency",
+      "description": "Verify the data in the text file matches the data generated in QBlade",
+      "visual_evidence": "Cross-reference the Cl_max, Alpha_Cl_max, and Cd_min values written in the text file with the graphs or data tables visible in the QBlade screenshots. They should match."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "Verify the agent did not hallucinate or copy-paste generic results without running the simulation",
+      "visual_evidence": "Check that the values in the text file are highly specific floating-point numbers typical of XFoil outputs (e.g., 1.6234), not generic placeholders or rounded guesses (e.g., exactly 1.6 or 1.5)."
+    }
+  ],
+  "privileged_info_for_vlm": "Physics verification: Roughness/turbulence (Ncrit=5) decreases maximum lift (Cl_max) and increases minimum drag (Cd_min) compared to the clean case (Ncrit=9). For NACA 4412 at Re=1,000,000, the clean Cl_max should be approximately 1.62-1.63. The percentage differences must be calculated as 100 * |difference| / clean_value."
+}

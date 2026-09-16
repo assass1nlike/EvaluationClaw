@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_floating_solar_benefit@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_initialization",
+      "description": "Agent creates a Python script that imports PySAM.Pvwattsv8 and reads the weather file path.",
+      "points": 10,
+      "visual_evidence": "Code editor showing a Python script with 'import PySAM.Pvwattsv8' (or similar) and logic to read the weather file path from '/home/ga/.SAM/solar_resource_dir.txt'."
+    },
+    {
+      "id": "shared_parameters_configured",
+      "description": "Agent configures the shared system parameters in the script.",
+      "points": 20,
+      "visual_evidence": "Code editor showing variables or dictionary assignments for system_capacity (5000), module_type (0), array_type (0), tilt (15), azimuth (180), dc_ac_ratio (1.2), losses (14.0), and inv_eff (96.0)."
+    },
+    {
+      "id": "inoct_scenarios_configured",
+      "description": "Agent sets up the two distinct INOCT scenarios for ground and floating PV.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the 'inoct' parameter being set to 45.0 for the ground-mounted simulation and 40.0 for the floating simulation."
+    },
+    {
+      "id": "gain_calculations_implemented",
+      "description": "Agent implements the logic to calculate absolute energy gain and percentage gain.",
+      "points": 15,
+      "visual_evidence": "Code editor showing mathematical operations subtracting the ground annual energy from the floating annual energy, and calculating the percentage difference."
+    },
+    {
+      "id": "json_export_implemented",
+      "description": "Agent writes the results to the specified JSON file with the exact required keys.",
+      "points": 15,
+      "visual_evidence": "Code editor showing a json.dump or similar command writing to '/home/ga/Documents/SAM_Projects/floating_pv_analysis.json' using a dictionary with keys: system_capacity_kw, tilt_deg, azimuth_deg, ground_inoct_c, floating_inoct_c, ground_annual_energy_kwh, floating_annual_energy_kwh, energy_gain_kwh, and gain_percent."
+    },
+    {
+      "id": "valid_json_output_generated",
+      "description": "The JSON file is successfully generated with mathematically sound annual energy values.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the script executing successfully, or a file viewer/terminal 'cat' showing the contents of 'floating_pv_analysis.json' where the annual energy values are between 6,000,000 and 14,000,000 kWh."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent actually executed the Python script to generate the JSON file.",
+      "visual_evidence": "Terminal window showing the 'python' command being run on the created script, rather than the agent manually typing out the JSON file contents in an editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the final energy yields or gain calculations.",
+      "visual_evidence": "The Python script uses variables from the PySAM execution results (e.g., model.Outputs.annual_energy) to populate the JSON dictionary, rather than typing in fixed numbers."
+    },
+    {
+      "id": "genuine_pysam_usage",
+      "description": "The agent used the actual PySAM library to perform the simulation.",
+      "visual_evidence": "The script contains genuine PySAM execution commands (like model.execute()) rather than mocking the output or using a different, unrequested estimation method."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is exactly 'floating_pv_analysis.json'. The system capacity must be 5000 kW, tilt 15 degrees, azimuth 180 degrees. The ground INOCT must be 45.0 \u00b0C and floating INOCT 40.0 \u00b0C. A valid PySAM simulation for this 5 MW system must produce an annual energy yield between 6,000,000 and 14,000,000 kWh for both scenarios. Check that the JSON output reflects these bounds."
+}

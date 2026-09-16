@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_custom_sast_scanner@1",
+  "task_completion": [
+    {
+      "id": "open_visitor_py",
+      "description": "Open visitor.py in the code editor",
+      "points": 10,
+      "visual_evidence": "VS Code or another text editor is open, displaying the contents of '/home/ga/workspace/sast_scanner/visitor.py'."
+    },
+    {
+      "id": "fix_match_case_bug",
+      "description": "Implement AST handling for match/case syntax",
+      "points": 15,
+      "visual_evidence": "The editor shows modifications to 'visitor.py' adding logic to handle Python 3.10 'Match' or 'case' AST nodes."
+    },
+    {
+      "id": "fix_import_fstring_bugs",
+      "description": "Implement AST handling for import aliases and f-strings",
+      "points": 15,
+      "visual_evidence": "The editor shows modifications to 'visitor.py' adding logic to handle 'JoinedStr' (f-strings) and import aliases."
+    },
+    {
+      "id": "fix_scope_secret_bugs",
+      "description": "Fix variable scope leakage and safe secret referencing logic",
+      "points": 15,
+      "visual_evidence": "The editor shows modifications to 'visitor.py' adjusting variable scope tracking or secret referencing detection logic."
+    },
+    {
+      "id": "run_pytest",
+      "description": "Run the test suite using pytest",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the command 'pytest' or 'pytest tests/test_visitor.py' being executed."
+    },
+    {
+      "id": "all_tests_pass",
+      "description": "All tests pass successfully",
+      "points": 25,
+      "visual_evidence": "The terminal output from pytest shows a successful run with all tests passing (e.g., green text indicating 'passed', no failures reported)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "Agent used the VS Code GUI to edit the code",
+      "visual_evidence": "The agent interacts with the VS Code interface to make code changes, rather than bypassing the editor with terminal commands like 'sed' or 'echo'."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Agent ran the actual pytest suite",
+      "visual_evidence": "The terminal shows genuine pytest execution output with standard formatting, not a mocked script or text file being printed."
+    },
+    {
+      "id": "tests_not_deleted",
+      "description": "Agent did not delete or skip tests to achieve a passing result",
+      "visual_evidence": "The pytest output shows that multiple tests were collected and passed. It should not say 'collected 0 items' or show that tests were removed."
+    }
+  ],
+  "privileged_info_for_vlm": "The SAST scanner code and test suite are synthetically generated. The 5 critical bugs (match/case, variable scope leakage, import aliases, f-strings, and hardcoded secrets) are explicitly commented in visitor.py. The agent must use VS Code to edit visitor.py and run pytest on tests/test_visitor.py to verify the fixes. Note: The programmatic verifier is missing from the environment, making visual verification of the pytest output the only way to confirm success."
+}

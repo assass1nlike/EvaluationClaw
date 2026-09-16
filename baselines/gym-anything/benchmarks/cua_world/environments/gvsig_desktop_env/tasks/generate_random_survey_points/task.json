@@ -1,0 +1,36 @@
+{
+  "id": "generate_random_survey_points@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Generate a biodiversity survey dataset for Madagascar consisting of 40 random points constrained to the country's boundary. Save the result as a shapefile to /home/ga/gvsig_data/exports/madagascar_survey.shp. The dataset must include two Double/Float fields named 'LON' and 'LAT' populated with the respective longitude and latitude coordinates for each point.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_random_survey_points/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_random_survey_points/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/madagascar_survey.shp",
+    "target_count": 40,
+    "target_bbox": {
+      "min_x": 43.0,
+      "max_x": 51.0,
+      "min_y": -26.0,
+      "max_y": -11.0
+    },
+    "required_fields": [
+      "LON",
+      "LAT"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_random_survey_points"
+    }
+  }
+}

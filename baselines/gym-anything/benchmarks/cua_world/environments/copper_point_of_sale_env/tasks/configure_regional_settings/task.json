@@ -1,0 +1,28 @@
+{
+  "id": "configure_regional_settings@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Configure the Copper Point of Sale regional settings to match United Kingdom standards for a UK retail store. Update the system to use the '£' currency symbol, the 'dd/MM/yyyy' date format, and rename the default tax label to 'VAT'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_regional_settings/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_regional_settings/export_result.sh"
+  },
+  "metadata": {
+    "expected_currency_symbol": "£",
+    "expected_date_format": "dd/MM/yyyy",
+    "expected_tax_name": "VAT",
+    "registry_path": "HKCU:\\Software\\NCH Software\\Copper"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_regional_settings"
+    }
+  }
+}

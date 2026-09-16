@@ -1,0 +1,75 @@
+{
+  "dataset_id": "dd753cc1",
+  "name": "Geological-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Geological-Ner is a text-to-text dataset for geological named entity recognition. It provides short geological passages and asks the model to extract all entities and assign one of three types: BIOZONE, CHRONOSTRAT, or LEXICON, outputting a comma-separated list of 'entity => type' pairs.",
+  "card_text": "Geological-Ner is a text-to-text dataset of 200 samples for evaluating geological named entity recognition. Each sample contains a raw geological text excerpt (input.raw_text) and a prompt (input.prompt) that instructs the model to extract all geological entities and their types among BIOZONE, CHRONOSTRAT, and LEXICON. The expected output (output.text) is a comma-separated list of entities mapped to their types. The texts are factual, encyclopedic-style sentences from geological literature, often containing stratigraphic names, biozones, and lexicons. The dataset evaluates span extraction and entity typing, with supervision in the form of formatted text. It assumes the model can parse the instruction and return only the entities in the specified format.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction"
+  ],
+  "domain": "geology",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "Raw geological text excerpts that serve as the input passage. They contain stratigraphic names, rock units, and other geological terminology for the model to extract entities from.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instructional prompt that asks the model to extract all geological entities and their types (BIOZONE, CHRONOSTRAT, LEXICON) from the raw text. It specifies the output format as 'entity => type' separated by commas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Comma-separated list of extracted geological entities each mapped to its type in the format 'entity => type'. This is the target output that the model should generate.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with a raw_text field containing a geological passage and a prompt field containing the extraction instruction, plus an output object with a text field containing the formatted entity-type mappings. The raw_text provides the context to be analyzed, the prompt defines the task and allowed entity types, and the output text holds the answer as a comma-separated list of 'entity => type' items. No separate span indices or structured entity lists are provided."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Geological-NER/annotation.json",
+    "existing_tags": {
+      "task": "geological_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

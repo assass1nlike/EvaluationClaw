@@ -1,0 +1,28 @@
+{
+  "id": "generate_fleet_qr_codes@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "The Operations Director needs physical asset tags for the entire drone fleet. Generate a unique QR code for every aircraft in the Aerobridge database located at /opt/aerobridge. Each QR code must encode the full URL to the specific aircraft's Django admin detail page (e.g., http://localhost:8000/admin/registry/aircraft/<uuid>/change/). Save the QR codes as PNG images to /home/ga/Documents/fleet_tags/ with filenames following the pattern 'tag_<registration_mark>.png'. You may need to install the 'qrcode' Python library.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_fleet_qr_codes/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_fleet_qr_codes/export_result.sh"
+  },
+  "metadata": {
+    "output_dir": "/home/ga/Documents/fleet_tags",
+    "filename_pattern": "tag_*.png",
+    "url_pattern": "http://localhost:8000/admin/registry/aircraft/.*/change/",
+    "aerobridge_dir": "/opt/aerobridge"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_fleet_qr_codes"
+    }
+  }
+}

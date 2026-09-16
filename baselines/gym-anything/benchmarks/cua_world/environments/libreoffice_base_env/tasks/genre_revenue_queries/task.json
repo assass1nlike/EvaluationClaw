@@ -1,0 +1,31 @@
+{
+  "id": "genre_revenue_queries@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are a database administrator at a digital music store using the Chinook database in LibreOffice Base. Management needs a revenue analysis system. Create a saved SQL query named 'GenreRevenue' that computes total revenue per music genre by joining the InvoiceLine, Track, and Genre tables and grouping results by genre with a revenue aggregate. Create a second saved SQL query named 'CountryRevenue' that computes total sales revenue per billing country by joining the Invoice and Customer tables and grouping by billing country. Create a new table named 'RevenueTarget' with the following columns: TargetId (integer, primary key), Genre (text), AnnualTarget (numeric), and Quarter (integer). Insert at least four rows into the RevenueTarget table using realistic genre names (such as Rock, Jazz, Classical, or Pop) and annual revenue targets. Create a report named 'Revenue Analysis' that presents the genre revenue data. All objects must be saved in the chinook.odb file.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/genre_revenue_queries/setup_task.sh",
+    "post_task": "/workspace/tasks/genre_revenue_queries/export_result.sh"
+  },
+  "metadata": {
+    "required_queries": [
+      "GenreRevenue",
+      "CountryRevenue"
+    ],
+    "required_table": "RevenueTarget",
+    "required_table_min_rows": 4,
+    "required_report_keyword": "revenue",
+    "db_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_genre_revenue_queries"
+    }
+  }
+}

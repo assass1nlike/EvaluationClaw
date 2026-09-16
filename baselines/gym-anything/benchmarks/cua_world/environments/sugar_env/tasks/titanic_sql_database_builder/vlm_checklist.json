@@ -1,0 +1,59 @@
+{
+  "task_id": "titanic_sql_database_builder@1",
+  "task_completion": [
+    {
+      "id": "python_script_setup",
+      "description": "The agent wrote a Python script that imports the required built-in modules.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing a Python script containing 'import csv' and 'import sqlite3'."
+    },
+    {
+      "id": "database_schema",
+      "description": "The script creates the 'passengers' table with the correct columns.",
+      "points": 20,
+      "visual_evidence": "The Python script contains a 'CREATE TABLE passengers' SQL statement including the columns: PassengerId, Survived, Pclass, Name, Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, and Embarked."
+    },
+    {
+      "id": "data_insertion",
+      "description": "The script reads the CSV file and inserts the records into the database.",
+      "points": 20,
+      "visual_evidence": "The Python script shows a CSV reader (like csv.reader or csv.DictReader) iterating over the file and executing an 'INSERT INTO passengers' SQL command."
+    },
+    {
+      "id": "database_file_created",
+      "description": "The SQLite database file was created in the correct location.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal 'ls' output showing 'titanic.db' located in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "The survival summary text file was created in the correct location.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal 'ls' output showing 'survival_summary.txt' located in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "correct_survival_rates",
+      "description": "The summary file contains the correct survival rates for 1st and 3rd class passengers.",
+      "points": 25,
+      "visual_evidence": "Terminal 'cat' output or a text editor showing the contents of 'survival_summary.txt' with the Class 1 survival rate between 61.0% and 64.0% (specifically ~62.96%) and the Class 3 survival rate between 23.0% and 26.0% (specifically ~24.24%)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_pandas_library",
+      "description": "The agent did not use the pandas library to process the data.",
+      "visual_evidence": "Check the Python script to ensure 'import pandas' is nowhere to be found."
+    },
+    {
+      "id": "no_hardcoded_rates",
+      "description": "The survival rates were calculated programmatically rather than hardcoded.",
+      "visual_evidence": "The Python script contains logic to count survivors and total passengers per class (either via SQL queries or Python variables), rather than just writing the final expected percentages directly to the text file."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "The agent actually executed the Python script to generate the outputs.",
+      "visual_evidence": "Terminal output showing the agent running the script (e.g., 'python script.py') without errors, rather than just creating the output files manually."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct survival rate for Class 1 is approximately 62.96% (acceptable range: 61.0% - 64.0%). The correct survival rate for Class 3 is approximately 24.24% (acceptable range: 23.0% - 26.0%). The database should contain exactly 891 passenger records."
+}

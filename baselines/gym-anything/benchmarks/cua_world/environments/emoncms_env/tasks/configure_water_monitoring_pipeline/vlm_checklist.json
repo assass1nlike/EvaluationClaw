@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_water_monitoring_pipeline@1",
+  "task_completion": [
+    {
+      "id": "input_process_accessed",
+      "description": "Navigate to the input processing configuration for the main water pulses.",
+      "points": 10,
+      "visual_evidence": "Look for the Emoncms 'Inputs' page. Verify that the input processing configuration modal/list (wrench icon) for 'main_water_pulses' under the 'utility_room' node is open or has been interacted with."
+    },
+    {
+      "id": "feed_total_created",
+      "description": "Create the cumulative volume feed.",
+      "points": 20,
+      "visual_evidence": "Look at the Feeds page or the Input processing list. Verify that a feed exactly named 'water_total_m3' has been created."
+    },
+    {
+      "id": "feed_flow_created",
+      "description": "Create the flow rate feed.",
+      "points": 20,
+      "visual_evidence": "Look at the Feeds page or the Input processing list. Verify that a feed exactly named 'water_flow_lpm' has been created."
+    },
+    {
+      "id": "feeds_configured_correctly",
+      "description": "Configure both feeds with the correct engine and interval.",
+      "points": 20,
+      "visual_evidence": "Look at the Feeds page or the feed creation details. Verify that both 'water_total_m3' and 'water_flow_lpm' show 'PHPFina' as their engine and '10s' as their interval."
+    },
+    {
+      "id": "total_m3_processing_logic",
+      "description": "Configure the mathematical processing to convert pulses to cubic meters (m\u00b3).",
+      "points": 15,
+      "visual_evidence": "Look at the Input processing list for 'main_water_pulses'. Verify there is a 'Log to feed' action for 'water_total_m3' preceded by scaling operations that multiply the pulse count by 0.01 (e.g., 'x 0.01', or 'x 10' followed by 'x 0.001')."
+    },
+    {
+      "id": "flow_lpm_processing_logic",
+      "description": "Configure the mathematical processing to calculate flow rate in Liters per minute (LPM).",
+      "points": 15,
+      "visual_evidence": "Look at the Input processing list for 'main_water_pulses'. Verify there is a 'Log to feed' action for 'water_flow_lpm' preceded by a rate calculation (e.g., 'Rate of change') and scaling operations that multiply the rate by 600 (e.g., 'x 600', or 'x 10' followed by 'x 60')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Emoncms web interface to configure the inputs and feeds.",
+      "visual_evidence": "Screenshots should show the Emoncms web UI (Inputs and Feeds pages) being actively used, rather than just terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_feeds",
+      "description": "The feeds were genuinely created in the application.",
+      "visual_evidence": "The feeds should appear in the standard Emoncms tables with assigned IDs, sizes, and updated times, not just as text in a mock file or HTML editor."
+    },
+    {
+      "id": "no_hardcoded_test_values",
+      "description": "The agent configured the mathematical logic rather than hardcoding expected test values.",
+      "visual_evidence": "The input processing list should show mathematical operations (like 'x 0.01' or 'x 600') and not static assignments of the expected test values (200.1 or 600.0)."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring the 'main_water_pulses' input under the 'utility_room' node in Emoncms. 1 pulse = 10 Liters. 1 cubic meter (m\u00b3) = 1000 Liters. Therefore, to get m\u00b3, pulses must be multiplied by 0.01 (10 / 1000). To get Liters per minute (LPM) from a pulse count, the rate of change (pulses per second) must be multiplied by 600 (10 Liters/pulse * 60 seconds/minute). Both feeds ('water_total_m3' and 'water_flow_lpm') must use the PHPFina engine with a 10-second interval."
+}

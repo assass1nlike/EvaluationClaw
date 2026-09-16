@@ -1,0 +1,32 @@
+{
+  "id": "coxph_va_lungcancer@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Perform a survival analysis on the Veterans' Administration Lung Cancer Trial dataset (C:\\Users\\Docker\\Documents\\EpiInfoData\\va_lungcancer.csv) using the Cox Proportional Hazards model in Epi Info 7 Classic Analysis. Specify 'SurvTime' as the outcome/time variable, 'Status' as the censor variable (where 1 indicates uncensored), and 'Treatment', 'Karnofsky', and 'CellType' as covariates. Save the full output to C:\\Users\\Docker\\Documents\\EpiInfoData\\coxph_results.txt and create a summary file at C:\\Users\\Docker\\Documents\\EpiInfoData\\coxph_summary.txt using the following format:\n\nHR_Karnofsky=0.XXXX\nHR_Treatment=1.XXXX\nKarnofsky_Significant=Yes/No\nTreatment_Significant=Yes/No",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\coxph_va_lungcancer\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\coxph_va_lungcancer\\export_result.ps1"
+  },
+  "metadata": {
+    "data_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\va_lungcancer.csv",
+    "result_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\coxph_results.txt",
+    "summary_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\coxph_summary.txt",
+    "expected_hr_karnofsky": 0.967,
+    "expected_hr_treatment": 1.02,
+    "tolerance_hr": 0.05,
+    "data_source": "Kalbfleisch and Prentice (1980) VA Lung Cancer Trial",
+    "rows": 137
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_coxph_va_lungcancer"
+    }
+  }
+}

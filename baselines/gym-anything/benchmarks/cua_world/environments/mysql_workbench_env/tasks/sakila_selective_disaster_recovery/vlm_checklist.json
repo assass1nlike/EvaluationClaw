@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_selective_disaster_recovery@1",
+  "task_completion": [
+    {
+      "id": "load_or_read_backup",
+      "description": "The agent accesses or loads the legacy backup file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands showing the agent reading 'sakila_legacy_dump.sql' (e.g., using grep, cat, or awk) or importing it into a temporary MySQL database/table."
+    },
+    {
+      "id": "filter_target_dates",
+      "description": "The agent filters the backup data for the specific missing date range.",
+      "points": 20,
+      "visual_evidence": "SQL queries or script logic containing date filters for '2005-05-25' to '2005-05-28' (e.g., WHERE payment_date BETWEEN '2005-05-25' AND '2005-05-28')."
+    },
+    {
+      "id": "insert_restored_records",
+      "description": "The agent inserts the recovered records into the production payment table.",
+      "points": 20,
+      "visual_evidence": "An SQL 'INSERT INTO payment' statement being executed in the MySQL CLI, a database GUI, or via a script, targeting the production sakila database."
+    },
+    {
+      "id": "apply_audit_tag",
+      "description": "The agent populates the audit_tag column with 'RESTORED' for the recovered rows.",
+      "points": 20,
+      "visual_evidence": "The string 'RESTORED' visible in the INSERT statement (as a hardcoded value for the audit_tag column) or in a subsequent UPDATE statement targeting the restored rows."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "The agent exports the restored payment IDs and amounts to the specified CSV file.",
+      "points": 30,
+      "visual_evidence": "A command or script writing to '/home/ga/Documents/exports/restored_payments.csv', such as an SQL 'INTO OUTFILE' clause or a Python/Bash script saving the query results to this path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_interaction",
+      "description": "The agent interacted with the MySQL database to perform the restoration.",
+      "visual_evidence": "Screenshots must show a MySQL CLI, a database GUI (like DBeaver), or a script executing actual SQL commands, rather than the agent just manipulating text files."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file was generated programmatically or via database export.",
+      "visual_evidence": "The CSV export must be the result of a query (e.g., INTO OUTFILE) or a script. The agent should not be seen manually typing payment IDs and amounts into a text editor."
+    },
+    {
+      "id": "actual_data_processing",
+      "description": "The agent processed the legacy dump file to extract the data rather than hallucinating it.",
+      "visual_evidence": "Commands or scripts must show the agent actively parsing, loading, or querying '/home/ga/Documents/sakila_legacy_dump.sql'."
+    }
+  ],
+  "privileged_info_for_vlm": "The backup file is located at '/home/ga/Documents/sakila_legacy_dump.sql'. The missing date range to recover is '2005-05-25' to '2005-05-28'. The required audit tag for restored rows is exactly 'RESTORED'. Note: There are exactly 673 missing records that need to be restored (not 203 as some metadata might incorrectly suggest)."
+}

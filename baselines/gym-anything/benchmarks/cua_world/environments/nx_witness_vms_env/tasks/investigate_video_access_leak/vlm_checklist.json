@@ -1,0 +1,59 @@
+{
+  "task_id": "investigate_video_access_leak@1",
+  "task_completion": [
+    {
+      "id": "access_nx_witness_web_admin",
+      "description": "Access the Nx Witness Web Admin interface",
+      "points": 15,
+      "visual_evidence": "A web browser is open and displaying the Nx Witness Web Admin interface."
+    },
+    {
+      "id": "navigate_to_audit_trail",
+      "description": "Navigate to the audit logs in the Web Admin interface",
+      "points": 15,
+      "visual_evidence": "The Nx Witness Web Admin interface shows the Audit Trail, System Logs, or Event Log section."
+    },
+    {
+      "id": "locate_camera_log",
+      "description": "Locate the log entry for the 'Secure Lab Camera'",
+      "points": 20,
+      "visual_evidence": "The audit trail displays a specific log entry mentioning access to the 'Secure Lab Camera'."
+    },
+    {
+      "id": "identify_suspect",
+      "description": "Identify the username of the suspect who accessed the camera",
+      "points": 20,
+      "visual_evidence": "The log entry for the 'Secure Lab Camera' clearly shows the username of the user who accessed it."
+    },
+    {
+      "id": "open_report_file",
+      "description": "Open the required report file for editing",
+      "points": 15,
+      "visual_evidence": "A terminal or text editor is open, targeting the file /home/ga/leak_report.txt."
+    },
+    {
+      "id": "write_suspect_username",
+      "description": "Write the suspect's username to the report file",
+      "points": 15,
+      "visual_evidence": "The identified username is written into /home/ga/leak_report.txt."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_admin_interface",
+      "description": "The agent used the Nx Witness Web Admin interface to find the information",
+      "visual_evidence": "Screenshots should show the agent navigating the web interface to find the logs, rather than using terminal commands to search backend databases or files."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not attempt to access the ground truth file",
+      "visual_evidence": "The agent should not be seen trying to read or access /root/ground_truth_suspect.txt."
+    },
+    {
+      "id": "exact_username_format",
+      "description": "The agent wrote ONLY the username to the report file",
+      "visual_evidence": "The file /home/ga/leak_report.txt should contain only the username (e.g., john.smith) without any additional text or explanation."
+    }
+  ],
+  "privileged_info_for_vlm": "The suspect is one of five hardcoded users: john.smith, sarah.connor, rick.deckard, ellen.ripley, james.bond. The agent must identify which one accessed the 'Secure Lab Camera' by viewing the audit trail in the Nx Witness Web Admin interface. The final answer must be written to /home/ga/leak_report.txt containing ONLY the username. The ground truth is stored in /root/ground_truth_suspect.txt, which the agent should not access."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "loyalty_tier_classification@1",
+  "task_completion": [
+    {
+      "id": "create_loyalty_tiers_class",
+      "description": "Create the 'LoyaltyTiers' vertex class with required properties.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio schema view or console output showing the creation of a 'LoyaltyTiers' vertex class with 'TierName' (String), 'MinSpend' (Double), and 'Benefits' (String) properties."
+    },
+    {
+      "id": "populate_loyalty_tiers",
+      "description": "Populate the 'LoyaltyTiers' class with the four specified tiers.",
+      "points": 10,
+      "visual_evidence": "Database query results or Browse view showing four records in the 'LoyaltyTiers' class: Platinum, Gold, Silver, and Bronze, with their respective MinSpend and Benefits."
+    },
+    {
+      "id": "create_edge_and_profile_property",
+      "description": "Create the 'BelongsToTier' edge class and add a 'LoyaltyTier' property to the 'Profiles' class.",
+      "points": 15,
+      "visual_evidence": "Schema view or query execution confirming the creation of the 'BelongsToTier' edge class and the addition of a 'LoyaltyTier' (String) property to the existing 'Profiles' class."
+    },
+    {
+      "id": "update_profile_loyalty_tier",
+      "description": "Classify profiles based on spend and update their 'LoyaltyTier' property.",
+      "points": 25,
+      "visual_evidence": "Query results or database view showing 'Profiles' records with the 'LoyaltyTier' property populated (e.g., assigned to 'Bronze' due to 0 spend)."
+    },
+    {
+      "id": "create_belongs_to_tier_edges",
+      "description": "Create 'BelongsToTier' edges connecting Profiles to their assigned LoyaltyTiers.",
+      "points": 25,
+      "visual_evidence": "Graph view or query results showing 'BelongsToTier' edges successfully linking 'Profiles' vertices to the corresponding 'LoyaltyTiers' vertices."
+    },
+    {
+      "id": "save_summary_report",
+      "description": "Save a summary report to '/home/ga/loyalty_report.txt' with tier counts and Platinum member names.",
+      "points": 15,
+      "visual_evidence": "A terminal window or text editor showing the contents of '/home/ga/loyalty_report.txt', which must include the count of members per tier and a list of Platinum members (which may be empty)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with the actual OrientDB database to perform the classification.",
+      "visual_evidence": "Screenshots show the agent using OrientDB Studio (web interface), the OrientDB console, or a script to execute queries, rather than just writing a text file."
+    },
+    {
+      "id": "dynamic_classification",
+      "description": "The agent calculated the tiers dynamically rather than hardcoding expected results.",
+      "visual_evidence": "The agent used SQL/Gremlin queries or a script containing the traversal logic (Profile <- HasProfile - Customer - HasOrder -> Order) to calculate spend, rather than manually updating profiles."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The summary report was generated based on actual database query results.",
+      "visual_evidence": "The report file '/home/ga/loyalty_report.txt' reflects the actual state of the database (e.g., showing 0 Platinum members due to the missing edges), rather than a fabricated list of names."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: demodb. Credentials: root / GymAnything123!. Report path: /home/ga/loyalty_report.txt. Tier thresholds: Platinum>=3000, Gold>=1500, Silver>=500, Bronze<500. CRITICAL NOTE: The provided database has a missing edge issue ('HasOrder' edges are missing). Consequently, all profiles will calculate 0 order spending. A correct execution will classify all profiles as Bronze, and the final report will show 0 Platinum members. Do not penalize the agent for finding no Platinum members; this is the correct result based on the database state."
+}

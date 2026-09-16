@@ -1,0 +1,32 @@
+{
+  "id": "export_results_to_geojson@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Create a Python script to export HEC-RAS simulation results from the Muncie project HDF5 file (e.g., 'Muncie.p04.hdf') to GeoJSON format. The script must extract Cross Section Cut Lines, Peak Water Surface Elevation, and Peak Flow, and save them as a GeoJSON FeatureCollection to /home/ga/Documents/hec_ras_results/muncie_results.geojson. Each LineString feature must include the properties 'station' (river station identifier), 'peak_wse' (maximum water surface elevation), and 'peak_flow' (maximum flow). Python 3 with h5py is available in the project directory.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_results_to_geojson/setup_task.sh",
+    "post_task": "/workspace/tasks/export_results_to_geojson/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/hec_ras_results/muncie_results.geojson",
+    "required_properties": [
+      "station",
+      "peak_wse",
+      "peak_flow"
+    ],
+    "min_features": 5,
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_results_to_geojson"
+    }
+  }
+}

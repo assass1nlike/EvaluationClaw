@@ -1,0 +1,59 @@
+{
+  "task_id": "provision_dashboard_widget_access@1",
+  "task_completion": [
+    {
+      "id": "user_created",
+      "description": "Verify that a new user with the login 'lobby_display' has been created.",
+      "points": 15,
+      "visual_evidence": "Look for the Matomo Users management page showing the user 'lobby_display' in the list of users."
+    },
+    {
+      "id": "permission_granted",
+      "description": "Verify that 'lobby_display' has 'View' permission for the 'Initial Site' and is NOT a superuser.",
+      "points": 15,
+      "visual_evidence": "Look for the Matomo Permissions page showing 'lobby_display' with 'View' access checked for 'Initial Site', and ensure they do not have Superuser access."
+    },
+    {
+      "id": "token_generated",
+      "description": "Verify that an API Auth Token was generated for the 'lobby_display' user.",
+      "points": 20,
+      "visual_evidence": "Look for the Matomo Security or Personal settings page showing an API token generated specifically for the 'lobby_display' user."
+    },
+    {
+      "id": "html_file_created",
+      "description": "Verify that an HTML file is created at /home/ga/lobby_widget.html.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or terminal showing the file `/home/ga/lobby_widget.html` being edited or saved."
+    },
+    {
+      "id": "widget_configured",
+      "description": "Verify that the HTML file contains an iframe for the 'Real-time Visitor Map' widget.",
+      "points": 10,
+      "visual_evidence": "Look at the contents of `/home/ga/lobby_widget.html` and verify it contains an `<iframe>` tag with a `src` attribute pointing to the Matomo widget URL for the Real-time Visitor Map."
+    },
+    {
+      "id": "token_appended",
+      "description": "Verify that the API token is appended to the widget URL in the HTML file.",
+      "points": 30,
+      "visual_evidence": "Look at the iframe `src` URL in the HTML file and verify it includes the parameter `&token_auth=` followed by the generated alphanumeric token."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Matomo web interface to configure the user and token.",
+      "visual_evidence": "Screenshots should show navigation through the Matomo admin dashboard (Users, Permissions, Security) rather than direct database manipulation or API scripts."
+    },
+    {
+      "id": "genuine_token",
+      "description": "Verify the token in the HTML file appears to be a genuine Matomo token.",
+      "visual_evidence": "The token appended to `&token_auth=` should be a 32-character alphanumeric string, matching the one generated in the Matomo interface if visible."
+    },
+    {
+      "id": "file_saved",
+      "description": "Verify the HTML file was actually saved to the correct path.",
+      "visual_evidence": "The text editor or terminal should show evidence that the file was saved to `/home/ga/lobby_widget.html`, not just typed into an unsaved buffer."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating user 'lobby_display' with 'View' permission on 'Initial Site'. The user must NOT be a Superuser, as superuser tokens are not allowed for embedded widgets. An API token must be generated for this user. The HTML file at /home/ga/lobby_widget.html must contain an iframe for the 'Real-time Visitor Map' widget. The iframe URL must include the parameter '&token_auth=YOUR_TOKEN' using the generated token."
+}

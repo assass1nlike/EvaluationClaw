@@ -1,0 +1,43 @@
+{
+  "id": "extract_superclass@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You are working in Eclipse IDE with a Java project called 'notification-system' located at /home/ga/eclipse-workspace/notification-system. The project contains two service classes in the com.acme.notify package, EmailNotificationService.java and SMSNotificationService.java, which share duplicated code. Extract the shared fields (private String serviceName, private boolean enabled, private int maxRetries) and methods (public boolean isEnabled(), public void setEnabled(boolean enabled), public String getServiceName(), public int getMaxRetries(), public void setMaxRetries(int maxRetries), protected boolean validateRecipient(String recipient), and protected NotificationResult createFailureResult(String reason)) into a new abstract superclass named 'AbstractNotificationService' located in src/main/java/com/acme/notify/. Ensure both subclasses extend AbstractNotificationService and that all duplicated members are removed from the subclasses. Constructors in both subclasses must properly initialize the inherited fields. The final state must result in a successful project build with all unit tests in NotificationServiceTest passing.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_superclass/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_superclass/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/notification-system",
+    "package_path": "src/main/java/com/acme/notify",
+    "superclass_name": "AbstractNotificationService",
+    "subclass1": "EmailNotificationService",
+    "subclass2": "SMSNotificationService",
+    "shared_fields": [
+      "serviceName",
+      "enabled",
+      "maxRetries"
+    ],
+    "shared_methods": [
+      "isEnabled",
+      "setEnabled",
+      "getServiceName",
+      "getMaxRetries",
+      "setMaxRetries",
+      "validateRecipient",
+      "createFailureResult"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_superclass"
+    }
+  }
+}

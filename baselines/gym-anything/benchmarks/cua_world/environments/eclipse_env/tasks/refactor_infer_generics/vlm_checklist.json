@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_infer_generics@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open the target Java file in Eclipse.",
+      "points": 10,
+      "visual_evidence": "Eclipse IDE is open with the 'LegacyHospitalSystem' project visible in the Package Explorer, and 'AdmissionQueue.java' is open in the editor."
+    },
+    {
+      "id": "invoke_refactoring_tool",
+      "description": "Invoke the 'Infer Generic Type Arguments' tool.",
+      "points": 20,
+      "visual_evidence": "The 'Infer Generic Type Arguments' dialog, wizard, or refactoring preview window is visible in Eclipse."
+    },
+    {
+      "id": "generics_applied",
+      "description": "Verify that raw collections are converted to type-safe generics.",
+      "points": 30,
+      "visual_evidence": "The code in 'AdmissionQueue.java' shows generic type parameters, specifically 'List<Patient>', 'ArrayList<Patient>', or 'Iterator<Patient>' instead of raw types."
+    },
+    {
+      "id": "casts_removed",
+      "description": "Verify that unnecessary explicit casts are removed.",
+      "points": 20,
+      "visual_evidence": "The code in 'AdmissionQueue.java' no longer contains explicit '(Patient)' casts (e.g., 'waitingList.remove(0)' instead of '(Patient) waitingList.remove(0)')."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Run unit tests and ensure they pass.",
+      "points": 20,
+      "visual_evidence": "The JUnit view in Eclipse is visible showing a green bar, indicating that all unit tests have passed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_eclipse_gui",
+      "description": "The agent used the Eclipse IDE GUI to perform the task.",
+      "visual_evidence": "Screenshots show interaction with the Eclipse IDE window rather than terminal commands (like sed or nano) to modify the Java file."
+    },
+    {
+      "id": "used_infer_generics_tool",
+      "description": "The agent used the specific refactoring tool rather than manual typing.",
+      "visual_evidence": "Screenshots show the Eclipse 'Infer Generic Type Arguments' menu option, dialog, or refactoring preview, proving the tool was used instead of manual text editing."
+    },
+    {
+      "id": "no_unrelated_changes",
+      "description": "The agent did not alter the core logic of the application.",
+      "visual_evidence": "The code in AdmissionQueue.java remains structurally the same, with only type arguments added and casts removed."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: src/com/hospital/core/AdmissionQueue.java in /home/ga/eclipse-workspace/LegacyHospitalSystem. The original code uses raw types (e.g., List, ArrayList) and explicit casts like (Patient). After successful refactoring using Eclipse's 'Infer Generic Type Arguments' tool, the code must contain generic types (e.g., List<Patient>, ArrayList<Patient>, Iterator<Patient>) and the explicit (Patient) casts must be completely removed. The JUnit tests must pass (green bar in Eclipse)."
+}

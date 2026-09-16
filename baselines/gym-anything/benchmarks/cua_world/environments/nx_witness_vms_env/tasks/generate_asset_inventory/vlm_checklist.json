@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_asset_inventory@1",
+  "task_completion": [
+    {
+      "id": "api_authentication",
+      "description": "Agent authenticates with the Nx Witness REST API.",
+      "points": 10,
+      "visual_evidence": "Code editor or terminal showing a request to https://localhost:7001 with credentials admin/Admin1234! (e.g., POST to /rest/v1/login/sessions or using HTTP Basic/Bearer auth)."
+    },
+    {
+      "id": "query_endpoints",
+      "description": "Agent queries the required REST API endpoints to gather asset data.",
+      "points": 20,
+      "visual_evidence": "Code or terminal commands showing requests to /rest/v1/system/info, /rest/v1/servers, /rest/v1/devices (for cameras), /rest/v1/users, and /rest/v1/layouts."
+    },
+    {
+      "id": "filter_sensitive_data",
+      "description": "Agent removes sensitive authentication data from the user records.",
+      "points": 20,
+      "visual_evidence": "Code showing logic to delete or exclude keys like passwordHash, cryptSha512Hash, digest, and token from the fetched user data."
+    },
+    {
+      "id": "format_json_structure",
+      "description": "Agent formats the gathered data into the specified JSON structure.",
+      "points": 20,
+      "visual_evidence": "Code constructing a dictionary/JSON object with keys report_generated_at, system, servers, cameras, users, layouts, and summary (containing total counts), or the final JSON file showing this structure."
+    },
+    {
+      "id": "save_inventory_file",
+      "description": "Agent saves the generated JSON report to the specified path.",
+      "points": 30,
+      "visual_evidence": "Terminal command, script execution, or file explorer showing the file system_inventory.json successfully created in /home/ga/Documents/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_data_retrieval",
+      "description": "Verify the agent fetched data dynamically from the API rather than hardcoding a mock JSON file.",
+      "visual_evidence": "Look for a script or API client (like curl or Postman) making actual network requests, rather than just a text editor with hardcoded JSON."
+    },
+    {
+      "id": "correct_api_target",
+      "description": "Verify the agent interacted with the local Nx Witness API.",
+      "visual_evidence": "Check that the URLs used in scripts or commands point to https://localhost:7001/rest/v1/."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the file was actually saved to disk.",
+      "visual_evidence": "Look for file writing operations in the code (e.g., json.dump, open(..., 'w')) or shell redirects (> /home/ga/Documents/system_inventory.json)."
+    }
+  ],
+  "privileged_info_for_vlm": "The Nx Witness VMS system runs on https://localhost:7001. The REST API endpoints are prefixed with /rest/v1. Authentication requires getting a Bearer token from /rest/v1/login/sessions or using Basic Auth with admin/Admin1234!. The system contains 5 virtual cameras (e.g., 'Parking Lot Camera') and 5 predefined users (e.g., 'john.smith'). The final JSON must be saved at /home/ga/Documents/system_inventory.json and must exclude sensitive fields like passwordHash, cryptSha512Hash, digest, and token."
+}

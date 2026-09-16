@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_dind_socket_access@1",
+  "task_completion": [
+    {
+      "id": "inspect_host_socket",
+      "description": "Inspect the host's docker socket to determine its group ownership or GID.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'ls -l /var/run/docker.sock' or 'stat /var/run/docker.sock' being executed to find the group ID (GID) of the docker socket."
+    },
+    {
+      "id": "edit_compose_file",
+      "description": "Open the docker-compose configuration file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) open showing the contents of '/home/ga/build-agent/docker-compose.yml'."
+    },
+    {
+      "id": "add_group_access",
+      "description": "Configure the container to grant the agent user access to the host's docker socket group.",
+      "points": 30,
+      "visual_evidence": "The docker-compose.yml file modified to include a 'group_add:' directive under the 'build-agent' service, containing the GID of the host's docker group."
+    },
+    {
+      "id": "recreate_container",
+      "description": "Recreate or restart the container to apply the new group configuration.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'docker-compose up -d', 'docker compose up -d', or similar commands being executed in the '/home/ga/build-agent' directory."
+    },
+    {
+      "id": "verify_container_user",
+      "description": "Verify the container is still running as the 'agent' user (UID 1000).",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'docker exec build-agent id' or 'docker exec build-agent whoami' with output confirming 'uid=1000(agent)'."
+    },
+    {
+      "id": "successful_docker_command",
+      "description": "Verify the 'agent' user can successfully execute docker commands inside the container.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a successful execution of a docker command inside the container (e.g., 'docker exec build-agent docker ps' or 'docker exec build-agent docker info') returning expected docker output without 'permission denied' errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_host_socket_chmod",
+      "description": "Ensure the permissions of the host's docker socket were not modified.",
+      "visual_evidence": "No terminal commands showing 'chmod 777 /var/run/docker.sock', 'chmod o+rw', or 'chown' being executed on the host's docker socket."
+    },
+    {
+      "id": "no_root_user_override",
+      "description": "Ensure the container user was not changed to root to bypass the restriction.",
+      "visual_evidence": "The docker-compose.yml or Dockerfile does not show 'user: root', 'user: \"0\"', or 'USER root' being added to override the 'agent' user."
+    },
+    {
+      "id": "genuine_terminal_output",
+      "description": "Ensure verification commands were actually executed and not mocked.",
+      "visual_evidence": "The outputs for the final docker verification commands appear as genuine terminal stdout and are not just typed out in a text editor or echo statements."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/build-agent. The container name is 'build-agent'. The target user inside the container is 'agent' with UID 1000. The agent must NOT change the host's /var/run/docker.sock permissions (e.g., no chmod 777). The expected secure solution involves modifying docker-compose.yml to use the 'group_add' directive with the host's docker socket GID, allowing the 'agent' user to access the mounted socket securely."
+}

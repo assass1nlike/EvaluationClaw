@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_to_parameterized_tests@1",
+  "task_completion": [
+    {
+      "id": "open_test_file",
+      "description": "Open the PasswordValidatorTest.java file in an editor or IDE.",
+      "points": 10,
+      "visual_evidence": "An editor or IDE window is open showing the contents of 'PasswordValidatorTest.java' from the 'security-utils' project."
+    },
+    {
+      "id": "import_parameterized_annotations",
+      "description": "Import JUnit 5 parameterized test classes.",
+      "points": 10,
+      "visual_evidence": "The import statements at the top of the file include 'org.junit.jupiter.params.ParameterizedTest' and a source provider like 'org.junit.jupiter.params.provider.CsvSource' or 'MethodSource'."
+    },
+    {
+      "id": "create_parameterized_test",
+      "description": "Create a single @ParameterizedTest method with test data.",
+      "points": 30,
+      "visual_evidence": "A method annotated with '@ParameterizedTest' is visible, accompanied by a data source annotation (e.g., '@CsvSource') containing the various password scenarios (valid, too short, no digit, etc.) and expected boolean outcomes."
+    },
+    {
+      "id": "remove_redundant_methods",
+      "description": "Remove the 8 redundant individual test methods.",
+      "points": 20,
+      "visual_evidence": "The original individual test methods (e.g., testValidPassword, testTooShort, testNoDigit, testNoUppercase, testHasWhitespace, testEmpty, testNull, testVeryLongPassword) are no longer present in the class. The class should primarily contain the new parameterized test."
+    },
+    {
+      "id": "verify_tests_pass",
+      "description": "Run the tests and verify all 8 scenarios pass.",
+      "points": 30,
+      "visual_evidence": "A test execution panel in the IDE or terminal output (e.g., Maven Surefire) showing that the tests passed successfully, specifically indicating that 8 test cases (or 8 invocations of the parameterized test) were executed and passed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_editor_used",
+      "description": "The agent used a GUI-based editor or IDE to refactor the code.",
+      "visual_evidence": "The screenshots show a graphical editor like IntelliJ IDEA, VS Code, or Eclipse being used to edit the Java file, rather than just terminal commands echoing text."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The test results come from an actual test runner.",
+      "visual_evidence": "The test success is shown in a genuine IDE test runner panel (with green checkmarks and execution trees) or standard Maven terminal output ('BUILD SUCCESS', 'Tests run: 8'), not a manually typed text file."
+    },
+    {
+      "id": "validator_logic_called",
+      "description": "The parameterized test actually tests the PasswordValidator.",
+      "visual_evidence": "The body of the new parameterized test method contains a call to the actual validation logic (e.g., 'PasswordValidator.isValid(...)') and asserts against its result, rather than containing a hardcoded 'assertTrue(true)' bypass."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/IdeaProjects/security-utils. Test file path: src/test/java/com/security/PasswordValidatorTest.java. The original file contains exactly 8 redundant methods that MUST be removed: testValidPassword, testTooShort, testNoDigit, testNoUppercase, testHasWhitespace, testEmpty, testNull, testVeryLongPassword. The final test execution must show exactly 8 passing test cases originating from the new parameterized test."
+}

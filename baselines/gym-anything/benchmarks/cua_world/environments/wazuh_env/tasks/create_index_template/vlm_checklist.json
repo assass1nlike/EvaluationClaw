@@ -1,0 +1,59 @@
+{
+  "task_id": "create_index_template@1",
+  "task_completion": [
+    {
+      "id": "api_request_setup",
+      "description": "Verify the API request targets the correct endpoint with credentials.",
+      "points": 10,
+      "visual_evidence": "Look for a curl command, script, or API client targeting 'https://localhost:9200/_index_template/wazuh-custom-alerts' using the credentials 'admin' and 'SecretPassword' (e.g., -u admin:SecretPassword)."
+    },
+    {
+      "id": "index_patterns_priority",
+      "description": "Verify the index patterns and priority are set correctly in the payload.",
+      "points": 15,
+      "visual_evidence": "Look for a JSON payload in the request containing '\"index_patterns\": [\"wazuh-alerts-custom-*\"]' and '\"priority\": 50'."
+    },
+    {
+      "id": "template_settings",
+      "description": "Verify the template settings for shards, replicas, and refresh interval.",
+      "points": 20,
+      "visual_evidence": "Look for a 'settings' block in the JSON payload containing 'number_of_shards': 1 (or 'index.number_of_shards'), 'number_of_replicas': 0, and 'refresh_interval': '30s'."
+    },
+    {
+      "id": "template_mappings",
+      "description": "Verify the template mappings for the threat enrichment fields.",
+      "points": 25,
+      "visual_evidence": "Look for a 'mappings' block in the JSON payload defining properties: 'threat.enrichment.source' with type 'keyword', 'threat.enrichment.score' with type 'float', and 'threat.enrichment.timestamp' with type 'date'."
+    },
+    {
+      "id": "api_success_response",
+      "description": "Verify the API request was successfully executed and returned a response.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output or an API client response showing a successful creation, typically a JSON response like '{\"acknowledged\":true}'."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Verify the API response is saved to the correct file path.",
+      "points": 15,
+      "visual_evidence": "Look for a command redirecting the output to '/home/ga/index_template_result.json' (e.g., '> /home/ga/index_template_result.json' or '-o /home/ga/index_template_result.json') or a file editor/viewer showing the file exists at that path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_execution",
+      "description": "Verify the agent actually executed the API request.",
+      "visual_evidence": "Look for evidence of command execution (e.g., a new terminal prompt appearing after a curl command, or a 'Run' button pressed in an API client) rather than just typing the command in a text editor without running it."
+    },
+    {
+      "id": "genuine_response_saved",
+      "description": "Verify the saved JSON file contains a genuine API response.",
+      "visual_evidence": "The contents of '/home/ga/index_template_result.json' should look like a real OpenSearch/Elasticsearch API response (e.g., '{\"acknowledged\":true}'), not manually typed text or a copy-paste of the task description."
+    },
+    {
+      "id": "real_server_interaction",
+      "description": "Verify interaction with the actual local Wazuh Indexer.",
+      "visual_evidence": "Look for network flags like '-k' or '--insecure' in curl commands to bypass self-signed certificates on localhost:9200, or actual connection logs, indicating a real network request was made."
+    }
+  ],
+  "privileged_info_for_vlm": "Template Name: 'wazuh-custom-alerts'. Expected Index Patterns: ['wazuh-alerts-custom-*']. Expected Priority: 50. Expected Settings: index.number_of_shards=1, index.number_of_replicas=0, index.refresh_interval='30s'. Expected Mappings: threat.enrichment.source (keyword), threat.enrichment.score (float), threat.enrichment.timestamp (date). Output File: /home/ga/index_template_result.json."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "deploy_coastal_flood_sensors@1",
+  "task_completion": [
+    {
+      "id": "open_qfield_project",
+      "description": "Verify the agent opens the correct project in QField.",
+      "points": 10,
+      "visual_evidence": "The QField application is open and the 'world_survey' project is loaded, visible in the workspace or layer panel."
+    },
+    {
+      "id": "activate_field_observations_layer",
+      "description": "Verify the agent selects the correct layer for editing.",
+      "points": 10,
+      "visual_evidence": "The 'field_observations' layer is selected in the layer list and edit mode is active (e.g., pencil icon is toggled on or digitizing crosshairs are visible on the map)."
+    },
+    {
+      "id": "create_sensor_jkt_north",
+      "description": "Verify the agent creates the Jakarta sensor point.",
+      "points": 30,
+      "visual_evidence": "A new point is created on the map slightly North of Jakarta. The feature attribute form or map label explicitly shows the name 'Sensor_JKT_North'."
+    },
+    {
+      "id": "create_sensor_mnl_west",
+      "description": "Verify the agent creates the Manila sensor point.",
+      "points": 30,
+      "visual_evidence": "A new point is created on the map (likely near the Philippines/Manila). The feature attribute form or map label explicitly shows the name 'Sensor_MNL_West'."
+    },
+    {
+      "id": "save_project_changes",
+      "description": "Verify the agent saves the changes to the project.",
+      "points": 20,
+      "visual_evidence": "The agent clicks the checkmark to save the new features, toggles off edit mode to save layer changes, or uses the main menu to save the project file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "Ensure the agent uses the QField GUI to complete the task.",
+      "visual_evidence": "All actions are performed within the QField application interface. No terminal windows or Python scripts are used to bypass the GUI."
+    },
+    {
+      "id": "no_database_injection",
+      "description": "Ensure the agent does not use external database tools to modify the geopackage.",
+      "visual_evidence": "No SQLite browsers, DB Browser, or command-line SQL tools are visible modifying the 'world_survey.gpkg' file directly."
+    },
+    {
+      "id": "genuine_spatial_creation",
+      "description": "Ensure the agent actually digitizes points on the map.",
+      "visual_evidence": "The agent uses the map crosshairs and the 'add feature' button to place points spatially, rather than just typing text into an unrelated file."
+    }
+  ],
+  "privileged_info_for_vlm": "Project file: world_survey.gpkg. Target 1: 'Sensor_JKT_North' (offset +0.1 lat, +0.0 lon from Jakarta). Target 2: 'Sensor_MNL_West' (offset 0.0 lat, -0.1 lon from Manila). Tolerance: 0.05 degrees. Note: The 'Manila' point is missing from the underlying world_capitals dataset due to a known bug. The agent will not be able to snap to or find a Manila reference point in the dataset and may have to estimate its location. Please be lenient on the exact spatial placement of 'Sensor_MNL_West' as long as the agent creates the point and names it correctly in the general vicinity of Manila."
+}

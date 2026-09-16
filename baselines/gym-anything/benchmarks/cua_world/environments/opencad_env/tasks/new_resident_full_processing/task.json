@@ -1,0 +1,32 @@
+{
+  "id": "new_resident_full_processing@1",
+  "version": "1.0",
+  "env_id": "opencad_env@0.1",
+  "description": "You are an NCIC Records Technician at the Blaine County Records Bureau processing a case for a subject involved in a vehicle theft ring. Register Lamar Davis (DOB: 1988-09-05, Address: 1432 Forum Drive, Davis, Los Santos, Gender: Male, Race: Black or African American, DL Status: Valid) as a new civilian identity in the NCIC system at http://localhost using credentials admin@opencad.local / Admin123!. Ensure his vehicle (Bravado Baller, Plate: LAM-8844, White, Los Santos, Insurance: Valid) is registered and linked to his identity record. Additionally, issue an active warrant for Lamar Davis named 'Receiving Stolen Property' from the Blaine County Sheriff Office. All records must be linked to the same Lamar Davis identity.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/new_resident_full_processing/setup_task.sh",
+    "post_task": "/workspace/tasks/new_resident_full_processing/export_result.sh"
+  },
+  "metadata": {
+    "expected_first_name": "Lamar",
+    "expected_last_name": "Davis",
+    "expected_dob": "1988-09-05",
+    "expected_gender": "Male",
+    "expected_plate": "LAM-8844",
+    "expected_warrant_name": "Receiving Stolen Property",
+    "expected_warrant_agency": "Blaine County Sheriff Office",
+    "profession": "NCIC Records Technician"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_new_resident_full_processing"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "generate_case_bibliography_rtf@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Generate a formatted bibliography for the 'Warren Court' collection, including the cases Brown v. Board, Gideon v. Wainwright, and Miranda v. Arizona. Use the 'Indigo (Law Review)' citation style (or 'Bluebook Law Review' if unavailable) and save the output as an RTF file to /home/ga/Documents/warren_bibliography.rtf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_case_bibliography_rtf/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_case_bibliography_rtf/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/warren_bibliography.rtf",
+    "expected_cases": [
+      "Brown v. Board",
+      "Gideon v. Wainwright",
+      "Miranda v. Arizona"
+    ],
+    "expected_reporters": [
+      "347 U.S. 483",
+      "372 U.S. 335",
+      "384 U.S. 436"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_case_bibliography_rtf"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "industrial_fresnel_process_heat@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Design a 50m Linear Fresnel Reflector array targeting a central Absorber Pipe in Fresno, CA for industrial process heat.\n\n1. Set geographic location to Fresno, CA.\n2. Set simulation date to June 21.\n3. Select the Concentrated Solar Power (CSP) tools and draw an Absorber Pipe. Modify its properties so its Length is exactly 50m and its Height is 10m.\n4. Draw at least 20 Fresnel Reflectors on the ground parallel to the pipe.\n5. Configure all of the Fresnel Reflectors so their target is set to the Absorber Pipe you created.\n6. Run the Daily Environmental Temperature / CSP Energy Analysis (or simply the Daily Analysis that calculates CSP yield).\n7. Export the resulting graph data to ~/Documents/Energy3D/fresnel_output.csv.\n8. Save the project model to ~/Documents/Energy3D/fresnel_plant.ng3.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/industrial_fresnel_process_heat/setup_task.sh",
+    "post_task": "/workspace/tasks/industrial_fresnel_process_heat/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Mechanical Engineer",
+    "industry": "Industrial Process Heating",
+    "expected_ng3": "/home/ga/Documents/Energy3D/fresnel_plant.ng3",
+    "expected_csv": "/home/ga/Documents/Energy3D/fresnel_output.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fresnel_process_heat"
+    }
+  }
+}

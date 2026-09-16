@@ -1,0 +1,81 @@
+{
+  "dataset_id": "9a6fe6b5",
+  "name": "Food-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Food-Detection is a visual object detection dataset containing images of food dishes. Each sample pairs an image with a generic prompt and provides bounding boxes for food items such as fried eggs, carrot eggs, fried dumplings, and mung bean sprouts. It evaluates the localization and classification of food objects in images.",
+  "card_text": "The Food-Detection dataset consists of 200 samples with image and text modalities. Each sample includes an image file path (photographs of food dishes) and a generic prompt placeholder. The output is a list of bounding boxes, where each box is a dictionary mapping a food class label (e.g., 'fried_eggs', 'mung_bean_sprouts') to coordinates [x, y, width, height]. The images show various food dishes with one or multiple food items. The dataset is designed for object detection and localization tasks in the food domain. The prompt field is not a concrete question but a placeholder for user-defined prompts. The class labels are snake_case English names, and the bounding box coordinates appear to be in pixel units. The dataset is openset in the sense that food classes vary across samples.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "food detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "Path to a photograph of food dishes. Images contain one or more food items such as fried eggs, dumplings, and sprouts, which are the targets for bounding box detection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A placeholder prompt indicating that the task is to apply user-defined prompts for different models. It does not contain a specific question or class list, serving as a generic instruction for the detection model.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A list of dictionaries, each mapping a food class name (e.g., 'fried_eggs') to a bounding box [x, y, width, height] in pixel coordinates. These boxes localize and classify food items in the corresponding image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image file path and a generic prompt text, and an output object containing a list of bounding boxes. The image provides the visual scene, the prompt acts as a placeholder instruction, and the bbox list gives the ground-truth food class labels and their spatial coordinates. The bbox annotations are directly tied to the image and are the target for detection."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/food-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "food-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

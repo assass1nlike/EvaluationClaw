@@ -1,0 +1,36 @@
+{
+  "id": "audit_friction_slope_consistency@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a hydraulic quality assurance audit on the Muncie HEC-RAS model (Plan 04) to verify that the computed Friction Slope is mathematically consistent with the input Manning's n value for the Main Channel. For every cross-section at the time of peak flow, calculate the effective roughness ($n_{calc}$) using the US Customary Manning's Equation: $n_{calc} = \\frac{1.486}{V_{ch}} (R_{ch})^{2/3} (S_f)^{1/2}$. Compare the calculated value to the input Manning's n ($n_{input}$) and document the results in ~/Documents/hec_ras_results/roughness_audit.csv. The output must contain the columns: River_Station, Channel_Velocity_fps, Channel_Hydraulic_Radius_ft, Friction_Slope, Input_Manning_n, Calculated_Manning_n, Residual ($|n_{input} - n_{calc}|$), and Status (set to 'PASS' if Residual < 0.001, otherwise 'FAIL').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_friction_slope_consistency/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_friction_slope_consistency/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/hec_ras_results/roughness_audit.csv",
+    "required_columns": [
+      "River_Station",
+      "Channel_Velocity_fps",
+      "Channel_Hydraulic_Radius_ft",
+      "Friction_Slope",
+      "Input_Manning_n",
+      "Calculated_Manning_n",
+      "Residual",
+      "Status"
+    ],
+    "target_manning_n": 0.035
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_friction_slope_consistency"
+    }
+  }
+}

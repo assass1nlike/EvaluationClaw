@@ -1,0 +1,53 @@
+{
+  "task_id": "restore_job_from_backup@1",
+  "task_completion": [
+    {
+      "id": "access_backup_file",
+      "description": "The agent accesses or references the provided Jenkins backup XML file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal where the agent reads the file using commands like 'cat' or 'less' on '/home/ga/jenkins_backup/Production-Deploy-Pipeline-config.xml', opens it in a text editor, OR includes this exact file path in a curl/jenkins-cli command."
+    },
+    {
+      "id": "initiate_job_creation",
+      "description": "The agent initiates the creation of the Jenkins job named 'Production-Deploy-Pipeline'.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the Jenkins 'New Item' GUI with 'Production-Deploy-Pipeline' entered and 'Pipeline' selected, OR a terminal showing a Jenkins CLI or curl command being executed to create the job 'Production-Deploy-Pipeline'."
+    },
+    {
+      "id": "configure_parameters",
+      "description": "The agent configures the required job parameters (DEPLOY_ENV and BUILD_TYPE).",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Jenkins job configuration GUI showing 'This project is parameterized' checked with 'DEPLOY_ENV' and 'BUILD_TYPE' added. IF the agent used a CLI/API command to import the XML file directly, award these points if the terminal shows the command completed successfully without errors."
+    },
+    {
+      "id": "configure_triggers_and_retention",
+      "description": "The agent configures the SCM polling trigger and log rotation settings.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Jenkins job configuration GUI showing 'Discard old builds' set to keep 10 builds AND 'Poll SCM' checked with the schedule 'H/15 * * * *'. IF the agent used a CLI/API command to import the XML file directly, award these points if the terminal shows the command completed successfully without errors."
+    },
+    {
+      "id": "verify_restored_job",
+      "description": "The restored job is successfully saved and visible in Jenkins.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the Jenkins main dashboard or the specific project page for 'Production-Deploy-Pipeline', confirming the job exists, is active, and the restoration process is complete."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_jenkins_interaction",
+      "description": "The agent interacted with the actual Jenkins application or its legitimate API/CLI.",
+      "visual_evidence": "Screenshots should show the genuine Jenkins web interface (typically on localhost:8080) or valid terminal commands interacting with the Jenkins server. The agent must not just type out a success message in a text editor."
+    },
+    {
+      "id": "used_provided_backup",
+      "description": "The agent used the specific backup file provided in the task description.",
+      "visual_evidence": "When configuring the job manually or via CLI, the values or the file path used must match '/home/ga/jenkins_backup/Production-Deploy-Pipeline-config.xml'. The agent should not hallucinate a generic pipeline."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "The agent did not use browser developer tools to fake the job existence.",
+      "visual_evidence": "The Jenkins dashboard and job pages should look structurally normal without signs of HTML manipulation (e.g., mismatched fonts, misaligned elements, or the browser developer console open modifying the DOM)."
+    }
+  ],
+  "privileged_info_for_vlm": "The job must be named 'Production-Deploy-Pipeline' and be a Pipeline job (WorkflowJob). The backup file is located at '/home/ga/jenkins_backup/Production-Deploy-Pipeline-config.xml'. Expected configuration includes: Log rotation keeping 10 builds, two parameters ('DEPLOY_ENV' and 'BUILD_TYPE'), and an SCM polling trigger with the schedule 'H/15 * * * *'."
+}

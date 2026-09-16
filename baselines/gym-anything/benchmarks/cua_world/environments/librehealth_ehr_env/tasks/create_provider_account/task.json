@@ -1,0 +1,38 @@
+{
+  "id": "create_provider_account@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "A new family medicine physician, Dr. Sarah Chen, is joining the practice. Create her provider user account in LibreHealth EHR using the administrator credentials (Username: admin, Password: password). Configure the account with the following details: Username 'schen', Password 'Clinic2024!', First Name 'Sarah', Last Name 'Chen', Middle Name 'L', Federal Tax ID '45-2837196', NPI '1538246790', and Specialty 'Family Practice'. The account must be authorized as a provider, assigned to the 'Physicians' Access Control Group, and have a default facility selected.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_provider_account/setup_task.sh",
+    "post_task": "/workspace/tasks/create_provider_account/export_result.sh"
+  },
+  "metadata": {
+    "target_username": "schen",
+    "expected_fname": "Sarah",
+    "expected_lname": "Chen",
+    "expected_mname": "L",
+    "expected_npi": "1538246790",
+    "expected_taxid": "45-2837196",
+    "expected_specialty": "Family Practice",
+    "expected_group": "Physicians"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_provider_account"
+    }
+  },
+  "tags": [
+    "administration",
+    "user-management",
+    "ehr",
+    "compliance"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "sla_business_hours_calc@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Agent connects to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (like DBeaver, SQL Developer, or terminal sqlplus) is open and shows a successful connection to localhost:1521/XEPDB1 with the 'hr' user."
+    },
+    {
+      "id": "view_creation_execution",
+      "description": "Agent executes a SQL statement to create the SLA_PERFORMANCE_VW view.",
+      "points": 20,
+      "visual_evidence": "A SQL script containing 'CREATE [OR REPLACE] VIEW SLA_PERFORMANCE_VW AS' is visible in the editor and shows signs of successful execution (e.g., 'View created' message)."
+    },
+    {
+      "id": "view_columns_present",
+      "description": "The created view contains all the required columns.",
+      "points": 20,
+      "visual_evidence": "A SELECT query on the view or the view definition shows the columns: TICKET_ID, PRIORITY, OPENED_AT, CLOSED_AT, TOTAL_HOURS, BUSINESS_MINUTES, and SLA_STATUS."
+    },
+    {
+      "id": "business_minutes_accuracy",
+      "description": "The calculated BUSINESS_MINUTES match the expected values for the edge-case trap tickets.",
+      "points": 30,
+      "visual_evidence": "A result grid or terminal output showing the view's data where TICKET_ID 1001 has 120 BUSINESS_MINUTES, 1002 has 60, 1003 has 15, and 1004 has 90."
+    },
+    {
+      "id": "csv_file_exported",
+      "description": "The view results are exported to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "A file named 'sla_report.csv' is visible on the Desktop (/home/ga/Desktop/), or a terminal command/export dialog confirms the file was saved to this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "The agent actually executed SQL queries against the database rather than mocking the output.",
+      "visual_evidence": "The SQL client shows actual query execution times, result grids, or Oracle system messages, rather than just a text editor with typed-out results."
+    },
+    {
+      "id": "no_hardcoded_trap_values",
+      "description": "The agent calculated the business minutes using SQL logic rather than hardcoding the expected answers.",
+      "visual_evidence": "The SQL query for the view uses date functions, joins to PUBLIC_HOLIDAYS, and math to calculate the minutes, NOT 'CASE WHEN TICKET_ID = 1001 THEN 120' or similar hardcoded statements."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file was generated via an export tool or script, not manually typed.",
+      "visual_evidence": "The agent used a database client's export feature, a spool command, or a script to generate the CSV, rather than opening a text editor and typing the CSV contents manually."
+    }
+  ],
+  "privileged_info_for_vlm": "The database connection is localhost:1521/XEPDB1 with user 'hr' and password 'hr123'. The expected view name is 'SLA_PERFORMANCE_VW' and the output file must be exactly '/home/ga/Desktop/sla_report.csv'. To verify the complex business hours logic (Mon-Fri 9am-5pm, excluding holidays/weekends), check the 'BUSINESS_MINUTES' column for these specific TICKET_IDs: 1001 must be 120, 1002 must be 60, 1003 must be 15, and 1004 must be 90."
+}

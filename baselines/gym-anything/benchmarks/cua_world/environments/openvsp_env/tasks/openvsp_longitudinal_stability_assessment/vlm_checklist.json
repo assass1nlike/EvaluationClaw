@@ -1,0 +1,53 @@
+{
+  "task_id": "openvsp_longitudinal_stability_assessment@1",
+  "task_completion": [
+    {
+      "id": "open_model",
+      "description": "Open the eCRM-001 model in OpenVSP",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application window is visible, displaying an aircraft model (wing and tail), and the window title or loaded file indicates 'eCRM-001_wing_tail.vsp3'."
+    },
+    {
+      "id": "vspaero_setup",
+      "description": "Configure VSPAero with the correct Reference Xcg, Mach, and Alpha sweep",
+      "points": 20,
+      "visual_evidence": "The VSPAero GUI window is open. The Reference tab shows Xcg set to 28.5. The setup shows Mach set to 0.2 and an Alpha sweep configured for 0.0, 2.0, and 4.0 degrees."
+    },
+    {
+      "id": "execute_solver",
+      "description": "Execute the VSPAero solver to generate polar data",
+      "points": 20,
+      "visual_evidence": "A VSPAero solver console window is visible showing execution progress, or the VSPAero Results Manager/text editor is open showing the generated .polar output file."
+    },
+    {
+      "id": "write_report",
+      "description": "Write the stability report with calculated values and status",
+      "points": 30,
+      "visual_evidence": "A text editor is open showing 'stability_report.txt'. The content strictly follows the requested format, including the extracted CMy values at Alpha=0 and Alpha=4, the calculated Cm_alpha, and the Status (Stable or Unstable)."
+    },
+    {
+      "id": "save_model",
+      "description": "Save the configured model as eCRM-001_stability.vsp3",
+      "points": 20,
+      "visual_evidence": "The OpenVSP window title reflects the new filename 'eCRM-001_stability.vsp3', or a file explorer/save dialog shows the file saved in the /home/ga/Documents/OpenVSP/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the OpenVSP GUI to configure the analysis",
+      "visual_evidence": "Screenshots should show the agent interacting with the OpenVSP and VSPAero graphical interfaces, rather than modifying the .vsp3 file directly via terminal commands or scripts."
+    },
+    {
+      "id": "actual_analysis_run",
+      "description": "The agent actually executed the VSPAero solver",
+      "visual_evidence": "The VSPAero solver execution window or the resulting .polar file should be visible, proving the analysis was run and values were not hallucinated."
+    },
+    {
+      "id": "extracted_real_values",
+      "description": "The agent extracted CMy values from the actual solver output",
+      "visual_evidence": "The agent should be seen viewing the .polar file or VSPAero Results Manager to read the CMy values before writing them into the stability report."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Reference Xcg must be exactly 28.5 m. The report must be saved to '/home/ga/Desktop/stability_report.txt'. The configured model must be saved to '/home/ga/Documents/OpenVSP/eCRM-001_stability.vsp3'."
+}

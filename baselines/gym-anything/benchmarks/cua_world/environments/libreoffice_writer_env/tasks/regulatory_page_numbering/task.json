@@ -1,0 +1,28 @@
+{
+  "id": "regulatory_page_numbering@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are a Regulatory Affairs Manager preparing a CTD Module 2.5 Clinical Overview for FDA submission for the drug Sorvimab (NDA 215847) by Meridian Biotherapeutics. Restructure the document located at /home/ga/Documents/clinical_overview_draft.docx into three sections with independent headers and footers. Section 1 (Title Page, ending at 'January 2025') must have no header or page numbers. Section 2 (Front Matter, starting at 'Table of Contents') must include the header 'Sorvimab — NDA 215847 — Clinical Overview' and centered lowercase Roman numeral page numbers starting at i. Section 3 (Body and References, starting at '2.5.1 Product Development Rationale') must include the header 'Sorvimab — NDA 215847 — Clinical Overview' and centered Arabic numeral page numbers starting at 1. Save the formatted document as /home/ga/Documents/clinical_overview_formatted.docx.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/regulatory_page_numbering/setup_task.sh",
+    "post_task": "/workspace/tasks/regulatory_page_numbering/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/clinical_overview_draft.docx",
+    "output_path": "/home/ga/Documents/clinical_overview_formatted.docx",
+    "required_sections": 3,
+    "header_text": "Sorvimab — NDA 215847 — Clinical Overview"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regulatory_page_numbering"
+    }
+  }
+}

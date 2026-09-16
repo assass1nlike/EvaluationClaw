@@ -1,0 +1,59 @@
+{
+  "task_id": "database_backup_verify@1",
+  "task_completion": [
+    {
+      "id": "backup_files_created",
+      "description": "Verify the four required SQL backup files were created in the correct directory.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'ls ~/MedinTux_Backups/') or a file manager showing 'DrTuxTest_backup.sql', 'MedicaTuxTest_backup.sql', 'CIM10Test_backup.sql', and 'CCAMTest_backup.sql' inside the '/home/ga/MedinTux_Backups' directory."
+    },
+    {
+      "id": "verify_databases_created",
+      "description": "Verify the four verification databases were created in MySQL.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a MySQL prompt or command output (like 'SHOW DATABASES;') listing 'DrTuxTest_verify', 'MedicaTuxTest_verify', 'CIM10Test_verify', and 'CCAMTest_verify'."
+    },
+    {
+      "id": "data_restored",
+      "description": "Verify the SQL backups were restored into the verification databases.",
+      "points": 15,
+      "visual_evidence": "Terminal showing 'mysql' import commands targeting the '_verify' databases, or SQL queries showing tables/data existing inside the '_verify' databases."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify the backup report file was created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Terminal or file manager showing 'backup_report.txt' exists in the '~/MedinTux_Backups/' directory."
+    },
+    {
+      "id": "report_db_comparisons",
+      "description": "Verify the report contains the date/time and the required comparison metrics for all four databases.",
+      "points": 20,
+      "visual_evidence": "The contents of 'backup_report.txt' displayed on screen showing a date/time, and a list of the 4 databases with their original vs. restored table counts, original vs. restored total row counts, and an 'OK' status for each."
+    },
+    {
+      "id": "report_patient_count_and_pass",
+      "description": "Verify the report contains the specific DrTuxTest patient count and the final OVERALL PASS statement.",
+      "points": 20,
+      "visual_evidence": "The contents of 'backup_report.txt' explicitly showing the patient count from the 'IndexNomPrenom' table (original and restored), and a final line exactly reading 'OVERALL: PASS'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_mysql_commands_used",
+      "description": "Verify the agent used actual MySQL utilities to perform the backups and restores.",
+      "visual_evidence": "Terminal history showing 'mysqldump' commands to create the .sql files and 'mysql' commands to import them, rather than just creating empty files with 'touch'."
+    },
+    {
+      "id": "actual_queries_executed",
+      "description": "Verify the agent actually queried the databases to obtain the table and row counts.",
+      "visual_evidence": "Terminal showing SQL queries like 'SELECT COUNT(*)', 'SHOW TABLES', or the execution of a bash/python script that programmatically connects to MySQL to gather these metrics."
+    },
+    {
+      "id": "no_hallucinated_report",
+      "description": "Verify the agent did not just hardcode a fake report without checking.",
+      "visual_evidence": "The agent should be seen extracting the counts from the database (either manually or via script) before writing them to 'backup_report.txt'. The numbers in the report should match the queried outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The backup directory is '/home/ga/MedinTux_Backups'. The databases to backup and verify are 'DrTuxTest', 'MedicaTuxTest', 'CIM10Test', and 'CCAMTest'. The report file must be named 'backup_report.txt'. The 'DrTuxTest' database contains exactly 15 synthetic test patients in the 'IndexNomPrenom' table, so the patient count in the report should be 15."
+}

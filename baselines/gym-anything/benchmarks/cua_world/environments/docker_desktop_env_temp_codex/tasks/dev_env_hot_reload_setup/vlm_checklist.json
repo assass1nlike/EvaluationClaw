@@ -1,0 +1,59 @@
+{
+  "task_id": "dev_env_hot_reload_setup@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file for editing",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) or terminal output (e.g., cat, sed) showing the contents of docker-compose.yml in the /home/ga/projects/quote-service directory."
+    },
+    {
+      "id": "configure_bind_mount",
+      "description": "Add a bind mount for the src directory to /app",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file must show a 'volumes:' section under the 'web' service mapping the host's './src' directory to '/app' in the container (e.g., '- ./src:/app' or absolute path equivalent)."
+    },
+    {
+      "id": "configure_debug_command",
+      "description": "Override the command to run Flask in debug mode",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file must show a 'command:' override under the 'web' service that includes '--debug' and '--host=0.0.0.0' (e.g., 'command: flask run --debug --host=0.0.0.0' or 'command: python -m flask run --debug --host=0.0.0.0')."
+    },
+    {
+      "id": "start_dev_server",
+      "description": "Start the Docker Compose services",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'docker compose up' (or similar) and the resulting logs indicating the Flask development server is running, with 'Debugger is active' or 'WARNING: This is a development server' visible."
+    },
+    {
+      "id": "edit_app_source",
+      "description": "Modify the source code in src/app.py to trigger a reload",
+      "points": 10,
+      "visual_evidence": "A text editor showing modifications being made to the 'src/app.py' file."
+    },
+    {
+      "id": "verify_hot_reload",
+      "description": "Verify that the hot-reload works without restarting the container",
+      "points": 20,
+      "visual_evidence": "Terminal logs showing Flask detecting a file change and automatically reloading (e.g., 'Detected change in...', 'Restarting with stat'), OR a browser/curl request to localhost:5000 showing the newly updated response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_execution",
+      "description": "Verify that Docker Compose was actually executed",
+      "visual_evidence": "Terminal shows genuine Docker Compose build/startup logs and Flask server output, not just echoed text or a script printing fake logs."
+    },
+    {
+      "id": "correct_workspace",
+      "description": "Verify edits were made in the correct project directory",
+      "visual_evidence": "File paths in editors or terminal prompts confirm that files being edited are inside /home/ga/projects/quote-service/."
+    },
+    {
+      "id": "no_manual_container_restart",
+      "description": "Verify the agent did not manually restart the container to apply changes",
+      "visual_evidence": "The terminal history should NOT show commands like 'docker compose restart', 'docker restart', or stopping and re-running 'docker compose up' after modifying app.py. The reload must happen automatically."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/projects/quote-service. The Docker Compose service name is 'web' and the application is exposed on port 5000."
+}

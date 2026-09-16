@@ -1,0 +1,75 @@
+{
+  "dataset_id": "875e1176",
+  "name": "Legal-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A legal multiple-choice question answering dataset with 200 examples. Each example presents a legal scenario and four answer options, requiring selection of the correct legal statement. It evaluates legal knowledge and reasoning in a text-only QA format.",
+  "card_text": "This dataset is a text-only legal question answering benchmark. Each sample contains a factual legal scenario followed by a multiple-choice question and four candidate answer statements. The model must select the correct option, which is provided as a single letter. Questions cover Chinese legal topics such as criminal procedure, financial regulation, and administrative oversight. The language is English in the provided sample, but the content reflects legal statutes and procedures. The dataset is suitable for evaluating multiple-choice QA and legal reasoning capabilities, with no additional context passages beyond the question and options.",
+  "tasks": [
+    "multiple_choice_qa",
+    "question_answering"
+  ],
+  "domain": "legal",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The legal scenario and question prompt. It sets up a case or regulatory situation and asks which of the provided statements is correct, guiding the model to select an option.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "structured",
+        "semantics": "A list of four candidate answer statements. Each option is a possible legal conclusion or procedural rule, and exactly one is correct according to the law.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct option letter corresponding to one of the four answer statements. It serves as the ground-truth label for the multiple-choice question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a legal scenario question under input.question, a list of four candidate answer statements under input.options, and the correct option letter under output.answer. The question provides the legal fact pattern and asks which statement is correct; the options supply possible legal conclusions, and the answer identifies the single correct choice by its letter."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Legal-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Legal Question Answering",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

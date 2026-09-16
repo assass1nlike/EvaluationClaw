@@ -1,0 +1,27 @@
+{
+  "id": "configure_candlestick_chart@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Configure the JStock History Chart for NVIDIA (NVDA) to display 'Candlestick' bars and the 'Volume' chart. Ensure settings are saved by closing the chart window.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_candlestick_chart/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_candlestick_chart/export_result.sh"
+  },
+  "metadata": {
+    "target_stock": "NVDA",
+    "expected_chart_type": "Candlestick",
+    "expected_volume_visible": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_candlestick_chart"
+    }
+  }
+}

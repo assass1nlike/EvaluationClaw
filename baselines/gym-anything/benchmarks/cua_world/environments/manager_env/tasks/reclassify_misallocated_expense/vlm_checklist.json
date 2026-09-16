@@ -1,0 +1,53 @@
+{
+  "task_id": "reclassify_misallocated_expense@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_chart_of_accounts",
+      "description": "Agent navigates to the Settings or Chart of Accounts page to prepare for creating a new account.",
+      "points": 10,
+      "visual_evidence": "The Manager.io 'Settings' or 'Chart of Accounts' screen is visible in the browser."
+    },
+    {
+      "id": "create_new_account",
+      "description": "Agent creates a new Expense Account named 'Meals & Entertainment'.",
+      "points": 20,
+      "visual_evidence": "A form showing the creation of an account named 'Meals & Entertainment', or the account successfully listed under the Expenses section in the Chart of Accounts."
+    },
+    {
+      "id": "locate_target_payment",
+      "description": "Agent navigates to the Payments module and locates the specific misallocated payment.",
+      "points": 20,
+      "visual_evidence": "The 'Payments' list is visible, showing the transaction to 'City Grill' for $245.00 on the date 2025-05-15."
+    },
+    {
+      "id": "edit_payment_account",
+      "description": "Agent opens the target payment and changes the account to the newly created 'Meals & Entertainment' account.",
+      "points": 30,
+      "visual_evidence": "The Edit Payment screen is open for the City Grill transaction, and the 'Account' dropdown/field is set to 'Meals & Entertainment' instead of 'Office Supplies'."
+    },
+    {
+      "id": "save_reclassified_payment",
+      "description": "Agent saves the updated payment, successfully reclassifying the expense.",
+      "points": 20,
+      "visual_evidence": "The payment view or Payments list shows the transaction to City Grill is now categorized under 'Meals & Entertainment', or a successful update confirmation is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Manager.io GUI to perform the task, not terminal commands.",
+      "visual_evidence": "Screenshots show interaction with the Manager.io web interface in a browser. There should be no terminal windows executing curl, sqlite3, or python scripts to modify the database directly."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Agent interacted with the actual Manager.io application.",
+      "visual_evidence": "The Manager.io interface is fully rendered with its standard left-hand navigation menu and styling, not a text editor or a mocked HTML page."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Agent actually updated the record rather than using browser developer tools to visually change the text.",
+      "visual_evidence": "The sequence of screenshots shows a logical flow of editing and saving (e.g., clicking 'Edit', changing the dropdown, clicking 'Update'), rather than text magically changing on a static view."
+    }
+  ],
+  "privileged_info_for_vlm": "The target payment to reclassify is for $245.00 to 'City Grill' on '2025-05-15'. It was originally recorded under 'Office Supplies'. The agent must create a new expense account named 'Meals & Entertainment' and change the payment's account to this new one."
+}

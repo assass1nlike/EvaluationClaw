@@ -1,0 +1,53 @@
+{
+  "task_id": "ccd_read_noise@1",
+  "task_completion": [
+    {
+      "id": "load_bias_frames",
+      "description": "Open a bias frame FITS file from the specified directory.",
+      "points": 10,
+      "visual_evidence": "An image analysis tool (e.g., AstroImageJ) is open, displaying a FITS image loaded from ~/AstroImages/ccd_characterization/."
+    },
+    {
+      "id": "measure_bias_level",
+      "description": "Measure the mean pixel value of a single bias frame.",
+      "points": 20,
+      "visual_evidence": "A statistics or measurement window in the image analysis tool showing the 'Mean' pixel value of the loaded bias frame."
+    },
+    {
+      "id": "subtract_bias_frames",
+      "description": "Calculate the difference between two bias frames.",
+      "points": 20,
+      "visual_evidence": "An image calculator or math tool is used to subtract one bias frame from another, or a resulting difference image is displayed on the screen."
+    },
+    {
+      "id": "measure_stddev_difference",
+      "description": "Measure the standard deviation of the difference image.",
+      "points": 20,
+      "visual_evidence": "A statistics or measurement window showing the 'StdDev' (standard deviation) of the newly created difference image."
+    },
+    {
+      "id": "save_results_file",
+      "description": "Save the calculated bias level, read noise, and standard deviation to the specified text file.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the file ~/AstroImages/measurements/ccd_read_noise.txt containing 'bias_level_adu = <value>', 'read_noise_adu = <value>', and 'stddev_difference = <value>'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_image_software",
+      "description": "The agent used an image analysis software (like AstroImageJ) to inspect and measure the FITS files.",
+      "visual_evidence": "Screenshots should show the GUI of an image analysis tool being actively used to open and measure the FITS files, rather than just a terminal instantly outputting the answers."
+    },
+    {
+      "id": "consistent_results",
+      "description": "The final values saved in the text file match the measurements observed in the image analysis tool.",
+      "visual_evidence": "The values for mean and standard deviation typed into the text file should correspond to the numbers visible in the statistics windows of the image analysis software."
+    },
+    {
+      "id": "no_blind_copying",
+      "description": "The agent derived the answers through calculation rather than hardcoding ground truth values.",
+      "visual_evidence": "The agent should be seen performing the division by sqrt(2) (e.g., using a calculator or terminal) and extracting the raw values from the images before writing the final text file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file path: /home/ga/AstroImages/measurements/ccd_read_noise.txt. Ground truth values to look for: Bias Level is approximately 1131.08 ADU and Read Noise is approximately 5.75 e-/ADU. The standard deviation of the difference should be approximately 8.13 (since 5.75 * sqrt(2) \u2248 8.13)."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "add_dnc_phone_numbers@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "A compliance officer has received opt-out requests from 10 consumers who must be added to the company's internal Do Not Call (DNC) list. Log into the Vicidial admin interface at http://localhost/vicidial/admin.php (user: 6666, password: andromeda) and add all 10 phone numbers from ~/Documents/VicidialData/dnc_optout_requests.txt to the system-wide Internal DNC list so that no campaign in the dialer can call these numbers.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_dnc_phone_numbers/setup_task.sh",
+    "post_task": "/workspace/tasks/add_dnc_phone_numbers/export_result.sh"
+  },
+  "metadata": {
+    "dnc_file_path": "/home/ga/Documents/VicidialData/dnc_optout_requests.txt",
+    "expected_count_increase": 10,
+    "credentials": {
+      "user": "6666",
+      "pass": "andromeda"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_dnc_phone_numbers"
+    }
+  }
+}

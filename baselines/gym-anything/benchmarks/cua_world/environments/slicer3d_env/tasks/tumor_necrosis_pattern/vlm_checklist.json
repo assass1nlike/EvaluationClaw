@@ -1,0 +1,59 @@
+{
+  "task_id": "tumor_necrosis_pattern@1",
+  "task_completion": [
+    {
+      "id": "segment_enhancing_tumor",
+      "description": "Segment the enhancing tumor by comparing T1 and T1ce sequences.",
+      "points": 25,
+      "visual_evidence": "Medical imaging software (e.g., 3D Slicer) showing a segment named 'Enhancing_Tumor' overlaying the hyperintense (bright) regions on the T1ce MRI scan."
+    },
+    {
+      "id": "segment_necrotic_core",
+      "description": "Segment the necrotic core.",
+      "points": 25,
+      "visual_evidence": "Medical imaging software showing a segment named 'Necrotic_Core' overlaying the dark, non-enhancing central region of the tumor on the T1ce MRI scan."
+    },
+    {
+      "id": "save_segmentation",
+      "description": "Save the segmentation to ~/Documents/SlicerData/BraTS/enhancement_segmentation.nii.gz.",
+      "points": 5,
+      "visual_evidence": "File explorer, save dialog, or terminal confirming 'enhancement_segmentation.nii.gz' is saved in the '~/Documents/SlicerData/BraTS/' directory."
+    },
+    {
+      "id": "measure_volumes_and_ratio",
+      "description": "Measure volumes for both segments and calculate the necrosis ratio.",
+      "points": 15,
+      "visual_evidence": "A statistics module (e.g., Segment Statistics), Python interactor, or draft text showing volume measurements for both segments and the calculated necrosis ratio."
+    },
+    {
+      "id": "classify_pattern",
+      "description": "Classify the enhancement pattern and provide a clinical interpretation.",
+      "points": 20,
+      "visual_evidence": "Draft text, console output, or report showing a classification of the enhancement pattern (e.g., ring-enhancing, nodular) and a clinical interpretation."
+    },
+    {
+      "id": "save_report",
+      "description": "Save the final report to ~/Documents/SlicerData/BraTS/necrosis_report.json with all required fields.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the file 'necrosis_report.json' containing the exact fields: enhancing_volume_ml, necrotic_volume_ml, total_core_volume_ml, necrosis_ratio, enhancement_pattern, and clinical_interpretation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_interaction",
+      "description": "The agent used genuine medical imaging software to perform the segmentation and volume measurements.",
+      "visual_evidence": "Screenshots showing the MRI loaded in a GUI (e.g., 3D Slicer) with active segmentation tools or statistics modules being used, rather than just writing a script without visual verification."
+    },
+    {
+      "id": "actual_image_comparison",
+      "description": "The agent actually loaded and compared T1 and T1ce sequences as requested.",
+      "visual_evidence": "Both T1 and T1ce volumes are visible in the software's slice views, volume manager, or data module."
+    },
+    {
+      "id": "no_hallucinated_report",
+      "description": "The agent derived the volumes and ratio from actual measurements rather than hallucinating plausible numbers.",
+      "visual_evidence": "The numerical values in the final necrosis_report.json match the output seen in the software's statistics module or calculation scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "BraTS 2021 dataset labels: 1 = necrotic tumor core (NCR), 2 = peritumoral edematous tissue (ED), 4 = GD-enhancing tumor (ET). The dataset includes four MRI modalities: T1, T1ce (post-contrast), T2, and FLAIR. The enhancing tumor (label 4) appears bright on T1ce, while the necrotic core (label 1) is the non-enhancing central dark region."
+}

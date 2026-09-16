@@ -1,0 +1,53 @@
+{
+  "task_id": "annotate_surgical_milestones@1",
+  "task_completion": [
+    {
+      "id": "vital_recorder_case_loaded",
+      "description": "Vital Recorder is open and VitalDB Case #3 is loaded",
+      "points": 10,
+      "visual_evidence": "The Vital Recorder application window is open, and the loaded file list or window title indicates Case #3 (e.g., '0003' or 'Case 3')."
+    },
+    {
+      "id": "etco2_waveform_visible",
+      "description": "The EtCO2 waveform is visible in the application",
+      "points": 10,
+      "visual_evidence": "A waveform track labeled 'EtCO2' (or similar respiratory CO2 label) is displayed in the main view of Vital Recorder."
+    },
+    {
+      "id": "case_start_marker_added",
+      "description": "An event marker named 'Case Start' is added at the first valid EtCO2 waveform",
+      "points": 25,
+      "visual_evidence": "An event marker or annotation labeled 'Case Start' is visible on the timeline, placed near the beginning of the valid EtCO2 waveform (around 235-488 seconds)."
+    },
+    {
+      "id": "case_end_marker_added",
+      "description": "An event marker named 'Case End' is added at the last valid EtCO2 waveform",
+      "points": 25,
+      "visual_evidence": "An event marker or annotation labeled 'Case End' is visible on the timeline, placed near the end of the valid EtCO2 waveform (around 4128-4140 seconds)."
+    },
+    {
+      "id": "event_list_exported",
+      "description": "The event list is exported to the specified CSV file path",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog showing the export of the event list to 'C:\\Users\\Docker\\Documents\\case_milestones.csv', or a File Explorer window showing 'case_milestones.csv' in the Documents folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_annotation",
+      "description": "The agent used the Vital Recorder GUI to add event markers",
+      "visual_evidence": "Screenshots should show the agent interacting with the Vital Recorder interface (e.g., right-clicking the timeline, using annotation menus) rather than modifying files via terminal or scripts."
+    },
+    {
+      "id": "gui_used_for_export",
+      "description": "The agent used the Vital Recorder export feature to save the CSV",
+      "visual_evidence": "Screenshots should show the agent using the application's built-in export or save functionality, not manually creating the CSV file in a text editor."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not bypass the GUI to hardcode the CSV output",
+      "visual_evidence": "There should be no terminal windows showing commands like 'echo' or python scripts being used to directly write the expected timestamps into 'case_milestones.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "VitalDB Case #3 has a total duration of 73.24 minutes. The first valid EtCO2 waveform (Case Start) occurs between 235.7 and 487.7 seconds. The last valid EtCO2 waveform (Case End) occurs between 4128.8 and 4139.8 seconds. The VLM should verify that the 'Case Start' and 'Case End' markers are placed approximately at these timestamps in the Vital Recorder timeline."
+}

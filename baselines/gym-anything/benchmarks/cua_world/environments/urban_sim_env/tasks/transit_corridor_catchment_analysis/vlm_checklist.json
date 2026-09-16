@@ -1,0 +1,59 @@
+{
+  "task_id": "transit_corridor_catchment_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened_and_data_loaded",
+      "description": "Open the specified Jupyter notebook and load the San Francisco HDF5 dataset.",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook named `brt_catchment_analysis.ipynb` is visible, containing code that reads `/home/ga/urbansim_projects/data/sanfran_public.h5`."
+    },
+    {
+      "id": "corridor_and_buffer_calculated",
+      "description": "Calculate the corridor endpoints (westernmost and easternmost parcels) and the 5% buffer distance.",
+      "points": 20,
+      "visual_evidence": "Code cells or output showing the filtering of missing/zero coordinates, finding the min/max X coordinates, and calculating the buffer distance (which should evaluate to 679.375)."
+    },
+    {
+      "id": "metrics_calculated",
+      "description": "Calculate citywide and catchment metrics for parcels, residential units, households, population, and jobs.",
+      "points": 20,
+      "visual_evidence": "Code cells performing spatial filtering (buffer) and aggregating the required metrics (parcels, res_units, households, population, jobs) for both the full dataset and the catchment area."
+    },
+    {
+      "id": "json_exported",
+      "description": "Export the calculated metrics to a JSON file with the required schema.",
+      "points": 20,
+      "visual_evidence": "Code showing the creation of a JSON structure with keys 'corridor', 'buffer_distance', and 'metrics', and saving it to `/home/ga/urbansim_projects/output/catchment_metrics.json`."
+    },
+    {
+      "id": "plot_generated_and_saved",
+      "description": "Generate and save a scatter plot visualization of the parcels, catchment, and corridor line.",
+      "points": 20,
+      "visual_evidence": "A scatter plot is visible in the notebook output showing the corridor line and parcels/catchment, along with code saving the figure to `/home/ga/urbansim_projects/output/catchment_map.png`."
+    },
+    {
+      "id": "all_cells_executed",
+      "description": "Ensure all cells in the Jupyter notebook are executed.",
+      "points": 10,
+      "visual_evidence": "All visible code cells in the notebook have execution numbers (e.g., `[1]`, `[2]`, etc.) indicating they have been run."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation",
+      "description": "The agent wrote code to compute the metrics rather than hardcoding the answers.",
+      "visual_evidence": "The notebook contains pandas/geopandas operations (e.g., `.min()`, `.max()`, `.sum()`, `.buffer()`) rather than just assigning the final numbers to variables."
+    },
+    {
+      "id": "real_plot_generated",
+      "description": "The scatter plot is generated programmatically.",
+      "visual_evidence": "The notebook contains matplotlib or seaborn code (e.g., `plt.scatter`, `plt.plot`) that corresponds to the generated plot."
+    },
+    {
+      "id": "jupyter_interface_used",
+      "description": "The agent used a Jupyter Notebook environment.",
+      "visual_evidence": "The screenshots show a Jupyter Notebook interface (either in a web browser or an IDE like VS Code) being actively used."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 153,341 citywide parcels after cleaning. The westernmost parcel is at X=542806.875, Y=4181587.25 and the easternmost is at X=556394.375, Y=4185446.75. The 5% buffer distance is exactly 679.375 meters. The catchment area contains 14,405 parcels (9.39% of citywide), 50,757 residential units, 44,306 households, 82,816 population, and 18,068 jobs. The expected output paths are /home/ga/urbansim_projects/output/catchment_metrics.json and /home/ga/urbansim_projects/output/catchment_map.png."
+}

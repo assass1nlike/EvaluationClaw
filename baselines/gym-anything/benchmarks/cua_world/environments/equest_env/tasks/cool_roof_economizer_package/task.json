@@ -1,0 +1,41 @@
+{
+  "id": "cool_roof_economizer_package@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "You are a sustainability specialist at an energy consulting firm. For the 4StoreyBuilding commercial facility, implement an Energy Conservation Measure (ECM) package targeting cool-surface compliance and improved free-cooling. Reduce the solar absorptance of 'EWall Construction' and 'Roof Construction' to 0.45. For all five Ground Floor (G.*) packaged single-zone HVAC systems, set the dry-bulb economizer temperature limit (DRYBULB-LIMIT) to 65°F. Run a full annual DOE-2.2 simulation to quantify energy savings and save the project.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\cool_roof_economizer_package\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\cool_roof_economizer_package\\export_result.ps1"
+  },
+  "metadata": {
+    "building_model": "4StoreyBuilding",
+    "target_constructions": [
+      "EWall Construction",
+      "Roof Construction"
+    ],
+    "target_absorptance": 0.45,
+    "original_absorptance": 0.6,
+    "target_ground_floor_systems": [
+      "Sys1 (PSZ) (G.S11)",
+      "Sys1 (PSZ) (G.E12)",
+      "Sys1 (PSZ) (G.N13)",
+      "Sys1 (PSZ) (G.W14)",
+      "Sys1 (PSZ) (G.C15)"
+    ],
+    "target_drybulb_limit": 65,
+    "original_drybulb_limit": 70,
+    "simulation_required": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cool_roof_economizer_package"
+    }
+  }
+}

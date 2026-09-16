@@ -1,0 +1,59 @@
+{
+  "task_id": "logistics_aq_setup@1",
+  "task_completion": [
+    {
+      "id": "grant_aq_privileges",
+      "description": "Grant EXECUTE privileges on DBMS_AQ and DBMS_AQADM to the HR schema.",
+      "points": 10,
+      "visual_evidence": "SQL*Plus, SQLcl, or database GUI showing a connection as SYSTEM and the successful execution of 'GRANT EXECUTE ON DBMS_AQ TO HR' and 'GRANT EXECUTE ON DBMS_AQADM TO HR' (or similar grant statements)."
+    },
+    {
+      "id": "create_object_type",
+      "description": "Define the object type 'ORDER_EVENT_T' with the specified attributes.",
+      "points": 15,
+      "visual_evidence": "SQL execution showing 'Type created' for 'ORDER_EVENT_T' with attributes ORDER_ID (NUMBER), CUSTOMER_CODE (VARCHAR2), REGION (VARCHAR2), and PRIORITY (NUMBER)."
+    },
+    {
+      "id": "setup_queue_infrastructure",
+      "description": "Establish the queue table 'ORDER_EVT_QT' and start the queue 'ORDER_EVT_Q'.",
+      "points": 20,
+      "visual_evidence": "PL/SQL block execution using DBMS_AQADM.CREATE_QUEUE_TABLE for 'ORDER_EVT_QT', DBMS_AQADM.CREATE_QUEUE for 'ORDER_EVT_Q', and DBMS_AQADM.START_QUEUE showing successful completion."
+    },
+    {
+      "id": "create_enqueue_procedure",
+      "description": "Implement the 'ENQUEUE_ORDER' procedure.",
+      "points": 15,
+      "visual_evidence": "SQL execution showing 'Procedure created' for 'ENQUEUE_ORDER' or the PL/SQL code defining the procedure using DBMS_AQ.ENQUEUE."
+    },
+    {
+      "id": "enqueue_specific_orders",
+      "description": "Use the procedure to enqueue the 5 specific orders.",
+      "points": 20,
+      "visual_evidence": "Execution of the 'ENQUEUE_ORDER' procedure (or a PL/SQL block calling it) 5 times with the specific order data (e.g., 1001/AMZN_PRIME, 1002/WALMART_US, etc.), showing 'PL/SQL procedure successfully completed'."
+    },
+    {
+      "id": "export_queue_dump",
+      "description": "Export the ORDER_ID and CUSTOMER_CODE from the 'AQ$ORDER_EVT_QT' view to /home/ga/Desktop/queue_dump.txt.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the contents of '/home/ga/Desktop/queue_dump.txt' (e.g., via 'cat' or a text editor) containing the 5 expected order IDs and customer codes (e.g., 1001 AMZN_PRIME, 1004 DHL_EXPRESS)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent interacted with an actual Oracle database client.",
+      "visual_evidence": "Look for Oracle client prompts (e.g., 'SQL>'), connection strings, or database GUI elements, rather than just typing SQL commands into a plain text file without executing them."
+    },
+    {
+      "id": "authentic_aq_usage",
+      "description": "Verify the agent actually used Oracle Advanced Queuing packages rather than faking the view.",
+      "visual_evidence": "Look for the use of DBMS_AQADM and DBMS_AQ in the executed scripts. The agent should not just create a standard table named 'AQ$ORDER_EVT_QT' to mock the output."
+    },
+    {
+      "id": "authentic_file_export",
+      "description": "Verify the output file was generated from the database query.",
+      "visual_evidence": "Look for spooling commands (e.g., 'SPOOL /home/ga/Desktop/queue_dump.txt'), SQLcl export commands, or shell redirection from a database query, rather than the agent manually typing the expected output into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires setting up Oracle AQ in the HR schema. Look for the creation of object type 'ORDER_EVENT_T', queue table 'ORDER_EVT_QT', queue 'ORDER_EVT_Q', and procedure 'ENQUEUE_ORDER'. Exactly 5 orders must be enqueued. The final output file '/home/ga/Desktop/queue_dump.txt' must contain the ORDER_ID and CUSTOMER_CODE queried from the 'AQ$ORDER_EVT_QT' view, specifically including pairs like '1001' with 'AMZN_PRIME' and '1004' with 'DHL_EXPRESS'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_hardening_readonly@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file for editing",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) is open showing the contents of the docker-compose.yml file located in ~/projects/acme-ingest/."
+    },
+    {
+      "id": "enable_read_only",
+      "description": "Enable the read-only root filesystem security feature",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file contains 'read_only: true' under the acme-ingest service configuration."
+    },
+    {
+      "id": "configure_tmpfs_mounts",
+      "description": "Configure tmpfs mounts for ephemeral data (PID and cache)",
+      "points": 25,
+      "visual_evidence": "The docker-compose.yml file shows tmpfs mounts configured for '/run/acme' and '/var/lib/acme/cache'. This can be under a 'tmpfs:' block or within the 'volumes:' block using 'type: tmpfs'."
+    },
+    {
+      "id": "configure_named_volume",
+      "description": "Configure a named volume for persistent logs",
+      "points": 25,
+      "visual_evidence": "The docker-compose.yml file shows a named volume (e.g., 'acme-logs') mounted to '/var/log/acme' in the service's 'volumes:' section, and the volume is declared in a top-level 'volumes:' block."
+    },
+    {
+      "id": "verify_service_health",
+      "description": "Start the service and verify it remains functional and healthy",
+      "points": 20,
+      "visual_evidence": "Terminal output showing 'docker compose up' or 'docker ps' with the 'acme-ingest' container running successfully, or a successful HTTP response from 'curl http://localhost:8080/health'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_editing",
+      "description": "Agent actually edited the docker-compose.yml file",
+      "visual_evidence": "Screenshots show the agent interacting with a real text editor interface (e.g., nano, vim, gedit) rather than just echoing text into the file blindly."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Agent executed real Docker commands to test the configuration",
+      "visual_evidence": "Terminal shows standard Docker output for commands like 'docker compose up', 'docker compose down', or 'docker ps', indicating actual interaction with the Docker daemon."
+    },
+    {
+      "id": "no_health_check_mocking",
+      "description": "Agent did not mock the health check endpoint",
+      "visual_evidence": "Any health check verification (like curl) is performed against the actual localhost:8080 port while the container is running, not against a mocked local file or script."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/projects/acme-ingest. The target container is 'acme-ingest'. To succeed, the agent must set 'read_only: true' and configure specific mounts: tmpfs for '/run/acme' (PID) and '/var/lib/acme/cache' (cache), and a named volume for '/var/log/acme' (logs). The application health can be verified at http://localhost:8080/health. The task passes if the configuration is correct and the container runs healthily (score >= 75)."
+}

@@ -1,0 +1,50 @@
+{
+  "id": "brand_template_creation@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Create a corporate letterhead template for 'Apex Innovations' and save it as a LibreOffice Writer Template (.ott) to /home/ga/Documents/apex_letterhead.ott. The template must have a 2.00\" top margin and 1.00\" margins for the left, right, and bottom. Include the company logo from /home/ga/Documents/apex_logo.png in the header and the center-aligned grey text 'Apex Innovations | 123 Tech Blvd, Silicon Valley, CA' in the footer. Define two custom paragraph styles: 'Apex Title' (Liberation Sans or Arial, 18pt, Bold, Dark Blue #00008B) and 'Apex Body' (Liberation Serif or Times New Roman, 11pt, Black).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/brand_template_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/brand_template_creation/export_result.sh"
+  },
+  "metadata": {
+    "logo_path": "/home/ga/Documents/apex_logo.png",
+    "expected_output_path": "/home/ga/Documents/apex_letterhead.ott",
+    "margin_top_inch": 2.0,
+    "margin_other_inch": 1.0,
+    "footer_text": "Apex Innovations | 123 Tech Blvd, Silicon Valley, CA",
+    "styles": {
+      "title": {
+        "name": "Apex Title",
+        "font_family_options": [
+          "Liberation Sans",
+          "Arial"
+        ],
+        "size_pt": 18,
+        "bold": true,
+        "color_hex": "#00008B"
+      },
+      "body": {
+        "name": "Apex Body",
+        "font_family_options": [
+          "Liberation Serif",
+          "Times New Roman"
+        ],
+        "size_pt": 11,
+        "color_hex": "#000000"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_brand_template_creation"
+    }
+  }
+}

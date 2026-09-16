@@ -1,0 +1,35 @@
+{
+  "id": "define_turbine_power_curve@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Generate a power curve for the pre-loaded NREL 5MW wind turbine project in QBlade using a Turbine BEM Simulation. Configure the simulation with a Cut-in Wind Speed of 3 m/s, Cut-out Wind Speed of 25 m/s, 6% Losses (Efficiency 94%), and a Range of 1 m/s to 30 m/s with a 0.5 m/s Step, ensuring Variable Speed and Variable Pitch are enabled. Save the project to /home/ga/Documents/projects/NREL5MW_turbine_sim.wpa. Document the maximum power output, the maximum power coefficient (Cp), and the approximate rated wind speed in a report at /home/ga/Documents/projects/power_curve_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/define_turbine_power_curve/setup_task.sh",
+    "post_task": "/workspace/tasks/define_turbine_power_curve/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/Documents/projects/NREL5MW_turbine_sim.wpa",
+    "report_path": "/home/ga/Documents/projects/power_curve_report.txt",
+    "min_project_size_kb": 50,
+    "ranges": {
+      "max_power_kw_min": 1000,
+      "max_power_kw_max": 10000,
+      "max_cp_min": 0.1,
+      "max_cp_max": 0.593,
+      "rated_speed_min": 8,
+      "rated_speed_max": 16
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_turbine_power_curve"
+    }
+  }
+}

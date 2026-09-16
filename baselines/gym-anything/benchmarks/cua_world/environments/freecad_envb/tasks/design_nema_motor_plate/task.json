@@ -1,0 +1,33 @@
+{
+  "id": "design_nema_motor_plate@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Design a NEMA 17 stepper motor mounting plate. The plate must be a 50mm x 50mm square with a 6mm thickness, centered at the origin. Include a 22mm diameter central pilot hole through the entire plate and four M3 countersunk (90 degrees) mounting holes with a 31mm center-to-center spacing, also centered at the origin. Apply 5mm fillets to the four outer corners. Save the completed file to /home/ga/Documents/FreeCAD/nema_plate.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_nema_motor_plate/setup_task.sh",
+    "post_task": "/workspace/tasks/design_nema_motor_plate/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "nema_plate.FCStd",
+    "min_volume": 11000,
+    "max_volume": 14000,
+    "target_bbox": [
+      50.0,
+      50.0,
+      6.0
+    ],
+    "required_feature_type": "PartDesign::Hole"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_nema_motor_plate"
+    }
+  }
+}

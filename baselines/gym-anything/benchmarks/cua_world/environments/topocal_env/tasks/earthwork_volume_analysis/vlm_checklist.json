@@ -1,0 +1,59 @@
+{
+  "task_id": "earthwork_volume_analysis@1",
+  "task_completion": [
+    {
+      "id": "survey_data_loaded",
+      "description": "Agent opens or imports the site_survey.csv data.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing site_survey.csv opened in a spreadsheet, GIS/CAD software, or loaded via a script."
+    },
+    {
+      "id": "reference_plane_checked",
+      "description": "Agent checks the reference plane elevation from ProjectSpec.txt.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing ProjectSpec.txt open in a text editor or its contents being read/printed on screen."
+    },
+    {
+      "id": "volume_computation_performed",
+      "description": "Agent performs the cut/fill volume computation.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a volume calculation tool (e.g., in QGIS, Civil 3D) being executed, or a script running mathematical surface difference calculations."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Agent creates the volume_report.txt file at the specified path.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing volume_report.txt saved in C:\\Users\\Docker\\Desktop\\JeffersonCountyProject\\ (visible in File Explorer or a 'Save As' dialog)."
+    },
+    {
+      "id": "report_metadata_included",
+      "description": "The volume report includes the project name, date, and reference plane elevation.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the open volume_report.txt showing text for the project name, the current date, and the reference elevation value."
+    },
+    {
+      "id": "report_volumes_included",
+      "description": "The volume report includes computed Cut, Fill, and Net volumes.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the open volume_report.txt showing specific numerical values (typically >= 100) for 'Cut Volume', 'Fill Volume', and 'Net Volume'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tool_usage_for_computation",
+      "description": "Agent used appropriate software or scripting to calculate the volumes rather than hallucinating numbers.",
+      "visual_evidence": "Look for evidence of actual data processing (e.g., a GIS raster/surface tool, or a Python/R script executing) rather than the agent just typing arbitrary numbers directly into the text editor."
+    },
+    {
+      "id": "actual_file_saved",
+      "description": "The report was actually saved to the disk.",
+      "visual_evidence": "Look for the file existing in the file explorer or a confirmed save action, not just text floating in an unsaved Notepad window or terminal output."
+    },
+    {
+      "id": "used_provided_files",
+      "description": "Agent used the specific provided files rather than external data.",
+      "visual_evidence": "Ensure the file paths referenced in the tools or scripts point to the provided site_survey.csv and ProjectSpec.txt on the Desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires processing exactly 200 survey points from site_survey.csv (UTM Zone 13N) against a reference plane from ProjectSpec.txt. The final deliverable must be a text file at C:\\Users\\Docker\\Desktop\\JeffersonCountyProject\\volume_report.txt containing the project name, date, reference plane elevation, and calculated Cut, Fill, and Net volumes. Plausible volume numbers are typically >= 100. The agent should use a GIS, CAD, or scripting tool to perform the actual DTM creation and volume computation."
+}

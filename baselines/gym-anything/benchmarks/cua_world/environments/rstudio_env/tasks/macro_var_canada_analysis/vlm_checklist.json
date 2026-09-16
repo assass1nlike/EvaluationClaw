@@ -1,0 +1,53 @@
+{
+  "task_id": "macro_var_canada_analysis@1",
+  "task_completion": [
+    {
+      "id": "script_contains_analysis",
+      "description": "The R script contains the required VAR analysis code with correct variable ordering.",
+      "points": 20,
+      "visual_evidence": "Look for an open file named `var_analysis.R` containing R code that loads the 'vars' package, uses the 'Canada' dataset, orders variables strictly as `prod`, `e`, `U`, `rw`, and includes functions like `VARselect`, `VAR`, `serial.test`, `causality`, and `irf`."
+    },
+    {
+      "id": "lag_selection_csv_created",
+      "description": "The lag selection table is saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "Look for `var_selection.csv` in the `/home/ga/RProjects/output/` directory, visible in a file explorer, terminal `ls` command, or RStudio files pane."
+    },
+    {
+      "id": "diagnostics_csv_created",
+      "description": "The diagnostic results are saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for `var_diagnostics.csv` in the `/home/ga/RProjects/output/` directory. If the file content is visible, it should contain test names, statistics, and p-values for the Portmanteau and Granger Causality tests."
+    },
+    {
+      "id": "irf_plot_created",
+      "description": "The IRF plot image is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for `irf_wage_unemployment.png` in the `/home/ga/RProjects/output/` directory."
+    },
+    {
+      "id": "irf_plot_correctness",
+      "description": "The IRF plot shows the response of 'U' to a shock in 'rw' over 10 steps.",
+      "points": 25,
+      "visual_evidence": "The plot itself should be visible in an image viewer or RStudio plots pane, with titles or axis labels indicating an Impulse Response from 'rw' to 'U' over 10 steps."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The agent executed the R script in a genuine R environment.",
+      "visual_evidence": "Look for R console output, terminal execution of `Rscript`, or RStudio execution logs showing the script running without errors."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected outputs.",
+      "visual_evidence": "The script should contain dynamic R function calls (e.g., `VARselect`, `VAR`, `serial.test`, `causality`) and write their outputs to files, rather than containing hardcoded strings or numbers for the CSV files."
+    },
+    {
+      "id": "actual_plot_generation",
+      "description": "The IRF plot is generated programmatically.",
+      "visual_evidence": "The script should contain code like `png(...)`, `plot(irf(...))`, and `dev.off()` to generate the image, rather than a pre-existing image being moved or copied."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected optimal lag based on AIC is 3 (values of 2 or 3 are acceptable). The variable ordering in the VAR model must strictly be 'prod', 'e', 'U', 'rw'. The script must be saved at /home/ga/RProjects/var_analysis.R. The output files must be saved exactly at /home/ga/RProjects/output/var_selection.csv, /home/ga/RProjects/output/var_diagnostics.csv, and /home/ga/RProjects/output/irf_wage_unemployment.png."
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "analyze_customer_tenure@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "Open the Chinook database in LibreOffice Base",
+      "points": 10,
+      "visual_evidence": "LibreOffice Base window is open with 'chinook.odb' visible in the title bar or database pane."
+    },
+    {
+      "id": "calculate_tenure",
+      "description": "Calculate customer tenure in days",
+      "points": 30,
+      "visual_evidence": "In the Query Design view or SQL view, there is a calculation for the difference between the maximum and minimum invoice dates (e.g., using DATEDIFF with MIN and MAX functions on the invoice date column)."
+    },
+    {
+      "id": "filter_tenure",
+      "description": "Filter for customers with tenure exceeding 1095 days",
+      "points": 20,
+      "visual_evidence": "Look for '> 1095' in the Criterion row under the tenure column in Design view, or a HAVING/WHERE clause with '> 1095' in SQL view."
+    },
+    {
+      "id": "sort_descending",
+      "description": "Sort the results by tenure in descending order",
+      "points": 20,
+      "visual_evidence": "Look for 'Descending' in the Sort row under the tenure column in Design view, or an 'ORDER BY ... DESC' clause in SQL view."
+    },
+    {
+      "id": "save_query",
+      "description": "Save the query as 'LongTermLoyalty'",
+      "points": 20,
+      "visual_evidence": "The Queries pane in the main LibreOffice Base window shows a query named 'LongTermLoyalty', or the query window title bar displays 'LongTermLoyalty'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the LibreOffice Base GUI to create the query",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Base application interface, not just terminal commands or scripts."
+    },
+    {
+      "id": "no_text_editor_mockup",
+      "description": "Agent did not mock up the query in a text editor",
+      "visual_evidence": "The query is constructed and saved within the actual LibreOffice Base Query Design or SQL View dialogs, not a text editor like gedit or nano."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. The query must use HSQLDB 1.8 functions (e.g., DATEDIFF, MIN, MAX) to calculate the difference between the first and last invoice dates. The filter threshold is 1095 days. All 59 customers in the database actually have a tenure exceeding 1095 days (ranging from 1151 to 1788 days), so if the query is executed, it should return exactly 59 records."
+}

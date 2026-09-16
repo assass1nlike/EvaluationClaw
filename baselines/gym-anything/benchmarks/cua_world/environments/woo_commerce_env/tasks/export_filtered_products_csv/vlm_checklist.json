@@ -1,0 +1,53 @@
+{
+  "task_id": "export_filtered_products_csv@1",
+  "task_completion": [
+    {
+      "id": "access_woocommerce_export",
+      "description": "Navigate to the WooCommerce Product Export page.",
+      "points": 10,
+      "visual_evidence": "WordPress admin dashboard is visible, specifically the 'Export Products' screen showing dropdowns for columns, product types, and categories."
+    },
+    {
+      "id": "select_clothing_category",
+      "description": "Filter the export to only include the 'Clothing' category.",
+      "points": 20,
+      "visual_evidence": "The dropdown labeled 'Which product category should be exported?' has 'Clothing' selected."
+    },
+    {
+      "id": "select_specific_columns",
+      "description": "Limit the export to the required columns (SKU, Name, Regular price).",
+      "points": 30,
+      "visual_evidence": "The dropdown labeled 'Which columns should be exported?' contains exactly 'SKU', 'Name', and 'Regular price'. No other columns should be visible in this selection field."
+    },
+    {
+      "id": "generate_csv_download",
+      "description": "Initiate the CSV generation and download process.",
+      "points": 10,
+      "visual_evidence": "The 'Generate CSV' button is clicked, or a browser download prompt/notification appears for the exported WooCommerce CSV file."
+    },
+    {
+      "id": "save_to_correct_path",
+      "description": "Save the file to the specified path with the correct name.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog, file manager window, or terminal showing the file named 'clothing_prices.csv' located inside the '/home/ga/Documents' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_woocommerce_gui",
+      "description": "Verify the agent used the WooCommerce web interface to generate the export.",
+      "visual_evidence": "Screenshots should show interaction with the WordPress/WooCommerce admin panel in a web browser, not just terminal commands like WP-CLI."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "Verify the agent actually exported the data rather than manually creating a file.",
+      "visual_evidence": "The 'Generate CSV' button being clicked or a browser download initiated from the WooCommerce page, rather than opening a text editor or spreadsheet app to manually type product data."
+    },
+    {
+      "id": "no_manual_renaming_only",
+      "description": "Verify the agent didn't just rename an existing unrelated CSV file.",
+      "visual_evidence": "The file 'clothing_prices.csv' should clearly originate from the browser download of the WooCommerce export."
+    }
+  ],
+  "privileged_info_for_vlm": "Target category is 'Clothing'. Required columns are exactly 'SKU', 'Name', and 'Regular price'. Output file must be saved to '/home/ga/Documents/clothing_prices.csv'. Ensure no forbidden columns (e.g., Description, Short description, Stock, Weight, Length) are selected in the WooCommerce export UI."
+}

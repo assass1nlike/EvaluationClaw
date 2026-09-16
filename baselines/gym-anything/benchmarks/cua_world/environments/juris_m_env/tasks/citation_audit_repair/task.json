@@ -1,0 +1,47 @@
+{
+  "id": "citation_audit_repair@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "You are a law review editor auditing a Juris-M library of 10 court cases that were imported with citation errors. Examine each case and correct all errors to ensure they accurately reflect United States Supreme Court decisions. This includes correcting reporters (changing 'F.2d' or 'F.3d' to 'U.S.'), updating court fields from district courts to the Supreme Court, fixing incorrect years, and replacing '999' page number placeholders with the correct first page numbers. After auditing the records, tag every case with 'audited' and add all 10 cases to a new collection named 'Audited Cases'. Login: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/citation_audit_repair/setup_task.sh",
+    "post_task": "/workspace/tasks/citation_audit_repair/export_result.sh"
+  },
+  "metadata": {
+    "total_cases": 10,
+    "wrong_reporter_cases": [
+      "Mapp v. Ohio",
+      "United States v. Leon",
+      "Weeks v. United States"
+    ],
+    "correct_reporter": "U.S.",
+    "wrong_court_cases": [
+      "Illinois v. Gates",
+      "Bivens v. Six Unknown Named Agents of Federal Bureau of Narcotics"
+    ],
+    "correct_court": "United States Supreme Court",
+    "wrong_year_case": "United States v. Cortez",
+    "correct_year": "1981",
+    "wrong_page_cases": [
+      "Terry v. Ohio",
+      "Katz v. United States"
+    ],
+    "correct_pages": {
+      "Terry v. Ohio": "1",
+      "Katz v. United States": "347"
+    },
+    "required_tag": "audited",
+    "required_collection": "Audited Cases"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_citation_audit_repair"
+    }
+  }
+}

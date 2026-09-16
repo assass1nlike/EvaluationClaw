@@ -1,0 +1,53 @@
+{
+  "task_id": "library_collections_audit@1",
+  "task_completion": [
+    {
+      "id": "connect_to_database",
+      "description": "Connect to the Oracle database",
+      "points": 10,
+      "visual_evidence": "Terminal or SQL client showing a successful connection to the Oracle database (XEPDB1) as the user 'library_admin'."
+    },
+    {
+      "id": "create_weeding_list_vw",
+      "description": "Create the WEEDING_LIST_VW view",
+      "points": 25,
+      "visual_evidence": "Execution of a CREATE VIEW or CREATE MATERIALIZED VIEW statement for WEEDING_LIST_VW, or a SELECT query on this view returning 2 rows (specifically bib_num 1003)."
+    },
+    {
+      "id": "create_purchase_recommendations_vw",
+      "description": "Create the PURCHASE_RECOMMENDATIONS_VW view",
+      "points": 25,
+      "visual_evidence": "Execution of a CREATE VIEW or CREATE MATERIALIZED VIEW statement for PURCHASE_RECOMMENDATIONS_VW, or a SELECT query on this view returning 3 rows (specifically bib_nums 1001, 1004, 1005)."
+    },
+    {
+      "id": "detect_broken_hold_queues",
+      "description": "Detect broken hold queues (phantom holds)",
+      "points": 20,
+      "visual_evidence": "A SQL query or output identifying broken hold queues, specifically returning 2 phantom holds (Hold IDs 6 and 7)."
+    },
+    {
+      "id": "summarize_circulation_turnover",
+      "description": "Summarize circulation turnover",
+      "points": 20,
+      "visual_evidence": "A SQL query or output calculating the circulation turnover rate, specifically showing the '800s' category with a rate of 1.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with the Oracle database using a SQL client rather than just writing SQL in a text editor.",
+      "visual_evidence": "Screenshots show a SQL client (like SQL*Plus, SQLcl, or DBeaver) with executed queries and database responses, not just a text editor with SQL scripts."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent executed queries to find the results rather than hardcoding the expected answers.",
+      "visual_evidence": "The outputs (like 2 items, 3 titles, Hold IDs 6 and 7) are the result of executed SQL queries, not manually typed echo or print statements."
+    },
+    {
+      "id": "genuine_view_creation",
+      "description": "The views were actually created in the database.",
+      "visual_evidence": "A 'View created' or 'Materialized view created' message is visible in the SQL client output."
+    }
+  ],
+  "privileged_info_for_vlm": "The database connection is library_admin/Library2024 on XEPDB1. Expected results: WEEDING_LIST_VW should contain 2 items (bib_num 1003). PURCHASE_RECOMMENDATIONS_VW should contain 3 titles (bib_nums 1001, 1004, 1005). There are 2 phantom holds (Hold IDs 6 and 7). The collection turnover rate for the '800s' category is 1.0 (2 checkouts / 2 items). The final results might be exported to /tmp/library_result.json."
+}

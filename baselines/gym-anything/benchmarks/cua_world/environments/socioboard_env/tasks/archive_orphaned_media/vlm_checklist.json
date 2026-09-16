@@ -1,0 +1,53 @@
+{
+  "task_id": "archive_orphaned_media@1",
+  "task_completion": [
+    {
+      "id": "query_database",
+      "description": "Access and query the MongoDB database to retrieve active media records.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a MongoDB client (like mongosh) or a script (e.g., Python with pymongo) connecting to the 'socioboard' database and querying the 'user_media' collection."
+    },
+    {
+      "id": "inspect_source_directory",
+      "description": "Inspect the physical files in the source media directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands like 'ls' or script logic accessing the directory '/opt/socioboard/socioboard-api/publish/media_uploads/'."
+    },
+    {
+      "id": "execute_reconciliation",
+      "description": "Compare physical files against database records to identify orphaned files.",
+      "points": 30,
+      "visual_evidence": "A script (Python, Bash, etc.) or a sequence of terminal commands that explicitly compares the 'file_name' field from the database records with the files present in the source directory."
+    },
+    {
+      "id": "move_orphaned_files",
+      "description": "Move the identified orphaned files to the archive directory.",
+      "points": 25,
+      "visual_evidence": "Terminal showing 'mv' commands, script execution moving files, or an 'ls' command of '/home/ga/archive_orphaned/' showing the successfully moved orphaned files."
+    },
+    {
+      "id": "create_orphan_report",
+      "description": "Create a plain-text report containing the exact count of moved orphaned files.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the creation or content of '/home/ga/orphan_report.txt' (e.g., via 'echo', 'cat', or a text editor) containing a single integer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "Verify the agent actually queried the database to find active files.",
+      "visual_evidence": "Look for actual database queries or connection scripts. The agent should not hardcode file names or guess which files are orphaned without checking the 'socioboard' database."
+    },
+    {
+      "id": "moved_not_copied_or_deleted",
+      "description": "Verify the agent moved the files rather than copying or deleting them.",
+      "visual_evidence": "Look for 'mv' commands or equivalent script methods (like shutil.move). The agent should not use 'cp' (which leaves the original) or 'rm' (which destroys the file instead of archiving)."
+    },
+    {
+      "id": "genuine_report_count",
+      "description": "Verify the reported count matches the actual operation.",
+      "visual_evidence": "The integer written to the report should be the result of a programmatic count (e.g., a counter in a script or piping 'wc -l') rather than a hallucinated or hardcoded number."
+    }
+  ],
+  "privileged_info_for_vlm": "Source directory: /opt/socioboard/socioboard-api/publish/media_uploads/. Archive directory: /home/ga/archive_orphaned/. Report path: /home/ga/orphan_report.txt. Database: socioboard. Collection: user_media. The agent must reconcile files in the source directory against the 'file_name' field in the database collection, move the orphans to the archive directory, and write the exact count of moved files to the report path."
+}

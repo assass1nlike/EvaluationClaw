@@ -1,0 +1,59 @@
+{
+  "task_id": "target_telemetry_microservice@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The Python microservice script is created at the correct location.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing a file named 'telemetry_service.py' located in '/home/ga/Desktop/'."
+    },
+    {
+      "id": "endpoint_port_configured",
+      "description": "The script is configured to listen on port 8000 and expose the /api/inst/status route.",
+      "points": 15,
+      "visual_evidence": "Code visible in the editor showing route definitions (e.g., '@app.route(\"/api/inst/status\")' or FastAPI equivalent) and server binding to port 8000."
+    },
+    {
+      "id": "token_read_logic",
+      "description": "The script includes logic to read the COSMOS authentication token.",
+      "points": 15,
+      "visual_evidence": "Code visible in the editor showing file reading operations targeting the exact path '/home/ga/.cosmos_token'."
+    },
+    {
+      "id": "cosmos_api_query",
+      "description": "The script queries the OpenC3 COSMOS API for the required telemetry points.",
+      "points": 20,
+      "visual_evidence": "Code showing an HTTP request (e.g., using the 'requests' library) to 'http://localhost:2900/openc3-api/api' and payload containing 'INST HEALTH_STATUS TEMP1', 'INST HEALTH_STATUS TEMP2', and 'INST HEALTH_STATUS CMD_ACPT_CNT'."
+    },
+    {
+      "id": "response_schema_formatting",
+      "description": "The script formats the response according to the required JSON schema.",
+      "points": 20,
+      "visual_evidence": "Code showing the construction of a dictionary or JSON object with the exact keys: 'satellite', 'service_status', 'telemetry' (containing 'temperature_1', 'temperature_2', 'commands_accepted'), and 'timestamp'."
+    },
+    {
+      "id": "service_running",
+      "description": "The microservice is actively running and accessible.",
+      "points": 20,
+      "visual_evidence": "A terminal window showing the Python script actively running (e.g., Flask/Uvicorn/FastAPI startup logs indicating it is listening on port 8000), or a successful 'curl' test to 'http://localhost:8000/api/inst/status' returning the JSON payload."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_telemetry",
+      "description": "The agent did not hardcode the telemetry values in the script.",
+      "visual_evidence": "The script dynamically extracts 'temperature_1', 'temperature_2', and 'commands_accepted' from the COSMOS API response variables rather than returning static numbers."
+    },
+    {
+      "id": "genuine_api_interaction",
+      "description": "The agent actually queries the COSMOS API rather than mocking the entire response.",
+      "visual_evidence": "The code contains HTTP request library imports (like 'requests', 'httpx', or 'urllib') and makes actual network calls to localhost:2900."
+    },
+    {
+      "id": "service_process_active",
+      "description": "The service is genuinely running in a terminal.",
+      "visual_evidence": "A terminal window remains open with the running server process blocking the prompt, indicating a continuous listening state, rather than just returning to the command prompt immediately."
+    }
+  ],
+  "privileged_info_for_vlm": "The microservice must run on port 8000 and expose the route '/api/inst/status'. Ensure the script code targets the COSMOS API at 'http://localhost:2900/openc3-api/api' and reads the token from '/home/ga/.cosmos_token'. The evaluation script will test this endpoint and write the results to '/tmp/microservice_test_result.json'."
+}

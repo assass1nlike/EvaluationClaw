@@ -1,0 +1,39 @@
+{
+  "id": "color_deconvolution@1",
+  "name": "Perform Color Deconvolution on Histology Image",
+  "description": "You have access to Fiji with a histology sample image. Perform color deconvolution on the 'HeLa Cells (1.3M, 48-bit RGB)' sample image to separate the stain components. Save the first resulting channel (Colour_1) to ~/Fiji_Data/results/channel_1.png and the second resulting channel (Colour_2) to ~/Fiji_Data/results/channel_2.png. Record the measurement statistics for the first channel and save them to ~/Fiji_Data/results/channel_1_stats.csv.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "image_name": "HeLa Cells",
+    "technique": "Colour Deconvolution",
+    "expected_outputs": [
+      "channel_1.png",
+      "channel_2.png",
+      "channel_1_stats.csv"
+    ],
+    "data_source": "Fiji built-in sample (HeLa cells fluorescence)",
+    "application": "Separating multiple stains in histology images"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/color_deconvolution/setup_task.sh",
+    "post_task": "/workspace/tasks/color_deconvolution/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_color_deconvolution"
+    }
+  },
+  "difficulty": "medium",
+  "tags": [
+    "histology",
+    "color-deconvolution",
+    "staining",
+    "image-separation",
+    "pathology"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "dataset_id": "708fdb85",
+  "name": "Medical-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 202,
+  "description": "A medical question-answering dataset where each sample pairs a patient's free-text health query describing symptoms, diagnosis, or treatment concerns with a doctor-style informational answer. It evaluates open-ended medical question answering grounded in the patient's narrative.",
+  "card_text": "Medical-Question-Answering consists of 202 text-only samples in a simple input/output format. The input is a first-person patient query in which the user describes a medical situation: their diagnosis (e.g., stage 3 ovarian cancer), ongoing treatments (surgery, chemotherapy, PRP injections, an air boot), symptoms (fatigue, loss of appetite, foot pain), and an explicit request for guidance about what will or should happen next. The output is a paragraph-length response written in a reassuring clinician tone, offering probable prognosis, expected symptoms, treatment and self-care recommendations, and advice to consult a doctor. The language is conversational and emotionally engaged rather than encyclopedic, and answers are advisory and non-diagnostic. The dataset therefore probes open-ended, real-world medical QA grounded in unstructured patient narratives.",
+  "tasks": [
+    "question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "medical QA",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "narrative",
+        "semantics": "A first-person patient query that narrates a personal medical situation, including diagnosis, treatments, symptoms, and an explicit request for guidance or prognosis. It serves as the sole input the model must read and respond to.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "A clinician-style informational reply that addresses the patient's concern by explaining likely prognosis, expected symptoms, and recommended next steps or self-care. It relates directly to the question as a targeted, advisory response.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains exactly two components: a question field under input.question, which is a self-contained first-person patient narrative describing a medical condition, its symptoms, treatments, and a request for advice, and an answer field under output.answer, a paragraph-length clinician-style response giving prognosis, expected symptoms, and treatment guidance. There is no separate context passage, no multiple-choice options, no dialog turns, and no auxiliary annotations; the answer is conditioned solely on the patient query."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Medical-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Medical Question Answering",
+      "type": "OpenQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_location_extremes@1",
+  "task_completion": [
+    {
+      "id": "view_sund_rock_dives",
+      "description": "View the dives at the 'Sund Rock' location in the dive log application.",
+      "points": 15,
+      "visual_evidence": "The dive log application (Subsurface) is open, and the dive list is filtered or scrolled to show dives with 'Sund Rock' in the Location column."
+    },
+    {
+      "id": "view_deepest_dive_details",
+      "description": "Examine the details of the deepest dive at Sund Rock.",
+      "points": 15,
+      "visual_evidence": "The dive on 2010-12-05 is selected in the dive log application, with its depth (12.2 m or 12.19 m) visible in the UI."
+    },
+    {
+      "id": "view_longest_dive_details",
+      "description": "Examine the details of the longest dive at Sund Rock.",
+      "points": 15,
+      "visual_evidence": "The dive on 2010-12-04 is selected in the dive log application, with its duration (23:00) visible in the UI."
+    },
+    {
+      "id": "open_output_file",
+      "description": "Open a text editor or terminal to create the required output file.",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or terminal is open, showing the file path /home/ga/Documents/sund_rock_records.txt."
+    },
+    {
+      "id": "write_deepest_record",
+      "description": "Record the deepest dive in the text file using the exact requested format.",
+      "points": 20,
+      "visual_evidence": "The text 'Deepest: 2010-12-05, 12.2 m' (or 12.19 m) is typed into the output file."
+    },
+    {
+      "id": "write_longest_record",
+      "description": "Record the longest dive in the text file using the exact requested format.",
+      "points": 20,
+      "visual_evidence": "The text 'Longest: 2010-12-04, 23:00 min' is typed into the output file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "Agent used the dive log GUI application to find the dive data.",
+      "visual_evidence": "Screenshots show the Subsurface application open and being interacted with. The agent should not rely solely on terminal commands (like grep or python scripts) to parse the raw .ssrf XML file."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Agent actually created and saved the specified text file.",
+      "visual_evidence": "Screenshots show the text editor saving the file to the exact path /home/ga/Documents/sund_rock_records.txt, or terminal commands (like echo or cat) redirecting output to this specific file path."
+    },
+    {
+      "id": "no_hallucination_of_values",
+      "description": "Agent extracted the values from the application rather than hallucinating them.",
+      "visual_evidence": "The values written in the text file match the values the agent viewed in the Subsurface application during the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/sund_rock_records.txt. There are 4 real dives at 'Sund Rock'. The correct longest dive occurred on 2010-12-04 with a duration of 23:00 min. The correct deepest dive occurred on 2010-12-05 with a depth of 12.2 m (or 12.19 m). The agent must extract these correct values from the UI. (Note: Automated scripts parsing the raw file might incorrectly evaluate the depth as 0.0m due to XML structure, but the agent should be scored based on finding the correct 12.2m depth in the UI)."
+}

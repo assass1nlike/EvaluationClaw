@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_portfolio_summary@1",
+  "task_completion": [
+    {
+      "id": "jstock_opened",
+      "description": "JStock application is opened to view the data",
+      "points": 10,
+      "visual_evidence": "The JStock application window is visible on the screen, showing either the portfolio or watchlist tabs."
+    },
+    {
+      "id": "portfolio_summary_header",
+      "description": "Portfolio summary header and metadata are correct",
+      "points": 10,
+      "visual_evidence": "A text file named portfolio_summary.txt is visible, containing the 'PORTFOLIO SUMMARY' header, 'Portfolio Name: My Portfolio', and 'Number of Stocks: 3'."
+    },
+    {
+      "id": "portfolio_stock_details",
+      "description": "Portfolio stock details are accurately extracted and formatted",
+      "points": 30,
+      "visual_evidence": "The text file contains the stock details formatted exactly as '- <SYMBOL>: <UNITS> shares at $<PURCHASE_PRICE> = $<NET_PURCHASE_VALUE>' for AAPL, MSFT, and NVDA. The values must match the privileged info."
+    },
+    {
+      "id": "portfolio_total_value",
+      "description": "Total net purchase value is correctly calculated",
+      "points": 20,
+      "visual_evidence": "The text file contains the line 'Total Net Purchase Value: $52627.5'."
+    },
+    {
+      "id": "watchlist_summary",
+      "description": "Watchlist summary is accurately extracted and formatted",
+      "points": 30,
+      "visual_evidence": "The text file contains the 'WATCHLIST SUMMARY' header, 'Watchlist Name: My Watchlist', 'Number of Stocks: 5', and 'Stock Symbols: AAPL, MSFT, GOOGL, AMZN, NVDA' (all 5 symbols must be present)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "jstock_gui_used",
+      "description": "The agent used the JStock GUI to view the data",
+      "visual_evidence": "The JStock graphical user interface is visible in the screenshots. The agent did not bypass the GUI by directly reading the backend CSV files (e.g., ~/.jstock/...) using terminal commands."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "The output is saved to the correct file path",
+      "visual_evidence": "The text is saved to a file named portfolio_summary.txt in the home directory (~/), rather than just being printed to the terminal or left in an unsaved text editor buffer."
+    },
+    {
+      "id": "no_hallucination",
+      "description": "The agent extracted the actual values rather than hallucinating",
+      "visual_evidence": "The values in the text file match the privileged info and the data visible in the JStock application screenshots, proving the agent didn't just generate a mock summary."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/portfolio_summary.txt. Portfolio count: 3. Portfolio stocks: AAPL (100 shares at $185.2 = $18520.0), MSFT (50 shares at $374.5 = $18725.0), NVDA (25 shares at $615.3 = $15382.5). Total Net Purchase Value: $52627.5. Watchlist count: 5. Watchlist stocks: AAPL, MSFT, GOOGL, AMZN, NVDA."
+}

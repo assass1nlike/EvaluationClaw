@@ -1,0 +1,81 @@
+{
+  "dataset_id": "0d657407",
+  "name": "Gun-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A dataset for detecting guns in images. Each sample pairs an image with a user-defined prompt and provides ground-truth bounding boxes for firearms. It evaluates object detection capabilities in safety and security contexts.",
+  "card_text": "The Gun-Detection dataset is an image-text benchmark for firearm detection. Each of the 200 samples contains an input image (referenced by file path) and a short textual prompt that instructs a model to detect guns. The ground-truth output is a list of bounding boxes, each keyed by the class 'Guns' and represented as [x, y, width, height] coordinates. Images show various scenes containing guns, and annotations localize each firearm instance. The dataset assumes a single object category ('Guns') and focuses on visual detection rather than classification or description. Prompts are generic placeholders that can be adapted for different models. The task requires models to process visual content and produce precise spatial coordinates for detected firearms.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "gun detection / security",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The input image in which the model must detect guns. It is the primary visual content, and its file path is provided relative to the dataset root.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A user-defined prompt that instructs the model to perform gun detection on the accompanying image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of bounding boxes for detected guns. Each entry is a dictionary mapping the class label 'Guns' to a four-value list of coordinates (x, y, width, height) that localizes a gun in the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image file path and a text prompt, and an output object containing a list of bounding boxes. The image serves as the visual context, the prompt acts as an instruction for gun detection, and the bounding boxes provide the spatial annotations for the 'Guns' class in (x, y, width, height) format."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/gun-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "gun-detection",
+      "type": "comprehension",
+      "skill": "Safety Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

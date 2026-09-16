@@ -1,0 +1,81 @@
+{
+  "dataset_id": "aba793f0",
+  "name": "Rgbd Semantic Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image",
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 261,
+  "description": "The dataset is designed for RGBD semantic segmentation, where the model receives an RGB image, a depth image, and a text prompt, and must output a pixel-wise semantic segmentation mask. It evaluates a model's ability to fuse RGB and depth information to segment indoor scenes.",
+  "card_text": "This dataset contains 261 samples for RGBD semantic segmentation. Each sample includes an RGB image and a corresponding depth map as visual inputs, along with a short textual instruction to perform segmentation. The output is a semantic segmentation mask where each pixel is assigned a class label. The images are likely indoor scenes with multiple objects, requiring the model to understand both appearance and geometry. The text prompt is consistently 'Perform RGBD semantic segmentation on the image'. The dataset is intended to benchmark multimodal models that can process visual and textual inputs to produce dense prediction outputs. It assumes the model can leverage depth information in addition to RGB to improve segmentation accuracy.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "RGBD semantic segmentation",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file",
+          "input.depth_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "RGB and depth images of indoor scenes that serve as the visual context for segmentation.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A textual instruction directing the model to perform RGBD semantic segmentation on the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A semantic segmentation mask where each pixel is assigned a class label, representing the target output.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an RGB image and a depth image as visual context, a short text prompt instructing the model to perform segmentation, and a corresponding segmentation mask as the target output. The images and prompt are inputs, while the mask is the answer. The depth image provides additional geometric information alongside the RGB image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/rgbd_semantic_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "RGBD semantic segmentation",
+      "type": "comprehension",
+      "skill": "RGBD Semantic Segmentation (RGBD-Sem Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

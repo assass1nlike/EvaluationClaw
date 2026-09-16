@@ -1,0 +1,53 @@
+{
+  "task_id": "create_prp_dual_task@1",
+  "task_completion": [
+    {
+      "id": "conditions_file_created",
+      "description": "Checks if prp_conditions.csv was created with the required columns and at least 10 rows.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet or text editor showing a file named prp_conditions.csv with columns: tone_freq, letter, soa, corr_resp_tone, corr_resp_letter, and at least 10 rows of trial data containing mixed tones, letters, and SOAs."
+    },
+    {
+      "id": "experiment_file_saved",
+      "description": "Checks if the PsychoPy experiment is saved to the correct path.",
+      "points": 10,
+      "visual_evidence": "PsychoPy Builder window open with the title bar or save dialog showing 'prp_task.psyexp' in the /home/ga/PsychoPyExperiments/ directory."
+    },
+    {
+      "id": "stimuli_components_configured",
+      "description": "Checks if the trial routine has fixation, auditory, and visual stimuli with correct timings.",
+      "points": 25,
+      "visual_evidence": "PsychoPy Builder timeline or component properties showing a fixation component starting at 0.5s, an auditory/sound component starting at 0.5s, and a visual/text component starting at a variable time (e.g., $0.5 + soa or similar)."
+    },
+    {
+      "id": "response_components_configured",
+      "description": "Checks if keyboard responses are recorded for 3.0s without terminating the routine.",
+      "points": 20,
+      "visual_evidence": "Keyboard component properties dialog showing the 'Force end of Routine' checkbox is UNCHECKED, and the duration/stop time is set to 3.0s."
+    },
+    {
+      "id": "loop_linked_to_conditions",
+      "description": "Checks if the trial routine is wrapped in a loop using the conditions file.",
+      "points": 25,
+      "visual_evidence": "PsychoPy Builder Flow panel showing a loop around the trial routine, and the loop properties dialog showing the 'Conditions' field populated with 'prp_conditions.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_psychopy_gui",
+      "description": "Verifies the agent used the PsychoPy Builder GUI to create the experiment.",
+      "visual_evidence": "Screenshots show the PsychoPy Builder interface being actively used to add components and configure the experiment, rather than a text editor writing the .psyexp file directly."
+    },
+    {
+      "id": "genuine_csv_creation",
+      "description": "Verifies the CSV was created by the agent.",
+      "visual_evidence": "Screenshots show the agent typing or generating the CSV content in a spreadsheet app, text editor, or terminal, rather than copying a pre-existing file."
+    },
+    {
+      "id": "no_hardcoded_soa",
+      "description": "Verifies the SOA is actually variable and not hardcoded to a single value in the visual component.",
+      "visual_evidence": "The visual component's start time should reference a variable (like $soa) rather than a fixed number (like 0.6)."
+    }
+  ],
+  "privileged_info_for_vlm": "The conditions file must be saved at /home/ga/PsychoPyExperiments/prp_conditions.csv and contain at least 10 rows. The experiment file must be saved at /home/ga/PsychoPyExperiments/prp_task.psyexp. The conditions file must include columns for tone_freq, letter, soa, corr_resp_tone, and corr_resp_letter."
+}

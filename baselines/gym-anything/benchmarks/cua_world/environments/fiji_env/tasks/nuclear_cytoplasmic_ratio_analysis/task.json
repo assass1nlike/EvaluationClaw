@@ -1,0 +1,35 @@
+{
+  "id": "nuclear_cytoplasmic_ratio_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a pharmacologist performing a nuclear translocation assay to measure the Nuclear-to-Cytoplasmic (N/C) intensity ratio of a protein in a single cell. Using 'cell_dapi.tif' (nuclear marker) and 'cell_signal.tif' (protein signal) from ~/Fiji_Data/raw/translocation/, define a nuclear ROI and a cytoplasmic ROI consisting of a 15-pixel band surrounding the nucleus that excludes the nuclear area. Calculate the N/C ratio based on the Mean Gray Values of the protein signal within these two regions. Save the calculated ratio to ~/Fiji_Data/results/translocation/ratio_report.txt and export the ROIs to ~/Fiji_Data/results/translocation/rois.zip.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nuclear_cytoplasmic_ratio_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/nuclear_cytoplasmic_ratio_analysis/export_result.sh"
+  },
+  "metadata": {
+    "dapi_path": "~/Fiji_Data/raw/translocation/cell_dapi.tif",
+    "signal_path": "~/Fiji_Data/raw/translocation/cell_signal.tif",
+    "report_path": "~/Fiji_Data/results/translocation/ratio_report.txt",
+    "rois_path": "~/Fiji_Data/results/translocation/rois.zip",
+    "enlarge_pixels": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_translocation_ratio"
+    }
+  },
+  "tags": [
+    "biology",
+    "roi-manager",
+    "measurements",
+    "ratio-analysis"
+  ]
+}

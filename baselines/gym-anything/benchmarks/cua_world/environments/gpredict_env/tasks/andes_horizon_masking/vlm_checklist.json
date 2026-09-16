@@ -1,0 +1,53 @@
+{
+  "task_id": "andes_horizon_masking@1",
+  "task_completion": [
+    {
+      "id": "ground_station_creation",
+      "description": "Verify the creation of the 'Santiago_UChile' ground station with correct coordinates and altitude.",
+      "points": 20,
+      "visual_evidence": "Look for a 'New ground station' or 'Edit ground station' dialog in GPredict showing Name: 'Santiago_UChile', Latitude: 33.4500 S (or -33.45), Longitude: 70.6600 W (or -70.66), and Altitude: 520."
+    },
+    {
+      "id": "horizon_mask_configuration",
+      "description": "Verify the horizon mask file is loaded for the ground station.",
+      "points": 20,
+      "visual_evidence": "In the ground station configuration dialog, check if the 'Horizon file' or 'Horizon' field points to the exact path '/home/ga/Documents/andes_mask.txt'."
+    },
+    {
+      "id": "module_creation_and_binding",
+      "description": "Verify the creation of the 'Andes_EO' module bound to the 'Santiago_UChile' ground station.",
+      "points": 20,
+      "visual_evidence": "Look for a 'New module' or 'Module properties' dialog showing the module name as 'Andes_EO' and the selected ground station (QTH) dropdown set to 'Santiago_UChile'."
+    },
+    {
+      "id": "satellite_selection",
+      "description": "Verify the correct satellites are added to the 'Andes_EO' module.",
+      "points": 20,
+      "visual_evidence": "In the module configuration dialog, the list of 'Selected Satellites' must include SUOMI NPP (37849), FENGYUN 3A (32958), and FENGYUN 3B (37214)."
+    },
+    {
+      "id": "map_orbit_settings",
+      "description": "Verify the map settings are configured to display exactly 4 orbits for the ground track.",
+      "points": 20,
+      "visual_evidence": "Look for the module's map configuration or properties dialog (often under 'Map' or 'Ground Track' settings) showing the 'Number of orbits' or 'Ground track' value set to 4."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Ensure the agent used the GPredict GUI to configure the settings rather than editing configuration files directly via terminal.",
+      "visual_evidence": "Screenshots should show GPredict dialog boxes being actively used. There should be no terminal windows open editing .config/Gpredict/ files with text editors like nano or vim."
+    },
+    {
+      "id": "actual_application_usage",
+      "description": "Verify the agent is interacting with the actual GPredict application.",
+      "visual_evidence": "The GPredict main window and its standard UI elements (maps, satellite lists, menus) should be visible."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Ensure the agent didn't just write a text file with the expected answers.",
+      "visual_evidence": "The configuration must be within the GPredict application's specific input fields, not typed out in a generic text editor or terminal echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Ground Station Name: 'Santiago_UChile'. Coordinates: Latitude 33.45 S (or -33.45), Longitude 70.66 W (or -70.66), Altitude 520m. Horizon mask file path: '/home/ga/Documents/andes_mask.txt'. Target Module Name: 'Andes_EO'. Required Satellites: SUOMI NPP (NORAD 37849), FENGYUN 3A (NORAD 32958), and FENGYUN 3B (NORAD 37214). Expected ground track orbits: 4."
+}

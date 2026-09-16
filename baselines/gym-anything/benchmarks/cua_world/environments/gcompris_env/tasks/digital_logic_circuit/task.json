@@ -1,0 +1,31 @@
+{
+  "id": "digital_logic_circuit@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Construct a working AND gate circuit in the GCompris Digital Electronics activity using two switches, one AND gate, and one light bulb. Ensure both switches are toggled to the ON position so the light bulb is illuminated. Save a screenshot of the active circuit to ~/Documents/digital_circuit_success.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/digital_logic_circuit/setup_task.sh",
+    "post_task": "/workspace/tasks/digital_logic_circuit/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/home/ga/Documents/digital_circuit_success.png",
+    "activity_name": "Digital Electronics",
+    "components": [
+      "switch",
+      "and_gate",
+      "bulb"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_digital_logic_circuit"
+    }
+  }
+}

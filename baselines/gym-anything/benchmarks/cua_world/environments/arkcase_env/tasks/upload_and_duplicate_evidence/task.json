@@ -1,0 +1,29 @@
+{
+  "id": "upload_and_duplicate_evidence@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Upload the forensic evidence file 'Access_Logs_2025.xlsx' from your Documents folder to the 'Internal Audit - Unauthorized Access' case's Documents section. Create a working copy of this file named 'Access_Logs_Working_Copy.xlsx' in the same folder, ensuring the original remains unmodified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/upload_and_duplicate_evidence/setup_task.sh",
+    "post_task": "/workspace/tasks/upload_and_duplicate_evidence/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "case_title": "Internal Audit - Unauthorized Access",
+    "original_filename": "Access_Logs_2025.xlsx",
+    "copy_filename": "Access_Logs_Working_Copy.xlsx",
+    "source_path": "/home/ga/Documents/Access_Logs_2025.xlsx"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_upload_and_duplicate"
+    }
+  }
+}

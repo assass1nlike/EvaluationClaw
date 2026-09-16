@@ -1,0 +1,70 @@
+{
+  "id": "construction_pert_chart@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a PERT Chart (Network Diagram) for a construction renovation project based on the schedule provided in '~/Desktop/renovation_schedule.txt'. Represent each of the 10 tasks as a node labeled with the Task Name and Duration (e.g., 'Demolition (10d)'). Connect the nodes with arrows representing the dependencies. Identify and highlight the critical path sequence specified in the schedule file by styling those arrows to be red and thick (at least 3pt width). Save the diagram as '~/Desktop/pert_chart.drawio' and export it as a PNG image to '~/Desktop/pert_chart.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/construction_pert_chart/setup_task.sh",
+    "post_task": "/workspace/tasks/construction_pert_chart/export_result.sh"
+  },
+  "metadata": {
+    "schedule_file": "/home/ga/Desktop/renovation_schedule.txt",
+    "output_drawio": "/home/ga/Desktop/pert_chart.drawio",
+    "output_png": "/home/ga/Desktop/pert_chart.png",
+    "required_tasks": [
+      "Demolition",
+      "Structural Repair",
+      "Rough Plumbing",
+      "Rough Electrical",
+      "HVAC Install",
+      "Drywall",
+      "Painting",
+      "Flooring",
+      "Fixtures",
+      "Final Cleanup"
+    ],
+    "critical_path_edges": [
+      [
+        "Demolition",
+        "Structural Repair"
+      ],
+      [
+        "Structural Repair",
+        "HVAC Install"
+      ],
+      [
+        "HVAC Install",
+        "Drywall"
+      ],
+      [
+        "Drywall",
+        "Painting"
+      ],
+      [
+        "Painting",
+        "Flooring"
+      ],
+      [
+        "Flooring",
+        "Final Cleanup"
+      ]
+    ],
+    "non_critical_tasks": [
+      "Rough Plumbing",
+      "Rough Electrical",
+      "Fixtures"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_construction_pert_chart"
+    }
+  }
+}

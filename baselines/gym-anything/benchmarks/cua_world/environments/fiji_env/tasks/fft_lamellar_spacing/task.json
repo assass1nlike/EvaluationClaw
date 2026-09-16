@@ -1,0 +1,34 @@
+{
+  "id": "fft_lamellar_spacing@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Measure the average lamellar spacing of the eutectic microstructure in 'AuPbSn40.tif' using a spatial calibration of 0.49 µm/pixel. Isolate the lamellar structure using a bandpass filter (filtering structures larger than 40 pixels and smaller than 3 pixels) and perform an FFT analysis to determine the average peak-to-peak spacing in microns. Save the FFT Power Spectrum to ~/Fiji_Data/results/fft_analysis/fft_power_spectrum.png, the bandpass filtered image to ~/Fiji_Data/results/fft_analysis/bandpass_filtered.png, the line profile data to ~/Fiji_Data/results/fft_analysis/line_profile.csv, and a text report containing the phrase 'lamellar spacing' and the measured value in µm to ~/Fiji_Data/results/fft_analysis/spacing_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fft_lamellar_spacing/setup_task.sh",
+    "post_task": "/workspace/tasks/fft_lamellar_spacing/export_result.sh"
+  },
+  "metadata": {
+    "calibration_um_px": 0.49,
+    "ground_truth_path": "/var/lib/fiji_ground_truth/expected_spacing.txt",
+    "expected_files": [
+      "fft_power_spectrum.png",
+      "bandpass_filtered.png",
+      "line_profile.csv",
+      "spacing_report.txt"
+    ],
+    "output_dir": "/home/ga/Fiji_Data/results/fft_analysis",
+    "accuracy_tolerance_percent": 40
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fft_lamellar_spacing"
+    }
+  }
+}

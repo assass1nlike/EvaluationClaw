@@ -1,0 +1,27 @@
+{
+  "id": "http_session_timeline_reconstruction@1",
+  "version": "1.0",
+  "env_id": "wireshark_env@0.1",
+  "description": "A DFIR analyst needs to reconstruct the HTTP browsing session from a packet capture. Extract all HTTP packets (requests and responses) from /home/ga/Documents/captures/http.cap and produce a CSV file at /home/ga/Documents/captures/http_session_timeline.csv. The CSV must contain one row per HTTP packet, ordered by frame number, and include a header row with these columns: frame_number, time_relative, source_ip, destination_ip, http_method, http_request_uri, http_host, http_response_code, http_content_type, and frame_length. Ensure the fields capture the frame number, relative time in seconds, IPv4 addresses, HTTP request details (method, URI, host), HTTP response details",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/http_session_timeline_reconstruction/setup_task.sh",
+    "post_task": "/workspace/tasks/http_session_timeline_reconstruction/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "/home/ga/Documents/captures/http.cap",
+    "output_file": "/home/ga/Documents/captures/http_session_timeline.csv",
+    "expected_header": "frame_number,time_relative,source_ip,destination_ip,http_method,http_request_uri,http_host,http_response_code,http_content_type,frame_length",
+    "ground_truth_dir": "/var/lib/task/ground_truth"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_http_session_timeline"
+    }
+  }
+}

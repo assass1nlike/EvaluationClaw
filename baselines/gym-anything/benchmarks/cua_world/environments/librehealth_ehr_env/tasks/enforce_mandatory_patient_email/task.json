@@ -1,0 +1,32 @@
+{
+  "id": "enforce_mandatory_patient_email@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "As an administrator, configure the Patient Demographics layout in LibreHealth EHR to make the 'Email' field mandatory. Log in using Username: admin and Password: password.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enforce_mandatory_patient_email/setup_task.sh",
+    "post_task": "/workspace/tasks/enforce_mandatory_patient_email/export_result.sh"
+  },
+  "metadata": {
+    "target_field_id": "email",
+    "target_form_id": "DEM",
+    "expected_uor_value": 2,
+    "uor_mapping": {
+      "0": "Unused",
+      "1": "Optional",
+      "2": "Required"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enforce_mandatory_patient_email"
+    }
+  }
+}

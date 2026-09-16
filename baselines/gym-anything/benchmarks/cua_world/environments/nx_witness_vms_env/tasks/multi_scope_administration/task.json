@@ -1,0 +1,42 @@
+{
+  "id": "multi_scope_administration@1",
+  "version": "1.0",
+  "env_id": "nx_witness_vms_env@0.1",
+  "description": "You are the VMS administrator for a security operations company that has just onboarded a new retail client. Reconfigure the Nx Witness Web Admin at https://localhost:7001/static/index.html (credentials: admin / Admin1234!) to reflect the new client deployment. Rename the VMS system to 'RetailSecure Pro'. Create two operational monitoring layouts: 'Perimeter Surveillance' (containing the Parking Lot Camera and Entrance Camera) and 'Infrastructure Monitoring' (containing the Server Room Camera). Additionally, create a Viewer-level VMS user account for a technician with the login 'vendor.tech', full name 'Vendor Technician', email 'tech@vendor-security.com', and password 'VendorTech2024!'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multi_scope_administration/setup_task.sh",
+    "post_task": "/workspace/tasks/multi_scope_administration/export_result.sh"
+  },
+  "metadata": {
+    "target_system_name": "RetailSecure Pro",
+    "original_system_name": "GymAnythingVMS",
+    "layout_perimeter": {
+      "name": "Perimeter Surveillance",
+      "cameras": [
+        "Parking Lot Camera",
+        "Entrance Camera"
+      ]
+    },
+    "layout_infra": {
+      "name": "Infrastructure Monitoring",
+      "cameras": [
+        "Server Room Camera"
+      ]
+    },
+    "new_user_login": "vendor.tech",
+    "new_user_fullname": "Vendor Technician",
+    "new_user_email": "tech@vendor-security.com",
+    "pass_threshold": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_scope_administration"
+    }
+  }
+}

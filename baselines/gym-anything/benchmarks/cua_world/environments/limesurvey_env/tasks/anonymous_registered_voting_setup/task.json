@@ -1,0 +1,28 @@
+{
+  "id": "anonymous_registered_voting_setup@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a secure voting survey for the '2025 Employee Benefits Vote' in LimeSurvey (admin/Admin123!). The survey must be configured with anonymized responses and an initialized participant table. Include a custom token attribute named 'EmployeeID' (Description: 'Employee ID Number') and enable public registration. The registration email must use the subject 'Your Voting Link - 2025 Benefits' and include the phrase 'Your vote is anonymous' in the body.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/anonymous_registered_voting_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/anonymous_registered_voting_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "2025 Employee Benefits Vote",
+    "expected_attribute_name": "EmployeeID",
+    "expected_email_subject_part": "Your Voting Link",
+    "expected_email_body_part": "Your vote is anonymous"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anonymous_registered_voting"
+    }
+  }
+}

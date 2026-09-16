@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_input_type_noise_check@1",
+  "task_completion": [
+    {
+      "id": "synthetic_session_active",
+      "description": "Verify the OpenBCI GUI is running an 8-channel SYNTHETIC (CYTON) session.",
+      "points": 10,
+      "visual_evidence": "Look for 'Synthetic' and 'Cyton' indicators in the top control panel, session setup screen, or system status area of the OpenBCI GUI."
+    },
+    {
+      "id": "hardware_settings_panel_open",
+      "description": "Verify the Hardware Settings panel is open and visible.",
+      "points": 10,
+      "visual_evidence": "Look for a panel, dialog, or widget specifically displaying channel-by-channel hardware configurations (e.g., PGA Gain, Input Type, Bias) for the Cyton board."
+    },
+    {
+      "id": "channels_1_to_4_shorted",
+      "description": "Verify channels 1, 2, 3, and 4 have their input type configured to 'SHORTED'.",
+      "points": 30,
+      "visual_evidence": "In the Hardware Settings panel, the 'Input Type' column or dropdown for rows corresponding to channels 1, 2, 3, and 4 must explicitly show 'SHORTED'."
+    },
+    {
+      "id": "channels_5_to_8_normal",
+      "description": "Verify channels 5, 6, 7, and 8 have their input type configured to 'NORMAL'.",
+      "points": 20,
+      "visual_evidence": "In the Hardware Settings panel, the 'Input Type' column or dropdown for rows corresponding to channels 5, 6, 7, and 8 must explicitly show 'NORMAL'."
+    },
+    {
+      "id": "screenshot_saved_correctly",
+      "description": "Verify a screenshot of the hardware settings panel was saved to the specified path.",
+      "points": 30,
+      "visual_evidence": "Look for evidence of the screenshot being saved to '/home/ga/Documents/OpenBCI_GUI/Screenshots/noise_floor_config.png'. This could be a save dialog, a terminal command (like 'scrot' or 'gnome-screenshot') targeting that path, or a file manager showing the newly created file in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gui_interaction",
+      "description": "Verify the agent actually interacted with the OpenBCI GUI to change the settings.",
+      "visual_evidence": "Look for mouse clicks, dropdown menus being opened, or active UI states in the OpenBCI GUI, rather than just editing a configuration file in a text editor."
+    },
+    {
+      "id": "authentic_screenshot_capture",
+      "description": "Verify the screenshot was captured from the live system state.",
+      "visual_evidence": "The trajectory should show a screenshot tool being used or an internal GUI screenshot function being triggered, rather than downloading or moving a pre-existing image file."
+    },
+    {
+      "id": "no_image_manipulation",
+      "description": "Verify the agent did not use image editing software or scripts to fake the final screenshot.",
+      "visual_evidence": "Ensure there are no terminal commands using ImageMagick, Python PIL, or GUI image editors (like GIMP) to artificially overlay the text 'SHORTED' onto an image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected screenshot path is exactly '/home/ga/Documents/OpenBCI_GUI/Screenshots/noise_floor_config.png'. The target channels (1, 2, 3, 4) must have their Input Type set to 'SHORTED'. The default channels (5, 6, 7, 8) must remain at their default Input Type, which is 'NORMAL'. The OpenBCI_GUI source code confirms 'NORMAL' and 'SHORTED' are valid enum values for InputType."
+}

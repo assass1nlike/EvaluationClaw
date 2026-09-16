@@ -1,0 +1,47 @@
+{
+  "task_id": "sla_business_days_compliance@1",
+  "task_completion": [
+    {
+      "id": "holiday_table_created",
+      "description": "Create and populate the Sales.HolidayReference table with the 8 specified dates.",
+      "points": 20,
+      "visual_evidence": "SQL script or query results in Azure Data Studio showing the creation of 'Sales.HolidayReference' and insertion of the 8 holiday dates (e.g., 2011-05-30, 2011-07-04, etc.)."
+    },
+    {
+      "id": "function_created",
+      "description": "Create the scalar function dbo.fn_GetNetWorkingDays.",
+      "points": 30,
+      "visual_evidence": "SQL script in Azure Data Studio showing 'CREATE FUNCTION dbo.fn_GetNetWorkingDays' with logic to exclude weekends and holidays, exclusive of StartDate and inclusive of EndDate."
+    },
+    {
+      "id": "view_created",
+      "description": "Create the Sales.vw_ShippingSLABreach view with the required columns and filter.",
+      "points": 30,
+      "visual_evidence": "SQL script in Azure Data Studio showing 'CREATE VIEW Sales.vw_ShippingSLABreach' selecting SalesOrderID, OrderDate, ShipDate, CalendarDaysTaken, and BusinessDaysTaken, with a condition where BusinessDaysTaken > 3."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the top 100 rows of the view to sla_breaches.csv.",
+      "points": 20,
+      "visual_evidence": "A query selecting 'TOP 100' from the view ordered by BusinessDaysTaken DESC, and evidence of exporting to '/home/ga/Documents/sla_breaches.csv' (e.g., Save As dialog, file explorer showing the file, or terminal output)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_azure_data_studio",
+      "description": "The agent used Azure Data Studio to interact with the database.",
+      "visual_evidence": "Azure Data Studio interface should be visible with the SQL scripts being executed."
+    },
+    {
+      "id": "actual_database_used",
+      "description": "The queries were executed against the AdventureWorks2022 database.",
+      "visual_evidence": "The database context in Azure Data Studio should be set to 'AdventureWorks2022' (usually visible in the connection pane or query window header)."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The CSV export was generated from the database query results.",
+      "visual_evidence": "The export should originate from the query results grid in Azure Data Studio or a legitimate SQL export command, rather than being manually created in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The 8 required holidays are: 2011-05-30, 2011-07-04, 2011-09-05, 2011-11-24, 2011-12-25, 2012-01-01, 2012-05-28, 2012-07-04. The function must calculate business days exclusive of StartDate and inclusive of EndDate. Example calculations: 2011-07-08 to 2011-07-11 = 1 day; 2011-07-01 to 2011-07-05 = 1 day (excluding July 4); 2011-07-11 to 2011-07-14 = 3 days. The expected export path is /home/ga/Documents/sla_breaches.csv."
+}

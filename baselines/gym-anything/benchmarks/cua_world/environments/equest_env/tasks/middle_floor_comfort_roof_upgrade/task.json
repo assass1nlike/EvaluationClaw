@@ -1,0 +1,39 @@
+{
+  "id": "middle_floor_comfort_roof_upgrade@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "You are an energy auditor preparing a building energy certification submittal for the 4StoreyBuilding. Implement two approved energy conservation measures (ECMs) in the annual energy simulation. For ECM 1 (Zone Thermostat Reset for Middle Floor), set the design cooling setpoint (DESIGN-COOL-T) to 76°F and the design heating setpoint (DESIGN-HEAT-T) to 71°F for all conditioned Middle Floor (M.*) zones. For ECM 2 (High-Reflectance White Roof), set the solar absorptance (ABSORPTANCE) of the 'Roof Construction' to 0.35 to represent a Class A cool roof. Run the full annual DOE-2.2 simulation to quantify the combined energy savings and save the project.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\middle_floor_comfort_roof_upgrade\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\middle_floor_comfort_roof_upgrade\\export_result.ps1"
+  },
+  "metadata": {
+    "building_model": "4StoreyBuilding",
+    "target_middle_floor_zones": [
+      "South Perim Zn (M.S21)",
+      "East Perim Zn (M.E22)",
+      "North Perim Zn (M.N23)",
+      "West Perim Zn (M.W24)",
+      "Core Zn (M.C25)"
+    ],
+    "target_cool_t": 76,
+    "original_cool_t": 75,
+    "target_heat_t": 71,
+    "original_heat_t": 72,
+    "target_roof_absorptance": 0.35,
+    "original_roof_absorptance": 0.6,
+    "simulation_required": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_middle_floor_comfort_roof_upgrade"
+    }
+  }
+}

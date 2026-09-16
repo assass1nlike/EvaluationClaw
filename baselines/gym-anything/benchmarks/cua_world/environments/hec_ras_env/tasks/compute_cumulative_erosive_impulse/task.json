@@ -1,0 +1,28 @@
+{
+  "id": "compute_cumulative_erosive_impulse@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are an environmental engineer designing coir log bank stabilization for the Muncie flood model. Calculate the cumulative erosive impulse (integral of excess shear over time in hours) for the main channel at every cross-section where shear stress exceeds a critical threshold of 0.03 lb/ft². Identify the Critical River Station with the highest impulse. Save the cross-section data to ~/Documents/hec_ras_results/erosion_impulse.csv with columns: RiverStation, Max_Shear_lb_sq_ft, Duration_Above_Threshold_hr, and Cumulative_Impulse_lb_sq_ft_hr. Save a summary containing the Critical River Station and its impulse value to ~/Documents/hec_ras_results/erosion_summary.txt. Generate a plot of Shear Stress vs Time for the critical cross-section, including a horizontal line at the 0.03 threshold, to ~/Documents/hec_ras_results/critical_shear_plot.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_cumulative_erosive_impulse/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_cumulative_erosive_impulse/export_result.sh"
+  },
+  "metadata": {
+    "threshold_shear": 0.03,
+    "output_csv": "/home/ga/Documents/hec_ras_results/erosion_impulse.csv",
+    "output_summary": "/home/ga/Documents/hec_ras_results/erosion_summary.txt",
+    "output_plot": "/home/ga/Documents/hec_ras_results/critical_shear_plot.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_cumulative_erosive_impulse"
+    }
+  }
+}

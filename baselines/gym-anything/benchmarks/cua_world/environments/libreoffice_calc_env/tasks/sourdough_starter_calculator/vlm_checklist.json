@@ -1,0 +1,53 @@
+{
+  "task_id": "sourdough_starter_calculator@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the feeding log data in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the feeding log data with columns for Date, Time, Starter Weight, Flour Added, Water Added, Room Temp, and Hours Since Feed."
+    },
+    {
+      "id": "calculate_hydration",
+      "description": "Calculate the hydration percentage for each row.",
+      "points": 20,
+      "visual_evidence": "A new column is present for Hydration Percentage. The cells in this column should display 100 (or 100%) for all the data rows, as the test data has equal amounts of water and flour."
+    },
+    {
+      "id": "calculate_total_weight",
+      "description": "Calculate the total weight of the starter for each row.",
+      "points": 20,
+      "visual_evidence": "A new column is present for Total Weight. The cells should display the sum of starter, flour, and water weights (e.g., 150 for a row with 50g of each component)."
+    },
+    {
+      "id": "estimate_peak_time",
+      "description": "Estimate the peak time based on room temperature using conditional logic.",
+      "points": 25,
+      "visual_evidence": "A new column is present for Peak Time Estimation. The cells should display values of 5, 7, or 10 depending on the room temperature in that row."
+    },
+    {
+      "id": "determine_baking_readiness",
+      "description": "Determine baking readiness based on hours since feed and total weight.",
+      "points": 25,
+      "visual_evidence": "A new column is present for Baking Readiness. The cells should display 'NO' or 'FALSE' for all rows, because the hours since feed in the test data are all >= 11, which is outside the required 3-8 hour window."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_app",
+      "description": "The agent used a graphical spreadsheet application to perform the task.",
+      "visual_evidence": "The screenshots show a spreadsheet GUI (like LibreOffice Calc) being used, rather than a text editor or terminal commands modifying a CSV file directly."
+    },
+    {
+      "id": "formulas_visible",
+      "description": "The agent used actual formulas rather than hardcoding the answers.",
+      "visual_evidence": "When a calculated cell is selected in the screenshots, the formula bar at the top should show a spreadsheet formula (starting with '=') containing cell references or conditional logic (IF/AND), not just a typed number or text."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "The spreadsheet shows signs of genuine interaction and formatting.",
+      "visual_evidence": "The spreadsheet has newly added column headers for the calculated metrics, and the calculated results are properly aligned with the corresponding data rows."
+    }
+  ],
+  "privileged_info_for_vlm": "1. The dataset contains 8 rows of feeding logs.\n2. Hydration percentage formula: (Water_Added_g / Flour_Added_g) * 100. All test rows should result in exactly 100%.\n3. Total weight formula: Starter_Weight_g + Flour_Added_g + Water_Added_g.\n4. Peak time estimation mapping: >= 24\u00b0C -> 5 hours; >= 20\u00b0C -> 7 hours; < 20\u00b0C -> 10 hours.\n5. Baking readiness criteria: Hours_Since_Feed between 3 and 8 AND Total_Weight >= 150g. Since all test data has Hours_Since_Feed >= 11, all rows should evaluate to NO or FALSE.\n6. The task also expects a SUM of total flour and an AVERAGE of hydration, which might be visible at the bottom of the columns."
+}

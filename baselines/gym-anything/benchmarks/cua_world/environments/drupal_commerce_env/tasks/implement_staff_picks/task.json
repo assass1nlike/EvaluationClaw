@@ -1,0 +1,29 @@
+{
+  "id": "implement_staff_picks@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Implement a 'Staff Picks' feature for the Urban Electronics store by adding a boolean field labeled 'Staff Pick' (machine name: field_staff_pick) to the Product entity type (Default bundle). Configure the products 'Sony WH-1000XM5 Wireless Headphones' and 'Logitech MX Master 3S Wireless Mouse' as the only staff picks. Display these items in a 'Staff Picks' block view (showing Title and Price, limited to 5 items) placed in the 'Sidebar' or 'Sidebar First' region of the homepage. Access the site at http://localhost using admin / Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_staff_picks/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_staff_picks/export_result.sh"
+  },
+  "metadata": {
+    "field_machine_name": "field_staff_pick",
+    "target_products": [
+      "Sony WH-1000XM5 Wireless Headphones",
+      "Logitech MX Master 3S Wireless Mouse"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_staff_picks"
+    }
+  }
+}

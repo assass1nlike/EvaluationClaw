@@ -1,0 +1,48 @@
+{
+  "id": "post_mi_cardiac_workup@1",
+  "version": "1.0",
+  "env_id": "openmrs_env@0.1",
+  "description": "You are a critical care nurse in a cardiac intensive care unit. Patient Jesse Becker (DOB: 1943-02-04, 83-year-old male) was admitted 48 hours ago following a non-ST elevation myocardial infarction (NSTEMI). Based on recent rounds and consultations, document a moderate severity allergy to Codeine (reaction: nausea and vomiting), add Type 2 diabetes mellitus to his active problem list as a confirmed condition, and order a Creatinine (serum) test to monitor his renal function. Login: admin / Admin123. OpenMRS URL: http://localhost/openmrs/spa",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/post_mi_cardiac_workup/setup_task.sh",
+    "post_task": "/workspace/tasks/post_mi_cardiac_workup/export_result.sh"
+  },
+  "metadata": {
+    "patient_name": "Jesse Becker",
+    "patient_dob": "1943-02-04",
+    "result_file": "/tmp/post_mi_cardiac_workup_result.json",
+    "occupation_context": "Critical Care Nurse — cardiac ICU, post-NSTEMI documentation",
+    "features_tested": [
+      "allergy_documentation",
+      "condition_problem_list",
+      "lab_order"
+    ],
+    "expected_allergen": "codeine",
+    "expected_reaction": "nausea",
+    "expected_severity": "moderate",
+    "expected_condition_keywords": [
+      "diabet",
+      "type 2",
+      "t2dm",
+      "dm2",
+      "type ii"
+    ],
+    "expected_lab_keywords": [
+      "creatinine",
+      "serum creatinine",
+      "renal function"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_post_mi_cardiac_workup"
+    }
+  }
+}

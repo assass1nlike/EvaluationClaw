@@ -1,0 +1,59 @@
+{
+  "task_id": "provision_volume_migration@1",
+  "task_completion": [
+    {
+      "id": "mount_template_volume",
+      "description": "Mount the existing template volume.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt GUI showing '/home/ga/Volumes/onboarding_template.hc' in one of the mounted slots, or a terminal window showing a successful 'veracrypt' mount command for this path."
+    },
+    {
+      "id": "create_target_volume",
+      "description": "Create a new VeraCrypt volume at the specified target path.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt Volume Creation Wizard showing the volume location set to '/home/ga/Volumes/Issued/jdoe_chimera.hc', or a terminal command initiating volume creation at this path."
+    },
+    {
+      "id": "configure_volume_settings",
+      "description": "Configure the new volume with Serpent encryption, SHA-512, 20 MB size, and FAT filesystem.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt wizard screens showing 'Serpent' selected as the Encryption Algorithm, 'SHA-512' as the Hash Algorithm, '20 MB' in the Volume Size screen, and 'FAT' in the Volume Format screen (or equivalent CLI flags)."
+    },
+    {
+      "id": "mount_target_volume",
+      "description": "Mount the newly created target volume.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt GUI showing 'jdoe_chimera.hc' successfully mounted in an available slot, or a terminal window showing a successful mount command for the new volume."
+    },
+    {
+      "id": "copy_files_to_target",
+      "description": "Copy all files from the template volume to the new volume.",
+      "points": 30,
+      "visual_evidence": "File manager or terminal window showing the files 'Project_Chimera_Protocol.pdf', 'Emergency_Contact_List.csv', and 'Q3_Financial_Forecast.xlsx' present inside the mounted directory of the new 'jdoe_chimera.hc' volume."
+    },
+    {
+      "id": "dismount_all_volumes",
+      "description": "Dismount both the template and target volumes.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt GUI showing no volumes mounted (empty slots), or a terminal window showing a successful dismount command (e.g., 'veracrypt -d') executed at the end of the task."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "Verify the agent actually used VeraCrypt to create and mount the volumes.",
+      "visual_evidence": "Screenshots must show the VeraCrypt GUI or valid 'veracrypt' CLI commands being executed. The agent should not simply use 'touch' or 'dd' to create a fake '.hc' file."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "Verify the agent copied the actual files rather than creating empty dummy files.",
+      "visual_evidence": "Screenshots should show a file manager copy/paste operation or a terminal 'cp' command transferring files from the template mount point to the target mount point."
+    },
+    {
+      "id": "no_plaintext_password_bypass",
+      "description": "Verify the agent did not bypass the encryption by removing passwords or using unencrypted archives.",
+      "visual_evidence": "The VeraCrypt password prompts or CLI password flags should be visible, confirming the agent applied the required passwords ('TemplatePass123' and 'SerpentSecure2024!')."
+    }
+  ],
+  "privileged_info_for_vlm": "Template volume path: /home/ga/Volumes/onboarding_template.hc (Password: TemplatePass123). Target volume path: /home/ga/Volumes/Issued/jdoe_chimera.hc (Password: SerpentSecure2024!). Required encryption algorithm: Serpent. Expected files to be copied: Project_Chimera_Protocol.pdf, Emergency_Contact_List.csv, and Q3_Financial_Forecast.xlsx."
+}

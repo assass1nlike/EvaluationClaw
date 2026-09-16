@@ -1,0 +1,49 @@
+{
+  "id": "surveying_resection_three_point@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Perform a Three-Point Resection (Snellius-Pothenot problem) in GeoGebra to determine the coordinates of station point P, located south of three known landmarks: A=(-300, 200), B=(100, 500), and C=(400, -100). Use the 'Circle of Position' method (finding the intersection of two loci circles) based on measured horizontal angles APB = 40° and BPC = 70°. Save the completed construction as 'resection_solution.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/surveying_resection_three_point/setup_task.sh",
+    "post_task": "/workspace/tasks/surveying_resection_three_point/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "resection_solution.ggb",
+    "landmarks": {
+      "A": [
+        -300,
+        200
+      ],
+      "B": [
+        100,
+        500
+      ],
+      "C": [
+        400,
+        -100
+      ]
+    },
+    "angles": {
+      "APB": 40,
+      "BPC": 70
+    },
+    "expected_solution_P": [
+      6.64,
+      -225.56
+    ],
+    "solution_tolerance": 5.0,
+    "landmark_tolerance": 1.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_surveying_resection_three_point"
+    }
+  }
+}

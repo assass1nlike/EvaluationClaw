@@ -1,0 +1,47 @@
+{
+  "id": "broken_traceability_repair@1",
+  "version": "1.0",
+  "env_id": "reqview_env@0.1",
+  "description": "You are a systems engineer performing a post-migration audit of traceability links in a ReqView requirements project. Repair the corrupted satisfaction traceability links in the SRS document by ensuring the following requirements point to their correct NEEDS targets: SRS-72 to NEEDS-27, SRS-106 to NEEDS-17, SRS-132 to NEEDS-24, and SRS-137 to NEEDS-21. The application is already open with the project loaded.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/broken_traceability_repair/setup_task.sh",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "corrupted_links": [
+      {
+        "srs_id": "72",
+        "wrong_target": "NEEDS-999",
+        "correct_target": "NEEDS-27"
+      },
+      {
+        "srs_id": "106",
+        "wrong_target": "NEEDS-998",
+        "correct_target": "NEEDS-17"
+      },
+      {
+        "srs_id": "132",
+        "wrong_target": "NEEDS-997",
+        "correct_target": "NEEDS-24"
+      },
+      {
+        "srs_id": "137",
+        "wrong_target": "NEEDS-996",
+        "correct_target": "NEEDS-21"
+      }
+    ],
+    "target_document": "SRS"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_broken_traceability_repair"
+    }
+  }
+}

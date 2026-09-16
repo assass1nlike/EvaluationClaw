@@ -1,0 +1,25 @@
+{
+  "id": "plan_flight_route@1",
+  "env_id": "example.avare_env@0.1",
+  "difficulty": "medium",
+  "description": "The Avare aviation GPS app is open on the main map screen. Create a flight plan using San Francisco International (KSFO) as the departure point and Los Angeles International (KLAX) as the destination.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/plan_flight_route/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/plan_flight_route/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_plan_flight_route"
+    }
+  },
+  "metadata": {
+    "departure": "KSFO",
+    "destination": "KLAX"
+  }
+}

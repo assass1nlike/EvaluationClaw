@@ -1,0 +1,53 @@
+{
+  "task_id": "diagnose_performance_bottleneck_and_cache@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_plugins_page",
+      "description": "Navigate to the WordPress Plugins page to inspect the installed plugins.",
+      "points": 10,
+      "visual_evidence": "A web browser displaying the WordPress Admin dashboard with the 'Plugins' -> 'Installed Plugins' page open."
+    },
+    {
+      "id": "rogue_plugin_deactivated_or_removed",
+      "description": "Identify and deactivate or delete the rogue plugin causing the performance bottleneck.",
+      "points": 30,
+      "visual_evidence": "On the WordPress Plugins page, the plugin 'wp-social-share-pro' is either completely absent from the list (deleted) or shows an 'Activate' link below it (deactivated)."
+    },
+    {
+      "id": "essential_plugin_active",
+      "description": "Ensure the essential 'WordPress Importer' plugin remains active.",
+      "points": 10,
+      "visual_evidence": "On the WordPress Plugins page, the 'WordPress Importer' plugin is visible in the list and shows a 'Deactivate' link below it, indicating it is currently active."
+    },
+    {
+      "id": "wp_super_cache_installed_and_active",
+      "description": "Install and activate the 'WP Super Cache' plugin.",
+      "points": 20,
+      "visual_evidence": "The 'WP Super Cache' plugin is visible in the installed plugins list and shows a 'Deactivate' or 'Settings' link, indicating it has been successfully installed and activated."
+    },
+    {
+      "id": "wp_super_cache_configured",
+      "description": "Configure the 'WP Super Cache' plugin to the 'Caching On (Recommended)' status.",
+      "points": 30,
+      "visual_evidence": "The WP Super Cache Settings page is visible (usually accessed via Settings -> WP Super Cache), and the radio button for 'Caching On (Recommended)' is selected and saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_gui_used",
+      "description": "The agent used a web browser GUI to interact with the WordPress Admin dashboard.",
+      "visual_evidence": "Screenshots show a standard web browser interface navigating the WordPress admin panel, rather than the agent relying solely on terminal commands (like WP-CLI) or text editors."
+    },
+    {
+      "id": "no_developer_tools_faking",
+      "description": "The agent did not use browser developer tools to fake the plugin states or settings.",
+      "visual_evidence": "No browser developer tools (Inspect Element/DOM editor) are open in the screenshots being used to alter the text of the plugins list or the WP Super Cache settings page."
+    },
+    {
+      "id": "genuine_plugin_installation",
+      "description": "The agent genuinely installed the caching plugin through the WordPress interface.",
+      "visual_evidence": "Screenshots show the agent interacting with the 'Add New Plugin' search interface or uploading a valid plugin zip, rather than just opening a static local HTML file."
+    }
+  ],
+  "privileged_info_for_vlm": "The rogue plugin causing the 5-second performance bottleneck is 'wp-social-share-pro'. The essential plugin that must remain active is 'wordpress-importer'. The caching plugin to be installed and configured is 'wp-super-cache'. The target load time is < 1.5 seconds, which is achieved by removing the rogue plugin and enabling WP Super Cache."
+}

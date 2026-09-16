@@ -1,0 +1,59 @@
+{
+  "task_id": "migrate_volume_twofish@1",
+  "task_completion": [
+    {
+      "id": "source_volume_mounted",
+      "description": "Mount the source volume to slot 1",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window showing slot 1 mounted with the volume '/home/ga/Volumes/data_volume.hc', or terminal command mounting it to slot 1."
+    },
+    {
+      "id": "new_volume_created",
+      "description": "Create a new 25MB encrypted volume using Twofish",
+      "points": 20,
+      "visual_evidence": "VeraCrypt Volume Creation Wizard showing 'Twofish' selected as the encryption algorithm and size set to 25MB, or the newly created file 'twofish_volume.hc' visible in a file manager/terminal."
+    },
+    {
+      "id": "new_volume_mounted",
+      "description": "Mount the new volume to slot 2",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window showing slot 2 mounted with the volume '/home/ga/Volumes/twofish_volume.hc', or terminal command mounting it to slot 2."
+    },
+    {
+      "id": "files_copied",
+      "description": "Copy all files from the source volume to the new volume",
+      "points": 30,
+      "visual_evidence": "File manager or terminal showing the three expected files (SF312_Nondisclosure_Agreement.txt, FY2024_Revenue_Budget.csv, backup_authorized_keys) inside the mounted directory for the new volume (e.g., /media/veracrypt2)."
+    },
+    {
+      "id": "manifest_created",
+      "description": "Create a migration manifest text file with filenames and sizes",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/Documents/migration_manifest.txt', which must include the names of the three expected files and their corresponding sizes in bytes."
+    },
+    {
+      "id": "volumes_dismounted",
+      "description": "Dismount both volumes",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window showing slots 1 and 2 are empty/dismounted, or terminal output showing successful dismount commands for both volumes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_interaction",
+      "description": "Agent actually used VeraCrypt to create and mount the volumes",
+      "visual_evidence": "VeraCrypt GUI windows (Volume Creation Wizard, main window) or valid VeraCrypt CLI commands are visible in the screenshots."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "Agent actually copied the files rather than creating empty dummy files",
+      "visual_evidence": "File manager copy progress dialog, terminal 'cp' commands, or file properties showing non-zero sizes in the destination volume."
+    },
+    {
+      "id": "genuine_manifest",
+      "description": "Agent generated the manifest with actual file sizes",
+      "visual_evidence": "Terminal commands like 'ls -l' or 'stat' used to gather file sizes, or the manifest file showing realistic byte sizes rather than placeholders."
+    }
+  ],
+  "privileged_info_for_vlm": "Source volume: '/home/ga/Volumes/data_volume.hc'. Destination volume: '/home/ga/Volumes/twofish_volume.hc'. Expected algorithm: Twofish. Expected files to be migrated: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'. Manifest file path: '/home/ga/Documents/migration_manifest.txt'."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "view_device_vitals@1",
+  "version": "1.0",
+  "env_id": "openice_env@0.1",
+  "description": "Observe the real-time vital signs data from a simulated Multiparameter Monitor in OpenICE, including updating waveforms (ECG, SpO2 plethysmograph) and numeric values (heart rate, blood pressure, oxygen saturation).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/view_device_vitals/setup_task.sh",
+    "post_task": "/workspace/tasks/view_device_vitals/export_result.sh"
+  },
+  "metadata": {
+    "expected_device_type": "Multiparameter Monitor",
+    "expected_vitals": [
+      "heart_rate",
+      "blood_pressure",
+      "spo2"
+    ],
+    "min_waveforms": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_view_device_vitals"
+    }
+  }
+}

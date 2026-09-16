@@ -1,0 +1,48 @@
+{
+  "task_id": "simulate_urban_freight_delivery@1",
+  "task_completion": [
+    {
+      "id": "create_freight_route_file",
+      "description": "Create pasubio_freight.rou.xml defining a vehicle named 'parcel_van_1' with vClass 'delivery', departing at 200s, and a route of at least 4 edges.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of pasubio_freight.rou.xml with a vType 'delivery', a vehicle 'parcel_van_1' with depart='200', and a route containing at least 4 connected edges."
+    },
+    {
+      "id": "define_stops",
+      "description": "Define two 60-second parcel drop-offs on different edges of the route, specifically on the rightmost lane (ending in '_0').",
+      "points": 20,
+      "visual_evidence": "Inside the pasubio_freight.rou.xml file, two `<stop>` elements with `duration=\"60\"` and `lane` attributes ending in `_0`, placed on different edges."
+    },
+    {
+      "id": "update_sumocfg",
+      "description": "Update run.sumocfg to include the new route file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing run.sumocfg with `<route-files value=\"...,pasubio_freight.rou.xml\"/>` or a similar inclusion of the new route file."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the SUMO simulation to generate the trip duration and route length.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a SUMO command (e.g., `sumo -c run.sumocfg` or `sumo-gui`) and its output, or the SUMO GUI running the simulation."
+    },
+    {
+      "id": "create_report",
+      "description": "Record the trip duration and route length in ~/SUMO_Output/freight_report.txt.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of freight_report.txt with exactly `van_trip_duration=<value>` and `van_route_length=<value>`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "The agent actually ran the simulation to obtain the trip duration and route length.",
+      "visual_evidence": "Terminal output showing SUMO execution logs, tripinfo output generation, or a script extracting the values from SUMO outputs, rather than just guessing or hardcoding numbers."
+    },
+    {
+      "id": "correct_file_locations",
+      "description": "The agent created the files in the exact directories specified.",
+      "visual_evidence": "Terminal commands or file paths in editors showing `/home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_freight.rou.xml` and `/home/ga/SUMO_Output/freight_report.txt`."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario is 'bologna_pasubio'. The custom route file must be strictly located at '/home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_freight.rou.xml'. The report must be strictly located at '/home/ga/SUMO_Output/freight_report.txt'."
+}

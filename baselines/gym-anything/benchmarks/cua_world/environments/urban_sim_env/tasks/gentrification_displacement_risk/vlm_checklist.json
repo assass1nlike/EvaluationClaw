@@ -1,0 +1,53 @@
+{
+  "task_id": "gentrification_displacement_risk@1",
+  "task_completion": [
+    {
+      "id": "notebook_data_processing",
+      "description": "The agent reads the HDF5 data and merges households, buildings, and parcels to aggregate data at the zone level.",
+      "points": 20,
+      "visual_evidence": "Look for Jupyter notebook cells containing pandas code that reads 'sanfran_public.h5', performs merges/joins to assign households to zones, filters out zones with < 50 households or invalid/zero prices, and calculates percentile ranks."
+    },
+    {
+      "id": "csv_export_and_sort",
+      "description": "The agent exports the calculated data to a CSV file, sorted descending by the displacement risk score.",
+      "points": 20,
+      "visual_evidence": "Look for pandas code like `df.sort_values(..., ascending=False).to_csv('/home/ga/urbansim_projects/output/displacement_risk.csv')` or a view of the CSV file showing the required columns (zone_id, total_households, pct_low_income, etc.) sorted descending by the risk score."
+    },
+    {
+      "id": "json_summary_content",
+      "description": "The agent creates a JSON summary with the correct total count and highest risk zone.",
+      "points": 20,
+      "visual_evidence": "Look for notebook output, a terminal `cat` command, or a text editor showing the contents of `risk_summary.json` (or the python dictionary being written to it) containing exactly 184 zones and the highest risk zone as Zone 2."
+    },
+    {
+      "id": "plot_generation_code",
+      "description": "The agent writes code to generate a scatter plot highlighting the top 20 highest-risk zones.",
+      "points": 20,
+      "visual_evidence": "Look for matplotlib or seaborn code plotting 'pct_low_income' vs 'median_sales_price', including logic to select and highlight the top 20 zones in a different color."
+    },
+    {
+      "id": "plot_saved_and_visible",
+      "description": "The scatter plot is successfully generated and saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for the scatter plot visible in the notebook inline output or an image viewer, clearly showing a subset of points highlighted in a different color, and code saving it to '/home/ga/urbansim_projects/output/displacement_risk_plot.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "The agent computed the results using Python/pandas rather than hardcoding the expected outputs.",
+      "visual_evidence": "Look for actual dataframe manipulation, `.rank(pct=True)`, and aggregation functions in the notebook cells. The agent should not just write a hardcoded string or dictionary to the output files."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent used the exact file paths requested in the prompt for outputs.",
+      "visual_evidence": "Check that the paths '/home/ga/urbansim_projects/output/displacement_risk.csv', 'risk_summary.json', and 'displacement_risk_plot.png' are explicitly used in the code."
+    },
+    {
+      "id": "used_provided_notebook",
+      "description": "The agent used the specified Jupyter notebook for the analysis.",
+      "visual_evidence": "The browser or editor tab should clearly show 'displacement_risk.ipynb' as the active file being edited and executed."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 184 valid zones (zones with at least 50 households and non-null/non-zero median sales prices). The highest risk zone is Zone 2, with a displacement score of approximately 1.94. The expected columns in the CSV are: zone_id, total_households, pct_low_income, median_sales_price, low_income_score, market_pressure_score, and displacement_risk_score."
+}

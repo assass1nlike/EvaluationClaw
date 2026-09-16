@@ -1,0 +1,59 @@
+{
+  "task_id": "sma_angle_measurement@1",
+  "task_completion": [
+    {
+      "id": "anatomical_positioning",
+      "description": "The agent has located the SMA and aorta on the abdominal CT and placed measurement tools in the correct anatomical positions.",
+      "points": 15,
+      "visual_evidence": "Sagittal or axial CT slice visible in the imaging software showing the aorta and superior mesenteric artery with measurement lines placed between them."
+    },
+    {
+      "id": "angle_measurement",
+      "description": "The aortomesenteric angle is measured accurately using the software's angle tool.",
+      "points": 30,
+      "visual_evidence": "An angle measurement tool visible on the CT scan displaying the angle (in degrees) between the aorta and SMA."
+    },
+    {
+      "id": "distance_measurement",
+      "description": "The aortomesenteric distance is measured accurately using the software's distance tool.",
+      "points": 15,
+      "visual_evidence": "A distance measurement tool (ruler/line) visible on the CT scan measuring the shortest distance (in mm) between the aorta and SMA."
+    },
+    {
+      "id": "save_angle_markup",
+      "description": "The angle markup is saved to the specified JSON file.",
+      "points": 10,
+      "visual_evidence": "A terminal, file explorer, or text editor showing the creation or existence of the file '~/Documents/SlicerData/AMOS/sma_angle.mrk.json'."
+    },
+    {
+      "id": "report_creation",
+      "description": "The report JSON file is created with all required fields.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the contents of '~/Documents/SlicerData/AMOS/sma_report.json' containing the exact keys: 'sma_angle_degrees', 'aortomesenteric_distance_mm', 'classification', and 'clinical_notes'."
+    },
+    {
+      "id": "classification_and_consistency",
+      "description": "The classification in the report correctly matches the measured angle and distance based on clinical criteria, and the reported values are consistent with the on-screen measurements.",
+      "points": 20,
+      "visual_evidence": "The 'classification' field in the report shows 'normal', 'borderline', or 'sma_syndrome_likely' and logically aligns with the measured values. The values in the report must match the values shown on the measurement tools in the imaging software."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_measurement_interaction",
+      "description": "The agent used the medical imaging software's GUI to perform the measurements rather than guessing or hardcoding values.",
+      "visual_evidence": "Screenshots showing the medical imaging software (e.g., 3D Slicer) open with active measurement tools (nodes/lines) placed on the CT scan."
+    },
+    {
+      "id": "genuine_markup_export",
+      "description": "The agent exported the markup from the software rather than manually typing a fake markup JSON file.",
+      "visual_evidence": "The save dialog/module in the medical imaging software being used to export the markup, or the .mrk.json file containing complex, software-generated coordinate data rather than minimal manually typed text."
+    },
+    {
+      "id": "derived_measurements",
+      "description": "The agent derived the measurements from the image rather than copy-pasting standard textbook values.",
+      "visual_evidence": "The values in the final report exactly match the specific, often decimal-precise measurements shown on the CT scan GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "Normal aortomesenteric angle is typically 38 degrees or greater. Diagnostic criteria for Superior Mesenteric Artery (SMA) syndrome include an aortomesenteric angle of 25 degrees or less and an aortomesenteric distance of 8 mm or less. Use these thresholds to verify if the agent's classification ('normal', 'borderline', or 'sma_syndrome_likely') correctly matches their measured values."
+}

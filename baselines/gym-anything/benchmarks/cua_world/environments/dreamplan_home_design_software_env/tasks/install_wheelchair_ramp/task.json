@@ -1,0 +1,27 @@
+{
+  "id": "install_wheelchair_ramp@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Retrofit the 'Sample House' project with accessibility features by installing a wheelchair ramp at the front entrance. The ramp should connect the ground level to the porch level, be properly sloped, and include safety railings. Save the project and export a screenshot of the 3D view showing the installed ramp to 'C:\\Users\\Docker\\Documents\\ramp_install.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\install_wheelchair_ramp\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\install_wheelchair_ramp\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_screenshot_path": "C:\\Users\\Docker\\Documents\\ramp_install.png",
+    "project_dir": "C:\\Users\\Docker\\AppData\\Roaming\\NCH Software\\DreamPlan\\Projects",
+    "sample_project_name": "Sample House"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_install_wheelchair_ramp"
+    }
+  }
+}

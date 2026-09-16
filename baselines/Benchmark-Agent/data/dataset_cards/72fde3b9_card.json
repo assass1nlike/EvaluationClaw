@@ -1,0 +1,85 @@
+{
+  "dataset_id": "72fde3b9",
+  "name": "Pill Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 56,
+  "description": "The dataset is a small collection of pill images paired with a fixed text instruction to detect anomalous regions and corresponding binary segmentation masks marking those anomalies. It evaluates visual anomaly detection and segmentation capabilities.",
+  "card_text": "The dataset contains 56 samples for pill anomaly detection. Each sample includes a product image of pills and a short text prompt instructing the model to detect the anomaly region. The output is a binary mask image that localizes the anomalous area. Images are typical industrial inspection photos of pills, which may contain defects such as cracks, discoloration, or shape anomalies. The text prompt is identical across samples. The dataset is designed for evaluating segmentation-based anomaly detection, where the model must produce a pixel-level mask for the anomalous region. It assumes a one-to-one mapping between the input image and the output mask, and no additional context or explanation is provided.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial visual inspection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "The input image shows a pill or pills from an industrial inspection line, serving as the visual context to be analyzed for anomalies.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction that asks the model to detect the anomaly region of the pill, guiding the segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary segmentation mask image that marks the anomalous region corresponding to the input pill image, providing the pixel-level target for anomaly localization.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image of a pill, a short text prompt instructing the model to detect the anomaly region, and an output mask image that marks the anomalous area. The prompt is identical across samples. The input image and output mask are paired one-to-one, with the mask providing the pixel-level annotation of the anomaly."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/PillAnomalyDetection/pill_anomaly_detection.json",
+    "existing_tags": {
+      "task": "pill anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

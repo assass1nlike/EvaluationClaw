@@ -1,0 +1,37 @@
+{
+  "id": "bain_hypothesis_toothgrowth@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform an informative hypothesis test using the Bain module in JASP to confirm a specific dose-response relationship using the dataset /home/ga/Documents/JASP/ToothGrowth.csv. Conduct a Bain ANOVA with 'len' as the Dependent Variable and 'dose' as the Fixed Factor. Test the specific hypothesis that tooth length increases with dose (dose 2.0 > dose 1.0 > dose 0.5). Save the analysis as /home/ga/Documents/JASP/ToothGrowth_Bain.jasp and record the resulting Bayes Factor (BF.c or BF10) in /home/ga/Documents/JASP/bain_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bain_hypothesis_toothgrowth/setup_task.sh",
+    "post_task": "/workspace/tasks/bain_hypothesis_toothgrowth/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/ToothGrowth.csv",
+    "expected_jasp_file": "/home/ga/Documents/JASP/ToothGrowth_Bain.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/bain_report.txt",
+    "ground_truth": {
+      "min_bf": 20.0,
+      "max_bf": 1000.0,
+      "hypothesis_logic": [
+        ">",
+        "2.0",
+        "1.0",
+        "0.5"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bain_hypothesis_toothgrowth"
+    }
+  }
+}

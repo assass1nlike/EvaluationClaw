@@ -1,0 +1,41 @@
+{
+  "id": "create_sales_quote@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Create a sales quote for the corporate customer 'Greenfield Office Solutions'. Include 20 units of 'Copy Paper A4 (500 sheets)', 10 units of 'Ballpoint Pen Blue (Box of 12)', and 8 units of 'Manila Folder Letter Size (Pack of 25)'. The transaction must be saved as a Quote/Estimate rather than a completed sale, without processing payment.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_sales_quote\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_sales_quote\\export_result.ps1"
+  },
+  "metadata": {
+    "customer_name": "Greenfield Office Solutions",
+    "transaction_type": "Quote",
+    "items": [
+      {
+        "name": "Copy Paper A4",
+        "qty": 20
+      },
+      {
+        "name": "Ballpoint Pen Blue",
+        "qty": 10
+      },
+      {
+        "name": "Manila Folder",
+        "qty": 8
+      }
+    ],
+    "data_path": "C:\\ProgramData\\NCH Software\\Copper"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_sales_quote"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "custom_convolution_kernel_filtering@1",
+  "task_completion": [
+    {
+      "id": "load_image_in_snap",
+      "description": "Open the Landsat multispectral image in ESA SNAP",
+      "points": 10,
+      "visual_evidence": "The ESA SNAP application is open and 'landsat_multispectral.tif' is visible in the Product Explorer or opened in the main viewing area."
+    },
+    {
+      "id": "select_target_band",
+      "description": "Select band_2 as the target for the spatial filter",
+      "points": 15,
+      "visual_evidence": "A filtering, convolution, or band math dialog is open with 'band_2' explicitly selected or referenced as the source band."
+    },
+    {
+      "id": "create_custom_kernel",
+      "description": "Create a custom 3x3 spatial filter kernel named 'Custom_Orthogonal_Edge'",
+      "points": 15,
+      "visual_evidence": "A kernel configuration or filter definition window is visible showing a 3x3 matrix size and the name 'Custom_Orthogonal_Edge' entered."
+    },
+    {
+      "id": "set_kernel_weights",
+      "description": "Input the exact required kernel weights into the 3x3 matrix",
+      "points": 25,
+      "visual_evidence": "The 3x3 matrix in the filter configuration shows the exact weights: Row 1 (-1, -2, -1), Row 2 (-2, 12, -2), Row 3 (-1, -2, -1)."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the resulting product as a BEAM-DIMAP file",
+      "points": 15,
+      "visual_evidence": "A save dialog or the Product Explorer shows the filtered output being saved as 'custom_filtered.dim' in the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the resulting product as a GeoTIFF file",
+      "points": 20,
+      "visual_evidence": "An export dialog or file manager shows the filtered output being exported as 'custom_filtered.tif' in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "The agent used the ESA SNAP graphical user interface to perform the filtering",
+      "visual_evidence": "Screenshots show interaction with the ESA SNAP desktop application windows, menus, and dialogs rather than just terminal commands."
+    },
+    {
+      "id": "genuine_filter_application",
+      "description": "The filter was genuinely applied using SNAP's built-in tools",
+      "visual_evidence": "The agent is seen using the Raster > Filter or similar convolution tools in SNAP, rather than using a Python script or text editor to bypass the application."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not create dummy files to bypass the export checks",
+      "visual_evidence": "The output files (.dim and .tif) are generated through SNAP's save/export functionality, not via 'touch' commands or simple script outputs in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif. The expected outputs are /home/ga/snap_exports/custom_filtered.dim and /home/ga/snap_exports/custom_filtered.tif. The target kernel weights are exactly [-1.0, -2.0, -1.0, -2.0, 12.0, -2.0, -1.0, -2.0, -1.0] (row-major). Note: The task explicitly instructs the agent to apply the filter to 'band_2 (NIR)'. Although analysis shows band 4 is the actual NIR band for this data, the agent must follow the explicit instruction to use 'band_2'."
+}

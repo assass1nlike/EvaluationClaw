@@ -1,0 +1,63 @@
+{
+  "id": "record_measurements@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Log in to OSCAR EMR (Username: oscardoc, Password: oscar, PIN: 1117) and record the following clinical measurements for patient Gloria Vargas (DOB: 1958-04-22) in her eChart for today's date: HbA1c (A1C) 7.2%, Waist Circumference (WAIS) 88 cm, Blood Glucose - Random (GLUC) 8.4 mmol/L, and BMI (BMI) 27.3 kg/m².",
+  "difficulty": "medium",
+  "tags": [
+    "oscar",
+    "emr",
+    "measurements",
+    "chronic-disease",
+    "diabetes",
+    "clinical"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_measurements/setup_task.sh",
+    "post_task": "/workspace/tasks/record_measurements/export_result.sh"
+  },
+  "metadata": {
+    "patient": {
+      "first_name": "Gloria",
+      "last_name": "Vargas",
+      "dob": "1958-04-22"
+    },
+    "measurements": [
+      {
+        "type": "A1C",
+        "name": "HbA1c",
+        "value": 7.2,
+        "tolerance": 0.1
+      },
+      {
+        "type": "WAIS",
+        "name": "Waist Circumference",
+        "value": 88.0,
+        "tolerance": 1.0
+      },
+      {
+        "type": "GLUC",
+        "name": "Blood Glucose (Random)",
+        "value": 8.4,
+        "tolerance": 0.2
+      },
+      {
+        "type": "BMI",
+        "name": "BMI",
+        "value": 27.3,
+        "tolerance": 0.3
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_measurements"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "secure_terminated_account@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Secure the account of terminated employee 'Gregory House' (username: 'ghouse') in LibreHealth EHR (admin / password). Update the user record by changing the password to 'Terminated!2025', revoking 'Provider' privileges, and deactivating the account.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/secure_terminated_account/setup_task.sh",
+    "post_task": "/workspace/tasks/secure_terminated_account/export_result.sh"
+  },
+  "metadata": {
+    "target_username": "ghouse",
+    "target_password": "Terminated!2025",
+    "required_active_state": 0,
+    "required_authorized_state": 0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_secure_account"
+    }
+  }
+}

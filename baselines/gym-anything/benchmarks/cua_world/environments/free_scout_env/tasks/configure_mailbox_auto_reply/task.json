@@ -1,0 +1,32 @@
+{
+  "id": "configure_mailbox_auto_reply@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "Configure an auto-reply for the 'IT Support' mailbox. The auto-reply must use the subject 'We've received your request - IT Support' and the message body must include an acknowledgment that the request will be reviewed 'within 24 hours', a notice about scheduled maintenance on 'December 14-15', and the emergency contact number '(555) 987-6543'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_mailbox_auto_reply/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_mailbox_auto_reply/export_result.sh"
+  },
+  "metadata": {
+    "mailbox_name": "IT Support",
+    "mailbox_email": "it-support@helpdesk.local",
+    "expected_subject": "We've received your request - IT Support",
+    "required_phrases": [
+      "within 24 hours",
+      "December 14-15",
+      "(555) 987-6543"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_mailbox_auto_reply"
+    }
+  }
+}

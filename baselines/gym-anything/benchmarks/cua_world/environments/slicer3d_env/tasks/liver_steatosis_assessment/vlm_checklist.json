@@ -1,0 +1,53 @@
+{
+  "task_id": "liver_steatosis_assessment@1",
+  "task_completion": [
+    {
+      "id": "liver_roi_placed",
+      "description": "Place a Region of Interest (ROI) or markup within the homogeneous parenchyma of the liver.",
+      "points": 20,
+      "visual_evidence": "A markup, fiducial, or ROI bounding box is visibly placed over the liver on the abdominal CT scan in the medical imaging software."
+    },
+    {
+      "id": "spleen_roi_placed",
+      "description": "Place a Region of Interest (ROI) or markup within the homogeneous parenchyma of the spleen.",
+      "points": 20,
+      "visual_evidence": "A markup, fiducial, or ROI bounding box is visibly placed over the spleen on the abdominal CT scan in the medical imaging software."
+    },
+    {
+      "id": "hu_measurements_obtained",
+      "description": "Measure the mean Hounsfield Unit (HU) values for both the liver and spleen ROIs.",
+      "points": 30,
+      "visual_evidence": "A statistics or measurement panel in the software displays the mean HU values for the placed ROIs (expecting approximately 58.0 HU for the liver and 52.0 HU for the spleen)."
+    },
+    {
+      "id": "roi_files_saved",
+      "description": "Save the liver and spleen ROIs to the specified directory.",
+      "points": 10,
+      "visual_evidence": "A save dialog, file explorer, or terminal command shows 'liver_roi.mrk.json' and 'spleen_roi.mrk.json' being saved to the '~/Documents/SlicerData/Steatosis/' directory."
+    },
+    {
+      "id": "report_generated",
+      "description": "Generate and save the steatosis report with the required fields and correct classification.",
+      "points": 20,
+      "visual_evidence": "A file named 'steatosis_report.json' is created in '~/Documents/SlicerData/Steatosis/'. Its contents (visible in an editor or terminal) include 'liver_hu' (~58.0), 'spleen_hu' (~52.0), 'ls_ratio' (~1.11), 'classification' ('Normal' or 'None'), and 'interpretation'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verified",
+      "description": "The agent interacted with the medical imaging software GUI to place ROIs and extract measurements.",
+      "visual_evidence": "Screenshots show the agent actively using the imaging software's tools (e.g., clicking on the image, opening statistics modules) rather than just writing a script to bypass the GUI."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "The values in the final report match the actual measurements obtained from the software.",
+      "visual_evidence": "The HU values entered into the 'steatosis_report.json' correspond to the values displayed in the software's measurement/statistics panel during the task."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not simply copy-paste the final expected JSON without performing the assessment.",
+      "visual_evidence": "The agent is seen calculating the L/S ratio or manually constructing the JSON file based on the gathered data, rather than instantly pasting a pre-computed block of text."
+    }
+  ],
+  "privileged_info_for_vlm": "The synthetic CT volume has a liver mean attenuation of approximately 58.0 HU and a spleen mean attenuation of approximately 52.0 HU. The expected liver-to-spleen (L/S) ratio is ~1.11. Based on the criteria (L/S >= 1.0 AND liver >= 40 HU), the correct classification is 'Normal' (or 'None' for no steatosis)."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "expression_manager_conditions@1",
+  "task_completion": [
+    {
+      "id": "survey_opened",
+      "description": "Navigate to the 'Annual Tech Summit 2024 \u2014 Attendee Feedback' survey dashboard.",
+      "points": 10,
+      "visual_evidence": "The LimeSurvey admin interface should display the survey title 'Annual Tech Summit 2024 \u2014 Attendee Feedback' at the top or in the active survey context menu."
+    },
+    {
+      "id": "session_group_edit",
+      "description": "Open the edit settings for the 'Session Feedback' question group.",
+      "points": 10,
+      "visual_evidence": "The screen should show the group editing interface with 'Session Feedback' as the group title."
+    },
+    {
+      "id": "session_group_relevance",
+      "description": "Configure the relevance equation for the 'Session Feedback' group to check if ATTENDED_SESSIONS is 'Yes'.",
+      "points": 20,
+      "visual_evidence": "The 'Relevance equation' field for the group should contain logic checking the ATTENDED_SESSIONS question, such as `ATTENDED_SESSIONS == \"Y\"` or `ATTENDED_SESSIONS.NAOK == \"Y\"`."
+    },
+    {
+      "id": "improve_comments_edit",
+      "description": "Open the edit settings for the 'IMPROVE_COMMENTS' question.",
+      "points": 10,
+      "visual_evidence": "The screen should show the question editing interface for the question code 'IMPROVE_COMMENTS' ('What specific improvements would you suggest?')."
+    },
+    {
+      "id": "improve_comments_relevance",
+      "description": "Configure the relevance equation for the 'IMPROVE_COMMENTS' question to check if OVERALL_RATING is 6 or below.",
+      "points": 20,
+      "visual_evidence": "The 'Relevance equation' field for the question should contain logic checking the OVERALL_RATING question, such as `OVERALL_RATING <= 6` or `OVERALL_RATING.NAOK <= 6`."
+    },
+    {
+      "id": "survey_settings_accessed",
+      "description": "Navigate to the survey settings (Text elements or General settings) to configure the End URL.",
+      "points": 10,
+      "visual_evidence": "The screen should show the survey-level settings menu, specifically the section containing the 'End URL' field."
+    },
+    {
+      "id": "end_url_configured",
+      "description": "Set the survey's End URL to 'http://techsummit.example.com/thank-you'.",
+      "points": 20,
+      "visual_evidence": "The 'End URL' input field must contain exactly 'http://techsummit.example.com/thank-you'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the LimeSurvey web interface rather than using curl or direct database commands.",
+      "visual_evidence": "Screenshots should show the web browser with the LimeSurvey admin UI open, not a terminal window executing API or SQL commands."
+    },
+    {
+      "id": "correct_survey_context",
+      "description": "The agent modified the existing target survey rather than creating a new dummy survey.",
+      "visual_evidence": "The survey title in the UI must be 'Annual Tech Summit 2024 \u2014 Attendee Feedback' with the pre-existing questions (ATTENDED_SESSIONS, OVERALL_RATING, IMPROVE_COMMENTS)."
+    },
+    {
+      "id": "settings_saved",
+      "description": "The agent actually saved the configured settings.",
+      "visual_evidence": "Look for 'Save' buttons being clicked, success notification toasts (e.g., 'Group saved', 'Question saved'), or the configured values persisting in the UI after saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The target survey is 'Annual Tech Summit 2024 \u2014 Attendee Feedback'. The group 'Session Feedback' must have a relevance equation checking if 'ATTENDED_SESSIONS' is Yes (value 'Y'). The question 'IMPROVE_COMMENTS' must have a relevance equation checking if 'OVERALL_RATING' is <= 6. The survey's End URL must be set to 'http://techsummit.example.com/thank-you'."
+}

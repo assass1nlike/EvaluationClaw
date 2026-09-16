@@ -1,0 +1,35 @@
+{
+  "id": "model_interlocking_brick@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Model a standard 2x2 interlocking plastic brick (compatible with LEGO dimensions) in FreeCAD. The model must feature a 15.8mm x 15.8mm x 9.6mm main body, four top studs (4.8mm diameter, 1.8mm height, 8mm center-to-center spacing), a hollowed interior from the bottom with a uniform wall thickness of 1.2mm, and a central reinforcement tube (6.5mm outer diameter, 4.8mm inner diameter) extending from the inner roof to the bottom plane. Save the result as a single solid body to /home/ga/Documents/FreeCAD/brick_2x2.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/model_interlocking_brick/setup_task.sh",
+    "post_task": "/workspace/tasks/model_interlocking_brick/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/brick_2x2.FCStd",
+    "target_dims": {
+      "length": 15.8,
+      "width": 15.8,
+      "height_total": 11.4,
+      "height_body": 9.6,
+      "wall_thickness": 1.2
+    },
+    "target_volume_mm3": 1144.0,
+    "volume_tolerance_mm3": 200.0,
+    "bbox_tolerance_mm": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interlocking_brick"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "configure_workspace_virtual_wfs@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "You are a GIS Technologist setting up a multi-department GeoServer deployment. The Natural Earth data team needs their own isolated WFS (Web Feature Service) endpoint with controlled feature download limits. Configure workspace-specific WFS service settings for the 'ne' workspace with the following parameters:\n\n- Title: Natural Earth Feature Service\n- Abstract: Provides controlled access to Natural Earth vector datasets\n- Max Features: 50\n- Service Level: COMPLETE\n- Enabled: true\n\nSave the workspace-specific WFS GetCapabilities response to ~/ne_wfs_capabilities.xml and a WFS GetFeature response for the 'ne_countries' layer in JSON format to ~/ne_countries_features.json.\n\nGeoServer URL: http://localhost:8080/geoserver\nCredentials: admin / Admin123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_workspace_virtual_wfs/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_workspace_virtual_wfs/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Natural Earth Feature Service",
+    "expected_abstract": "Provides controlled access to Natural Earth vector datasets",
+    "expected_max_features": 50,
+    "capabilities_file": "/home/ga/ne_wfs_capabilities.xml",
+    "features_file": "/home/ga/ne_countries_features.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_workspace_virtual_wfs"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "inductor_color_code_id@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Decode the 4-band inductor color code for a component with bands Brown, Black, Red, and Silver. Convert the resulting value to millihenries (mH) and save the output to /sdcard/inductor_id.txt. The file must contain the value in mH on the first line and the tolerance percentage on the second line.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/inductor_color_code_id/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/inductor_color_code_id/export_result.sh"
+  },
+  "metadata": {
+    "expected_val_uh": 1000,
+    "expected_val_mh": 1.0,
+    "expected_tolerance": "10%",
+    "band_colors": [
+      "Brown",
+      "Black",
+      "Red",
+      "Silver"
+    ],
+    "output_file": "/sdcard/inductor_id.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inductor_id"
+    }
+  }
+}

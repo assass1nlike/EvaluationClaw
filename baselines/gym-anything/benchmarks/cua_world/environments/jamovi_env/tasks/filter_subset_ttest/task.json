@@ -1,0 +1,35 @@
+{
+  "id": "filter_subset_ttest@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "A nutritional scientist is reviewing the classic ToothGrowth experiment (Crampton 1947) studying the effect of Vitamin C delivery method on guinea pig tooth growth. Using the 'ToothGrowth.csv' dataset already loaded in Jamovi, compare orange juice (OJ) vs ascorbic acid (VC) supplements at the 0.5 mg/day dose level only. Filter the data to include only the 0.5 mg dose level and perform an Independent Samples T-Test with 'len' as the dependent variable and 'supp' as the grouping variable, ensuring descriptive statistics are included in the analysis. Save the Jamovi project to /home/ga/Documents/Jamovi/ToothGrowth_Filtered.omv. Create a plain text results file at /home/ga/Documents/Jamovi/filtered_ttest_results.txt containing the following key-value pairs (one per line, colon-separated): n_filtered, t_statistic, p_value, mean_OJ, and mean_VC.",
+  "category": "data_manipulation_analysis",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/filter_subset_ttest/setup_task.sh",
+    "post_task": "/workspace/tasks/filter_subset_ttest/export_result.sh"
+  },
+  "metadata": {
+    "expected_n": 20,
+    "expected_t": 3.17,
+    "expected_p": 0.006,
+    "expected_mean_oj": 13.23,
+    "expected_mean_vc": 7.98,
+    "tolerance_t": 0.5,
+    "tolerance_p": 0.015,
+    "tolerance_mean": 1.0,
+    "results_path": "/home/ga/Documents/Jamovi/filtered_ttest_results.txt",
+    "omv_path": "/home/ga/Documents/Jamovi/ToothGrowth_Filtered.omv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_filter_subset_ttest"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "create_pivot_table@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "Create a pivot table in WPS Spreadsheet using the data in /home/ga/Documents/employee_sales.xlsx. The pivot table must show the sum of total sales by department and region, use employee names as rows, include average sales per employee, and display grand totals. Apply professional styling to the table and save the updated spreadsheet.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_pivot_table/setup_task.sh",
+    "post_task": "/workspace/tasks/create_pivot_table/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Realistic employee sales data",
+    "expected_pivot_fields": [
+      "Department",
+      "Region",
+      "Employee Name"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pivot_table"
+    }
+  }
+}

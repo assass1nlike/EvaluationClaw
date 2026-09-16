@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_event_automation@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Verify the watchdog script is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A terminal showing the creation or editing of '/home/ga/projects/watchdog/watchdog.py', or a text editor open with this file path visible."
+    },
+    {
+      "id": "event_monitoring_logic",
+      "description": "Verify the script contains logic to monitor Docker 'die' events for the 'payment-gateway' container.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor showing Docker client initialization (e.g., docker.from_env() or subprocess calling 'docker events') and filtering specifically for the 'die' event and the 'payment-gateway' container."
+    },
+    {
+      "id": "restart_logic",
+      "description": "Verify the script contains logic to restart the container if it crashes with an exit code greater than 0.",
+      "points": 20,
+      "visual_evidence": "Code visible showing a check for the exit code (e.g., 'if exit_code > 0:') followed by a container restart command (e.g., 'container.restart()' or 'docker restart')."
+    },
+    {
+      "id": "logging_logic",
+      "description": "Verify the script logs each event with a timestamp and exit code to the correct log file.",
+      "points": 15,
+      "visual_evidence": "Code visible showing file writing or logging configuration pointing to '/home/ga/projects/watchdog/watchdog.log' and including dynamic timestamp and exit code variables in the log message."
+    },
+    {
+      "id": "circuit_breaker_logic",
+      "description": "Verify the script implements a rolling window circuit breaker for 3 failures within 60 seconds.",
+      "points": 20,
+      "visual_evidence": "Code visible showing a data structure (like a list or deque) tracking failure timestamps, with logic checking if the length is >= 3 and the time difference between the current failure and the 3rd most recent failure is <= 60 seconds."
+    },
+    {
+      "id": "alert_generation_logic",
+      "description": "Verify the script writes the critical alert to the correct file and stops restarting when the circuit breaker triggers.",
+      "points": 15,
+      "visual_evidence": "Code visible showing file writing to '/home/ga/projects/watchdog/alert.txt' with the exact text 'CRITICAL: Flapping detected', along with logic (like a 'break', 'return', or boolean flag) that prevents further restart attempts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_creation",
+      "description": "Ensure the agent actually wrote the Python script rather than just echoing text into the log or alert files directly.",
+      "visual_evidence": "A text editor (like nano, vim, VS Code) or a script execution command ('python watchdog.py') is visible. The agent should not just be running 'echo \"CRITICAL: Flapping detected\" > alert.txt' in the terminal."
+    },
+    {
+      "id": "no_hardcoded_logs",
+      "description": "Ensure the agent didn't write a mock log file with hardcoded timestamps.",
+      "visual_evidence": "The Python code should show dynamic timestamp generation (e.g., 'datetime.now()', 'time.time()') rather than hardcoded string dates."
+    },
+    {
+      "id": "authentic_docker_interaction",
+      "description": "Ensure the script interacts with the actual Docker daemon.",
+      "visual_evidence": "Import of the 'docker' library or use of 'subprocess' to call 'docker events' commands in the script, rather than a mocked loop that just simulates events."
+    }
+  ],
+  "privileged_info_for_vlm": "The script must be located at '/home/ga/projects/watchdog/watchdog.py'. The target container is named 'payment-gateway'. The log file must be at '/home/ga/projects/watchdog/watchdog.log'. The alert file must be at '/home/ga/projects/watchdog/alert.txt'. The circuit breaker triggers on 3 failures within a 60-second window."
+}

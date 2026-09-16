@@ -1,0 +1,79 @@
+{
+  "dataset_id": "8a2c6ed9",
+  "name": "Vehicle Semantic Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image",
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates semantic segmentation of vehicles in urban driving images. Each sample provides a Cityscapes-style RGB image, a text instruction to segment vehicles, and a pixel-level label-ID mask as the ground truth.",
+  "card_text": "The Vehicle Semantic Segmentation dataset contains 200 image-text pairs built from urban driving scenes, particularly Cityscapes-style imagery from Munich and Frankfurt. Each sample includes a left 8-bit RGB image, a natural-language instruction such as 'Perform semantic segmentation on the vehicle in the image', and a corresponding fine-grained label ID mask. The task requires producing a pixel-level segmentation map for vehicle classes. Images capture complex street scenes with multiple objects, varying lighting, and occlusion; masks encode class labels for each pixel. The dataset assumes vehicle segmentation as the target concept and uses label ID maps rather than colorized masks. It is intended for evaluating image semantic segmentation models, especially those conditioned on textual prompts.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "autonomous driving / urban street scenes",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "RGB images of urban street scenes from Cityscapes-style driving datasets, containing vehicles, roads, pedestrians, and other objects. They serve as the visual input for semantic segmentation.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short imperative instruction asking the model to perform semantic segmentation on vehicles in the accompanying image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "A pixel-level ground-truth segmentation mask stored as a label-ID PNG; each pixel value corresponds to a semantic class, providing the target for vehicle segmentation.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image referenced by input.image_file, a text instruction in input.prompt, and a target segmentation mask referenced by output.map_file. The prompt instructs segmentation of vehicles in the image, and the mask provides the pixel-level ground truth. No dialog, options, bbox, or other auxiliary annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/vehicle_semantic_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "vehicle semantic segmentation",
+      "type": "comprehension",
+      "skill": "Image Semantic Segmentation(Img Sem Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

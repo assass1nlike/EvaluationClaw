@@ -1,0 +1,59 @@
+{
+  "task_id": "noc_trellis_wallboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "The dashboard named 'NOC_System_Health_Wallboard' is created.",
+      "points": 10,
+      "visual_evidence": "Look for the title 'NOC_System_Health_Wallboard' at the top of the Splunk dashboard page in the browser."
+    },
+    {
+      "id": "classic_dashboard_used",
+      "description": "The dashboard is built using Classic Splunk Dashboards, not Dashboard Studio.",
+      "points": 10,
+      "visual_evidence": "Look for the standard Classic Splunk dashboard interface (white/gray background, standard panel borders, 'Edit' button top right). Ensure there is no Dashboard Studio grid canvas or Studio-specific configuration panel on the right side."
+    },
+    {
+      "id": "panel_1_search_and_title",
+      "description": "A panel titled 'System Errors by Host' is created with the correct search query.",
+      "points": 15,
+      "visual_evidence": "Look for a panel titled 'System Errors by Host'. In the creation or edit steps, look for the exact search string: `index=system_logs (\"error\" OR \"fail*\" OR \"fatal\" OR \"warn*\") | stats count by host` in the search bar or panel configuration modal."
+    },
+    {
+      "id": "panel_1_trellis_single_value",
+      "description": "The 'System Errors by Host' panel uses a color-coded Single Value visualization in a Trellis layout.",
+      "points": 25,
+      "visual_evidence": "Look at the 'System Errors by Host' panel. It must show a Trellis layout (a grid of multiple smaller charts within the single panel, one for each host). Each item in the grid must be a Single Value visualization (a large number) and must be color-coded (either the number itself or its background has a color like red, yellow, or green)."
+    },
+    {
+      "id": "panel_2_search_and_title",
+      "description": "A panel titled 'Log Volume Trend' is created with the correct search query.",
+      "points": 15,
+      "visual_evidence": "Look for a panel titled 'Log Volume Trend'. In the creation or edit steps, look for the exact search string: `index=system_logs | timechart count by host` in the search bar or panel configuration modal."
+    },
+    {
+      "id": "panel_2_chart_type",
+      "description": "The 'Log Volume Trend' panel uses a Stacked Column or Area Chart visualization.",
+      "points": 25,
+      "visual_evidence": "Look at the 'Log Volume Trend' panel. The visualization must be either a Stacked Column chart (vertical bars stacked on top of each other) or an Area chart (filled line chart) showing data over time."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_ui_interaction",
+      "description": "The agent interacted with the Splunk Web UI in a web browser.",
+      "visual_evidence": "Look for the Splunk Enterprise web interface running in a browser at localhost:8000. The agent should not be simply writing XML files in a terminal text editor without verifying in the UI."
+    },
+    {
+      "id": "genuine_visualizations",
+      "description": "The dashboard panels render genuine Splunk visualizations with actual data.",
+      "visual_evidence": "Look for standard Splunk UI elements in the charts, such as axes, legends, tooltips, or rendered numbers, indicating that Splunk actually executed the searches and rendered the results."
+    },
+    {
+      "id": "no_text_manipulation_shortcuts",
+      "description": "The agent did not bypass the Splunk interface by copy-pasting a pre-made dashboard XML directly from an external source without building or configuring it.",
+      "visual_evidence": "Look for evidence of the agent typing searches, selecting visualization types from the Splunk menus, or using the Splunk source editor legitimately."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is 'NOC_System_Health_Wallboard'. The underlying index to be queried is 'system_logs'. The Splunk credentials are 'admin' / 'SplunkAdmin1!'."
+}

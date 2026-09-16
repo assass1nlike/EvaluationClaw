@@ -1,0 +1,53 @@
+{
+  "id": "erg_isolation_distance_determination@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are the Incident Commander at a night-time rail derailment involving three hazardous chemicals. Determine the Protective Action Distances (PAD) in miles for Chlorine (UN 1017), Acrolein, stabilized (UN 1092), and Chlorine Trifluoride (UN 1749) using CAMEO Chemicals (https://cameochemicals.noaa.gov/). The scenario involves a large spill from rail tank cars at night with low wind (< 6 mph). Record the Protective Action Distance (not Initial Isolation) for each chemical in ~/Documents/evacuation_zones.txt using the format: Chemical Name | UN Number | Distance (miles).",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "chemicals",
+    "erg",
+    "safety",
+    "hazmat",
+    "emergency-response"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/erg_isolation_distance_determination/setup_task.sh",
+    "post_task": "/workspace/tasks/erg_isolation_distance_determination/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/evacuation_zones.txt",
+    "expected_chemicals": [
+      {
+        "name": "Chlorine",
+        "un": "1017",
+        "distance": "6.0",
+        "logic": "Table 3, Rail, Low Wind, Night"
+      },
+      {
+        "name": "Acrolein",
+        "un": "1092",
+        "distance": "6.9",
+        "logic": "Table 1, Large Spill, Night"
+      },
+      {
+        "name": "Chlorine Trifluoride",
+        "un": "1749",
+        "distance": "2.3",
+        "logic": "Table 1, Large Spill, Night"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_erg_distances"
+    }
+  }
+}

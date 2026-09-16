@@ -1,0 +1,59 @@
+{
+  "task_id": "displacement_risk_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Open the Jupyter notebook and load the San Francisco UrbanSim dataset.",
+      "points": 10,
+      "visual_evidence": "Jupyter notebook at /home/ga/urbansim_projects/notebooks/displacement_risk.ipynb is open, showing code that reads the HDF5 file at /home/ga/urbansim_projects/data/sanfran_public.h5."
+    },
+    {
+      "id": "calc_vulnerability",
+      "description": "Calculate the household vulnerability metric based on the concentration of low-income residents.",
+      "points": 20,
+      "visual_evidence": "Notebook cells showing data manipulation (e.g., filtering households by income, grouping by zone) to calculate a vulnerability score."
+    },
+    {
+      "id": "calc_precarity",
+      "description": "Calculate the housing precarity metric based on the age and quality of the building stock.",
+      "points": 20,
+      "visual_evidence": "Notebook cells showing calculations involving building attributes like year built, age, or quality to derive a precarity score per zone."
+    },
+    {
+      "id": "calc_pressure",
+      "description": "Calculate the development pressure metric based on proximity to maximum allowed density.",
+      "points": 20,
+      "visual_evidence": "Notebook cells showing calculations comparing current density/development to maximum allowed density limits to derive a pressure score."
+    },
+    {
+      "id": "calculate_dri",
+      "description": "Define weighting and normalization methods to calculate the final Displacement Risk Index (DRI).",
+      "points": 15,
+      "visual_evidence": "Notebook cells showing normalization (e.g., min-max scaling, z-scores) of the three metrics and combining them with specific weights into a final 'dri_score'."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the final data to the specified CSV path with the required columns.",
+      "points": 15,
+      "visual_evidence": "Code cell executing a CSV export (e.g., to_csv) to /home/ga/urbansim_projects/output/displacement_risk.csv. The dataframe being exported should visibly contain the columns: zone_id, dri_score, vulnerability_score, precarity_score, and pressure_score."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "jupyter_execution",
+      "description": "The agent actually executed the code in the Jupyter Notebook environment.",
+      "visual_evidence": "Execution counts (e.g., 'In [1]:') are visible and incrementing, and output cells show pandas dataframes or print statements rather than just unexecuted code."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "The agent processed the actual HDF5 dataset rather than mocking the output.",
+      "visual_evidence": "Code shows genuine pandas/HDF5 operations reading the .h5 file and performing aggregations/joins. There should be no hardcoded mock data arrays for the final output."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent used the Jupyter notebook for analysis as requested, rather than bypassing it.",
+      "visual_evidence": "The main workspace shown is the Jupyter Notebook interface at the correct path, not just a terminal window echoing text into a .csv file or running a hidden script."
+    }
+  ],
+  "privileged_info_for_vlm": "The target notebook path is /home/ga/urbansim_projects/notebooks/displacement_risk.ipynb. The dataset is located at /home/ga/urbansim_projects/data/sanfran_public.h5. The required CSV output path is /home/ga/urbansim_projects/output/displacement_risk.csv. The CSV must contain exactly these columns: zone_id, dri_score, vulnerability_score, precarity_score, pressure_score. The dataset contains 189 unique zones; the output must contain at least 50 zones to pass the minimum threshold. A chart output at /home/ga/urbansim_projects/output/displacement_risk_chart.png is also checked by the scoring script if generated."
+}

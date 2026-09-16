@@ -1,0 +1,53 @@
+{
+  "task_id": "provision_mac_barcode_dhcp@1",
+  "task_completion": [
+    {
+      "id": "bcwebcam_scan_successful",
+      "description": "bcWebCam application successfully scanned the MAC address barcode.",
+      "points": 20,
+      "visual_evidence": "The bcWebCam application window is visible, showing a scanned 12-character alphanumeric string (the raw MAC address) in its result field."
+    },
+    {
+      "id": "scan_evidence_saved",
+      "description": "A screenshot of the successful scan is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "File Explorer or an image viewer shows a file named 'scan_evidence.png' located in 'C:\\Users\\Docker\\Documents'. The image itself must show the bcWebCam interface with the scanned MAC address."
+    },
+    {
+      "id": "dhcp_conf_opened",
+      "description": "The DHCP reservations configuration file is opened for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (like Notepad) is open, editing a file named 'dhcp_reservations.conf' located in 'C:\\Users\\Docker\\Documents'."
+    },
+    {
+      "id": "dhcp_host_and_ip_configured",
+      "description": "The DHCP reservation includes the correct host name and fixed IP address.",
+      "points": 20,
+      "visual_evidence": "Inside the text editor for 'dhcp_reservations.conf', there is a block containing 'host Switch-IDF-02' and 'fixed-address 10.1.20.5;'."
+    },
+    {
+      "id": "dhcp_mac_formatted_configured",
+      "description": "The scanned MAC address is formatted with colons and added to the DHCP reservation.",
+      "points": 30,
+      "visual_evidence": "Inside 'dhcp_reservations.conf', the DHCP block contains 'hardware ethernet' followed by the scanned MAC address formatted with colons (e.g., XX:XX:XX:XX:XX:XX;). The alphanumeric characters must match the raw scan from bcWebCam."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_bcwebcam_usage",
+      "description": "The agent interacted with the actual bcWebCam software to get the MAC address.",
+      "visual_evidence": "The bcWebCam GUI must be visible in the screenshots, showing the camera feed from OBS Virtual Camera and the scanned barcode result, rather than the agent just guessing or hardcoding a MAC address."
+    },
+    {
+      "id": "authentic_scan_evidence",
+      "description": "The saved scan evidence is a genuine screenshot of the application.",
+      "visual_evidence": "The 'scan_evidence.png' file contains an actual screenshot of the desktop or bcWebCam window, not just a text document renamed to .png or a blank image."
+    },
+    {
+      "id": "proper_dhcp_syntax",
+      "description": "The agent used valid ISC DHCP reservation syntax.",
+      "visual_evidence": "The text in 'dhcp_reservations.conf' uses proper ISC DHCP formatting, including curly braces {} to enclose the host block and semicolons ; at the end of the hardware ethernet and fixed-address lines."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

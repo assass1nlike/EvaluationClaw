@@ -1,0 +1,81 @@
+{
+  "dataset_id": "5689e9e6",
+  "name": "Retail-Object-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Retail-Object-Detection is an image-to-label dataset of retail shelf scenes annotated with per-product bounding boxes. It evaluates a model's ability to localize and label multiple objects (e.g. flour packages, generic products) in cluttered store images.",
+  "card_text": "This dataset pairs photographed retail shelves with detection annotations. Each sample contains a single image reference (a store-shelf photograph populated with many packaged products), a short natural-language prompt that instructs the model to perform detection, and an output field consisting of a list of bounding boxes. Every box is expressed as a dictionary with exactly one key (the object class name, such as 'Flour' or the generic placeholder 'object') mapped to a four-number coordinate tuple. Images are densely packed with merchandise, so a single sample may carry anywhere from roughly twenty to well over a hundred boxes. The dataset is small (about 200 samples) and open-set in the sense that category names are image-specific and annotation style varies across sources. It is intended for evaluating object detection and localization under real-world retail conditions.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "retail product shelves",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short natural-language prompt that tells the model what detection behaviour is expected on the accompanying image. In the provided samples it is a generic placeholder noting that prompts are model-specific, and it acts as the task instruction paired with the visual input.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "objects",
+        "semantics": "Path to the retail store-shelf photograph that the model must analyse. The scenes are densely populated with packaged products arranged on shelves, providing the visual evidence for every bounding box in the output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A list of object annotations for the input image. Each element is a single-key dictionary whose key is the object class name (e.g. 'Flour' or the generic 'object') and whose value is a four-number box description (x, y, width, height). The number of boxes per sample varies strongly, from roughly twenty to over a hundred, and each box localizes one product instance in the corresponding image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample couples one visual input with one instruction and one structured answer: 'input.image_file' points to a retail shelf photograph, 'input.prompt' provides a short textual instruction for the detection task, and 'output.bbox' holds the annotation as a flat list of single-key dictionaries, where the key is the detected object's category name and the value is a four-number coordinate tuple (x, y, width, height). The boxes are spatially grounded in the referenced image, so the text prompt conditions how the visual content is to be parsed and the bounding-box list records every detected product instance."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/retail-object-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "retail-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

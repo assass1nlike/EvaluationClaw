@@ -1,0 +1,31 @@
+{
+  "id": "simulate_tidal_turbine_performance@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Design a tidal turbine blade and simulate its performance in seawater to determine mechanical power output. The blade must utilize a NACA 63-818 airfoil (18% thickness) with a 5-meter radius, a root chord of approximately 0.8m, and a tip chord of approximately 0.4m. The airfoil analysis should be conducted at Re=1,000,000 and Ncrit=9, with the polar extrapolated to 360 degrees. Configure the simulation for seawater properties (Density: 1025 kg/m^3, Kinematic Viscosity: 1.0e-6 m^2/s) at a flow velocity of 2.5 m/s. Save the complete project to /home/ga/Documents/projects/tidal_project.wpa and record the mechanical power output in kW to /home/ga/Documents/tidal_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/simulate_tidal_turbine_performance/setup_task.sh",
+    "post_task": "/workspace/tasks/simulate_tidal_turbine_performance/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/Documents/projects/tidal_project.wpa",
+    "expected_report_path": "/home/ga/Documents/tidal_report.txt",
+    "target_velocity_ms": 2.5,
+    "water_density": 1025,
+    "min_power_kw": 150,
+    "max_power_kw": 400,
+    "air_power_limit_kw": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tidal_simulation"
+    }
+  }
+}

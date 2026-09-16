@@ -1,0 +1,34 @@
+{
+  "id": "send_chat_message@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Join the meeting room 'MorningFitness' using the display name 'Coach Mara' and send the following message to the chat: 'Today's Workout: 3 rounds - 20 squats, 15 push-ups, 10 burpees. Rest 60s between rounds.'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/send_chat_message/setup_task.sh",
+    "post_task": "/workspace/tasks/send_chat_message/export_result.sh"
+  },
+  "metadata": {
+    "room_name": "MorningFitness",
+    "display_name": "Coach Mara",
+    "message_text": "Today's Workout: 3 rounds - 20 squats, 15 push-ups, 10 burpees. Rest 60s between rounds.",
+    "key_terms": [
+      "3 rounds",
+      "20 squats",
+      "15 push-ups",
+      "10 burpees",
+      "60s"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_send_chat_message"
+    }
+  }
+}

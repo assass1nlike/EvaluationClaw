@@ -1,0 +1,31 @@
+{
+  "id": "cell_nuclear_morphometry_batch@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a biological technician processing a batch of fluorescence microscopy images of Drosophila Kc167 cells stained with DAPI from ~/Fiji_Data/raw/bbbc008/. Batch process all DAPI-channel images (filenames containing 'w1') using background subtraction (Rolling Ball, radius 50 pixels), nuclear segmentation with watershed separation, and particle analysis excluding objects smaller than 50 or larger than 5000 square pixels. For each detected nucleus, record the image_filename, nucleus_id, area_px, perimeter_px, circularity, solidity, aspect_ratio, and mean_intensity. Apply the pixel scale from ~/Fiji_Data/raw/bbbc008/scale_info.txt to also report area_um2 and perimeter_um. Save all measurements to ~/Fiji_Data/results/morphometry/nuclear_measurements.csv. Save a per-image summary to ~/Fiji_Data/results/morphometry/batch_summary.txt including the filename, n_nuclei, mean_area_um2, mean_circularity, and a quality flag (PASS if n_nuclei >= 5 and mean_circularity >= 0.5, else FAIL). Produce a QC overlay image showing detected nucleus outlines for at least one image to ~/Fiji_Data/results/morphometry/qc_overlay.png.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cell_nuclear_morphometry_batch/setup_task.sh",
+    "post_task": "/workspace/tasks/cell_nuclear_morphometry_batch/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "BBBC008 - Drosophila Kc167 cells",
+    "channel": "DAPI (w1 files)",
+    "pixel_scale_um": 0.3296,
+    "min_particle_px": 50,
+    "max_particle_px": 5000,
+    "output_csv": "~/Fiji_Data/results/morphometry/nuclear_measurements.csv",
+    "output_summary": "~/Fiji_Data/results/morphometry/batch_summary.txt",
+    "output_overlay": "~/Fiji_Data/results/morphometry/qc_overlay.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cell_nuclear_morphometry_batch"
+    }
+  }
+}

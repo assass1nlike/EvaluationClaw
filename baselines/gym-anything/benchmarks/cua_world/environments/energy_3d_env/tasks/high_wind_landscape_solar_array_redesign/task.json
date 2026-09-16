@@ -1,0 +1,26 @@
+{
+  "id": "high_wind_landscape_solar_array_redesign@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Developer building a ground-mounted PV plant near Miami, FL. Due to strict hurricane wind-load regulations, the original design must be lowered to reduce its sail area.\n\n1. Open the project 'solar_array_starter.ng3' in Energy3D.\n2. Change the project's geographic location to Miami, FL.\n3. Select all the solar racks and change their panel orientation from Portrait to Landscape.\n4. Change the tilt angle of all the racks to 15 degrees.\n5. Save the modified design as 'miami_landscape_array.ng3' in the Documents/Energy3D directory.\n6. Run the Annual Yield Analysis for the solar panels.\n7. Export the resulting yield data to a CSV file named 'miami_annual_yield.csv' in the same directory.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/high_wind_landscape_solar_array_redesign/setup_task.sh",
+    "post_task": "/workspace/tasks/high_wind_landscape_solar_array_redesign/export_result.sh"
+  },
+  "metadata": {
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/miami_landscape_array.ng3",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/miami_annual_yield.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_redesign"
+    }
+  }
+}

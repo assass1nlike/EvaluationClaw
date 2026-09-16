@@ -1,0 +1,65 @@
+{
+  "task_id": "vhf_contest_rover_setup@1",
+  "task_completion": [
+    {
+      "id": "ground_stations_created",
+      "description": "Verify that the three required ground stations ('Rover_EN82', 'Rover_EN81', 'Rover_EN91') have been created.",
+      "points": 15,
+      "visual_evidence": "Look for a ground station list, manager window, or configuration screen in GPredict showing the names 'Rover_EN82', 'Rover_EN81', and 'Rover_EN91'."
+    },
+    {
+      "id": "ground_station_en82_config",
+      "description": "Verify the coordinates and altitude for the primary ground station 'Rover_EN82'.",
+      "points": 15,
+      "visual_evidence": "Look for the configuration window of 'Rover_EN82' showing Latitude: 42.5000 (or 42.5 N), Longitude: -83.5000 (or 83.5 W), and Altitude: 250m."
+    },
+    {
+      "id": "tle_updates_enabled",
+      "description": "Verify that automatic TLE updates from the network are enabled.",
+      "points": 10,
+      "visual_evidence": "Look for the GPredict Preferences window, specifically the 'TLE Update' section, showing that automatic updates via network are checked or enabled."
+    },
+    {
+      "id": "module_created_and_bound",
+      "description": "Verify the creation of the 'Contest_Rover' module and its binding to 'Rover_EN82'.",
+      "points": 15,
+      "visual_evidence": "Look for a module window titled 'Contest_Rover' or its configuration screen showing the Ground Station set to 'Rover_EN82'."
+    },
+    {
+      "id": "module_layout_polar",
+      "description": "Verify that the 'Contest_Rover' module uses a 'Polar only' layout.",
+      "points": 10,
+      "visual_evidence": "Look at the 'Contest_Rover' module window. It should display a single circular radar-like plot (Polar view) without other views like a map or list, or the configuration screen should show the layout set to 'Polar only'."
+    },
+    {
+      "id": "standard_satellites_added",
+      "description": "Verify that the standard available satellites (AO-7, FO-29, SO-50, AO-91) are added to the module.",
+      "points": 15,
+      "visual_evidence": "Look for AO-7, FO-29, SO-50, and AO-91 (or their NORAD IDs: 7530, 24278, 27607, 43017) listed in the module's configuration, polar plot, or satellite list."
+    },
+    {
+      "id": "ao92_satellite_added",
+      "description": "Verify that the missing satellite AO-92 (NORAD 43137) was successfully added to the module.",
+      "points": 20,
+      "visual_evidence": "Look for AO-92 or '43137' in the 'Contest_Rover' module's display/configuration, OR look for a text editor/terminal window showing the agent manually adding '43137' to the 'Contest_Rover.mod' file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gpredict_running",
+      "description": "Verify that the GPredict application is actually running and interacted with.",
+      "visual_evidence": "The GPredict GUI should be visible in the screenshots, demonstrating actual software usage rather than just text files or terminal outputs (except for the AO-92 workaround)."
+    },
+    {
+      "id": "genuine_module_display",
+      "description": "Verify that the module display is rendered by GPredict.",
+      "visual_evidence": "The polar plot and module windows should match the standard GPredict interface and not appear to be mocked up or pasted from external images."
+    },
+    {
+      "id": "no_fake_completion_text",
+      "description": "Verify the agent didn't just echo the task description to bypass checks.",
+      "visual_evidence": "Ensure there are no text files or terminal windows simply echoing the prompt's requirements (e.g., 'Created Rover_EN82') without actually configuring the software."
+    }
+  ],
+  "privileged_info_for_vlm": "Rover_EN82: 42.5 N, 83.5 W (-83.5), 250m. Rover_EN81: 41.5 N, 83.5 W (-83.5), 220m. Rover_EN91: 41.5 N, 81.5 W (-81.5), 200m. Required satellites map to NORAD IDs: AO-7 (7530), FO-29 (24278), SO-50 (27607), AO-91 (43017), AO-92 (43137). 'Polar only' layout corresponds to Layout 2 in GPredict (a single circular radar plot). Note: AO-92 (43137) is not in the default local cache and requires the agent to manually add it via custom configuration or by editing the module's .mod file directly. Accept evidence of AO-92/43137 either in the GPredict GUI or successfully written to the Contest_Rover.mod file."
+}

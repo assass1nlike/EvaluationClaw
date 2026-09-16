@@ -1,0 +1,28 @@
+{
+  "id": "create_customer@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a new customer in the Magento admin panel with the following details: First Name 'Sarah', Last Name 'Johnson', Email 'sarah.johnson@example.com', and Group 'General'. Use 'Customer123!' as the password. If required, log in using admin/Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_customer/setup_task.sh",
+    "post_task": "/workspace/tasks/create_customer/export_result.sh"
+  },
+  "metadata": {
+    "expected_firstname": "Sarah",
+    "expected_lastname": "Johnson",
+    "expected_email": "sarah.johnson@example.com",
+    "expected_group": "General"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_customer"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_climate_data_parser@1",
+  "task_completion": [
+    {
+      "id": "open_parser_files",
+      "description": "Agent opens the Python parser modules in the workspace to inspect the code.",
+      "points": 10,
+      "visual_evidence": "A code editor (like VS Code, nano, or vim) or terminal output (like cat or less) displaying Python files from the /home/ga/workspace/climate_parser/ directory."
+    },
+    {
+      "id": "fix_parsing_scaling",
+      "description": "Agent fixes the fixed-width sign parsing and the temperature scaling factor.",
+      "points": 20,
+      "visual_evidence": "Code modifications showing adjustments to string slicing/parsing for signs (+/-) and dividing the parsed temperature value by 10."
+    },
+    {
+      "id": "fix_sentinel_values",
+      "description": "Agent fixes the missing-data handling by catching sentinel values.",
+      "points": 20,
+      "visual_evidence": "Code modifications showing logic to check for and filter out '+9999' or '9999' (the NOAA sentinel value for missing data) before processing temperatures."
+    },
+    {
+      "id": "fix_geo_filtering",
+      "description": "Agent fixes the geographical filtering bounding box logic.",
+      "points": 20,
+      "visual_evidence": "Code modifications in the geographical filtering section showing corrected boolean logic (e.g., changing ORs to ANDs, or fixing coordinate boundary comparisons)."
+    },
+    {
+      "id": "fix_averaging",
+      "description": "Agent fixes the statistical aggregation to compute valid averages.",
+      "points": 10,
+      "visual_evidence": "Code modifications showing the average calculation dividing by the correct length (len) of the valid/filtered array rather than a hardcoded or incorrect denominator."
+    },
+    {
+      "id": "verify_pipeline_tests",
+      "description": "Agent runs the test suite or pipeline to verify the fixes produce realistic metric outputs.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the test suite (e.g., pytest) passing successfully, or the main pipeline script running and printing realistic temperature averages and metrics."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Verify the agent actually edited the Python files rather than just mocking the test output.",
+      "visual_evidence": "Screenshots should show the actual code changes in an editor or via a git diff/cat command, rather than just a terminal showing a passing test."
+    },
+    {
+      "id": "no_hardcoded_outputs",
+      "description": "Verify the agent did not hardcode the expected test results or metric outputs.",
+      "visual_evidence": "The Python code should contain dynamic calculations (e.g., sum/len) and variable returns, not static strings like 'return 15.2' or 'print(\"Tests Passed\")'."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify the test suite or pipeline was genuinely executed.",
+      "visual_evidence": "Terminal output should show standard Python execution logs, pytest output with collected items, or realistic data processing logs, rather than a simple echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific intentional bugs in the Python climate data parser: 1) fixed-width sign parsing, 2) dividing temperature by a scaling factor of 10, 3) catching '+9999' sentinel values for missing data, 4) fixing bounding box boolean AND logic for geographical filtering, and 5) fixing array averaging to use the correct length (len) of valid items. The agent must modify the code to address these and show the test suite passing or realistic metrics being output."
+}

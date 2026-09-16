@@ -1,0 +1,53 @@
+{
+  "task_id": "multilang_subtitle_mkv_packaging@1",
+  "task_completion": [
+    {
+      "id": "subtitle_shifted",
+      "description": "Shift the three subtitle files by +12.5 seconds",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands (e.g., using awk, python, ffmpeg, or a subtitle tool) or a text editor modifying the timestamps in en_original.srt, es_original.srt, and fr_original.srt to add 12.5 seconds."
+    },
+    {
+      "id": "mkv_multiplexed",
+      "description": "Multiplex video, audio, and shifted subtitles into an MKV container with correct metadata",
+      "points": 30,
+      "visual_evidence": "Look for ffmpeg or mkvmerge commands combining documentary_final.mp4 and the three shifted SRT files into documentary_multilang.mkv. The command must include language metadata tags ('eng', 'spa', 'fra') and set the English subtitle stream as the default track."
+    },
+    {
+      "id": "xspf_playlist_created",
+      "description": "Create a VLC XSPF playlist with specific playback options",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal commands creating spanish_review.xspf. The file content must show XML/XSPF structure including options for 'start-time=15' and forcing the Spanish subtitle track (e.g., 'sub-track=1' or similar depending on track index)."
+    },
+    {
+      "id": "json_manifest_created",
+      "description": "Generate a JSON stream manifest of the MKV layout",
+      "points": 20,
+      "visual_evidence": "Look for ffprobe commands outputting to JSON (e.g., 'ffprobe -print_format json') or a text editor creating stream_manifest.json that outlines the streams in the newly created MKV file."
+    },
+    {
+      "id": "deliverables_exist",
+      "description": "Verify all deliverables are placed in the release directory",
+      "points": 10,
+      "visual_evidence": "Look for terminal output (like 'ls /home/ga/Videos/release/') or a file manager showing documentary_multilang.mkv, spanish_review.xspf, and stream_manifest.json in the correct directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Verify the agent used proper multimedia tools for multiplexing",
+      "visual_evidence": "Check that the agent actually executed commands using tools like ffmpeg or mkvmerge to create the MKV, rather than just renaming an MP4 or creating a dummy file."
+    },
+    {
+      "id": "genuine_json_manifest",
+      "description": "Verify the JSON manifest is derived from the actual MKV file",
+      "visual_evidence": "Check that the agent used a tool like ffprobe to inspect the MKV and generate the JSON, rather than manually typing a fabricated JSON file without verifying the actual stream layout."
+    },
+    {
+      "id": "genuine_subtitle_shift",
+      "description": "Verify the subtitles were actually time-shifted",
+      "visual_evidence": "Check that the agent applied a mathematical shift to the subtitle timestamps (e.g., via script or ffmpeg), rather than just copying the original SRT files without modifying their contents."
+    }
+  ],
+  "privileged_info_for_vlm": "The original SRT files have a starting timestamp of 00:00:02,000. After the +12.5s shift, the first timestamp must be exactly 00:00:14,500. The final deliverables must be located exactly at: /home/ga/Videos/release/documentary_multilang.mkv, /home/ga/Videos/release/spanish_review.xspf, and /home/ga/Videos/release/stream_manifest.json. The XSPF playlist must explicitly contain 'start-time=15' and a 'sub-track' option."
+}

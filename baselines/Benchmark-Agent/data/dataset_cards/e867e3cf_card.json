@@ -1,0 +1,79 @@
+{
+  "dataset_id": "e867e3cf",
+  "name": "Indoor Semantic Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image",
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 261,
+  "description": "The dataset is for indoor semantic segmentation. Given an indoor RGB image and a fixed textual instruction, the model must produce a pixel-level semantic segmentation map.",
+  "card_text": "This dataset contains 261 samples for indoor semantic segmentation. Each sample pairs an indoor scene image (input.image_file) with a short textual prompt (input.prompt) that instructs the model to perform semantic segmentation on that image. The expected output is a segmentation mask file (output.map_file) that assigns a semantic category to each pixel. The images depict indoor environments such as rooms with furniture and objects. The task evaluates dense pixel-level scene understanding and labeling. The prompt is a fixed imperative instruction, and no additional textual context or QA pairs are provided. The dataset assumes access to image and mask files in a local directory structure.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "indoor scene understanding",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The context is the input indoor image that the model must segment. It provides the visual scene containing various objects and surfaces. The prompt asks the model to perform semantic segmentation on this image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is a fixed textual instruction asking to perform semantic segmentation on the indoor image. It is short and imperative, directing the model to produce a pixel-level labeling.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The output is a segmentation mask image file that provides a pixel-level annotation map for the input image. Each pixel is assigned a semantic category. It is the target annotation for the segmentation task and is spatially aligned with the context image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input indoor image (context), a short textual prompt instructing the model to perform semantic segmentation on that image (question), and a segmentation mask file (mask) that serves as the target annotation. The mask is spatially aligned with the input image. No additional context, options, or dialog fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/indoor_semantic_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "indoor semantic segmentation",
+      "type": "comprehension",
+      "skill": "Image Semantic Segmentation (Img Sem Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "viewshed_fire_lookout_siting@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform a viewshed analysis to determine the visible area from a proposed fire lookout tower. Load the Digital Elevation Model (DEM) from /home/ga/GIS_Data/rasters/srtm_41_19.tif and reproject it to WGS 84 / UTM zone 34S (EPSG:32734), saving the result to /home/ga/GIS_Data/rasters/dem_reprojected.tif. Identify the highest elevation point in the reprojected DEM to serve as the observer location. Generate a visibility map using an observer height of 10 meters, a target height of 0 meters, and an analysis radius of 20 kilometers. Save the final viewshed raster to /home/ga/GIS_Data/exports/fire_lookout_viewshed.tif.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/viewshed_fire_lookout_siting/setup_task.sh",
+    "post_task": "/workspace/tasks/viewshed_fire_lookout_siting/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "dem_source": "/home/ga/GIS_Data/rasters/srtm_41_19.tif",
+    "reprojected_dem": "/home/ga/GIS_Data/rasters/dem_reprojected.tif",
+    "expected_output": "/home/ga/GIS_Data/exports/fire_lookout_viewshed.tif",
+    "target_crs": "EPSG:32734",
+    "observer_height": 10,
+    "radius": 20000,
+    "min_visible_pixel_ratio": 0.01
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_viewshed_fire_lookout_siting"
+    }
+  }
+}

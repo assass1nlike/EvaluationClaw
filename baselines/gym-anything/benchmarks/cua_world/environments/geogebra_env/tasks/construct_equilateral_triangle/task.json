@@ -1,0 +1,33 @@
+{
+  "id": "construct_equilateral_triangle@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Construct an equilateral triangle in GeoGebra where all three sides are equal and all three angles are 60 degrees (within ±2° tolerance). You may use any method to determine the vertex positions, but you must use the Polygon tool to create the final triangle for verification. Save the construction as 'equilateral_triangle.ggb' in ~/Documents/GeoGebra/projects/",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/construct_equilateral_triangle/setup_task.sh",
+    "post_task": "/workspace/tasks/construct_equilateral_triangle/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "equilateral_triangle.ggb",
+    "expected_object_types": [
+      "point",
+      "segment",
+      "polygon"
+    ],
+    "min_points": 3,
+    "tolerance_degrees": 2.0,
+    "expected_angle": 60.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_construct_equilateral_triangle"
+    }
+  }
+}

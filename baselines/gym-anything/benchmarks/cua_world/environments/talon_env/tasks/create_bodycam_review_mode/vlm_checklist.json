@@ -1,0 +1,59 @@
+{
+  "task_id": "create_bodycam_review_mode@1",
+  "task_completion": [
+    {
+      "id": "folder_created",
+      "description": "Create the bodycam_review folder in the Talon user directory",
+      "points": 10,
+      "visual_evidence": "A terminal, file explorer, or text editor file tree showing the directory 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bodycam_review' has been created."
+    },
+    {
+      "id": "python_module_action",
+      "description": "Create bodycam.py defining a Talon Module and the log_bodycam_event action",
+      "points": 15,
+      "visual_evidence": "A file named 'bodycam.py' open in an editor showing Python code that imports talon, defines a Module(), and uses the @mod.action_class decorator to define a function 'log_bodycam_event(event_desc: str)'."
+    },
+    {
+      "id": "python_csv_logic",
+      "description": "Implement the CSV append logic with timestamps in bodycam.py",
+      "points": 20,
+      "visual_evidence": "Inside 'bodycam.py', the 'log_bodycam_event' function contains logic to open 'C:\\Users\\Docker\\Documents\\bodycam_review_log.csv' in append mode (e.g., 'a' or 'ab') and writes the current system timestamp alongside the 'event_desc' string."
+    },
+    {
+      "id": "talon_context_header",
+      "description": "Create bodycam.talon with a context header restricting it to 'BodyCam' windows",
+      "points": 15,
+      "visual_evidence": "A file named 'bodycam.talon' open in an editor with a header at the top that restricts the context to the window title containing 'BodyCam' (e.g., 'title: /BodyCam/' or 'win.title: /BodyCam/'), followed by a '-' separator."
+    },
+    {
+      "id": "talon_key_mappings",
+      "description": "Map the required voice commands to the correct keyboard keys in bodycam.talon",
+      "points": 20,
+      "visual_evidence": "Inside 'bodycam.talon', the following mappings are visible: 'video play' to 'k', 'video pause' to 'k', 'skip forward' to 'l', 'skip back' to 'j', 'frame next' to '.', 'frame back' to ',', 'speed up' to 'shift->' (or shift-.), and 'speed down' to 'shift-<' (or shift-,)."
+    },
+    {
+      "id": "talon_log_command",
+      "description": "Map the 'log event' voice command to the custom Python action in bodycam.talon",
+      "points": 20,
+      "visual_evidence": "Inside 'bodycam.talon', a command like 'log event <user.text>:' is defined, and its action calls the custom python function (e.g., 'user.log_bodycam_event(text)' or similar)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Files were actually created in the filesystem",
+      "visual_evidence": "The files 'bodycam.py' and 'bodycam.talon' are visible in the file explorer, terminal directory listing, or editor file tree at the correct path, rather than just being typed into an unsaved scratchpad."
+    },
+    {
+      "id": "no_direct_csv_manipulation",
+      "description": "The agent did not manually create or type into the CSV file to bypass the Python script",
+      "visual_evidence": "The agent focuses on writing the Python script to handle the CSV logging programmatically, rather than opening 'bodycam_review_log.csv' and manually typing mock log entries."
+    },
+    {
+      "id": "correct_file_extensions",
+      "description": "The agent used the correct .py and .talon file extensions",
+      "visual_evidence": "The file names explicitly end in '.py' and '.talon', not '.txt' or other extensions."
+    }
+  ],
+  "privileged_info_for_vlm": "The Talon configuration directory must be exactly C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\bodycam_review. The Python script must append logs to exactly C:\\Users\\Docker\\Documents\\bodycam_review_log.csv."
+}

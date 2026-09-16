@@ -1,0 +1,50 @@
+{
+  "id": "export_data@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Export the 'customers' table from the chinook.db database to a CSV file at /home/ga/Documents/exports/customers_export.csv. The CSV must include a header row with the following columns: CustomerId, FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_data/setup_task.sh",
+    "post_task": "/workspace/tasks/export_data/export_result.sh"
+  },
+  "metadata": {
+    "expected_table": "customers",
+    "expected_row_count": 59,
+    "expected_export_path": "/home/ga/Documents/exports/customers_export.csv",
+    "required_columns": [
+      "CustomerId",
+      "FirstName",
+      "LastName",
+      "Email"
+    ],
+    "all_columns": [
+      "CustomerId",
+      "FirstName",
+      "LastName",
+      "Company",
+      "Address",
+      "City",
+      "State",
+      "Country",
+      "PostalCode",
+      "Phone",
+      "Fax",
+      "Email",
+      "SupportRepId"
+    ],
+    "strict_path": true,
+    "strict_content": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_data"
+    }
+  }
+}

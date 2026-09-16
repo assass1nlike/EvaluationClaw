@@ -1,0 +1,37 @@
+{
+  "id": "identify_flood_safe_cities@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "You are a GIS analyst. Identify and export a list of major South American cities (CONTINENT = 'South America') that are safe from river flooding using the 'countries_base.gvsproj' project. Using the cities data (/home/ga/gvsig_data/cities/ne_110m_populated_places.shp) and rivers data (/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp), find cities with a population (POP_MAX) greater than 1,000,000 located more than 0.5 degrees away from any major river. Save the 0.5-degree river buffer to /home/ga/gvsig_data/exports/river_buffer_05deg.shp and export the final selection of safe cities to /home/ga/gvsig_data/exports/safe_cities.shp.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_flood_safe_cities/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_flood_safe_cities/export_result.sh"
+  },
+  "metadata": {
+    "buffer_path": "/home/ga/gvsig_data/exports/river_buffer_05deg.shp",
+    "result_path": "/home/ga/gvsig_data/exports/safe_cities.shp",
+    "must_include": [
+      "Santiago",
+      "Lima",
+      "Bogota",
+      "Caracas"
+    ],
+    "must_exclude": [
+      "Manaus",
+      "Paris",
+      "New York"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_identify_flood_safe_cities"
+    }
+  }
+}

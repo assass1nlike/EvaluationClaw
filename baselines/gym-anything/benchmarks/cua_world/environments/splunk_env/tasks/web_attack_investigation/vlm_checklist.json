@@ -1,0 +1,59 @@
+{
+  "task_id": "web_attack_investigation@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Agent logged into the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "The Splunk web interface is visible in the browser, indicating a successful login (e.g., the Splunk homepage or Search & Reporting app is open)."
+    },
+    {
+      "id": "query_multiple_indexes",
+      "description": "Agent queried both the web logs and security logs.",
+      "points": 20,
+      "visual_evidence": "The Splunk search bar contains a query referencing both 'web_logs' and 'security_logs' (e.g., using an OR operator, append, or join)."
+    },
+    {
+      "id": "identify_common_ips",
+      "description": "Agent identified IP addresses present in both web and authentication logs.",
+      "points": 20,
+      "visual_evidence": "The search results table displays IP addresses with evidence that they appear in both datasets (e.g., a stats command showing counts > 0 for both sourcetypes/indexes, or an intersection of IPs)."
+    },
+    {
+      "id": "save_report",
+      "description": "Agent saved the search query as a report.",
+      "points": 20,
+      "visual_evidence": "A 'Save As Report' dialog box is visible, a success message for report creation is shown, or the newly created report is visible in the 'Reports' tab."
+    },
+    {
+      "id": "create_dashboard",
+      "description": "Agent created a new dashboard.",
+      "points": 10,
+      "visual_evidence": "The Splunk 'Save As Dashboard' dialog is visible, or a new dashboard page is shown in edit or view mode."
+    },
+    {
+      "id": "dashboard_panels_added",
+      "description": "Agent added at least two panels to the dashboard to visualize attack patterns.",
+      "points": 20,
+      "visual_evidence": "The dashboard view displays at least two distinct visualization panels (e.g., charts, tables, or single value displays) containing log data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_gui_used",
+      "description": "Agent used the Splunk Web GUI to perform the investigation.",
+      "visual_evidence": "Screenshots show the agent interacting with the Splunk web interface in a browser, rather than using terminal commands (like curl) to interact with the Splunk API."
+    },
+    {
+      "id": "genuine_log_data",
+      "description": "Agent interacted with actual log data rather than mocking results.",
+      "visual_evidence": "Search results show realistic Splunk log events, timestamps, and IP addresses, not a manually typed text file or a hardcoded HTML table."
+    },
+    {
+      "id": "dashboard_ui_creation",
+      "description": "Agent created the dashboard using the Splunk UI.",
+      "visual_evidence": "Screenshots show the Splunk dashboard editor (Add Panel, Edit Source, etc.) being used, rather than the agent directly writing XML files in a terminal text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must log into Splunk at http://localhost:8000 using credentials 'admin' and 'SplunkAdmin1!'. The relevant data is stored in the 'web_logs' (Apache) and 'security_logs' (SSH/auth) indexes. The final dashboard must contain at least 2 panels."
+}

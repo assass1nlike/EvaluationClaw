@@ -1,0 +1,74 @@
+{
+  "dataset_id": "9e2d1594",
+  "name": "Intent-Classification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for multiclass intent classification of airline travel queries. Each sample provides a user utterance and a prompt instructing the model to select one of 18 ATIS intent categories. Evaluates the ability to detect the intent of short user requests.",
+  "card_text": "The Intent-Classification dataset is a text-only benchmark for intent detection in the airline travel domain. It contains 200 samples derived from ATIS-style utterances, such as requests for flights, aircraft information, or ground services. Each sample includes a short user utterance (raw_text), a prompt that asks the model to detect the intent and choose from a fixed list of 18 ATIS intents, and a single ground-truth intent label. The prompt is an explicit instruction with the utterance inserted, and the expected output is only the intent name. The dataset assumes a closed-set multiclass classification setup and is intended to evaluate models on understanding short natural-language travel queries.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "airline travel",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short user utterance or query, typically a request related to airline travel (e.g., 'show me flights from fort worth to san jose'). It is the main input whose intent must be classified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction template that asks the model to detect the intent of the utterance and choose from a provided list of ATIS intent labels, outputting only the intent name.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.intent"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth intent label for the utterance, chosen from the predefined set of ATIS intents (e.g., 'atis_flight'). It is the target output for the classification task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a short user utterance as context, an instruction prompt that asks to classify the utterance's intent from a fixed list, and a single intent label as the answer. The prompt references the utterance and specifies the allowed intent categories, while the answer provides the correct category name."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Intent-Classification/annotation.json",
+    "existing_tags": {
+      "task": "intent_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

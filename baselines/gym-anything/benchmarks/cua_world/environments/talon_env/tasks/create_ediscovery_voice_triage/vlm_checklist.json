@@ -1,0 +1,59 @@
+{
+  "task_id": "create_ediscovery_voice_triage@1",
+  "task_completion": [
+    {
+      "id": "ediscovery_py_created",
+      "description": "Verify that ediscovery.py is created in the correct Talon user directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer, terminal, or text editor showing that a file named `ediscovery.py` has been created in the directory `C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\ediscovery\\`."
+    },
+    {
+      "id": "module_and_list_defined",
+      "description": "Verify that ediscovery.py defines the Talon Module and the required category list.",
+      "points": 15,
+      "visual_evidence": "Examine the contents of `ediscovery.py`. Look for the instantiation of a Talon `Module` (e.g., `mod = Module()`) and the definition of a list (e.g., `mod.list('ediscovery_category')`) containing the exact strings: 'privileged', 'responsive', 'irrelevant', and 'needs review'."
+    },
+    {
+      "id": "tag_action_implemented",
+      "description": "Verify that the tagging action is implemented with header extraction, CSV logging, and file moving.",
+      "points": 25,
+      "visual_evidence": "Examine the contents of `ediscovery.py`. Look for a function (e.g., `ediscovery_tag`) that reads an `.eml` file, extracts headers (Message-ID, Date, From, To, Subject), writes to `C:\\workspace\\enron_data\\triage_log.csv`, and moves the file to `C:\\workspace\\enron_data\\categorized\\{category}\\`."
+    },
+    {
+      "id": "extract_action_implemented",
+      "description": "Verify that the extraction action is implemented to parse attachments and save them.",
+      "points": 25,
+      "visual_evidence": "Examine the contents of `ediscovery.py`. Look for a function (e.g., `ediscovery_extract`) that parses an `.eml` file, iterates through its parts to find attachments, decodes them, and saves them to `C:\\workspace\\enron_data\\attachments\\` with the prefix `{email_id}_`."
+    },
+    {
+      "id": "ediscovery_talon_created",
+      "description": "Verify that ediscovery.talon is created in the correct Talon user directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer, terminal, or text editor showing that a file named `ediscovery.talon` has been created in the directory `C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\ediscovery\\`."
+    },
+    {
+      "id": "talon_commands_mapped",
+      "description": "Verify that ediscovery.talon maps the required voice commands to the correct actions.",
+      "points": 15,
+      "visual_evidence": "Examine the contents of `ediscovery.talon`. Look for the exact voice command triggers `triage tag {user.ediscovery_category} <user.text>:` and `triage extract <user.text>:` mapped to calls to `user.ediscovery_tag()` and `user.ediscovery_extract()` respectively."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify that the agent actually created and edited the files.",
+      "visual_evidence": "Check that the files were created and edited using a text editor (like VS Code, Notepad, or Vim) or standard terminal commands, rather than just printing the expected code to the console."
+    },
+    {
+      "id": "no_hardcoded_logic",
+      "description": "Verify that the Python code uses dynamic variables rather than hardcoded values.",
+      "visual_evidence": "Check that the Python code uses dynamic variables for `email_id` and `category` in its file paths and logic, rather than hardcoding specific test values to bypass the requirements."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Verify that the agent is working within the specified directories.",
+      "visual_evidence": "Check that the agent is using the exact directories specified (`C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\ediscovery\\` and `C:\\workspace\\enron_data\\`) and did not create mock directories in other locations."
+    }
+  ],
+  "privileged_info_for_vlm": "Module Directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\ediscovery. Categories: privileged, responsive, irrelevant, needs review."
+}

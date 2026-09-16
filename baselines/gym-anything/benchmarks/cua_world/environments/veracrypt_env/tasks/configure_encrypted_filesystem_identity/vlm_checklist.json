@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_encrypted_filesystem_identity@1",
+  "task_completion": [
+    {
+      "id": "volume_created",
+      "description": "Create a 100MB standard VeraCrypt volume with AES, SHA-512, and Ext4",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI wizard or terminal output showing the creation of a volume at '/home/ga/Volumes/backup_tuesday.hc' with 100MB size, Ext4 filesystem, AES encryption, and SHA-512 hash."
+    },
+    {
+      "id": "label_configured",
+      "description": "Configure the Ext4 filesystem label to TUESDAY_BK",
+      "points": 20,
+      "visual_evidence": "Terminal output showing commands like 'sudo e2label <device> TUESDAY_BK' or 'sudo tune2fs -L TUESDAY_BK <device>', or verification commands like 'blkid' showing LABEL=\"TUESDAY_BK\" for the mapped VeraCrypt volume."
+    },
+    {
+      "id": "uuid_configured",
+      "description": "Configure the Ext4 filesystem UUID",
+      "points": 20,
+      "visual_evidence": "Terminal output showing commands like 'sudo tune2fs -U 550e8400-e29b-41d4-a716-446655440000 <device>', or verification commands like 'blkid' showing the updated UUID for the mapped VeraCrypt volume."
+    },
+    {
+      "id": "file_created",
+      "description": "Mount the volume and create drive_info.txt with the required content",
+      "points": 20,
+      "visual_evidence": "Terminal commands (e.g., echo or nano) or a text editor showing the creation of 'drive_info.txt' inside the mounted volume's directory, containing the text 'PROPERTY OF OPS TEAM - ID: 550e8400'."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Dismount the VeraCrypt volume",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI showing the volume is no longer in the list of mounted slots, or terminal output showing 'veracrypt -d' or 'umount' being executed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "Agent actually used VeraCrypt to create the volume",
+      "visual_evidence": "Look for the VeraCrypt application GUI or 'veracrypt' CLI commands. The agent should not just use 'dd' or 'touch' to create a dummy file named backup_tuesday.hc."
+    },
+    {
+      "id": "genuine_filesystem_modification",
+      "description": "Agent used proper filesystem tools to modify the label and UUID",
+      "visual_evidence": "Look for the use of 'tune2fs' or 'e2label' on the mapped VeraCrypt device (usually /dev/mapper/veracrypt...). The agent should not just create a text file mimicking 'blkid' output."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "Agent created the text file inside the mounted volume, not on the host filesystem",
+      "visual_evidence": "Check the path where 'drive_info.txt' is saved. It must be within the mount point of the VeraCrypt volume (e.g., /media/veracrypt1 or a custom mount folder), not just in /home/ga/."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume Path: /home/ga/Volumes/backup_tuesday.hc | Password: RotationSchedule2024! | Expected Label: TUESDAY_BK | Expected UUID: 550e8400-e29b-41d4-a716-446655440000 | Expected File Content: 'PROPERTY OF OPS TEAM' (specifically 'PROPERTY OF OPS TEAM - ID: 550e8400' inside drive_info.txt)."
+}

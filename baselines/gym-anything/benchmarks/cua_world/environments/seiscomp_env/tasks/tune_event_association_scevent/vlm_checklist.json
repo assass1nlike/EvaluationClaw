@@ -1,0 +1,65 @@
+{
+  "task_id": "tune_event_association_scevent@1",
+  "task_completion": [
+    {
+      "id": "config_file_accessed",
+      "description": "Access the scevent configuration file",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim) or terminal output (like cat, grep) showing the contents of /home/ga/seiscomp/etc/scevent.cfg."
+    },
+    {
+      "id": "max_distance_set",
+      "description": "Set maximumDistance to 2.5",
+      "points": 15,
+      "visual_evidence": "The configuration file shows 'maximumDistance = 2.5' or 'eventAssociation.maximumDistance = 2.5'."
+    },
+    {
+      "id": "max_time_diff_set",
+      "description": "Set maximumTimeDifference to 60.0",
+      "points": 15,
+      "visual_evidence": "The configuration file shows 'maximumTimeDifference = 60.0' or 'eventAssociation.maximumTimeDifference = 60.0'."
+    },
+    {
+      "id": "delay_time_span_set",
+      "description": "Set delayTimeSpan to 15",
+      "points": 15,
+      "visual_evidence": "The configuration file shows 'delayTimeSpan = 15' or 'eventAssociation.delayTimeSpan = 15'."
+    },
+    {
+      "id": "mag_types_set",
+      "description": "Set magTypes to mww, Mwp, Mw, ML, mb",
+      "points": 15,
+      "visual_evidence": "The configuration file shows 'magTypes = mww, Mwp, Mw, ML, mb' (case-insensitive for verification) or 'eventAssociation.magTypes = mww, Mwp, Mw, ML, mb'."
+    },
+    {
+      "id": "scevent_restarted",
+      "description": "Restart the scevent module",
+      "points": 15,
+      "visual_evidence": "Terminal showing the execution of a command like 'seiscomp restart scevent' or 'seiscomp restart' with output indicating the module is restarting."
+    },
+    {
+      "id": "scevent_running",
+      "description": "Ensure scevent remains running",
+      "points": 15,
+      "visual_evidence": "Terminal showing the output of 'seiscomp status scevent' or the end of the restart command indicating 'scevent is running' or 'Started scevent'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_file_edited",
+      "description": "The correct configuration file was edited",
+      "visual_evidence": "The file path visible in the text editor or terminal command is exactly /home/ga/seiscomp/etc/scevent.cfg."
+    },
+    {
+      "id": "command_executed",
+      "description": "The restart command was actually executed",
+      "visual_evidence": "The terminal shows the output of the restart command, not just the typed command waiting for execution."
+    },
+    {
+      "id": "service_status_verified",
+      "description": "The service status was checked after restarting",
+      "visual_evidence": "The status check or running confirmation appears chronologically after the restart command in the terminal history."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration file is /home/ga/seiscomp/etc/scevent.cfg. The required parameters are: maximumDistance = 2.5, maximumTimeDifference = 60.0, delayTimeSpan = 15, and magTypes = mww, Mwp, Mw, ML, mb. The scevent module must be restarted and verified to be running."
+}

@@ -1,0 +1,34 @@
+{
+  "id": "sunflower_phyllotaxis_model@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a dynamic biomathematical model of a sunflower seed head in GeoGebra to visualize how the Golden Angle (≈137.508°) optimizes seed packing. The construction must feature a divergence angle variable with a range of 130° to 145°, a step of 0.001, and an initial value of 137.508°. Use a scaling parameter c = 0.5 and Vogel's formula (radius r = c * sqrt(n) and angle theta = n * angle) to generate a dynamic pattern of at least 500 points. Save the final construction to ~/Documents/GeoGebra/projects/sunflower_model.ggb.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sunflower_phyllotaxis_model/setup_task.sh",
+    "post_task": "/workspace/tasks/sunflower_phyllotaxis_model/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "sunflower_model.ggb",
+    "min_points": 450,
+    "target_angle": 137.508,
+    "required_commands": [
+      "Sequence"
+    ],
+    "required_elements": [
+      "slider",
+      "list"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sunflower_model"
+    }
+  }
+}

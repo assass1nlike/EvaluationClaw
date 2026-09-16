@@ -1,0 +1,59 @@
+{
+  "task_id": "apt_threat_intel_profiles@1",
+  "task_completion": [
+    {
+      "id": "bookmark_folders_created",
+      "description": "Verify the creation of the required bookmark folder structure in Firefox.",
+      "points": 10,
+      "visual_evidence": "Look for the Firefox Bookmarks Library window or sidebar showing a folder named 'APT Research' containing two sub-folders: 'Sandworm' and 'Lazarus Group' (or 'Lazarus')."
+    },
+    {
+      "id": "sandworm_bookmarks_saved",
+      "description": "Verify at least 3 sources are bookmarked for Sandworm.",
+      "points": 15,
+      "visual_evidence": "Look inside the 'Sandworm' bookmark sub-folder in Firefox. Count the number of saved URLs/bookmarks; there must be at least 3 distinct entries."
+    },
+    {
+      "id": "lazarus_bookmarks_saved",
+      "description": "Verify at least 3 sources are bookmarked for Lazarus Group.",
+      "points": 15,
+      "visual_evidence": "Look inside the 'Lazarus Group' (or 'Lazarus') bookmark sub-folder in Firefox. Count the number of saved URLs/bookmarks; there must be at least 3 distinct entries."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify the threat intelligence report file exists on the Desktop.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'threat_intel_report.txt' on the Desktop GUI, or an open text editor window saving/editing a file with this exact name and path (~/Desktop/threat_intel_report.txt)."
+    },
+    {
+      "id": "report_attribution_and_targets",
+      "description": "Verify the report contains group headers, target sectors, and nation-state attribution.",
+      "points": 20,
+      "visual_evidence": "Read the contents of 'threat_intel_report.txt'. It must have clear headers for both 'Sandworm' and 'Lazarus Group'. Under each, it must list their primary target sectors and their attributed nation-state sponsors (Russia for Sandworm, North Korea for Lazarus)."
+    },
+    {
+      "id": "report_mitre_techniques",
+      "description": "Verify the report includes at least 3 attack techniques with MITRE ATT&CK IDs per group.",
+      "points": 30,
+      "visual_evidence": "Read the contents of 'threat_intel_report.txt'. Under both the Sandworm and Lazarus Group sections, there must be at least 3 distinct attack techniques listed, and each must include a MITRE ATT&CK ID (formatted as 'T' followed by 4 digits, e.g., T1059, T1105)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_usage",
+      "description": "Verify the agent actually used a web browser to research OSINT sources.",
+      "visual_evidence": "Look for screenshots showing Firefox open and navigating to genuine cybersecurity websites (e.g., MITRE ATT&CK, Mandiant, CISA, Wikipedia). The bookmarks should not be dummy URLs or local files."
+    },
+    {
+      "id": "manual_bookmark_creation",
+      "description": "Verify bookmarks were created via the browser interface.",
+      "visual_evidence": "Look for the Firefox bookmarking UI (star icon highlighted, bookmark edit dialog, or Library window) rather than a terminal script directly modifying the places.sqlite database."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "Verify the report was compiled using a text editor and contains researched information.",
+      "visual_evidence": "Look for a GUI text editor (like gedit, mousepad) or terminal editor (nano, vim) open with the report. The content should look like compiled research, not just a copy-paste of the prompt instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "Sandworm (APT44/Voodoo Bear) is attributed to Russia (GRU Unit 74455). Lazarus Group (APT38/Hidden Cobra) is attributed to North Korea (RGB). The required bookmark structure is a parent folder 'APT Research' with sub-folders 'Sandworm' and 'Lazarus' (or 'Lazarus Group'). The output file must be exactly at '/home/ga/Desktop/threat_intel_report.txt'. MITRE ATT&CK IDs are formatted as 'T' followed by four digits (e.g., T1059). The agent must have at least 3 bookmarks per group and 3 MITRE techniques per group in the final report."
+}

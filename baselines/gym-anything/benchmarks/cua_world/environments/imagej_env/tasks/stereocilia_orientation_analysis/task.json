@@ -1,0 +1,40 @@
+{
+  "id": "stereocilia_orientation_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Stereocilia Orientation Distribution Analysis",
+  "description": "Perform a directional analysis on the 'Organ of Corti' sample image to quantify the orientation of stereocilia bundles. Generate an orientation histogram with at least 10 angular bins spanning a range of at least 150 degrees. Determine the 'Preferred Direction' (peak angle) and 'Dispersion' (spread) of the structures. Save a CSV file containing the orientation histogram data and the summary statistics (Preferred Direction and Dispersion) to ~/ImageJ_Data/results/directionality_results.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "directionality",
+    "orientation",
+    "fft",
+    "fourier-analysis",
+    "quantitative"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stereocilia_orientation_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/stereocilia_orientation_analysis/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "Organ of Corti (58K)",
+    "image_source": "Fiji built-in sample",
+    "expected_output_path": "/home/ga/ImageJ_Data/results/directionality_results.csv",
+    "min_histogram_bins": 10,
+    "min_angular_range": 150,
+    "expected_dispersion_min": 1.0,
+    "expected_dispersion_max": 90.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stereocilia_orientation"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "design_troposkein_rotor@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Design a Vertical Axis Wind Turbine (VAWT) rotor with a Troposkein (skipping rope) geometry in QBlade. The design must utilize a NACA 0018 airfoil with a polar generated at Re=1,000,000 and extrapolated to 360 degrees. The rotor should consist of 2 blades with a height of 40 m, a radius of 20 m, a chord of 1.0 m, and at least 20 elements. Save the project to /home/ga/Documents/projects/troposkein_rotor.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_troposkein_rotor/setup_task.sh",
+    "post_task": "/workspace/tasks/design_troposkein_rotor/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "troposkein_rotor.wpa",
+    "target_height": 40.0,
+    "target_radius": 20.0,
+    "tolerance_percent": 5,
+    "min_elements": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_troposkein_rotor"
+    }
+  }
+}

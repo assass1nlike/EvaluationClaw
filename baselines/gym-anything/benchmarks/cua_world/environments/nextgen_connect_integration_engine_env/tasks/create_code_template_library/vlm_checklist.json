@@ -1,0 +1,59 @@
+{
+  "task_id": "create_code_template_library@1",
+  "task_completion": [
+    {
+      "id": "api_authentication_and_headers",
+      "description": "Verify the agent configured the correct API endpoint, credentials, and headers.",
+      "points": 10,
+      "visual_evidence": "Look for a script (e.g., Python, bash), curl command, or API client (like Postman) targeting 'https://localhost:8443/api'. It must include authentication credentials 'admin/admin' (e.g., `auth=('admin', 'admin')` or `-u admin:admin`) and the header 'X-Requested-With: OpenAPI'."
+    },
+    {
+      "id": "create_library_payload",
+      "description": "Verify the creation of the 'HL7 Processing Utilities' library with new channels included.",
+      "points": 20,
+      "visual_evidence": "Look for a JSON payload or API request defining a code template library named 'HL7 Processing Utilities'. The payload must include a configuration to automatically include new channels (e.g., `includeNewChannels: true` or similar boolean flag)."
+    },
+    {
+      "id": "template_format_hl7_date",
+      "description": "Verify the 'formatHL7Date' FUNCTION template payload.",
+      "points": 20,
+      "visual_evidence": "Look for an API request payload defining a template named 'formatHL7Date' of type 'FUNCTION'. The associated code snippet must contain a function definition (e.g., 'function formatHL7Date') and a 'return' statement for the converted ISO 8601 date."
+    },
+    {
+      "id": "template_extract_patient_name",
+      "description": "Verify the 'extractPatientName' FUNCTION template payload.",
+      "points": 20,
+      "visual_evidence": "Look for an API request payload defining a template named 'extractPatientName' of type 'FUNCTION'. The associated code snippet must contain a function definition and use the '^' character to parse the HL7 name string."
+    },
+    {
+      "id": "template_generate_ack",
+      "description": "Verify the 'generateACK' FUNCTION template payload.",
+      "points": 20,
+      "visual_evidence": "Look for an API request payload defining a template named 'generateACK' of type 'FUNCTION'. The associated code snippet must contain the string 'MSH' (case-insensitive) for generating the HL7 ACK message."
+    },
+    {
+      "id": "successful_api_execution",
+      "description": "Verify that the API requests were successfully executed.",
+      "points": 10,
+      "visual_evidence": "Look for terminal output, script logs, or API client responses showing successful HTTP status codes (e.g., 200 OK, 201 Created, 204 No Content) from the NextGen Connect API, indicating the library and templates were actually saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rest_api",
+      "description": "Ensure the agent used the REST API as requested, rather than the GUI.",
+      "visual_evidence": "The agent must use a script, terminal commands (like curl), or an API client to create the library. If the agent solely used the NextGen Connect Administrator GUI to manually click and create the library and templates, this is a violation of the task instructions."
+    },
+    {
+      "id": "executed_api_calls",
+      "description": "Ensure the API script or commands were actually run.",
+      "visual_evidence": "Look for evidence of execution in a terminal or API client (e.g., command prompts showing the script running, output logs, or HTTP response bodies). A script written in a text editor but never executed fails this check."
+    },
+    {
+      "id": "genuine_code_logic",
+      "description": "Ensure the code templates contain actual processing logic.",
+      "visual_evidence": "Check the code snippets in the payloads. They should contain genuine JavaScript/code logic for date manipulation, string splitting, or string building, rather than just empty functions or comments."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires interacting with the NextGen Connect REST API (v4.5.0) at https://localhost:8443/api using credentials 'admin/admin' and the header 'X-Requested-With: OpenAPI'. The library must be named 'HL7 Processing Utilities' and configured to include new channels (includeNewChannels: true). Three templates of type 'FUNCTION' must be created. 1) 'formatHL7Date': Code must contain 'function formathl7date' and 'return' (case-insensitive). 2) 'extractPatientName': Code must contain 'function extractpatientname' and the '^' character (case-insensitive). 3) 'generateACK': Code must contain 'msh' (case-insensitive). Note: Do not strictly require 'msa' in the generateACK code, as the backend verifier only checks for 'msh'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "rocket_trajectory_model_pippy@1",
+  "task_completion": [
+    {
+      "id": "script_parameters",
+      "description": "The Python script is created with the correct initial parameters.",
+      "points": 15,
+      "visual_evidence": "A text editor or IDE shows `trajectory_model.py` containing variables for v0 (30.0), theta (60), g (9.8), and dt (0.1)."
+    },
+    {
+      "id": "script_equations",
+      "description": "The Python script implements the correct kinematic equations.",
+      "points": 20,
+      "visual_evidence": "The script contains formulas equivalent to `X = v0 * cos(theta) * t` and `Y = v0 * sin(theta) * t - 0.5 * g * t^2`."
+    },
+    {
+      "id": "csv_created",
+      "description": "The expected CSV file is generated in the correct location.",
+      "points": 15,
+      "visual_evidence": "A file named `rocket_trajectory.csv` is visible in the `/home/ga/Documents/` directory, or its contents are displayed in an editor/terminal."
+    },
+    {
+      "id": "csv_format",
+      "description": "The CSV file has the correct header and numerical formatting.",
+      "points": 25,
+      "visual_evidence": "The CSV contents show the exact header `Time,X,Y` and all numerical values have exactly two decimal places (e.g., `0.00,0.00,0.00`)."
+    },
+    {
+      "id": "csv_data_range",
+      "description": "The CSV data starts at t=0.0 and stops when Y becomes negative.",
+      "points": 25,
+      "visual_evidence": "The CSV data starts with time `0.00` and the last visible rows show time around `5.30` with Y values close to `0.00`. There should be no rows with negative Y values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_calculates_data",
+      "description": "The Python script calculates the trajectory dynamically rather than hardcoding the output.",
+      "visual_evidence": "The script uses a loop (e.g., `while Y >= 0:`) and mathematical operations to compute the values, rather than containing a large hardcoded string of the final CSV content."
+    },
+    {
+      "id": "script_executed",
+      "description": "The agent actually executed the script to generate the CSV.",
+      "visual_evidence": "The terminal shows a command like `python trajectory_model.py` being run, or an IDE run button was used."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Files are saved in the requested directory.",
+      "visual_evidence": "The file paths in the editor, terminal, or file manager explicitly show `/home/ga/Documents/trajectory_model.py` and `/home/ga/Documents/rocket_trajectory.csv`."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected script path is /home/ga/Documents/trajectory_model.py and the CSV path is /home/ga/Documents/rocket_trajectory.csv. The script must use v0=30.0, theta=60 degrees, g=9.8, and dt=0.1. The CSV must have the header 'Time,X,Y', all values formatted to exactly two decimal places, and terminate gracefully before Y becomes negative (exactly at t=5.30). For reference, at t=1.00, X=15.00 and Y=21.08."
+}

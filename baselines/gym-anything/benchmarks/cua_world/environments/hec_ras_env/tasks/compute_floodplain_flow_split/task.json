@@ -1,0 +1,27 @@
+{
+  "id": "compute_floodplain_flow_split@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Analyze the HEC-RAS unsteady simulation results for the Muncie project (Muncie.p04.hdf) to determine flow distribution. For each cross-section at the timestep with the peak total flow, calculate the percentage of flow in the Left Overbank (LOB), Main Channel, and Right Overbank (ROB). Export the results to /home/ga/Documents/hec_ras_results/flow_distribution.csv with the columns: CrossSection, Total_Flow_cms, LOB_Flow_Pct, Channel_Flow_Pct, and ROB_Flow_Pct. Additionally, generate a summary at /home/ga/Documents/hec_ras_results/flow_split_summary.txt containing the peak timestep index used and the name of the cross-section with the highest overbank flow percentage.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_floodplain_flow_split/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_floodplain_flow_split/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/hec_ras_results/flow_distribution.csv",
+    "expected_summary_path": "/home/ga/Documents/hec_ras_results/flow_split_summary.txt",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_floodplain_flow_split"
+    }
+  }
+}

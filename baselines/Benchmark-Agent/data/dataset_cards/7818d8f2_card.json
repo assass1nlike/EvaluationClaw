@@ -1,0 +1,94 @@
+{
+  "dataset_id": "7818d8f2",
+  "name": "Openset Comic Panel Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Comic Panel VQA dataset evaluates multimodal reasoning on comic strips. Each sample presents a sequence of comic panels and asks the model to choose the next panel from four candidate images.",
+  "card_text": "This dataset contains 200 multimodal multiple-choice questions about comic panel sequences. Each item provides a natural-language prompt with image placeholders, a list of seven JPEG files (the preceding comic panels plus four candidate next panels), and a short answer label such as 'Image A'. The task requires understanding visual narrative flow in comic art, connecting the prompt's choice list to the corresponding candidate images, and selecting the most plausible continuation. Prompts are varied but follow a consistent instruction style and include an embedded 'Choice list' with four options. The dataset supports open-set evaluation of visual question answering and multiple-choice reasoning over sequential illustrations. It tests both visual comprehension and the ability to follow answer-format constraints.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "comic panel narrative",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "illustration",
+        "semantics": "Ordered list of comic panel image files. The initial images show the preceding narrative sequence, while the final four images are the candidate next panels referenced by the prompt's choice list. Serves as the main visual context for predicting the next panel.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "Natural-language instruction asking the model to select the next comic panel from candidates. It contains the question, image placeholders for the sequence and choices, and an answer cue 'Your answer is:'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The embedded 'Choice list' enumerates four candidate answer labels (Image A through Image D), each paired with an image placeholder. It defines the closed set of possible outputs the model can choose from.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The chosen candidate label (e.g., 'Image A') indicating which option the model selected as the next panel in the comic sequence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a text prompt in input.prompt that asks a next-panel selection question and embeds a four-option choice list with image placeholders; an ordered list of image files in input.image_file, where the first images provide the comic sequence context and the last four images correspond to the candidate options; and a short answer label in output.text that names the chosen candidate (e.g., 'Image A'). The prompt and image list are interleaved via placeholders, so the model must align textual choice labels with the visual candidates to produce the final label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ComicPanelVQA/openset_comic_panel_vqa.json",
+    "existing_tags": {
+      "task": "Comic Panel VQA",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "Art",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Art"
+  }
+}

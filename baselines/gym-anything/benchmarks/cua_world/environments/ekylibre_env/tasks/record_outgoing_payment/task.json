@@ -1,0 +1,28 @@
+{
+  "id": "record_outgoing_payment@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Record an outgoing payment of 3,250.00 Euros to the supplier 'Coopérative Agricole du Centre' dated June 15, 2024, in the Ekylibre accounting module.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_outgoing_payment/setup_task.sh",
+    "post_task": "/workspace/tasks/record_outgoing_payment/export_result.sh"
+  },
+  "metadata": {
+    "expected_amount": 3250.0,
+    "expected_payee": "Coopérative Agricole du Centre",
+    "expected_date": "2024-06-15",
+    "tolerance_amount": 0.01
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_outgoing_payment"
+    }
+  }
+}

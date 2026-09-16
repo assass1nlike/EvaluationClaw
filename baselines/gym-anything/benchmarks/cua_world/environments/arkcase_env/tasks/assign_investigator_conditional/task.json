@@ -1,0 +1,28 @@
+{
+  "id": "assign_investigator_conditional@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "You are acting as a police dispatch triage officer. Assign the appropriate investigator to the complaint case 'Disturbance at Central Plaza' involving subject 'Victor Vance' based on the subject's risk profile. If the subject's background indicates high risk (violence, caution, or weapons), assign officer 'Nick Wilde' as a participant. If the background indicates low risk (clean record or cooperative), assign officer 'Judy Hopps' as a participant. Do not assign both officers.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assign_investigator_conditional/setup_task.sh",
+    "post_task": "/workspace/tasks/assign_investigator_conditional/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "Disturbance at Central Plaza",
+    "subject_name": "Victor Vance",
+    "high_risk_officer": "Nick Wilde",
+    "low_risk_officer": "Judy Hopps"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assign_investigator_conditional"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "dataset_id": "6e086618",
+  "name": "Openset Book Information Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Book Information VQA dataset evaluates visual question answering over book cover images. Each sample provides one or more book cover images and a text prompt containing a question with multiple-choice options, and the model must select the correct answer.",
+  "card_text": "This dataset is designed for visual question answering (VQA) in the domain of book covers and metadata. It contains 200 samples, each consisting of a list of book cover image files (e.g., illustrations or photographs) and a textual prompt. The prompt includes task instructions, embedded book titles, image placeholders, a question about the books, and a Choice List of candidate answers. The model must analyze the images together with the prompt to choose the correct answer, which is provided as a short text string (e.g., a permutation index or a year). The dataset is 'openset' in that the questions cover various aspects such as ordering, publication year comparison, and book identification. It tests fine-grained visual recognition, text understanding, and multi-modal reasoning.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "book cover understanding",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt field contains the main textual input: task instructions, embedded book titles, <ImageHere> placeholders for images, the question, and the choice list. It guides the model on what to do and provides the necessary context for answering.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Embedded within the prompt, the question asks about specific book information, such as the correct text order of books or whether two books were published in the same year. It requires visual analysis of the book cover images to answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The prompt includes a Choice List containing multiple candidate answers (e.g., permutations or years). The model must select one option as its final answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output text is the selected answer from the Choice List, given as a short string such as '1,0,2' or '2016'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of image filenames referencing book cover images. These images are the visual input that the model must analyze in conjunction with the prompt to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image_file list of book cover images, a prompt text that bundles instructions, embedded book titles, image placeholders, a question, and a Choice List, and an output text that is the chosen answer. The prompt acts as the main context and also contains the question and options in a single string, while the images provide the visual ground truth."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/BookInformationVQA/openset_book_information_vqa.json",
+    "existing_tags": {
+      "task": "Book Information VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

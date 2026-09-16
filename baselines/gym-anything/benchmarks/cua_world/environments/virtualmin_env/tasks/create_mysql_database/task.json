@@ -1,0 +1,26 @@
+{
+  "id": "create_mysql_database@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "In the Virtualmin control panel (https://localhost:10000, login: root / GymAnything123!), create a new MySQL database for the virtual server 'brightstar.test'. The database name should be 'brightstar_shop' or follow the system's suggested naming convention ending with 'shop'.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_mysql_database/setup_task.sh"
+  },
+  "metadata": {
+    "target_domain": "brightstar.test",
+    "target_db_suffix": "shop",
+    "description": "Create a MySQL database with 'shop' in the name for brightstar.test"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_mysql_database"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "corporate_art_collection_update@1",
+  "task_completion": [
+    {
+      "id": "read_manifest",
+      "description": "Verify that the agent opened and read the New Acquisitions Manifest.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Desktop/art_manifest.txt'."
+    },
+    {
+      "id": "access_openmaint",
+      "description": "Verify that the agent accessed the OpenMaint web interface.",
+      "points": 10,
+      "visual_evidence": "A web browser open to 'http://localhost:8090/cmdbuild/ui/' showing the OpenMaint dashboard or login screen."
+    },
+    {
+      "id": "register_art_new_001",
+      "description": "Verify the creation of the first qualifying art piece (ART-NEW-001).",
+      "points": 25,
+      "visual_evidence": "OpenMaint UI showing a new Asset or Furniture record with Code 'ART-NEW-001'. The record must be assigned to 'Metropolis Tower' (or 'BLD-METRO'), have a Description containing the item name, artist, and location, and Notes containing the insurance value ($15,000)."
+    },
+    {
+      "id": "register_art_new_002",
+      "description": "Verify the creation of the second qualifying art piece (ART-NEW-002).",
+      "points": 25,
+      "visual_evidence": "OpenMaint UI showing a new Asset or Furniture record with Code 'ART-NEW-002'. The record must be assigned to 'Metropolis Tower' (or 'BLD-METRO'), have a Description containing the item name, artist, and location, and Notes containing the insurance value ($22,500)."
+    },
+    {
+      "id": "update_art_old_004",
+      "description": "Verify the update of the existing Vintage Tapestry asset to reflect water damage.",
+      "points": 30,
+      "visual_evidence": "OpenMaint UI showing the record for 'ART-OLD-004' being edited or viewed, with new text explicitly mentioning 'water damage' in its fields (e.g., Notes, Description, or a status field)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent used the web browser to interact with OpenMaint.",
+      "visual_evidence": "The agent navigates the OpenMaint web interface in a browser, rather than using terminal commands (like curl or python scripts) to interact with the application's API or database directly."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Verify that the agent actually entered the data into the OpenMaint forms.",
+      "visual_evidence": "Screenshots should show the agent typing into or saving the specific OpenMaint asset creation/edit forms, not just writing the expected answers into a text file."
+    },
+    {
+      "id": "policy_adherence_check",
+      "description": "Verify that the agent did not register the unqualified item.",
+      "visual_evidence": "There should be no evidence of the agent creating an asset record for 'ART-NEW-003', as its value is below the $1,000 threshold."
+    }
+  ],
+  "privileged_info_for_vlm": "The manifest is located at /home/ga/Desktop/art_manifest.txt. The building code for 'Metropolis Tower' is BLD-METRO. The agent must create exactly two new assets: ART-NEW-001 ($15,000) and ART-NEW-002 ($22,500). The agent must NOT create ART-NEW-003 because its value ($450) is below the $1,000 threshold. The agent must update the existing asset ART-OLD-004 to indicate water damage."
+}

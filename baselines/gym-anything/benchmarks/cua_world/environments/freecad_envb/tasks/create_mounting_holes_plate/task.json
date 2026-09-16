@@ -1,0 +1,46 @@
+{
+  "id": "create_mounting_holes_plate@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Design a mounting plate in FreeCAD centered on the origin (XY plane) with dimensions 200 mm (Length) x 100 mm (Width) x 8 mm (Thickness). The plate must feature a symmetric 4x2 grid of eight 5.5 mm diameter mounting holes spaced 40 mm apart along the X-axis and 60 mm apart along the Y-axis (hole center coordinates: X = ±20, ±60; Y = ±30). Save the completed model to /home/ga/Documents/FreeCAD/mounting_plate.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_mounting_holes_plate/setup_task.sh",
+    "post_task": "/workspace/tasks/create_mounting_holes_plate/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/mounting_plate.FCStd",
+    "expected_dims": [
+      200.0,
+      100.0,
+      8.0
+    ],
+    "dim_tolerance": 2.0,
+    "expected_volume": 158480.0,
+    "volume_tolerance_percent": 5.0,
+    "expected_hole_count": 8,
+    "expected_hole_radius": 2.75,
+    "radius_tolerance": 0.1,
+    "grid_x_coords": [
+      -60,
+      -20,
+      20,
+      60
+    ],
+    "grid_y_coords": [
+      -30,
+      30
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mounting_plate"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "conference_schedule_tables@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Create a professional conference schedule in LibreOffice Writer using the raw data provided in /home/ga/Documents/schedule_data.txt. Format the document in landscape orientation with 0.5-inch margins on all sides. Organize the schedule into a table with four columns: Time, Main Stage, Track A, and Track B. For events marked '(ALL ATTENDEES)', merge the three venue columns. The table must include a header row that repeats across pages. Apply a 'Light Blue' background color to Keynote rows and a 'Light Gray' background to Lunch/Break rows, with all cell text centered vertically. Save the completed schedule as /home/ga/Documents/conference_schedule.docx.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/conference_schedule_tables/setup_task.sh",
+    "post_task": "/workspace/tasks/conference_schedule_tables/export_result.sh"
+  },
+  "metadata": {
+    "source_data_path": "/home/ga/Documents/schedule_data.txt",
+    "expected_output_path": "/home/ga/Documents/conference_schedule.docx",
+    "required_columns": 4,
+    "merged_events": [
+      "Opening Keynote",
+      "Networking Lunch",
+      "Closing Keynote"
+    ],
+    "orientation": "landscape"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_conference_schedule"
+    }
+  }
+}

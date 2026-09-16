@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_bus_dwell_time_impact@1",
+  "task_completion": [
+    {
+      "id": "create_modified_route_file",
+      "description": "Create the modified route file 'pasubio_busses_slow.rou.xml' with bus stop durations set to 60 seconds and no 'until' attribute.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands (like sed, awk, or python scripts) or a text editor showing the creation/modification of 'pasubio_busses_slow.rou.xml' where <stop> elements have 'duration=\"60\"' and lack the 'until' attribute."
+    },
+    {
+      "id": "create_sumo_config",
+      "description": "Create a new configuration file 'run_slow_buses.sumocfg' based on 'run.sumocfg'.",
+      "points": 15,
+      "visual_evidence": "Look for commands copying 'run.sumocfg' to 'run_slow_buses.sumocfg' and editing it to reference the new 'pasubio_busses_slow.rou.xml' route file."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation to generate the tripinfo output.",
+      "points": 25,
+      "visual_evidence": "Look for a terminal command executing SUMO (e.g., 'sumo -c run_slow_buses.sumocfg --tripinfo-output /home/ga/SUMO_Output/tripinfos_slow.xml') and the resulting SUMO simulation success logs."
+    },
+    {
+      "id": "calculate_average_duration",
+      "description": "Calculate the average duration for vehicles with 'bus' in their ID.",
+      "points": 20,
+      "visual_evidence": "Look for a Python script, shell pipeline, or interactive interpreter parsing 'tripinfos_slow.xml' to extract durations and compute the average."
+    },
+    {
+      "id": "create_impact_report",
+      "description": "Record the calculated average duration in 'bus_impact_report.txt' using the specified format.",
+      "points": 20,
+      "visual_evidence": "Look for a command like 'cat /home/ga/SUMO_Output/bus_impact_report.txt' showing the exact format 'average_bus_duration_seconds: <VALUE>'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify that the agent actually ran the SUMO simulation to generate the tripinfos file.",
+      "visual_evidence": "Look for the actual SUMO execution command and output logs in the terminal, rather than the agent manually creating a fake 'tripinfos_slow.xml' file."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Verify that the agent calculated the average duration programmatically.",
+      "visual_evidence": "Look for a script or command that parses the XML and calculates the math, rather than the agent just echoing a guessed or hardcoded number into the report file."
+    },
+    {
+      "id": "genuine_route_modification",
+      "description": "Verify that the agent modified the route file properly.",
+      "visual_evidence": "Look for evidence of file manipulation (e.g., using sed, python xml.etree, or a text editor) rather than just renaming the file without changing the <stop> attributes."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario directory is '/home/ga/SUMO_Scenarios/bologna_pasubio' and outputs go to '/home/ga/SUMO_Output'. CRITICAL: The task instructs the agent to calculate the average duration for vehicles with 'bus' in their ID. However, in this scenario, bus IDs are numeric (e.g., '1_0') and 'bus' is only found in their 'vType'. A strict literal interpretation yields 0 valid vehicles, meaning the average is undefined (the agent might output 0, 'None', or an error-derived value). If the agent smartly checks 'vType' instead, the average is approximately 830.46 seconds. Both outcomes (handling the 0-bus edge case or outputting ~830.46) are acceptable for the final report value, provided the format 'average_bus_duration_seconds: <VALUE>' is strictly followed."
+}

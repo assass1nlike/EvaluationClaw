@@ -1,0 +1,59 @@
+{
+  "task_id": "maritime_ais_port_congestion@1",
+  "task_completion": [
+    {
+      "id": "ping_zones_vw_created",
+      "description": "Create the PING_ZONES_VW view joining pings to zones using bounding box logic",
+      "points": 10,
+      "visual_evidence": "SQL script or database client execution showing 'CREATE OR REPLACE VIEW PING_ZONES_VW' with logic checking if ping coordinates fall within zone bounding boxes."
+    },
+    {
+      "id": "vessel_stays_vw_created",
+      "description": "Create the VESSEL_STAYS_VW view grouping consecutive pings into continuous stays",
+      "points": 15,
+      "visual_evidence": "SQL script or database client execution showing 'CREATE OR REPLACE VIEW VESSEL_STAYS_VW' with window functions or grouping logic to identify continuous stays for non-null zones."
+    },
+    {
+      "id": "port_calls_vw_created",
+      "description": "Create the PORT_CALLS_VW view linking ANCHORAGE to TERMINAL stays within 24 hours",
+      "points": 20,
+      "visual_evidence": "SQL script or database client execution showing 'CREATE OR REPLACE VIEW PORT_CALLS_VW' joining ANCHORAGE stays to TERMINAL stays with a time difference condition (<= 24 hours) and joining the VESSELS table."
+    },
+    {
+      "id": "weekly_congestion_mv_created",
+      "description": "Create the WEEKLY_CONGESTION_MV materialized view with ROLLUP subtotals",
+      "points": 20,
+      "visual_evidence": "SQL script or database client execution showing 'CREATE MATERIALIZED VIEW WEEKLY_CONGESTION_MV' aggregating data by vessel_type and ISO Week, specifically including a 'ROLLUP' clause."
+    },
+    {
+      "id": "scheduler_job_created",
+      "description": "Create the REFRESH_CONGESTION_DATA DBMS_SCHEDULER job running daily at midnight",
+      "points": 15,
+      "visual_evidence": "SQL script or database client execution showing 'DBMS_SCHEDULER.CREATE_JOB' with the job_name 'REFRESH_CONGESTION_DATA' and a repeat_interval set to daily at midnight (e.g., 'FREQ=DAILY; BYHOUR=0; BYMINUTE=0; BYSECOND=0')."
+    },
+    {
+      "id": "csv_report_exported",
+      "description": "Export the final congestion summary to the specified CSV path, excluding the grand total row",
+      "points": 20,
+      "visual_evidence": "Terminal command, database export tool, or file manager showing the creation of '/home/ga/Documents/exports/congestion_report.csv'. The query or output should show filtering to exclude the grand total (e.g., WHERE vessel_type IS NOT NULL OR iso_week IS NOT NULL)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Agent actually executed the SQL commands in an Oracle database client or terminal",
+      "visual_evidence": "Screenshots show SQL*Plus, SQLcl, DBeaver, or another DB client executing the commands and returning success messages (e.g., 'View created', 'Materialized view created'), not just text typed into an editor."
+    },
+    {
+      "id": "no_hardcoded_logic",
+      "description": "Agent implemented actual analytical logic rather than hardcoding expected results",
+      "visual_evidence": "The SQL views contain real joins, window functions, and time calculations rather than 'SELECT 1 AS port_calls' or hardcoded MMSI values."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file was generated from the database query, not manually typed",
+      "visual_evidence": "The CSV export is the result of a spool command, a script execution, or a GUI export wizard, rather than the agent manually typing the expected rows into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output CSV file must be located exactly at '/home/ga/Documents/exports/congestion_report.csv'. If intermediate query results are visible in the screenshots, verify the logic correctness: MMSI 1001 should have exactly 3 stays, MMSI 1003 should have 0 stays (filtered out), and there should be exactly 1 valid port call overall."
+}

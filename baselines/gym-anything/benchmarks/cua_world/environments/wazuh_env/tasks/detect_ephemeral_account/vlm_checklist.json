@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_ephemeral_account@1",
+  "task_completion": [
+    {
+      "id": "edit_local_rules",
+      "description": "Open or modify the Wazuh local_rules.xml file.",
+      "points": 10,
+      "visual_evidence": "Terminal or editor showing the file `/var/ossec/etc/rules/local_rules.xml` being edited (e.g., using nano, vim, or echo/cat commands targeting this path)."
+    },
+    {
+      "id": "define_rule_attributes",
+      "description": "Create the rule with the correct ID and severity level.",
+      "points": 15,
+      "visual_evidence": "XML definition showing `<rule id=\"100050\" level=\"12\">`."
+    },
+    {
+      "id": "define_context_sid",
+      "description": "Set the context SID to trigger on User Creation.",
+      "points": 15,
+      "visual_evidence": "XML definition showing `<if_matched_sid>5902</if_matched_sid>`."
+    },
+    {
+      "id": "define_trigger_sid",
+      "description": "Set the trigger SID for User Deletion.",
+      "points": 20,
+      "visual_evidence": "XML definition showing `<if_sid>5903</if_sid>` (the actual correct SID for deletion) OR `<if_sid>5904</if_sid>` (the flawed SID provided in the prompt). Note: Using 5903 shows the agent successfully bypassed a trap."
+    },
+    {
+      "id": "define_timeframe_and_user",
+      "description": "Set the timeframe to 300 seconds and correlate by the same user.",
+      "points": 20,
+      "visual_evidence": "XML definition showing `<timeframe>300</timeframe>` and `<same_user />`."
+    },
+    {
+      "id": "apply_and_verify",
+      "description": "Apply changes to the Wazuh Manager and verify the rule is active.",
+      "points": 20,
+      "visual_evidence": "Execution of a restart command like `systemctl restart wazuh-manager` AND verification using `/var/ossec/bin/wazuh-logtest` or by checking Wazuh logs to ensure the rule loaded successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the agent edited the actual Wazuh configuration file.",
+      "visual_evidence": "The file path being edited must be the real Wazuh path (e.g., `/var/ossec/etc/rules/local_rules.xml`), not a dummy file in a temporary or home directory."
+    },
+    {
+      "id": "genuine_service_restart",
+      "description": "Ensure the agent actually restarted the Wazuh manager service.",
+      "visual_evidence": "Look for actual systemctl or service commands being executed in the terminal, rather than the agent just stating 'I have restarted the service'."
+    },
+    {
+      "id": "genuine_verification",
+      "description": "Ensure the agent performed real verification of the rule.",
+      "visual_evidence": "Look for the output of `wazuh-logtest` with a test log, or a `grep` command checking for rule 100050 in the loaded rules, rather than a hallucinated success message."
+    }
+  ],
+  "privileged_info_for_vlm": "Target rule ID is 100050, severity is 12, context SID (user creation) is 5902, timeframe is 300 seconds. CRITICAL TRAP: The task explicitly instructs the agent to use SID 5904 for the User Deletion trigger. However, SID 5904 is actually for User Modification. The correct SID for User Deletion is 5903. If the agent uses 5904, it is blindly following flawed instructions and will fail the environment's dynamic verification. If it uses 5903, it has successfully audited the ruleset, identified the trap, and corrected it for actual functional success. Both 5903 and 5904 can be accepted for the visual checklist, but 5903 demonstrates superior agent reasoning."
+}

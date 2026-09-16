@@ -1,0 +1,35 @@
+{
+  "id": "rep_scorecard_conditional@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "Create a performance scorecard for sales representatives using Power BI Desktop with the source data 'sales_data.csv' located at 'C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv'. The report must include a calculated column named 'Margin_Per_Unit' (Unit_Price - Unit_Cost) and a 'Performance_Tier' column categorizing Sales_Amount (>= 500 as 'High', >= 200 as 'Medium', and others as 'Low'). The dashboard should feature a Table visual displaying Sales_Rep, Region, Sales_Amount, and Performance_Tier with a background color scale conditional formatting applied to Sales_Amount. Additionally, include a Gauge visual representing the Average of Discount against a target value of 0.10. Save the completed report as 'Rep_Scorecard.pbix' to 'C:\\Users\\Docker\\Desktop\\'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\rep_scorecard_conditional\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\rep_scorecard_conditional\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "Rep_Scorecard.pbix",
+    "calculated_columns": [
+      "Margin_Per_Unit",
+      "Performance_Tier"
+    ],
+    "required_visuals": [
+      "tableEx",
+      "gauge"
+    ],
+    "conditional_formatting_keyword": "fillRule",
+    "gauge_target_value": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rep_scorecard"
+    }
+  }
+}

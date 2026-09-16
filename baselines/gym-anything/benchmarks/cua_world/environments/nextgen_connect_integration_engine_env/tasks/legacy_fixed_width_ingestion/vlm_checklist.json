@@ -1,0 +1,59 @@
+{
+  "task_id": "legacy_fixed_width_ingestion@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "A channel named 'Legacy_Census_Ingest' is created.",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'Legacy_Census_Ingest' in the channels list, dashboard, or channel summary screen of the integration engine (e.g., Mirth Connect Administrator)."
+    },
+    {
+      "id": "source_directory_configured",
+      "description": "The channel source is configured to read from the container inbox.",
+      "points": 15,
+      "visual_evidence": "Look at the Source tab or source connector settings. It should be configured as a File Reader (or similar) with the directory set to '/var/spool/mirth/inbox'."
+    },
+    {
+      "id": "message_splitting_configured",
+      "description": "The input is configured to be split by line.",
+      "points": 15,
+      "visual_evidence": "Look at the Source Data Type properties or inbound message settings. There should be evidence of splitting the message by line (e.g., a 'Split Batch by: Line' setting, or a JavaScript step splitting the payload by '\\n')."
+    },
+    {
+      "id": "fixed_width_parsing",
+      "description": "The fixed-width records are parsed using the correct indices and whitespace is trimmed.",
+      "points": 25,
+      "visual_evidence": "Look at the Source Transformer, JavaScript reader, or Data Type properties. There must be logic or configuration extracting substrings: MRN (0-10), Last Name (10-30), First Name (30-50), DOB (50-58), and Gender (58-59), along with a trim() function or setting applied to these fields."
+    },
+    {
+      "id": "destination_directory_configured",
+      "description": "The channel destination is configured to write to the container outbox with the correct filename.",
+      "points": 15,
+      "visual_evidence": "Look at the Destination tab or destination connector settings. It should be configured as a File Writer (or similar) with the directory set to '/var/spool/mirth/outbox' and the File Name set to use the MRN variable (e.g., '${mrn}.json' or similar variable syntax)."
+    },
+    {
+      "id": "json_output_configured",
+      "description": "The destination is configured to output a JSON object with the required keys.",
+      "points": 20,
+      "visual_evidence": "Look at the Destination template, outbound message template, or destination transformer. It should show a JSON structure or mapping containing exactly the keys: 'mrn', 'firstName', 'lastName', 'dob', and 'gender'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent interacted with the integration engine GUI (e.g., Mirth Connect Administrator) rather than just writing a standalone script to bypass the application.",
+      "visual_evidence": "Screenshots should show the Mirth Connect Administrator interface (or similar integration engine GUI) being actively used, not just a terminal or text editor."
+    },
+    {
+      "id": "no_hardcoded_patient_data",
+      "description": "The agent did not hardcode the specific patient names or MRNs into the parsing logic or output templates.",
+      "visual_evidence": "Transformers and templates should use variables (e.g., msg['mrn'], substring methods) rather than hardcoded strings like 'Smith', 'Doe', or '1000459821'."
+    },
+    {
+      "id": "no_direct_file_creation",
+      "description": "The agent did not manually create the output JSON files in the terminal.",
+      "visual_evidence": "The terminal history should not show commands like 'echo {...} > /var/spool/mirth/outbox/1000459821.json' to fake the channel's output."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring an integration channel named 'Legacy_Census_Ingest'. The source must read from '/var/spool/mirth/inbox' and the destination must write to '/var/spool/mirth/outbox'. The parsing logic must extract fixed-width fields exactly as follows: MRN (0-10), Last Name (10-30), First Name (30-50), DOB (50-58), Gender (58-59). The output must be JSON files named '${mrn}.json' containing the keys: mrn, firstName, lastName, dob, gender. The test data contains 5 records, so a successful run will process 5 messages."
+}

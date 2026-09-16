@@ -1,0 +1,38 @@
+{
+  "id": "mitochondrial_network_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Quantify mitochondrial network morphology in the fluorescence microscopy image located at ~/Fiji_Data/raw/mitochondria/mitochondria_raw.tif. Preprocess and segment the image to isolate the mitochondrial network. Calculate shape descriptors, specifically Aspect Ratio (AR) and Form Factor (Circularity), and save these measurements to ~/Fiji_Data/results/mitochondria/shape_metrics.csv. Perform a network topology analysis by skeletonizing the binary image and save the resulting skeleton metrics to ~/Fiji_Data/results/mitochondria/skeleton_metrics.csv. Additionally, save the labeled skeleton map visualization to ~/Fiji_Data/results/mitochondria/skeleton_map.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mitochondrial_network_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/mitochondrial_network_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "~/Fiji_Data/raw/mitochondria/mitochondria_raw.tif",
+    "expected_shape_csv": "~/Fiji_Data/results/mitochondria/shape_metrics.csv",
+    "expected_skeleton_csv": "~/Fiji_Data/results/mitochondria/skeleton_metrics.csv",
+    "expected_skeleton_map": "~/Fiji_Data/results/mitochondria/skeleton_map.png",
+    "min_aspect_ratio": 1.5,
+    "min_branches": 50,
+    "data_source": "Fiji built-in HeLa Cells sample (Channel 2)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mitochondrial_network"
+    }
+  },
+  "tags": [
+    "bioimage",
+    "morphometry",
+    "skeletonization",
+    "microscopy",
+    "segmentation"
+  ]
+}

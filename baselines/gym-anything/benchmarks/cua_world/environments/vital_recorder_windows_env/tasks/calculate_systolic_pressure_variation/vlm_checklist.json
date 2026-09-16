@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_systolic_pressure_variation@1",
+  "task_completion": [
+    {
+      "id": "vital_recorder_loaded",
+      "description": "Vital Recorder is open and Case #3 ('0003.vital') is loaded.",
+      "points": 20,
+      "visual_evidence": "Vital Recorder application window is visible with '0003.vital' shown in the title bar or file list."
+    },
+    {
+      "id": "time_window_navigated",
+      "description": "The time window 00:45:00 - 00:45:15 is displayed in Vital Recorder.",
+      "points": 20,
+      "visual_evidence": "The time axis or time selection in Vital Recorder shows the range around 00:45:00 to 00:45:15."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the waveform view is saved to 'C:\\Users\\Docker\\Pictures\\spv_waveform.png'.",
+      "points": 20,
+      "visual_evidence": "File explorer shows 'spv_waveform.png' in the Pictures folder, or an image viewer displays the saved screenshot."
+    },
+    {
+      "id": "report_created",
+      "description": "The report file 'spv_calculation.txt' is created in the Documents folder.",
+      "points": 20,
+      "visual_evidence": "File explorer shows 'spv_calculation.txt' in 'C:\\Users\\Docker\\Documents\\', or a text editor is open showing the file."
+    },
+    {
+      "id": "report_content",
+      "description": "The report contains the required format and reflects the data from Case 3.",
+      "points": 20,
+      "visual_evidence": "The text file contains 'SPV REPORT', 'Time Window: 00:45:00 - 00:45:15', 'Max SBP:', 'Min SBP:', and 'Calculated SPV:'. Values should either be 107 for Max/Min and 0 for SPV (if using NIBP), or indicate the ART track is missing."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Vital Recorder GUI to view the data.",
+      "visual_evidence": "Screenshots show the Vital Recorder interface being used, rather than just terminal commands extracting data."
+    },
+    {
+      "id": "genuine_screenshot",
+      "description": "The saved screenshot is a genuine capture of the Vital Recorder waveform view.",
+      "visual_evidence": "The image 'spv_waveform.png' actually depicts the Vital Recorder software, not a generic image or blank screen."
+    },
+    {
+      "id": "genuine_report",
+      "description": "The report was not just copy-pasted with placeholder values.",
+      "visual_evidence": "The report contains actual numbers (like 107 and 0) or a specific note about the missing track, rather than just '[Value]'."
+    }
+  ],
+  "privileged_info_for_vlm": "CRITICAL NOTE: Case 3 ('0003.vital') does NOT contain the requested 'Solar8000/ART' track. It only contains 'NIBP_SBP' which has a constant value of 107 mmHg during the 00:45:00 - 00:45:15 window (yielding an SPV of 0 mmHg). An agent may either note that the ART track is missing, or substitute it with the NIBP_SBP track (Max SBP: 107, Min SBP: 107, SPV: 0). Both approaches are acceptable given the task flaw, as long as the report format is followed."
+}

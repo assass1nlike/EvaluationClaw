@@ -1,0 +1,54 @@
+{
+  "task_id": "model_wind_farm_wake_losses@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "Create a Python script importing PySAM's Windpower module",
+      "points": 15,
+      "visual_evidence": "A Python script is visible in a text editor or IDE, containing an import statement for PySAM (e.g., `import PySAM.Windpower`) and referencing a Wyoming `.srw` wind resource file."
+    },
+    {
+      "id": "turbine_specs_configured",
+      "description": "Configure the turbine specifications in the script",
+      "points": 20,
+      "visual_evidence": "The script contains code setting up 10 turbines, an 80 m hub height, a 110 m rotor diameter, and a 2 MW power curve with cut-in 3-4 m/s, rated 12-13 m/s, and cut-out 25 m/s."
+    },
+    {
+      "id": "layout_and_wake_configured",
+      "description": "Configure the 2x5 grid layout and wake model",
+      "points": 20,
+      "visual_evidence": "The script contains code defining a layout using x-coordinates [0, 550, 1100, 1650, 2200] and y-coordinates [0, 770] for the 10 turbines, and specifies the Simple (Park/Jensen) wake model."
+    },
+    {
+      "id": "script_execution",
+      "description": "Execute the PySAM Python script",
+      "points": 15,
+      "visual_evidence": "A terminal window shows the Python script being executed successfully without errors."
+    },
+    {
+      "id": "json_file_saved",
+      "description": "Save the results to the specified JSON file path",
+      "points": 10,
+      "visual_evidence": "The file `wind_farm_wake_analysis.json` is visible in the `/home/ga/Documents/SAM_Projects/` directory, either in a file explorer or via a terminal command like `ls`."
+    },
+    {
+      "id": "json_content_valid",
+      "description": "Verify the contents of the generated JSON file",
+      "points": 20,
+      "visual_evidence": "The contents of `wind_farm_wake_analysis.json` are displayed (e.g., via `cat` or in an editor) and contain the required keys: farm_capacity_kw, annual_energy_kwh, capacity_factor_pct, wake_loss_pct, num_turbines, turbine_x_coords, turbine_y_coords, wind_resource_file, hub_height_m, and rotor_diameter_m."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pysam_usage",
+      "description": "The agent wrote and executed a Python script using PySAM to generate the results",
+      "visual_evidence": "The results should be generated programmatically via the PySAM script execution, not by manually typing out a JSON file with guessed values."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The script dynamically extracts calculated results from the PySAM model",
+      "visual_evidence": "The Python script should extract outputs like annual energy, capacity factor, and wake loss directly from the executed PySAM model object, rather than hardcoding dummy values into the JSON export."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected JSON configuration values: farm_capacity_kw: 20000, num_turbines: 10, hub_height_m: 80, rotor_diameter_m: 110, turbine_x_coords: [0, 550, 1100, 1650, 2200], turbine_y_coords: [0, 770]. Expected calculated ranges: annual_energy_kwh between 15,000,000 and 100,000,000; capacity_factor_pct between 8 and 55; wake_loss_pct between 0.5 and 30.0."
+}

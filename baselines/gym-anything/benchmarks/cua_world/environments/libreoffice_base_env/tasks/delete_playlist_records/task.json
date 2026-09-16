@@ -1,0 +1,28 @@
+{
+  "id": "delete_playlist_records@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Delete all records associated with the 'Heavy Metal Classic' playlist (PlaylistId = 17) from the Chinook database, including its track associations. Ensure referential integrity is maintained during the deletion process. Save the changes to /home/ga/chinook.odb.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/delete_playlist_records/setup_task.sh",
+    "post_task": "/workspace/tasks/delete_playlist_records/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "target_playlist_id": 17,
+    "target_playlist_name": "Heavy Metal Classic",
+    "expected_playlist_track_count": 26
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_delete_playlist_records"
+    }
+  }
+}

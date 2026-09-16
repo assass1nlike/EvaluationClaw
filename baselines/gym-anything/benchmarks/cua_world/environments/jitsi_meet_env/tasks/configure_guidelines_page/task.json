@@ -1,0 +1,42 @@
+{
+  "id": "configure_guidelines_page@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Add a custom static HTML page to the Jitsi Meet web container so that navigating to http://localhost:8080/guidelines displays a meeting guidelines page. Create an HTML file named guidelines.html with a <title> of 'Meeting Guidelines - Acme Corp', an <h1> of 'Acme Corp Meeting Guidelines', and three <h2> sections: 'Before the Meeting' (containing 'Test your audio and video before joining' and 'Join from a quiet location with stable internet'), 'During the Meeting' (containing 'Mute your microphone when not speaking', 'Use the raise hand feature before speaking', and 'Keep your camera on during team meetings'), and 'After the Meeting' (containing 'Share meeting notes in the team channel'). Include a link back to '/' with text 'Start a Meeting'. Configure the Jitsi web container to serve this file at the /guidelines path and save a backup of the HTML file to /home/ga/guidelines.html.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_guidelines_page/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_guidelines_page/export_result.sh",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "required_strings": [
+      "Meeting Guidelines - Acme Corp",
+      "Acme Corp Meeting Guidelines",
+      "Before the Meeting",
+      "Test your audio and video before joining",
+      "Join from a quiet location with stable internet",
+      "During the Meeting",
+      "Mute your microphone when not speaking",
+      "Use the raise hand feature before speaking",
+      "Keep your camera on during team meetings",
+      "After the Meeting",
+      "Share meeting notes in the team channel",
+      "Start a Meeting"
+    ],
+    "container_path": "/usr/share/jitsi-meet/guidelines.html",
+    "backup_path": "/home/ga/guidelines.html",
+    "target_url": "http://localhost:8080/guidelines"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_guidelines_page"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "post_input_data@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "You are logged into Emoncms at http://localhost as the admin user (username: admin, password: admin). Post the data {\"power1\": 1850, \"solar\": 920} to node 'home' using the write API key found on the Input API documentation page and verify that the power1 and solar inputs reflect these updated values.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/post_input_data/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_post_input_data"
+    }
+  }
+}

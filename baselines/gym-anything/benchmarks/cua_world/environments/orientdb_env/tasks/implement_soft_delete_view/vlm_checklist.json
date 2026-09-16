@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_soft_delete_view@1",
+  "task_completion": [
+    {
+      "id": "add_ishidden_property",
+      "description": "Verify that the 'Reviews' class schema includes a new Boolean property named 'IsHidden'.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the schema definition of the 'Reviews' class with an 'IsHidden' property of type BOOLEAN, or a successful 'CREATE PROPERTY Reviews.IsHidden BOOLEAN' command."
+    },
+    {
+      "id": "flag_toxic_reviews",
+      "description": "Verify that reviews with 1 or 2 stars are flagged as hidden.",
+      "points": 30,
+      "visual_evidence": "Query results (e.g., SELECT FROM Reviews) showing that records with 1 or 2 stars (such as the text 'MARKER_TOXIC_REVIEW') have the 'IsHidden' field set to true."
+    },
+    {
+      "id": "preserve_good_reviews",
+      "description": "Verify that reviews with 3 or more stars are not flagged as hidden.",
+      "points": 10,
+      "visual_evidence": "Query results showing that records with 5 stars (such as 'MARKER_GOOD_REVIEW') have 'IsHidden' set to false, null, or unassigned."
+    },
+    {
+      "id": "create_public_reviews_view",
+      "description": "Verify the creation of a database View named 'PublicReviews'.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'PublicReviews' in the list of database views, or a successful 'CREATE VIEW PublicReviews ...' command."
+    },
+    {
+      "id": "view_filters_hidden",
+      "description": "Verify that the 'PublicReviews' view exposes only non-hidden reviews.",
+      "points": 20,
+      "visual_evidence": "Query results from 'SELECT * FROM PublicReviews' showing only good reviews (like 'MARKER_GOOD_REVIEW') and explicitly missing the 1-2 star reviews (like 'MARKER_TOXIC_REVIEW')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Agent used a genuine database client or CLI to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with a database UI (like OrientDB Studio in a web browser) or a database CLI, rather than a text editor with mocked output."
+    },
+    {
+      "id": "no_hardcoded_view_mock",
+      "description": "The PublicReviews view is a genuine database view, not a hardcoded static table.",
+      "visual_evidence": "The creation command uses CREATE VIEW or the UI shows it under Views, rather than creating a static table and manually copying records into it."
+    },
+    {
+      "id": "no_text_editor_faking",
+      "description": "Agent did not simply type the expected success messages or query results into a text editor.",
+      "visual_evidence": "Absence of text editors (like nano, vim, gedit) being used to write fake query outputs that mimic database responses."
+    }
+  ],
+  "privileged_info_for_vlm": "The task operates on the 'demodb' database. The target class is 'Reviews'. The agent must add an 'IsHidden' BOOLEAN property to this class. Reviews with 1 or 2 stars must have IsHidden=true. The database contains injected marker records to help verification: 'MARKER_TOXIC_REVIEW' has 1 star and MUST be hidden (IsHidden=true). 'MARKER_GOOD_REVIEW' has 5 stars and MUST NOT be hidden. The agent must create a view named 'PublicReviews' that filters out the hidden reviews (so MARKER_TOXIC_REVIEW should not appear in this view, but MARKER_GOOD_REVIEW should)."
+}

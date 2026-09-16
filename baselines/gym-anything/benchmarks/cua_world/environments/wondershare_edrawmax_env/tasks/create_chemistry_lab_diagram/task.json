@@ -1,0 +1,43 @@
+{
+  "id": "create_chemistry_lab_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a scientific illustration of a simple distillation setup in Wondershare EdrawMax. The illustration must include a Bunsen Burner, Tripod or Iron Stand, Round Bottom Flask, Thermometer, Condenser, and a collection Beaker or Conical Flask. Include labels for 'Bunsen Burner', 'Distillation Flask', 'Thermometer', 'Condenser', 'Distillate', 'Cooling Water In', and 'Cooling Water Out'. Title the diagram 'Figure 1: Simple Distillation Setup'. Save the drawing to /home/ga/Documents/distillation_setup.eddx and export it as a PNG image to /home/ga/Documents/distillation_setup.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_chemistry_lab_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_chemistry_lab_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/distillation_setup.eddx",
+    "expected_png_path": "/home/ga/Documents/distillation_setup.png",
+    "required_labels": [
+      "Bunsen Burner",
+      "Distillation Flask",
+      "Thermometer",
+      "Condenser",
+      "Distillate",
+      "Cooling Water In",
+      "Cooling Water Out",
+      "Figure 1: Simple Distillation Setup"
+    ],
+    "required_shapes": [
+      "Burner",
+      "Flask",
+      "Condenser",
+      "Thermometer",
+      "Beaker"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_chemistry_lab_diagram"
+    }
+  }
+}

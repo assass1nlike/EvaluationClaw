@@ -1,0 +1,35 @@
+{
+  "id": "mixed_page_orientation@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Reformat the Business Continuity Plan at '/home/ga/Documents/bcp_draft.docx' to resolve layout issues where wide tables are cut off. The 'Business Impact Analysis' and 'Appendix A: Emergency Contact Matrix' sections must be in landscape orientation, while all other narrative sections, such as the Cover/Executive Summary and Recovery Strategies, must remain in portrait orientation. Save the reformatted document to '/home/ga/Documents/bcp_formatted.docx' without overwriting the original draft.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mixed_page_orientation/setup_task.sh",
+    "post_task": "/workspace/tasks/mixed_page_orientation/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/Documents/bcp_draft.docx",
+    "output_path": "/home/ga/Documents/bcp_formatted.docx",
+    "min_sections": 4,
+    "required_landscape_content": [
+      "Business Impact Analysis",
+      "Emergency Contact Matrix"
+    ],
+    "required_portrait_content": [
+      "Executive Summary",
+      "Recovery Strategies"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mixed_orientation"
+    }
+  }
+}

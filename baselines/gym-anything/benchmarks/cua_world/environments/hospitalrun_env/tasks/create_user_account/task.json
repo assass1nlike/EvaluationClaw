@@ -1,0 +1,28 @@
+{
+  "id": "create_user_account@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Create a new user account in HospitalRun for a recently hired physician with the following details: Display Name 'Maria Santos', Email 'maria.santos@hospital.org', and Role 'Doctor'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_user_account/setup_task.sh",
+    "post_task": "/workspace/tasks/create_user_account/export_result.sh"
+  },
+  "metadata": {
+    "expected_display_name": "Maria Santos",
+    "expected_email": "maria.santos@hospital.org",
+    "expected_role": "Doctor",
+    "couch_users_db": "_users"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_user_account"
+    }
+  }
+}

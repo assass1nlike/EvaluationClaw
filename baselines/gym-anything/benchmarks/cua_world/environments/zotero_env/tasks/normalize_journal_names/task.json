@@ -1,0 +1,31 @@
+{
+  "id": "normalize_journal_names@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Correct the publication names for five specific papers in your library to their full, unabbreviated versions to match your citation style. Update the 'Publication' field for 'A Method for the Construction of Minimum-Redundancy Codes' (Huffman) to 'Proceedings of the IRE', 'Recursive Functions of Symbolic Expressions...' (McCarthy) to 'Communications of the ACM', 'A Note on Two Problems in Connexion with Graphs' (Dijkstra) to 'Numerische Mathematik', 'A Mathematical Theory of Communication' (Shannon) to 'Bell System Technical Journal', and 'An Unsolvable Problem of Elementary Number Theory' (Church) to 'American Journal of Mathematics'. Ensure exact spelling, capitalization, and spacing for all entries.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/normalize_journal_names/setup_task.sh",
+    "post_task": "/workspace/tasks/normalize_journal_names/export_result.sh"
+  },
+  "metadata": {
+    "corrections": {
+      "Minimum-Redundancy Codes": "Proceedings of the IRE",
+      "Recursive Functions": "Communications of the ACM",
+      "Connexion with Graphs": "Numerische Mathematik",
+      "Mathematical Theory of Communication": "Bell System Technical Journal",
+      "Elementary Number Theory": "American Journal of Mathematics"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_normalize_journal_names"
+    }
+  }
+}

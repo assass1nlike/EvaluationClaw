@@ -1,0 +1,53 @@
+{
+  "task_id": "ground_floor_custom_dx_curve@1",
+  "task_completion": [
+    {
+      "id": "create_quadratic_curve",
+      "description": "Create a quadratic performance curve named 'HighEff_DX_PLR'.",
+      "points": 20,
+      "visual_evidence": "eQUEST curve properties dialog or component tree showing a new curve named 'HighEff_DX_PLR' with the type set to Quadratic."
+    },
+    {
+      "id": "set_curve_coefficients",
+      "description": "Set the curve coefficients to Constant=0.085, x=0.250, and x^2=0.665.",
+      "points": 20,
+      "visual_evidence": "eQUEST curve properties dialog showing the coefficient values: Constant (or a) = 0.085, x (or b) = 0.250, and x^2 (or c) = 0.665."
+    },
+    {
+      "id": "assign_curve_to_systems",
+      "description": "Assign the curve to the 'Cooling EIR-f(PLR)' parameter for the 5 Ground Floor PSZ HVAC systems.",
+      "points": 30,
+      "visual_evidence": "eQUEST HVAC system properties or spreadsheet view showing 'HighEff_DX_PLR' assigned to the 'Cooling EIR-f(PLR)' (or COOL-EIR-FPLR) field for the ground floor systems (actual names in model: G.S11, G.E12, G.N13, G.W14, G.C15)."
+    },
+    {
+      "id": "run_annual_simulation",
+      "description": "Run the annual DOE-2.2 simulation.",
+      "points": 20,
+      "visual_evidence": "eQUEST simulation dialog showing the calculation progress or completion of the annual simulation."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the eQUEST project.",
+      "points": 10,
+      "visual_evidence": "eQUEST File menu with 'Save' selected, clicking the save icon, or a save confirmation dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "equest_gui_usage",
+      "description": "The agent used the eQUEST graphical user interface to make changes.",
+      "visual_evidence": "Screenshots should show interaction with eQUEST dialogs and menus, rather than editing the .inp text file directly in a text editor like Notepad."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "The simulation was executed within the eQUEST application.",
+      "visual_evidence": "The simulation progress window should be the standard eQUEST/DOE-2.2 calculation dialog, not a terminal command or mocked output."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use external scripts to bypass the GUI.",
+      "visual_evidence": "Absence of Python, PowerShell, or command prompt windows executing scripts to modify the building model file or run the simulation."
+    }
+  ],
+  "privileged_info_for_vlm": "The target parameter 'Cooling EIR-f(PLR)' corresponds to 'COOL-EIR-FPLR' in DOE-2.2. Critical discrepancy: The task description lists the target systems as G.S1, G.E2, G.N3, G.W4, G.C5, but the actual system names in the eQUEST model are G.S11, G.E12, G.N13, G.W14, G.C15. The VLM must accept these actual system names for the assignment step. The building model is '4StoreyBuilding' running in eQUEST 3.65 on Windows 11."
+}

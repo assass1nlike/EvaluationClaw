@@ -1,0 +1,59 @@
+{
+  "task_id": "synthetic_monitoring_pipeline@1",
+  "task_completion": [
+    {
+      "id": "send_metric_data",
+      "description": "Agent sends the required metric data points to Graphite Carbon.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal window or script editor showing commands (like echo and nc/netcat) or code (like Python) sending data to localhost:2003 with the metric names 'apps.payment_service.response_time_ms', 'apps.payment_service.error_rate', and 'apps.payment_service.requests_per_sec'."
+    },
+    {
+      "id": "open_graphite_ui",
+      "description": "Agent opens the Graphite web UI.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser opened to 'http://localhost/' displaying the Graphite web interface."
+    },
+    {
+      "id": "create_dashboard",
+      "description": "Agent creates and names the dashboard 'Payment Service Health'.",
+      "points": 20,
+      "visual_evidence": "Look for the dashboard title 'Payment Service Health' visible at the top of the Graphite dashboard interface."
+    },
+    {
+      "id": "graph_response_time_vs_errors",
+      "description": "Agent creates the 'Response Time vs Errors' graph with the correct targets.",
+      "points": 20,
+      "visual_evidence": "Look for a graph in the dashboard titled 'Response Time vs Errors'. The legend or target list must show 'apps.payment_service.response_time_ms' and 'apps.payment_service.error_rate'."
+    },
+    {
+      "id": "graph_throughput",
+      "description": "Agent creates the 'Throughput' graph with the correct target.",
+      "points": 20,
+      "visual_evidence": "Look for a graph in the dashboard titled 'Throughput'. The legend or target list must show 'apps.payment_service.requests_per_sec'."
+    },
+    {
+      "id": "graph_infrastructure_correlation",
+      "description": "Agent creates the 'Infrastructure Correlation' graph with the correct targets.",
+      "points": 20,
+      "visual_evidence": "Look for a graph in the dashboard titled 'Infrastructure Correlation'. The legend or target list must show 'apps.payment_service.response_time_ms' and 'servers.ec2_instance_1.cpu.utilization'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_graphite_interaction",
+      "description": "Verify the agent is interacting with the actual Graphite web interface.",
+      "visual_evidence": "The screenshots should show the standard Graphite or Grafana UI elements (depending on the specific local setup), not a mock HTML page or text document."
+    },
+    {
+      "id": "actual_rendered_graphs",
+      "description": "Verify the graphs are actually rendering data.",
+      "visual_evidence": "The graphs should display plotted lines corresponding to the injected data points (e.g., a visible spike in response time and error rate), rather than being empty or displaying text placeholders."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Verify the agent didn't use browser developer tools to fake the dashboard.",
+      "visual_evidence": "Ensure the browser's 'Inspect Element' or Developer Tools pane is not open and being used to manually edit the DOM to show the expected titles and metric names."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Payment Service Health'. The custom metrics that must be visible in the graphs are 'apps.payment_service.response_time_ms', 'apps.payment_service.error_rate', and 'apps.payment_service.requests_per_sec'. The infrastructure metric to correlate with is 'servers.ec2_instance_1.cpu.utilization'."
+}

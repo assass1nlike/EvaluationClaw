@@ -1,0 +1,59 @@
+{
+  "task_id": "cve_patch_prioritization@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the vuln_scan_results.xlsx file in a spreadsheet application",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the vuln_scan_results.xlsx file with the Scan_Data sheet visible."
+    },
+    {
+      "id": "populate_integrated_data",
+      "description": "Populate Environment, Impact, Base_Score, Exploit_Maturity, and Team_Owner columns",
+      "points": 20,
+      "visual_evidence": "Columns D, E, F, G, and H in the Scan_Data sheet are populated with data corresponding to Environment, Impact, Base_Score, Exploit_Maturity, and Team_Owner."
+    },
+    {
+      "id": "calculate_adjusted_score",
+      "description": "Calculate the Adjusted_Score in Column I",
+      "points": 20,
+      "visual_evidence": "Column I in the Scan_Data sheet is populated with numerical values representing the Adjusted_Score (capped at 10.0)."
+    },
+    {
+      "id": "assign_sla_days",
+      "description": "Assign SLA_Days in Column J",
+      "points": 20,
+      "visual_evidence": "Column J in the Scan_Data sheet is populated with values 3, 14, or 30 representing the SLA_Days."
+    },
+    {
+      "id": "create_remediation_summary_sheet",
+      "description": "Create a new sheet named Remediation_Summary",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Remediation_Summary' is visible at the bottom of the spreadsheet application."
+    },
+    {
+      "id": "populate_remediation_summary",
+      "description": "Populate the Remediation_Summary sheet with Team_Owners and Urgent_Patches counts",
+      "points": 20,
+      "visual_evidence": "The Remediation_Summary sheet shows a list of Team_Owners (Web, Database, Infrastructure, HR_IT, Finance) in Column A and numerical counts in Column B."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the spreadsheet GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with LibreOffice Calc menus, formula bar, and cells, rather than terminal commands executing a Python script."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used spreadsheet formulas to calculate values",
+      "visual_evidence": "The formula bar shows functions like VLOOKUP, IF, MIN, or arithmetic operations when cells in columns I, J, or the summary sheet are selected, rather than hardcoded numbers."
+    },
+    {
+      "id": "saved_file",
+      "description": "The agent saved the updated workbook",
+      "visual_evidence": "The agent clicks the save icon or uses File -> Save in the spreadsheet application."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected file is located at /home/ga/Documents/vuln_scan_results.xlsx. The Scan_Data sheet must contain the following required columns: Environment, Impact, Base_Score, Exploit_Maturity, Team_Owner, Adjusted_Score, and SLA_Days."
+}

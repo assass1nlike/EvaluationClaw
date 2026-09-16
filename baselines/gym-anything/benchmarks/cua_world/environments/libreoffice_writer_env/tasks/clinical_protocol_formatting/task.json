@@ -1,0 +1,46 @@
+{
+  "id": "clinical_protocol_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Reformat the clinical sepsis protocol draft located at /home/ga/Documents/sepsis_protocol_draft.docx to meet hospital documentation standards. Save the professionally formatted version as /home/ga/Documents/sepsis_protocol_formatted.docx without overwriting the original. The document must feature 1.0-inch margins, 1.15 line spacing, and approximately 6pt spacing after paragraphs. Use 11pt Liberation Sans or Arial for all body text. Center-align the title 'Sepsis Management Clinical Protocol' and include a page header reading 'Memorial Regional Hospital — Clinical Protocol — Effective 2024'. Apply 'Heading 1' style to major sections (Purpose, Definitions, Screening..., Initial Resuscitation, Antimicrobial Therapy, Hemodynamic Management, Organ Support, Monitoring..., References) and 'Heading 2' style to subsections like Fluid Resuscitation and Vasopressor Therapy.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clinical_protocol_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/clinical_protocol_formatting/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/sepsis_protocol_draft.docx",
+    "output_path": "/home/ga/Documents/sepsis_protocol_formatted.docx",
+    "required_font_names": [
+      "Liberation Sans",
+      "Arial",
+      "Helvetica"
+    ],
+    "required_font_size_pt": 11,
+    "required_margin_inches": 1.0,
+    "required_line_spacing": 1.15,
+    "heading_1_sections": [
+      "Purpose and Scope",
+      "Definitions",
+      "Screening and Early Identification",
+      "Initial Resuscitation",
+      "Antimicrobial Therapy",
+      "Hemodynamic Management",
+      "Organ Support",
+      "Monitoring and Reassessment",
+      "References"
+    ],
+    "header_text": "Memorial Regional Hospital — Clinical Protocol"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clinical_protocol"
+    }
+  }
+}

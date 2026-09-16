@@ -1,0 +1,59 @@
+{
+  "task_id": "it_asset_inventory_validation@1",
+  "task_completion": [
+    {
+      "id": "survey_created",
+      "description": "Verify the survey is created with the correct title.",
+      "points": 10,
+      "visual_evidence": "Look for the survey title 'IT Asset Audit 2025' in the LimeSurvey interface, such as in the top navigation bar, survey list, or survey settings."
+    },
+    {
+      "id": "group_created",
+      "description": "Verify the question group is created.",
+      "points": 10,
+      "visual_evidence": "Look for a question group named 'Hardware Details' in the survey structure menu or group list."
+    },
+    {
+      "id": "asset_tag_configured",
+      "description": "Verify the 'Asset Tag' question is created with correct type, regex, and user tip.",
+      "points": 20,
+      "visual_evidence": "Look for a question named 'Asset Tag' with code 'AssetTag' and type 'Short free text'. In its settings (likely under Logic or Display), look for a regular expression validation pattern (e.g., containing 'IT-[0-9]{5}') and the user tip/help text 'Format: IT-12345'."
+    },
+    {
+      "id": "mac_address_configured",
+      "description": "Verify the 'MAC Address' question is created with correct type, regex, and user tip.",
+      "points": 20,
+      "visual_evidence": "Look for a question named 'MAC Address' with code 'MacAddr' and type 'Short free text'. In its settings, look for a regular expression validation pattern for MAC addresses (e.g., containing '[0-9A-Fa-f]{2}:') and the user tip/help text 'Format: XX:XX:XX:XX:XX:XX'."
+    },
+    {
+      "id": "purchase_year_configured",
+      "description": "Verify the 'Purchase Year' question is created with the correct type.",
+      "points": 10,
+      "visual_evidence": "Look for a question named 'Purchase Year' with code 'PurchYear' and type 'Numerical input'."
+    },
+    {
+      "id": "warranty_year_configured",
+      "description": "Verify the 'Warranty Expiry Year' question is created with correct type, validation equation, and user tip.",
+      "points": 30,
+      "visual_evidence": "Look for a question named 'Warranty Expiry Year' with code 'WarrYear' and type 'Numerical input'. In its logic/validation settings, look for an equation ensuring it is greater than or equal to the Purchase Year (e.g., containing '>=' with 'PurchYear' and 'WarrYear') and the user tip/help text 'Warranty expiry cannot be before purchase year'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the LimeSurvey web interface.",
+      "visual_evidence": "Look for a web browser showing the LimeSurvey admin interface. The agent should be clicking through menus and forms, not using terminal commands or API scripts to create the survey."
+    },
+    {
+      "id": "proper_field_usage",
+      "description": "Verify that regex and validation equations were entered into the correct configuration fields.",
+      "visual_evidence": "Ensure the regular expressions and validation equations are entered into the specific LimeSurvey input fields for 'Validation' or 'Equation' (usually under Logic settings), rather than just being typed into the main question text."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Verify the agent didn't just type the required answers into a text editor.",
+      "visual_evidence": "Ensure the screenshots show actual interaction with the LimeSurvey application, not a text editor or notepad where the agent just pasted the task requirements."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts for the VLM verifier:\n- Expected survey title: 'IT Asset Audit 2025'\n- Expected group title: 'Hardware Details'\n- AssetTag question: Needs regex pattern containing 'IT-[0-9]{5}' and help text containing 'Format: IT-'\n- MacAddr question: Needs regex pattern containing '[0-9A-Fa-f]{2}:' and help text containing 'Format: XX:'\n- WarrYear question: Needs validation equation containing '>=' and variables 'PurchYear' and 'WarrYear', plus help text containing 'Warranty'"
+}

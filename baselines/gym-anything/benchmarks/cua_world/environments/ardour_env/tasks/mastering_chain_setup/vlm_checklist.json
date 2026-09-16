@@ -1,0 +1,53 @@
+{
+  "task_id": "mastering_chain_setup@1",
+  "task_completion": [
+    {
+      "id": "track_renamed",
+      "description": "Verify the existing audio track has been renamed to 'Stereo Mix'.",
+      "points": 20,
+      "visual_evidence": "Look at the track header in the editor window or the channel strip in the mixer window. The name displayed for the audio track should be exactly 'Stereo Mix'."
+    },
+    {
+      "id": "eq_inserted",
+      "description": "Verify the ACE EQ plugin is inserted on the Master bus.",
+      "points": 25,
+      "visual_evidence": "Look at the Master bus channel strip (usually the rightmost strip in the mixer). In the processor/plugin area above the fader, there should be an entry for 'ACE EQ' or 'a-EQ'."
+    },
+    {
+      "id": "compressor_inserted",
+      "description": "Verify the ACE Compressor plugin is inserted on the Master bus.",
+      "points": 25,
+      "visual_evidence": "Look at the Master bus channel strip. In the processor/plugin area above the fader, there should be an entry for 'ACE Compressor' or 'a-Comp'."
+    },
+    {
+      "id": "plugin_order_correct",
+      "description": "Verify the signal chain order is EQ followed by Compressor.",
+      "points": 20,
+      "visual_evidence": "In the Master bus processor/plugin area, the 'ACE EQ' (or 'a-EQ') must appear visually above the 'ACE Compressor' (or 'a-Comp'), indicating it processes the signal first."
+    },
+    {
+      "id": "session_saved",
+      "description": "Verify the session has been saved.",
+      "points": 10,
+      "visual_evidence": "Look at the Ardour window title bar; the project name 'MyProject' should not have an asterisk (*) next to it (which would indicate unsaved changes), or look for a screenshot showing the 'File -> Save' action being executed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Ardour GUI to complete the task.",
+      "visual_evidence": "Look for screenshots showing interaction with the Ardour editor, mixer, and plugin manager windows, rather than a terminal or text editor modifying the session's XML file."
+    },
+    {
+      "id": "actual_plugin_insertion",
+      "description": "Verify the plugins were actually inserted into the Master bus.",
+      "visual_evidence": "Ensure the plugins appear in the Master bus processor box, not just highlighted or searched for in the Plugin Manager window without being added."
+    },
+    {
+      "id": "existing_track_used",
+      "description": "Verify the existing track was renamed rather than a new dummy track being created.",
+      "visual_evidence": "Check the track list or mixer to ensure there is only one main audio track (now named 'Stereo Mix') and no leftover original tracks that were simply hidden or ignored."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected track name is exactly 'Stereo Mix'. The required plugins are the native Ardour EQ and Compressor, which may appear in the GUI as 'ACE EQ' (or 'a-EQ') and 'ACE Compressor' (or 'a-Comp'). In Ardour's mixer, the Master bus is typically the rightmost channel strip. Plugins process audio from top to bottom, meaning the EQ must appear above the Compressor in the Master bus plugin list to satisfy the 'EQ followed by Compressor' requirement."
+}

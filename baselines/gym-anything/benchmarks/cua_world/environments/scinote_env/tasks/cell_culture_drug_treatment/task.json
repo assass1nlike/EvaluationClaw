@@ -1,0 +1,67 @@
+{
+  "id": "cell_culture_drug_treatment@1",
+  "version": "1.0",
+  "env_id": "scinote_env@0.1",
+  "description": "As a cancer biologist documenting a dose-response drug treatment study in SciNote ELN, complete the documentation for the 'HeLa Cell Doxorubicin Dose Response' project. In the 'Dose Response Analysis' experiment, establish a workflow sequence of 'Cell Seeding' → 'Drug Treatment' → 'Cell Viability Assay' → 'Data Analysis', including a protocol of at least five steps for the 'Drug Treatment' task. Update the 'Drug Stocks' inventory to include 'Solvent' and 'Storage Conditions' columns, and populate it with entries for 'Doxorubicin' (10000 μM, DMSO, -20°C protected from light), 'Cisplatin' (3330 μM, Saline, -20°",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cell_culture_drug_treatment/setup_task.sh",
+    "post_task": "/workspace/tasks/cell_culture_drug_treatment/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_name": "HeLa Cell Doxorubicin Dose Response",
+    "expected_experiment_name": "Dose Response Analysis",
+    "preseeded_tasks": [
+      "Cell Seeding",
+      "Cell Viability Assay"
+    ],
+    "new_tasks": [
+      "Drug Treatment",
+      "Data Analysis"
+    ],
+    "expected_connection_order": [
+      "Cell Seeding",
+      "Drug Treatment",
+      "Cell Viability Assay",
+      "Data Analysis"
+    ],
+    "protocol_task": "Drug Treatment",
+    "protocol_min_steps": 5,
+    "expected_inventory_name": "Drug Stocks",
+    "preseeded_columns": [
+      "Concentration (μM)"
+    ],
+    "new_columns": [
+      "Solvent",
+      "Storage Conditions"
+    ],
+    "expected_items": [
+      {
+        "name": "Doxorubicin",
+        "concentration": "10000 μM",
+        "solvent": "DMSO"
+      },
+      {
+        "name": "Cisplatin",
+        "concentration": "3330 μM",
+        "solvent": "Saline"
+      },
+      {
+        "name": "Paclitaxel",
+        "concentration": "10000 μM",
+        "solvent": "DMSO"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cell_culture_drug_treatment"
+    }
+  }
+}

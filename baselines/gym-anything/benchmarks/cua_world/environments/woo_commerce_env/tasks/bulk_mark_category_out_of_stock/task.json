@@ -1,0 +1,27 @@
+{
+  "id": "bulk_mark_category_out_of_stock@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Update the stock status of all products in the 'Accessories' category to 'Out of stock'. Ensure that products in other categories, such as 'Clothing', remain 'In stock'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_mark_category_out_of_stock/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_mark_category_out_of_stock/export_result.sh"
+  },
+  "metadata": {
+    "target_category": "Accessories",
+    "control_category": "Clothing",
+    "expected_status": "outofstock"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_mark_out_of_stock"
+    }
+  }
+}

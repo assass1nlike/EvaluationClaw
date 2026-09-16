@@ -1,0 +1,53 @@
+{
+  "task_id": "sanitize_build_history@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_job",
+      "description": "Navigate to the 'payment-gateway-ci' job page",
+      "points": 10,
+      "visual_evidence": "The Jenkins web interface shows the project/job page specifically for 'payment-gateway-ci'."
+    },
+    {
+      "id": "build_2_deleted",
+      "description": "Delete build #2 from the build history",
+      "points": 30,
+      "visual_evidence": "In the 'Build History' sidebar on the left side of the Jenkins interface, build #2 is no longer listed."
+    },
+    {
+      "id": "build_4_deleted",
+      "description": "Delete build #4 from the build history",
+      "points": 30,
+      "visual_evidence": "In the 'Build History' sidebar on the left side of the Jenkins interface, build #4 is no longer listed."
+    },
+    {
+      "id": "builds_preserved",
+      "description": "Preserve builds #1, #3, #5, and #6",
+      "points": 20,
+      "visual_evidence": "In the 'Build History' sidebar, builds #1, #3, #5, and #6 are still clearly visible and intact."
+    },
+    {
+      "id": "job_preserved",
+      "description": "Ensure the job itself is not deleted",
+      "points": 10,
+      "visual_evidence": "The 'payment-gateway-ci' job page is still accessible and active, and no '404 Not Found' or 'Job deleted' messages are present."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Jenkins web GUI to delete builds",
+      "visual_evidence": "Screenshots show the agent clicking through the Jenkins web interface in a browser, rather than executing curl commands or scripts in a terminal."
+    },
+    {
+      "id": "no_dev_tools",
+      "description": "Agent did not use browser developer tools to fake the UI",
+      "visual_evidence": "The browser's Developer Tools (Inspect Element) panel is not open in any of the screenshots to hide DOM elements."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Agent interacted with the actual Jenkins application",
+      "visual_evidence": "The active window is a standard web browser displaying the Jenkins UI with standard Jenkins URLs, not a text editor or mock interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Jenkins job is named 'payment-gateway-ci'. The agent must permanently delete exactly builds #2 and #4. Builds #1, #3, #5, and #6 must remain visible in the build history sidebar. The job itself must remain intact."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_visual_migration@1",
+  "task_completion": [
+    {
+      "id": "view_token_images",
+      "description": "Review the images in the Token_Images directory to identify the Lighthouse and Mountain images.",
+      "points": 10,
+      "visual_evidence": "A file manager or image viewer displaying the contents of '~/Documents/Token_Images/' with the images visible so the agent can identify the Lighthouse and Mountain."
+    },
+    {
+      "id": "mount_source_volume",
+      "description": "Mount the existing source volume using the Lighthouse image as a keyfile and the correct password.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt GUI showing the mount dialog for '/home/ga/Volumes/old_storage.hc' with password 'VisualAccess2024' entered and a keyfile selected, or the volume successfully mounted in the main VeraCrypt window."
+    },
+    {
+      "id": "create_new_volume_settings",
+      "description": "Configure the creation of a new VeraCrypt volume with the specified path, size, encryption, and filesystem.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt Volume Creation Wizard showing the volume location as '/home/ga/Volumes/new_storage.hc', size as 25 MB, encryption algorithm as AES, and filesystem as FAT."
+    },
+    {
+      "id": "secure_new_volume",
+      "description": "Secure the new volume with the Mountain image as a keyfile, the correct password, and a custom PIM.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt Volume Creation Wizard showing the password 'Migrated#Secure99', the 'Use PIM' checkbox checked with a value of '485', and the keyfiles dialog showing an image selected."
+    },
+    {
+      "id": "transfer_files",
+      "description": "Transfer all files from the old volume to the new volume.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window showing the files 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys' being copied to or present inside the mounted directory of the new volume."
+    },
+    {
+      "id": "dismount_volumes",
+      "description": "Dismount all volumes after the transfer is complete.",
+      "points": 15,
+      "visual_evidence": "The main VeraCrypt GUI window showing no mounted volumes in the drive list at the end of the task."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "The agent used the actual VeraCrypt application to create and mount volumes.",
+      "visual_evidence": "The standard VeraCrypt GUI or authentic VeraCrypt terminal commands are visible, rather than a text editor or spoofed interface."
+    },
+    {
+      "id": "actual_file_transfer",
+      "description": "The agent actually copied the files between the mounted volumes.",
+      "visual_evidence": "File manager copy dialogs or terminal 'cp'/'rsync' commands are used to transfer the files, rather than the agent manually creating empty files with the same names."
+    },
+    {
+      "id": "keyfile_dialog_interaction",
+      "description": "The agent interacted with the keyfile selection mechanism.",
+      "visual_evidence": "The VeraCrypt 'Keyfiles' dialog is opened and used to add the specific image files, confirming the agent didn't bypass the visual keyfile requirement."
+    }
+  ],
+  "privileged_info_for_vlm": "Source volume: '/home/ga/Volumes/old_storage.hc' (Password: 'VisualAccess2024'). Destination volume: '/home/ga/Volumes/new_storage.hc' (Password: 'Migrated#Secure99', PIM: '485'). Token directory: '/home/ga/Documents/Token_Images'. Required files to transfer: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'."
+}

@@ -1,0 +1,83 @@
+{
+  "dataset_id": "345598bd",
+  "name": "Openset Multi-Image Alteration Description",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Multi-Image Alteration Description dataset evaluates a model's ability to compare two images and describe the visual modifications between them in natural language. Each sample contains a pair of images and an instruction asking for differences, with multiple reference descriptions as targets.",
+  "card_text": "This dataset contains 200 samples of image pairs in simple 3D scenes with everyday objects. The input consists of two images and a textual prompt asking what modifications can be observed between them (e.g., 'What modifications can be observed between these two pictures? Difference:'). The output is a list of multiple natural-language descriptions of the changes, such as object color, material, or position alterations. The dataset is open-set, meaning no fixed label space; models must generate free-form difference descriptions. It tests visual relation inference and content recognition across paired images.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "captioning"
+  ],
+  "domain": "general visual scenes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A pair of images (before and after) depicting simple 3D scenes with everyday objects; the model must compare them to identify visual alterations.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction asking to identify modifications or transformations between the two images, with <ImageHere> placeholders indicating where each image should be inserted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "A list of natural-language descriptions of the differences between the two images; multiple alternative phrasings and levels of detail are provided as references.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a pair of images (input.image_file) as the visual context, a textual instruction/prompt (input.prompt) that asks for modifications between the two images, and a list of reference textual descriptions (output.text) enumerating possible differences. The prompt embeds <ImageHere> placeholders for the two images, and the output provides multiple paraphrased answers."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-ImageAlterationDescription/openset_multi-image_alteration_description.json",
+    "existing_tags": {
+      "task": "Multi-Image Alteration Description",
+      "type": "image comprehension",
+      "skill": "Visual Relation Inference",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

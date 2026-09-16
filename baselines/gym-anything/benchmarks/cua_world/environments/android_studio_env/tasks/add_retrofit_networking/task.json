@@ -1,0 +1,33 @@
+{
+  "id": "add_retrofit_networking@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Add a complete Retrofit networking layer to the PostViewer Android project. The implementation includes dependencies for Retrofit (com.squareup.retrofit2:retrofit:2.9.0), Moshi Converter (com.squareup.retrofit2:converter-moshi:2.9.0), Moshi Kotlin (com.squareup.moshi:moshi-kotlin:1.15.0), OkHttp Logging Interceptor (com.squareup.okhttp3:logging-interceptor:4.12.0), and Kotlin Coroutines Android (org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3) in app/build.gradle.kts. The project requires the INTERNET permission in app/src/main/AndroidManifest.xml. Create a Post data model in app/src/main/java/com/example/postviewer/model/Post.kt with fields for id, userId, title, and body, annotated with @JsonClass(generateAdapter = true). Implement a PostApiService interface in app/src/main/java/com/example/postviewer/network/PostApiService.kt with suspend functions getPosts() (@GET(\"posts\")), getPost(@Path(\"id\") id: Int) (@GET(\"posts/{id}\")), and getPostsByUser(@Query(\"userId\") userId: Int) (@GET(\"posts\")). Provide a singleton ApiClient in app/src/main/java/com/example/postviewer/network/ApiClient.kt configured with the base URL https://jsonplaceholder.typicode.com/ and a BODY level HttpLoggingInterceptor, exposing the PostApiService. The project must build successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_retrofit_networking/setup_task.sh",
+    "post_task": "/workspace/tasks/add_retrofit_networking/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/PostViewer",
+    "expected_dependencies": [
+      "com.squareup.retrofit2:retrofit:2.9.0",
+      "com.squareup.retrofit2:converter-moshi:2.9.0",
+      "com.squareup.moshi:moshi-kotlin:1.15.0",
+      "com.squareup.okhttp3:logging-interceptor:4.12.0",
+      "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+    ],
+    "api_base_url": "https://jsonplaceholder.typicode.com/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_retrofit_networking"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "ashrae_envelope_compliance_upgrade@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an energy auditor reviewing a small commercial building design in Energy3D. The initial model uses generic materials that fail local energy codes. Your task is to update the thermal envelope to meet high-performance specifications and run an energy simulation.\n\nExpected Actions:\n1. Open the existing file: ~/Documents/Energy3D/building-shape.ng3\n2. Change the project's geographic location/city to Boston, MA (via the map or location settings).\n3. Modify the properties of the architectural elements using the properties panel to meet the new code:\n   - All Walls: Set U-value to 0.25\n   - Roof: Set U-value to 0.15\n   - Roof: Set Albedo to 0.65\n   - All Windows: Set U-value to 1.20\n4. Save the modified project as ~/Documents/Energy3D/compliant_boston_building.ng3\n5. Run the Annual Building Energy Analysis (Analysis menu > Buildings > Annual Energy Analysis).\n6. Save a picture of the resulting energy analysis graph to ~/Documents/Energy3D/energy_results.png (you may use a screenshot tool like 'scrot' or the graph's export feature).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ashrae_envelope_compliance_upgrade/setup_task.sh",
+    "post_task": "/workspace/tasks/ashrae_envelope_compliance_upgrade/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Auditor",
+    "industry": "Architecture & Engineering",
+    "target_city": "Boston",
+    "target_wall_u": 0.25,
+    "target_roof_u": 0.15,
+    "target_roof_albedo": 0.65,
+    "target_window_u": 1.20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ashrae_compliance"
+    }
+  }
+}

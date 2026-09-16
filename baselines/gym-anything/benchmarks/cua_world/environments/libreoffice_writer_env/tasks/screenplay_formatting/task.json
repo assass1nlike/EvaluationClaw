@@ -1,0 +1,56 @@
+{
+  "id": "screenplay_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Reformat the screenplay draft in '/home/ga/Documents/screenplay_draft.docx' to meet industry standards. The document must use 'Courier New' or 'Liberation Mono' at 12 points. Page margins must be 1.50 inches for the left margin and 1.00 inch for top, bottom, and right margins. Scene headings (starting with 'INT.' or 'EXT.') must use the 'Heading 1' style. Character names must be center-aligned, and transitions (e.g., 'FADE IN:', 'CUT TO:') must be right-aligned. Save the formatted document to '/home/ga/Documents/screenplay_formatted.docx'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/screenplay_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/screenplay_formatting/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/screenplay_draft.docx",
+    "output_path": "/home/ga/Documents/screenplay_formatted.docx",
+    "accepted_fonts": [
+      "Courier New",
+      "Courier",
+      "Liberation Mono"
+    ],
+    "target_font_size": 12,
+    "margins": {
+      "left": 1.5,
+      "right": 1.0,
+      "top": 1.0,
+      "bottom": 1.0
+    },
+    "scene_headings": [
+      "INT. OLD MAN'S BEDROOM - NIGHT",
+      "INT. OLD MAN'S BEDROOM - DAY",
+      "INT. HOUSE - HALLWAY - NIGHT",
+      "INT. BEDROOM - LATER"
+    ],
+    "transitions": [
+      "FADE IN:",
+      "CUT TO:",
+      "FADE OUT."
+    ],
+    "character_names": [
+      "NARRATOR (V.O.)",
+      "OLD MAN",
+      "NARRATOR",
+      "OFFICER DUPIN",
+      "OFFICER 2"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_screenplay_formatting"
+    }
+  }
+}

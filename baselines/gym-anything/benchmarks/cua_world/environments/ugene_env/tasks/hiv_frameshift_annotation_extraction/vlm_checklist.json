@@ -1,0 +1,59 @@
+{
+  "task_id": "hiv_frameshift_annotation_extraction@1",
+  "task_completion": [
+    {
+      "id": "open_hiv_genome",
+      "description": "Open the reference genome file in the bioinformatics software.",
+      "points": 10,
+      "visual_evidence": "The UGENE interface (or similar bioinformatics tool) is open, displaying the sequence view or annotations tree for the 'hiv_genome.gb' file."
+    },
+    {
+      "id": "identify_overlap",
+      "description": "Identify the nucleotide overlap between the 'gag' and 'pol' CDS features.",
+      "points": 15,
+      "visual_evidence": "The sequence view or annotations tree shows both 'gag' and 'pol' features, with the overlapping region (coordinates 1631..1838) selected, highlighted, or being inspected."
+    },
+    {
+      "id": "create_new_annotation",
+      "description": "Create a new annotation for the overlap region with the specified Feature Key and qualifier.",
+      "points": 25,
+      "visual_evidence": "An annotation creation dialog or the annotations tree showing a new feature with the key 'misc_feature' and a 'note' qualifier set to 'gag_pol_overlap' spanning the overlap coordinates."
+    },
+    {
+      "id": "save_annotated_gb",
+      "description": "Save the updated sequence to the specified GenBank file.",
+      "points": 15,
+      "visual_evidence": "A 'Save as' or export dialog pointing to '~/UGENE_Data/virology/results/hiv_annotated.gb', or a terminal/file manager showing this file has been successfully created."
+    },
+    {
+      "id": "export_fasta",
+      "description": "Export the nucleotide sequence of the overlap region in FASTA format.",
+      "points": 20,
+      "visual_evidence": "An 'Export Sequence' dialog configured for FASTA format saving to '~/UGENE_Data/virology/results/frameshift_region.fasta', or a terminal/file manager showing the file."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Create a summary report containing the start coordinate, end coordinate, and total length of the overlap.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the contents of '~/UGENE_Data/virology/results/frameshift_report.txt' containing the start coordinate (1631), end coordinate (1838), and length (208)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the bioinformatics software GUI to identify the overlap and create the annotation.",
+      "visual_evidence": "Screenshots show interaction with UGENE application windows, menus, and dialogs, rather than just writing a Python script to bypass the software."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The agent exported the files using the software rather than manually typing mock files.",
+      "visual_evidence": "UGENE export/save dialogs are visible in the screenshots for the GenBank and FASTA files."
+    },
+    {
+      "id": "correct_coordinate_derivation",
+      "description": "The agent derived the coordinates from the actual provided sequence rather than hallucinating incorrect coordinates from external knowledge.",
+      "visual_evidence": "The summary report and the created annotation reflect the true coordinates (1631..1838) found in the provided file, not the commonly cited HXB2 coordinates (2085..2292)."
+    }
+  ],
+  "privileged_info_for_vlm": "The true overlap coordinates for the provided HIV-1 sequence are 1631 to 1838, with a total length of 208 base pairs. The agent should use these coordinates, not the incorrect HXB2 coordinates (2085..2292) that might be found online. The new annotation must have the Feature Key 'misc_feature' and a 'note' qualifier set to 'gag_pol_overlap'. Expected output files are: hiv_annotated.gb, frameshift_region.fasta, and frameshift_report.txt in the ~/UGENE_Data/virology/results/ directory."
+}

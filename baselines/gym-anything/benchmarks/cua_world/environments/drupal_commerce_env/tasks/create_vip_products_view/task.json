@@ -1,0 +1,31 @@
+{
+  "id": "create_vip_products_view@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a 'Members Only' product page for VIP customers. Add a 'VIP' taxonomy term to the 'Product categories' vocabulary and assign it to 'Sony WH-1000XM5 Wireless Headphones' and 'Logitech MX Master 3S Wireless Mouse'. Configure a new Page View titled 'VIP Exclusives' at the path /vip-products using a grid display. The page must filter for products in the 'VIP' category and be restricted to Authenticated users, ensuring anonymous visitors receive a 403 Access Denied response at http://localhost/vip-products.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_vip_products_view/setup_task.sh",
+    "post_task": "/workspace/tasks/create_vip_products_view/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "/vip-products",
+    "expected_term": "VIP",
+    "required_products_sku": [
+      "SONY-WH1000XM5",
+      "LOGI-MXM3S"
+    ],
+    "expected_access_role": "authenticated"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_vip_products_view"
+    }
+  }
+}

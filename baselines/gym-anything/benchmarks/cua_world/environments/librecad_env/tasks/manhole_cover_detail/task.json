@@ -1,0 +1,40 @@
+{
+  "id": "manhole_cover_detail@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a plan-view detail drawing of a standard manhole frame and cover in LibreCAD using inches. The drawing should be centered at (0,0) and include an Outer Frame (Radius 15), a Cover (Radius 12), two Pick Holes (Radius 0.75 at (0, 6) and (0, -6)), and Center Lines (Horizontal and Vertical from -18 to 18). Apply an ANSI31 hatch pattern to the ring area between the frame and cover. Organize the drawing using layers named FRAME, PICKHOLE, CENTERLINE, HATCH, DIMENSIONS, and TEXT. Include diameter dimensions for the Frame (30), Cover (24), and one Pick Hole (1.5). Add the text \"MANHOLE FRAME & COVER\" above the drawing and \"SCALE: NTS\" below it. Save the final drawing to /home/ga/Documents/LibreCAD/manhole_detail.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manhole_cover_detail/setup_task.sh",
+    "post_task": "/workspace/tasks/manhole_cover_detail/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/manhole_detail.dxf",
+    "radii": {
+      "frame": 15.0,
+      "cover": 12.0,
+      "pickhole": 0.75
+    },
+    "tolerance": 1.0,
+    "required_layers": [
+      "FRAME",
+      "PICKHOLE",
+      "CENTERLINE",
+      "HATCH",
+      "DIMENSIONS",
+      "TEXT"
+    ],
+    "required_text": "MANHOLE"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manhole_detail"
+    }
+  }
+}

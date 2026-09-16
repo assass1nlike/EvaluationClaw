@@ -1,0 +1,74 @@
+{
+  "dataset_id": "bcadf495",
+  "name": "Sentiment-Classification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Sentiment-Classification dataset consists of short movie-review excerpts annotated with binary sentiment labels (positive or negative). It evaluates a model's ability to classify the sentiment of a given text according to a provided instruction.",
+  "card_text": "This text-only dataset contains 200 samples of short, informal movie-review snippets. Each sample provides a raw review phrase and a prompt instructing the model to classify its sentiment as either positive or negative, with the answer given as a single sentiment label. The text style is fragmentary and evaluative, typical of user-written film reviews. The dataset assumes sentiment is binary and the response should contain only the label. It is intended for benchmark evaluation of binary sentiment classification from natural language instructions.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "movie reviews / sentiment analysis",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The raw_text field contains a short excerpt from a movie review, typically a single sentence or phrase expressing an opinion about a film. It is the input text whose sentiment is to be classified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt field gives the classification instruction. It includes a placeholder for the raw text and asks the model to output only the sentiment label ('positive' or 'negative').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.sentiment"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output.sentiment field holds the gold sentiment label for the corresponding raw_text, either 'positive' or 'negative'.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with raw_text (the review text to classify) and prompt (a sentiment-classification instruction referencing raw_text), plus an output object with sentiment (the binary label). The prompt serves as the question, raw_text as the context, and sentiment as the answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Sentiment-Classification/annotation.json",
+    "existing_tags": {
+      "task": "sentiment_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

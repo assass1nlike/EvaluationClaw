@@ -1,0 +1,40 @@
+{
+  "id": "adjust_stock_split@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Apple Inc. (AAPL) has executed a 2-for-1 stock split. Update the existing AAPL buy transaction in JStock's portfolio to reflect this split. Adjust the units and purchase price accordingly while ensuring the total purchase value remains the same. Do not modify the MSFT or NVDA transactions and ensure your changes are saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/adjust_stock_split/setup_task.sh",
+    "post_task": "/workspace/tasks/adjust_stock_split/export_result.sh"
+  },
+  "metadata": {
+    "portfolio_file": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/buyportfolio.csv",
+    "expected_aapl": {
+      "units": 200.0,
+      "price": 92.6,
+      "value": 18520.0
+    },
+    "expected_msft": {
+      "units": 50.0,
+      "price": 374.5,
+      "value": 18725.0
+    },
+    "expected_nvda": {
+      "units": 25.0,
+      "price": 615.3,
+      "value": 15382.5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_adjust_stock_split"
+    }
+  }
+}

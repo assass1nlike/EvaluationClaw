@@ -1,0 +1,65 @@
+{
+  "task_id": "call_center_sl_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_workbook",
+      "description": "Open the 'call_center_kpis.xlsx' workbook",
+      "points": 10,
+      "visual_evidence": "Spreadsheet application (like Excel or LibreOffice Calc) is open displaying the 'call_center_kpis.xlsx' file."
+    },
+    {
+      "id": "interval_data_calculations",
+      "description": "Calculate Service Level %, AHT, and Occupancy % on the 'Interval_Data' sheet",
+      "points": 20,
+      "visual_evidence": "On the 'Interval_Data' sheet, new columns or filled cells exist for Service Level %, AHT, and Occupancy % across the 24 intervals."
+    },
+    {
+      "id": "highlight_low_service_level",
+      "description": "Highlight Service Level values below 80% with a red fill",
+      "points": 20,
+      "visual_evidence": "On the 'Interval_Data' sheet, cells in the Service Level column containing values less than 80% (or 0.8) have a red background color."
+    },
+    {
+      "id": "global_service_level",
+      "description": "Calculate the Global Service Level on the 'Daily_Dashboard' sheet",
+      "points": 15,
+      "visual_evidence": "On the 'Daily_Dashboard' sheet, a cell displays the Global Service Level. The value should be approximately 77.39% (0.7739), indicating a weighted average was used."
+    },
+    {
+      "id": "global_aht",
+      "description": "Calculate the Global AHT on the 'Daily_Dashboard' sheet",
+      "points": 15,
+      "visual_evidence": "On the 'Daily_Dashboard' sheet, a cell displays the Global AHT. The value should be approximately 425.5, indicating a weighted average was used."
+    },
+    {
+      "id": "max_occupancy",
+      "description": "Calculate the Max Occupancy on the 'Daily_Dashboard' sheet",
+      "points": 10,
+      "visual_evidence": "On the 'Daily_Dashboard' sheet, a cell displays the Max Occupancy, representing the highest interval occupancy calculated from the first sheet."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the workbook",
+      "points": 10,
+      "visual_evidence": "The agent clicks the save button, uses a save shortcut, or the spreadsheet shows no unsaved changes indicator at the end of the task."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the spreadsheet GUI to perform the task",
+      "visual_evidence": "Screenshots show the agent clicking cells, typing formulas in the formula bar, or using spreadsheet formatting tools, rather than running a Python script in a terminal to modify the file."
+    },
+    {
+      "id": "formula_usage",
+      "description": "The agent used formulas for calculations rather than hardcoding answers",
+      "visual_evidence": "The formula bar shows spreadsheet formulas (e.g., SUM, MAX, or basic arithmetic like =B2/C2) rather than typed-in static numbers for the final dashboard metrics."
+    },
+    {
+      "id": "conditional_formatting_or_manual_fill",
+      "description": "The agent genuinely applied the red fill to the correct cells",
+      "visual_evidence": "The agent is seen using the Conditional Formatting menu or manually selecting the correct cells (<80%) and applying a red bucket fill color."
+    }
+  ],
+  "privileged_info_for_vlm": "The Global Service Level must be a weighted average (Total SL_Count / Total Offered), resulting in approximately 77.39% (0.7739). The Global AHT must also be a weighted average (Total Work Seconds / Total Answered), resulting in approximately 425.5 seconds. Simple averages of the interval percentages are incorrect and represent a common trap. The dataset contains 24 thirty-minute intervals."
+}

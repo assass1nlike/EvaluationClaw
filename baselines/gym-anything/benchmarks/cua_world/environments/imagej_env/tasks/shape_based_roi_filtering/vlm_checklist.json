@@ -1,0 +1,59 @@
+{
+  "task_id": "shape_based_roi_filtering@1",
+  "task_completion": [
+    {
+      "id": "open_blobs_image",
+      "description": "Open the 'Blobs (25K)' sample image in Fiji",
+      "points": 10,
+      "visual_evidence": "A window titled 'blobs.gif' (or similar) displaying a black-and-white image of irregular blob shapes is visible in the Fiji workspace."
+    },
+    {
+      "id": "set_measurements",
+      "description": "Configure measurements to include Area and Circularity",
+      "points": 10,
+      "visual_evidence": "The 'Set Measurements' dialog is visible with the 'Area' and 'Shape descriptors' (which includes Circularity) checkboxes selected."
+    },
+    {
+      "id": "filter_particles_circularity",
+      "description": "Filter particles using the specified circularity threshold",
+      "points": 30,
+      "visual_evidence": "The 'Analyze Particles' dialog is open with the 'Circularity' field set to '0.85-1.00' (or '0.84-1.00')."
+    },
+    {
+      "id": "rois_isolated",
+      "description": "Isolate the highly circular particles into the ROI Manager",
+      "points": 20,
+      "visual_evidence": "The 'ROI Manager' window is open and populated with a list of ROIs. The number of ROIs should appear to be roughly between 10 and 60."
+    },
+    {
+      "id": "save_measurements_csv",
+      "description": "Save the filtered measurements to the specified CSV file path",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog for the Results table, or a file explorer/terminal showing 'filtered_measurements.csv' being saved to or existing in the '~/ImageJ_Data/results/' directory."
+    },
+    {
+      "id": "save_rois_zip",
+      "description": "Save the isolated ROIs to the specified ZIP file path",
+      "points": 15,
+      "visual_evidence": "A 'Save' dialog from the ROI Manager, or a file explorer/terminal showing 'circular_rois.zip' being saved to or existing in the '~/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_fiji_gui",
+      "description": "The agent used the Fiji GUI to perform the image analysis rather than writing a script to mock the output files",
+      "visual_evidence": "Screenshots show active interaction with Fiji menus (e.g., Analyze > Analyze Particles, ROI Manager, Results window) rather than just terminal commands creating dummy files."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "The Results table shows actual calculated values for Area and Circularity",
+      "visual_evidence": "The 'Results' window in Fiji displays rows of data with varying Area values and Circularity values consistently between 0.84 and 1.0, indicating genuine image analysis."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "The agent saved the files to the exact requested directories",
+      "visual_evidence": "Save dialogs, Fiji macro logs, or terminal windows explicitly show the absolute path '/home/ga/ImageJ_Data/results/' being used for the outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires saving outputs to '/home/ga/ImageJ_Data/results/circular_rois.zip' and '/home/ga/ImageJ_Data/results/filtered_measurements.csv'. The expected number of isolated ROIs is between 10 and 60. While the task specifies a minimum circularity of 0.85, the verifier accepts >= 0.84. The maximum circularity should be 1.0 (up to 1.01 allowed for rounding). The 'Blobs (25K)' image is a built-in Fiji sample accessible via File > Open Samples."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "safety_parameters_commissioning@1",
+  "task_completion": [
+    {
+      "id": "read_checklist",
+      "description": "Agent opens and reads the safety checklist file.",
+      "points": 10,
+      "visual_evidence": "A text editor, file viewer, or terminal command (e.g., cat) displaying the contents of '/home/ga/Documents/QGC/safety_checklist.txt'."
+    },
+    {
+      "id": "access_parameters_interface",
+      "description": "Agent accesses the parameter configuration interface for the vehicle.",
+      "points": 10,
+      "visual_evidence": "QGroundControl is open with the 'Parameters' tab selected under Vehicle Setup, or a terminal is open running a MAVLink console/MAVProxy connected to the vehicle."
+    },
+    {
+      "id": "configure_failsafe_params",
+      "description": "Agent configures the battery and GCS failsafe parameters.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'FS_BATT_ENABLE' being set to 2 and 'FS_GCS_ENABLE' being set to 1 (either in the QGC parameter list/editor or via terminal commands like 'param set')."
+    },
+    {
+      "id": "configure_rtl_alt",
+      "description": "Agent configures the Return-to-Launch altitude parameter.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'RTL_ALT' being set to 2500."
+    },
+    {
+      "id": "configure_fence_params",
+      "description": "Agent configures the geofence parameters.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'FENCE_ENABLE' being set to 1 and 'FENCE_ALT_MAX' being set to 8000."
+    },
+    {
+      "id": "configure_land_speed",
+      "description": "Agent configures the high landing speed parameter.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'LAND_SPEED_HIGH' being set to 150."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_configuration_tool",
+      "description": "Agent uses a genuine ground control station (like QGroundControl) or MAVLink console to set parameters.",
+      "visual_evidence": "Parameter changes are made in the QGC interface or a valid MAVLink terminal, not just typed into a text document or mock interface."
+    },
+    {
+      "id": "no_hallucinated_values",
+      "description": "Agent uses the exact values from the checklist rather than guessing.",
+      "visual_evidence": "The agent opens the checklist file before or during the parameter configuration process, and the entered values match the checklist."
+    },
+    {
+      "id": "manual_or_standard_configuration",
+      "description": "Agent configures parameters using standard user interfaces or commands.",
+      "visual_evidence": "The agent interacts with the UI or types standard parameter set commands, rather than running a cheat script to bypass the task."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct parameter values from the checklist are: FS_BATT_ENABLE = 2, RTL_ALT = 2500, FENCE_ENABLE = 1, FENCE_ALT_MAX = 8000, FS_GCS_ENABLE = 1, and LAND_SPEED_HIGH = 150. The checklist file is located at /home/ga/Documents/QGC/safety_checklist.txt."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "dynamic_bottleneck_triage@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created_and_named",
+      "description": "Verify that a Graphite dashboard is created and correctly named 'Dynamic Bottleneck Triage'.",
+      "points": 10,
+      "visual_evidence": "The Graphite UI should display a dashboard with the title 'Dynamic Bottleneck Triage' at the top."
+    },
+    {
+      "id": "graph_cpu_saturated_nodes",
+      "description": "Verify the creation of the 'Production CPU Saturated Nodes' graph.",
+      "points": 15,
+      "visual_evidence": "A graph titled 'Production CPU Saturated Nodes' is visible in the dashboard, displaying CPU utilization metrics."
+    },
+    {
+      "id": "graph_cpu_functions_applied",
+      "description": "Verify that the CPU graph correctly applies functions to exclude 'instance_3', show the top 2 by average, and alias by node index 1.",
+      "points": 25,
+      "visual_evidence": "The metric path or graph legend shows the use of functions like `exclude(..., 'instance_3')`, `highestAverage(..., 2)`, and `aliasByNode(..., 1)`. The graph should display exactly 2 lines, and the legend should show clean node names (e.g., 'ec2_instance_1') rather than full metric paths."
+    },
+    {
+      "id": "graph_peak_disk_write",
+      "description": "Verify the creation of the 'Peak Disk Write Analysis' graph with correct functions for the single highest peak disk write.",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Peak Disk Write Analysis' is visible. The metric path or legend shows functions like `highestMax(..., 1)` and `aliasByNode(..., 1)`. The graph should display exactly 1 line representing the instance with the highest peak disk write bytes."
+    },
+    {
+      "id": "graph_aggregated_fleet_writes",
+      "description": "Verify the creation of the 'Aggregated Fleet Writes' graph with correct sum and alias functions.",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Aggregated Fleet Writes' is visible. The metric path or legend shows `sumSeries(...)` and `alias(..., 'Total Fleet Writes')`. The graph should display exactly 1 line, and the legend must explicitly say 'Total Fleet Writes'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "Verify the agent used the Graphite web interface to build the dashboard.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Graphite browser UI (Composer or Dashboard view), rather than just writing a JSON file in a text editor or terminal."
+    },
+    {
+      "id": "dynamic_wildcards_used",
+      "description": "Verify the agent used wildcards instead of hardcoding instance names.",
+      "visual_evidence": "The metric paths visible in the UI should contain wildcards (e.g., `servers.ec2_instance_*.cpu.*utilization`) rather than explicitly listing individual instance names (except for the required 'instance_3' exclusion)."
+    },
+    {
+      "id": "actual_data_rendered",
+      "description": "Verify that the graphs are rendering actual metric data.",
+      "visual_evidence": "The graphs should display actual plotted lines and axes with data points, indicating successful queries to the Graphite backend, rather than empty graphs or error messages."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named 'Dynamic Bottleneck Triage'. It must contain exactly three graphs: 'Production CPU Saturated Nodes', 'Peak Disk Write Analysis', and 'Aggregated Fleet Writes'. The task requires using Graphite functions (e.g., exclude, highestAverage, highestMax, sumSeries, aliasByNode, alias) and wildcards to dynamically query metrics."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "model_pv_soiling_impact@1",
+  "task_completion": [
+    {
+      "id": "weather_file_located",
+      "description": "The agent locates an Arizona weather file (.csv) from the SAM solar_resource directory.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., searching /opt/SAM/ or reading /home/ga/.SAM/solar_resource_dir.txt) or file explorer showing the path to an Arizona weather file being identified or copied."
+    },
+    {
+      "id": "pysam_script_created",
+      "description": "The agent creates a Python script that imports PySAM's Pvwattsv8 module.",
+      "points": 15,
+      "visual_evidence": "A text editor or IDE showing a Python script with an import statement like `import PySAM.Pvwattsv8` or `import pvwattsv8`."
+    },
+    {
+      "id": "system_parameters_set",
+      "description": "The agent configures the PV system parameters according to the task description.",
+      "points": 20,
+      "visual_evidence": "The Python script contains assignments for system capacity (2000), tilt (30), azimuth (180), DC-to-AC ratio (1.2), module type (0), and array type (0)."
+    },
+    {
+      "id": "soiling_profiles_set",
+      "description": "The agent sets up both a clean baseline and a soiled scenario with the specified monthly losses.",
+      "points": 15,
+      "visual_evidence": "The Python script contains the array `[2, 3, 4, 5, 5, 5, 2, 2, 3, 4, 3, 2]` assigned to a soiling parameter for the soiled scenario, and a 0% soiling baseline for the clean scenario."
+    },
+    {
+      "id": "capacity_factor_calculated",
+      "description": "The agent calculates the capacity factor using the exact formula provided.",
+      "points": 20,
+      "visual_evidence": "The Python script contains the formula `(annual_energy_kwh / (system_capacity_kw * 8760)) * 100` (or mathematically equivalent using the script's variables) for both clean and soiled scenarios."
+    },
+    {
+      "id": "json_output_saved",
+      "description": "The agent saves the required results to the specified JSON file path.",
+      "points": 20,
+      "visual_evidence": "The Python script contains code to write a JSON object with the required fields to `/home/ga/Documents/SAM_Projects/soiling_analysis.json`, or terminal output shows the script executing successfully and creating the file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pysam_execution",
+      "description": "The agent runs a Python script to compute the results using PySAM rather than mocking the output.",
+      "visual_evidence": "Terminal showing the execution of the Python script (e.g., `python script.py`) without errors, and the script contains actual PySAM execution calls (like `model.execute()`)."
+    },
+    {
+      "id": "no_hardcoded_energy_results",
+      "description": "The agent does not hardcode the annual energy results in the JSON output.",
+      "visual_evidence": "The script extracts energy generation from the PySAM model outputs (e.g., `model.Outputs.annual_energy`) rather than assigning fixed numerical values."
+    },
+    {
+      "id": "dynamic_json_construction",
+      "description": "The agent dynamically constructs the JSON output with all required fields.",
+      "visual_evidence": "The script builds a dictionary with keys like `annual_energy_clean_kwh`, `soiling_loss_percent`, `capacity_factor_clean_pct`, etc., populated from the model's computed variables."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts:\n- Expected output path: /home/ga/Documents/SAM_Projects/soiling_analysis.json\n- Expected system capacity: 2000 kW DC\n- Expected tilt: 30 degrees\n- Expected azimuth: 180 degrees\n- Expected soiling profile: [2, 3, 4, 5, 5, 5, 2, 2, 3, 4, 3, 2]\n- Clean annual energy: ~3.66M kWh (acceptable range: 2,500,000 - 6,000,000 kWh)\n- Soiled annual energy: ~3.54M kWh (acceptable range: 2,400,000 - 5,900,000 kWh)\n- Soiling loss percentage: ~3.2% (acceptable range: 1.5% - 6.0%)\n- Capacity factor: ~20.9% (acceptable range: 15% - 30%)"
+}

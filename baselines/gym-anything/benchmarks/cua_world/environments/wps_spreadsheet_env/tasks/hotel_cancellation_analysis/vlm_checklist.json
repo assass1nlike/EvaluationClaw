@@ -1,0 +1,65 @@
+{
+  "task_id": "hotel_cancellation_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_wps_spreadsheet",
+      "description": "Open the resort_hotel_bookings.xlsx file in WPS Spreadsheet.",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet application is open with the file 'resort_hotel_bookings.xlsx' visible in the title bar or tab."
+    },
+    {
+      "id": "calculate_nights_and_revenue",
+      "description": "Calculate 'Total_Nights' and 'Potential_Revenue' in the 'Bookings' sheet.",
+      "points": 15,
+      "visual_evidence": "In the 'Bookings' sheet, there are new columns for 'Total_Nights' (sum of weekend and week nights) and 'Potential_Revenue' (Total_Nights * adr) with populated numerical values."
+    },
+    {
+      "id": "calculate_lead_time_bracket",
+      "description": "Calculate 'Lead_Time_Bracket' in the 'Bookings' sheet.",
+      "points": 15,
+      "visual_evidence": "In the 'Bookings' sheet, there is a new column 'Lead_Time_Bracket' containing categorical text values like '0-30', '31-90', '91-180', or '180+'."
+    },
+    {
+      "id": "create_segment_analysis_sheet",
+      "description": "Create a new sheet named 'Segment_Analysis' with the required column headers.",
+      "points": 15,
+      "visual_evidence": "A sheet tab named 'Segment_Analysis' is visible and active. The sheet contains headers: 'Market_Segment', 'Total_Bookings', 'Cancellations', 'Cancellation_Rate', and 'Lost_Revenue'."
+    },
+    {
+      "id": "populate_market_segments",
+      "description": "Populate the summary table with the five specified market segments.",
+      "points": 15,
+      "visual_evidence": "Under the 'Market_Segment' column in the 'Segment_Analysis' sheet, the rows contain exactly 'Online TA', 'Offline TA/TO', 'Direct', 'Corporate', and 'Groups'."
+    },
+    {
+      "id": "calculate_summary_metrics",
+      "description": "Calculate the summary metrics with correct formatting (percentage for rate, currency for revenue).",
+      "points": 20,
+      "visual_evidence": "The summary table is populated with numbers. The 'Cancellation_Rate' column values include a percentage sign (%), and the 'Lost_Revenue' column values include a currency symbol (e.g., $, \u00a3, \u20ac)."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the updated workbook.",
+      "points": 10,
+      "visual_evidence": "The user clicks the Save icon, uses the Ctrl+S shortcut, or the file tab/title bar no longer shows an unsaved changes indicator (like an asterisk * next to the filename)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wps_gui",
+      "description": "The agent used the WPS Spreadsheet graphical user interface to perform the analysis.",
+      "visual_evidence": "Screenshots show interaction with the WPS Spreadsheet UI (ribbons, cells, dialog boxes) rather than a terminal window running Python/bash scripts to modify the Excel file."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent used formulas or pivot tables rather than hardcoding the final answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar shows an Excel formula (e.g., SUM, IF, VLOOKUP, SUMIFS) or the UI shows a PivotTable configuration pane, rather than plain typed numbers."
+    },
+    {
+      "id": "correct_file_modified",
+      "description": "The agent modified the correct original dataset.",
+      "visual_evidence": "The data in the 'Bookings' sheet contains realistic hotel booking data (e.g., columns for adr, lead_time, is_canceled) matching the TidyTuesday dataset, not a dummy or newly created blank file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected sheets are exactly 'Bookings' and 'Segment_Analysis'. The summary table in 'Segment_Analysis' must contain exactly five segments: 'Online TA', 'Offline TA/TO', 'Direct', 'Corporate', and 'Groups'. Ignore any other segments like 'Complementary' that might exist in the raw data."
+}

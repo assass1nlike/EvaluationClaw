@@ -1,0 +1,34 @@
+{
+  "id": "enterprise_hl7_router@1",
+  "version": "1.0",
+  "env_id": "nextgen_connect_integration_engine_env@0.1",
+  "description": "You are the Integration Architect for a large regional health system with 8 hospitals. All external systems connect to a single HL7 'front door' endpoint, and messages must be dynamically routed to the correct downstream processing system based on both sending application (MSH-3) and message type (MSH-9). Build a three-channel enterprise routing solution consisting of an 'Enterprise HL7 Router', a 'Lab Results Processor', and an 'ADT Event Handler'.\n\nThe 'Enterprise HL7 Router' must listen on TCP port 6668 (MLLP). It must route messages to the 'Lab Results Processor' if the sending application (MSH-3) contains 'Lab' or the message type (MSH-9) starts with 'ORU'. It must route messages to the 'ADT Event Handler' if the message type starts with 'ADT'. All unmatched messages must be inserted into a 'dead_letter_queue' table.\n\nThe 'Lab Results Processor' must receive messages from the router and insert them into a 'lab_results_inbox' table. The 'ADT Event Handler' must receive messages from the router and insert them into an 'adt_events_inbox' table.\n\nCreate the following tables in the PostgreSQL database (jdbc:postgresql://nextgen-postgres:5432/mirthdb, credentials: postgres/postgres):\n- dead_letter_queue: message_id VARCHAR, sending_app VARCHAR, message_type VARCHAR, raw_message TEXT, received_at TIMESTAMP DEFAULT NOW()\n- lab_results_inbox: message_id VARCHAR, patient_mrn VARCHAR, test_code VARCHAR, received_at TIMESTAMP DEFAULT NOW()\n- adt_events_inbox: message_id VARCHAR, patient_mrn VARCHAR, event_type VARCHAR, received_at TIMESTAMP DEFAULT NOW()\n\nA 'routing_rules' table is pre-seeded in the database for reference. All channels must be deployed and functional. Access the system via the REST API at https://localhost:8443/api (admin:admin) using the 'X-Requested-With: OpenAPI' header.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 200,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enterprise_hl7_router/setup_task.sh",
+    "post_task": "/workspace/tasks/enterprise_hl7_router/export_result.sh"
+  },
+  "metadata": {
+    "facade_channel_name": "Enterprise HL7 Router",
+    "lab_channel_name": "Lab Results Processor",
+    "adt_channel_name": "ADT Event Handler",
+    "facade_port": "6668",
+    "dlq_table": "dead_letter_queue",
+    "lab_table": "lab_results_inbox",
+    "adt_table": "adt_events_inbox",
+    "routing_rules_table": "routing_rules",
+    "occupation": "Integration Architect",
+    "soc_code": "15-1299.09"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enterprise_hl7_router"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "define_financial_report@1",
+  "task_completion": [
+    {
+      "id": "line_set_created",
+      "description": "Verify the creation of the Report Line Set named 'Gross Profit Analysis'.",
+      "points": 10,
+      "visual_evidence": "Look for a record named 'Gross Profit Analysis' in the 'Report Line Set' window in iDempiere."
+    },
+    {
+      "id": "segment_lines_created",
+      "description": "Verify the creation of 'Total Revenue' and 'Total COGS' report lines.",
+      "points": 15,
+      "visual_evidence": "Look for lines named 'Total Revenue' and 'Total COGS' within the 'Gross Profit Analysis' line set, both showing a Line Type of 'Segment Value' (or 'S')."
+    },
+    {
+      "id": "calculation_line_created",
+      "description": "Verify the creation of the 'Gross Profit' calculation line.",
+      "points": 20,
+      "visual_evidence": "Look for a line named 'Gross Profit' with a Line Type of 'Calculation' (or 'C'). The calculation setup should show it subtracting 'Total COGS' from 'Total Revenue'."
+    },
+    {
+      "id": "column_set_created",
+      "description": "Verify the creation of the Report Column Set named 'Current Period Analysis'.",
+      "points": 10,
+      "visual_evidence": "Look for a record named 'Current Period Analysis' in the 'Report Column Set' window."
+    },
+    {
+      "id": "column_created",
+      "description": "Verify the creation of the 'Period Actual' report column.",
+      "points": 15,
+      "visual_evidence": "Look for a column named 'Period Actual' within the 'Current Period Analysis' column set, showing an Amount Type of 'Period Balance' (or 'BP')."
+    },
+    {
+      "id": "financial_report_linked",
+      "description": "Verify the creation of the 'GP Board Report' and its links to the line and column sets.",
+      "points": 30,
+      "visual_evidence": "Look for a 'Financial Report' record named 'GP Board Report'. The 'Report Line Set' field must be set to 'Gross Profit Analysis' and the 'Report Column Set' field must be set to 'Current Period Analysis'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the iDempiere GUI.",
+      "visual_evidence": "Screenshots should show the iDempiere web interface being navigated and forms being filled out, not terminal windows executing SQL commands or API scripts."
+    },
+    {
+      "id": "genuine_save_action",
+      "description": "Verify the records were actually saved in the system.",
+      "visual_evidence": "Look for system confirmation messages (e.g., 'Saved successfully'), active record tabs, or populated grid views showing the newly created records, rather than just unsaved text in input fields."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "Verify the agent did not mock the answer in a text editor.",
+      "visual_evidence": "The inputs must be inside the actual iDempiere application fields, not written in a notepad, text editor, or standalone document."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating records in iDempiere's Performance Analysis module. 1. Report Line Set: 'Gross Profit Analysis' with lines 'Total Revenue' (Type: Segment Value / S), 'Total COGS' (Type: Segment Value / S), and 'Gross Profit' (Type: Calculation / C, subtracting COGS from Revenue). 2. Report Column Set: 'Current Period Analysis' with column 'Period Actual' (Amount Type: Period Balance / BP). 3. Financial Report: 'GP Board Report' linking the 'Gross Profit Analysis' Line Set and 'Current Period Analysis' Column Set."
+}

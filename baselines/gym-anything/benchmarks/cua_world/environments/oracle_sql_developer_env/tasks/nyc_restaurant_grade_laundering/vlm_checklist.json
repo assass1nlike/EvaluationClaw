@@ -1,0 +1,59 @@
+{
+  "task_id": "nyc_restaurant_grade_laundering@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for an open Oracle SQL Developer window or a terminal running SQL*Plus connected to the XEPDB1 service as the 'health_auditor' user."
+    },
+    {
+      "id": "create_lifecycles_mv",
+      "description": "Create the RESTAURANT_LIFECYCLES_MV materialized view.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE MATERIALIZED VIEW RESTAURANT_LIFECYCLES_MV' with columns for camis, dba, building, street, zipcode, phone, first_inspection_date, last_inspection_date, and last_score."
+    },
+    {
+      "id": "create_suspect_transitions_vw",
+      "description": "Create the SUSPECT_TRANSITIONS_VW view.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE VIEW SUSPECT_TRANSITIONS_VW'. The query should include logic for date differences (<= 180 days), score >= 28, and name similarity using 'UTL_MATCH.JARO_WINKLER_SIMILARITY'."
+    },
+    {
+      "id": "create_laundering_chains_vw",
+      "description": "Create the LAUNDERING_CHAINS_VW view using hierarchical queries.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE VIEW LAUNDERING_CHAINS_VW'. The query must contain hierarchical keywords like 'CONNECT BY', 'LEVEL', and 'SYS_CONNECT_BY_PATH'."
+    },
+    {
+      "id": "create_chronic_offenders_vw",
+      "description": "Create the CHRONIC_OFFENDERS_REPORT_VW view.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE VIEW CHRONIC_OFFENDERS_REPORT_VW' that joins the laundering chains to a VIOLATIONS table and filters for 'critical_flag = ''Y'''."
+    },
+    {
+      "id": "export_chronic_offenders_csv",
+      "description": "Export the final report to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal window, file explorer, or SQL Developer export wizard showing the creation or existence of 'chronic_offenders.csv' in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "executed_in_db_client",
+      "description": "Ensure the SQL commands were actually executed against the database.",
+      "visual_evidence": "Look for success messages like 'Materialized view created' or 'View created' in the SQL Developer script output or SQL*Plus terminal, rather than just text sitting unexecuted in an editor."
+    },
+    {
+      "id": "dynamic_sql_logic",
+      "description": "Ensure the agent used algorithmic logic rather than hardcoding answers.",
+      "visual_evidence": "Check the SQL queries to ensure they use the required functions (UTL_MATCH, CONNECT BY) and do not contain hardcoded CAMIS IDs or manually constructed chain strings."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Ensure the CSV file was generated from the database query.",
+      "visual_evidence": "Look for evidence of a database export action (e.g., SQL Developer export tool, SQL spooling, or a script like Python/bash querying the DB and writing to CSV) rather than a manually typed text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task explicitly requires the use of specific Oracle features: UTL_MATCH, CONNECT BY, SYS_CONNECT_BY_PATH, Window Functions, and Materialized Views. The final output must be exported exactly to /home/ga/Documents/exports/chronic_offenders.csv. Verify that the SQL logic incorporates these features rather than bypassing them."
+}

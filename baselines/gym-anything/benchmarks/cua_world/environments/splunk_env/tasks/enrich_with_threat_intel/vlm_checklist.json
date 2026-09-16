@@ -1,0 +1,53 @@
+{
+  "task_id": "enrich_with_threat_intel@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Agent logged into the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "The Splunk Web UI is visible in a web browser, indicating successful authentication."
+    },
+    {
+      "id": "upload_csv_lookup",
+      "description": "Agent uploaded the threat intelligence CSV file as a lookup table file.",
+      "points": 20,
+      "visual_evidence": "Splunk 'Add new' or 'Lookup table files' page showing 'threat_intel_feed.csv' being uploaded or successfully added."
+    },
+    {
+      "id": "create_lookup_definition",
+      "description": "Agent created a lookup definition named 'threat_intel_lookup'.",
+      "points": 20,
+      "visual_evidence": "Splunk 'Lookup definitions' page showing a new definition named 'threat_intel_lookup' being created or listed."
+    },
+    {
+      "id": "run_enrichment_search",
+      "description": "Agent executed a search query to enrich events from the 'security_logs' index using the lookup.",
+      "points": 20,
+      "visual_evidence": "Splunk Search app showing an SPL query that includes 'index=security_logs' and a 'lookup' command referencing 'threat_intel_lookup' and an IP field."
+    },
+    {
+      "id": "save_enriched_report",
+      "description": "Agent saved the search as a report named 'Threat_Intel_Enriched_Events'.",
+      "points": 30,
+      "visual_evidence": "A 'Save As Report' dialog or the Splunk Reports list showing the report explicitly named 'Threat_Intel_Enriched_Events'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web UI in a browser to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the Splunk web interface in a browser, rather than using curl commands or terminal scripts to configure Splunk."
+    },
+    {
+      "id": "actual_splunk_usage",
+      "description": "Agent interacted with the actual Splunk application.",
+      "visual_evidence": "The Splunk interface is clearly visible and functional, not just a text editor with SPL queries."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "Agent did not bypass the UI by directly modifying Splunk configuration files.",
+      "visual_evidence": "No terminal windows showing direct edits to Splunk .conf files (like savedsearches.conf or transforms.conf)."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected report name is exactly 'Threat_Intel_Enriched_Events'. The target index to search is 'security_logs'. The lookup definition must be named 'threat_intel_lookup' (or contain 'threat_intel'). The CSV file uploaded should be 'threat_intel_feed.csv' (containing 'threat'). Splunk credentials are admin / SplunkAdmin1!."
+}

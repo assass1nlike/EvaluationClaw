@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_cleanup_selective@1",
+  "task_completion": [
+    {
+      "id": "containers_removed",
+      "description": "Remove the specified stopped containers.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent executing commands like `docker rm old-dev-server test-runner-0412 failed-build-temp expired-worker` or deleting these specific containers in the Docker Desktop GUI."
+    },
+    {
+      "id": "dangling_images_removed",
+      "description": "Remove all dangling (untagged) images.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent executing `docker image prune` or `docker rmi` targeting untagged images, or deleting them via the Docker Desktop GUI."
+    },
+    {
+      "id": "volumes_removed",
+      "description": "Remove the specified unused volumes.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent executing commands like `docker volume rm old-test-data build-cache-vol tmp-upload-vol` or deleting these specific volumes in the Docker Desktop GUI."
+    },
+    {
+      "id": "networks_removed",
+      "description": "Remove the specified unused networks.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent executing commands like `docker network rm deprecated-frontend old-backend-net` or deleting these specific networks in the Docker Desktop GUI."
+    },
+    {
+      "id": "production_services_preserved",
+      "description": "Preserve the required production containers and volume.",
+      "points": 20,
+      "visual_evidence": "Screenshots confirm the agent does NOT delete 'prod-web', 'prod-cache', 'prod-api', 'staging-db-snapshot', or 'persistent-config'. If verification commands are run, these items should still be visible."
+    },
+    {
+      "id": "summary_report_saved",
+      "description": "Save a summary report of the removals to /home/ga/cleanup-report.txt.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent creating and writing to `/home/ga/cleanup-report.txt` using shell redirection (e.g., `echo ... > ...`) or a text editor, detailing the removed items."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_interaction",
+      "description": "The agent interacted with Docker to perform the cleanup, rather than just writing the report.",
+      "visual_evidence": "Look for actual execution of Docker CLI commands or clicks within the Docker Desktop GUI to remove the resources."
+    },
+    {
+      "id": "no_destructive_prune",
+      "description": "The agent did not use a destructive blanket command that would violate the preservation constraints.",
+      "visual_evidence": "Ensure the agent did not run `docker system prune -a --volumes` or `docker container prune` without verifying it wouldn't delete the stopped 'staging-db-snapshot' container."
+    },
+    {
+      "id": "genuine_report",
+      "description": "The agent genuinely created the summary report.",
+      "visual_evidence": "Look for the agent typing out the report contents or piping command outputs into the text file, rather than copying a pre-existing solution."
+    }
+  ],
+  "privileged_info_for_vlm": "Keep containers: prod-web, prod-cache, prod-api, staging-db-snapshot. Remove containers: old-dev-server, test-runner-0412, failed-build-temp, expired-worker. Keep volumes: persistent-config. Remove volumes: old-test-data, build-cache-vol, tmp-upload-vol. Remove networks: deprecated-frontend, old-backend-net. Report path: /home/ga/cleanup-report.txt."
+}

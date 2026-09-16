@@ -1,0 +1,59 @@
+{
+  "task_id": "spatial_calibration_measurement@1",
+  "task_completion": [
+    {
+      "id": "open_sample_image",
+      "description": "Open the 'Blobs (25K)' sample image in Fiji.",
+      "points": 10,
+      "visual_evidence": "A Fiji image window titled 'blobs.gif' is visible, displaying a grayscale image of dark, irregular circular shapes on a lighter background."
+    },
+    {
+      "id": "set_scale",
+      "description": "Set the spatial calibration to 0.50 \u00b5m per pixel.",
+      "points": 20,
+      "visual_evidence": "The 'Set Scale' dialog is visible with 'Distance in pixels' set to 1, 'Known distance' set to 0.50, and 'Unit of length' set to um or micron. Alternatively, the image window's top header displays physical dimensions (e.g., 128x127 \u00b5m) instead of pixel dimensions (256x254 pixels)."
+    },
+    {
+      "id": "set_measurements",
+      "description": "Configure measurements to include Area, Feret's Diameter, and MinFeret.",
+      "points": 15,
+      "visual_evidence": "The 'Set Measurements' dialog is visible with the checkboxes for 'Area' and 'Feret's diameter' selected."
+    },
+    {
+      "id": "segment_particles",
+      "description": "Segment the particles in the image.",
+      "points": 20,
+      "visual_evidence": "The 'Threshold' dialog is open and the image displays a red overlay or is converted to a binary (black and white) mask, isolating the blobs from the background."
+    },
+    {
+      "id": "generate_results_table",
+      "description": "Generate a results table with the calibrated measurements.",
+      "points": 20,
+      "visual_evidence": "A 'Results' window is visible containing at least 20 rows of data. The table must include columns for 'Area', 'Feret', and 'MinFeret'. The values in the 'Area' column should be relatively small (mostly under 300), indicating calibrated units rather than raw pixel counts."
+    },
+    {
+      "id": "save_results",
+      "description": "Save the calibrated measurements to the specified CSV file.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog or file explorer window shows the file being saved as 'calibrated_blob_measurements.csv' in the '~/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Fiji GUI to perform the image processing and measurements.",
+      "visual_evidence": "Screenshots show interaction with Fiji dialogs (Set Scale, Threshold, Analyze Particles, Results) rather than terminal commands or Python scripts executing the image processing."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "The results table contains genuine, automated measurements of the blobs.",
+      "visual_evidence": "The Results window shows multiple rows (typically ~65) with varying, realistic floating-point numbers for Area, Feret, and MinFeret, rather than manually typed or uniform mock data."
+    },
+    {
+      "id": "actual_file_saving",
+      "description": "The agent used the application's save functionality to create the output file.",
+      "visual_evidence": "The 'Save As' dialog from the Fiji Results window is used to save the CSV, rather than a text editor being used to manually create a fake CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/ImageJ_Data/results/calibrated_blob_measurements.csv. The spatial calibration must be 0.5 microns (\u00b5m) per pixel. A properly calibrated measurement will yield Area values mostly between 20 and 245 \u00b5m\u00b2. Values > 1000 usually indicate a failure to apply calibration, as uncalibrated pixel areas are much larger. The results table must contain columns for Area, Feret, and MinFeret, and should have at least 20 rows (typically ~65 particles are detected after thresholding)."
+}

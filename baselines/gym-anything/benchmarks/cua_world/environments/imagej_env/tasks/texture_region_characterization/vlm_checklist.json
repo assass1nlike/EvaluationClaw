@@ -1,0 +1,59 @@
+{
+  "task_id": "texture_region_characterization@1",
+  "task_completion": [
+    {
+      "id": "open_mri_stack",
+      "description": "The 'MRI Stack' sample image is opened in Fiji.",
+      "points": 10,
+      "visual_evidence": "A window titled 'mri-stack.tif' (or similar) showing a grayscale head MRI scan is visible in the Fiji interface."
+    },
+    {
+      "id": "navigate_slice_15",
+      "description": "The MRI Stack is navigated to axial slice 15.",
+      "points": 10,
+      "visual_evidence": "The scrollbar/slider at the bottom of the image window shows '15/27', or the slice indicator explicitly shows that slice 15 is active."
+    },
+    {
+      "id": "define_rois",
+      "description": "Three distinct Regions of Interest (ROIs) are defined on the image.",
+      "points": 20,
+      "visual_evidence": "The 'ROI Manager' window is open and lists at least 3 ROIs, or multiple distinct selection outlines (e.g., yellow polygons/circles) are visible on different parts of the brain image."
+    },
+    {
+      "id": "measure_texture_metrics",
+      "description": "Measurements for Mean Intensity, Standard Deviation, and an additional texture metric are taken for the ROIs.",
+      "points": 20,
+      "visual_evidence": "The Fiji 'Results' window is visible, displaying at least 3 rows of data. The columns must include 'Mean', 'StdDev', and at least one additional metric such as 'Skew', 'Kurt' (Kurtosis), or 'Entropy'."
+    },
+    {
+      "id": "compile_csv_with_labels",
+      "description": "Measurements are compiled into a table that includes specific region labels.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet, text editor, or terminal output shows the CSV data containing the text labels 'White Matter', 'Gray Matter', and 'CSF' (or Cerebrospinal Fluid) alongside the numerical measurement data."
+    },
+    {
+      "id": "save_results_csv",
+      "description": "The results are saved as a CSV file to the specified directory.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog shows the file being saved as 'texture_analysis.csv' in the 'ImageJ_Data/results' folder, or a terminal/file explorer confirms the file exists at '/home/ga/ImageJ_Data/results/texture_analysis.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Fiji GUI to perform the image analysis rather than writing a script to bypass the UI.",
+      "visual_evidence": "Screenshots show interaction with Fiji menus (e.g., Analyze > Set Measurements), the ROI Manager, and native toolbars."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "The measurement values in the results table appear to be genuinely calculated from the image.",
+      "visual_evidence": "The numerical values for Mean and StdDev in the results table are precise floating-point numbers that differ across the 3 regions, rather than mocked, identical, or simplistic integers."
+    },
+    {
+      "id": "no_direct_text_generation",
+      "description": "The agent did not simply type out a mock CSV from scratch without performing the measurements in Fiji.",
+      "visual_evidence": "The native Fiji 'Results' window containing the raw numerical data must be visible in at least one screenshot before the final CSV is edited or saved."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the 'MRI Stack' built-in sample in Fiji. The agent must define exactly 3 distinct regions (White Matter, Gray Matter, CSF). The results must be saved to '/home/ga/ImageJ_Data/results/texture_analysis.csv'. The results table should contain at least 3 rows of measurements. Standard deviation variance across regions must exceed 0.5 to ensure different tissues exhibit distinct texture properties."
+}

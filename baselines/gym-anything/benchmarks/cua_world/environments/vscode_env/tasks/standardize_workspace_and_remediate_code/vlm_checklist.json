@@ -1,0 +1,59 @@
+{
+  "task_id": "standardize_workspace_and_remediate_code@1",
+  "task_completion": [
+    {
+      "id": "configure_settings_json",
+      "description": "Configure .vscode/settings.json with formatting and linting settings.",
+      "points": 15,
+      "visual_evidence": "Look for a .vscode/settings.json file open in the editor or output in the terminal showing 'editor.formatOnSave' set to true, the python formatter set to 'ms-python.black-formatter', and flake8 linting enabled."
+    },
+    {
+      "id": "create_extensions_json",
+      "description": "Create .vscode/extensions.json with specific extension recommendations.",
+      "points": 15,
+      "visual_evidence": "Look for a .vscode/extensions.json file containing exactly three recommendations: 'ms-python.python', 'ms-python.black-formatter', and 'ms-python.flake8'."
+    },
+    {
+      "id": "setup_launch_json",
+      "description": "Set up a 'Debug Starlette' launch configuration in .vscode/launch.json.",
+      "points": 15,
+      "visual_evidence": "Look for a .vscode/launch.json file containing a configuration named 'Debug Starlette' that uses 'uvicorn' with arguments 'example:app' and '--reload'."
+    },
+    {
+      "id": "setup_tasks_json",
+      "description": "Add a 'Run tests' shell task to .vscode/tasks.json.",
+      "points": 15,
+      "visual_evidence": "Look for a .vscode/tasks.json file containing a task named 'Run tests' of type 'shell' that executes the 'pytest' command."
+    },
+    {
+      "id": "format_applications_py",
+      "description": "Format starlette/applications.py to adhere to Black standards.",
+      "points": 20,
+      "visual_evidence": "Look for starlette/applications.py open in the editor. The code should be cleanly formatted with standard Python indentation, spacing, and line breaks consistent with the Black formatter. There should be no linter warnings for formatting."
+    },
+    {
+      "id": "fix_routing_py",
+      "description": "Fix starlette/routing.py by removing unused imports and the undefined variable print statement.",
+      "points": 20,
+      "visual_evidence": "Look for starlette/routing.py open in the editor. Verify that 'import sys' and 'import os' are absent, and that there is no 'print(undefined_debug_var)' statement in the code."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "minimum_line_count_check",
+      "description": "Ensure the agent did not trivially pass linters by deleting the contents of the Python files.",
+      "visual_evidence": "Check that both starlette/applications.py and starlette/routing.py contain at least 5 lines of code. They should not be empty or nearly empty."
+    },
+    {
+      "id": "genuine_file_modifications",
+      "description": "Verify that the agent actually created and modified the requested files in the workspace.",
+      "visual_evidence": "The .vscode directory and its JSON files, as well as the modified Python files, should be visible in the VS Code file explorer or open as editor tabs."
+    },
+    {
+      "id": "no_mocked_outputs",
+      "description": "Ensure the agent did not just print success messages or mock the file contents in the terminal.",
+      "visual_evidence": "The actual file contents must reflect the changes, either visible in the text editor UI or through standard file reading commands (like 'cat') in the terminal, rather than just echo statements."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected extensions in .vscode/extensions.json must be exactly: 'ms-python.python', 'ms-python.black-formatter', and 'ms-python.flake8'. To prevent gaming the linters, any modified Python files (starlette/applications.py and starlette/routing.py) must remain at least 5 lines long."
+}

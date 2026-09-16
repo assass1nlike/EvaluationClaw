@@ -1,0 +1,34 @@
+{
+  "id": "configure_notification_sounds@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "You are a remote simultaneous interpreter preparing for a multilingual business meeting. Join the meeting 'InterpreterBooth42' using the display name 'Interpreter_ES'. Configure the notification sound settings to disable 'Participant Joined', 'Participant Left', and 'Reaction Sounds' while ensuring 'Talk While Muted' remains enabled. Save a screenshot of the meeting view to /tmp/task_sounds_final.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_notification_sounds/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_notification_sounds/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "room_name": "InterpreterBooth42",
+    "expected_display_name": "Interpreter_ES",
+    "settings_keys": {
+      "soundsParticipantJoined": false,
+      "soundsParticipantLeft": false,
+      "soundsReactions": false,
+      "soundsTalkWhileMuted": true
+    },
+    "jitsi_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_notification_sounds"
+    }
+  }
+}

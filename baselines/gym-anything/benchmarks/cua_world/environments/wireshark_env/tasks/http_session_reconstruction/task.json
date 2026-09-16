@@ -1,0 +1,26 @@
+{
+  "id": "http_session_reconstruction@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "You are a network security analyst reviewing web traffic from a workstation flagged by your IDS. Reconstruct the HTTP browsing session from the packet capture at /home/ga/Documents/captures/http.cap and produce an analysis report at /home/ga/Documents/captures/http_analysis_report.txt. The report must include all HTTP request URIs (full paths for GET/POST), the web server IP address, all observed HTTP response status codes, the client User-Agent string, and the total count of HTTP request packets. Label each section clearly and list all URIs and status codes individually. Login credentials: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/http_session_reconstruction/setup_task.sh",
+    "post_task": "/workspace/tasks/http_session_reconstruction/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "http.cap",
+    "expected_output": "http_analysis_report.txt",
+    "task_category": "traffic_analysis"
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::verify_http_session_reconstruction"
+    }
+  }
+}

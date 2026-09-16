@@ -1,0 +1,53 @@
+{
+  "task_id": "publish_document_to_section@1",
+  "task_completion": [
+    {
+      "id": "document_published_to_section",
+      "description": "The document is present in the 'Public Reports' section.",
+      "points": 35,
+      "visual_evidence": "The VLM should see the 'Public Reports' section (path: /default-domain/sections/Public-Reports) open in the Nuxeo interface, containing the published document."
+    },
+    {
+      "id": "correct_document_title",
+      "description": "The published document has the correct title 'Annual Report 2023'.",
+      "points": 25,
+      "visual_evidence": "The title of the document listed in the 'Public Reports' section is exactly 'Annual Report 2023'."
+    },
+    {
+      "id": "is_proxy_status",
+      "description": "The document was published as a proxy, indicating a proper Publish action.",
+      "points": 15,
+      "visual_evidence": "The VLM should look for evidence that the 'Publish' action was used (e.g., a Publish dialog), or the document in the section showing a version number (like 1.0) or 'Published' status, distinguishing it from a standard copied or moved file."
+    },
+    {
+      "id": "original_document_remains",
+      "description": "The original document remains in the Projects workspace.",
+      "points": 15,
+      "visual_evidence": "The VLM should see the original 'Annual Report 2023' document still present in the Projects workspace, or confirm that a 'Publish' action was used (which inherently keeps the original) rather than a 'Move' action."
+    },
+    {
+      "id": "publish_action_confirmation",
+      "description": "Confirmation that the state changed and the publish action was successfully executed.",
+      "points": 10,
+      "visual_evidence": "A success message, toast notification, or the final screen confirming the document was successfully published to the target section."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent used the Nuxeo web interface to perform the task.",
+      "visual_evidence": "Screenshots should show the Nuxeo web UI being interacted with in a browser, rather than terminal commands, scripts, or API calls."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "The agent navigated the interface to publish the document.",
+      "visual_evidence": "Screenshots should show intermediate steps such as navigating to the Projects workspace, selecting the document, opening the Publish dialog, and selecting the target section."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not simply write the expected outcome in a text editor.",
+      "visual_evidence": "The actions must take place within the actual Nuxeo Platform application, not a text editor or mock interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The source document 'Annual Report 2023' is located at /default-domain/workspaces/Projects/Annual-Report-2023. The target section is /default-domain/sections/Public-Reports. The task requires using the 'Publish' feature to create a proxy in the target section while keeping the original document in the source workspace. Scoring requires: document in section (35 pts), correct title 'Annual Report 2023' (25 pts), proxy status (15 pts), original document exists (15 pts), and state change confirmation (10 pts)."
+}

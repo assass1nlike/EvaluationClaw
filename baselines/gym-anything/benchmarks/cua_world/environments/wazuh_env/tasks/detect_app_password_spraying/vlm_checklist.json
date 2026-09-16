@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_app_password_spraying@1",
+  "task_completion": [
+    {
+      "id": "configure_log_monitoring",
+      "description": "Configure Wazuh to monitor the MegaCorpERP log file.",
+      "points": 10,
+      "visual_evidence": "A screenshot showing the Wazuh configuration file (e.g., ossec.conf) being edited to include a <localfile> block with <location>/var/log/megacorp.log</location>."
+    },
+    {
+      "id": "create_decoder",
+      "description": "Create a decoder in local_decoder.xml to extract dstuser and srcip.",
+      "points": 20,
+      "visual_evidence": "A screenshot of local_decoder.xml showing a <decoder> block that parses the MegaCorpERP log format and extracts 'dstuser' and 'srcip' (e.g., using <regex> and <order> tags)."
+    },
+    {
+      "id": "create_base_rule",
+      "description": "Implement Rule 100501 for single failed logins.",
+      "points": 20,
+      "visual_evidence": "A screenshot of local_rules.xml showing a <rule id=\"100501\"> block designed to trigger on the failed login decoder."
+    },
+    {
+      "id": "create_spraying_rule",
+      "description": "Implement Rule 100502 for password spraying with the required conditions.",
+      "points": 20,
+      "visual_evidence": "A screenshot of local_rules.xml showing a <rule id=\"100502\" level=\"12\" frequency=\"5\" timeframe=\"60\"> block. It should include conditions like <if_matched_sid>100501</if_matched_sid> and <same_source_ip />."
+    },
+    {
+      "id": "execute_simulation_script",
+      "description": "Run the log generation script to simulate the attack.",
+      "points": 10,
+      "visual_evidence": "A terminal screenshot showing the execution of the command '/home/ga/generate_logs.sh' or 'bash /home/ga/generate_logs.sh'."
+    },
+    {
+      "id": "verify_alert_generation",
+      "description": "Verify that Rule 100502 appears in the Wazuh alerts.",
+      "points": 20,
+      "visual_evidence": "A screenshot showing the Wazuh alerts log (e.g., tailing /var/ossec/logs/alerts/alerts.log or alerts.json) or the Wazuh dashboard, displaying a triggered alert for rule ID '100502'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration_editing",
+      "description": "Ensure the agent actually edited the Wazuh configuration files rather than just printing the expected XML.",
+      "visual_evidence": "Screenshots should show the use of a text editor (like nano, vim) or valid shell commands (echo, sed, cat) modifying the actual files in /var/ossec/etc/."
+    },
+    {
+      "id": "genuine_script_execution",
+      "description": "Ensure the simulation script was executed in a real shell environment.",
+      "visual_evidence": "The script execution should appear as a command entered at a standard terminal prompt, followed by any output, rather than just being viewed in a text editor."
+    },
+    {
+      "id": "genuine_alert_verification",
+      "description": "Ensure the alert verification comes from actual Wazuh logs or the Wazuh dashboard.",
+      "visual_evidence": "The alert output should be formatted as a standard Wazuh alert (JSON or plain text in the alerts.log file) or viewed in the Kibana/Wazuh UI, not manually typed or mocked by the agent."
+    }
+  ],
+  "privileged_info_for_vlm": "Log file to monitor: /var/log/megacorp.log. Base rule ID for single failed login: 100501. Target rule ID for password spraying: 100502. Required frequency for rule 100502: 5. Required timeframe for rule 100502: 60 seconds. Simulation script: /home/ga/generate_logs.sh."
+}

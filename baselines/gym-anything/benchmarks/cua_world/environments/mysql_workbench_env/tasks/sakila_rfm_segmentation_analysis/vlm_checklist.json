@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_rfm_segmentation_analysis@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the sakila database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, MySQL Workbench, terminal) is open and shows an active connection to the 'sakila' database."
+    },
+    {
+      "id": "rfm_query_logic",
+      "description": "Write the SQL query for RFM calculation",
+      "points": 20,
+      "visual_evidence": "SQL code is visible in the editor containing the reference date '2006-02-14 23:59:59', NTILE(5) window functions for scoring, and calculations for recency, frequency, and monetary values."
+    },
+    {
+      "id": "table_creation_success",
+      "description": "Create and populate the customer_rfm_scores table",
+      "points": 20,
+      "visual_evidence": "A successful execution message for 'CREATE TABLE customer_rfm_scores' (or similar INSERT/CREATE statement), or the 'customer_rfm_scores' table is visible in the database schema tree."
+    },
+    {
+      "id": "churn_risk_filtering",
+      "description": "Filter for high-value churn risks",
+      "points": 20,
+      "visual_evidence": "SQL code or a GUI filter is visible applying the specific logic: r_score <= 2 AND (f_score >= 4 OR m_score >= 4)."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the filtered results to a CSV file",
+      "points": 30,
+      "visual_evidence": "An export dialog, a terminal command (like 'ls' or 'cat'), or a file manager window showing the file 'churn_risk_customers.csv' successfully saved in '/home/ga/Documents/exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Ensure the agent interacted with a real database client or terminal to execute queries.",
+      "visual_evidence": "Queries should be executed in a database tool (like DBeaver, MySQL CLI) with visible execution results or logs, not just typed into a plain text editor without execution."
+    },
+    {
+      "id": "algorithmic_calculation",
+      "description": "Ensure the agent used SQL logic to calculate the RFM scores rather than hardcoding values.",
+      "visual_evidence": "The SQL query must use functions like NTILE, COUNT, SUM, and date difference functions, rather than a hardcoded list of customer IDs and scores."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Ensure the CSV was exported programmatically or via a database tool's export feature.",
+      "visual_evidence": "The export should be the result of a tool's export wizard, a SQL INTO OUTFILE command, or a script, rather than manually typing customer data into a spreadsheet or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Database: 'sakila'. Target Table: 'customer_rfm_scores' (must contain exactly 599 rows). Reference Date for Recency: '2006-02-14 23:59:59'. Export Path: '/home/ga/Documents/exports/churn_risk_customers.csv'. Churn Risk Logic: Recency score <= 2 AND (Frequency score >= 4 OR Monetary score >= 4)."
+}

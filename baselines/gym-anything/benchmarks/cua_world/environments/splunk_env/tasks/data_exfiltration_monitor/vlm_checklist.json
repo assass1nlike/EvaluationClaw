@@ -1,0 +1,59 @@
+{
+  "task_id": "data_exfiltration_monitor@1",
+  "task_completion": [
+    {
+      "id": "report_created",
+      "description": "Verify the creation of the saved report named 'High_Volume_Data_Transfers'.",
+      "points": 15,
+      "visual_evidence": "Look for the Splunk 'Reports' page showing 'High_Volume_Data_Transfers' in the list of reports, or a report viewing/editing page with this exact title."
+    },
+    {
+      "id": "report_logic",
+      "description": "Verify the report calculates the total sum of 'bytes' grouped by 'clientip', converts it to Megabytes (MB), and sorts by volume.",
+      "points": 25,
+      "visual_evidence": "Look for the SPL search string (e.g., 'index=tutorial | stats sum(bytes) as ... by clientip | eval ... | sort ...') in the search bar, or look at the report results table showing 'clientip' and a calculated MB column sorted in descending order."
+    },
+    {
+      "id": "alert_created",
+      "description": "Verify the creation of a scheduled, enabled alert named 'Exfiltration_Spike_Alert'.",
+      "points": 15,
+      "visual_evidence": "Look for the Splunk 'Alerts' page showing 'Exfiltration_Spike_Alert' with its status set to 'Enabled' and a defined schedule, or the alert configuration modal displaying these settings."
+    },
+    {
+      "id": "alert_logic",
+      "description": "Verify the alert is configured to trigger when individual web requests exceed 1,000,000 bytes.",
+      "points": 15,
+      "visual_evidence": "Look for the SPL search string associated with the alert containing a condition like 'bytes > 1000000' or 'where bytes > 1000000', visible in the search bar or the alert's search criteria configuration."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verify the creation of the dashboard named 'Data_Exfiltration_Dashboard'.",
+      "points": 10,
+      "visual_evidence": "Look for the Splunk 'Dashboards' page showing 'Data_Exfiltration_Dashboard' in the list, or the dashboard viewing/editing interface with this exact title."
+    },
+    {
+      "id": "dashboard_panels",
+      "description": "Verify the dashboard contains two specific panels: a timechart showing the sum of 'bytes' over time, and a panel showing top IPs by total data volume.",
+      "points": 20,
+      "visual_evidence": "Look at the dashboard page to see two distinct panels: one displaying a time-based chart (line, area, or column) representing bytes over time, and another displaying a table or chart ranking 'clientip' by data volume."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_ui_used",
+      "description": "Verify the agent used the Splunk Web UI to create the artifacts.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Splunk web interface (http://localhost:8000) in a browser, rather than editing Splunk .conf files directly in a terminal."
+    },
+    {
+      "id": "genuine_searches",
+      "description": "Verify the agent actually executed and tested the searches in Splunk.",
+      "visual_evidence": "Look for search results, event timelines, or job progress indicators in the Splunk UI, proving the queries were run against the 'tutorial' index."
+    },
+    {
+      "id": "no_mocked_dashboards",
+      "description": "Verify the dashboard is a genuine Splunk dashboard and not a mocked file.",
+      "visual_evidence": "The dashboard should be viewed within the Splunk UI framework, complete with Splunk navigation bars, 'Edit' buttons, and standard Splunk panel formatting, not a standalone HTML or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target index for all searches must be 'tutorial'. The expected report name is 'High_Volume_Data_Transfers'. The expected alert name is 'Exfiltration_Spike_Alert'. The expected dashboard name is 'Data_Exfiltration_Dashboard'. The Splunk credentials are admin / SplunkAdmin1!."
+}

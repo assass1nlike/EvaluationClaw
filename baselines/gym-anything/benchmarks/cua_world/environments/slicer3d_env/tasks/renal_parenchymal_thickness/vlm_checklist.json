@@ -1,0 +1,65 @@
+{
+  "task_id": "renal_parenchymal_thickness@1",
+  "task_completion": [
+    {
+      "id": "right_kidney_measurements",
+      "description": "Verify that three measurements (anterior, posterior, lateral) were taken for the right kidney.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the medical imaging software (e.g., 3D Slicer) with three line measurements on the right kidney (label 2), or the final report JSON showing values for 'anterior_mm', 'posterior_mm', and 'lateral_mm' under the 'right_kidney' object."
+    },
+    {
+      "id": "left_kidney_measurements",
+      "description": "Verify that three measurements (anterior, posterior, lateral) were taken for the left kidney.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the medical imaging software with three line measurements on the left kidney (label 3), or the final report JSON showing values for 'anterior_mm', 'posterior_mm', and 'lateral_mm' under the 'left_kidney' object."
+    },
+    {
+      "id": "markup_file_created",
+      "description": "Verify that the measurement markups file was saved to the correct path.",
+      "points": 10,
+      "visual_evidence": "A file manager, terminal, or save dialog showing 'renal_thickness_measurements.mrk.json' successfully saved in the '~/Documents/SlicerData/AMOS/' directory."
+    },
+    {
+      "id": "average_calculation",
+      "description": "Verify that the average thickness was calculated for both kidneys.",
+      "points": 10,
+      "visual_evidence": "The report JSON file showing the 'average_mm' field populated with a calculated numerical value for both 'right_kidney' and 'left_kidney'."
+    },
+    {
+      "id": "classification_accuracy",
+      "description": "Verify that each kidney is classified based on its thickness.",
+      "points": 20,
+      "visual_evidence": "The report JSON file showing the 'classification' field populated for both kidneys, adhering to the clinical thresholds (e.g., normal if >= 15mm, mildly reduced if 10-14.9mm)."
+    },
+    {
+      "id": "bilateral_comparison",
+      "description": "Verify that the bilateral difference and symmetry assessment are included in the report.",
+      "points": 10,
+      "visual_evidence": "The report JSON file showing the 'bilateral_difference_mm' (a numerical difference between the averages) and 'symmetry_assessment' fields populated."
+    },
+    {
+      "id": "report_completeness",
+      "description": "Verify that the final report JSON file is saved with all required fields, including the overall impression.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal, or file viewer showing 'renal_parenchyma_report.json' saved in '~/Documents/SlicerData/AMOS/' and containing the 'overall_impression' field alongside all previously verified fields."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_measurement_interaction",
+      "description": "Ensure the agent used the medical imaging software GUI to perform the measurements rather than fabricating numbers.",
+      "visual_evidence": "Screenshots showing the agent interacting with the CT scan in the software (e.g., 3D Slicer), placing fiducials or ruler tools on the kidneys."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "Ensure the agent calculated the values and didn't just copy-paste a pre-made JSON block.",
+      "visual_evidence": "The values in the JSON report should logically correspond to the measurements visible in the imaging software GUI, and the averages/differences must be mathematically correct based on the raw measurements."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Ensure the agent actually navigated to or created the required output directory.",
+      "visual_evidence": "Terminal commands (like mkdir or cd) or file explorer windows explicitly showing the creation and usage of the '~/Documents/SlicerData/AMOS/' path."
+    }
+  ],
+  "privileged_info_for_vlm": "Right kidney is label 2; Left kidney is label 3. Renal parenchymal thickness classifications: >= 15 mm is normal, 10-14.9 mm is mildly reduced, and < 10 mm is reduced."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "inspect_raw_voxels_interpolation@1",
+  "task_completion": [
+    {
+      "id": "weasis_open_with_scan",
+      "description": "Weasis application is open and displaying the CT scan.",
+      "points": 10,
+      "visual_evidence": "The Weasis GUI is visible on screen with a medical image (CT scan) loaded in the main viewing area."
+    },
+    {
+      "id": "interpolation_set_nearest",
+      "description": "Display interpolation is set to 'Nearest' or 'Nearest Neighbor'.",
+      "points": 30,
+      "visual_evidence": "A settings panel, context menu, or toolbar in Weasis shows the 'Interpolation' or 'Filter' option explicitly set to 'Nearest' or 'Nearest Neighbor'."
+    },
+    {
+      "id": "zoom_level_400",
+      "description": "The image is zoomed in to at least 400%.",
+      "points": 20,
+      "visual_evidence": "A zoom indicator in the Weasis viewer (often in the corner of the image or on a toolbar) displays a value of 400% or greater, and the image appears highly magnified."
+    },
+    {
+      "id": "export_dialog_open",
+      "description": "An export or save dialog is opened to capture the view.",
+      "points": 10,
+      "visual_evidence": "A 'Save As', 'Export', or 'Capture' dialog box is open over the Weasis interface."
+    },
+    {
+      "id": "export_path_correct",
+      "description": "The image is being exported to the correct file path.",
+      "points": 30,
+      "visual_evidence": "The save/export dialog shows the destination folder as 'exports' (inside ~/DICOM/) and the file name exactly as 'nearest_neighbor.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_weasis_gui",
+      "description": "The agent used the Weasis GUI to perform the task rather than terminal commands.",
+      "visual_evidence": "Screenshots show active interaction with the Weasis application menus, zoom tools, and export dialogs, rather than terminal windows running image manipulation commands like ImageMagick."
+    },
+    {
+      "id": "genuine_blocky_pixels",
+      "description": "The zoomed-in image genuinely reflects Nearest Neighbor interpolation.",
+      "visual_evidence": "The highly zoomed image in the Weasis viewer visibly displays sharp, blocky, raw pixel grids rather than smooth, blurry gradients (which would indicate bilinear/bicubic interpolation)."
+    },
+    {
+      "id": "authentic_export_process",
+      "description": "The export process is genuine and not mocked.",
+      "visual_evidence": "The export dialog belongs to the Weasis application or the native OS file picker, and the agent is not just typing the path into a text editor or unrelated application."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/DICOM/exports/nearest_neighbor.png. The exported image must exhibit blocky pixels characteristic of Nearest Neighbor interpolation at >400% zoom. This is programmatically verified by checking that the ratio of identical adjacent pixels is >= 0.25."
+}

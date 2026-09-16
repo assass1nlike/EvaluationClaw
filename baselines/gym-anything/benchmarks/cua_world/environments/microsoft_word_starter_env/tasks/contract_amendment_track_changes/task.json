@@ -1,0 +1,28 @@
+{
+  "id": "contract_amendment_track_changes@1",
+  "version": "1.0",
+  "env_id": "microsoft_word_starter_env@0.1",
+  "description": "Microsoft Word is open with 'patent_license_draft_tracked.docx', a patent license agreement between BioSynthetics Corporation and MedTech Innovations LLC. As a paralegal at Morrison & Foerster LLP, finalize this agreement by accepting all tracked changes from attorneys J. Morrison and R. Chen. Insert at least two footnotes at legally appropriate locations containing relevant patent-law citations. Save the finalized agreement as 'patent_license_final.docx' in the Desktop\\WordTasks folder.",
+  "difficulty": "very_hard",
+  "metadata": {
+    "occupation": "Paralegal and Legal Assistant",
+    "industry": "Legal Services",
+    "onet_soc": "23-2011.00",
+    "company": "Morrison and Foerster LLP"
+  },
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "partial"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\contract_amendment_track_changes\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\contract_amendment_track_changes\\export_result.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_contract_amendment_track_changes"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "build_site_selection_model@1",
+  "task_completion": [
+    {
+      "id": "headers_added",
+      "description": "Add required headers to the 'Sites' sheet.",
+      "points": 10,
+      "visual_evidence": "Look at the 'Sites' sheet. Columns I through N should have the headers 'Norm_Pop', 'Norm_Income', 'Norm_Comp', 'Norm_Lease', 'Total_Score', and 'Rank'."
+    },
+    {
+      "id": "data_normalized",
+      "description": "Normalize the Population, Income, Competition, and Lease Rate data on a 0-100 scale.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Norm_Pop', 'Norm_Income', 'Norm_Comp', and 'Norm_Lease' columns on the 'Sites' sheet. They should contain numerical values ranging between 0 and 100. The formula bar should ideally show normalization formulas (e.g., using MIN/MAX)."
+    },
+    {
+      "id": "total_score_calculated",
+      "description": "Calculate the Total Score using a weighted sum with absolute cross-sheet references.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Total_Score' column on the 'Sites' sheet. It should contain calculated numerical scores. When a cell in this column is selected, the formula bar must show a formula referencing the 'Weights' sheet with absolute references (e.g., 'Weights!$B$2')."
+    },
+    {
+      "id": "rank_calculated",
+      "description": "Rank the results in the 'Rank' column.",
+      "points": 10,
+      "visual_evidence": "Look at the 'Rank' column on the 'Sites' sheet. It should contain integer values representing the rank of each site's Total Score (e.g., using the RANK or RANK.EQ function)."
+    },
+    {
+      "id": "top_sites_sheet_created",
+      "description": "Create a new 'Top_Sites' sheet with specific headers.",
+      "points": 10,
+      "visual_evidence": "Look at the worksheet tabs at the bottom. There should be a new tab named 'Top_Sites'. On this sheet, the top row should contain the headers 'Rank', 'Site_ID', 'City', 'State', and 'Total_Score'."
+    },
+    {
+      "id": "top_sites_populated",
+      "description": "Dynamically display the data for the top 5 ranked sites on the 'Top_Sites' sheet.",
+      "points": 30,
+      "visual_evidence": "Look at the 'Top_Sites' sheet. There should be exactly 5 rows of data populated under the headers, corresponding to ranks 1 through 5. When one of these data cells is selected, the formula bar should show a dynamic lookup or filter formula (e.g., VLOOKUP, INDEX/MATCH, FILTER, or SORT) referencing the 'Sites' sheet."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the WPS Spreadsheet GUI to complete the task.",
+      "visual_evidence": "Screenshots should show the WPS Spreadsheet application open and being interacted with, rather than terminal commands or Python scripts modifying the Excel file in the background."
+    },
+    {
+      "id": "genuine_formulas",
+      "description": "The agent used actual spreadsheet formulas rather than hardcoding values.",
+      "visual_evidence": "When cells in the calculated columns (Norm_*, Total_Score, Rank, or Top_Sites data) are selected, the formula bar should display valid Excel/WPS formulas, not just static typed numbers."
+    },
+    {
+      "id": "cross_sheet_references",
+      "description": "The agent genuinely referenced the Weights sheet for the Total Score calculation.",
+      "visual_evidence": "The formula bar for the Total_Score calculation must explicitly contain references to the 'Weights' sheet (e.g., 'Weights!'), rather than hardcoded decimal weights typed directly into the formula."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is '/home/ga/Documents/store_locations.xlsx'. The main data sheet is 'Sites' and the criteria weights are in the 'Weights' sheet. The agent must add exactly six headers to the 'Sites' sheet: 'Norm_Pop', 'Norm_Income', 'Norm_Comp', 'Norm_Lease', 'Total_Score', and 'Rank'. A new sheet named 'Top_Sites' must be created to display the top 5 sites dynamically."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "create_technician@1",
+  "version": "1.0",
+  "env_id": "manageengine_adaudit_plus_env@0.1",
+  "description": "Log in to ManageEngine ADAudit Plus (admin/Admin@2024) and create a new technician account for 'Security Analyst' with username 'secanalyst', email 'secanalyst@company.local', and password 'Analyst@2024'. The account must use 'Product Authentication' and be assigned the 'Operator' role.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_technician\\setup_task.ps1",
+    "pre_task_timeout": 900
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_technician"
+    }
+  },
+  "metadata": {
+    "username": "secanalyst",
+    "full_name": "Security Analyst",
+    "email": "secanalyst@company.local",
+    "role": "Operator"
+  }
+}

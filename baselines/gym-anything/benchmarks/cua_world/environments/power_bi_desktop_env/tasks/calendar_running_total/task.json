@@ -1,0 +1,39 @@
+{
+  "id": "calendar_running_total@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a logistics operations manager. Using the sales data file at C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv, build a cumulative revenue tracking report in Power BI Desktop. The report must include a calculated table named 'DateTable' with 'Year' and 'MonthNum' columns, related to the sales data. Create a DAX measure named 'Cumulative_Revenue' that calculates the running total of 'Sales_Amount'. The report should contain an Area Chart visual of 'Cumulative_Revenue' over time and a Card visual for the total 'Sales_Amount'. Save the final report to C:\\Users\\Docker\\Desktop\\Cumulative_Revenue_Report.pbix.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\calendar_running_total\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\calendar_running_total\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Cumulative_Revenue_Report.pbix",
+    "required_visuals": [
+      "areaChart",
+      "card"
+    ],
+    "required_measures": [
+      "Cumulative_Revenue"
+    ],
+    "required_tables": [
+      "DateTable"
+    ],
+    "required_columns": [
+      "Year",
+      "MonthNum"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calendar_running_total"
+    }
+  }
+}

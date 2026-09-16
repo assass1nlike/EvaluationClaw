@@ -1,0 +1,34 @@
+{
+  "id": "trust_safety_reviewer_suspension@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "You are a Trust & Safety Analyst at a travel agency responding to a bot attack of mass 1-star reviews. Your goal is to identify and suspend users with 3 or more 1-star reviews in the demodb database (URL: http://localhost:2480, User: admin, Pass: admin).\n\nUpdate the Profiles class schema to include a STRING property named AccountStatus and mark all identified offenders as 'Suspended'. Additionally, create a SuspensionLog vertex class and a HasSuspensionLog edge class to document these actions. For each suspended user, create a SuspensionLog vertex with the Reason property set to 'Review Bombing' and link the user's Profile to this log via a HasSuspensionLog edge. Ensure no data is deleted and only users meeting the 3-review threshold are suspended.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/trust_safety_reviewer_suspension/setup_task.sh",
+    "post_task": "/workspace/tasks/trust_safety_reviewer_suspension/export_result.sh"
+  },
+  "metadata": {
+    "db_name": "demodb",
+    "bot_emails": [
+      "bot.alpha@spamnet.com",
+      "bot.beta@spamnet.com"
+    ],
+    "innocent_email": "innocent.user@normal.com",
+    "target_status": "Suspended",
+    "log_class": "SuspensionLog",
+    "edge_class": "HasSuspensionLog",
+    "reason_text": "Review Bombing"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_trust_safety_suspension"
+    }
+  }
+}

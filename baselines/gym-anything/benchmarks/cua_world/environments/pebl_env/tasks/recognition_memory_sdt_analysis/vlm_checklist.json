@@ -1,0 +1,53 @@
+{
+  "task_id": "recognition_memory_sdt_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_csv_data",
+      "description": "Access or read the trial-level recognition memory CSV data.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening 'recognition_memory_data.csv' in a text editor, spreadsheet application, or loading it via a script (e.g., pandas read_csv)."
+    },
+    {
+      "id": "exclude_contaminated_participant",
+      "description": "Identify and exclude the contaminated participant based on impossible RTs or perfect accuracy.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code or data filtering steps that explicitly remove 'sub-99999', filter out RTs between 25-45ms, or filter out 100% accuracy rows."
+    },
+    {
+      "id": "calculate_sdt_metrics",
+      "description": "Calculate d-prime (sensitivity) and criterion (response bias) for the valid participants.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the mathematical formulas or code (e.g., using scipy.stats.norm.ppf in Python or equivalent in R/spreadsheets) computing Hit Rates, False Alarm Rates, d-prime, and criterion."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Format the calculated SDT metrics as a JSON summary report.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the construction of a JSON object/dictionary containing participant IDs mapped to their respective d-prime and criterion values."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save the final JSON report to the specified analysis directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the file being saved exactly at '~/pebl/analysis/sdt_report.json' or '/home/ga/pebl/analysis/sdt_report.json' (e.g., via a save dialog, terminal command, or script output)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Verify the agent actually calculated the metrics rather than hallucinating or hardcoding the final JSON.",
+      "visual_evidence": "Look for a script (Python, R) or spreadsheet containing actual SDT formulas (z-transforms of hit/false alarm rates) being executed."
+    },
+    {
+      "id": "correct_data_source",
+      "description": "Verify the agent used the provided local dataset.",
+      "visual_evidence": "Check that the file path '~/pebl/data/recognition_memory_data.csv' is used as the data source, rather than downloading external data."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the JSON report was actually saved to the file system.",
+      "visual_evidence": "Look for terminal commands (like 'ls ~/pebl/analysis'), file explorer views, or script completion messages confirming the file 'sdt_report.json' exists on disk, not just printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 14 valid participants (sub-10159 through sub-10172) and 1 contaminated participant (sub-99999). The contaminated participant has physiologically impossible 25-45ms response times and perfect accuracy, and MUST be excluded from the final report. The final output must be a JSON file located exactly at /home/ga/pebl/analysis/sdt_report.json containing d-prime and criterion values only for the 14 valid participants."
+}

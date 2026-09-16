@@ -1,0 +1,65 @@
+{
+  "task_id": "pneumonia_care_correction@1",
+  "task_completion": [
+    {
+      "id": "vitals_recorded",
+      "description": "Verify the patient's weight is corrected and missing vitals are recorded.",
+      "points": 20,
+      "visual_evidence": "In the Bahmni Observations/Vitals section, look for Weight: 68 kg (corrected from 185), Temperature: 38.7 C, Respiratory Rate: 24, SpO2: 93%, and Blood Pressure: 100/65 mmHg."
+    },
+    {
+      "id": "amoxicillin_discontinued",
+      "description": "Verify the contraindicated Amoxicillin order is stopped.",
+      "points": 10,
+      "visual_evidence": "In the Medications/Treatments section, Amoxicillin 500mg should be marked as stopped, discontinued, or inactive."
+    },
+    {
+      "id": "safe_antibiotic_prescribed",
+      "description": "Verify a safe, non-penicillin, non-cephalosporin antibiotic is prescribed.",
+      "points": 20,
+      "visual_evidence": "In the Medications/Treatments section, look for a new active order for a safe antibiotic (e.g., Azithromycin, Levofloxacin, Doxycycline, Clarithromycin). There must NOT be any active orders for penicillins (amoxicillin, ampicillin) or cephalosporins (cephalexin, ceftriaxone, etc.)."
+    },
+    {
+      "id": "diagnoses_documented",
+      "description": "Verify the correct diagnoses are documented with appropriate order and certainty.",
+      "points": 15,
+      "visual_evidence": "In the Diagnoses section, look for 'Pneumonia' marked as PRIMARY and CONFIRMED, and 'Sepsis' marked as SECONDARY and PRESUMED."
+    },
+    {
+      "id": "disposition_recorded",
+      "description": "Verify the patient disposition is set to Admit Patient with the correct note.",
+      "points": 10,
+      "visual_evidence": "In the Disposition section, the status should be 'Admit Patient' and the accompanying note should read 'ICU admission for sepsis management'."
+    },
+    {
+      "id": "appointment_scheduled",
+      "description": "Verify a follow-up appointment is scheduled for 7 days in the future.",
+      "points": 10,
+      "visual_evidence": "In the Appointments module or patient dashboard, look for an upcoming OPD appointment scheduled approximately 7 days from the current system date."
+    },
+    {
+      "id": "clinical_note_written",
+      "description": "Verify a clinical encounter note of sufficient length is written.",
+      "points": 15,
+      "visual_evidence": "In the Consultation Notes or Observation section, look for a text note documenting the corrections and care plan. It should visually appear to be at least 200 characters long (typically 3-4 full lines of text or a detailed paragraph)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the Bahmni web interface to complete the tasks.",
+      "visual_evidence": "Screenshots should show the Bahmni EMR web interface in a browser, not terminal windows, API testing tools (like Postman), or database consoles."
+    },
+    {
+      "id": "correct_patient_context",
+      "description": "The agent must perform all actions on the correct patient.",
+      "visual_evidence": "The patient header in the screenshots must clearly show 'Amina Nyong'o' and/or the identifier 'BAH000030'."
+    },
+    {
+      "id": "genuine_input",
+      "description": "The agent must actually enter the data into the system.",
+      "visual_evidence": "Data should be visible within the proper Bahmni UI elements (forms, tables, dashboards) rather than just typed into a notepad or injected via browser developer tools."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient: Amina Nyong'o (BAH000030). Target Vitals: Weight 68 kg, Temp 38.7 C, RR 24/min, SpO2 93%, BP 100/65 mmHg. Medication rules: Amoxicillin MUST be stopped due to Penicillin allergy. Safe alternatives include Azithromycin, Levofloxacin, Clarithromycin, Doxycycline, etc. Penicillins and cephalosporins are strictly blacklisted. Diagnoses: Pneumonia (Primary, Confirmed) and Sepsis (Secondary, Presumed). Disposition: 'Admit Patient' with note 'ICU admission for sepsis management'. Appointment: OPD follow-up in 7 days. Note: Must be >= 200 characters."
+}

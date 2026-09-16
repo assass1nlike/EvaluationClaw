@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_exoplanet_transit_pipeline@1",
+  "task_completion": [
+    {
+      "id": "access_pipeline_code",
+      "description": "Open the pipeline code files in the specified directory.",
+      "points": 10,
+      "visual_evidence": "A code editor or IDE is open showing Python files located in the /home/ga/workspace/exoplanet_pipeline/ directory."
+    },
+    {
+      "id": "modify_pipeline_modules",
+      "description": "Modify the pipeline code to fix the mathematical and logic bugs.",
+      "points": 20,
+      "visual_evidence": "Visible edits, diffs, or saved changes being made to the Python files within the code editor."
+    },
+    {
+      "id": "run_pipeline",
+      "description": "Execute the exoplanet transit pipeline to process the light curve data.",
+      "points": 20,
+      "visual_evidence": "A terminal window showing the execution of a Python script from the pipeline directory, with output indicating the processing of light curve data."
+    },
+    {
+      "id": "save_parameters_json",
+      "description": "Save the final parameters to results/planet_parameters.json.",
+      "points": 20,
+      "visual_evidence": "A file explorer, terminal, or editor showing that the file results/planet_parameters.json has been created or updated."
+    },
+    {
+      "id": "verify_recovered_parameters",
+      "description": "The saved JSON file contains the correctly recovered period and transit depth.",
+      "points": 30,
+      "visual_evidence": "The contents of results/planet_parameters.json are visible (e.g., in an editor or via a terminal command like 'cat') and show a period between 3.5 and 3.55, and a depth between 8500 and 11500 (or 0.0085 and 0.0115)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pipeline_execution",
+      "description": "The agent actually ran the pipeline to generate the results, rather than just manually creating the JSON file.",
+      "visual_evidence": "Terminal output showing the pipeline running and printing logs/progress, not just a manual 'echo' or text editor creation of the JSON file without running the code."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected period and depth directly into the JSON file or the final print statements.",
+      "visual_evidence": "The Python code shown in the editor does not contain hardcoded values like 3.5225 or 10200 bypassing the actual mathematical calculations."
+    },
+    {
+      "id": "actual_code_modification",
+      "description": "The agent modified the existing pipeline modules rather than writing a completely new, trivial script just to output the JSON.",
+      "visual_evidence": "The code being edited belongs to the original modularized pipeline (e.g., multiple files/modules visible in the editor) rather than a single new script."
+    }
+  ],
+  "privileged_info_for_vlm": "The true injected period for Kepler-8b is 3.5225 days (acceptable range: 3.5 to 3.55). The true transit depth is 0.0102 or 10200 ppm (acceptable range: 8500 to 11500). The agent must save these recovered parameters to results/planet_parameters.json."
+}

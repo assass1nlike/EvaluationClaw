@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_milestone_report@1",
+  "task_completion": [
+    {
+      "id": "open_project_application",
+      "description": "Open the project file in the project management application.",
+      "points": 10,
+      "visual_evidence": "ProjectLibre (or similar project management software) is open on the screen, displaying the loaded project file."
+    },
+    {
+      "id": "apply_milestone_filter",
+      "description": "Apply a filter to show only milestones.",
+      "points": 30,
+      "visual_evidence": "The UI shows a filter menu, ribbon option, or view setting for 'Milestones' being selected or actively applied."
+    },
+    {
+      "id": "verify_filtered_view",
+      "description": "The project view updates to hide detailed tasks, showing only milestones.",
+      "points": 20,
+      "visual_evidence": "The task list in the application is filtered. Because the loaded file actually contains no milestones, the task list should appear empty (no task rows visible) while the filter is active."
+    },
+    {
+      "id": "initiate_pdf_export",
+      "description": "Initiate the export or print to PDF function.",
+      "points": 20,
+      "visual_evidence": "A 'Print', 'Export to PDF', or 'Save as PDF' dialog box is visible over the project management application."
+    },
+    {
+      "id": "save_pdf_correct_path",
+      "description": "Save the exported PDF to the required path.",
+      "points": 20,
+      "visual_evidence": "A save dialog shows the file being saved as 'milestones.pdf' in the 'Projects' directory (/home/ga/Projects/), or a file manager/terminal confirms the file exists at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the graphical user interface of the project management software to filter and export the project.",
+      "visual_evidence": "Screenshots show mouse clicks, dropdowns, and dialogs within the project management software, rather than terminal commands or scripts being used to generate a fake PDF."
+    },
+    {
+      "id": "genuine_pdf_export",
+      "description": "The PDF was generated via the application's export/print feature, not created manually.",
+      "visual_evidence": "The print/export dialog of the project software is seen. The agent is not using a text editor, LibreOffice Writer, or a PDF editor to manually type out a fake document."
+    },
+    {
+      "id": "content_matches_application_state",
+      "description": "The final PDF content matches the filtered state of the application.",
+      "visual_evidence": "The generated PDF reflects the empty/filtered task list seen in the application, rather than a hallucinated list of software development milestones."
+    }
+  ],
+  "privileged_info_for_vlm": "The project file loaded (/home/ga/Projects/samples/sample_project.xml) is actually an unrelated 'Commercial Construction' template that contains ZERO milestones. Therefore, when the agent correctly filters for milestones, the task list should become completely empty. The agent must export this empty/filtered view to '/home/ga/Projects/milestones.pdf'. Do not penalize the agent if the resulting PDF has no tasks, as this is the correct behavior given the provided file."
+}

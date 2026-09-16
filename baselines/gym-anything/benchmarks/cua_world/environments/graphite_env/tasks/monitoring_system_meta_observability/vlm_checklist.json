@@ -1,0 +1,53 @@
+{
+  "task_id": "monitoring_system_meta_observability@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create a Graphite dashboard named 'Graphite Health'",
+      "points": 10,
+      "visual_evidence": "The Graphite web interface is open and a dashboard titled 'Graphite Health' is visible."
+    },
+    {
+      "id": "graph_global_ingestion_rate",
+      "description": "Create a graph titled 'Global Ingestion Rate' with the specified metric and alias",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Global Ingestion Rate' is present. The metric configuration or legend shows 'Total Metrics/min' as the alias and uses sumSeries() on carbon.agents.*.metricsReceived."
+    },
+    {
+      "id": "graph_average_cpu_user_time",
+      "description": "Create a graph titled 'Average CPU User Time' with the specified metric and alias",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Average CPU User Time' is present. The metric configuration or legend shows 'Avg User CPU' as the alias and uses averageSeries() on collectd.*.cpu-*.cpu-user (or collectd.*.cpu.*.cpu-user)."
+    },
+    {
+      "id": "graph_system_load",
+      "description": "Create a graph titled 'System Load' with the specified metric and aliasByNode",
+      "points": 25,
+      "visual_evidence": "A graph titled 'System Load' is present. The metric configuration or legend shows collectd.*.load.load.shortterm with aliasByNode() at index 1."
+    },
+    {
+      "id": "graph_carbon_cache_size",
+      "description": "Create a graph titled 'Carbon Cache Size'",
+      "points": 15,
+      "visual_evidence": "A fourth graph titled 'Carbon Cache Size' is present in the dashboard."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "Screenshots show interaction with the Graphite UI (e.g., clicking 'Dashboard', adding graphs, configuring metrics in the UI), not just terminal commands."
+    },
+    {
+      "id": "genuine_graphs",
+      "description": "Graphs appear to be genuinely rendered by Graphite",
+      "visual_evidence": "The graphs display standard Graphite visual elements (axes, grid lines, legends) rather than being manually drawn or mocked up in a text editor."
+    },
+    {
+      "id": "no_direct_json_editing",
+      "description": "Agent did not bypass the UI by directly editing dashboard JSON files",
+      "visual_evidence": "There is no evidence of the agent opening a text editor (like nano or vim) to manually write the dashboard JSON structure."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Graphite Health'. The dashboard must contain exactly four graphs with the following titles and configurations: 1) 'Global Ingestion Rate' using sumSeries(carbon.agents.*.metricsReceived) aliased as 'Total Metrics/min'; 2) 'Average CPU User Time' using averageSeries(collectd.*.cpu-*.cpu-user or collectd.*.cpu.*.cpu-user) aliased as 'Avg User CPU'; 3) 'System Load' using collectd.*.load.load.shortterm with aliasByNode(1); 4) 'Carbon Cache Size'."
+}

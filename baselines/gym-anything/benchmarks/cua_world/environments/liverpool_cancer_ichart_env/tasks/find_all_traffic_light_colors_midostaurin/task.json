@@ -1,0 +1,42 @@
+{
+  "id": "find_all_traffic_light_colors_midostaurin@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Identify one example co-medication for each of the five traffic light colors (Red, Orange, Yellow, Green, and Grey) for the drug 'Midostaurin' in the Liverpool Cancer iChart Archive app.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/find_all_traffic_light_colors_midostaurin/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/find_all_traffic_light_colors_midostaurin/export_result.sh"
+  },
+  "metadata": {
+    "target_drug": "Midostaurin",
+    "required_colors": [
+      "Red",
+      "Orange",
+      "Yellow",
+      "Green",
+      "Grey"
+    ],
+    "passing_threshold": 60,
+    "scoring": {
+      "drug_selected": 10,
+      "color_red": 15,
+      "color_orange": 15,
+      "color_yellow": 15,
+      "color_green": 15,
+      "color_grey": 15,
+      "systematic_process": 15
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_traffic_light_colors"
+    }
+  }
+}

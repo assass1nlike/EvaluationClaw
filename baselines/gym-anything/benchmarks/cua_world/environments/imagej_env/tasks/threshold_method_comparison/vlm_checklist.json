@@ -1,0 +1,59 @@
+{
+  "task_id": "threshold_method_comparison@1",
+  "task_completion": [
+    {
+      "id": "open_blobs_image",
+      "description": "The 'Blobs' sample image is opened in ImageJ/Fiji.",
+      "points": 10,
+      "visual_evidence": "An image window titled 'blobs.gif' or 'Blobs' showing a microscopic image of dark blobs on a lighter background is visible in the ImageJ/Fiji interface."
+    },
+    {
+      "id": "apply_thresholding",
+      "description": "The agent uses the Threshold tool to apply different automatic thresholding algorithms.",
+      "points": 20,
+      "visual_evidence": "The 'Threshold' window (Image > Adjust > Threshold) is open, showing a dropdown menu with method names like Otsu, Triangle, Li, etc., and the image is shown with a red overlay indicating the thresholded areas."
+    },
+    {
+      "id": "analyze_particles",
+      "description": "The agent analyzes the particles to obtain the count and total area for the applied threshold.",
+      "points": 20,
+      "visual_evidence": "The 'Analyze Particles' dialog is visible, or the 'Results' table window is open showing columns like 'Area' and row counts corresponding to the detected particles, or the 'Summary' window shows the total count and total area."
+    },
+    {
+      "id": "record_multiple_methods",
+      "description": "Data for at least 4 different thresholding methods is recorded.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet, text editor, or the final CSV file shows at least 4 distinct rows of data, each with a different thresholding method name (e.g., Otsu, Li, Huang, Triangle)."
+    },
+    {
+      "id": "csv_headers_correct",
+      "description": "The exported CSV file contains the required headers: Method, Threshold, Count, Total_Area.",
+      "points": 10,
+      "visual_evidence": "The CSV file content is visible (e.g., in a text editor, terminal, or spreadsheet) showing the exact header row: 'Method, Threshold, Count, Total_Area' (or similar comma-separated format)."
+    },
+    {
+      "id": "save_csv_correct_path",
+      "description": "The results are saved to ~/ImageJ_Data/results/threshold_comparison.csv.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or save dialog shows the file 'threshold_comparison.csv' located in the '/home/ga/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_imagej_gui",
+      "description": "The agent used the ImageJ/Fiji graphical interface to perform the thresholding and particle analysis.",
+      "visual_evidence": "Screenshots show the ImageJ/Fiji application windows, menus, and dialogs being actively used, rather than just a Python script or terminal commands doing the image processing."
+    },
+    {
+      "id": "genuine_data_generation",
+      "description": "The recorded threshold values, counts, and areas appear to be genuinely derived from the software.",
+      "visual_evidence": "The values in the final CSV match the values seen in the ImageJ 'Results', 'Summary', or 'Threshold' windows during the trajectory."
+    },
+    {
+      "id": "no_fake_csv_creation",
+      "description": "The agent didn't just create a fake CSV file with arbitrary numbers without opening the image.",
+      "visual_evidence": "There is a clear sequence of opening the image, applying thresholds, and gathering results before the CSV is created."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output file must be exactly at '/home/ga/ImageJ_Data/results/threshold_comparison.csv'. The task requires comparing a minimum of 4 methods. Valid automatic thresholding methods in ImageJ include: Default, Huang, Intermodes, IsoData, IJ_IsoData, Li, MaxEntropy, Mean, MinError, Minimum, Moments, Otsu, Percentile, RenyiEntropy, Shanbhag, Triangle, and Yen. The correct sample image is 'Blobs (25K)', accessible in Fiji via File > Open Samples > Blobs."
+}

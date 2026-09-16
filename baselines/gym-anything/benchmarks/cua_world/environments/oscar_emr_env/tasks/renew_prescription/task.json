@@ -1,0 +1,35 @@
+{
+  "id": "renew_prescription@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Renew the expiring 'Metformin 500mg' prescription for patient Maria Garcia using the 'oscardoc' account (password: 'oscar', PIN: '1117'). The new prescription must include a quantity of 90, 3 repeats, and instructions to 'Take 1 tablet twice daily'. Finalize the prescription by signing and printing.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/renew_prescription/setup_task.sh",
+    "post_task": "/workspace/tasks/renew_prescription/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Maria",
+    "patient_lname": "Garcia",
+    "drug_name": "Metformin",
+    "target_quantity": "90",
+    "target_repeats": "3",
+    "oscar_url": "http://localhost:8080/oscar/login.jsp",
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_renew_prescription"
+    }
+  }
+}

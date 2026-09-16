@@ -1,0 +1,26 @@
+{
+  "id": "create_product_variant@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Register a new fertilizer product variant in the Ekylibre catalog named 'Ammonitrate 33.5'. The variant must be assigned a suitable nature (e.g., 'Engrais minéral' or 'Matière') and use 'Kilogram' (kg) as the unit.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_product_variant/setup_task.sh",
+    "post_task": "/workspace/tasks/create_product_variant/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Ammonitrate 33.5",
+    "target_table": "product_nature_variants"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_product_variant"
+    }
+  }
+}

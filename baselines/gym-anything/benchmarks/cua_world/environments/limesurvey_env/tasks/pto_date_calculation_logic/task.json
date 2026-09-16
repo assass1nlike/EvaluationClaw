@@ -1,0 +1,42 @@
+{
+  "id": "pto_date_calculation_logic@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a 'PTO Request Form 2024' in LimeSurvey (admin/Admin123!). The survey must include a question group named 'Leave Details' containing a 'Start Date' (code: 'start') and a 'Return Date' (code: 'return') with validation ensuring the return date is after the start date. Use ExpressionScript in a 'Duration Calculation' question (code: 'calc_days') to calculate the number of days between the dates. Configure a 'Medical Certificate' (code: 'med_cert') file upload question to appear only if the calculated duration is greater than 3 days.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pto_date_calculation_logic/setup_task.sh",
+    "post_task": "/workspace/tasks/pto_date_calculation_logic/export_result.sh"
+  },
+  "metadata": {
+    "survey_title": "PTO Request Form 2024",
+    "expected_codes": [
+      "start",
+      "return",
+      "calc_days",
+      "med_cert"
+    ],
+    "validation_keyword": "start",
+    "calculation_keywords": [
+      "strtotime",
+      "86400",
+      "-"
+    ],
+    "relevance_keywords": [
+      "calc_days",
+      ">",
+      "3"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pto_date_logic"
+    }
+  }
+}

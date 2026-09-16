@@ -1,0 +1,59 @@
+{
+  "task_id": "svm_gender_prediction@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Load the 'BigFivePersonalityTraits.csv' dataset into JASP.",
+      "points": 15,
+      "visual_evidence": "JASP application window is open, showing the data grid for 'BigFivePersonalityTraits.csv' with columns like Agreeableness, Conscientiousness, Extraversion, Neuroticism, and Openness."
+    },
+    {
+      "id": "open_svm_module",
+      "description": "Open the Support Vector Machine classification module in JASP.",
+      "points": 15,
+      "visual_evidence": "The JASP analysis panel shows the 'Support Vector Machine' classification interface (typically under Machine Learning -> Classification)."
+    },
+    {
+      "id": "configure_svm",
+      "description": "Configure the SVM with an RBF kernel, 20% test split, and seed 12345.",
+      "points": 20,
+      "visual_evidence": "In the SVM options panel, 'RBF' is selected for the kernel, 'Test data proportion' (or Data Split) is set to 0.2 (or 20%), and 'Set seed' is checked with the value 12345."
+    },
+    {
+      "id": "enable_outputs",
+      "description": "Enable the Confusion Matrix, ROC Curve, and AUC metrics.",
+      "points": 20,
+      "visual_evidence": "In the SVM options (e.g., under Plots and Evaluation Metrics), 'Confusion matrix', 'ROC curve', and 'AUC' are checked/enabled."
+    },
+    {
+      "id": "save_jasp_project",
+      "description": "Save the JASP project as 'SVM_Gender_Analysis.jasp'.",
+      "points": 15,
+      "visual_evidence": "The JASP window title shows 'SVM_Gender_Analysis.jasp' or a file manager shows this file successfully saved in '/home/ga/Documents/JASP/'."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Record the Test Set AUC and Confusion Matrix counts in 'svm_performance_report.txt'.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal shows the contents of 'svm_performance_report.txt' containing an AUC value and counts for True Positives and True Negatives."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_jasp",
+      "description": "The agent used the JASP GUI to perform the analysis.",
+      "visual_evidence": "Screenshots show the agent clicking through the JASP interface to configure the SVM, rather than using terminal commands to generate a fake .jasp file."
+    },
+    {
+      "id": "consistent_results",
+      "description": "The recorded metrics match the JASP output.",
+      "visual_evidence": "The AUC and Confusion Matrix values in the text report exactly match the numbers shown in the JASP results pane."
+    },
+    {
+      "id": "handling_missing_variable",
+      "description": "Verify how the agent handled the missing 'Gender' variable.",
+      "visual_evidence": "Since 'Gender' is missing from the original dataset, the agent should either be stuck, or have explicitly added a 'Gender' column to the dataset. If the agent produces a successful SVM output without adding 'Gender' to the data, it is a fabricated result."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is located at '/home/ga/Documents/JASP/BigFivePersonalityTraits.csv'. The task requires predicting 'Gender' using Agreeableness, Conscientiousness, Extraversion, Neuroticism, and Openness. The required seed is 12345 and the test split is 0.2 (20%). Expected outputs are 'SVM_Gender_Analysis.jasp' and 'svm_performance_report.txt'. CRITICAL: The target variable 'Gender' is entirely missing from the downloaded dataset, making the task inherently flawed. The agent cannot complete the SVM training unless they artificially add a 'Gender' column to the dataset. If the agent fails to complete the task because 'Gender' is missing, they should only receive points for the steps they could complete (e.g., loading the dataset, opening the SVM module)."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "configure_store_identity@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure the WooCommerce store identity by setting the Site Title to 'Artisan Crafts Studio', the Tagline to 'Handcrafted with Love', and the Timezone to 'New York' (America/New_York). Create two pages titled 'Home' and 'News', and configure the site settings to use 'Home' as a static homepage and 'News' as the posts page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_store_identity/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_store_identity/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Artisan Crafts Studio",
+    "expected_tagline": "Handcrafted with Love",
+    "expected_timezone": "America/New_York",
+    "expected_home_page_title": "Home",
+    "expected_news_page_title": "News",
+    "expected_show_on_front": "page"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_store_identity"
+    }
+  }
+}

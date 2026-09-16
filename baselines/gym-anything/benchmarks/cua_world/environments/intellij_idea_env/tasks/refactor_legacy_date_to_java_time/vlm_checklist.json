@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_legacy_date_to_java_time@1",
+  "task_completion": [
+    {
+      "id": "open_flight_scheduler_project",
+      "description": "Open the flight-scheduler project in an IDE or editor.",
+      "points": 10,
+      "visual_evidence": "An IDE (like IntelliJ IDEA) or code editor is open showing the 'flight-scheduler' project directory structure in the file explorer."
+    },
+    {
+      "id": "refactor_flight_java",
+      "description": "Refactor Flight.java to use LocalDateTime.",
+      "points": 20,
+      "visual_evidence": "The file 'Flight.java' is visible in the editor. It imports 'java.time.LocalDateTime' and the departure/arrival time fields are of type 'LocalDateTime' instead of 'Date'. There should be no 'java.util.Date' imports."
+    },
+    {
+      "id": "refactor_flight_scheduler_java",
+      "description": "Refactor FlightScheduler.java to use LocalDateTime for time calculations.",
+      "points": 20,
+      "visual_evidence": "The file 'FlightScheduler.java' is visible in the editor. It imports 'java.time.LocalDateTime' and uses its methods (like 'plusMinutes') for time calculations instead of 'java.util.Calendar'. There should be no 'java.util.Calendar' or 'java.util.Date' imports."
+    },
+    {
+      "id": "refactor_flight_scheduler_test_java",
+      "description": "Refactor FlightSchedulerTest.java to use LocalDateTime.",
+      "points": 20,
+      "visual_evidence": "The file 'FlightSchedulerTest.java' is visible in the editor. It uses 'LocalDateTime.of(...)' or 'LocalDateTime.parse(...)' to set up test data instead of 'GregorianCalendar'. There should be no 'java.util.GregorianCalendar' imports."
+    },
+    {
+      "id": "run_and_pass_tests",
+      "description": "Compile the project and pass all tests.",
+      "points": 30,
+      "visual_evidence": "A test runner panel (e.g., IntelliJ's Run/Debug tool window) or terminal output showing 'mvn test' execution. It must display that the tests 'testScheduleArrival' and 'testOverlappingFlights' have passed successfully (e.g., green checkmarks or 'BUILD SUCCESS')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "The agent used a genuine code editor or IDE to perform the refactoring.",
+      "visual_evidence": "The screenshots show a real code editor interface (like IntelliJ IDEA, VS Code, or Vim/Nano in terminal) being used to edit the Java files, rather than just echoing text directly into files."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The agent actually executed the test suite.",
+      "visual_evidence": "The test results are shown in a legitimate test runner UI or standard Maven terminal output, not manually typed or mocked text files."
+    },
+    {
+      "id": "absence_of_legacy_imports",
+      "description": "The agent completely removed the forbidden legacy imports.",
+      "visual_evidence": "In the visible code for the three target files, there are no remaining import statements for 'java.util.Date', 'java.util.Calendar', or 'java.util.GregorianCalendar'."
+    }
+  ],
+  "privileged_info_for_vlm": "Project Directory: /home/ga/IdeaProjects/flight-scheduler. Target files to be refactored: 'src/main/java/com/airlines/model/Flight.java', 'src/main/java/com/airlines/service/FlightScheduler.java', and 'src/test/java/com/airlines/service/FlightSchedulerTest.java'. Forbidden imports that MUST be removed: java.util.Date, java.util.Calendar, java.util.GregorianCalendar. Required import that MUST be present: java.time.LocalDateTime. The test suite contains two specific tests that must pass: 'testScheduleArrival' and 'testOverlappingFlights'."
+}

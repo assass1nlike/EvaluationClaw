@@ -1,0 +1,46 @@
+{
+  "id": "identify_equatorial_countries@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Identify all country polygons in the 'ne_110m_admin_0_countries' layer that are intersected by the Equator (0° Latitude). Export the selected features to a new shapefile at /home/ga/gvsig_data/exports/equatorial_countries.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_equatorial_countries/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_equatorial_countries/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/equatorial_countries.shp",
+    "must_include_codes": [
+      "BRA",
+      "IDN",
+      "ECU",
+      "KEN",
+      "COD",
+      "UGA",
+      "GAB",
+      "COG",
+      "SOM"
+    ],
+    "must_exclude_codes": [
+      "USA",
+      "CHN",
+      "RUS",
+      "ZAF",
+      "AUS",
+      "CAN"
+    ],
+    "min_count": 10,
+    "max_count": 16
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_equatorial_countries"
+    }
+  }
+}

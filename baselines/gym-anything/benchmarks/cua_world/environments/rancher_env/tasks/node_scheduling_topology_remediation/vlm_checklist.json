@@ -1,0 +1,53 @@
+{
+  "task_id": "node_scheduling_topology_remediation@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Verify the agent successfully logged into the Rancher dashboard.",
+      "points": 10,
+      "visual_evidence": "The Rancher web interface is visible and authenticated, showing the cluster dashboard."
+    },
+    {
+      "id": "remove_maintenance_taint",
+      "description": "Verify the accidental 'maintenance=underway:NoExecute' taint was removed from the worker node.",
+      "points": 20,
+      "visual_evidence": "The node's edit screen, YAML view, or terminal output shows the taints list without the 'maintenance=underway:NoExecute' entry."
+    },
+    {
+      "id": "preserve_stateful_taint",
+      "description": "Verify the intentional 'workload-type=stateful:NoSchedule' taint is still present on the worker node.",
+      "points": 10,
+      "visual_evidence": "The node's edit screen, YAML view, or terminal output explicitly shows the 'workload-type=stateful:NoSchedule' taint is still applied."
+    },
+    {
+      "id": "add_batch_processor_label",
+      "description": "Verify the 'role=batch-processor' label was added to the worker node.",
+      "points": 25,
+      "visual_evidence": "The node's labels section in the Rancher UI or kubectl output shows the key-value pair 'role=batch-processor'."
+    },
+    {
+      "id": "update_database_toleration",
+      "description": "Verify the 'database-primary' deployment in the 'app-prod' namespace was updated to tolerate the stateful taint.",
+      "points": 35,
+      "visual_evidence": "The deployment configuration, pod template, or YAML for 'database-primary' in the 'app-prod' namespace shows a toleration added for 'workload-type=stateful:NoSchedule'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_rancher_interaction",
+      "description": "The agent interacted with the Rancher UI or used valid kubectl terminal commands to apply changes.",
+      "visual_evidence": "Screenshots show the actual Rancher web interface or a terminal executing kubectl commands, rather than mocked success messages."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "The agent did not simply type the expected outcomes into a text editor.",
+      "visual_evidence": "Absence of text editors (like nano, vim, notepad) merely displaying the final expected state as plain text."
+    },
+    {
+      "id": "actual_resource_modification",
+      "description": "The modifications were applied to the actual cluster resources.",
+      "visual_evidence": "Visual confirmation of 'Save', 'Apply', or successful command execution in the terminal, rather than just viewing or drafting the changes."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace for the deployment update is explicitly verified as 'app-prod'."
+}

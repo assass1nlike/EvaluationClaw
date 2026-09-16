@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_parasitic_load_filter@1",
+  "task_completion": [
+    {
+      "id": "open_input_processing",
+      "description": "Open the input processing configuration for the 'workshop_power' input.",
+      "points": 10,
+      "visual_evidence": "The Emoncms Input processing page or modal is visible, clearly indicating it is for the input named 'workshop_power'."
+    },
+    {
+      "id": "add_subtraction_process",
+      "description": "Add a process to subtract the 45W parasitic load.",
+      "points": 20,
+      "visual_evidence": "The process list contains an operation that subtracts 45. This typically looks like a '+ / Add' process with a value of '-45', a '- / Subtract' process with '45', or a 'Calibration' process with '-45'."
+    },
+    {
+      "id": "add_allow_positive_process",
+      "description": "Add a process to ensure the value is never negative.",
+      "points": 20,
+      "visual_evidence": "The process list contains an 'Allow positive' operation (or equivalent clamping process) positioned after the subtraction process."
+    },
+    {
+      "id": "add_log_to_feed_process",
+      "description": "Add a process to log the resulting value to a feed.",
+      "points": 20,
+      "visual_evidence": "The process list contains a 'Log to feed' operation positioned after both the subtraction and the 'Allow positive' processes."
+    },
+    {
+      "id": "configure_feed_details",
+      "description": "Configure the target feed with the correct name, engine, and interval.",
+      "points": 30,
+      "visual_evidence": "The feed configuration (either in a creation dialog or the feed list) shows the name 'workshop_production_load', the engine set to 'PHPFina', and the interval set to '10s'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "Verify the agent used the Emoncms web interface to configure the inputs and feeds.",
+      "visual_evidence": "Screenshots show the Emoncms web UI in a browser being interacted with, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Verify the configuration was applied in the actual application.",
+      "visual_evidence": "The input processing list and feed creation dialogs are genuine Emoncms UI elements, not text files, notes, or mocked interfaces."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Verify the agent did not use terminal commands to bypass the UI.",
+      "visual_evidence": "No terminal windows showing curl commands, database queries, or direct script executions to create the feeds or processes."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring the 'workshop_power' input in Emoncms. The correct process order is: 1) Subtract 45 (e.g., Add -45), 2) Allow positive (to clamp negative values to 0), 3) Log to feed. The target feed must be named 'workshop_production_load', use the PHPFina engine, and have a 10s interval. For context, an input of 40W should result in 0W logged, and an input of 145W should result in 100W logged."
+}

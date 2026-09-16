@@ -1,0 +1,51 @@
+{
+  "id": "factorial_anova_analysis@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "difficulty": "hard",
+  "description": "A study on vitamin C supplementation and tooth growth in guinea pigs is loaded in JASP (file: '/home/ga/Documents/JASP/ToothGrowth.csv'). Perform a two-way factorial ANOVA to examine the effects of supplement type ('supp') and dosage ('dose') on tooth length ('len'), including their interaction effect. The analysis must include post-hoc comparisons for the 'dose' factor, descriptive statistics, descriptive plots for the interaction, and eta-squared as the effect size measure. Save the completed analysis as '/home/ga/Documents/JASP/tooth_growth_anova.jasp'.",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/factorial_anova_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/factorial_anova_analysis/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_factorial_anova_analysis"
+    }
+  },
+  "metadata": {
+    "difficulty": "hard",
+    "category": [
+      "statistics",
+      "anova",
+      "factorial_design"
+    ],
+    "dataset": "Tooth Growth (Crampton 1947)",
+    "expected_dv": "len",
+    "expected_factors": [
+      "supp",
+      "dose"
+    ],
+    "expected_f_stat_ranges": {
+      "dose": [
+        80.0,
+        105.0
+      ],
+      "supp": [
+        10.0,
+        20.0
+      ],
+      "supp:dose": [
+        3.0,
+        6.0
+      ]
+    },
+    "expected_save_path": "/home/ga/Documents/JASP/tooth_growth_anova.jasp"
+  }
+}

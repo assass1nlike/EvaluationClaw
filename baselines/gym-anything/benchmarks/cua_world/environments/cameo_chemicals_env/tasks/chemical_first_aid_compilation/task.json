@@ -1,0 +1,83 @@
+{
+  "id": "chemical_first_aid_compilation@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are an occupational health nurse updating your facility's emergency medical treatment quick-reference binder. Using the CAMEO Chemicals website (https://cameochemicals.noaa.gov/), document the first aid and emergency medical treatment information for Hydrofluoric Acid, Phenol, and Sodium Cyanide. For each chemical, record the first aid procedures for inhalation, skin contact, eye contact, and ingestion, as well as any special antidotes or medical treatments mentioned on the datasheets. Compile this information into a structured reference document saved to ~/Documents/first_aid_protocols.txt, with sections clearly labeled by chemical and exposure route.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "first_aid",
+    "medical",
+    "documentation",
+    "multi_search",
+    "hydrofluoric_acid",
+    "phenol",
+    "sodium_cyanide"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chemical_first_aid_compilation/setup_task.sh",
+    "post_task": "/workspace/tasks/chemical_first_aid_compilation/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/first_aid_protocols.txt",
+    "min_file_size_bytes": 500,
+    "target_chemicals": [
+      {
+        "name": "Hydrofluoric Acid",
+        "keywords": [
+          "hydrofluoric",
+          "hf"
+        ],
+        "treatment_keywords": [
+          "calcium",
+          "gluconate"
+        ]
+      },
+      {
+        "name": "Phenol",
+        "keywords": [
+          "phenol"
+        ],
+        "treatment_keywords": [
+          "polyethylene",
+          "glycol",
+          "peg",
+          "isopropyl",
+          "glycerol"
+        ]
+      },
+      {
+        "name": "Sodium Cyanide",
+        "keywords": [
+          "cyanide",
+          "sodium cyanide"
+        ],
+        "treatment_keywords": [
+          "amyl nitrite",
+          "antidote",
+          "thiosulfate",
+          "nitrite",
+          "hydroxocobalamin"
+        ]
+      }
+    ],
+    "exposure_routes": [
+      "inhalation",
+      "skin",
+      "eye",
+      "ingestion",
+      "swallow"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chemical_first_aid_compilation"
+    }
+  }
+}

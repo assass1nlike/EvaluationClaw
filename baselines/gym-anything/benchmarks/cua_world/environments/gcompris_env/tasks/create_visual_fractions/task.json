@@ -1,0 +1,27 @@
+{
+  "id": "create_visual_fractions@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Create the fractions' activity in GCompris. Solve three consecutive problems correctly. For each problem, record the target fraction into /home/ga/fractions_log.txt (one per line). After completing the third problem, save a screenshot of the success state to /home/ga/fraction_success.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_visual_fractions/setup_task.sh",
+    "post_task": "/workspace/tasks/create_visual_fractions/export_result.sh"
+  },
+  "metadata": {
+    "log_file": "/home/ga/fractions_log.txt",
+    "agent_screenshot": "/home/ga/fraction_success.png",
+    "required_problem_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_visual_fractions"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "catalog_research_software@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A researcher is finalizing a paper and needs to formally cite the software tools used in their analysis to ensure reproducibility. Create two 'Computer Program' items in Zotero with the following details. For the first item, use Title: 'Zotero', Version: '7.0.11', Company: 'Corporation for Digital Scholarship', and System: 'Linux'. For the second item, use Title: 'PyTorch', Version: '2.1.0', Programmer: 'Meta AI', and URL: 'https://pytorch.org'. Ensure all fields match these specifications exactly.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/catalog_research_software/setup_task.sh",
+    "post_task": "/workspace/tasks/catalog_research_software/export_result.sh"
+  },
+  "metadata": {
+    "zotero_item": {
+      "title": "Zotero",
+      "version": "7.0.11",
+      "company": "Corporation for Digital Scholarship",
+      "system": "Linux"
+    },
+    "pytorch_item": {
+      "title": "PyTorch",
+      "version": "2.1.0",
+      "url": "https://pytorch.org",
+      "programmer": "Meta AI"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_catalog_research_software"
+    }
+  }
+}

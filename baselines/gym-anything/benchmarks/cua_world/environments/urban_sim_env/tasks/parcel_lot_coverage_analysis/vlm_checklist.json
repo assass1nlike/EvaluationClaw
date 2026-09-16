@@ -1,0 +1,59 @@
+{
+  "task_id": "parcel_lot_coverage_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_code_data_and_footprint",
+      "description": "The notebook contains code to load the HDF5 data and calculate building footprints.",
+      "points": 20,
+      "visual_evidence": "A Jupyter notebook named 'lot_coverage_analysis.ipynb' is open and contains code reading 'sanfran_public.h5' and calculating building footprints (e.g., filling missing 'building_sqft' and 'stories')."
+    },
+    {
+      "id": "notebook_code_aggregation",
+      "description": "The notebook contains code to calculate parcel lot coverage, aggregate by zone_id, and filter for >= 30 valid parcels.",
+      "points": 20,
+      "visual_evidence": "Code in the notebook shows lot coverage calculation (capped at 1.0), grouping by 'zone_id', calculating metrics (average coverage, total parcel area, total footprint area, valid parcel count), and filtering for counts >= 30."
+    },
+    {
+      "id": "csv_output_generated",
+      "description": "The CSV file zone_lot_coverage.csv is generated with the required columns.",
+      "points": 15,
+      "visual_evidence": "The file 'zone_lot_coverage.csv' is visible in the file explorer, terminal, or notebook output, ideally showing columns: zone_id, avg_lot_coverage, total_parcel_area, total_footprint_area, valid_parcel_count."
+    },
+    {
+      "id": "json_output_generated",
+      "description": "The JSON file coverage_summary.json is generated with the required keys.",
+      "points": 15,
+      "visual_evidence": "The file 'coverage_summary.json' is visible, showing keys: citywide_avg_coverage, num_zones_analyzed, greyest_zone_id, greenest_zone_id."
+    },
+    {
+      "id": "plot_output_generated",
+      "description": "The histogram plot coverage_histogram.png is generated.",
+      "points": 10,
+      "visual_evidence": "The file 'coverage_histogram.png' is visible in the file explorer, or an inline histogram plot is displayed in the notebook showing the distribution of average lot coverage."
+    },
+    {
+      "id": "notebook_executed_and_saved",
+      "description": "The notebook is fully executed and saved.",
+      "points": 20,
+      "visual_evidence": "The notebook cells have execution numbers (e.g., [1], [2]) indicating they were run, and there is no unsaved changes indicator (like a solid dot in the tab)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_notebook_usage",
+      "description": "The agent actually wrote and executed code in the Jupyter notebook.",
+      "visual_evidence": "Screenshots should show the Jupyter notebook interface being used, rather than just a Python script being run from the terminal."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent calculated the JSON values rather than hardcoding them.",
+      "visual_evidence": "The notebook code should show programmatic extraction of the greyest/greenest zones and citywide average, not hardcoded values like 188, 1, 42, or 110."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Outputs are saved to the correct directory.",
+      "visual_evidence": "The file paths in the code or file explorer should point to '/home/ga/urbansim_projects/output/'."
+    }
+  ],
+  "privileged_info_for_vlm": "There are 188 valid zones with >= 30 parcels. The citywide average lot coverage ratio is approximately 0.95 (or ~0.99 if parcels with no buildings are excluded). The greyest zone ID is 1. The greenest zone ID is 42 (or 110 if parcels with no buildings are excluded). Expected CSV columns: zone_id, avg_lot_coverage, total_parcel_area, total_footprint_area, valid_parcel_count. Expected JSON keys: citywide_avg_coverage, num_zones_analyzed, greyest_zone_id, greenest_zone_id."
+}

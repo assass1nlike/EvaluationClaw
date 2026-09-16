@@ -1,0 +1,65 @@
+{
+  "task_id": "tumor_enhancement_pattern@1",
+  "task_completion": [
+    {
+      "id": "roi_placement",
+      "description": "Place ROIs in the tumor and normal white matter on the MRI.",
+      "points": 25,
+      "visual_evidence": "Medical imaging software (e.g., 3D Slicer) displaying brain MRI slices with ROI markups (fiducials or segments) placed in both the tumor region and normal white matter."
+    },
+    {
+      "id": "save_roi_markups",
+      "description": "Save the ROI markups to enhancement_rois.mrk.json.",
+      "points": 5,
+      "visual_evidence": "A save dialog, file explorer, or terminal showing the creation of 'enhancement_rois.mrk.json' in the ~/Documents/SlicerData/BraTS/ directory."
+    },
+    {
+      "id": "report_completeness",
+      "description": "Export the enhancement report with foundational fields (means, position, notes).",
+      "points": 5,
+      "visual_evidence": "The contents of 'enhancement_report.json' are visible, containing fields for 't1_tumor_mean', 't1ce_tumor_mean', 't1_wm_mean', 't1ce_wm_mean', 'tumor_roi_position', and 'notes'."
+    },
+    {
+      "id": "enhancement_ratio_accuracy",
+      "description": "Determine the enhancement ratio.",
+      "points": 25,
+      "visual_evidence": "The 'enhancement_report.json' file contains the 'enhancement_ratio' field with a calculated numerical value."
+    },
+    {
+      "id": "relative_enhancement_accuracy",
+      "description": "Determine the relative enhancement percent.",
+      "points": 20,
+      "visual_evidence": "The 'enhancement_report.json' file contains the 'relative_enhancement_percent' field with a calculated numerical value."
+    },
+    {
+      "id": "classification_correct",
+      "description": "Determine the enhancement classification.",
+      "points": 15,
+      "visual_evidence": "The 'enhancement_report.json' file contains the 'classification' field with a descriptive text value."
+    },
+    {
+      "id": "pattern_description",
+      "description": "Determine the spatial pattern of the enhancement.",
+      "points": 5,
+      "visual_evidence": "The 'enhancement_report.json' file contains the 'pattern' field with a descriptive text value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "software_interaction",
+      "description": "The agent interacted with medical imaging software or wrote a script to process the actual .nii.gz files.",
+      "visual_evidence": "Screenshots show the GUI of an application like 3D Slicer with the MRI loaded, or a Python script actively reading the NIfTI files, rather than just a text editor with hardcoded answers."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent calculated the metrics based on actual image intensities.",
+      "visual_evidence": "The agent uses software measurement tools (e.g., Segment Statistics in 3D Slicer) or script outputs to find the mean intensities before calculating the ratios, rather than guessing the final values."
+    },
+    {
+      "id": "report_consistency",
+      "description": "The values in the final report match the measurements taken during the task.",
+      "visual_evidence": "The numerical values entered into 'enhancement_report.json' correspond to the statistics or script outputs seen in previous steps."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the BraTS 2021 dataset. The local data directory is /home/ga/Documents/SlicerData/BraTS. The enhancement ratio must have a maximum absolute error of 0.3, and the relative enhancement must have a maximum relative error of 25%. The classification must exactly match the ground truth."
+}

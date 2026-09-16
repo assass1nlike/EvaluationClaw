@@ -1,0 +1,47 @@
+{
+  "id": "crypto_energy_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are an investigative journalist researching the environmental impact of cryptocurrency mining. Using Firefox, gather data from at least three authoritative sources (EIA.gov, EPA.gov, Whitehouse.gov, or IEA.org) to compile a research brief. Create a bookmark folder named 'Crypto Environmental Research' containing at least five bookmarks from these sources and download a relevant PDF report to ~/Downloads/. Document your findings in a JSON file at ~/Documents/crypto_environmental_brief.json using the following structure:\n{\n  \"topic\": \"Environmental Impact of Cryptocurrency Mining\",\n  \"bitcoin_annual_energy_twh\": <number>,\n  \"us_crypto_mining_share_global_pct\": <number>,\n  \"co2_equivalent_description\": \"<string>\",\n  \"ostp_report_year\": 2022,\n  \"key_findings\": [\"<string>\", \"<string>\", \"<string>\"],\n  \"sources\": [{\"domain\": \"...\", \"title\": \"...\", \"url\": \"...\"}]\n}",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "json",
+    "bookmarks",
+    "government-data"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/crypto_energy_research/setup_task.sh",
+    "post_task": "/workspace/tasks/crypto_energy_research/export_result.sh"
+  },
+  "metadata": {
+    "required_domains": [
+      "eia.gov",
+      "epa.gov",
+      "whitehouse.gov",
+      "iea.org"
+    ],
+    "bookmark_folder_name": "Crypto Environmental Research",
+    "min_bookmarks": 5,
+    "output_file": "/home/ga/Documents/crypto_environmental_brief.json",
+    "download_dir": "/home/ga/Downloads",
+    "ranges": {
+      "bitcoin_energy_min": 50,
+      "bitcoin_energy_max": 300,
+      "us_share_min": 10,
+      "us_share_max": 60
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_crypto_energy_research"
+    }
+  }
+}

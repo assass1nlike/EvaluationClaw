@@ -1,0 +1,53 @@
+{
+  "task_id": "topology_optimization_reviews@1",
+  "task_completion": [
+    {
+      "id": "access_demodb",
+      "description": "Verify the agent accessed the 'demodb' database.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing OrientDB Studio or the OrientDB console connected to the 'demodb' database."
+    },
+    {
+      "id": "create_postedreview_edge",
+      "description": "Verify the creation of the 'PostedReview' edge class.",
+      "points": 15,
+      "visual_evidence": "Schema manager in OrientDB Studio or console output showing the successful creation of an edge class named 'PostedReview'."
+    },
+    {
+      "id": "create_edge_properties",
+      "description": "Verify the 'PostedReview' edge class has the required properties with correct types.",
+      "points": 20,
+      "visual_evidence": "Schema view or query output showing 'PostedReview' contains the properties 'Rating' (Integer), 'Comment' (String), and 'ReviewDate' (Date)."
+    },
+    {
+      "id": "migrate_review_data",
+      "description": "Verify that existing review data was successfully migrated to the new 'PostedReview' edges.",
+      "points": 30,
+      "visual_evidence": "Query results or graph visualization showing 'PostedReview' edges connecting 'Profiles' to 'Hotels'. Look for evidence of migrated data, such as a record showing John Smith connected to Hotel Artemide with a Rating of 4."
+    },
+    {
+      "id": "delete_legacy_classes",
+      "description": "Verify the deletion of the legacy 'Reviews', 'MadeReview', and 'HasReview' classes.",
+      "points": 25,
+      "visual_evidence": "Console output showing successful 'DROP CLASS' commands for 'Reviews', 'MadeReview', and 'HasReview', or a schema list where these classes are visibly absent."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Ensure the agent interacted with the actual OrientDB database interface.",
+      "visual_evidence": "The agent must be seen executing commands in OrientDB Studio, the OrientDB console, or running a script that connects to the database, rather than just typing commands into a text editor without executing them."
+    },
+    {
+      "id": "no_mocked_results",
+      "description": "Ensure the agent did not fake the success output.",
+      "visual_evidence": "Query results and schema changes should appear in the genuine OrientDB interface with standard formatting, not as manually typed text files or echoed strings."
+    },
+    {
+      "id": "genuine_migration",
+      "description": "Ensure the agent migrated all data, not just the spot-check record.",
+      "visual_evidence": "Look for query execution results indicating multiple edges were created or updated, rather than a single manual insert for 'John Smith'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'demodb'. The new edge class must be exactly named 'PostedReview'. The required properties on 'PostedReview' are 'Rating' (Integer), 'Comment' (String), and 'ReviewDate' (Date). To verify migration success, look for a spot-check record where user 'John Smith' is connected to 'Hotel Artemide' via a 'PostedReview' edge with a 'Rating' of 4."
+}

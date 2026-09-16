@@ -1,0 +1,28 @@
+{
+  "id": "populate_curated_playlist@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a new playlist named 'Epic Rock' in the Chinook database ('chinook.odb'). Populate the playlist with all tracks that are in the 'Rock' genre, have a duration greater than 300,000 milliseconds, and have a non-empty composer field. Ensure the new playlist is assigned a unique PlaylistId and all associations are correctly recorded in the 'Playlist' and 'PlaylistTrack' tables.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/populate_curated_playlist/setup_task.sh",
+    "post_task": "/workspace/tasks/populate_curated_playlist/export_result.sh"
+  },
+  "metadata": {
+    "playlist_name": "Epic Rock",
+    "target_genre": "Rock",
+    "min_duration_ms": 300000,
+    "require_composer": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_populate_curated_playlist"
+    }
+  }
+}

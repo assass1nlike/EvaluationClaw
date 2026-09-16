@@ -1,0 +1,33 @@
+{
+  "id": "neural_network_abalone@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Train a Neural Network regression model to predict abalone age using the dataset from https://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data. Save the data to ~/Documents/JASP/abalone.csv with the following headers: 'Sex', 'Length', 'Diameter', 'Height', 'Whole_weight', 'Shucked_weight', 'Viscera_weight', 'Shell_weight', 'Rings'. Configure the regression model with 'Rings' as the target and all other variables as predictors, using an 80/20 training/test split and a seed of 123. The neural network architecture must consist of two hidden layers with 8 nodes in the first layer and 4 nodes in the second. Save the JASP project to ~/Documents/JASP/Abalone_NeuralNet.jasp and record the Test MSE value in ~/Documents/JASP/abalone_performance.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/neural_network_abalone/setup_task.sh",
+    "post_task": "/workspace/tasks/neural_network_abalone/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/Abalone_NeuralNet.jasp",
+    "expected_txt_file": "/home/ga/Documents/JASP/abalone_performance.txt",
+    "required_seed": 123,
+    "required_layers": [
+      8,
+      4
+    ],
+    "target_variable": "Rings",
+    "dataset_url": "https://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_neural_network_abalone"
+    }
+  }
+}

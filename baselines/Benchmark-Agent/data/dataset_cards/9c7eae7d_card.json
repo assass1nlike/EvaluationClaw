@@ -1,0 +1,79 @@
+{
+  "dataset_id": "9c7eae7d",
+  "name": "Pedestrian Instance Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image",
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 159,
+  "description": "Pedestrian Instance Segmentation dataset for segmenting pedestrians in urban street images. Given an image and an instruction, the model must output an instance segmentation mask identifying pedestrian regions.",
+  "card_text": "This dataset contains 159 image-text pairs for pedestrian instance segmentation in urban street scenes. Each sample provides a Cityscapes-style RGB image (input.image_file) and a short instruction (input.prompt) such as 'Perform instance segmentation on the pedestrian in the image'. The target output is an instance segmentation mask stored as a PNG file (output.map_file), where pixel values encode instance IDs for pedestrians and other objects. The dataset evaluates a model's ability to follow a segmentation instruction and produce pixel-level masks for a specific object class in complex, real-world driving scenes. It assumes access to image paths and mask paths, not raw pixel arrays, and is intended for evaluating instance segmentation capabilities.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "autonomous driving",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "RGB image of an urban street scene (Cityscapes-style) that serves as the visual input. It contains pedestrians and other street elements, and the model must locate and segment the pedestrians according to the instruction.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short imperative instruction asking the model to perform instance segmentation on pedestrians in the given image. It defines the target class and task without additional context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Path to the ground-truth instance segmentation mask image (gtFine_instanceIds.png). Pixel values encode instance IDs for pedestrians and other objects, serving as the target output for the requested segmentation.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image of an urban street scene, a short natural-language instruction requesting pedestrian instance segmentation, and an output instance segmentation mask image. The image serves as the visual context, the prompt specifies the segmentation target and task, and the mask provides pixel-level instance annotations. The fields are linked by the prompt's reference to the image and the mask being the expected output for the requested segmentation."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/pedestrian_instance_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "pedestrian instance segmentation",
+      "type": "comprehension",
+      "skill": "Image Instance Segmentation (Img Inst Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

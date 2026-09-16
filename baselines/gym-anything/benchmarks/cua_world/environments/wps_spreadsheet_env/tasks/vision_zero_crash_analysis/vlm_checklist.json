@@ -1,0 +1,59 @@
+{
+  "task_id": "vision_zero_crash_analysis@1",
+  "task_completion": [
+    {
+      "id": "hour_column_extracted",
+      "description": "Verify that an 'Hour' column has been created in the 'Crashes' sheet.",
+      "points": 10,
+      "visual_evidence": "In the 'Crashes' sheet, there is a new column titled 'Hour' containing extracted hour values (0-23) from the 'CRASH TIME' column."
+    },
+    {
+      "id": "hourly_analysis_headers",
+      "description": "Verify the creation of the 'Hourly_Analysis' sheet with the correct headers.",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Hourly_Analysis' is visible. The sheet contains the headers: 'Hour_of_Day', 'Total_Crashes', 'Pedestrian_Injuries', 'Cyclist_Injuries', and 'Ped_Injury_Rate'."
+    },
+    {
+      "id": "summary_table_data",
+      "description": "Verify the summary table is populated with hours 0-23 and calculated crash/injury data.",
+      "points": 20,
+      "visual_evidence": "The 'Hour_of_Day' column lists numbers 0 through 23. The 'Total_Crashes', 'Pedestrian_Injuries', and 'Cyclist_Injuries' columns are populated with numerical data corresponding to each hour."
+    },
+    {
+      "id": "ped_injury_rate_percentage",
+      "description": "Verify the 'Ped_Injury_Rate' is calculated and formatted as a percentage.",
+      "points": 15,
+      "visual_evidence": "The 'Ped_Injury_Rate' column contains values formatted with a percentage sign (%), representing the ratio of pedestrian injuries to total crashes."
+    },
+    {
+      "id": "conditional_formatting_applied",
+      "description": "Verify color scale conditional formatting is applied to the 'Total_Crashes' column.",
+      "points": 20,
+      "visual_evidence": "The cells under the 'Total_Crashes' column have varying background colors (a color scale or heatmap) that correspond to the magnitude of the values."
+    },
+    {
+      "id": "trend_chart_inserted",
+      "description": "Verify a trend chart showing 'Total_Crashes' by 'Hour_of_Day' is inserted.",
+      "points": 25,
+      "visual_evidence": "A line chart (or similar trend chart) is embedded in the 'Hourly_Analysis' sheet, clearly plotting 'Total_Crashes' on the y-axis against 'Hour_of_Day' on the x-axis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "spreadsheet_gui_used",
+      "description": "Verify the agent used a spreadsheet GUI application (like LibreOffice Calc) to complete the task.",
+      "visual_evidence": "The screenshots show a spreadsheet application interface with toolbars, ribbons, and gridlines, rather than a terminal window running a Python script or a plain text editor."
+    },
+    {
+      "id": "formulas_used_not_hardcoded",
+      "description": "Verify the agent used formulas for calculations rather than hardcoding the answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar at the top shows an actual formula (e.g., =HOUR(...), =COUNTIF(...), =SUMIF(...)) instead of a static typed number."
+    },
+    {
+      "id": "native_chart_object",
+      "description": "Verify the chart is a native spreadsheet object.",
+      "visual_evidence": "The chart appears as an embedded object within the spreadsheet application, complete with spreadsheet chart formatting handles, rather than an imported image file."
+    }
+  ],
+  "privileged_info_for_vlm": "The workbook must contain exactly two sheets: 'Crashes' (which has 5200 rows of synthetic data) and 'Hourly_Analysis'. The agent is strictly required to use the formulas HOUR, COUNTIF, and SUMIF to perform the calculations. Look for these specific function names in the formula bar when the corresponding cells are selected."
+}

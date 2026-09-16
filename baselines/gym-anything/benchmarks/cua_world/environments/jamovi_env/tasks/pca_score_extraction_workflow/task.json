@@ -1,0 +1,28 @@
+{
+  "id": "pca_score_extraction_workflow@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform a Principal Component Analysis (PCA) on the 25 Big Five personality items (A1-A5, C1-C5, E1-E5, N1-N5, O1-O5) in the 'BFI25.csv' dataset to extract 5 components using Varimax rotation. Save the component scores as new variables and identify which component represents Neuroticism based on the loadings of items N1-N5. Determine the Pearson correlation between Age and this Neuroticism component. Save the Jamovi project to /home/ga/Documents/Jamovi/PCA_Workflow.omv and record the absolute value of the correlation coefficient in /home/ga/Documents/Jamovi/neuroticism_age_corr.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pca_score_extraction_workflow/setup_task.sh",
+    "post_task": "/workspace/tasks/pca_score_extraction_workflow/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/Documents/Jamovi/PCA_Workflow.omv",
+    "expected_report_path": "/home/ga/Documents/Jamovi/neuroticism_age_corr.txt",
+    "dataset_original_cols": 28,
+    "dataset_expected_cols": 33
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pca_workflow"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "traffic_sun_glare_investigation@1",
+  "task_completion": [
+    {
+      "id": "location_time_setup",
+      "description": "Verify that Stellarium is set to the correct location and time.",
+      "points": 20,
+      "visual_evidence": "Look for the Stellarium location window, date/time window, or the bottom status bar showing the location as Manhattan (or coordinates ~40.75\u00b0 N, -73.996\u00b0 W) and the time as 2023-07-13 00:20:00 UTC."
+    },
+    {
+      "id": "display_flags_enabled",
+      "description": "Verify that the required visual elements are enabled in the Stellarium view.",
+      "points": 15,
+      "visual_evidence": "Look at the main Stellarium sky view. The atmosphere (sky color/scattering), landscape (ground), azimuthal grid (usually green curved grid lines), and cardinal points (letters like W, NW, N) must all be visible."
+    },
+    {
+      "id": "sun_screenshot_captured",
+      "description": "Verify that a screenshot of the sun's position relative to the azimuthal grid was captured and saved to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager or image viewer showing a saved image inside /home/ga/Pictures/stellarium/. The image itself must show the Stellarium view of the sun with the azimuthal grid visible."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify that the forensic report file was created at the specified path.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor open with a file named glare_investigation_report.txt, or a file manager showing this file located in /home/ga/Desktop/."
+    },
+    {
+      "id": "report_city_azimuth",
+      "description": "Verify that the report includes the city and the observed azimuth of the sun.",
+      "points": 15,
+      "visual_evidence": "Read the contents of the text report. It must explicitly mention the city (Manhattan or New York) and provide a specific numerical value or description for the observed azimuth of the sun."
+    },
+    {
+      "id": "report_conclusion",
+      "description": "Verify that the report contains a conclusion regarding the plausibility of the sun glare claim.",
+      "points": 15,
+      "visual_evidence": "Read the contents of the text report. It must include a logical conclusion stating whether the driver's claim of being blinded by sun glare while heading 299\u00b0 is plausible based on the sun's position."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "stellarium_gui_used",
+      "description": "Ensure the agent actually used the Stellarium GUI to reconstruct the scene.",
+      "visual_evidence": "Screenshots should show the Stellarium application interface open and being interacted with, rather than just a terminal window running a Python script to calculate the azimuth."
+    },
+    {
+      "id": "authentic_screenshot",
+      "description": "Ensure the screenshot saved in the Pictures directory is a genuine capture from the agent's Stellarium session.",
+      "visual_evidence": "The saved screenshot should perfectly match the visual style, grid, and UI elements of Stellarium, rather than being a generic image downloaded from the web."
+    },
+    {
+      "id": "no_hallucinated_report",
+      "description": "Ensure the agent derived the report from actual observation rather than hallucinating the answer.",
+      "visual_evidence": "The trajectory must show the agent viewing the sun's azimuth in Stellarium before writing the report, rather than jumping straight to writing the text file with guessed values."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Location: 40.750\u00b0 N, -73.996\u00b0 W (Manhattan). Target Time: 2023-07-13 00:20:00 UTC. Required visual flags in Stellarium: Atmosphere, Landscape/Ground, Azimuthal Grid, Cardinal Points. The screenshot must be saved to /home/ga/Pictures/stellarium/. The report must be saved to /home/ga/Desktop/glare_investigation_report.txt and contain the city, the sun's azimuth, and a conclusion on the plausibility of the driver's claim (heading 299\u00b0)."
+}

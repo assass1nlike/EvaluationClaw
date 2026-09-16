@@ -1,0 +1,55 @@
+{
+  "id": "concert_stage_plot_technical_rider@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "As the Tour Manager for the band 'Neon Velvet', create a technical rider consisting of a Stage Plot and an Input List based on the requirements in ~/Desktop/neon_velvet_tech_spec.txt. The Stage Plot must visually represent the band's layout including drums, bass amp, vocal mics, monitor wedges, and power drops in their correct positions (Stage Right/Left, Upstage/Downstage). The Input List must be a table with columns for Channel Number, Instrument, and Microphone/Input Type. Include a Title Block with the band name and contact info. Save the diagram to ~/Diagrams/neon_velvet_rider.drawio and export the final result as a PDF to ~/Diagrams/neon_velvet_rider.pdf. Note: 'Stage Right' refers to the musician's right (facing the audience), which is the Audience's Left.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/concert_stage_plot_technical_rider/setup_task.sh",
+    "post_task": "/workspace/tasks/concert_stage_plot_technical_rider/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "neon_velvet_rider.drawio",
+    "expected_pdf": "neon_velvet_rider.pdf",
+    "required_text": [
+      "Neon Velvet",
+      "Drums",
+      "Bass",
+      "Guitar",
+      "Keys",
+      "Vocal",
+      "Monitor",
+      "SVT",
+      "Twin",
+      "Nord",
+      "Beta 52",
+      "SM57",
+      "SM58"
+    ],
+    "spatial_checks": [
+      {
+        "object": "Drums",
+        "reference": "Vocals",
+        "relationship": "above",
+        "description": "Drums must be Upstage (visually above) Vocals"
+      },
+      {
+        "object": "Keys",
+        "reference": "Guitar",
+        "relationship": "left_of",
+        "description": "Keys (Stage Right) must be to the left of Guitar (Stage Left)"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stage_plot"
+    }
+  }
+}

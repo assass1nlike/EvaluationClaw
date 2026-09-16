@@ -1,0 +1,59 @@
+{
+  "task_id": "pod_lifecycle_governance@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "The agent logged into Rancher at https://localhost.",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible in the web browser, indicating successful authentication with the provided credentials."
+    },
+    {
+      "id": "navigate_target_namespace",
+      "description": "The agent navigated to the 'local' cluster and accessed the 'core-system' namespace workloads.",
+      "points": 10,
+      "visual_evidence": "The Rancher UI shows the 'local' cluster is active, and the Deployments/Workloads list is filtered to show the 'core-system' namespace."
+    },
+    {
+      "id": "modify_public_api_draining",
+      "description": "The agent modified the 'public-api' deployment to implement connection draining.",
+      "points": 20,
+      "visual_evidence": "The Rancher edit screen or YAML view for the 'public-api' deployment shows a 'preStop' lifecycle hook added to the container (typically a sleep command)."
+    },
+    {
+      "id": "modify_report_generator_eviction",
+      "description": "The agent modified the 'report-generator' deployment to add autoscaler eviction protection.",
+      "points": 20,
+      "visual_evidence": "The Rancher edit screen or YAML view for the 'report-generator' deployment shows the annotation 'cluster-autoscaler.kubernetes.io/safe-to-evict: \"false\"' added to the pod template metadata."
+    },
+    {
+      "id": "modify_cache_node_grace_period",
+      "description": "The agent modified the 'cache-node' deployment to extend the termination grace period.",
+      "points": 20,
+      "visual_evidence": "The Rancher edit screen or YAML view for the 'cache-node' deployment shows the 'terminationGracePeriodSeconds' value increased from the default."
+    },
+    {
+      "id": "modify_cache_node_save_hook",
+      "description": "The agent modified the 'cache-node' deployment to include a manual save hook.",
+      "points": 20,
+      "visual_evidence": "The Rancher edit screen or YAML view for the 'cache-node' deployment shows a 'preStop' lifecycle hook configured to execute a save command before termination."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_gui",
+      "description": "The agent used the Rancher web interface to modify the deployments.",
+      "visual_evidence": "Screenshots show the agent interacting with the Rancher UI (forms or Rancher's built-in YAML editor) rather than exclusively using a terminal with 'kubectl' commands."
+    },
+    {
+      "id": "applied_changes",
+      "description": "The agent actually saved and applied the modifications to the cluster.",
+      "visual_evidence": "The Rancher UI shows the 'Save' button being clicked, or the deployments are seen transitioning states (e.g., 'Updating' or showing recent changes in the active view) after edits were made."
+    },
+    {
+      "id": "read_spec_file",
+      "description": "The agent opened and read the specification file to get the exact requirements.",
+      "visual_evidence": "A text editor, file viewer, or terminal is shown displaying the contents of '/home/ga/Desktop/lifecycle_spec.md'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'core-system'. Target deployments: 'public-api', 'report-generator', 'cache-node'. The specification file is located at '/home/ga/Desktop/lifecycle_spec.md'. The required modifications are: 1) Connection draining for 'public-api' (typically a preStop sleep hook), 2) Eviction protection for 'report-generator' (the 'cluster-autoscaler.kubernetes.io/safe-to-evict: \"false\"' annotation), 3) Extended termination grace period for 'cache-node' (terminationGracePeriodSeconds), and 4) Manual save hook for 'cache-node' (a preStop hook). The passing threshold requires at least 3 of these 4 modifications to be completed."
+}

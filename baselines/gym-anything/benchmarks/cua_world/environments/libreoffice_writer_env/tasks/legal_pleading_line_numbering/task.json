@@ -1,0 +1,40 @@
+{
+  "id": "legal_pleading_line_numbering@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Reformat the legal motion draft at /home/ga/Documents/motion_draft.docx to comply with California Superior Court filing rules (CRC Rule 2.108). The document must use Times New Roman 12pt font, double line spacing, a 1.5-inch left margin, and 1.0-inch top, bottom, and right margins. Enable continuous line numbering and add centered page numbers in the footer. Apply 'Heading 1' style to the major section headings: MEMORANDUM, STATEMENT OF FACTS, ARGUMENT, CONCLUSION, and DECLARATION. Save the compliant document as /home/ga/Documents/motion_formatted.docx without overwriting the original draft.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/legal_pleading_line_numbering/setup_task.sh",
+    "post_task": "/workspace/tasks/legal_pleading_line_numbering/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/motion_draft.docx",
+    "output_path": "/home/ga/Documents/motion_formatted.docx",
+    "required_font_names": [
+      "Times New Roman",
+      "Liberation Serif"
+    ],
+    "required_font_size_pt": 12,
+    "required_left_margin_inches": 1.5,
+    "required_other_margins_inches": 1.0,
+    "section_headings": [
+      "MEMORANDUM OF POINTS AND AUTHORITIES",
+      "STATEMENT OF FACTS",
+      "ARGUMENT",
+      "CONCLUSION",
+      "DECLARATION OF MARIA SANTOS"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_legal_pleading"
+    }
+  }
+}

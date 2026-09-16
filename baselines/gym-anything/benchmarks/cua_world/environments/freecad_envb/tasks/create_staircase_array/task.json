@@ -1,0 +1,35 @@
+{
+  "id": "create_staircase_array@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a 3D model of a concrete staircase with 10 steps in FreeCAD. Each step must have dimensions of 1000 mm (Width/X), 280 mm (Run/Depth/Y), and 180 mm (Rise/Height/Z), arranged in a continuous straight flight. The final model must be a single fused object or compound. Save the completed model to /home/ga/Documents/FreeCAD/staircase.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_staircase_array/setup_task.sh",
+    "post_task": "/workspace/tasks/create_staircase_array/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "staircase.FCStd",
+    "step_count": 10,
+    "single_step_vol": 50400000,
+    "total_vol": 504000000,
+    "tolerance_vol_percent": 5,
+    "expected_bbox": [
+      1000,
+      2800,
+      1800
+    ],
+    "tolerance_bbox_mm": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_staircase_array"
+    }
+  }
+}

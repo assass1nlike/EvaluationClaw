@@ -1,0 +1,31 @@
+{
+  "id": "transit_map_schematic_design@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a graphic designer for the city transit authority. Update the official metro system map in '~/Diagrams/metro_system_map.drawio' according to the expansion plan in '~/Desktop/silver_line_expansion_plan.txt' and the '~/Desktop/design_style_guide.txt'. Your update must remove the 'B1 Bus Route' (dashed grey line) and include the new 'Silver Line' path connecting Westside Terminal, Stadium, Central Plaza, and Airport using color #A0A0A0, 12pt width, and orthogonal/schematic edges (45/90 degree angles). The Silver Line must run parallel to the Red Line between Stadium and Central Plaza without overlapping. Additionally, convert 'Stadium' and 'Central Plaza' into Interchange Stations (Circle or Capsule shapes), add station ticks for 'Tech Hub' and 'Airport', rename 'Market St' station to 'Financial District', and add Wheelchair icons to 'Airport' and 'Central Plaza'. Export the final map as a PDF to '~/Diagrams/exports/metro_map_v2.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/transit_map_schematic_design/setup_task.sh",
+    "post_task": "/workspace/tasks/transit_map_schematic_design/export_result.sh"
+  },
+  "metadata": {
+    "diagram_path": "/home/ga/Diagrams/metro_system_map.drawio",
+    "export_path": "/home/ga/Diagrams/exports/metro_map_v2.pdf",
+    "silver_line_color": "#A0A0A0",
+    "silver_line_width": "12",
+    "renamed_station": "Financial District",
+    "old_station": "Market St",
+    "bus_route_label": "B1 Bus Route"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_transit_map_schematic_design"
+    }
+  }
+}

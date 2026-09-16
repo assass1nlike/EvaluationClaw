@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_document_image_registration@1",
+  "task_completion": [
+    {
+      "id": "edit_aligner_py",
+      "description": "Agent modifies pipeline/aligner.py to fix template matching or perspective transform bugs.",
+      "points": 20,
+      "visual_evidence": "Code editor open to pipeline/aligner.py showing changes to cv2.matchTemplate result extraction (e.g., switching between min_loc and max_loc) or correcting the spatial ordering of points for a perspective transform."
+    },
+    {
+      "id": "edit_preprocessor_py",
+      "description": "Agent modifies pipeline/preprocessor.py to fix color binarization or morphological kernel bugs.",
+      "points": 20,
+      "visual_evidence": "Code editor open to pipeline/preprocessor.py showing changes to color space conversions before binarization or swapping the width/height dimensions in a morphological kernel (e.g., cv2.getStructuringElement)."
+    },
+    {
+      "id": "edit_roi_extractor_py",
+      "description": "Agent modifies pipeline/roi_extractor.py to fix NumPy array slicing.",
+      "points": 20,
+      "visual_evidence": "Code editor open to pipeline/roi_extractor.py showing corrections to NumPy array slicing, specifically changing incorrect [x,y] coordinate slicing to the correct [y,x] (row, column) format for image cropping."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Agent runs the test suite to verify the pipeline fixes.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing the execution of a test command (e.g., pytest) targeting the document processor codebase."
+    },
+    {
+      "id": "test_suite_passes",
+      "description": "The test suite completes successfully, indicating all bugs are fixed.",
+      "points": 30,
+      "visual_evidence": "Terminal window showing the test suite finishing with a passing status (e.g., all tests green, 'passed' messages, or 100% completion without errors)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pipeline_edits",
+      "description": "Verify the agent actually fixed the logic in the pipeline files rather than hardcoding outputs.",
+      "visual_evidence": "The code editor shows genuine OpenCV and NumPy logic corrections, not functions rewritten to return static expected values or mock data."
+    },
+    {
+      "id": "unmodified_test_files",
+      "description": "Verify the agent did not modify the test suite to force a passing result.",
+      "visual_evidence": "There should be no evidence in the editor or terminal of the agent editing, deleting, or bypassing the actual test files (e.g., test_*.py)."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify the test suite was actually executed in the terminal.",
+      "visual_evidence": "The terminal output should display standard test runner formatting (like pytest's collected items, progress percentages, or standard Python unittest output) rather than a simple 'echo' command printing a fake success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in an OpenCV pipeline across three files: pipeline/aligner.py, pipeline/preprocessor.py, and pipeline/roi_extractor.py. The bugs involve: 1) incorrect cv2.matchTemplate max/min localization, 2) inverted spatial point ordering for perspective transform, 3) incorrect color space for binarization, 4) inverted morphological kernel dimensions, and 5) incorrect [x,y] vs [y,x] NumPy array slicing. The pass threshold is 60. The data processed is synthetic."
+}

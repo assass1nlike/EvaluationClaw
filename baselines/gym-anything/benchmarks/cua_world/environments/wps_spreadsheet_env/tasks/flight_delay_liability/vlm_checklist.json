@@ -1,0 +1,59 @@
+{
+  "task_id": "flight_delay_liability@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the flight_data.xlsx file in WPS Spreadsheet",
+      "points": 10,
+      "visual_evidence": "WPS Spreadsheet application is open with 'flight_data.xlsx' visible in the title bar or tab."
+    },
+    {
+      "id": "status_column_created",
+      "description": "Create and populate the 'Status' column in the 'Flights' sheet",
+      "points": 15,
+      "visual_evidence": "Column J in the 'Flights' sheet has the header 'Status' and contains text values such as 'Normal', 'Severely Delayed', or 'Cancelled'."
+    },
+    {
+      "id": "payout_column_created",
+      "description": "Create and populate the 'Payout' column in the 'Flights' sheet",
+      "points": 20,
+      "visual_evidence": "Column K in the 'Flights' sheet has the header 'Payout' and contains numeric values (0, 250, 500, or 600)."
+    },
+    {
+      "id": "summary_sheet_and_headers",
+      "description": "Create the 'Liability Summary' sheet with correct headers",
+      "points": 15,
+      "visual_evidence": "A new sheet named 'Liability Summary' is visible at the bottom. Cells A1 to E1 contain the headers: 'Airline', 'Total Flights', 'Severely Delayed', 'Total Payout', and 'Avg Payout Per Flight'."
+    },
+    {
+      "id": "summary_table_populated",
+      "description": "Populate the summary table for the target airlines",
+      "points": 25,
+      "visual_evidence": "The 'Liability Summary' sheet contains rows for airlines AA, DL, UA, WN, and B6. The columns next to them are populated with calculated numbers (e.g., AA should show 1478 for Total Flights)."
+    },
+    {
+      "id": "currency_formatting",
+      "description": "Format payout columns as Currency ($)",
+      "points": 15,
+      "visual_evidence": "The values in the 'Total Payout' and 'Avg Payout Per Flight' columns on the 'Liability Summary' sheet are formatted with a dollar sign ($) (e.g., $91,800.00, $62.11)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wps_gui",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with the WPS Spreadsheet interface (menus, formula bar, cell selection) rather than a terminal window running a Python/Pandas script."
+    },
+    {
+      "id": "no_hardcoded_python_script",
+      "description": "The agent did not use a terminal script to bypass the spreadsheet application",
+      "visual_evidence": "No terminal windows are visible executing scripts like 'python solve.py' or using tools like 'openpyxl' to modify the file directly."
+    },
+    {
+      "id": "genuine_data_manipulation",
+      "description": "The agent genuinely calculated the values rather than typing in hardcoded answers",
+      "visual_evidence": "The formula bar in WPS Spreadsheet shows Excel formulas (e.g., IF, SUMIFS, COUNTIFS, AVERAGEIFS) being used, or pivot tables being created, rather than just raw typed numbers in the summary sheet."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /home/ga/Documents/flight_data.xlsx. The target airlines are AA, DL, UA, WN, and B6. Correct summary values to look for in the 'Liability Summary' sheet: AA (1478 flights, $91800 payout, $62.11 avg), DL (1422 flights, $94050 payout, $66.14 avg), UA (1448 flights, $86650 payout, $59.84 avg), WN (1431 flights, $86900 payout, $60.73 avg), and B6 (1367 flights, $85400 payout, $62.47 avg)."
+}

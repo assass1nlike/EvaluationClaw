@@ -1,0 +1,59 @@
+{
+  "task_id": "public_health_db_optimization@1",
+  "task_completion": [
+    {
+      "id": "add_virtual_column",
+      "description": "Add the INSPECTION_YEAR virtual column to the FOOD_INSPECTIONS table",
+      "points": 10,
+      "visual_evidence": "Screenshots should show a SQL client (e.g., DBeaver, sqlplus) executing an ALTER TABLE command to add INSPECTION_YEAR as a virtual column using EXTRACT(YEAR FROM inspection_date), or the column appearing in the table's schema definition."
+    },
+    {
+      "id": "create_fbi_index",
+      "description": "Create the IDX_FBI_DBA function-based index",
+      "points": 10,
+      "visual_evidence": "Screenshots should show the execution of a CREATE INDEX command for IDX_FBI_DBA on UPPER(dba_name), or the index listed in the database schema viewer."
+    },
+    {
+      "id": "create_mv_and_log",
+      "description": "Create a Materialized View Log and the MV_ZIP_STATS fast-refresh materialized view",
+      "points": 20,
+      "visual_evidence": "Look for SQL commands creating a MATERIALIZED VIEW LOG ON FOOD_INSPECTIONS (including ROWID, SEQUENCE, zip_code, results) and a CREATE MATERIALIZED VIEW MV_ZIP_STATS command with REFRESH FAST ON DEMAND."
+    },
+    {
+      "id": "create_pest_view",
+      "description": "Create the PEST_VIOLATIONS_VW view using REGEXP_LIKE",
+      "points": 20,
+      "visual_evidence": "Look for a CREATE VIEW PEST_VIOLATIONS_VW statement. The query must include a WHERE clause filtering for results = 'Fail' and using REGEXP_LIKE on the violations column for the specified pest keywords (roach, mice, rodent, rat, droppings)."
+    },
+    {
+      "id": "create_chronic_view",
+      "description": "Create the CHRONIC_FAILURES_VW view using analytical window functions",
+      "points": 20,
+      "visual_evidence": "Look for a CREATE VIEW CHRONIC_FAILURES_VW statement. The query must use an analytical window function (e.g., COUNT(...) OVER (... RANGE BETWEEN 365 PRECEDING AND CURRENT ROW)) to identify facilities with 3 or more failures in a 365-day window."
+    },
+    {
+      "id": "export_chronic_csv",
+      "description": "Export the results of CHRONIC_FAILURES_VW to a CSV file",
+      "points": 20,
+      "visual_evidence": "Screenshots should show a database client export wizard, a spool command, or a terminal confirming the creation/saving of the file at /home/ga/Documents/exports/chronic_offenders.csv."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Agent interacted with a genuine database client",
+      "visual_evidence": "The agent should be using a real SQL client (like DBeaver, SQL Developer, or terminal sqlplus) to execute the commands, not just typing SQL into a text editor without running it."
+    },
+    {
+      "id": "dynamic_sql_logic",
+      "description": "Agent used proper SQL logic instead of hardcoding answers",
+      "visual_evidence": "The views must be created using the requested SQL functions (REGEXP_LIKE, window functions) rather than manually filtering specific IDs or hardcoding the output rows."
+    },
+    {
+      "id": "authentic_export",
+      "description": "CSV export was generated from the database",
+      "visual_evidence": "The CSV file should be the result of a query export from the database client or a script, not manually typed or copy-pasted into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV output path is exactly /home/ga/Documents/exports/chronic_offenders.csv. The task requires specific Oracle features: Virtual Columns, Function-Based Indexes, Materialized View Logs, Fast Refresh MVs, REGEXP_LIKE on CLOB, and Window Functions with RANGE BETWEEN (for the 365-day lookback). Ensure the SQL commands executed reflect these specific features."
+}

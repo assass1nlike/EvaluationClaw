@@ -1,0 +1,29 @@
+{
+  "id": "configure_email_settings@1",
+  "version": "1.0",
+  "env_id": "manageengine_adaudit_plus_env@0.1",
+  "description": "Log in to ManageEngine ADAudit Plus using username 'admin' and password 'Admin@2024'. Configure the email notification settings with SMTP Server 'smtp.company.local', Port '587', Security Type 'TLS', From Address 'adaudit-alerts@company.local', and Admin Email 'admin@company.local'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_email_settings\\setup_task.ps1",
+    "pre_task_timeout": 900
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_email_settings"
+    }
+  },
+  "metadata": {
+    "smtp_server": "smtp.company.local",
+    "smtp_port": "587",
+    "security_type": "TLS",
+    "from_address": "adaudit-alerts@company.local",
+    "admin_email": "admin@company.local"
+  }
+}

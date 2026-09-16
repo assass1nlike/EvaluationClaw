@@ -1,0 +1,28 @@
+{
+  "id": "merge_duplicate_tickets@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "Merge the three duplicate support tickets from 'Alice Chen' regarding 'Order #8821' into a single conversation. The customer sent three separate emails which are currently distinct conversations in the Support mailbox. Ensure the final consolidated ticket contains the history of all three messages.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_duplicate_tickets/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_duplicate_tickets/export_result.sh"
+  },
+  "metadata": {
+    "customer_email": "alice.chen@example.org",
+    "target_text_1": "checking on my shipment",
+    "target_text_2": "wrong zip code",
+    "target_text_3": "apartment number 4B"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_duplicate_tickets"
+    }
+  }
+}

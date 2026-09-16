@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_webhook_integration@1",
+  "task_completion": [
+    {
+      "id": "profile_name_configured",
+      "description": "Verify the Webhook Profile name is set correctly.",
+      "points": 15,
+      "visual_evidence": "Look for a text input field for the profile name in the ADAudit Plus Webhook configuration screen containing exactly 'SOAR_Integration'."
+    },
+    {
+      "id": "method_and_url_configured",
+      "description": "Verify the HTTP Method and Webhook URL are configured.",
+      "points": 20,
+      "visual_evidence": "Look for a dropdown or selection indicating the Method is 'POST' and a URL input field containing 'https://soar-api.corp.local/v1/ingest/adaudit'."
+    },
+    {
+      "id": "header_configured",
+      "description": "Verify the custom header is added with the correct key and value.",
+      "points": 20,
+      "visual_evidence": "Look for a Headers section in the configuration form showing a Key of 'x-api-key' and a Value of 'sk-9982-secure-token'."
+    },
+    {
+      "id": "data_type_json",
+      "description": "Verify the Data Type is set to JSON.",
+      "points": 10,
+      "visual_evidence": "Look for a Data Type or Content-Type selection field in the form that is set to 'JSON'."
+    },
+    {
+      "id": "payload_configured",
+      "description": "Verify the JSON payload body contains the required keys and macro variables.",
+      "points": 35,
+      "visual_evidence": "Look at the Payload/Body text area. It must contain a JSON object with the keys 'source', 'alert', 'user', 'severity', and 'message'. The values should correspond to ADAudit Plus macros (e.g., %ALERT_NAME%, %USER_NAME%, etc.)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "Verify the agent used the ADAudit Plus web interface to configure the webhook.",
+      "visual_evidence": "The screenshots should show a web browser navigating the ADAudit Plus graphical user interface, not a terminal window executing curl commands or API scripts."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent is interacting with the actual ADAudit Plus application.",
+      "visual_evidence": "The interface should display standard ADAudit Plus branding, menus, and layout, rather than a generic text editor or a mocked HTML page."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Verify the agent didn't just type the configuration into a notepad or text editor.",
+      "visual_evidence": "The configuration details must be entered into the specific input fields of the ADAudit Plus Webhook configuration form, not written as plain text in a separate application."
+    }
+  ],
+  "privileged_info_for_vlm": "Profile Name: 'SOAR_Integration'. Webhook URL: 'https://soar-api.corp.local/v1/ingest/adaudit'. Header Key: 'x-api-key'. Header Value (API Key): 'sk-9982-secure-token'. JSON Payload Keys: 'source', 'alert', 'user', 'severity', 'message'."
+}

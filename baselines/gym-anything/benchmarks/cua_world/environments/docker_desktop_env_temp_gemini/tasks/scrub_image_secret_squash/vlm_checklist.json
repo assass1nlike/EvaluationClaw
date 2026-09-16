@@ -1,0 +1,53 @@
+{
+  "task_id": "scrub_image_secret_squash@1",
+  "task_completion": [
+    {
+      "id": "inspect_unsafe_image",
+      "description": "Agent inspects the unsafe image to identify the secret or its layer history.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing commands like 'docker history legacy-app:unsafe', 'docker inspect legacy-app:unsafe', or a tool like 'dive' being used to examine the image layers."
+    },
+    {
+      "id": "flatten_or_rebuild_image",
+      "description": "Agent uses a method to flatten the image or extract its filesystem to eliminate the layer history containing the secret.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing commands like 'docker run' followed by 'docker export', the use of 'docker-squash', or a multi-stage Dockerfile using 'COPY --from=...' to squash layers."
+    },
+    {
+      "id": "preserve_metadata",
+      "description": "Agent explicitly preserves or re-applies the required metadata (ENV, EXPOSE, CMD) for the new image.",
+      "points": 20,
+      "visual_evidence": "A Dockerfile containing 'ENV APP_COLOR=blue' and 'EXPOSE 5000', or terminal commands using 'docker import --change' with these specific ENV and EXPOSE instructions."
+    },
+    {
+      "id": "create_safe_image",
+      "description": "Agent successfully creates the new image with the correct target name.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing 'docker build -t legacy-app:safe', 'docker import ... legacy-app:safe', or 'docker images' displaying the newly created 'legacy-app:safe' repository."
+    },
+    {
+      "id": "verify_clean_history",
+      "description": "Agent verifies that the new safe image does not contain the secret in its history.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing 'docker history legacy-app:safe' with a squashed/clean history, or a search/grep for 'AKIA_TEST_SECRET_DO_NOT_USE' on the new image that yields no results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_commands",
+      "description": "Agent actually executed Docker commands rather than just printing text to the terminal.",
+      "visual_evidence": "Look for standard Docker CLI output formats, build steps, and daemon responses rather than simple 'echo' commands."
+    },
+    {
+      "id": "no_simple_retagging",
+      "description": "Agent did not simply retag the unsafe image as the safe image without modifying the layers.",
+      "visual_evidence": "Ensure 'docker tag legacy-app:unsafe legacy-app:safe' was not the only action taken. The Image IDs for unsafe and safe images should be different in 'docker images' output."
+    },
+    {
+      "id": "application_code_preserved",
+      "description": "Agent did not create an empty image just to satisfy the secret removal requirement.",
+      "visual_evidence": "The build process or export/import process should clearly show the original filesystem being transferred, not just a 'FROM scratch' Dockerfile with no application files added."
+    }
+  ],
+  "privileged_info_for_vlm": "The unsafe image is 'legacy-app:unsafe'. The target safe image must be named 'legacy-app:safe'. The secret string to be removed from the history is 'AKIA_TEST_SECRET_DO_NOT_USE'. The new image must preserve the environment variable 'APP_COLOR=blue' and expose port '5000'."
+}

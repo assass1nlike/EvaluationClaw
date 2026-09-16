@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_vip_migration@1",
+  "task_completion": [
+    {
+      "id": "create_vip_profiles_class",
+      "description": "Verify the creation of the 'VIPProfiles' class extending 'Profiles'.",
+      "points": 10,
+      "visual_evidence": "Look for the OrientDB Studio Schema tab or a query result showing 'VIPProfiles' in the list of classes, with 'Profiles' listed as its SuperClass."
+    },
+    {
+      "id": "create_managers_and_edges_classes",
+      "description": "Verify the creation of the 'Managers' vertex class and 'ManagedBy' edge class.",
+      "points": 10,
+      "visual_evidence": "Look for the OrientDB Studio Schema tab or query results showing 'Managers' (with SuperClass 'V' or Vertex) and 'ManagedBy' (with SuperClass 'E' or Edge)."
+    },
+    {
+      "id": "create_manager_vertex",
+      "description": "Verify the creation of the manager vertex named 'Akira Kurosawa'.",
+      "points": 15,
+      "visual_evidence": "Look for a query result (e.g., in the Browse tab) or a Graph node showing a record in the 'Managers' class with the property Name (or similar) set to 'Akira Kurosawa'."
+    },
+    {
+      "id": "migrate_japanese_profiles",
+      "description": "Verify that the Japanese profiles have been migrated to the 'VIPProfiles' class.",
+      "points": 30,
+      "visual_evidence": "Look for a query result (e.g., 'SELECT FROM VIPProfiles') showing the profiles for Yuki Tanaka and Kai Yamamoto, or showing records with Nationality='Japanese' belonging to the '@class': 'VIPProfiles'."
+    },
+    {
+      "id": "link_profiles_to_manager",
+      "description": "Verify that the VIP profiles are linked to the manager using 'ManagedBy' edges.",
+      "points": 35,
+      "visual_evidence": "Look for the OrientDB Graph tab showing visual arrows (edges) labeled 'ManagedBy' connecting the VIP profile nodes (Yuki Tanaka, Kai Yamamoto) to the 'Akira Kurosawa' manager node, or query results showing 'out_ManagedBy' / 'in_ManagedBy' properties linking their Record IDs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_db_interaction",
+      "description": "Verify the agent interacted with the OrientDB database interface.",
+      "visual_evidence": "The screenshots should show the OrientDB Studio web interface (usually on port 2480) or the OrientDB console terminal, rather than just a text editor with unexecuted SQL commands."
+    },
+    {
+      "id": "no_mocked_results",
+      "description": "Verify the results are genuine database outputs.",
+      "visual_evidence": "Query results should appear in the standard OrientDB Studio tabular/JSON format or Graph visualization, not as manually typed text in a markdown file or terminal echo."
+    },
+    {
+      "id": "genuine_graph_connections",
+      "description": "Verify edges were created properly as graph elements, not just text properties.",
+      "visual_evidence": "The 'ManagedBy' relationship should be visible as an actual Edge class (e.g., in the Graph view or via standard edge properties like in_/out_), not just a string field named 'ManagedBy' added to the vertex."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains exactly two profiles with Nationality='Japanese': Yuki Tanaka and Kai Yamamoto. The target schema requires three new classes: 'VIPProfiles' (extends 'Profiles'), 'Managers' (extends 'V' or Vertex), and 'ManagedBy' (extends 'E' or Edge). The manager vertex must have the name 'Akira Kurosawa'. The final state should show Yuki Tanaka and Kai Yamamoto as records of the 'VIPProfiles' class, connected via 'ManagedBy' edges to the 'Akira Kurosawa' 'Managers' vertex."
+}

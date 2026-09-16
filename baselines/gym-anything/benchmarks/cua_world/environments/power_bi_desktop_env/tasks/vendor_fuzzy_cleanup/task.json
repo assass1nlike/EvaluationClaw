@@ -1,0 +1,33 @@
+{
+  "id": "vendor_fuzzy_cleanup@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a procurement analyst consolidating messy invoice data from C:\\Users\\Docker\\Desktop\\PowerBITasks\\invoices_messy.csv by mapping inconsistent vendor names to the official list in C:\\Users\\Docker\\Desktop\\PowerBITasks\\vendor_master.csv using fuzzy matching. Extract the Vendor_Canonical and Category columns and create a DAX measure named Spend_Share_Pct that calculates the percentage of total spend for each vendor. Produce a table visual displaying Vendor_Canonical, Category, Amount, and Spend_Share_Pct. Export the visual data to C:\\Users\\Docker\\Desktop\\consolidated_spend.csv and save the Power BI report as C:\\Users\\Docker\\Desktop\\Vendor_Spend_Analysis.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\vendor_fuzzy_cleanup\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\vendor_fuzzy_cleanup\\export_result.ps1"
+  },
+  "metadata": {
+    "ground_truth": {
+      "TechSource Solutions": 2500,
+      "Global Logistics Inc": 2500,
+      "Apex Office Supplies": 1000,
+      "BrightStar Energy": 2000,
+      "Omega Marketing Group": 4000
+    },
+    "output_csv": "C:\\Users\\Docker\\Desktop\\consolidated_spend.csv",
+    "output_pbix": "C:\\Users\\Docker\\Desktop\\Vendor_Spend_Analysis.pbix"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vendor_fuzzy_cleanup"
+    }
+  }
+}

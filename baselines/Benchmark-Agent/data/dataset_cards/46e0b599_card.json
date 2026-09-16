@@ -1,0 +1,79 @@
+{
+  "dataset_id": "46e0b599",
+  "name": "Vehicle Instance Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image",
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Vehicle Instance Segmentation dataset pairs urban street scene images with ground-truth instance segmentation maps for vehicles. It evaluates a model's ability to segment vehicle instances in images conditioned on a natural language instruction.",
+  "card_text": "This dataset is derived from Cityscapes-style urban driving scenes. Each sample pairs a left color image (input.image_file) with a text prompt (input.prompt) instructing the model to perform instance segmentation on vehicles. The target is a ground-truth instance ID map (output.map_file) where each vehicle instance is uniquely labeled. Images are complex street scenes with multiple vehicles, pedestrians, and background elements. The prompt is a short, invariant imperative sentence. The dataset assumes the model can interpret the visual scene and produce pixel-level instance masks. It is suitable for evaluating instance segmentation capabilities in autonomous driving contexts.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "autonomous driving",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short imperative instruction that asks the model to perform instance segmentation on vehicles in the associated image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "A reference to an urban street scene image (Cityscapes left 8-bit color image) containing vehicles and other traffic participants. It serves as the visual input the model must segment.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "A reference to the ground-truth instance segmentation mask image where each vehicle instance is assigned a unique ID, providing the pixel-level target for the vehicle instance segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image file path and a text prompt, and an output object with an instance segmentation map file path. The image is an urban street scene, the prompt is a fixed instruction to segment vehicles, and the output map contains ground-truth instance IDs for vehicles."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/vehicle_instance_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "vehicle instance segmentation",
+      "type": "comprehension",
+      "skill": "Image Instance Segmentation(Img Inst Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

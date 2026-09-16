@@ -1,0 +1,31 @@
+{
+  "id": "image_performance_cls_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform an image performance and Core Web Vitals audit on https://crawler-test.com/ using Screaming Frog SEO Spider. Identify images that cause Cumulative Layout Shift (CLS) due to missing size attributes and export them to ~/Documents/SEO/exports/missing_dimensions.csv. Identify heavy images impacting load time (over 100kb, or the largest images over 50kb if none exceed 100kb) and export them to ~/Documents/SEO/exports/heavy_images.csv. Create a summary report at ~/Documents/SEO/reports/image_optimization_report.txt including issue counts and recommended fixes such as adding width and height attributes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/image_performance_cls_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/image_performance_cls_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "report_dir": "/home/ga/Documents/SEO/reports",
+    "missing_dimensions_file": "missing_dimensions.csv",
+    "heavy_images_file": "heavy_images.csv",
+    "report_file": "image_optimization_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_image_performance_audit"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "hl7_to_html_bed_card_db_lookup@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel 'Bed_Card_Generator' is created in Mirth Connect.",
+      "points": 10,
+      "visual_evidence": "The Mirth Connect Administrator dashboard shows a channel named 'Bed_Card_Generator' in the channels list."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the source connector is configured to listen on the correct port.",
+      "points": 15,
+      "visual_evidence": "The Source connector settings show 'TCP Listener' selected with the port set to '6661'."
+    },
+    {
+      "id": "db_lookup_configured",
+      "description": "Verify the database lookup is configured for PostgreSQL.",
+      "points": 25,
+      "visual_evidence": "A transformer step or script shows a database connection to 'jdbc:postgresql://nextgen-postgres:5432/mirthdb' and a SQL query selecting from the 'doctors' table."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the destination connector is configured to write HTML files to the correct directory.",
+      "points": 20,
+      "visual_evidence": "The Destination connector is set to 'File Writer', the directory is '/home/ga/bed_cards/', the file name pattern includes variables for Last Name and MRN ending in '.html', and the template contains HTML tags."
+    },
+    {
+      "id": "output_verified",
+      "description": "Verify the generated HTML bed card contains the required information.",
+      "points": 30,
+      "visual_evidence": "A terminal or file viewer shows the contents of an HTML file in '/home/ga/bed_cards/' containing the Patient Name, MRN, DOB, and the Attending Doctor's Full Name (e.g., 'Dr. Lisa Cuddy' or 'On Call')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "mirth_gui_used",
+      "description": "Verify the agent used the Mirth Connect Administrator GUI to configure the channel.",
+      "visual_evidence": "Screenshots show interaction with the Mirth Connect Java application interface, not just editing XML files in a text editor."
+    },
+    {
+      "id": "no_hardcoded_doctor",
+      "description": "Verify the agent did not hardcode the doctor's name to bypass the database lookup.",
+      "visual_evidence": "The script or transformer does not contain hardcoded strings like 'Dr. Lisa Cuddy' as the primary output without a database query."
+    },
+    {
+      "id": "no_manual_html",
+      "description": "Verify the HTML output file was not manually created.",
+      "visual_evidence": "The HTML file appears as a result of channel processing (e.g., checking the directory after sending a message), not open in a text editor being manually typed."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel must be named 'Bed_Card_Generator' and listen on TCP port 6661. The database connection is 'jdbc:postgresql://nextgen-postgres:5432/mirthdb' querying the 'doctors' table. The output directory is '/home/ga/bed_cards/'. If the agent tests the channel with the provided test data, the output file should be named 'TESTPATIENT_MRN99999.html' and contain the doctor name 'Dr. Lisa Cuddy' (mapped from ID 'DOC202')."
+}

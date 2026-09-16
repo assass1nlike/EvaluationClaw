@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_large_artifacts@1",
+  "task_completion": [
+    {
+      "id": "view_repository",
+      "description": "Agent navigates to the 'example-repo-local' repository.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the JFrog Artifactory UI (or similar repository manager) with the 'example-repo-local' repository selected or visible in the artifact tree, or a terminal showing an API query to this specific repository."
+    },
+    {
+      "id": "inspect_artifact_sizes",
+      "description": "Agent checks the file sizes of the artifacts in the repository.",
+      "points": 20,
+      "visual_evidence": "The artifact details panel, list view in the UI, or terminal output showing the file sizes of the artifacts (e.g., showing apache-tomcat-9.0.85.tar.gz is > 5 MB)."
+    },
+    {
+      "id": "open_output_file",
+      "description": "Agent opens or creates the required output text file.",
+      "points": 20,
+      "visual_evidence": "A text editor (like gedit, nano, vim) or terminal command (like cat or echo) explicitly targeting the file path '/home/ga/large_artifacts.txt'."
+    },
+    {
+      "id": "write_correct_artifact",
+      "description": "Agent writes the correct large artifact filename to the text file.",
+      "points": 30,
+      "visual_evidence": "The exact string 'apache-tomcat-9.0.85.tar.gz' is visible inside the text editor or being written via terminal command to the output file."
+    },
+    {
+      "id": "exclude_small_artifacts",
+      "description": "Agent excludes artifacts that are under the 5 MB threshold.",
+      "points": 20,
+      "visual_evidence": "The text file contents are visible and DO NOT contain 'commons-lang3-3.14.0.jar' or any other artifacts smaller than 5 MB."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_repo_inspection",
+      "description": "Agent genuinely inspected the repository to find the file sizes rather than guessing or using prior knowledge.",
+      "visual_evidence": "Screenshots must show the agent actively viewing the artifact sizes in the Artifactory UI or querying the repository API/CLI before writing the final answer."
+    },
+    {
+      "id": "exact_file_path",
+      "description": "Agent created the file at the exact requested absolute path.",
+      "visual_evidence": "The text editor's title bar, save dialog, or terminal command must clearly show the absolute path '/home/ga/large_artifacts.txt', not just a relative 'large_artifacts.txt' in an unknown directory."
+    },
+    {
+      "id": "strict_file_formatting",
+      "description": "The output file contains only the requested filenames without extra text.",
+      "visual_evidence": "The text file contains exactly one filename per line and does not include conversational text, markdown formatting, or explanations."
+    }
+  ],
+  "privileged_info_for_vlm": "The target repository is 'example-repo-local'. The size threshold is 5 MB (5,242,880 bytes). The only artifact exceeding this threshold is 'apache-tomcat-9.0.85.tar.gz' (~11.8 MB). The artifact 'commons-lang3-3.14.0.jar' is approximately 643 KB and must NOT be included. The output file must be exactly at '/home/ga/large_artifacts.txt'."
+}

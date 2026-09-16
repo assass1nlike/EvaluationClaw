@@ -1,0 +1,59 @@
+{
+  "task_id": "reorganize_packages@1",
+  "task_completion": [
+    {
+      "id": "model_package_files",
+      "description": "Verify that Book, Member, and Loan classes are moved to the model package.",
+      "points": 15,
+      "visual_evidence": "In the IDE project explorer or terminal tree, 'Book.java', 'Member.java', and 'Loan.java' are located under 'src/main/java/com/library/model'."
+    },
+    {
+      "id": "service_package_files",
+      "description": "Verify that LibraryService and SearchService classes are moved to the service package.",
+      "points": 10,
+      "visual_evidence": "In the IDE project explorer or terminal tree, 'LibraryService.java' and 'SearchService.java' are located under 'src/main/java/com/library/service'."
+    },
+    {
+      "id": "util_package_files",
+      "description": "Verify that DateUtils and ValidationUtils classes are moved to the util package.",
+      "points": 10,
+      "visual_evidence": "In the IDE project explorer or terminal tree, 'DateUtils.java' and 'ValidationUtils.java' are located under 'src/main/java/com/library/util'."
+    },
+    {
+      "id": "app_package_files",
+      "description": "Verify that LibraryApp class remains in the app package.",
+      "points": 5,
+      "visual_evidence": "In the IDE project explorer or terminal tree, 'LibraryApp.java' is the only Java file located under 'src/main/java/com/library/app'."
+    },
+    {
+      "id": "code_correctness_imports",
+      "description": "Verify that package declarations and import statements have been updated to reflect the new structure.",
+      "points": 30,
+      "visual_evidence": "Open editor tabs show updated 'package com.library.[name];' at the top of the files, and appropriate 'import com.library.[name].[Class];' statements are visible (e.g., LibraryApp importing LibraryService, or LibraryService importing Book/Member)."
+    },
+    {
+      "id": "maven_build_success",
+      "description": "Verify that the project compiles and builds successfully using Maven.",
+      "points": 30,
+      "visual_evidence": "A terminal or IDE build tool window shows the execution of 'mvn compile' or 'mvn clean compile' with a 'BUILD SUCCESS' message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_duplicate_files",
+      "description": "Ensure files were moved, not just copied, leaving duplicates behind.",
+      "visual_evidence": "The original 'com.library.app' package directory should only contain 'LibraryApp.java'. The other 7 files should no longer be present there."
+    },
+    {
+      "id": "genuine_maven_build",
+      "description": "Ensure the Maven build output is genuine and not just a printed text echo.",
+      "visual_evidence": "The terminal or build window should show standard Maven execution logs (e.g., scanning for projects, compiler plugin execution) leading up to the 'BUILD SUCCESS' message."
+    },
+    {
+      "id": "actual_code_modification",
+      "description": "Ensure the agent actually modified the code files in an editor or via valid terminal commands (like sed).",
+      "visual_evidence": "Visible IDE editor tabs with syntax highlighting showing the modified Java code, or terminal history showing legitimate file editing commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Project Directory: /home/ga/IdeaProjects/library-system. The project is a Java 17 Maven project. Expected file distribution (8 files total): 'com.library.model' contains Book.java, Member.java, Loan.java. 'com.library.service' contains LibraryService.java, SearchService.java. 'com.library.util' contains DateUtils.java, ValidationUtils.java. 'com.library.app' contains LibraryApp.java. All files originally started in 'com.library.app'. Moving them requires updating their 'package' declarations and adding necessary 'import' statements so the project can compile. A successful 'mvn compile' or 'mvn clean compile' is required for the build success points."
+}

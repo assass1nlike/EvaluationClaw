@@ -1,0 +1,30 @@
+{
+  "id": "configure_mask_surface_properties@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "The CT Cranium DICOM scan is loaded in InVesalius 3. Your goal is to create a specific 3D reconstruction project with organized metadata. Create a bone segmentation mask named 'Cranial Bone' and generate a 3D surface from it named 'Skull_Model' with the color set to Red. Save the project to '/home/ga/Documents/organized_project.inv3'. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_mask_surface_properties/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_mask_surface_properties/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/organized_project.inv3",
+    "expected_mask_name": "Cranial Bone",
+    "expected_surface_name": "Skull_Model",
+    "expected_color": "red",
+    "min_bone_hu": 150,
+    "max_bone_hu": 1000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_mask_surface_properties"
+    }
+  }
+}

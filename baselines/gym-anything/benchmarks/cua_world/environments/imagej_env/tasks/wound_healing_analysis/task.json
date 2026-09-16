@@ -1,0 +1,38 @@
+{
+  "id": "wound_healing_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Wound Healing (Scratch) Assay Analysis",
+  "description": "Analyze the phase-contrast scratch assay image located at '~/ImageJ_Data/raw/scratch_assay.tif', which shows a cell monolayer with a smooth, cell-free gap (wound). Segment the wound from the textured cell region to create a binary mask where the wound is white (255) and the cells are black (0). Save the mask to '~/ImageJ_Data/results/wound_mask.tif'. Measure the area of the wound and save the results table to '~/ImageJ_Data/results/wound_results.csv'.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "segmentation",
+    "filters",
+    "morphology",
+    "measurement",
+    "biology"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wound_healing_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/wound_healing_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "/home/ga/ImageJ_Data/raw/scratch_assay.tif",
+    "output_mask": "/home/ga/ImageJ_Data/results/wound_mask.tif",
+    "output_csv": "/home/ga/ImageJ_Data/results/wound_results.csv",
+    "data_source": "BBBC030 (Broad Bioimage Benchmark Collection)",
+    "texture_ratio_threshold": 1.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wound_healing"
+    }
+  }
+}

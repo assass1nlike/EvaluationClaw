@@ -1,0 +1,51 @@
+{
+  "id": "aviation_iap_profile_view@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create a standard aviation Instrument Approach Procedure (IAP) 'Profile View' diagram for the KSFO (San Francisco Intl) ILS RWY 28R approach using the data provided in '~/Desktop/iap_data.txt'. The diagram must include a schematic side-view of the approach path with fixes ARCHI, DUMBA, and RWY 28R plotted at correct relative vertical positions. The path should show a level flight segment from ARCHI to DUMBA and a descending glideslope from DUMBA to the runway. Label fixes with their names and underlined mandatory altitudes. Include a dashed upward-curving arrow for the Missed Approach and the ILS frequency '111.7' in a box. Save the source file to '~/Diagrams/ksfo_ils_28r_profile.drawio' and export the final diagram as a PDF to '~/Diagrams/ksfo_ils_28r_profile.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/aviation_iap_profile_view/setup_task.sh",
+    "post_task": "/workspace/tasks/aviation_iap_profile_view/export_result.sh"
+  },
+  "metadata": {
+    "data_file": "/home/ga/Desktop/iap_data.txt",
+    "expected_drawio": "/home/ga/Diagrams/ksfo_ils_28r_profile.drawio",
+    "expected_pdf": "/home/ga/Diagrams/ksfo_ils_28r_profile.pdf",
+    "fixes": [
+      {
+        "name": "ARCHI",
+        "alt": 4000,
+        "role": "IF"
+      },
+      {
+        "name": "DUMBA",
+        "alt": 1800,
+        "role": "FAF"
+      },
+      {
+        "name": "RWY",
+        "alt": 13,
+        "role": "MAP"
+      }
+    ],
+    "required_text": [
+      "ARCHI",
+      "DUMBA",
+      "4000",
+      "1800",
+      "111.7"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_aviation_iap_profile_view"
+    }
+  }
+}

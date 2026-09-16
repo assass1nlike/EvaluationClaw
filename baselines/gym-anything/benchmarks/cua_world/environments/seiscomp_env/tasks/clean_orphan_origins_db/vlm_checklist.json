@@ -1,0 +1,47 @@
+{
+  "task_id": "clean_orphan_origins_db@1",
+  "task_completion": [
+    {
+      "id": "identify_orphan_origins",
+      "description": "The agent identifies the orphan Origin records in the database.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a MySQL/MariaDB client or SeisComP tool executing a query to find `Origin` records that are not associated with any `Event`, with the output displaying the orphan IDs."
+    },
+    {
+      "id": "write_output_file",
+      "description": "The agent writes the identified publicIDs to the specified output file.",
+      "points": 30,
+      "visual_evidence": "A terminal showing a command (like `echo`, `cat`, or a text editor) writing the three specific orphan IDs ('smi:org/gfz/orphan_test_1', 'smi:org/gfz/orphan_test_2', 'smi:org/gfz/orphan_test_3') to `/home/ga/orphan_origins.txt`, one per line."
+    },
+    {
+      "id": "delete_orphan_origins",
+      "description": "The agent deletes the orphan origins from the database.",
+      "points": 30,
+      "visual_evidence": "A terminal showing a MySQL/MariaDB client or SeisComP tool executing a `DELETE` command targeting the `Origin` table to remove the identified orphan IDs."
+    },
+    {
+      "id": "ensure_valid_events_remain",
+      "description": "The agent ensures that valid catalog events remain untouched.",
+      "points": 20,
+      "visual_evidence": "The `DELETE` query is highly specific (e.g., using `WHERE publicID IN (...)` or a precise condition) to avoid accidental deletion of valid events, OR a subsequent `SELECT` query shows that valid events (like the Noto earthquake) are still present in the database."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "The agent actually queried the database to find the orphan IDs.",
+      "visual_evidence": "The agent executes a real `SELECT` query or SeisComP command to discover the orphan IDs, rather than hardcoding them without prior database interaction."
+    },
+    {
+      "id": "genuine_deletion",
+      "description": "The agent executed a real deletion command in the database.",
+      "visual_evidence": "The `DELETE` command is executed within an active database client session or via a valid SeisComP command-line tool, not just typed into a text file or an inactive prompt."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent created the output file using standard tools.",
+      "visual_evidence": "The file `/home/ga/orphan_origins.txt` is created or modified using real terminal commands (e.g., `echo`, output redirection) or a text editor (e.g., `nano`, `vim`)."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is `/home/ga/orphan_origins.txt`. The exact orphan `publicID`s that need to be identified, written to the file, and deleted are: 'smi:org/gfz/orphan_test_1', 'smi:org/gfz/orphan_test_2', and 'smi:org/gfz/orphan_test_3'."
+}

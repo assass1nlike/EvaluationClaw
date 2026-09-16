@@ -1,0 +1,32 @@
+{
+  "id": "correct_marketing_attribution@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "The Marketing Director has identified three opportunities that were incorrectly imported without their tracking information. Update the records for 'Fleet Management Software - Logistics Inc', 'Inventory Control System - Warehouse Co', and 'ERP Implementation - Manufacturing Ltd' to include the following tracking information: Campaign: 'Summer 2025 Promotion', Medium: 'Email', and Source: 'Newsletter'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_marketing_attribution/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_marketing_attribution/export_result.sh"
+  },
+  "metadata": {
+    "target_campaign": "Summer 2025 Promotion",
+    "target_medium": "Email",
+    "target_source": "Newsletter",
+    "target_opportunities": [
+      "Fleet Management Software - Logistics Inc",
+      "Inventory Control System - Warehouse Co",
+      "ERP Implementation - Manufacturing Ltd"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_marketing_attribution"
+    }
+  }
+}

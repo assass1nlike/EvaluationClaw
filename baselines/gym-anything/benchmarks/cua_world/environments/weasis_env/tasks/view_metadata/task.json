@@ -1,0 +1,26 @@
+{
+  "id": "view_metadata@1",
+  "version": "1.0",
+  "env_id": "weasis_env@0.1",
+  "description": "View the DICOM metadata and header information for the medical image currently loaded in Weasis. Display the DICOM tags, including patient name, study description, and modality, in the metadata viewer.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 90,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/view_metadata/setup_task.sh",
+    "post_task": "/workspace/tasks/view_metadata/export_result.sh"
+  },
+  "metadata": {
+    "expected_patient_name": "Metadata^Test",
+    "expected_modality": "CT"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_view_metadata"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "vaccine_epitope_conservation@1",
+  "version": "1.0",
+  "env_id": "ugene_env@0.1",
+  "description": "You are a computational immunologist at a vaccine research institute developing a universal influenza vaccine targeting conserved epitope regions of the hemagglutinin (HA) protein. Using the 12 influenza A virus HA1 subunit sequences located at ~/UGENE_Data/vaccine/influenza_HA_strains.fasta, perform a multiple sequence alignment using the MAFFT L-INS-i strategy. Identify regions of high conservation (>80% identity) with a minimum length of 9 consecutive amino acids. For each identified region, create an annotation named 'conserved_epitope' in the 'vaccine_targets' group, including a /note qualifier describing the conservation level. \n\nExport the following results:\n- The consensus sequence to ~/UGENE_Data/vaccine/results/HA_consensus.fasta.\n- The annotated alignment in ClustalW format to ~/UGENE_Data/vaccine/results/HA_alignment_annotated.aln.\n- The alignment in Stockholm format to ~/UGENE_Data/vaccine/results/HA_alignment.sto.\n- A vaccine target report to ~/UGENE_Data/vaccine/results/epitope_report.txt listing the position range, consensus sequence, and conservation percentage for each epitope, a ranking of the top 3 candidates by conservation score, and the total number of conserved epitopes identified.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vaccine_epitope_conservation/setup_task.sh",
+    "post_task": "/workspace/tasks/vaccine_epitope_conservation/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "NCBI Protein: 12 real HA sequences - AAD17229.1/ABD77675.1 (H1N1 1918), ACP41105.1 (H1N1 2009), ABQ44486.1 (H3N2 1968), AAT73274.1 (H5N1 2004), AGJ51966.1 (H7N9 2013), AAA43178.1 (H2N2 1957), plus seasonal and recent H1N1/H3N2/H5N1/H9N2 strains spanning 1918-2023",
+    "occupation": "Computational Immunologist",
+    "industry": "Pharmaceutical / Vaccine Research",
+    "difficulty": "very_hard"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vaccine_epitope_conservation"
+    }
+  }
+}

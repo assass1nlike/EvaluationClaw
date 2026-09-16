@@ -1,0 +1,30 @@
+{
+  "id": "tb_treatment_notification_config@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "Log in as admin/district. Configure two automated notifications for the TB Treatment Card programme. Create a notification named 'TB Case Enrollment Alert' triggered on program enrollment and sent to users at the organisation unit to notify them of a new TB case enrollment. Create a second notification named 'TB Treatment Follow-up Reminder' triggered 7 days after the scheduled due date and sent to users at the organisation unit to warn about overdue follow-up. Both templates must be saved and associated with the TB programme.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tb_treatment_notification_config/setup_task.sh",
+    "post_task": "/workspace/tasks/tb_treatment_notification_config/export_result.sh"
+  },
+  "metadata": {
+    "program_keyword": "TB",
+    "notification_1_name": "TB Case Enrollment Alert",
+    "notification_1_trigger": "ENROLLMENT",
+    "notification_2_name": "TB Treatment Follow-up Reminder",
+    "notification_2_trigger": "SCHEDULED_DAYS_DUE_DATE",
+    "notification_2_days": 7
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tb_notifications"
+    }
+  }
+}

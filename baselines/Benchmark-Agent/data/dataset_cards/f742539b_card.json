@@ -1,0 +1,96 @@
+{
+  "dataset_id": "f742539b",
+  "name": "Code-Generation",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Code-Generation dataset contains programming tasks where models must generate a function in a specified language (e.g., Python) given a natural language goal, a description, and example input/output pairs. It evaluates code synthesis from instructions and examples.",
+  "card_text": "Code-Generation is a text-to-text dataset of 200 programming problems. Each sample includes a target programming language, a natural language goal statement, a context list with a task description and two or more input/output examples, and a target code solution. The tasks are algorithmic, such as calculating bucket lowerings to empty wells or finding the first odd number in a list. The dataset assumes the model can read instructions and examples, understand the problem, and produce executable code in the specified language. Outputs are plain code text without additional explanation. The data is useful for evaluating code generation from natural language and few-shot examples.",
+  "tasks": [],
+  "domain": "programming",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "context"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of context items, each with a type ('description' or 'example'). The description provides a natural language explanation of the task; the example items contain input/output pairs demonstrating the expected behavior. Together they specify the problem to solve.",
+        "path_types": [
+          "list<dict>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "goal"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language instruction that states what function to write, e.g., 'Write a function to calculate how many times buckets need to be lowered to empty wells in a grid.' It is the primary task query.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.response.content"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target solution code in the specified programming language. It implements the function requested by the goal, consistent with the description and examples.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "category": {
+        "paths": [
+          "language"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The programming language of the task and solution (e.g., 'python').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "output.response.type"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Auxiliary field indicating the response modality, e.g., 'code', confirming that the expected output is code.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a language tag, a goal instruction, a context array with a description and example input/output pairs, and an output object with a response type and the generated code. The goal and context together define the programming problem, while the output provides the target solution code."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Code-Generation/annotation.json",
+    "existing_tags": {
+      "task": "Code Generation",
+      "type": "Code Generation",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

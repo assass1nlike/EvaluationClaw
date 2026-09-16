@@ -1,0 +1,40 @@
+{
+  "id": "create_prescription_favorite@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Dr. Chen wants to speed up prescribing for Strep Throat. Using the credentials (username 'oscardoc', password 'oscar', PIN '1117'), create a prescription favorite named 'Strep Throat - Amox 500' for patient 'Mario Rossi'. The favorite should be for Amoxicillin 500mg with instructions 'Take 1 capsule three times daily for 10 days', a quantity of 30, and 0 repeats. Ensure the favorite is saved to the Favorites list for future use.",
+  "difficulty": "medium",
+  "tags": [
+    "oscar",
+    "emr",
+    "prescriptions",
+    "configuration",
+    "clinical-workflow"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_prescription_favorite/setup_task.sh",
+    "post_task": "/workspace/tasks/create_prescription_favorite/export_result.sh"
+  },
+  "metadata": {
+    "provider_no": "999998",
+    "expected_drug_name": "Amoxicillin",
+    "expected_strength": "500",
+    "expected_qty": "30",
+    "expected_fav_name": "Strep Throat",
+    "expected_instructions_parts": [
+      "three times daily",
+      "10 days"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_prescription_favorite"
+    }
+  }
+}

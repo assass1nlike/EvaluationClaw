@@ -1,0 +1,27 @@
+{
+  "id": "align4_winner@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Win a match of 'Align 4' against the computer in GCompris. Save a screenshot of the winning state to /home/ga/Documents/align4_win.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/align4_winner/setup_task.sh",
+    "post_task": "/workspace/tasks/align4_winner/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/home/ga/Documents/align4_win.png",
+    "activity_name": "align4",
+    "category_name": "strategy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_align4_winner"
+    }
+  }
+}

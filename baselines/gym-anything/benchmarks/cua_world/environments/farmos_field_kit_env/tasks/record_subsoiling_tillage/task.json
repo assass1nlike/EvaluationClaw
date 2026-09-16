@@ -1,0 +1,43 @@
+{
+  "id": "record_subsoiling_tillage@1",
+  "version": "1.0",
+  "env_id": "farmos_field_kit_env@0.1",
+  "description": "Create a new 'Activity' log in farmOS Field Kit named 'Subsoiling - Field 4' dated August 15, 2025. Include the notes: 'Ran Yeomans Keyline Plow to alleviate plow pan compaction. 3 shanks on 30-inch centers. Soil conditions were dry enough for excellent shattering. No subsoil mixing observed. Followed keyline contour pattern.' Add two quantities: 4.5 acres with the label 'Area Treated' and 16 inches with the label 'Working Depth'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/scripts/setup_subsoiling_task.sh",
+    "post_task": "/sdcard/scripts/export_subsoiling_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Subsoiling - Field 4",
+    "expected_type": "activity",
+    "expected_date": "2025-08-15",
+    "expected_notes_keywords": [
+      "Yeomans",
+      "shanks",
+      "shattering",
+      "plow pan"
+    ],
+    "expected_quantities": [
+      {
+        "value": 4.5,
+        "unit": "acres"
+      },
+      {
+        "value": 16,
+        "unit": "inches"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_subsoiling_log"
+    }
+  }
+}

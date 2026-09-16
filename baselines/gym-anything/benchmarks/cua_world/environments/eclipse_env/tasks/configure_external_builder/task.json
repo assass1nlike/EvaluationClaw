@@ -1,0 +1,29 @@
+{
+  "id": "configure_external_builder@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Configure the 'AutoVer' project at `~/eclipse-workspace/AutoVer` to automatically run the `scripts/gen_version.sh` script during the build process. Create a builder named 'VersionGenerator' that executes the script using workspace-relative paths and sets the working directory to the project root. The builder must be configured to run during 'Auto Build' and 'Clean' operations and must refresh project resources upon completion. Save the launch configuration as a shared file in the project root (`/AutoVer/VersionGenerator.launch`) and ensure the build process successfully generates `src/main/resources/version.txt`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_external_builder/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_external_builder/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "AutoVer",
+    "project_path": "/home/ga/eclipse-workspace/AutoVer",
+    "script_path": "scripts/gen_version.sh",
+    "expected_launch_file": "VersionGenerator.launch",
+    "expected_output_file": "src/main/resources/version.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_external_builder"
+    }
+  }
+}

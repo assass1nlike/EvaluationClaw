@@ -1,0 +1,31 @@
+{
+  "id": "world_integrity_audit@1",
+  "version": "1.0",
+  "env_id": "mysql_workbench_env@0.1",
+  "description": "The world database has been corrupted by a failed data import operation. Using MySQL Workbench (host: localhost, user: ga, password: password123), perform a data quality audit and cleanup of the city table. Remove referential integrity violations where city.CountryCode does not match any row in the country table, delete exact duplicate city records (matching Name, CountryCode, and District), and delete cities with a Population of 0. Export the cleaned city data (ID, Name, CountryCode, District, Population) for all cities on the continent 'South America' to /home/ga/Documents/exports/south_america_cities.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/world_integrity_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/world_integrity_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_database": "world",
+    "injected_orphan_code_1": "ZZZ",
+    "injected_orphan_count_1": 35,
+    "injected_orphan_code_2": "ZZX",
+    "injected_orphan_count_2": 10,
+    "injected_zero_population_count": 8,
+    "total_injected_bad_records": 53,
+    "expected_output_file": "/home/ga/Documents/exports/south_america_cities.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_world_integrity_audit"
+    }
+  }
+}

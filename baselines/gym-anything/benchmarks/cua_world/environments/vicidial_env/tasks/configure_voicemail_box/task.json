@@ -1,0 +1,31 @@
+{
+  "id": "configure_voicemail_box@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Create a new Voicemail Box in the Vicidial Admin panel with the following configuration: Voicemail ID 8500, Voicemail Name WestCoast_Support, Password 4321, Email tickets@westcoast-support.com, Active set to Y, Delete Voicemail After Email set to Y (for the email-only workflow), and Voicemail Timezone set to America/Los_Angeles. Ensure all settings match exactly.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_voicemail_box/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_voicemail_box/export_result.sh"
+  },
+  "metadata": {
+    "expected_id": "8500",
+    "expected_name": "WestCoast_Support",
+    "expected_pass": "4321",
+    "expected_email": "tickets@westcoast-support.com",
+    "expected_active": "Y",
+    "expected_delete": "Y",
+    "expected_zone": "America/Los_Angeles"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_voicemail_box"
+    }
+  }
+}

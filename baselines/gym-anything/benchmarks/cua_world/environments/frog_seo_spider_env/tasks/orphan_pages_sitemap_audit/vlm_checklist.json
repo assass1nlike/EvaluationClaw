@@ -1,0 +1,53 @@
+{
+  "task_id": "orphan_pages_sitemap_audit@1",
+  "task_completion": [
+    {
+      "id": "screaming_frog_crawl",
+      "description": "Verify that Screaming Frog SEO Spider was used to crawl the target website.",
+      "points": 15,
+      "visual_evidence": "Look for screenshots showing the Screaming Frog SEO Spider GUI open with 'https://books.toscrape.com/' in the URL bar and crawl data populating the main window."
+    },
+    {
+      "id": "exports_generated",
+      "description": "Verify that both the 'Internal HTML' and 'Orphan Pages' reports were exported as CSV files to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window or terminal output showing two CSV files (e.g., containing 'internal_html' and 'orphan_pages' in their filenames) located in the '/home/ga/Documents/SEO/exports/' directory."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify the summary report file was created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager or terminal showing 'orphan_pages_report.txt' exists in the '/home/ga/Documents/SEO/reports/' directory."
+    },
+    {
+      "id": "report_crawl_stats",
+      "description": "Verify the summary report includes the total URLs crawled and the number of orphan pages found.",
+      "points": 20,
+      "visual_evidence": "Look at the visible contents of 'orphan_pages_report.txt' in a text editor or terminal. It must explicitly state the total number of URLs crawled and the number of orphan pages found (which should be 0 or N/A due to the missing sitemap)."
+    },
+    {
+      "id": "report_sitemap_absence_and_remediation",
+      "description": "Verify the summary report documents the absence of the sitemap and provides remediation recommendations.",
+      "points": 35,
+      "visual_evidence": "Look at the visible contents of 'orphan_pages_report.txt'. It must explicitly state that the sitemap (sitemap.xml) was unavailable, missing, or returned a 404 error. It must also include remediation recommendations (e.g., 'generate an XML sitemap' or 'add a sitemap to the root directory')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_tool_used",
+      "description": "Verify that the Screaming Frog GUI was actually opened and used to crawl the site.",
+      "visual_evidence": "Check for screenshots showing the actual Screaming Frog application interface in use. The agent should not have just created dummy CSV files using terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_crawl_data",
+      "description": "Verify that the report contains realistic crawl data and not just placeholder text.",
+      "visual_evidence": "Check that the total URLs crawled mentioned in the report is a realistic number (e.g., hundreds or thousands of URLs for books.toscrape.com) matching the Screaming Frog UI, rather than a placeholder like '[Insert Total URLs]'."
+    },
+    {
+      "id": "no_hallucinated_sitemap",
+      "description": "Verify that the agent did not hallucinate a successful sitemap crawl.",
+      "visual_evidence": "Ensure the report does NOT claim to have successfully parsed the sitemap or found URLs inside the sitemap, as the sitemap does not exist."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://books.toscrape.com/ (Verified accessible). Expected exports directory: /home/ga/Documents/SEO/exports. Expected report file: /home/ga/Documents/SEO/reports/orphan_pages_report.txt. CRITICAL: The sitemap URL https://books.toscrape.com/sitemap.xml does NOT exist (returns 404). The agent must discover this, document the absence of the sitemap in the final report, and note that orphan pages cannot be accurately identified via sitemap cross-referencing."
+}

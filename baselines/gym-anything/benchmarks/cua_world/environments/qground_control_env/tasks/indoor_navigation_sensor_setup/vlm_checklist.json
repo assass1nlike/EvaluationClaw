@@ -1,0 +1,59 @@
+{
+  "task_id": "indoor_navigation_sensor_setup@1",
+  "task_completion": [
+    {
+      "id": "read_work_order",
+      "description": "Open and read the integration work order to determine hardware specifications.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or terminal command (e.g., cat) displaying the contents of /home/ga/Documents/QGC/integration_work_order.txt."
+    },
+    {
+      "id": "access_parameter_editor",
+      "description": "Access the firmware parameter configuration interface.",
+      "points": 10,
+      "visual_evidence": "QGroundControl (or a similar ground control station / MAVProxy terminal) open with the Vehicle Setup -> Parameters menu visible."
+    },
+    {
+      "id": "configure_rangefinder_serial",
+      "description": "Configure the Rangefinder driver and TELEM2 serial port settings.",
+      "points": 25,
+      "visual_evidence": "The parameter list showing RNGFND1_TYPE set to 20, SERIAL2_PROTOCOL set to 9, and SERIAL2_BAUD set to 115."
+    },
+    {
+      "id": "configure_rangefinder_ranges",
+      "description": "Configure the minimum and maximum ranges for the Rangefinder.",
+      "points": 15,
+      "visual_evidence": "The parameter list showing modifications to the rangefinder limits (e.g., RNGFND1_MAX / RNGFND1_MIN or their legacy _CM equivalents)."
+    },
+    {
+      "id": "configure_optical_flow",
+      "description": "Configure the Optical Flow driver.",
+      "points": 15,
+      "visual_evidence": "The parameter list showing the FLOW_TYPE parameter being searched for and modified."
+    },
+    {
+      "id": "configure_ekf3_sources",
+      "description": "Configure EKF3 settings to utilize Optical Flow for horizontal velocity and the Rangefinder for altitude.",
+      "points": 25,
+      "visual_evidence": "The parameter list showing EK3_SRC1_VELXY set to 5 and EK3_SRC1_POSZ set to 2."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_parameter_modification",
+      "description": "The agent modifies parameters using the actual ground control station software or SITL connection.",
+      "visual_evidence": "Screenshots show interaction with QGroundControl parameter screens or a MAVProxy terminal connected to the SITL, rather than just editing a text file to mock the output."
+    },
+    {
+      "id": "no_manual_result_file_creation",
+      "description": "The agent does not manually create or type out the task result JSON file.",
+      "visual_evidence": "The terminal or editor history does not show the agent manually writing JSON to /tmp/task_result.json to bypass the actual simulator configuration."
+    },
+    {
+      "id": "work_order_accessed",
+      "description": "The agent actually opened the work order file rather than guessing parameters.",
+      "visual_evidence": "At least one screenshot shows the contents of /home/ga/Documents/QGC/integration_work_order.txt open in an editor or printed in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Work order is located at /home/ga/Documents/QGC/integration_work_order.txt. The result file is exported to /tmp/task_result.json. Verified parameter values to look for: RNGFND1_TYPE = 20, SERIAL2_PROTOCOL = 9, SERIAL2_BAUD = 115, EK3_SRC1_VELXY = 5, EK3_SRC1_POSZ = 2."
+}

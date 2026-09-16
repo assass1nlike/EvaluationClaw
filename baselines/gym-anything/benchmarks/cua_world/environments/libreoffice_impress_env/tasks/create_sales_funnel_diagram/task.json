@@ -1,0 +1,32 @@
+{
+  "id": "create_sales_funnel_diagram@1",
+  "version": "1.0",
+  "env_id": "libreoffice_impress_env@0.1",
+  "description": "Create a Sales Funnel diagram on a new second slide titled 'Conversion Funnel Q1'. The diagram should consist of four vertically stacked, distinctly colored shapes that taper in width from top to bottom. Label the segments from top to bottom as 'Inquiries: 500', 'MQL: 150', 'SQL: 45', and 'Closed: 12'. Center the diagram horizontally on the slide and save the presentation.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_sales_funnel_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_sales_funnel_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_text_segments": [
+      "Inquiries: 500",
+      "MQL: 150",
+      "SQL: 45",
+      "Closed: 12"
+    ],
+    "expected_slide_title": "Conversion Funnel Q1",
+    "min_shape_count": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sales_funnel"
+    }
+  }
+}

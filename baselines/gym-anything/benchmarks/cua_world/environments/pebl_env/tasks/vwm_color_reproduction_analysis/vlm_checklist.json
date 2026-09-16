@@ -1,0 +1,59 @@
+{
+  "task_id": "vwm_color_reproduction_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "The agent reads the input VWM dataset.",
+      "points": 10,
+      "visual_evidence": "Code editor or terminal showing a script (e.g., Python) loading the CSV file from '~/pebl/data/color_wheel_data.csv'."
+    },
+    {
+      "id": "circular_error_math",
+      "description": "The agent implements the correct mathematical logic for circular signed and absolute angular error.",
+      "points": 20,
+      "visual_evidence": "Code showing the calculation of the shortest distance around a 360-degree circle (e.g., using modulo arithmetic like `(response - target + 180) % 360 - 180` or similar trigonometric functions) and taking the absolute value."
+    },
+    {
+      "id": "metrics_computation",
+      "description": "The agent calculates MAE, guess rate, and precision SD per participant and set size.",
+      "points": 20,
+      "visual_evidence": "Code showing grouping by participant and set size, calculating the mean of absolute errors, the proportion of trials where absolute error > 60 (guess rate), and the standard deviation of signed errors where absolute error <= 60 (precision_sd)."
+    },
+    {
+      "id": "exclusion_filtering",
+      "description": "The agent identifies and excludes participants with an overall guess rate strictly greater than 0.50.",
+      "points": 20,
+      "visual_evidence": "Code showing the calculation of an overall guess rate across all set sizes for each participant, and a filtering step that flags or removes participants exceeding the 0.50 threshold."
+    },
+    {
+      "id": "export_json_report",
+      "description": "The agent writes the final analysis report to the specified JSON file path.",
+      "points": 10,
+      "visual_evidence": "Code showing the final data structure (containing participant metrics, exclusion status/reason, and group means) being exported to '~/pebl/analysis/vwm_report.json'."
+    },
+    {
+      "id": "verify_output_contents",
+      "description": "The generated JSON report contains the correct exclusion status and group means.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., `cat ~/pebl/analysis/vwm_report.json`) or file editor showing the generated JSON file, specifically showing participant 's99' marked as excluded and the presence of group means per set size."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_based_analysis",
+      "description": "The agent wrote a script to process the data rather than manually fabricating the JSON output.",
+      "visual_evidence": "A script (e.g., .py or .R file) containing data processing logic (pandas, numpy, etc.) is visible in the code editor and executed in the terminal."
+    },
+    {
+      "id": "dynamic_exclusion",
+      "description": "The agent dynamically calculated the exclusion criteria rather than hardcoding the known contaminated participant.",
+      "visual_evidence": "The code calculates the >0.50 guess rate threshold to find the excluded participant, rather than containing hardcoded logic like `if participant == 's99': exclude()`."
+    },
+    {
+      "id": "genuine_output_file",
+      "description": "The JSON report was actually saved to the file system.",
+      "visual_evidence": "Terminal commands like `ls ~/pebl/analysis/` or a file explorer view confirming the existence of `vwm_report.json` in the correct directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant that must be excluded is 's99' due to a 100% guess rate (uniform random responding). The final output must be saved exactly to /home/ga/pebl/analysis/vwm_report.json."
+}

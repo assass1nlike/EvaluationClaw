@@ -1,0 +1,26 @@
+{
+  "id": "run_and_debug@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Import the Maven project from ~/eclipse-workspace/gs-maven/ into Eclipse. Run and debug the HelloWorld main class (located in src/main/java/hello/HelloWorld.java). During the debug session, set a breakpoint on the line 'System.out.println(greeter.sayHello())', inspect the 'greeter' variable, and step through the remaining execution until the program completes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_and_debug/setup_task.sh",
+    "post_task": "/workspace/tasks/run_and_debug/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/gs-maven",
+    "main_class": "hello.HelloWorld"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_and_debug"
+    }
+  }
+}

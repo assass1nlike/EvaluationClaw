@@ -1,0 +1,26 @@
+{
+  "id": "close_shift@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Close the currently open shift in Floreant POS using the manager PIN 1111. Ensure the shift is recorded as closed in the system so that no shift remains open on this terminal.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/close_shift/setup_task.sh",
+    "post_task": "/workspace/tasks/close_shift/export_result.sh"
+  },
+  "metadata": {
+    "admin_pin": "1111",
+    "database_path": "/opt/floreantpos/database/derby-server/posdb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_close_shift"
+    }
+  }
+}

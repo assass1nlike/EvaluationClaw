@@ -1,0 +1,30 @@
+{
+  "id": "floatovoltaics_yield_simulation@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Design a floating solar array (floatovoltaics) on the provided reservoir foundation in Los Angeles. The base project is open in Energy3D. Follow these steps:\n1. Set the project location to Los Angeles, CA via the Location/City menu.\n2. Ensure there is a Solar Panel Rack on the central foundation (if not, add one or more) with a total of at least 100 solar panels.\n3. Configure the rack(s) Tilt Angle to 10 degrees and Base Height to 0.5m (typical for water-based installs).\n4. Modify the 'Temperature Coefficient of Pmax' property of the panels to -0.2 %/°C to model the evaporative cooling benefit of the reservoir.\n5. Run an Annual Yield Analysis for the array.\n6. Export the resulting yield graph data to exactly `~/Documents/Energy3D/fpv_yield.csv`.\n7. Save the modified Energy3D project to `~/Documents/Energy3D/fpv_design.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/floatovoltaics_yield_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/floatovoltaics_yield_simulation/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Renewable Energy",
+    "target_tilt": 10,
+    "target_height": 0.5,
+    "target_temp_coeff": -0.2,
+    "target_city": "Los Angeles"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_floatovoltaics_yield_simulation"
+    }
+  }
+}

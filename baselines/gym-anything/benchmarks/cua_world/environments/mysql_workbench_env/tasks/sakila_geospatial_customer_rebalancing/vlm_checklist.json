@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_geospatial_customer_rebalancing@1",
+  "task_completion": [
+    {
+      "id": "import_staging_table",
+      "description": "Import geospatial data from city_coordinates.csv into a new staging table named sakila.geo_staging",
+      "points": 15,
+      "visual_evidence": "A SQL client (e.g., DBeaver, MySQL Workbench) or terminal showing a CREATE TABLE or LOAD DATA command for 'sakila.geo_staging', or the 'geo_staging' table visible in the database schema browser."
+    },
+    {
+      "id": "update_address_location",
+      "description": "Update the location column in the sakila.address table using the staging table",
+      "points": 25,
+      "visual_evidence": "A SQL query showing an UPDATE statement on 'sakila.address' that JOINs with 'geo_staging' (matching City and Country) and sets the 'location' column using spatial functions (e.g., ST_GeomFromText), or a SELECT query showing populated spatial data in the address table."
+    },
+    {
+      "id": "reassign_customers",
+      "description": "Reassign customers in sakila.customer to the closest store based on spatial distance",
+      "points": 25,
+      "visual_evidence": "A SQL query showing an UPDATE statement on 'sakila.customer' that calculates the distance between the customer's address location and the coordinates for Store 1 (49.6935, -112.8418) and Store 2 (-27.6333, 153.1000) using functions like ST_Distance_Sphere, and updates the 'store_id' accordingly."
+    },
+    {
+      "id": "generate_report_query",
+      "description": "Query the database to generate the logistics optimization report with required columns and sorting",
+      "points": 20,
+      "visual_evidence": "A SELECT query fetching 'customer_name', 'address', 'city', 'country', 'assigned_store_id', and 'distance_km', ending with an 'ORDER BY distance_km DESC' clause."
+    },
+    {
+      "id": "export_report_csv",
+      "description": "Export the final report to /home/ga/Documents/exports/logistics_optimization.csv",
+      "points": 15,
+      "visual_evidence": "A file manager window showing 'logistics_optimization.csv' in the '/home/ga/Documents/exports/' directory, a terminal showing the file exists via 'ls', or an INTO OUTFILE SQL command targeting that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "sql_execution_verified",
+      "description": "Ensure SQL queries were actually executed against the database",
+      "visual_evidence": "Look for execution success messages, row update counts, or query result grids in the SQL client, rather than just unexecuted text in an editor."
+    },
+    {
+      "id": "genuine_database_updates",
+      "description": "Ensure the database tables were actually updated, not just bypassed to create the CSV",
+      "visual_evidence": "Look for evidence that 'sakila.address' and 'sakila.customer' were modified (e.g., UPDATE statements being run), rather than a script that just reads the CSV and outputs another CSV."
+    },
+    {
+      "id": "authentic_coordinate_usage",
+      "description": "Ensure the specific store coordinates were used in the distance calculation",
+      "visual_evidence": "The SQL queries must explicitly contain the coordinates for Store 1 (49.6935, -112.8418) and Store 2 (-27.6333, 153.1000) or reference variables containing them."
+    }
+  ],
+  "privileged_info_for_vlm": "Store 1 (Lethbridge) coordinates: Lat 49.6935, Lon -112.8418. Store 2 (Woodridge) coordinates: Lat -27.6333, Lon 153.1000. Staging table name: 'geo_staging'. Target table for spatial updates: 'address'. Expected output file: '/home/ga/Documents/exports/logistics_optimization.csv'."
+}

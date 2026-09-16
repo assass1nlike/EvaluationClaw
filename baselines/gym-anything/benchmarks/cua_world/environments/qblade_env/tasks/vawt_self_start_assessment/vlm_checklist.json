@@ -1,0 +1,59 @@
+{
+  "task_id": "vawt_self_start_assessment@1",
+  "task_completion": [
+    {
+      "id": "airfoil_and_polar_generation",
+      "description": "Generate NACA 0021 airfoil and its 360-degree extrapolated polar at Re=300,000.",
+      "points": 15,
+      "visual_evidence": "QBlade interface showing 'NACA 0021' in the airfoil list, XFoil Direct Analysis module with Re set to 300,000 and AoA range -10 to 20, and the 360-degree Polar Extrapolation module being used."
+    },
+    {
+      "id": "vawt_rotor_design",
+      "description": "Design the 3-bladed H-Darrieus VAWT rotor with specified dimensions.",
+      "points": 20,
+      "visual_evidence": "VAWT Rotor Design module in QBlade showing 3 blades, a rotor radius of 1.5 m, a blade height of 3.0 m, and a blade chord of 0.2 m."
+    },
+    {
+      "id": "dms_simulation_setup",
+      "description": "Set up the Double Multiple Streamtube (DMS) simulation with correct wind speed and TSR range.",
+      "points": 15,
+      "visual_evidence": "VAWT Simulation module showing DMS selected, wind speed set to 8 m/s, and the Tip Speed Ratio (TSR) range configured from 0.5 to 5.0."
+    },
+    {
+      "id": "simulation_execution_and_graphs",
+      "description": "Run the simulation and view the performance graphs (Torque/Cp vs TSR).",
+      "points": 20,
+      "visual_evidence": "QBlade displaying simulation results, specifically graphs or tables showing Power Coefficient (Cp) or Torque (Cq) plotted against TSR."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the QBlade project to the specified path.",
+      "points": 10,
+      "visual_evidence": "A save dialog or the QBlade main window title bar showing the project saved as 'vawt_selfstart.wpa' in the '/home/ga/Documents/projects/' directory."
+    },
+    {
+      "id": "create_assessment_report",
+      "description": "Create the final report with the self-starting assessment and calculated values.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the file 'vawt_selfstart_report.txt' containing a YES/NO self-starting assessment, lowest positive torque TSR, optimal TSR, maximum Cp, and a calculated rotor solidity of approximately 0.0637."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qblade_gui_interaction",
+      "description": "Verify the agent actually used the QBlade GUI to perform the design and simulation.",
+      "visual_evidence": "Screenshots must show the QBlade application open with active interaction in its various modules (Airfoil, Rotor Design, Simulation), rather than just terminal commands mocking the output files."
+    },
+    {
+      "id": "plausible_simulation_results",
+      "description": "Verify the values in the report are derived from the simulation rather than hallucinated.",
+      "visual_evidence": "The optimal TSR, max Cp, and lowest positive torque TSR written in the text report should visually correspond to the peaks and zero-crossings seen in the QBlade simulation graphs."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "Verify the report file was manually created and edited by the agent.",
+      "visual_evidence": "Screenshots showing a text editor (like nano, gedit, or vim) open with the agent typing or formatting the required assessment values into 'vawt_selfstart_report.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The calculated rotor solidity (N*c / (2*pi*R)) must be approximately 0.0637 (3 * 0.2 / (2 * 3.14159 * 1.5)). Plausible physics ranges for the simulation results: Maximum Cp should be between 0.1 and 0.55, and Optimal TSR should be between 1.5 and 5.0. The turbine is considered self-starting (YES) if the torque graph shows positive values at any TSR strictly less than 1.0."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "ev_truck_canopy_upgrade@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "A commercial facility is installing new DC fast chargers for electric delivery trucks. The existing solar canopy in the parking lot is both too small to meet the new energy demands and too low to provide safe vertical clearance for trucks.\n\nYour task is to upgrade the canopy in Energy3D:\n1. Open `~/Documents/Energy3D/solar-canopy.ng3`.\n2. Select the solar canopy structure.\n3. Modify its properties:\n   - Grid size: 12 panels in the X-direction, 5 panels in the Y-direction.\n   - Pole height: 4.5 meters.\n   - Tilt angle: 15 degrees.\n4. Run the 'Annual Yield Analysis' for the solar panels to calculate the new energy generation.\n5. Save the modified project as `~/Documents/Energy3D/ev_canopy_expanded.ng3`.\n6. Create a text file at `~/Documents/Energy3D/yield_summary.txt` and write down the total annual yield (in kWh) reported by the analysis graph.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ev_truck_canopy_upgrade/setup_task.sh",
+    "post_task": "/workspace/tasks/ev_truck_canopy_upgrade/export_result.sh"
+  },
+  "metadata": {
+    "expected_pole_height": 4.5,
+    "expected_nx": 12,
+    "expected_ny": 5,
+    "expected_tilt": 15.0,
+    "min_yield_kwh": 5000,
+    "starter_file": "solar-canopy.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ev_truck_canopy_upgrade"
+    }
+  }
+}

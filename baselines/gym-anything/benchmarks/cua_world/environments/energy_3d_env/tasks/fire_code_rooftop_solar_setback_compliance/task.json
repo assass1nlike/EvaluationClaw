@@ -1,0 +1,28 @@
+{
+  "id": "fire_code_rooftop_solar_setback_compliance@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Photovoltaic Designer. Open the project '~/Documents/Energy3D/building-roof-insulation.ng3'. Add a solar array to the South-facing roof plane of the main house. To comply with strict fire code regulations, you MUST leave a clear, unpaneled fire access margin (approximately 1 meter) along ALL edges of that roof plane (the eaves, the top ridge, and both sides). Do not cover the roof edge-to-edge. Change the panel model for all placed panels to a premium high-efficiency brand (select any 'SunPower' model from the properties) to maximize output in this restricted footprint. Run an Annual Yield Analysis for the solar array, export the resulting yield data to a CSV file at '~/Documents/Energy3D/setback_compliant_yield.csv', and save your modified 3D scene as '~/Documents/Energy3D/fire_code_solar.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fire_code_rooftop_solar_setback_compliance/setup_task.sh",
+    "post_task": "/workspace/tasks/fire_code_rooftop_solar_setback_compliance/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar PV Designer",
+    "industry": "Renewable Energy",
+    "expected_project_path": "/home/ga/Documents/Energy3D/fire_code_solar.ng3",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/setback_compliant_yield.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_setback_compliance"
+    }
+  }
+}

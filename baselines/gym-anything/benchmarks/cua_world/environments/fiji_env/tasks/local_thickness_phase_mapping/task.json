@@ -1,0 +1,47 @@
+{
+  "id": "local_thickness_phase_mapping@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a materials scientist characterizing an Au-Pb-Sn solder alloy. Your goal is to measure the local thickness distribution of both the primary (bright) and matrix (dark) phases for the image at ~/Fiji_Data/raw/metallography/AuPbSn40_alloy.tif using the Local Thickness method. Generate thickness maps for the solid phase (solid_phase_thickness_map.tif) and the void/matrix phase (void_phase_thickness_map.tif). Record the mean, standard deviation, and maximum thickness for both phases in ~/Fiji_Data/results/thickness/thickness_statistics.csv using the columns: phase, mean_thickness_px, std_thickness_px, max_thickness_px. Finally, save a color-coded visualization of a thickness map as thickness_visualization.png and a histogram of the solid phase thickness as thickness_histogram.png in the results directory.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/local_thickness_phase_mapping/setup_task.sh",
+    "post_task": "/workspace/tasks/local_thickness_phase_mapping/export_result.sh"
+  },
+  "metadata": {
+    "input_image_path": "/home/ga/Fiji_Data/raw/metallography/AuPbSn40_alloy.tif",
+    "expected_output_dir": "/home/ga/Fiji_Data/results/thickness",
+    "required_files": [
+      "solid_phase_thickness_map.tif",
+      "void_phase_thickness_map.tif",
+      "thickness_statistics.csv",
+      "thickness_visualization.png",
+      "thickness_histogram.png"
+    ],
+    "image_source": "https://imagej.nih.gov/ij/images/AuPbSn40.jpg",
+    "csv_columns": [
+      "phase",
+      "mean_thickness_px",
+      "std_thickness_px",
+      "max_thickness_px"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_local_thickness_phase_mapping"
+    }
+  },
+  "tags": [
+    "materials-science",
+    "metallography",
+    "local-thickness",
+    "segmentation",
+    "quantification"
+  ]
+}

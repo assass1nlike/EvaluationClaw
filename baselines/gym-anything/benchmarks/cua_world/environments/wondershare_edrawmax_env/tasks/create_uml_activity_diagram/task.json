@@ -1,0 +1,37 @@
+{
+  "id": "create_uml_activity_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a UML Activity Diagram in Wondershare EdrawMax representing an e-commerce order processing workflow. The diagram must include an initial node, the action 'Receive Order', and a fork bar splitting into two parallel paths. Path A must include 'Validate Payment' followed by a 'Payment Valid?' decision leading to either 'Process Payment' or 'Handle Payment Failure'. Path B must include 'Check Inventory' followed by a 'Stock Available?' decision leading to either 'Allocate Stock' or 'Notify Out of Stock'. Use a join bar to synchronize 'Process Payment' and 'Allocate Stock', followed by actions for 'Pack Order', 'Ship Order', and 'Send Confirmation Email', concluding at a final node. Ensure the use of proper UML notation, including fork/join bars and decision diamonds. Save the source file as /home/ga/Documents/order_processing_activity.eddx and export the image as /home/ga/Documents/order_processing_activity.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_uml_activity_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_uml_activity_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx": "/home/ga/Documents/order_processing_activity.eddx",
+    "expected_png": "/home/ga/Documents/order_processing_activity.png",
+    "required_keywords": [
+      "Receive Order",
+      "Validate Payment",
+      "Check Inventory",
+      "Process Payment",
+      "Allocate Stock",
+      "Pack Order",
+      "Ship Order",
+      "Confirmation"
+    ],
+    "min_shapes": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_uml_activity_diagram"
+    }
+  }
+}

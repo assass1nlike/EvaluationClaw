@@ -1,0 +1,33 @@
+{
+  "id": "create_regulation_reference@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Create a 'Regulation' item in Juris-M for the HIPAA Privacy Rule definition with the following attributes: Title: 'Definitions', Legislative Body (Agency): 'Department of Health and Human Services', Code: 'C.F.R.', Volume: '45', Section: '160.103', and Date: '2002'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_regulation_reference/setup_task.sh",
+    "post_task": "/workspace/tasks/create_regulation_reference/export_result.sh"
+  },
+  "metadata": {
+    "target_details": {
+      "type": "regulation",
+      "title": "Definitions",
+      "agency": "Department of Health and Human Services",
+      "code": "C.F.R.",
+      "volume": "45",
+      "section": "160.103",
+      "date": "2002"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_regulation_reference"
+    }
+  }
+}

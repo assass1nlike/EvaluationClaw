@@ -1,0 +1,53 @@
+{
+  "task_id": "compose_credential_rotation@1",
+  "task_completion": [
+    {
+      "id": "update_compose_file",
+      "description": "Update the docker-compose.yml file with the new password.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the docker-compose.yml file in /home/ga/app-stack/ with the password fields (e.g., POSTGRES_PASSWORD and ADMINER_DEFAULT_PASSWORD) updated to 'SecureNewPass!2024'."
+    },
+    {
+      "id": "restart_docker_services",
+      "description": "Restart the Docker Compose services to apply the new configuration.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing 'docker compose down' and 'docker compose up -d' (or similar restart commands) being executed in the /home/ga/app-stack/ directory, with standard Docker status messages indicating the containers are running."
+    },
+    {
+      "id": "access_adminer",
+      "description": "Access the Adminer web interface.",
+      "points": 10,
+      "visual_evidence": "A web browser open to http://localhost:8081 showing the Adminer login screen."
+    },
+    {
+      "id": "successful_adminer_connection",
+      "description": "Successfully connect to the database via Adminer using the new credentials.",
+      "points": 30,
+      "visual_evidence": "The web browser showing the Adminer dashboard logged into the 'appdb' database as 'appuser', indicating the new password 'SecureNewPass!2024' was successfully accepted."
+    },
+    {
+      "id": "verify_data_preservation",
+      "description": "Verify that existing database records were preserved after the credential rotation.",
+      "points": 20,
+      "visual_evidence": "The Adminer interface displaying the contents of the 'projects' table with exactly 5 rows of data, confirming the database volume was not wiped during the restart."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "The agent interacted with the actual Adminer web interface.",
+      "visual_evidence": "The browser URL bar shows localhost:8081 and renders the authentic Adminer UI, rather than a local HTML file or a text-based curl output."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "The agent executed real Docker Compose commands.",
+      "visual_evidence": "Terminal shows authentic Docker Compose output (e.g., 'Container app-stack-db-1 Started') rather than just echoed text or simulated command outputs."
+    },
+    {
+      "id": "no_manual_data_recreation",
+      "description": "The agent did not manually recreate the database rows to fake data preservation.",
+      "visual_evidence": "There should be no terminal commands showing the agent manually executing 'INSERT INTO projects' or running SQL scripts to re-seed the 5 rows after accidentally wiping the database."
+    }
+  ],
+  "privileged_info_for_vlm": "The Docker Compose project is located at /home/ga/app-stack. The database service is named 'db', the database name is 'appdb', and the user is 'appuser'. The new password must be exactly 'SecureNewPass!2024'. To confirm data preservation, the 'projects' table must contain exactly 5 rows."
+}

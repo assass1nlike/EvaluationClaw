@@ -1,0 +1,33 @@
+{
+  "id": "icu_monitoring_setup@1",
+  "version": "1.0",
+  "env_id": "openice_env@0.1",
+  "description": "You are a critical care nurse preparing the monitoring station for a post-cardiac surgery patient being admitted to the ICU. Configure OpenICE to track physiological parameters using three distinct simulated device adapters: a Multiparameter Monitor (ECG, SpO2, hemodynamics), a CO2 or respiratory gas monitoring device (end-tidal CO2, ventilation), and one additional monitoring device of your choice. Ensure data from all three devices is flowing in the Vital Signs clinical application and observe waveforms and numeric parameters in the device detail view. Write a pre-shift monitoring checklist to /home/ga/Desktop/monitoring_checklist.txt listing the three device types, the physiological parameters each monitors, and a confirmation that all devices showed active data flow. OpenICE Supervisor is already running on the desktop.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 65
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/icu_monitoring_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/icu_monitoring_setup/export_result.sh"
+  },
+  "metadata": {
+    "required_device_count": 3,
+    "required_devices": [
+      "Multiparameter Monitor",
+      "CO2 or respiratory device",
+      "third device of choice"
+    ],
+    "required_app": "Vital Signs",
+    "required_file": "/home/ga/Desktop/monitoring_checklist.txt",
+    "clinical_context": "Post-cardiac surgery ICU monitoring setup",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_icu_monitoring_setup"
+    }
+  }
+}

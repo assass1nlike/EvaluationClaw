@@ -1,0 +1,31 @@
+{
+  "id": "solar_storage_monitoring_pipeline@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "You are an energy systems engineer commissioning a solar PV and battery storage monitoring system. The BMS controller is sending data to Emoncms at http://localhost (login: admin / admin) under node 'pvbms' with channels: solar_w, battery_soc, battery_charge_w, and battery_discharge_w. No feeds are currently configured. Configure the data pipeline by creating appropriately named and tagged feeds and process lists for all channels, including a Power-to-kWh energy accumulation feed for the solar generation channel. Build a dashboard named 'Solar Storage Monitor' containing at least 4 widgets displaying the key metrics.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/solar_storage_monitoring_pipeline/setup_task.sh",
+    "post_task": "/workspace/tasks/solar_storage_monitoring_pipeline/export_result.sh"
+  },
+  "metadata": {
+    "node": "pvbms",
+    "expected_inputs": [
+      "solar_w",
+      "battery_soc",
+      "battery_charge_w",
+      "battery_discharge_w"
+    ],
+    "dashboard_name": "Solar Storage Monitor"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_storage_monitoring_pipeline"
+    }
+  }
+}

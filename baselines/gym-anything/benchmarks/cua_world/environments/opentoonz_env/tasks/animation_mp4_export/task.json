@@ -1,0 +1,35 @@
+{
+  "id": "animation_mp4_export@1",
+  "version": "1.0",
+  "env_id": "opentoonz_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a post-production coordinator at an animation studio. A client has requested the studio's walk cycle animation delivered as a single video file rather than an image sequence. Export the animation from /home/ga/OpenToonz/samples/dwanko_run.tnz as a video file (MP4, MOV, or AVI) to /home/ga/OpenToonz/output/video_export/. The output must be a valid playable video containing the full animation.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/animation_mp4_export/setup_task.sh",
+    "post_task": "/workspace/tasks/animation_mp4_export/export_result.sh"
+  },
+  "metadata": {
+    "source_scene": "/home/ga/OpenToonz/samples/dwanko_run.tnz",
+    "output_dir": "/home/ga/OpenToonz/output/video_export",
+    "accepted_extensions": [
+      "mp4",
+      "mov",
+      "avi",
+      "webm",
+      "mkv"
+    ],
+    "min_file_size_kb": 50,
+    "min_duration_sec": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_animation_mp4_export"
+    }
+  }
+}

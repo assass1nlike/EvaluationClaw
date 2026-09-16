@@ -1,0 +1,59 @@
+{
+  "task_id": "pad_departure_safety_optimization@1",
+  "task_completion": [
+    {
+      "id": "open_source_file",
+      "description": "Verify that the agent opened the initial rocket design file in OpenRocket.",
+      "points": 10,
+      "visual_evidence": "Look for the OpenRocket application window with 'janus_38mm' visible in the title bar or the design tree."
+    },
+    {
+      "id": "configure_launch_rail",
+      "description": "Verify that the agent set the launch rod/rail length to 2.0 meters.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Edit simulation' or 'Launch conditions' dialog in OpenRocket showing the 'Launch rod length' set to 2.0 m (or equivalent in other units)."
+    },
+    {
+      "id": "select_motor",
+      "description": "Verify that the agent selected and loaded a motor into the rocket's 38mm motor mount.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Motor configuration' tab in OpenRocket showing a specific motor assigned to the rocket's motor mount."
+    },
+    {
+      "id": "verify_simulation_results",
+      "description": "Verify that the simulation results meet the safety constraints (velocity >= 18.0 m/s, altitude <= 1200 m).",
+      "points": 20,
+      "visual_evidence": "Look at the simulation results table in OpenRocket. Check that the 'Velocity off rod' is 18.0 m/s or higher, and the 'Apogee' is 1200 m or lower."
+    },
+    {
+      "id": "save_target_file",
+      "description": "Verify that the agent saved the updated design as 'safe_janus.ork'.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As' dialog showing the filename 'safe_janus.ork' in the ~/Documents/rockets/ directory, or a terminal/file manager confirming the file's creation."
+    },
+    {
+      "id": "create_safety_memo",
+      "description": "Verify that the agent created the required safety memo with the selected motor, rod clearance velocity, and expected apogee.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal window showing the creation of 'pad_safety_memo.txt' in ~/Documents/exports/ containing the motor name, the velocity off rod, and the apogee."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openrocket_gui",
+      "description": "Verify that the agent interacted with the OpenRocket graphical interface to configure the motor and run simulations.",
+      "visual_evidence": "Look for screenshots showing active interaction with the OpenRocket GUI (e.g., clicking through menus, motor selection dialogs, simulation runs) rather than just editing the .ork XML file in a text editor."
+    },
+    {
+      "id": "authentic_simulation_results",
+      "description": "Verify that the values documented in the memo match the actual simulation results displayed in OpenRocket.",
+      "visual_evidence": "Cross-reference the velocity and apogee values written in the text editor for the memo with the values visible in the OpenRocket simulation results table. They should match."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify that the memo file was actually saved to the correct path.",
+      "visual_evidence": "Look for evidence of the file being saved (e.g., a 'Save' dialog, terminal commands like 'echo' or 'nano' writing to the specific path ~/Documents/exports/pad_safety_memo.txt)."
+    }
+  ],
+  "privileged_info_for_vlm": "Source file: /home/ga/Documents/rockets/janus_38mm.ork. Target file: /home/ga/Documents/rockets/safe_janus.ork. Memo path: /home/ga/Documents/exports/pad_safety_memo.txt. Required launch rod length: 2.0 meters. Minimum rod clearance velocity: 18.0 m/s. Maximum altitude: 1200.0 meters."
+}

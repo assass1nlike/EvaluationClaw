@@ -1,0 +1,30 @@
+{
+  "id": "configure_multi_timeframe_indicator_overlay@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running on the Windows desktop with real historical data for SPY (SPDR S&P 500 ETF Trust). A swing trader needs a specific chart setup to monitor long-term trends while trading on a daily timeframe. Create a single chart for 'SPY' using 'Daily' bars that includes a 'Weekly' bars data series overlay. Add a 50-period 'SMA' (Simple Moving Average) indicator configured to use the 'Weekly' data series as its 'Input Series'. Save the workspace to ensure the configuration persists. Login credentials (if needed): Docker / GymAnything123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_multi_timeframe_indicator_overlay\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_multi_timeframe_indicator_overlay\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "primary_period": "Daily",
+    "secondary_period": "Weekly",
+    "indicator": "SMA",
+    "indicator_period": 50,
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces\\"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_timeframe_setup"
+    }
+  }
+}

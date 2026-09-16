@@ -1,0 +1,30 @@
+{
+  "id": "add_conditional_formatting@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "Apply conditional formatting to the inventory spreadsheet at /home/ga/Documents/inventory.xlsx. Configure the following rules: highlight cells in the Quantity column in red when the value is less than the Reorder Level, highlight cells in the Unit Price column in green when the price is greater than 100, apply data bars to the Quantity column, and apply a green-to-red color scale to the Unit Price column. Save the changes to the file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_conditional_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/add_conditional_formatting/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Realistic inventory data with 30+ items",
+    "expected_rules": [
+      "cellIs",
+      "dataBar",
+      "colorScale"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_conditional_formatting"
+    }
+  }
+}

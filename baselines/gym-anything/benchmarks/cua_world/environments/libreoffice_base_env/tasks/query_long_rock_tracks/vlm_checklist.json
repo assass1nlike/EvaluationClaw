@@ -1,0 +1,53 @@
+{
+  "task_id": "query_long_rock_tracks@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "Open the Chinook database in LibreOffice Base.",
+      "points": 10,
+      "visual_evidence": "LibreOffice Base window is open with 'chinook.odb' visible in the title bar or recent files."
+    },
+    {
+      "id": "query_columns",
+      "description": "Include Track Name, Composer, and calculated duration in minutes.",
+      "points": 20,
+      "visual_evidence": "In the query design grid or SQL view, the selected columns include the track name, composer, and a calculation for Milliseconds / 60000."
+    },
+    {
+      "id": "query_filters",
+      "description": "Filter by Genre (Rock or Metal), duration (> 300,000 ms), and Composer (not null).",
+      "points": 20,
+      "visual_evidence": "In the query design grid or SQL view, criteria are set for Genre ('Rock' or 'Metal' / GenreId 1 or 3), Milliseconds (> 300000), and Composer (IS NOT NULL)."
+    },
+    {
+      "id": "query_sorting",
+      "description": "Sort the results by duration in descending order.",
+      "points": 10,
+      "visual_evidence": "In the query design grid, the 'Sort' row for the duration column is set to 'Descending', or the SQL view contains an 'ORDER BY ... DESC' clause."
+    },
+    {
+      "id": "save_query",
+      "description": "Save the query with the name 'DeepCutsPlaylist'.",
+      "points": 40,
+      "visual_evidence": "A save dialog shows the name 'DeepCutsPlaylist', or the main LibreOffice Base window lists 'DeepCutsPlaylist' under the Queries section."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the LibreOffice Base GUI to create the query.",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Base application (Query Design, SQL View, or main window), rather than terminal commands like sqlite3 or python scripts."
+    },
+    {
+      "id": "genuine_query_creation",
+      "description": "The query was genuinely created within the database application.",
+      "visual_evidence": "The query design interface or SQL editor is visible, showing the actual construction of the query, not just a text editor with SQL pasted into it."
+    },
+    {
+      "id": "no_script_injection",
+      "description": "The agent did not use a script to bypass the UI.",
+      "visual_evidence": "There is no evidence of the agent running bash or python scripts to directly modify the .odb file's internal XML to inject the query."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. The saved query must be named exactly 'DeepCutsPlaylist'. The query must contain logic for Genre ('Rock' or 'Metal'), Milliseconds > 300000, Composer IS NOT NULL, and an ORDER BY clause for descending duration. If executed, the correct query returns exactly 500 matching tracks."
+}

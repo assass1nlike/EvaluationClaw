@@ -1,0 +1,48 @@
+{
+  "id": "import_portfolio_from_csv@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "You are a retail investor who has been tracking stock purchases in a spreadsheet. Import your transaction history from the CSV file located at ~/Documents/import_portfolio.csv into JStock's Portfolio Management view. The file contains buy transactions for TSLA (Tesla), META (Meta Platforms), JPM (JPMorgan Chase), V (Visa), and JNJ (Johnson & Johnson). Ensure the transactions are correctly added to your portfolio.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_portfolio_from_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/import_portfolio_from_csv/export_result.sh"
+  },
+  "metadata": {
+    "import_file_path": "/home/ga/Documents/import_portfolio.csv",
+    "portfolio_file_path": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/buyportfolio.csv",
+    "expected_positions": [
+      {
+        "code": "TSLA",
+        "units": 30.0
+      },
+      {
+        "code": "META",
+        "units": 40.0
+      },
+      {
+        "code": "JPM",
+        "units": 60.0
+      },
+      {
+        "code": "V",
+        "units": 20.0
+      },
+      {
+        "code": "JNJ",
+        "units": 45.0
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_portfolio_from_csv"
+    }
+  }
+}

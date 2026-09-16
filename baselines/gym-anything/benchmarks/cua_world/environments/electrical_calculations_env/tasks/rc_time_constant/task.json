@@ -1,0 +1,28 @@
+{
+  "id": "rc_time_constant@1",
+  "version": "1.0",
+  "env_id": "electrical_calculations_env@0.1",
+  "description": "Using the Electrical Engineering Calculations app, calculate the time constant for an RC circuit with a resistance of 47 kΩ and a capacitance of 100 μF. Ensure the calculated result is displayed on the screen.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/rc_time_constant/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/rc_time_constant/export_result.sh"
+  },
+  "metadata": {
+    "resistance_ohms": 47000,
+    "capacitance_farads": 0.0001,
+    "expected_time_constant_sec": 4.7,
+    "tolerance_percent": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rc_time_constant"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "snapshot_search_results@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Researchers often need to create static collections from search results to freeze a bibliography for a specific project phase. Search your Zotero library for all papers that have the word \"Theory\" in their Title and add them to a new standard collection named \"Theoretical Foundations\". The collection must be a standard folder containing static references, not a Saved Search.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/snapshot_search_results/setup_task.sh",
+    "post_task": "/workspace/tasks/snapshot_search_results/export_result.sh"
+  },
+  "metadata": {
+    "target_collection_name": "Theoretical Foundations",
+    "target_keyword": "Theory",
+    "target_field": "Title"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_snapshot_search_results"
+    }
+  }
+}

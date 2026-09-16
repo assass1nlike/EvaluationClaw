@@ -1,0 +1,85 @@
+{
+  "dataset_id": "a295f14b",
+  "name": "Request Docvqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 17,
+  "description": "Request DocVQA evaluates visual question answering over multi-page document images. Each sample pairs a set of document page images with a natural language question, requiring the model to extract a short textual answer from the document content.",
+  "card_text": "The dataset consists of image-text pairs where the input is a sequence of JPEG images representing pages of a document (e.g., forms, notices, reports) and a short natural language question. The expected output is a short text answer extracted from the document, which may be a number, code, or phrase, and can be empty when the answer is not present. The questions target specific factual details such as initiative measure numbers, zip codes, dates, amounts, and names. The documents are likely scanned or photographed pages with varied layouts including text blocks, tables, and form fields. This benchmark tests a model's ability to perform optical character recognition, layout understanding, and reasoning to locate the correct answer within multi-page visual documents. The small size (17 samples) suggests it is a diagnostic or evaluation set.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "document VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "A list of JPEG image file paths, each corresponding to a page of a document. Together they form the visual context that the model must read and understand to answer the question. The documents contain text, tables, and form fields typical of scanned administrative or informational materials.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question or instruction that asks for a specific piece of information from the document images, such as a number, zip code, date, or name. It directs the model's attention to a particular detail in the context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list containing the ground-truth answer text extracted from the document, typically a short string (e.g., a number or code). The list may be empty when the answer cannot be found in the provided document images.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a list of document page image paths serving as the visual context, a short text question/instruction, and a text answer (which may be an empty list). The images are the primary source of information; the question asks for a specific detail within them; the answer is the corresponding short span extracted from the document."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/request_docvqa/json/annotation.json",
+    "existing_tags": {
+      "task": "document vqa",
+      "type": "comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

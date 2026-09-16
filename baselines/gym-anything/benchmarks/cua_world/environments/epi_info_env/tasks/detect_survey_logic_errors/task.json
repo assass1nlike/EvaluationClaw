@@ -1,0 +1,38 @@
+{
+  "id": "detect_survey_logic_errors@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Perform data cleaning on the health survey dataset 'C:\\Users\\Docker\\Documents\\SurveyData\\raw_health_survey.csv' using Epi Info 7 Classic Analysis. Identify records with logical inconsistencies: Gender Conflict (Respondent is 'Male' but IsPregnant is 'Yes') and Skip Pattern Conflict (EverSmoked is 'No' but CigsPerDay is greater than 0). Export these problematic records to 'C:\\Users\\Docker\\Documents\\SurveyData\\validation_errors.csv', ensuring the output includes 'RespondentID' and an 'ErrorType' variable identifying the specific conflict ('GenderConflict' or 'SkipConflict').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\detect_survey_logic_errors\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\detect_survey_logic_errors\\export_result.ps1"
+  },
+  "metadata": {
+    "input_file": "C:\\Users\\Docker\\Documents\\SurveyData\\raw_health_survey.csv",
+    "output_file": "C:\\Users\\Docker\\Documents\\SurveyData\\validation_errors.csv",
+    "ground_truth_file": "C:\\Users\\Docker\\Documents\\SurveyData\\ground_truth_errors.csv",
+    "total_records": 100,
+    "expected_error_count": 7,
+    "error_ids": [
+      "15",
+      "42",
+      "78",
+      "91",
+      "5",
+      "33",
+      "60"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_detect_survey_logic_errors"
+    }
+  }
+}

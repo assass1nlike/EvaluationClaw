@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_sensor_node_api@1",
+  "task_completion": [
+    {
+      "id": "api_keys_read",
+      "description": "The agent reads the API keys from the specified file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat /home/ga/emoncms_apikeys.sh' or a script opening and reading the file."
+    },
+    {
+      "id": "node_and_inputs_created",
+      "description": "The agent creates the 'office_env' node with 'temperature', 'humidity', and 'co2' inputs using the API.",
+      "points": 15,
+      "visual_evidence": "Terminal showing curl commands or a script making HTTP requests to the Emoncms API with 'node=office_env' and the specified input names."
+    },
+    {
+      "id": "feeds_created",
+      "description": "The agent creates PHPFina feeds for temperature, humidity, and co2 with the correct names, units, and tag.",
+      "points": 20,
+      "visual_evidence": "Terminal showing API requests to 'feed/create' with names like 'office_env_temperature', 'office_env_humidity', 'office_env_co2', and their respective units, or the Emoncms web interface showing the created feeds."
+    },
+    {
+      "id": "inputs_linked_to_feeds",
+      "description": "The agent configures the inputs to log to the newly created feeds.",
+      "points": 20,
+      "visual_evidence": "Terminal showing API requests to 'input/process/add' linking the inputs to the feed IDs, or the Emoncms web interface showing the input processing configuration."
+    },
+    {
+      "id": "test_data_posted",
+      "description": "The agent posts the two sets of test data to the API.",
+      "points": 15,
+      "visual_evidence": "Terminal showing API requests posting the values (21.5, 45.2, 620) and subsequently (22.1, 44.8, 635) to the 'office_env' node."
+    },
+    {
+      "id": "json_config_saved",
+      "description": "The agent documents the configuration in '/home/ga/sensor_config.json'.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the contents of '/home/ga/sensor_config.json' (e.g., using 'cat') or a text editor open with the file, containing feed IDs and the last recorded values (22.1, 44.8, 635)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "api_interaction_verified",
+      "description": "The agent genuinely interacted with the Emoncms API rather than just creating the output file.",
+      "visual_evidence": "Screenshots must show terminal commands (curl, python, etc.) sending HTTP requests to the Emoncms server and receiving JSON responses."
+    },
+    {
+      "id": "authentic_feed_ids",
+      "description": "The JSON configuration file contains authentic feed IDs returned by the API.",
+      "visual_evidence": "The feed IDs in the JSON file should match the IDs returned in the API responses visible in the terminal."
+    },
+    {
+      "id": "no_gui_shortcut",
+      "description": "The agent used the HTTP API as requested, rather than configuring everything manually through the Emoncms web GUI.",
+      "visual_evidence": "The primary configuration steps should be visible as terminal commands or scripts, not just clicks in the web browser (though the browser may be used for verification)."
+    }
+  ],
+  "privileged_info_for_vlm": "Target node: 'office_env'. Required inputs: 'temperature', 'humidity', 'co2'. Required feeds: 'office_env_temperature', 'office_env_humidity', 'office_env_co2'. Output file: '/home/ga/sensor_config.json'."
+}

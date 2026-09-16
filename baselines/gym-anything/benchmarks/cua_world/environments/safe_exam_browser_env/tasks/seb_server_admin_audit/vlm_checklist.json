@@ -1,0 +1,53 @@
+{
+  "task_id": "seb_server_admin_audit@1",
+  "task_completion": [
+    {
+      "id": "access_seb_server",
+      "description": "Verify the agent accessed the SEB Server web interface and logged in.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the SEB Server dashboard at localhost:8080, logged in as super-admin."
+    },
+    {
+      "id": "audit_users_and_institutions",
+      "description": "Verify the agent checked the Institutions and User Accounts.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the SEB Server UI navigated to the 'Institutions' page and the 'User Accounts' page to gather entity names and roles."
+    },
+    {
+      "id": "audit_lms_and_configs",
+      "description": "Verify the agent checked the LMS Setups and SEB Exam Configurations.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the SEB Server UI navigated to the 'LMS Setups' page and the 'SEB Exam Configurations' page to gather names and statuses."
+    },
+    {
+      "id": "audit_exams",
+      "description": "Verify the agent checked the Exams.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the SEB Server UI navigated to the 'Exams' page."
+    },
+    {
+      "id": "save_audit_report",
+      "description": "Verify the agent saved the structured audit report to the correct file path with the exact required formatting and correct data.",
+      "points": 50,
+      "visual_evidence": "A terminal or text editor showing the file '/home/ga/seb_audit_report.txt' being saved or viewed. It must contain the exact headers (e.g., 'SEB SERVER AUDIT REPORT', 'INSTITUTIONS', etc.), correct counts, and entity details matching the system data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web browser to gather data from the SEB Server UI.",
+      "visual_evidence": "Look for web browser interaction and navigation through the SEB Server web interface, rather than terminal database queries (like mysql commands) to extract the data."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the agent actually created and saved the file to the correct path.",
+      "visual_evidence": "Look for commands like 'nano', 'vim', 'echo', or 'cat' writing to '/home/ga/seb_audit_report.txt', or a GUI text editor saving to that path, not just printing the text to the terminal stdout."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Verify the report data matches the actual system data and wasn't hallucinated.",
+      "visual_evidence": "The entities listed in the final report must exactly match the privileged information (e.g., 'ETH Z\u00fcrich', 'super-admin', 'test', 'Open edX Ralph', 'Moodle', 'quiz1', 'quiz6')."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified expected output path: /home/ga/seb_audit_report.txt. The SEB Server contains exactly: 1 Institution ('ETH Z\u00fcrich'), 1 User Account ('super-admin' with role 'super-admin' or 'Administrator'), 3 LMS Setups ('test', 'Open edX Ralph', 'Moodle'), 1 SEB Exam Configuration ('test' with status 'IN_USE'), and 2 Exams ('quiz1', 'quiz6'). The final report must match this data and the exact formatting specified in the prompt."
+}

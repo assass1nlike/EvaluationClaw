@@ -1,0 +1,59 @@
+{
+  "task_id": "audit_encrypted_volumes@1",
+  "task_completion": [
+    {
+      "id": "finance_volume_accessed",
+      "description": "Agent mounts and inspects the 'dept_finance.hc' volume.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing VeraCrypt GUI with 'dept_finance.hc' mounted, its Volume Properties window open, or a file manager/terminal displaying its contents."
+    },
+    {
+      "id": "hr_volume_accessed",
+      "description": "Agent mounts and inspects the 'dept_hr.hc' volume.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing VeraCrypt GUI with 'dept_hr.hc' mounted, its Volume Properties window open, or a file manager/terminal displaying its contents."
+    },
+    {
+      "id": "json_report_structure",
+      "description": "Agent creates a JSON report with the required structure.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing a JSON file being edited with keys: 'audit_date', 'volumes', 'filename', 'path', 'encryption_algorithm', 'hash_algorithm', and 'files'."
+    },
+    {
+      "id": "json_report_finance_data",
+      "description": "The JSON report contains the correct audit data for the finance volume.",
+      "points": 20,
+      "visual_evidence": "The JSON report explicitly lists 'Serpent' for encryption, 'SHA-256' for hash, and includes files 'FY2024_Revenue_Budget.csv' and 'SF312_Nondisclosure_Agreement.txt' for 'dept_finance.hc'."
+    },
+    {
+      "id": "json_report_hr_data",
+      "description": "The JSON report contains the correct audit data for the HR volume.",
+      "points": 20,
+      "visual_evidence": "The JSON report explicitly lists 'Twofish' for encryption, 'Whirlpool' for hash, and includes the file 'backup_authorized_keys' for 'dept_hr.hc'."
+    },
+    {
+      "id": "volumes_dismounted",
+      "description": "Agent dismounts both volumes after the audit.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with empty slots (no volumes mounted) or a terminal executing a dismount command (e.g., 'veracrypt -d') near the end of the trajectory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_volume_inspection",
+      "description": "The agent actually inspected the volumes to gather the information.",
+      "visual_evidence": "The agent must be seen interacting with VeraCrypt (GUI or CLI) to view volume properties and contents before writing them into the JSON report. It should not magically know the algorithms or files."
+    },
+    {
+      "id": "report_saved_correctly",
+      "description": "The JSON report is saved to the correct file path.",
+      "visual_evidence": "The text editor or terminal shows the file being saved exactly to '/home/ga/Documents/volume_audit_report.json', rather than just being left unsaved or printed to the console."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not use a pre-existing solution or hallucinate the exact answers.",
+      "visual_evidence": "The agent types out or constructs the JSON report based on its findings, rather than pasting a complete, correct JSON block from an unseen source."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected JSON report must be saved to '/home/ga/Documents/volume_audit_report.json'. For 'dept_finance.hc': Encryption is Serpent, Hash is SHA-256, Files are ['FY2024_Revenue_Budget.csv', 'SF312_Nondisclosure_Agreement.txt']. For 'dept_hr.hc': Encryption is Twofish, Hash is Whirlpool, Files are ['backup_authorized_keys']."
+}

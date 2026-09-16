@@ -1,0 +1,38 @@
+{
+  "id": "residential_site_plan@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a residential site plan in LibreCAD saved to /home/ga/Documents/LibreCAD/residential_site_plan.dxf. The drawing must feature a 60'x100' property lot (Layer: 'LOT_LINES', Color: Red) starting at (0,0). Include zoning setbacks (Layer: 'SETBACKS', Color: Blue, Linetype: Dashed) defining a buildable area with a 25' front setback, 10' rear setback, and 5' side setbacks. Place a 30'x50' proposed house (Layer: 'BUILDING', Color: Yellow) centered horizontally on the lot with its front wall aligned with the front setback line. Label the area below the lot as 'STREET' and the interior of the house as 'PROPOSED RESIDENCE' using white text on the 'TEXT' layer.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/residential_site_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/residential_site_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/residential_site_plan.dxf",
+    "lot_width": 60,
+    "lot_depth": 100,
+    "setback_front": 25,
+    "setback_rear": 10,
+    "setback_side": 5,
+    "house_width": 30,
+    "house_depth": 50,
+    "required_layers": [
+      "LOT_LINES",
+      "SETBACKS",
+      "BUILDING",
+      "TEXT"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_residential_site_plan"
+    }
+  }
+}

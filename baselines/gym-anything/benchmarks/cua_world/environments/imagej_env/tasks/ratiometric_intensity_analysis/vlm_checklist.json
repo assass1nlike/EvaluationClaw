@@ -1,0 +1,59 @@
+{
+  "task_id": "ratiometric_intensity_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_sample_image",
+      "description": "Open the 'Fluorescent Cells' sample image.",
+      "points": 10,
+      "visual_evidence": "ImageJ/Fiji interface showing an open image window titled 'Fluorescent Cells' or 'Fluorescent Cells (400K)'."
+    },
+    {
+      "id": "split_channels",
+      "description": "Split the multi-channel image into separate Red and Green channels.",
+      "points": 10,
+      "visual_evidence": "Separate image windows visible for the individual channels, typically named 'C1-Fluorescent Cells' (Red) and 'C2-Fluorescent Cells' (Green)."
+    },
+    {
+      "id": "create_green_mask",
+      "description": "Define the cell area by creating a mask from the Green channel.",
+      "points": 20,
+      "visual_evidence": "A binary (black and white) or thresholded image window derived from the Green channel, or a Threshold tool dialog actively being applied to the Green channel."
+    },
+    {
+      "id": "generate_ratio_image",
+      "description": "Generate a 32-bit floating-point ratio image (Red / Green) restricted to the mask.",
+      "points": 30,
+      "visual_evidence": "Image Calculator dialog showing a 'Divide' operation between the Red and Green channels with '32-bit (float) result' checked, and/or a resulting 32-bit image window where background pixels are 0 or NaN."
+    },
+    {
+      "id": "measure_mean_intensity",
+      "description": "Measure the mean intensity of the ratio image within the cell mask.",
+      "points": 15,
+      "visual_evidence": "ImageJ 'Results' window displaying a measurement row with a 'Mean' value calculated from the ratio image."
+    },
+    {
+      "id": "save_outputs",
+      "description": "Save the ratio image to 'ratio_map.tif' and the mean intensity to 'mean_ratio.txt'.",
+      "points": 15,
+      "visual_evidence": "Save dialogs, file manager, or terminal windows showing 'ratio_map.tif' and 'mean_ratio.txt' being saved or existing in the '~/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_imagej_gui",
+      "description": "The agent used the ImageJ/Fiji graphical interface to perform the image processing.",
+      "visual_evidence": "Screenshots show interaction with ImageJ menus, toolbars, and dialogs rather than just running a pre-written script in a terminal."
+    },
+    {
+      "id": "genuine_image_math",
+      "description": "The ratio image was actually computed using image math.",
+      "visual_evidence": "Presence of the Image Calculator dialog or macro execution showing division, rather than just renaming or copying an existing file."
+    },
+    {
+      "id": "genuine_measurement",
+      "description": "The mean intensity was genuinely measured from the image.",
+      "visual_evidence": "The 'Results' table in ImageJ is populated with measurement data, rather than the agent manually typing a guessed number into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using the built-in Fiji/ImageJ sample 'Fluorescent Cells (400K)', accessible via File > Open Samples. The sample is a multi-channel image containing Red and Green channels. The expected outputs are a 32-bit TIFF image saved at '/home/ga/ImageJ_Data/results/ratio_map.tif' and a text file at '/home/ga/ImageJ_Data/results/mean_ratio.txt'. The ratio must be Red divided by Green, masked by the Green channel."
+}

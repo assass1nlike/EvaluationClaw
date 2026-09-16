@@ -1,0 +1,53 @@
+{
+  "task_id": "view_metadata@1",
+  "task_completion": [
+    {
+      "id": "open_metadata_viewer",
+      "description": "Open the DICOM metadata or header viewer in Weasis.",
+      "points": 20,
+      "visual_evidence": "A window, dialog, or panel specifically for viewing DICOM metadata/headers (often titled 'DICOM Information', 'Properties', or 'Metadata') is open within the Weasis application."
+    },
+    {
+      "id": "display_dicom_tags",
+      "description": "Display the list of DICOM tags for the loaded image.",
+      "points": 20,
+      "visual_evidence": "A structured list or table containing DICOM tags (typically showing columns like Tag ID, Description, VR, and Value) is visible inside the metadata viewer."
+    },
+    {
+      "id": "display_patient_name",
+      "description": "Locate and display the Patient Name tag in the metadata viewer.",
+      "points": 20,
+      "visual_evidence": "The 'Patient Name' attribute (Tag 0010,0010) and its corresponding value are clearly visible in the metadata list."
+    },
+    {
+      "id": "display_study_description",
+      "description": "Locate and display the Study Description tag in the metadata viewer.",
+      "points": 20,
+      "visual_evidence": "The 'Study Description' attribute (Tag 0008,1030) and its corresponding value are clearly visible in the metadata list."
+    },
+    {
+      "id": "display_modality",
+      "description": "Locate and display the Modality tag in the metadata viewer.",
+      "points": 20,
+      "visual_evidence": "The 'Modality' attribute (Tag 0008,0060) and its corresponding value are clearly visible in the metadata list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Weasis graphical user interface to view the metadata, rather than terminal commands.",
+      "visual_evidence": "The metadata is shown in the Weasis GUI. There should be no terminal windows open running command-line tools like 'dcmdump' or 'exiftool'."
+    },
+    {
+      "id": "genuine_weasis_viewer",
+      "description": "The metadata is displayed in the actual Weasis application.",
+      "visual_evidence": "The window displaying the metadata has Weasis UI styling, icons, or window decorations, and is not a generic text editor, web browser, or script output."
+    },
+    {
+      "id": "authentic_metadata_values",
+      "description": "The agent displayed the actual metadata of the loaded image rather than pasting fallback/dummy values.",
+      "visual_evidence": "The Patient Name value shown is 'Rubo DEMO' and the Modality is 'XA'. They must NOT be 'Metadata^Test' or 'CT'."
+    }
+  ],
+  "privileged_info_for_vlm": "The actual medical image loaded in Weasis has the Patient Name 'Rubo DEMO' and Modality 'XA' (X-Ray Angiography). The VLM must verify these specific values are displayed in the metadata viewer to confirm the agent successfully read the real file's metadata, rather than relying on the fallback values ('Metadata^Test' and 'CT') mentioned in the task definition."
+}

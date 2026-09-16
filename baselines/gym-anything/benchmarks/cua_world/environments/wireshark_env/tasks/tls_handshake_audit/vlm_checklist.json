@@ -1,0 +1,53 @@
+{
+  "task_id": "tls_handshake_audit@1",
+  "task_completion": [
+    {
+      "id": "wireshark_active",
+      "description": "Wireshark is visible and shows the capture file with TLS packets.",
+      "points": 20,
+      "visual_evidence": "Wireshark window is open, displaying network packets, with evidence of TLS traffic (e.g., 'TLS' or 'TLSv1.2' in the Protocol column, or a display filter like 'tls' or 'ssl' applied)."
+    },
+    {
+      "id": "wireshark_details_inspected",
+      "description": "The agent inspects TLS handshake details in Wireshark.",
+      "points": 20,
+      "visual_evidence": "The packet details pane in the lower half of Wireshark is expanded to show specific TLS handshake information, such as Server Name Indication (SNI) extensions, Cipher Suites, or TLS Record Layer Version."
+    },
+    {
+      "id": "report_editor_open",
+      "description": "A text editor is open to create or edit the audit report.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim, VS Code) is visible, and the filename 'tls_audit_report.txt' is shown in the window title bar, tab, or terminal status bar."
+    },
+    {
+      "id": "report_headers_present",
+      "description": "The report contains the required title and field labels.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the exact title 'TLS SECURITY AUDIT REPORT' and the required field labels (e.g., 'Total Client Hello messages:', 'Unique SNI hostnames:', 'Weak TLS versions detected:')."
+    },
+    {
+      "id": "report_values_filled",
+      "description": "The report fields are populated with actual data from the capture.",
+      "points": 30,
+      "visual_evidence": "The placeholders in the report (like '<number>', '<comma-separated list>', '<Yes or No>') have been replaced with actual values, such as numerical counts, real hostnames for SNI, and specific TLS versions/cipher suites."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "wireshark_gui_used",
+      "description": "The agent used the Wireshark GUI to analyze the traffic.",
+      "visual_evidence": "Screenshots show interaction with the Wireshark graphical interface (e.g., applying filters, expanding packet details, using statistics tools) rather than solely relying on terminal commands like tshark."
+    },
+    {
+      "id": "genuine_traffic_data",
+      "description": "The data entered in the report corresponds to real network traffic.",
+      "visual_evidence": "The SNI hostnames in the report include real domains (like google.com, wikipedia.org, cloudflare.com, etc.) and not generic placeholders or hallucinated names."
+    },
+    {
+      "id": "placeholders_replaced",
+      "description": "The agent did not just copy-paste the template without filling it.",
+      "visual_evidence": "The final report does not contain the literal strings '<number>' or '<comma-separated list>'; they are replaced with actual findings."
+    }
+  ],
+  "privileged_info_for_vlm": "The capture file contains real HTTPS traffic to public services (www.google.com, www.example.com, www.wikipedia.org, www.cloudflare.com, api.github.com). The report should reflect these hostnames in the SNI field. The capture file is located at /home/ga/Documents/captures/tls_traffic.pcap and the report should be saved to /home/ga/Documents/tls_audit_report.txt."
+}

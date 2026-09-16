@@ -1,0 +1,48 @@
+{
+  "id": "reorganize_package_structure@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Reorganize the 'ShopManager' Java project from a flat 'myapp' package into a domain-specific hierarchy to improve the architecture. Restructure the classes into the following packages:\n\n- com.myapp.model: User, Product, Order\n- com.myapp.service: UserService, ProductService, OrderService\n- com.myapp.util: StringUtils, DateUtils\n- com.myapp.config: AppConfig\n- com.myapp: App\n\nEnsure all imports and references are correctly updated so the project compiles with zero errors.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reorganize_package_structure/setup_task.sh",
+    "post_task": "/workspace/tasks/reorganize_package_structure/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/ShopManager",
+    "target_structure": {
+      "com.myapp.model": [
+        "User.java",
+        "Product.java",
+        "Order.java"
+      ],
+      "com.myapp.service": [
+        "UserService.java",
+        "ProductService.java",
+        "OrderService.java"
+      ],
+      "com.myapp.util": [
+        "StringUtils.java",
+        "DateUtils.java"
+      ],
+      "com.myapp.config": [
+        "AppConfig.java"
+      ],
+      "com.myapp": [
+        "App.java"
+      ]
+    },
+    "original_package": "myapp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reorganize_package_structure"
+    }
+  }
+}

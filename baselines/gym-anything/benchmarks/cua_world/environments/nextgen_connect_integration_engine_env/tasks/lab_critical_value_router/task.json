@@ -1,0 +1,31 @@
+{
+  "id": "lab_critical_value_router@1",
+  "version": "1.0",
+  "env_id": "nextgen_connect_integration_engine_env@0.1",
+  "description": "You are a Health Informatics Specialist at City General Hospital. To prevent clinicians from missing life-threatening critical value alerts, implement a NextGen Connect channel named 'Lab Critical Value Router'. The channel must listen on TCP port 6664 for HL7 ORU^R01 messages using MLLP framing. It should utilize a JavaScript transformer to check the OBX-8 field of all OBX segments for critical indicators 'HH' or 'LL', setting a channel map variable 'isCritical' to 'true' if detected.\n\nThe channel requires three destinations:\n- 'Critical DB Writer': A Database Writer that filters for 'isCritical' equals 'true' and inserts data into the PostgreSQL table 'critical_lab_results' (columns: message_id VARCHAR, patient_mrn VARCHAR, test_code VARCHAR, test_value VARCHAR, abnormal_flag VARCHAR, observation_time VARCHAR, received_at TIMESTAMP DEFAULT NOW()).\n- 'Normal DB Writer': A Database Writer that filters for 'isCritical' not equaling 'true' and inserts data into the PostgreSQL table 'normal_lab_results' (same column structure).\n- 'Audit Log Writer': A File Writer with no filter that writes all messages to /tmp/lab_audit/ inside the container.\n\nThe channel must be deployed and in a STARTED state. Sample messages are provided at /home/ga/sample_critical_oru.hl7 and /home/ga/sample_normal_oru.hl7. The PostgreSQL database is accessible at jdbc:postgresql://nextgen-postgres:5432/mirthdb (username: postgres, password: postgres). The REST API is at https://localhost:8443/api (credentials: admin/admin) and requires the header 'X-Requested-With: OpenAPI'. The web dashboard at https://localhost:8443 is for monitoring only.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lab_critical_value_router/setup_task.sh",
+    "post_task": "/workspace/tasks/lab_critical_value_router/export_result.sh"
+  },
+  "metadata": {
+    "channel_name": "Lab Critical Value Router",
+    "listen_port": "6664",
+    "critical_table": "critical_lab_results",
+    "normal_table": "normal_lab_results",
+    "audit_dir": "/tmp/lab_audit",
+    "occupation": "Health Informatics Specialist",
+    "soc_code": "15-1211.01"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lab_critical_value_router"
+    }
+  }
+}

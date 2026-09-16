@@ -1,0 +1,59 @@
+{
+  "task_id": "vigilance_experiment_setup@1",
+  "task_completion": [
+    {
+      "id": "scenario_directory_created",
+      "description": "Create the scenario directory for the experiment",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands (e.g., mkdir, ls) or a file manager showing the creation of the directory exactly at '/opt/bridgecommand/Scenarios/Exp) Vigilance Study 4H/'."
+    },
+    {
+      "id": "environment_ini_configured",
+      "description": "Configure the environment.ini file with correct parameters",
+      "points": 15,
+      "visual_evidence": "Look for the contents of 'environment.ini' in a text editor or terminal output showing Setting='English Channel East', StartTime=0.0, Weather=1.0, and VisibilityRange=12.0."
+    },
+    {
+      "id": "ownship_ini_configured",
+      "description": "Configure the ownship.ini file with MV Subject parameters",
+      "points": 15,
+      "visual_evidence": "Look for the contents of 'ownship.ini' showing Name='MV Subject', Start=49.00, -2.50 (Latitude 49.00, Longitude -2.50), Heading=000, and Speed=12.0."
+    },
+    {
+      "id": "othership_ini_base_configured",
+      "description": "Configure the othership.ini file with MV Stimulus base parameters",
+      "points": 15,
+      "visual_evidence": "Look for the contents of 'othership.ini' showing Name='MV Stimulus', Speed=18.0, Heading=180, and Longitude=-2.50."
+    },
+    {
+      "id": "othership_ini_calculated_lat",
+      "description": "Calculate and set the correct target latitude in othership.ini",
+      "points": 35,
+      "visual_evidence": "Look for the Latitude value in 'othership.ini'. It must be exactly 51.0 (or within the acceptable tolerance of 50.95 to 51.05) to ensure the 4-hour intercept."
+    },
+    {
+      "id": "briefing_file_created",
+      "description": "Generate the participant briefing file",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands or a text editor showing the creation and saving of a file at '/home/ga/Documents/experiment_briefing.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_directory_used",
+      "description": "Verify the agent used the exact absolute paths requested",
+      "visual_evidence": "Check that the agent did not create the files in a local mock directory (e.g., './opt/...') but used the absolute paths '/opt/bridgecommand/Scenarios/...' and '/home/ga/Documents/'."
+    },
+    {
+      "id": "valid_ini_format",
+      "description": "Verify the configuration files are properly formatted",
+      "visual_evidence": "Check that the .ini files are formatted with standard key-value pairs on separate lines, not just a single flat string of text."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify files were actually saved to disk",
+      "visual_evidence": "Look for save confirmations in terminal text editors (like nano or vim) or successful execution of file writing commands (like 'cat << EOF >' or 'echo'), rather than just printing the intended content to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The target vessel 'MV Stimulus' must have a starting latitude of exactly 51.0 (acceptable range: 50.95 to 51.05). This is mathematically derived: ownship travels north at 12 kts from 49.0, target travels south at 18 kts, resulting in a relative closure speed of 30 kts. In 4.0 hours, they cover 120 nautical miles. Since 1 degree of latitude = 60 nm, the distance is 2.0 degrees. 49.0 + 2.0 = 51.0. The scenario directory must be exactly '/opt/bridgecommand/Scenarios/Exp) Vigilance Study 4H'."
+}

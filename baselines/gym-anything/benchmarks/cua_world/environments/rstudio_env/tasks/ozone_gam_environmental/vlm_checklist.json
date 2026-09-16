@@ -1,0 +1,53 @@
+{
+  "task_id": "ozone_gam_environmental@1",
+  "task_completion": [
+    {
+      "id": "script_and_data_cleaning",
+      "description": "The agent created the analysis script and cleaned the data of missing values.",
+      "points": 15,
+      "visual_evidence": "Look for RStudio open with a script named `ozone_analysis.R`. The script should contain code referencing the built-in `airquality` dataset and a function to remove missing values, such as `na.omit()` or `tidyr::drop_na()`."
+    },
+    {
+      "id": "model_fitting",
+      "description": "The agent fitted both a Linear Regression model and a Generalized Additive Model (GAM).",
+      "points": 20,
+      "visual_evidence": "Look for code in the script fitting an `lm()` model and a `gam()` model (using the `mgcv` package). Both models should predict `Ozone` using `Solar.R`, `Wind`, and `Temp` (e.g., `gam(Ozone ~ s(Solar.R) + s(Wind) + s(Temp), ...)`)."
+    },
+    {
+      "id": "aic_comparison_csv",
+      "description": "The agent exported the AIC comparison to a CSV file.",
+      "points": 20,
+      "visual_evidence": "Look for code calculating the AIC of both models (e.g., `AIC(lm_model, gam_model)`) and writing the results to `/home/ga/RProjects/output/model_comparison.csv` with columns `model` and `AIC` (e.g., using `write.csv`), or look for the file in the RStudio Files pane."
+    },
+    {
+      "id": "gam_smooths_png",
+      "description": "The agent saved a visualization of the GAM's partial effects.",
+      "points": 20,
+      "visual_evidence": "Look for code plotting the GAM model (e.g., `plot(gam_model)`) and saving it to `/home/ga/RProjects/output/gam_smooths.png` (e.g., using `png()` and `dev.off()`), or look for the image file in the RStudio Files pane."
+    },
+    {
+      "id": "high_risk_prediction",
+      "description": "The agent predicted the Ozone level for a High Risk Day and saved it to a text file.",
+      "points": 25,
+      "visual_evidence": "Look for code creating a new data frame with `Solar.R=200, Wind=5, Temp=90`, using `predict()` with the GAM model, and writing the numeric result to `/home/ga/RProjects/output/high_risk_prediction.txt` (e.g., using `writeLines` or `write.table`)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_rstudio_usage",
+      "description": "The agent used RStudio to write and execute the R script.",
+      "visual_evidence": "The screenshots should show the RStudio IDE being used to write the code, rather than just terminal commands echoing text into files."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "The agent did not hardcode the expected results.",
+      "visual_evidence": "The code should dynamically calculate the AIC values and the prediction using the fitted models, rather than containing hardcoded numbers like 962.6, 998.7, or 96.32."
+    },
+    {
+      "id": "actual_model_fitting",
+      "description": "The agent actually fitted the models using the dataset.",
+      "visual_evidence": "The script should contain the actual `lm()` and `gam()` function calls with the formula `Ozone ~ ...` and the cleaned `airquality` dataset, rather than mocking the output."
+    }
+  ],
+  "privileged_info_for_vlm": "Running a GAM on the na.omit cleaned dataset using mgcv's gam(Ozone ~ s(Solar.R) + s(Wind) + s(Temp)) yields an AIC of approximately 962.6, which is correctly lower than the linear model's AIC of 998.7. The predicted ozone for a High Risk Day (Solar.R=200, Wind=5, Temp=90) is approximately 96.32 ppb. The expected output files are model_comparison.csv, gam_smooths.png, and high_risk_prediction.txt in /home/ga/RProjects/output/, and the script is /home/ga/RProjects/ozone_analysis.R."
+}

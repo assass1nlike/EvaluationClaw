@@ -1,0 +1,33 @@
+{
+  "id": "clip_rivers_to_country@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Clip the world rivers layer to Brazil's boundary. With the 'ne_110m_admin_0_countries' layer already loaded in gvSIG, add the rivers layer from /home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp. Select Brazil from the countries layer and use it to clip the rivers layer. Export the resulting shapefile to /home/ga/gvsig_data/exports/brazil_rivers.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clip_rivers_to_country/setup_task.sh",
+    "post_task": "/workspace/tasks/clip_rivers_to_country/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/brazil_rivers.shp",
+    "rivers_source": "/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp",
+    "countries_source": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp",
+    "brazil_bbox": [
+      -74.0,
+      -34.0,
+      -34.0,
+      6.0
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clip_rivers_to_country"
+    }
+  }
+}

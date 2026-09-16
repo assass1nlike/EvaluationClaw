@@ -1,0 +1,53 @@
+{
+  "task_id": "convert_allway_stop@1",
+  "task_completion": [
+    {
+      "id": "read_junction_briefing",
+      "description": "Identify the target junction ID from the briefing file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat junction_briefing.txt' or a text editor open displaying the contents of the briefing file to find the junction ID."
+    },
+    {
+      "id": "create_patch_file",
+      "description": "Create the XML node patch file to change the junction to an all-way stop.",
+      "points": 20,
+      "visual_evidence": "Terminal or text editor showing the creation of 'patch.nod.xml' containing XML tags for a node with an attribute like type=\"allway_stop\"."
+    },
+    {
+      "id": "generate_new_network",
+      "description": "Apply the patch to the base network to produce the new network file.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'netconvert' command taking 'pasubio_buslanes.net.xml' and 'patch.nod.xml' as inputs and outputting 'pasubio_allway.net.xml', or an 'ls' command showing the new network file was created."
+    },
+    {
+      "id": "create_sumo_config",
+      "description": "Create the SUMO configuration file referencing the new network and tripinfo output.",
+      "points": 20,
+      "visual_evidence": "Terminal or text editor showing the contents of 'run_allway.sumocfg' with XML elements referencing '<net-file value=\"pasubio_allway.net.xml\"/>' and '<tripinfo-output value=\"tripinfos_allway.xml\"/>'."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the SUMO simulation to completion using the new configuration.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the execution of 'sumo -c run_allway.sumocfg' (or similar) and the standard SUMO output logs indicating the simulation has ended/completed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the agent genuinely created the XML files using standard tools.",
+      "visual_evidence": "Look for the use of text editors (nano, vim, gedit) or shell redirection (echo, cat) to write the XML files, rather than downloading pre-made files or moving them from an unauthorized directory."
+    },
+    {
+      "id": "read_before_patch",
+      "description": "Verify the agent read the briefing file before creating the patch.",
+      "visual_evidence": "Ensure the command to read 'junction_briefing.txt' appears in the terminal history before the creation of 'patch.nod.xml', proving the agent didn't use prior knowledge of the junction ID."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "Verify the simulation was actually executed by SUMO.",
+      "visual_evidence": "Look for authentic SUMO terminal output (e.g., copyright header, step logs, 'Simulation ended at time:') rather than a mock script printing a success message."
+    }
+  ],
+  "privileged_info_for_vlm": "Scenario directory: /home/ga/SUMO_Scenarios/bologna_pasubio. Expected patch file: patch.nod.xml. Expected updated network file: pasubio_allway.net.xml. Expected SUMO configuration file: run_allway.sumocfg. Expected trip information output: tripinfos_allway.xml."
+}

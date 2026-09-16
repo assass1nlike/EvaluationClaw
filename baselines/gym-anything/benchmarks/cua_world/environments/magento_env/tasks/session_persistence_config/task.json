@@ -1,0 +1,35 @@
+{
+  "id": "session_persistence_config@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure the Magento store's session and shopping cart persistence policies to balance security with user convenience. Set the Cookie Lifetime to 1 hour. Enable the Persistent Shopping Cart with a lifetime of 30 days, enable \"Remember Me\" with a default value of Yes, ensure persistence is not cleared on sign out, and enable shopping cart persistence. Note that Magento requires these time values to be entered in seconds.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/session_persistence_config/setup_task.sh",
+    "post_task": "/workspace/tasks/session_persistence_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_cookie_lifetime": 3600,
+    "expected_persistence_lifetime": 2592000,
+    "paths": {
+      "cookie_lifetime": "web/cookie/cookie_lifetime",
+      "persistent_enabled": "persistent/options/enabled",
+      "persistent_lifetime": "persistent/options/lifetime",
+      "remember_enabled": "persistent/options/remember_enabled",
+      "remember_default": "persistent/options/remember_default",
+      "logout_clear": "persistent/options/logout_clear",
+      "persist_cart": "persistent/options/shopping_cart"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_session_persistence"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_directory_monitor_service@1",
+  "task_completion": [
+    {
+      "id": "project_creation",
+      "description": "Create a .NET 8 Worker Service named 'LogMonitorService' in the specified directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing an IDE (like Visual Studio or VS Code) or terminal with a .NET Worker Service project named 'LogMonitorService' located in 'C:\\Users\\Docker\\source\\repos\\'."
+    },
+    {
+      "id": "windows_service_configuration",
+      "description": "Configure the worker service to run as a Windows Service.",
+      "points": 10,
+      "visual_evidence": "Code in 'Program.cs' showing the use of '.UseWindowsService()' and/or the project file (.csproj) showing a package reference to 'Microsoft.Extensions.Hosting.WindowsServices'."
+    },
+    {
+      "id": "directory_monitoring_logic",
+      "description": "Implement logic to monitor the drop folder for new .log files.",
+      "points": 20,
+      "visual_evidence": "C# code (e.g., in 'Worker.cs') showing a 'FileSystemWatcher' or a directory polling loop targeting 'C:\\Users\\Docker\\Documents\\LogMonitor\\drop\\' and filtering for '*.log' files."
+    },
+    {
+      "id": "log_parsing_logic",
+      "description": "Parse Apache combined log format to count HTTP '404' and '500' status codes, handling File I/O safely.",
+      "points": 20,
+      "visual_evidence": "C# code showing file reading logic (with appropriate FileShare/FileMode settings to avoid lock exceptions), regex or string splitting to parse the Apache log format, and variables counting '404' and '500' occurrences."
+    },
+    {
+      "id": "summary_output_and_file_move",
+      "description": "Append the summary to error_summary.txt and move the processed log file to the archive folder.",
+      "points": 20,
+      "visual_evidence": "C# code showing a file append operation to 'C:\\Users\\Docker\\Documents\\LogMonitor\\archive\\error_summary.txt' using the format '[FileName]: 404=[Count], 500=[Count]', followed by a 'File.Move' operation to move the log file to the archive directory."
+    },
+    {
+      "id": "release_build",
+      "description": "Build the solution in the Release configuration.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a successful 'dotnet build -c Release' command, or Visual Studio build output indicating a successful Release build, with compiled files visible in the 'bin\\Release\\net8.0' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_creation",
+      "description": "The agent actually wrote the C# code rather than just creating a fake summary text file.",
+      "visual_evidence": "Screenshots should show the agent interacting with a code editor (VS Code, Visual Studio, etc.) and writing actual C# logic."
+    },
+    {
+      "id": "no_hardcoded_summaries",
+      "description": "The agent did not hardcode the expected test results into the summary file or code.",
+      "visual_evidence": "The C# code should contain dynamic variables for counting and formatting the output, not hardcoded strings like 'test_access_alpha.log: 404=2, 500=1'."
+    },
+    {
+      "id": "authentic_build_process",
+      "description": "The Release build was genuinely compiled using .NET tooling.",
+      "visual_evidence": "Terminal or IDE logs showing the actual MSBuild/.NET compiler output, rather than the agent just creating empty folders named 'Release'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires monitoring 'C:\\Users\\Docker\\Documents\\LogMonitor\\drop' and outputting to 'C:\\Users\\Docker\\Documents\\LogMonitor\\archive\\error_summary.txt'. The expected summary format is exactly '[FileName]: 404=[Count], 500=[Count]'. Note: The environment setup script for this task is broken, meaning the expected synthetic test logs ('test_access_alpha.log' and 'test_access_beta.log') are never automatically generated. Therefore, you must score the agent based on the presence and correctness of the C# code implementation and the Release build process, rather than looking for the final execution output on those specific test files (unless the agent manually created test files to verify its own code)."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "plsql_bulk_etl_package@1",
+  "task_completion": [
+    {
+      "id": "package_spec_created",
+      "description": "Verify the creation of the HR.REVIEW_ETL_PKG specification.",
+      "points": 15,
+      "visual_evidence": "Look for SQL code or execution results showing 'CREATE OR REPLACE PACKAGE HR.REVIEW_ETL_PKG'. It must include declarations for a weakly-typed REF CURSOR, a function GET_UNPROCESSED, and a procedure PROCESS_REVIEWS."
+    },
+    {
+      "id": "package_body_created",
+      "description": "Verify the creation of the HR.REVIEW_ETL_PKG body with required PL/SQL features.",
+      "points": 25,
+      "visual_evidence": "Look for the package body code. It must contain 'BULK COLLECT' with a 'LIMIT' clause inside PROCESS_REVIEWS, the NORMALIZED_SCORE calculation, and a sub-procedure LOG_ETL_RUN containing 'PRAGMA AUTONOMOUS_TRANSACTION'."
+    },
+    {
+      "id": "package_executed",
+      "description": "Verify that the PROCESS_REVIEWS procedure was executed to process the 12,000 rows.",
+      "points": 15,
+      "visual_evidence": "Look for an execution block (e.g., 'BEGIN HR.REVIEW_ETL_PKG.PROCESS_REVIEWS; END;') and a success message ('PL/SQL procedure successfully completed'), or a subsequent query showing PERF_REVIEWS rows with STATUS='PROCESSED'."
+    },
+    {
+      "id": "log_table_populated",
+      "description": "Verify that the autonomous transaction logged entries to ETL_RUN_LOG.",
+      "points": 10,
+      "visual_evidence": "Look for a query like 'SELECT * FROM HR.ETL_RUN_LOG' showing results in the query grid or terminal output, indicating the ETL run was logged."
+    },
+    {
+      "id": "view_created",
+      "description": "Verify the creation of the HR.VW_REVIEW_SUMMARY view.",
+      "points": 20,
+      "visual_evidence": "Look for 'CREATE OR REPLACE VIEW HR.VW_REVIEW_SUMMARY' joining PERF_REVIEWS and DEPARTMENTS. The query should aggregate by department and include department_name, review_count, average normalized_score, and the reviewer_id with the highest review count."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Verify the view contents were exported to the specified CSV file.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window showing the file '/home/ga/Documents/exports/review_summary.csv' (e.g., via 'cat' or 'ls -l'), a file explorer showing the file, or a text editor displaying the exported CSV data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Ensure the agent actually executed the SQL/PLSQL commands against the Oracle database.",
+      "visual_evidence": "Look for a genuine database client interface (like Oracle SQL Developer, SQL*Plus, or SQLcl in a terminal) showing successful compilation/execution messages, rather than just typing code into a text editor without running it."
+    },
+    {
+      "id": "plsql_logic_used",
+      "description": "Ensure the agent didn't bypass the PL/SQL requirement with a simple SQL UPDATE.",
+      "visual_evidence": "Check the SQL history or script editor to ensure the BULK COLLECT and AUTONOMOUS_TRANSACTION logic was actually compiled into the database, rather than the agent just running 'UPDATE PERF_REVIEWS SET STATUS=PROCESSED'."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Ensure the CSV file was generated from the database view and not manually mocked.",
+      "visual_evidence": "Look for evidence of an export operation (e.g., SQL Developer export wizard, SQL*Plus SPOOL command, or a script) rather than the agent manually typing CSV data into a file."
+    }
+  ],
+  "privileged_info_for_vlm": "Task requires creating package 'REVIEW_ETL_PKG' with procedure 'PROCESS_REVIEWS' using 'BULK COLLECT'. The log table is 'ETL_RUN_LOG'. The view to be created is 'VW_REVIEW_SUMMARY'. The final output must be exported to '/home/ga/Documents/exports/review_summary.csv'. Exactly 12,000 seeded reviews are expected to be processed."
+}

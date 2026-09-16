@@ -1,0 +1,53 @@
+{
+  "task_id": "valid_pixel_expression_exclusion@1",
+  "task_completion": [
+    {
+      "id": "open_input_image",
+      "description": "Open the Landsat multispectral image in SNAP Desktop",
+      "points": 10,
+      "visual_evidence": "ESA SNAP Desktop is open and 'landsat_multispectral.tif' is visible in the Product Explorer pane or an open file dialog."
+    },
+    {
+      "id": "create_ndvi_band",
+      "description": "Initiate creation of a virtual band named 'NDVI'",
+      "points": 20,
+      "visual_evidence": "A 'Band Maths' or 'Virtual Band' creation dialog is open with the target band name explicitly set to 'NDVI'."
+    },
+    {
+      "id": "enter_ndvi_expression",
+      "description": "Compute NDVI using band_2 and band_3",
+      "points": 20,
+      "visual_evidence": "The expression editor shows a mathematical formula for NDVI that explicitly uses 'band_2' and 'band_3' (e.g., (band_2 - band_3) / (band_2 + band_3))."
+    },
+    {
+      "id": "set_valid_pixel_expression",
+      "description": "Configure the Valid-Pixel Expression to exclude water/dark pixels",
+      "points": 30,
+      "visual_evidence": "The Properties dialog for the 'NDVI' band is open, and the 'Valid-Pixel Expression' field is filled with exactly 'band_2 > 0.15'."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Save the resulting product in BEAM-DIMAP format",
+      "points": 20,
+      "visual_evidence": "A 'Save Product As' or 'Export' dialog is visible, showing the save path as '~/snap_exports/landsat_masked_ndvi.dim' (or '/home/ga/snap_exports/landsat_masked_ndvi.dim') and the format selected as BEAM-DIMAP."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "The agent used the ESA SNAP Desktop GUI to perform the task",
+      "visual_evidence": "Screenshots should show interaction with the SNAP graphical user interface, not terminal windows running 'gpt' commands or Python scripts."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not use a text editor to manually create or edit the DIMAP XML file",
+      "visual_evidence": "No text editors (like nano, vim, gedit) should be visible editing an XML file to bypass the SNAP GUI."
+    },
+    {
+      "id": "genuine_dialog_interaction",
+      "description": "The agent genuinely interacted with SNAP's Band Maths and Properties dialogs",
+      "visual_evidence": "The Band Maths and Properties dialogs must belong to the SNAP application window, with realistic cursor movements and text entry."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file path: /home/ga/snap_data/landsat_multispectral.tif. Expected output file path: /home/ga/snap_exports/landsat_masked_ndvi.dim. Expected band name: NDVI."
+}

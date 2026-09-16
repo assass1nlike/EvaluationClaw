@@ -1,0 +1,59 @@
+{
+  "task_id": "hl7_plsql_parser@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (like SQL*Plus, SQLcl, SQL Developer, DBeaver, or a terminal running sqlplus) showing a successful connection using the user 'hr' and service 'XEPDB1'."
+    },
+    {
+      "id": "table_creation",
+      "description": "Create the PATIENT_ADMISSIONS table with the required schema.",
+      "points": 15,
+      "visual_evidence": "A 'CREATE TABLE PATIENT_ADMISSIONS' SQL statement visible in the editor or terminal, explicitly defining columns: MRN, PATIENT_NAME, ADMISSION_DATE, MESSAGE_EVENT, and DIAGNOSIS_CODE with appropriate data types."
+    },
+    {
+      "id": "procedure_creation",
+      "description": "Create the PL/SQL procedure named PARSE_HL7_BATCH.",
+      "points": 20,
+      "visual_evidence": "A 'CREATE OR REPLACE PROCEDURE PARSE_HL7_BATCH' statement visible in the code editor or terminal. The output should show 'Procedure created' or compiled successfully."
+    },
+    {
+      "id": "parsing_logic_implementation",
+      "description": "Implement HL7 parsing logic for MSH, PID, PV1, and DG1 segments.",
+      "points": 20,
+      "visual_evidence": "PL/SQL code showing string manipulation functions (like REGEXP_SUBSTR, INSTR, SUBSTR) targeting HL7 segments ('MSH', 'PID', 'PV1', 'DG1'), date formatting logic (TO_DATE), and string concatenation/formatting for the patient name ('Last, First')."
+    },
+    {
+      "id": "procedure_execution",
+      "description": "Execute the PARSE_HL7_BATCH procedure to process the records.",
+      "points": 15,
+      "visual_evidence": "A command like 'EXEC PARSE_HL7_BATCH;' or an anonymous block 'BEGIN PARSE_HL7_BATCH; END;' being executed, followed by a success message such as 'PL/SQL procedure successfully completed'."
+    },
+    {
+      "id": "verify_parsed_data",
+      "description": "Query the PATIENT_ADMISSIONS table to verify the extracted data.",
+      "points": 20,
+      "visual_evidence": "A 'SELECT * FROM PATIENT_ADMISSIONS' query and its results showing populated rows. Look specifically for the sentinel record containing MRN 'TEST999', PATIENT_NAME 'Everdeen, Katniss', MESSAGE_EVENT 'ADT^A01', and DIAGNOSIS_CODE 'J01.90'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_db_interaction",
+      "description": "Ensure the agent interacted with a real database client and executed the code.",
+      "visual_evidence": "The screenshots must show an actual database client interface or terminal executing the SQL/PLSQL commands and returning system-generated success messages, not just code written in a static text editor."
+    },
+    {
+      "id": "no_hardcoded_inserts",
+      "description": "Ensure the agent did not bypass parsing by hardcoding the expected sentinel record.",
+      "visual_evidence": "Check the SQL history or editor to ensure there are no 'INSERT INTO PATIENT_ADMISSIONS' statements that manually hardcode 'TEST999' or 'Everdeen, Katniss'. The data must come from the procedure execution."
+    },
+    {
+      "id": "genuine_query_results",
+      "description": "Ensure the final query results are genuine database outputs.",
+      "visual_evidence": "The output of the SELECT query should be formatted as standard database client output (e.g., a results grid in a GUI or formatted tabular text in a terminal), not manually typed text."
+    }
+  ],
+  "privileged_info_for_vlm": "The target table must be named PATIENT_ADMISSIONS with exact columns: MRN, PATIENT_NAME, ADMISSION_DATE, MESSAGE_EVENT, DIAGNOSIS_CODE. The PL/SQL procedure must be named PARSE_HL7_BATCH. A sentinel record exists in the RAW_HL7_LOG table; when correctly parsed, querying PATIENT_ADMISSIONS should reveal a row with MRN 'TEST999', PATIENT_NAME 'Everdeen, Katniss', MESSAGE_EVENT 'ADT^A01', and DIAGNOSIS_CODE 'J01.90'."
+}

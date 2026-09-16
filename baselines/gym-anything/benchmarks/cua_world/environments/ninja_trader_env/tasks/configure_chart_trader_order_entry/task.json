@@ -1,0 +1,30 @@
+{
+  "id": "configure_chart_trader_order_entry@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Prepare a daily SPY chart in NinjaTrader 8 for active trading. Enable the Chart Trader panel configured with account 'Sim101', a default order quantity of 200, and a default order type of Limit. Add a 20-period Simple Moving Average (SMA) indicator to the chart and save the workspace to persist these settings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_chart_trader_order_entry\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_chart_trader_order_entry\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "account": "Sim101",
+    "quantity": 200,
+    "indicator": "SMA",
+    "indicator_period": 20,
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_chart_trader"
+    }
+  }
+}

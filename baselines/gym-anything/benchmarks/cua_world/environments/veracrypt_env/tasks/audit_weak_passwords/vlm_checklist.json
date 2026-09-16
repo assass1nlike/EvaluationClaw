@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_weak_passwords@1",
+  "task_completion": [
+    {
+      "id": "access_volumes_and_dictionary",
+      "description": "Agent accesses the volumes directory and the weak passwords dictionary.",
+      "points": 10,
+      "visual_evidence": "File manager showing '/home/ga/Volumes/' or text editor/terminal displaying the contents of '/home/ga/Documents/weak_passwords.txt'."
+    },
+    {
+      "id": "identify_vulnerable_volume",
+      "description": "Agent identifies 'archive_bravo.hc' as the vulnerable volume.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI showing 'archive_bravo.hc' being mounted, tested, or selected for volume operations."
+    },
+    {
+      "id": "initiate_password_change",
+      "description": "Agent opens the password change dialog for the vulnerable volume.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt 'Change Password' or 'Volume Tools' dialog specifically targeting 'archive_bravo.hc'."
+    },
+    {
+      "id": "apply_new_password",
+      "description": "Agent successfully changes the password to the new compliant standard.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt dialog showing the new password 'Audited&Secured#2026' being entered, or a success message confirming the volume password has been changed."
+    },
+    {
+      "id": "create_audit_report",
+      "description": "Agent creates the required JSON audit report.",
+      "points": 30,
+      "visual_evidence": "Text editor or terminal showing the creation of '/home/ga/Documents/audit_report.json' containing the exact JSON: {\"vulnerable_volume\": \"archive_bravo.hc\", \"weak_password_found\": \"princess\"}."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_usage",
+      "description": "Agent used the actual VeraCrypt application (GUI or CLI) to change the password.",
+      "visual_evidence": "Screenshots must show VeraCrypt interface or valid VeraCrypt terminal commands being executed, not just text manipulation."
+    },
+    {
+      "id": "no_other_volumes_modified",
+      "description": "Agent did not modify the passwords of the other secure volumes.",
+      "visual_evidence": "No VeraCrypt password change dialogs or success messages should be seen for volumes other than 'archive_bravo.hc'."
+    },
+    {
+      "id": "report_saved_to_disk",
+      "description": "The audit report was actually saved to the specified path.",
+      "visual_evidence": "A text editor showing the file saved at '/home/ga/Documents/audit_report.json', or a terminal command (like echo or nano) writing to that specific file path."
+    }
+  ],
+  "privileged_info_for_vlm": "The vulnerable volume is 'archive_bravo.hc'. The weak password securing it is 'princess'. The new password must be 'Audited&Secured#2026'. The final report must be saved at '/home/ga/Documents/audit_report.json' and contain exactly: {\"vulnerable_volume\": \"archive_bravo.hc\", \"weak_password_found\": \"princess\"}."
+}

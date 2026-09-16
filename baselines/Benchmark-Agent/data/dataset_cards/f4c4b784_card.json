@@ -1,0 +1,81 @@
+{
+  "dataset_id": "f4c4b784",
+  "name": "Parking-Space-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visual object-detection dataset of parking-lot images in which every parking slot is annotated with a bounding box labeled either 'car' (occupied) or 'free' (empty). It evaluates a model's ability to localize and classify parking spaces directly from an image conditioned on a user prompt.",
+  "card_text": "This dataset contains 200 parking-lot images paired with structured object-detection annotations. Each sample supplies an image path and a short natural-language prompt, and the expected output is a list of bounding boxes, each associated with a class label: 'car' for an occupied slot and 'free' for an empty one. Boxes are stored as [x, y, width, height] pixel coordinates in the original image frame. Scenes are typically aerial or elevated views of parking areas containing dozens of individual slots, so a single image may carry anywhere from roughly 18 to 60 boxes. The dataset therefore tests fine-grained localization and per-slot classification under crowded, repetitive visual layouts, supporting applications such as parking-availability monitoring and autonomous driving. There are no text passages, documents or multi-turn dialogues; the only linguistic content is the prompt itself.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "parking lot monitoring / autonomous driving",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The textual prompt accompanying each image, phrased as a user instruction that specifies what the model should detect. It is a generic template repeated across samples and carries no sample-specific information; it conditions the visual detection output together with the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "Path to a photograph of a parking lot, usually shot from an aerial or elevated viewpoint showing many individual parking slots arranged in rows. It is the sole source of visual evidence and the input that the bounding boxes annotate.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "objects",
+        "semantics": "A list of spatial annotations, where each element is a single-key object mapping a class name ('car' for an occupied slot or 'free' for an empty slot) to a bounding box given as [x, y, width, height] in pixel coordinates. Together these boxes tile and label every visible parking slot in the paired image, providing the detection target.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample pairs one parking-lot image (input.image_file) with a short generic user prompt (input.prompt) that states the detection instruction. The output is a single field, output.bbox, containing a list of annotations in which each entry maps a class name, either 'car' or 'free', to a four-value bounding box [x, y, width, height] in pixel coordinates. The boxes therefore both localize and classify each parking slot visible in the image, while the prompt only frames the task and adds no sample-specific content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/parking-space-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "parking-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

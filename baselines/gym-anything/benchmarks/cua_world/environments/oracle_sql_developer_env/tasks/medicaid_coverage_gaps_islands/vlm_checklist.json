@@ -1,0 +1,59 @@
+{
+  "task_id": "medicaid_coverage_gaps_islands@1",
+  "task_completion": [
+    {
+      "id": "continuous_coverage_view_created",
+      "description": "Create the CONTINUOUS_COVERAGE_VW view to collapse overlapping/contiguous spans.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL script, database client interface, or terminal output showing the CREATE VIEW CONTINUOUS_COVERAGE_VW statement or a SELECT query returning its contents (which should have beneficiary_id, episode_start_date, episode_end_date, and total_episode_days)."
+    },
+    {
+      "id": "coverage_gaps_view_created",
+      "description": "Create the COVERAGE_GAPS_VW view to identify gaps between episodes.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL script, database client interface, or terminal output showing the CREATE VIEW COVERAGE_GAPS_VW statement or a SELECT query returning its contents (which should have beneficiary_id, gap_start_date, gap_end_date, and gap_days)."
+    },
+    {
+      "id": "hedis_metrics_table_created",
+      "description": "Create the HEDIS_METRICS_2023 table.",
+      "points": 10,
+      "visual_evidence": "Look for a SQL statement creating the HEDIS_METRICS_2023 table with columns for beneficiary_id, days_covered_2023, max_gap_days_2023, and meets_hedis_criteria."
+    },
+    {
+      "id": "procedure_created_and_executed",
+      "description": "Implement and execute the PL/SQL procedure PROC_REFRESH_METRICS.",
+      "points": 20,
+      "visual_evidence": "Look for the CREATE OR REPLACE PROCEDURE PROC_REFRESH_METRICS statement and evidence of its execution (e.g., 'Procedure created.' followed by 'EXEC PROC_REFRESH_METRICS;' or 'PL/SQL procedure successfully completed.')."
+    },
+    {
+      "id": "hedis_metrics_populated",
+      "description": "Populate the HEDIS_METRICS_2023 table with correct HEDIS criteria results.",
+      "points": 20,
+      "visual_evidence": "Look for a SELECT query on HEDIS_METRICS_2023 showing 5 rows, where exactly 3 beneficiaries have 'Y' for meets_hedis_criteria and 2 have 'N'."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the HEDIS_METRICS_2023 table to the specified CSV path.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command, script execution, or file manager showing the creation of the file at /home/ga/Documents/exports/hedis_2023_report.csv. The contents of the CSV should match the HEDIS_METRICS_2023 table."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent actually connected to the Oracle database to execute the queries.",
+      "visual_evidence": "Look for the use of a database client like sqlplus, SQLcl, DBeaver, or a Python/Bash script connecting to localhost:1521/XEPDB1, rather than just writing SQL into a text file without running it."
+    },
+    {
+      "id": "actual_plsql_compilation",
+      "description": "Verify the PL/SQL procedure was genuinely compiled and executed.",
+      "visual_evidence": "Look for database output confirming compilation (e.g., 'Procedure created') and execution, rather than the agent just typing the code and assuming it ran."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify the CSV file was generated from the database data.",
+      "visual_evidence": "Look for a spool command, a database export tool, or a script writing the query results to the CSV file, rather than the agent manually typing the expected output into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The CONTINUOUS_COVERAGE_VW should contain exactly 10 continuous episodes. The COVERAGE_GAPS_VW should contain exactly 5 gaps. The HEDIS_METRICS_2023 table and the final exported CSV must contain exactly 3 beneficiaries meeting the criteria (meets_hedis_criteria = 'Y') and 2 failing (meets_hedis_criteria = 'N'). The final export must be located exactly at /home/ga/Documents/exports/hedis_2023_report.csv."
+}

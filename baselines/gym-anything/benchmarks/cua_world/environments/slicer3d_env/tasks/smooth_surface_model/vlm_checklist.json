@@ -1,0 +1,53 @@
+{
+  "task_id": "smooth_surface_model@1",
+  "task_completion": [
+    {
+      "id": "model_selected",
+      "description": "Select the pre-loaded 'TumorModel_Rough' surface model for processing.",
+      "points": 10,
+      "visual_evidence": "The 'TumorModel_Rough' model is visible in the 3D viewer or selected in a module's input node selector (e.g., Surface Toolbox or Dynamic Modeler)."
+    },
+    {
+      "id": "smoothing_applied",
+      "description": "Apply a smoothing operation to remove stair-step artifacts.",
+      "points": 30,
+      "visual_evidence": "A smoothing filter is applied (e.g., Taubin or Laplacian smoothing in Surface Toolbox), and the 3D viewer shows a noticeably smoother surface compared to the initial jagged, stair-step appearance."
+    },
+    {
+      "id": "shape_preserved",
+      "description": "Preserve the overall shape and volume of the original tumor model.",
+      "points": 25,
+      "visual_evidence": "The smoothed model in the 3D viewer occupies roughly the same bounding box and volume as the original model, without excessive shrinking, collapsing, or distortion."
+    },
+    {
+      "id": "model_renamed",
+      "description": "Name the resulting smoothed model 'TumorModel_Smoothed'.",
+      "points": 15,
+      "visual_evidence": "The Data module, Models module, or output node selector shows the new or modified model explicitly named 'TumorModel_Smoothed'."
+    },
+    {
+      "id": "model_saved",
+      "description": "Save the smoothed model to the specified directory as a .vtk file.",
+      "points": 20,
+      "visual_evidence": "The 'Save Data' dialog is open, showing the file path set to '~/Documents/SlicerData/BraTS/' and the filename set to 'TumorModel_Smoothed.vtk' with the save checkbox selected."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the application's graphical user interface to perform the smoothing and saving operations.",
+      "visual_evidence": "Screenshots show interaction with GUI elements like module panels, sliders, and save dialogs, rather than just executing a Python script or terminal command to bypass the UI."
+    },
+    {
+      "id": "genuine_smoothing",
+      "description": "The agent actually applied a smoothing filter rather than just renaming the original file.",
+      "visual_evidence": "The 3D viewer displays a distinct visual difference between the rough and smoothed states, confirming a filter was processed."
+    },
+    {
+      "id": "correct_application",
+      "description": "The agent performed the task inside the appropriate medical imaging software (e.g., 3D Slicer).",
+      "visual_evidence": "The main application window is visible and actively used, not just a file explorer or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the BraTS 2021 dataset (case BraTS2021_00000). The evaluation requires a minimum roughness reduction of 30%, a maximum volume change of 10%, a maximum bounds change of 5%, and a minimum polygon count of 1000. While exact percentages are difficult to verify visually, ensure the smoothed model is noticeably smoother (stair-steps removed) but has not shrunk significantly or lost its core shape."
+}

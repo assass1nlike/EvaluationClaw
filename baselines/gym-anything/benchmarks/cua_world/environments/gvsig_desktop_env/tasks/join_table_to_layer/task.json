@@ -1,0 +1,42 @@
+{
+  "id": "join_table_to_layer@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "A cartographer is preparing a Sustainable Development Goals atlas and needs to integrate World Bank development indicators with a world countries basemap. Join the World Bank indicators CSV (/home/ga/gvsig_data/world_bank_indicators.csv) to the Natural Earth countries shapefile (/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp) using the ISO_A3 and ISO3 fields as the matching keys. Export the combined dataset as a new shapefile to /home/ga/gvsig_data/exports/countries_with_indicators.shp. The exported shapefile must contain all original country attributes plus the indicator fields: CO2_PC, LIFE_EXP, and INTERNET_PCT.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/join_table_to_layer/setup_task.sh",
+    "post_task": "/workspace/tasks/join_table_to_layer/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/countries_with_indicators.shp",
+    "required_fields": [
+      "CO2_PC",
+      "LIFE_EXP",
+      "INTERNET_PCT"
+    ],
+    "validation_values": {
+      "USA": {
+        "field": "CO2_PC",
+        "expected": 13.68,
+        "tolerance": 3.0
+      },
+      "CHN": {
+        "field": "LIFE_EXP",
+        "expected": 77.1,
+        "tolerance": 3.0
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_join_table_to_layer"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "grain_boundary_measurement@1",
+  "task_completion": [
+    {
+      "id": "load_sample_image",
+      "description": "Open Fiji and load the 'AuPbSn 40' sample image.",
+      "points": 15,
+      "visual_evidence": "Fiji GUI is open with an image window displaying a metallurgical sample. The window title should indicate 'AuPbSn40' or similar."
+    },
+    {
+      "id": "process_image_boundaries",
+      "description": "Process the image to detect or isolate inter-phase boundaries.",
+      "points": 20,
+      "visual_evidence": "The image window shows a processed version of the sample (e.g., thresholded binary image, edge detection applied, or highlighted particles/boundaries) indicating that boundaries are being isolated for measurement."
+    },
+    {
+      "id": "measure_boundary_length",
+      "description": "Measure the total length of the boundaries using Fiji.",
+      "points": 25,
+      "visual_evidence": "A 'Results', 'Summary', or 'ROI Manager' window in Fiji is visible, displaying measurement data (such as perimeter or length) corresponding to the detected boundaries."
+    },
+    {
+      "id": "calculate_boundary_density",
+      "description": "Calculate the boundary density by dividing total boundary length by total image area.",
+      "points": 15,
+      "visual_evidence": "A calculator, script editor, spreadsheet, or terminal window is visible showing the mathematical division of the measured boundary length by the image area."
+    },
+    {
+      "id": "save_results_csv",
+      "description": "Save the required measurements to '~/ImageJ_Data/results/grain_boundary_analysis.csv'.",
+      "points": 25,
+      "visual_evidence": "A text editor, terminal, or file manager shows the contents or creation of 'grain_boundary_analysis.csv' in the correct directory. The file must contain values for image width, height, total area, total boundary length, and boundary density."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_fiji_usage",
+      "description": "The agent used the Fiji GUI to perform the image analysis rather than mocking the results.",
+      "visual_evidence": "Screenshots show active interaction with Fiji menus, toolbars, and image windows, rather than just a terminal or text editor."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "The agent calculated the density based on actual image dimensions and measurements.",
+      "visual_evidence": "The density value in the final CSV logically matches the division of the recorded length by the recorded area (which should be 247,200 based on 600x412 dimensions)."
+    },
+    {
+      "id": "no_precomputed_mocking",
+      "description": "The agent did not bypass the analysis by directly writing a mocked CSV file.",
+      "visual_evidence": "The trajectory shows a logical progression of opening the image, measuring it, and then creating the CSV, rather than immediately using a command like 'echo' to create the final output file."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'AuPbSn 40' sample image has dimensions of 600x412 pixels, making the total area exactly 247,200 pixels^2. The expected boundary length should be greater than 100 pixels, and the calculated boundary density must be between 0 and 1.0 pixels^-1. Note that this sample is not built into Fiji's default 'Open Samples' menu and must be downloaded or opened via URL (e.g., from imagej.net/images/AuPbSn40.jpg)."
+}

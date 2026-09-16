@@ -1,0 +1,31 @@
+{
+  "id": "customize_notification_sound@1",
+  "version": "1.0",
+  "env_id": "flica_env@0.1",
+  "description": "Customize the notification sound for the Flight Crew View application to ensure alerts are distinct. Change the sound for the 'General' or 'Miscellaneous' notification channel to any available tone that starts with the letter 'C' (e.g., 'Chime' or 'Carbon').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/customize_notification_sound/setup_task.sh",
+    "post_task": "/sdcard/tasks/customize_notification_sound/export_result.sh"
+  },
+  "metadata": {
+    "target_package": "com.robert.fcView",
+    "target_sound_prefix": "C",
+    "target_sound_examples": [
+      "Chime",
+      "Carbon",
+      "Circuit"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_notification_sound"
+    }
+  }
+}

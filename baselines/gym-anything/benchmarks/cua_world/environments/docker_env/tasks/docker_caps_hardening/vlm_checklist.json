@@ -1,0 +1,65 @@
+{
+  "task_id": "docker_caps_hardening@1",
+  "task_completion": [
+    {
+      "id": "container_running",
+      "description": "Verify the 'net-monitor' container is successfully running.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'docker ps' with 'net-monitor' in the 'Up' state, or successful execution of 'docker-compose up -d' without errors."
+    },
+    {
+      "id": "non_root_user",
+      "description": "Verify the container is configured to run as the non-root user 'monitor' or UID 1000.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the docker-compose.yml file with 'user: \"1000\"' or 'user: \"monitor\"' under the net-monitor service, or 'docker inspect' output showing the User field set to 1000/monitor."
+    },
+    {
+      "id": "drop_all_caps",
+      "description": "Verify all default capabilities are dropped.",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file showing 'cap_drop:' followed by '- ALL', or a docker run command including '--cap-drop=ALL'."
+    },
+    {
+      "id": "add_net_bind_service",
+      "description": "Verify the NET_BIND_SERVICE capability is added to allow binding to port 80.",
+      "points": 15,
+      "visual_evidence": "The docker-compose.yml file showing 'cap_add:' followed by '- NET_BIND_SERVICE', or a docker run command including '--cap-add=NET_BIND_SERVICE'."
+    },
+    {
+      "id": "add_net_raw",
+      "description": "Verify the NET_RAW capability is added to allow sending ICMP ping packets.",
+      "points": 15,
+      "visual_evidence": "The docker-compose.yml file showing 'cap_add:' followed by '- NET_RAW', or a docker run command including '--cap-add=NET_RAW'."
+    },
+    {
+      "id": "health_endpoint_functional",
+      "description": "Verify the service responds correctly to the health check endpoint.",
+      "points": 5,
+      "visual_evidence": "Terminal output showing the successful execution of 'curl http://localhost:80' returning a valid HTTP response or expected service output."
+    },
+    {
+      "id": "ping_endpoint_functional",
+      "description": "Verify the service responds correctly to the ping endpoint.",
+      "points": 5,
+      "visual_evidence": "Terminal output showing the successful execution of 'curl http://localhost:80/ping?target=127.0.0.1' returning ping statistics or a success message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Verify the agent actually executed the docker and curl commands in a real terminal environment.",
+      "visual_evidence": "Standard terminal prompts, command execution delays, and authentic system output rather than just echoing text or spoofing command results."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the agent genuinely modified the configuration files.",
+      "visual_evidence": "Use of a text editor (like nano, vim) or valid shell commands (like sed, echo) to modify the docker-compose.yml file in the ~/projects/net-monitor/ directory."
+    },
+    {
+      "id": "no_unauthorized_privilege_escalation",
+      "description": "Verify the agent did not bypass the least privilege requirement by using 'privileged: true' or running as root.",
+      "visual_evidence": "Absence of 'privileged: true' in the docker-compose.yml file and absence of root user execution in the final container configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying the 'net-monitor' service in '/home/ga/projects/net-monitor/docker-compose.yml'. The container must run as user 'monitor' or UID '1000'. It must drop all capabilities ('cap_drop: - ALL') and add exactly two capabilities: 'NET_BIND_SERVICE' (to bind port 80) and 'NET_RAW' (to send ICMP packets). The service must be running and respond to 'curl http://localhost:80' and 'curl http://localhost:80/ping?target=127.0.0.1'. The pass threshold is 70/100, with non-root execution being a critical requirement."
+}

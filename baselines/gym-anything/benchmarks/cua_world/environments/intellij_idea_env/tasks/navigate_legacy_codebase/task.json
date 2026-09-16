@@ -1,0 +1,28 @@
+{
+  "id": "navigate_legacy_codebase@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "A legacy authentication system has been loaded. Your goal is to recover the 'Emergency Fallback Key' used by the production security provider. The application cannot be run locally due to a missing mainframe connection; you must determine the key by tracing the code execution path statically without modifying the source code. Starting from 'AuthenticationManager.java', determine the final string value of the 'Emergency Fallback Key' as defined in the production 'SecurityProvider' implementation. Save the exact key string to /home/ga/fallback_key.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/navigate_legacy_codebase/setup_task.sh",
+    "post_task": "/workspace/tasks/navigate_legacy_codebase/export_result.sh"
+  },
+  "metadata": {
+    "expected_key": "AUTH-V2-US-EAST-KEY-742-BETA",
+    "decoy_key": "TEST-KEY-000000",
+    "project_dir": "/home/ga/IdeaProjects/LegacyAuthSystem",
+    "output_file": "/home/ga/fallback_key.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_navigate_legacy_codebase"
+    }
+  }
+}

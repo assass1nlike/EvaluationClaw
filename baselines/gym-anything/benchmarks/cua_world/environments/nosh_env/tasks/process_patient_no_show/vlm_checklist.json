@@ -1,0 +1,59 @@
+{
+  "task_id": "process_patient_no_show@1",
+  "task_completion": [
+    {
+      "id": "login_nosh",
+      "description": "Log into the NOSH ChartingSystem using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "NOSH ChartingSystem login screen with 'admin' entered, or the main dashboard indicating a successful login as admin."
+    },
+    {
+      "id": "navigate_to_schedule",
+      "description": "Navigate to the schedule, calendar, or appointments section of the EHR.",
+      "points": 15,
+      "visual_evidence": "The schedule, calendar, or appointments view is visible in the NOSH interface."
+    },
+    {
+      "id": "locate_michael_absent",
+      "description": "Locate the patient 'Michael Absent' in the schedule.",
+      "points": 15,
+      "visual_evidence": "The name 'Michael Absent' is visible in the schedule, calendar, or search results."
+    },
+    {
+      "id": "locate_correct_appointment",
+      "description": "Identify the specific appointment scheduled for yesterday at 2:00 PM (14:00).",
+      "points": 20,
+      "visual_evidence": "An appointment slot or entry for 'Michael Absent' specifically at 2:00 PM (14:00) on the previous day's date is visible."
+    },
+    {
+      "id": "open_appointment_edit",
+      "description": "Open the appointment details to edit the status.",
+      "points": 10,
+      "visual_evidence": "A modal, popup, or page for editing the specific appointment details is open."
+    },
+    {
+      "id": "save_no_show_status",
+      "description": "Update the appointment status to 'No Show' and save the changes.",
+      "points": 30,
+      "visual_evidence": "A dropdown or status field showing 'No Show' (or similar like 'noshow', 'missed') is selected, and evidence of saving (e.g., clicking a save button, the modal closing, or a success notification) is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Verify the agent used the web GUI to update the appointment.",
+      "visual_evidence": "The agent is interacting with the NOSH ChartingSystem via a web browser, not using terminal commands, curl, or scripts to bypass the UI."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Verify the agent did not directly modify the database.",
+      "visual_evidence": "There should be no terminal windows open showing SQL commands (e.g., UPDATE schedule SET status='No Show') interacting with the MariaDB database."
+    },
+    {
+      "id": "genuine_nosh_system",
+      "description": "Verify the interaction is with the genuine NOSH application.",
+      "visual_evidence": "The screenshots show the actual NOSH ChartingSystem interface and not a text editor or a locally created mock webpage."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient Name: Michael Absent (PID: 10001). Appointment Time: 14:00:00 (2:00 PM). Target Status: 'No Show' (acceptable variations include 'noshow', 'no show', 'no_show', 'missed'). The task must be performed in the NOSH ChartingSystem."
+}

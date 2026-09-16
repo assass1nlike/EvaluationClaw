@@ -1,0 +1,53 @@
+{
+  "task_id": "create_prospective_memory@1",
+  "task_completion": [
+    {
+      "id": "conditions_file_content",
+      "description": "Verify the creation and content of the conditions file.",
+      "points": 20,
+      "visual_evidence": "Look for a spreadsheet (e.g., LibreOffice Calc) or text editor open with the file `pm_conditions.csv`. It must have columns named 'stimulus', 'border_color', and 'correct_key', with rows containing 'gray'/'blue' for colors and 'f'/'j'/'space' for keys."
+    },
+    {
+      "id": "psychopy_components",
+      "description": "Verify the required components are added to the PsychoPy routine.",
+      "points": 20,
+      "visual_evidence": "Look for the PsychoPy Builder interface. The active routine timeline or component list must show at least one Polygon, one Text, and one Keyboard component."
+    },
+    {
+      "id": "component_variables",
+      "description": "Verify that components are configured to update based on conditions file variables.",
+      "points": 20,
+      "visual_evidence": "Look for a PsychoPy component properties dialog (e.g., for the Text or Polygon component). A field (like text or color) should be set to a variable (e.g., `$stimulus` or `$border_color`), and the update dropdown next to it must be set to 'set every repeat'."
+    },
+    {
+      "id": "loop_conditions",
+      "description": "Verify a loop is added and linked to the conditions file.",
+      "points": 20,
+      "visual_evidence": "Look for the Loop Properties dialog in PsychoPy. The 'Conditions' field should show `pm_conditions.csv` loaded, and the summary below it should indicate 20 conditions/trials."
+    },
+    {
+      "id": "experiment_saved",
+      "description": "Verify the experiment is saved with the correct name.",
+      "points": 20,
+      "visual_evidence": "Look for the PsychoPy main window title bar displaying `prospective_memory.psyexp` or a save dialog confirming the file is being saved in `/home/ga/PsychoPyExperiments/`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_psychopy",
+      "description": "Verify that PsychoPy Builder GUI was used to create the experiment.",
+      "visual_evidence": "The agent should interact with the PsychoPy Builder application interface to add components and loops, rather than writing a .psyexp XML/JSON file directly in a text editor."
+    },
+    {
+      "id": "genuine_conditions_file",
+      "description": "Verify that the conditions file was generated or edited genuinely.",
+      "visual_evidence": "The agent should use a spreadsheet tool, text editor, or write a Python script to create the conditions file, rather than downloading a pre-made file or using a single base64 decode command."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "Verify the agent did not bypass the GUI using terminal commands to dump the experiment file.",
+      "visual_evidence": "There should be no terminal commands like `echo`, `cat`, or `wget` used to directly create the `prospective_memory.psyexp` file with pre-written content."
+    }
+  ],
+  "privileged_info_for_vlm": "The source data is located at /home/ga/Documents/lexical_source.csv. The conditions file must be saved to /home/ga/PsychoPyExperiments/conditions/pm_conditions.csv. The experiment file must be saved to /home/ga/PsychoPyExperiments/prospective_memory.psyexp. PM trials must use 'blue' for the border color and 'space' for the key. Ongoing trials must use 'gray' (or 'grey') for the border color."
+}

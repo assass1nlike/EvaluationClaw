@@ -1,0 +1,29 @@
+{
+  "id": "upload_patient_document@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to Bahmni (Username: superman, Password: Admin123) and upload the scanned lab report located at /home/ga/Documents/external_lab_report.jpg to the patient record of Maria Gonzalez (Identifier: BAH000002).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/upload_patient_document/setup_task.sh",
+    "post_task": "/workspace/tasks/upload_patient_document/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "patient_identifier": "BAH000002",
+    "patient_name": "Maria Gonzalez",
+    "upload_filename": "external_lab_report.jpg",
+    "file_location": "/home/ga/Documents/external_lab_report.jpg"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_upload_patient_document"
+    }
+  }
+}

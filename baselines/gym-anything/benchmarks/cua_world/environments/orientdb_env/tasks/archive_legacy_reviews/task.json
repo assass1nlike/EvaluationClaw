@@ -1,0 +1,27 @@
+{
+  "id": "archive_legacy_reviews@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "The legal department requires that all customer reviews written before January 1, 2015, be moved to a separate archive for compliance. Archive these legacy reviews from the 'Reviews' graph vertex class into a new document class named 'ArchivedReviews' with properties Stars (Integer), Text (String), Date (Date), AuthorEmail (String), and HotelName (String). For each review dated strictly before '2015-01-01', populate the 'ArchivedReviews' record with the original data, including the author's email from the connected 'Profiles' vertex and the hotel's name from the connected 'Hotels' vertex. Delete the original 'Reviews' vertices once they have been archived. Connect to 'demodb' in OrientDB Studio using credentials root/GymAnything123!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archive_legacy_reviews/setup_task.sh",
+    "post_task": "/workspace/tasks/archive_legacy_reviews/export_result.sh"
+  },
+  "metadata": {
+    "cutoff_date": "2015-01-01",
+    "source_class": "Reviews",
+    "target_class": "ArchivedReviews"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archive_legacy_reviews"
+    }
+  }
+}

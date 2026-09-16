@@ -1,0 +1,35 @@
+{
+  "id": "configure_bank_rule@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "You are the Office Manager at Northwind Traders. Automate the categorization of monthly rent payments to 'Downtown Properties' by creating a new expense account named 'Rent Expense' (Code: 6200, Group: Expenses) and a Bank Payment Rule. The rule must match the description 'Downtown Properties' and automatically allocate payments to the 'Rent Expense' account.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_bank_rule/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_bank_rule/export_result.sh"
+  },
+  "metadata": {
+    "account_name": "Rent Expense",
+    "account_code": "6200",
+    "account_group": "Expenses",
+    "rule_condition": "Downtown Properties",
+    "manager_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_bank_rule"
+    }
+  },
+  "tags": [
+    "accounting",
+    "automation",
+    "settings",
+    "manager.io"
+  ]
+}

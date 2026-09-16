@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_security_compliance_report@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the SEB Server MariaDB database container.",
+      "points": 15,
+      "visual_evidence": "Terminal or database client showing a successful connection to the 'seb-server-mariadb' container using the 'root' user and 'SEBServer' database (e.g., via 'docker exec -it seb-server-mariadb mysql -u root -p SEBServer')."
+    },
+    {
+      "id": "eav_schema_query",
+      "description": "Query the database using the Entity-Attribute-Value (EAV) schema for EXAM_CONFIG entries.",
+      "points": 25,
+      "visual_evidence": "A SQL query visible in the terminal or DB client that joins the 'configuration_node', 'configuration_attribute', and 'configuration_value' tables, and filters for 'EXAM_CONFIG'."
+    },
+    {
+      "id": "target_attributes_extraction",
+      "description": "Extract the 'allowVirtualMachine' and 'allowScreenSharing' settings.",
+      "points": 20,
+      "visual_evidence": "The SQL query or the query results explicitly displaying the attributes 'allowVirtualMachine' and 'allowScreenSharing' alongside their boolean values."
+    },
+    {
+      "id": "csv_headers_creation",
+      "description": "Format the output with the required CSV columns.",
+      "points": 15,
+      "visual_evidence": "A text editor, spreadsheet application, or terminal output showing the creation of a CSV file with the exact headers: 'Configuration Name', 'Allow Virtual Machine', and 'Allow Screen Sharing'."
+    },
+    {
+      "id": "save_compliance_report",
+      "description": "Save the final compliance report to the correct path.",
+      "points": 25,
+      "visual_evidence": "A file manager, text editor save dialog, or terminal command confirming the file is saved as 'compliance_report.csv' in the '~/Documents' (or '/home/ga/Documents/') directory, containing the extracted configuration names and boolean values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "The agent actually queried the database rather than hallucinating the data.",
+      "visual_evidence": "Screenshots must show the execution of a SQL query returning actual database rows, rather than just a script or command echoing hardcoded values."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not copy-paste a pre-written CSV string.",
+      "visual_evidence": "The process of constructing the CSV should logically follow the database query results. There should be no terminal commands (like 'echo') dumping a fully formed, hardcoded CSV without prior database interaction."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The file was saved to the exact requested path.",
+      "visual_evidence": "The path '/home/ga/Documents/compliance_report.csv' must be visible in the terminal, editor title bar, or file manager, ensuring it wasn't saved in a temporary or incorrect directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved exactly at '/home/ga/Documents/compliance_report.csv'. The database is hosted in a docker container named 'seb-server-mariadb' and uses an EAV schema involving tables 'configuration_node', 'configuration_attribute', and 'configuration_value'."
+}

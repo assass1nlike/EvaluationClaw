@@ -1,0 +1,59 @@
+{
+  "task_id": "local_s3_minio_integration@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_minio_service",
+      "description": "The docker-compose.yml file contains a MinIO service with the correct image and command.",
+      "points": 15,
+      "visual_evidence": "A text editor showing the docker-compose.yml file with a new service using the 'minio/minio' image and the command 'server /data --console-address \":9001\"'."
+    },
+    {
+      "id": "docker_compose_web_env",
+      "description": "The web service in docker-compose.yml is configured with the required S3 environment variables.",
+      "points": 15,
+      "visual_evidence": "A text editor showing the docker-compose.yml file where the web service's environment section includes 'S3_ENDPOINT_URL', 'AWS_ACCESS_KEY_ID', and 'AWS_SECRET_ACCESS_KEY' pointing to the local MinIO service."
+    },
+    {
+      "id": "bucket_creation_mechanism",
+      "description": "An automated mechanism is implemented to create the 'company-assets' bucket.",
+      "points": 20,
+      "visual_evidence": "Code in a text editor showing either an init container/script using the MinIO client ('mc mb ... company-assets') in docker-compose.yml, or Python code in the Flask app using boto3 to create the 'company-assets' bucket on startup."
+    },
+    {
+      "id": "docker_stack_running",
+      "description": "The Docker Compose stack is successfully started with both web and MinIO services running.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the results of 'docker compose up' or 'docker ps' with both the web application container and the MinIO container in a running state."
+    },
+    {
+      "id": "minio_console_accessible",
+      "description": "The MinIO console is accessible on port 9001.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the MinIO web interface loaded at 'http://localhost:9001', or terminal logs clearly showing the MinIO server initialization complete and listening on port 9001."
+    },
+    {
+      "id": "flask_app_upload_success",
+      "description": "The Flask application successfully uploads a file to the local MinIO bucket.",
+      "points": 25,
+      "visual_evidence": "A web browser showing the Flask application at 'http://localhost:5000' with a successful file upload confirmation, OR the MinIO console showing a newly uploaded file inside the 'company-assets' bucket, OR terminal logs showing a successful HTTP POST request to the Flask app followed by a successful boto3 put_object operation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_execution",
+      "description": "Docker commands were actually executed in the terminal.",
+      "visual_evidence": "Terminal window shows standard Docker Compose build/startup logs or 'docker ps' output with realistic container IDs, uptime, and port mappings, rather than mocked text."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "The docker-compose.yml and application files were edited using a real text editor.",
+      "visual_evidence": "Screenshots show the files open in an editor like VS Code, nano, or vim, rather than just echoing the final text directly into the terminal."
+    },
+    {
+      "id": "app_driven_upload",
+      "description": "The file upload was performed via the Flask application, not manually bypassed.",
+      "visual_evidence": "Evidence of interaction with 'http://localhost:5000' in the browser or curl commands targeting the Flask app's upload endpoint, rather than using the AWS CLI or MinIO console to manually upload the file."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

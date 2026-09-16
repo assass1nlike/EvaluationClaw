@@ -1,0 +1,39 @@
+{
+  "id": "refactor_parameterized_test@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You are modernizing the 'RadiationPhysics' project. Refactor the legacy test class `src/test/java/com/medtech/physics/DoseCalculatorTest.java` by converting repetitive test methods into a single JUnit 5 `@ParameterizedTest`. Create a new test method named `testCalculateDoseParameterized` using `@CsvSource` to consolidate the data values for Monitor Units, Field Size Factor, and Expected Dose from the existing tests. Delete the five original repetitive methods (`testDoseAt100MU`, `testDoseAt200MU`, `testDoseAt50MU`, `testDoseLargeField`, and `testDoseSmallField`) and ensure all five test cases pass in the refactored version.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_parameterized_test/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_parameterized_test/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/RadiationPhysics",
+    "test_file_path": "src/test/java/com/medtech/physics/DoseCalculatorTest.java",
+    "legacy_methods": [
+      "testDoseAt100MU",
+      "testDoseAt200MU",
+      "testDoseAt50MU",
+      "testDoseLargeField",
+      "testDoseSmallField"
+    ],
+    "expected_data_values": [
+      "1.045",
+      "156.75",
+      "0.892",
+      "267.6"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_parameterized_test"
+    }
+  }
+}

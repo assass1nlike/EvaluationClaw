@@ -1,0 +1,53 @@
+{
+  "task_id": "model_pv_lifetime_degradation@1",
+  "task_completion": [
+    {
+      "id": "read_solar_resource_dir",
+      "description": "Verify the agent determines the correct weather file directory.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the agent reading '/home/ga/.SAM/solar_resource_dir.txt' (e.g., using 'cat') or a Python script reading this file to locate the TMY weather data."
+    },
+    {
+      "id": "pysam_script_configuration",
+      "description": "Verify the agent writes a Python script configuring the PySAM Pvwattsv8 model with the specified parameters.",
+      "points": 25,
+      "visual_evidence": "A code editor or terminal showing a Python script importing PySAM (e.g., 'import PySAM.Pvwattsv8') and setting system_capacity to 100000, dc_ac_ratio to 1.2, tilt to 30, azimuth to 180, array_type to 0, and losses to 14.08."
+    },
+    {
+      "id": "degradation_calculation_logic",
+      "description": "Verify the agent implements the 25-year compounding degradation logic.",
+      "points": 25,
+      "visual_evidence": "Python code showing a loop or array comprehension calculating energy for 25 years, multiplying the previous year's energy by (1 - 0.005) or 0.995."
+    },
+    {
+      "id": "execute_python_script",
+      "description": "Verify the agent runs the Python script to perform the simulation.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the command 'python3 <script_name>.py' being executed without fatal errors."
+    },
+    {
+      "id": "generate_results_json",
+      "description": "Verify the agent saves the calculated results to the specified JSON file.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the creation or contents (via 'cat' or 'ls') of '/home/ga/Documents/SAM_Projects/lifetime_degradation_results.json' containing the required keys such as 'year1_annual_energy_kwh', 'cumulative_25yr_energy_kwh', and 'total_degradation_loss_kwh'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_manual_json_creation",
+      "description": "Ensure the agent did not manually type out the final JSON file with guessed or hardcoded values.",
+      "visual_evidence": "The JSON file should be generated programmatically by the Python script. Look for Python code using 'json.dump' or similar, rather than the agent opening the JSON file in a text editor and typing numbers."
+    },
+    {
+      "id": "no_sam_gui_usage",
+      "description": "Ensure the agent used Python/PySAM as instructed, rather than the SAM desktop GUI.",
+      "visual_evidence": "The SAM (System Advisor Model) graphical user interface should not be open or used to run the simulation."
+    },
+    {
+      "id": "genuine_pysam_execution",
+      "description": "Ensure the Python script actually executes the PySAM model.",
+      "visual_evidence": "The Python script must contain a call to execute the model (e.g., 'model.execute()') rather than just doing basic math on a dummy starting value."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be located at /home/ga/Documents/SAM_Projects/lifetime_degradation_results.json. The system configuration must use exactly: 100,000 kW capacity, 30 degree tilt, 180 degree azimuth, 1.2 DC:AC ratio, and 0.5% degradation rate. A physically valid Year 1 energy output for this location and configuration must fall between 160,000,000 kWh (160 GWh) and 240,000,000 kWh (240 GWh)."
+}

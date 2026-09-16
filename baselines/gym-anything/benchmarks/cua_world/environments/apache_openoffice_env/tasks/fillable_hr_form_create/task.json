@@ -1,0 +1,31 @@
+{
+  "id": "fillable_hr_form_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are the HR Director at Apex Structural Engineering. Create a digital, fillable 'New Hire Data Sheet' in Apache OpenOffice Writer for onboarding new employees. Follow the field requirements and layout specifications found in /home/ga/Documents/form_specs.json and include the company logo from /home/ga/Documents/apex_logo.png. The document must contain interactive form controls for text entry, dates, and compliance checkboxes as specified. Save the final document to /home/ga/Documents/Apex_New_Hire_Form.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fillable_hr_form_create/setup_task.sh",
+    "post_task": "/workspace/tasks/fillable_hr_form_create/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Apex_New_Hire_Form.odt",
+    "specs_file": "/home/ga/Documents/form_specs.json",
+    "logo_file": "/home/ga/Documents/apex_logo.png",
+    "company_name": "Apex Structural Engineering",
+    "min_text_fields": 5,
+    "min_checkboxes": 3,
+    "min_date_fields": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fillable_hr_form"
+    }
+  }
+}

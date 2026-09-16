@@ -1,0 +1,59 @@
+{
+  "task_id": "oru_obx_segment_iterator@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Channel named 'Lab_Results_OBX_Extractor' is created",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect Administrator interface shows a channel with the exact name 'Lab_Results_OBX_Extractor' in the Channels list or channel editor."
+    },
+    {
+      "id": "source_connector_configured",
+      "description": "Source connector is configured as a TCP Listener on port 6661",
+      "points": 15,
+      "visual_evidence": "In the channel's Source tab, the Connector Type is set to 'TCP Listener' and the Port field is set to '6661'."
+    },
+    {
+      "id": "transformer_configured",
+      "description": "Source Transformer is configured with HL7 v2.x inbound and Raw outbound",
+      "points": 15,
+      "visual_evidence": "In the Source Transformer view, the Data Types are set to 'HL7 v2.x' for Inbound and 'Raw' for Outbound."
+    },
+    {
+      "id": "javascript_transformer_code",
+      "description": "JavaScript code is written to iterate over OBX segments and extract the required fields",
+      "points": 30,
+      "visual_evidence": "The Source Transformer contains a JavaScript step with code that loops over OBX segments (e.g., `msg['OBX']` or similar) and extracts fields like OBX.1, OBX.3.1, OBX.3.2, OBX.5.1, OBX.6.1, OBX.7, OBX.8, joining them with a pipe '|' character."
+    },
+    {
+      "id": "output_file_configured",
+      "description": "The channel is configured to write the output to /tmp/lab_results/obx_results.txt in append mode",
+      "points": 15,
+      "visual_evidence": "Either the Destinations tab shows a File Writer with Directory '/tmp/lab_results/', File Name 'obx_results.txt', and 'Append' selected, OR the JavaScript code contains a file write command to this path with append mode enabled."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "The channel is deployed and running",
+      "points": 15,
+      "visual_evidence": "The NextGen Connect Dashboard shows the 'Lab_Results_OBX_Extractor' channel in the deployed list with a status of 'Started' or 'Deployed'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the NextGen Connect Administrator GUI to configure the channel",
+      "visual_evidence": "Screenshots show the NextGen Connect Administrator Java application interface being used, rather than just text files or API scripts."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The JavaScript code does not hardcode the specific lab results from the test message",
+      "visual_evidence": "The JavaScript code uses variables and message tree references (like msg['OBX']) instead of hardcoding values like '6690-2', 'WBC', or '7.5'."
+    },
+    {
+      "id": "genuine_deployment",
+      "description": "The deployment is visible in the actual NextGen Connect Dashboard",
+      "visual_evidence": "The Dashboard view shows genuine NextGen Connect UI elements with the channel listed, not a mocked interface."
+    }
+  ],
+  "privileged_info_for_vlm": "NextGen Connect 4.5.0 is used. The channel must be named 'Lab_Results_OBX_Extractor' and listen on TCP port 6661. The output must be written to /tmp/lab_results/obx_results.txt. The test message contains 8 OBX segments (e.g., WBC, RBC, HGB, HCT, MCV, MCH, MCHC, PLT). The REST API is at https://localhost:8443/api (admin/admin)."
+}

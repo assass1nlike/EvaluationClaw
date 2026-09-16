@@ -1,0 +1,29 @@
+{
+  "id": "three_phase_line_phase_conversions@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "You are a maintenance electrician at a manufacturing plant preparing to rewire a 3-phase motor bank. The existing supply is 415 V line-to-line and the motor bank draws 63 A of line current. Determine the phase voltage for a wye (star) configuration and the phase current for a delta configuration. Record these values for the engineering record. The distinction between line and phase quantities is critical for correct motor winding selection.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/three_phase_line_phase_conversions/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/three_phase_line_phase_conversions/export_result.sh"
+  },
+  "metadata": {
+    "voltage_line": 415,
+    "current_line": 63,
+    "expected_phase_voltage_wye_v": 239.6,
+    "expected_phase_current_delta_a": 36.37,
+    "tolerance_pct": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_three_phase_line_phase_conversions"
+    }
+  }
+}

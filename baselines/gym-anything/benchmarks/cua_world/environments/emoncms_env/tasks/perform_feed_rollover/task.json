@@ -1,0 +1,29 @@
+{
+  "id": "perform_feed_rollover@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "You are the facility manager performing the annual data rollover. Rename the existing 'annual_yield' feed to 'annual_yield_archive' to preserve its history. Create a new feed named 'annual_yield' using the PHPFina engine with a 10s interval and update the 'solar_yield' input processing to log to this new 'annual_yield' feed. When finished, the system should have 'annual_yield_archive' containing the archived data and 'annual_yield' receiving new data from the 'solar_yield' input.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/perform_feed_rollover/setup_task.sh",
+    "post_task": "/workspace/tasks/perform_feed_rollover/export_result.sh"
+  },
+  "metadata": {
+    "input_name": "solar_yield",
+    "feed_name_original": "annual_yield",
+    "feed_name_archive": "annual_yield_archive",
+    "feed_engine": 5,
+    "feed_interval": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perform_feed_rollover"
+    }
+  }
+}

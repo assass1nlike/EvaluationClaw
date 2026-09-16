@@ -1,0 +1,59 @@
+{
+  "task_id": "xml_to_hl7_lab_transformation@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify that a channel named 'XML_to_HL7_Lab' was created.",
+      "points": 10,
+      "visual_evidence": "In the NextGen Connect (Mirth Connect) Administrator GUI, the Channels list or Channel Summary tab should display a channel explicitly named 'XML_to_HL7_Lab'."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the source connector is configured to read from the correct input directory.",
+      "points": 10,
+      "visual_evidence": "In the Source tab for the channel, the Connector Type should be 'File Reader' and the Directory should be set to '/opt/mirthdata/xml_in' (or '/opt/mirthdata/xml_in/')."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the destination connector is configured to write to the correct output directory with the specified naming convention.",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab, the Connector Type should be 'File Writer', the Directory should be '/opt/mirthdata/hl7_out' (or '/opt/mirthdata/hl7_out/'), and the File Name should be exactly '${message.messageId}.hl7'."
+    },
+    {
+      "id": "data_types_configured",
+      "description": "Verify the channel data types are configured for XML to HL7 v2.x transformation.",
+      "points": 10,
+      "visual_evidence": "In the Summary or Set Data Types dialog, the Source Inbound/Outbound should be XML, and the Destination Outbound should be HL7 v2.x."
+    },
+    {
+      "id": "pid_obr_mapping",
+      "description": "Verify that Patient and Order data are mapped to PID and OBR segments.",
+      "points": 25,
+      "visual_evidence": "In the Destinations Transformer view, look for mapping steps assigning XML patient/order fields to PID and OBR segments. Alternatively, in the Message Browser, look for a successfully processed outbound HL7 message containing a PID segment with the patient name 'SMITH^JENNIFER'."
+    },
+    {
+      "id": "obx_repeating_mapping",
+      "description": "Verify that a repeating OBX segment is generated for every <Analyte> element, including Name, Value, Units, Range, and Flag.",
+      "points": 30,
+      "visual_evidence": "In the Destinations Transformer view, look for a loop (e.g., JavaScript 'for' loop or repeating mapping step) iterating over <Analyte> elements and mapping them to OBX segments. Alternatively, in the Message Browser, look for an outbound HL7 message with exactly 5 OBX segments, where the first OBX contains 'WBC' and '7.2'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI to configure the channel.",
+      "visual_evidence": "Screenshots must show the NextGen Connect (Mirth Connect) Administrator Java application interface being actively used, rather than just terminal scripts or text editors bypassing the engine."
+    },
+    {
+      "id": "no_hardcoded_hl7",
+      "description": "Verify the agent didn't hardcode the expected HL7 output.",
+      "visual_evidence": "Transformer steps or scripts should show dynamic mapping (e.g., using message variables like msg['Patient'] or loops) rather than a hardcoded string containing 'SMITH^JENNIFER' or specific analyte values."
+    },
+    {
+      "id": "genuine_file_output",
+      "description": "Verify the output file naming convention was evaluated dynamically by the engine.",
+      "visual_evidence": "If a terminal screenshot shows the contents of /opt/mirthdata/hl7_out/, the generated file should have a dynamic UUID-like name (e.g., '1a2b3c...hl7') resulting from the ${message.messageId} variable, not a file literally named '${message.messageId}.hl7'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected channel name is 'XML_to_HL7_Lab'. The input directory is '/opt/mirthdata/xml_in' and the output directory is '/opt/mirthdata/hl7_out' with the filename '${message.messageId}.hl7'. The sample XML data contains a patient named 'SMITH^JENNIFER' and exactly 5 analytes (WBC, RBC, HGB, HCT, PLT). The first analyte is WBC with a value of 7.2. A correct transformation will produce an HL7 v2.x ORU^R01 message with 'SMITH^JENNIFER' in the PID segment and 5 repeating OBX segments, the first of which will contain 'WBC' and '7.2'."
+}

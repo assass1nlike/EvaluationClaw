@@ -1,0 +1,39 @@
+{
+  "id": "record_patient_allergies@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Document two drug allergies for the patient identified in /tmp/target_patient.txt within LibreHealth EHR (admin/password). Record an allergy to Penicillin (Type: Allergy, Reaction: Rash, Severity: Moderate, Onset Date: 2015-06-01) and an allergy to Sulfonamides (Type: Allergy, Reaction: Anaphylaxis, Severity: Severe, Onset Date: 2020-11-15). Ensure both records are saved in the patient's chart.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_patient_allergies/setup_task.sh",
+    "post_task": "/workspace/tasks/record_patient_allergies/export_result.sh"
+  },
+  "metadata": {
+    "allergy_1": {
+      "title": "Penicillin",
+      "reaction": "Rash",
+      "severity": "Moderate",
+      "date": "2015-06-01"
+    },
+    "allergy_2": {
+      "title": "Sulfonamides",
+      "alt_titles": [
+        "Sulfa"
+      ],
+      "reaction": "Anaphylaxis",
+      "severity": "Severe",
+      "date": "2020-11-15"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_patient_allergies"
+    }
+  }
+}

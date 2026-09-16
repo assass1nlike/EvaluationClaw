@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_ransomware_decryptor@1",
+  "task_completion": [
+    {
+      "id": "fix_kdf_iterations",
+      "description": "Update the PBKDF2 KDF iterations to 100,000 in decryptor.py.",
+      "points": 15,
+      "visual_evidence": "Code editor showing decryptor.py with the PBKDF2HMAC iterations parameter set to 100000."
+    },
+    {
+      "id": "fix_iv_slicing",
+      "description": "Modify the IV slicing logic to extract exactly 16 bytes instead of 32.",
+      "points": 15,
+      "visual_evidence": "Code editor showing decryptor.py with IV slicing updated to 16 bytes (e.g., extracting [:16] or similar logic from the encrypted data)."
+    },
+    {
+      "id": "fix_pkcs7_unpadding",
+      "description": "Replace rstrip with proper PKCS7 unpadder logic.",
+      "points": 20,
+      "visual_evidence": "Code editor showing decryptor.py importing and using a PKCS7 unpadder (e.g., unpad() from cryptography.hazmat.primitives.padding) instead of string manipulation like rstrip()."
+    },
+    {
+      "id": "fix_directory_traversal",
+      "description": "Replace os.listdir with recursive file traversal to process subdirectories in infected_drive/.",
+      "points": 20,
+      "visual_evidence": "Code editor showing os.walk(), glob.glob(..., recursive=True), or Path.rglob() being used to iterate through files instead of os.listdir()."
+    },
+    {
+      "id": "fix_binary_write_mode",
+      "description": "Open recovered files in 'wb' (binary write) mode instead of text mode.",
+      "points": 10,
+      "visual_evidence": "Code editor showing the open() function using 'wb' mode when writing the decrypted file contents to disk."
+    },
+    {
+      "id": "successful_decryption_execution",
+      "description": "Run the fixed decryptor.py script successfully to decrypt files in infected_drive/.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the python script (e.g., python decryptor.py) with no crash/traceback errors, and/or terminal/file explorer showing the successfully restored files in infected_drive/ and its subdirectories."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_modification",
+      "description": "The agent actually modified decryptor.py in a text/code editor rather than just echoing text or creating mock output files.",
+      "visual_evidence": "Screenshots should show a code editor (like VS Code, nano, vim) with the modified Python code."
+    },
+    {
+      "id": "no_hardcoded_decrypted_files",
+      "description": "The agent did not manually create or copy-paste decrypted files to bypass the script execution.",
+      "visual_evidence": "Terminal execution of the script should be visible, rather than manual echo, touch, or cp commands creating the expected output files."
+    },
+    {
+      "id": "used_provided_password",
+      "description": "The agent used the specified master password 'admin123' in the script or command line.",
+      "visual_evidence": "The password 'admin123' is visible as an argument in the terminal execution or assigned to a variable in the script editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in decryptor.py: 1) Update PBKDF2HMAC KDF iterations to 100,000. 2) Slice the IV to exactly 16 bytes (instead of 32). 3) Open recovered files in 'wb' (binary write) mode instead of text mode. 4) Use proper PKCS7 unpadder logic instead of `rstrip`. 5) Replace `os.listdir` with recursive file traversal (e.g., `os.walk` or `glob`) to decrypt subdirectories. The agent must use the password 'admin123' to decrypt the files in `infected_drive/`."
+}

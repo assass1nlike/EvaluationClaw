@@ -1,0 +1,28 @@
+{
+  "id": "reformat_and_export_dicom_series@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "Reorient the CT Cranium DICOM series by applying a rotation to the volume to correct head tilt or align to a different axis. Export the full reformatted DICOM series to /home/ga/Documents/reoriented_dicom/. Login credentials: user 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reformat_and_export_dicom_series/setup_task.sh",
+    "post_task": "/workspace/tasks/reformat_and_export_dicom_series/export_result.sh"
+  },
+  "metadata": {
+    "source_dicom_dir": "/home/ga/DICOM/ct_cranium",
+    "output_dir": "/home/ga/Documents/reoriented_dicom",
+    "min_file_count": 50,
+    "min_files_to_sample": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reformat_dicom"
+    }
+  }
+}

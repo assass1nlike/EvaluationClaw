@@ -1,0 +1,53 @@
+{
+  "task_id": "solar_suitability_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_dem",
+      "description": "Load the input Digital Elevation Model (DEM)",
+      "points": 10,
+      "visual_evidence": "Look for 'elevation.tif' loaded in the GIS software's layers panel (e.g., QGIS) or explicitly opened in a Python/GDAL script."
+    },
+    {
+      "id": "calculate_slope",
+      "description": "Calculate the slope from the DEM",
+      "points": 20,
+      "visual_evidence": "Look for a generated 'slope' layer in the layers panel, a slope calculation tool dialog being used, or code executing a slope calculation algorithm."
+    },
+    {
+      "id": "calculate_aspect",
+      "description": "Calculate the aspect from the DEM",
+      "points": 20,
+      "visual_evidence": "Look for a generated 'aspect' layer in the layers panel, an aspect calculation tool dialog being used, or code executing an aspect calculation algorithm."
+    },
+    {
+      "id": "apply_suitability_criteria",
+      "description": "Apply the multi-criteria logical expression for suitability",
+      "points": 30,
+      "visual_evidence": "Look for a Raster Calculator dialog or script showing a logical expression combining the criteria: slope < 10 AND aspect >= 135 AND aspect <= 225. The result should be a binary output (1 and 0)."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save the final binary result to the specified path",
+      "points": 20,
+      "visual_evidence": "Look for a save dialog, export confirmation, or terminal/script command showing the final raster being saved to '/home/ga/GIS_Data/exports/solar_candidates.tif'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Verify the agent actually computed the raster analysis rather than faking the output",
+      "visual_evidence": "Look for actual usage of GIS processing tools (e.g., Raster Calculator, GDAL commands, or Python scripts) rather than just copying a file or using 'touch' to create an empty file."
+    },
+    {
+      "id": "correct_input_source",
+      "description": "Verify the agent used the correct input DEM",
+      "visual_evidence": "Ensure the processing steps explicitly reference '/home/ga/GIS_Data/elevation.tif' as the base layer, not an external or pre-computed file."
+    },
+    {
+      "id": "binary_output_format",
+      "description": "Verify the output is intended to be a binary raster",
+      "visual_evidence": "The raster calculator formula or processing script should use logical operators (e.g., AND, *, <=) that inherently produce a 1 (true/suitable) and 0 (false/unsuitable) output, rather than continuous values."
+    }
+  ],
+  "privileged_info_for_vlm": "The input DEM is located at '/home/ga/GIS_Data/elevation.tif'. The output must be saved to '/home/ga/GIS_Data/exports/solar_candidates.tif'. The suitability criteria are: slope < 10 degrees AND aspect between 135 and 225 degrees (south-facing). The final output must be a binary GeoTIFF where 1=suitable and 0=unsuitable. Note: The automated verifier allows a tolerance of \u00b12\u00b0 for slope (<12\u00b0) and \u00b15\u00b0 for aspect (130\u00b0-230\u00b0) to account for minor algorithmic differences in GIS software."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "change_request_full_lifecycle@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "You are the Change Manager at a mid-sized technology company. After repeated VPN outages affecting 450 employees, the network team has determined that the Cisco Catalyst 2960 switches in Buildings A and B are end-of-life and must be replaced. Create and submit a formal Change Request titled 'Campus Network Core Switch Replacement - Buildings A and B'. The request must be a 'Normal' Change Type with High impact and High risk, including a detailed reason for the EOL situation, a rollout plan, and a backout plan. Link the existing open VPN connectivity incident regarding VPN dropping every 30 minutes to this Change. Include at least one Change Task, such as a pre-deployment configuration backup. Submit the Change for CAB review (Status: Requested). Log in with username: administrator, password: administrator.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_request_full_lifecycle/setup_task.sh",
+    "pre_task_timeout": 3600,
+    "post_task": "/workspace/tasks/change_request_full_lifecycle/export_result.sh"
+  },
+  "metadata": {
+    "change_title_keyword": "Campus Network Core Switch Replacement",
+    "change_type": "Normal",
+    "linked_incident_id": 1004,
+    "required_status": "Requested",
+    "min_change_tasks": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_request_full_lifecycle"
+    }
+  }
+}

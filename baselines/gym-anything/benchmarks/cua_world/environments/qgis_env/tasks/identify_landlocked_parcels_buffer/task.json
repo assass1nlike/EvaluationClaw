@@ -1,0 +1,30 @@
+{
+  "id": "identify_landlocked_parcels_buffer@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Identify land parcels from '/home/ga/GIS_Data/cadastral/subdivision_parcels.geojson' that are isolated from the road network provided in '/home/ga/GIS_Data/cadastral/road_network.geojson'. Create a 10-meter easement buffer around only those parcels that do not share a boundary with any road. Ensure accurate metric buffering by using the 'WGS 84 / UTM zone 10N' (EPSG:32610) projection. Save the final buffered result to '/home/ga/GIS_Data/exports/easement_buffers.geojson'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_landlocked_parcels_buffer/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_landlocked_parcels_buffer/export_result.sh"
+  },
+  "metadata": {
+    "parcels_source": "/home/ga/GIS_Data/cadastral/subdivision_parcels.geojson",
+    "roads_source": "/home/ga/GIS_Data/cadastral/road_network.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/easement_buffers.geojson",
+    "expected_feature_count": 2,
+    "min_area_m2": 14000,
+    "max_area_m2": 15000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_identify_landlocked_parcels_buffer"
+    }
+  }
+}

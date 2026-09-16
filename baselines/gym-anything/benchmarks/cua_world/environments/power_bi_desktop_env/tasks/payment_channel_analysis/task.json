@@ -1,0 +1,37 @@
+{
+  "id": "payment_channel_analysis@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a marketing analyst. Using the file sales_data.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv, build a channel analysis report in Power BI Desktop. The report must include a calculated column named Revenue_Band categorizing Sales_Amount as \"Low\" (< 100), \"Medium\" (>= 100 and < 500), or \"High\" (>= 500). Include two DAX measures: Avg_Sale (average of Sales_Amount) and Order_Count (count of rows). On a report page named \"Channel Analysis\", create a Line and Clustered Column Chart showing Order_Count (Column Values) and Avg_Sale (Line Values) by Sales_Channel (Shared Axis), and a Treemap showing Sales_Amount by Payment_Method. Save the final report as Channel_Analysis.pbix to C:\\Users\\Docker\\Desktop\\.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\payment_channel_analysis\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\payment_channel_analysis\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Channel_Analysis.pbix",
+    "expected_page_name": "Channel Analysis",
+    "required_visuals": [
+      "lineClusteredColumnComboChart",
+      "treemap"
+    ],
+    "required_measures": [
+      "Avg_Sale",
+      "Order_Count"
+    ],
+    "required_columns": [
+      "Revenue_Band"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_payment_channel_analysis"
+    }
+  }
+}

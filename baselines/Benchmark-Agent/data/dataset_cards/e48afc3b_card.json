@@ -1,0 +1,95 @@
+{
+  "dataset_id": "e48afc3b",
+  "name": "Openset Multimodal Slide Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multimodal question answering dataset built from slide images, where the model must read one or more slides and answer a multiple-choice question by selecting from a provided list. It evaluates visual and textual comprehension across slide content.",
+  "card_text": "The Openset Multimodal Slide Question Answering dataset contains 200 samples, each pairing one or more slide images with a text prompt. The images are presentation slides that may contain text, tables, charts, diagrams, or other visual structures. The prompt includes task instructions, a natural-language question, and a multiple-choice list; the expected output is a short text answer chosen from that list. Questions often require locating specific facts, comparing entities, or integrating information spread across multiple slides. The dataset is open-set in the sense that slide topics vary and no fixed label set is provided. It is intended to evaluate multimodal reasoning and visual question answering over real-world slide-like documents.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering",
+    "question_answering"
+  ],
+  "domain": "multimodal slide presentations",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of slide image files that serve as the primary multimodal reference material. Each image is a presentation slide containing text, charts, tables, or diagrams; multiple slides may be provided, and the model must retrieve and combine information across them to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "A textual prompt that combines task instructions, the natural-language question, and a multiple-choice list. It directs the model to use the slides as reference and asks for a comparison, fact, or attribute that can be answered from them.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The multiple-choice options embedded at the end of the prompt, from which the model must select exactly one correct answer. The options are short phrases or names.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The final answer text, which is one of the provided options. It represents the correct choice based on reasoning over the slide images.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of one or more slide images as the main context, a single text prompt that bundles the task instruction, question, and multiple-choice list, and a short text output containing the selected answer. The question and options in the prompt refer to facts or comparisons that are distributed across the slide images; the output is the option string that correctly answers the question."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/MultimodalSlideQuestionAnswering/openset_multimodal_slide_question_answering.json",
+    "existing_tags": {
+      "task": "Multimodal Slide Question Answering",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

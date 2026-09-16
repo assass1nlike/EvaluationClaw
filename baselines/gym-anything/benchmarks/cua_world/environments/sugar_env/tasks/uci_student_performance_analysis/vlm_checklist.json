@@ -1,0 +1,59 @@
+{
+  "task_id": "uci_student_performance_analysis@1",
+  "task_completion": [
+    {
+      "id": "extract_dataset",
+      "description": "The agent extracted the dataset into the specified directory.",
+      "points": 15,
+      "visual_evidence": "A file manager window or terminal showing the directory /home/ga/Documents/student_data/ containing the extracted student-por.csv file."
+    },
+    {
+      "id": "create_python_script",
+      "description": "The agent created a Python script named grade_analysis.py in the Documents folder.",
+      "points": 10,
+      "visual_evidence": "A text editor, IDE, or terminal showing the file /home/ga/Documents/grade_analysis.py exists and is being edited."
+    },
+    {
+      "id": "script_logic_calculation",
+      "description": "The Python script contains logic to read the CSV with a semicolon delimiter and calculate the average of the 'G3' column for 'GP' and 'MS' schools.",
+      "points": 25,
+      "visual_evidence": "Code visible in the editor showing CSV reading (e.g., pd.read_csv with sep=';' or csv module) and mathematical operations to compute the mean of the G3 column grouped by school."
+    },
+    {
+      "id": "script_logic_saving",
+      "description": "The Python script contains logic to round the averages to at least one decimal place and save them to school_comparison.txt.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor showing file write operations (e.g., open('/home/ga/Documents/school_comparison.txt', 'w')) and string formatting or rounding functions applied to the calculated averages."
+    },
+    {
+      "id": "execute_script",
+      "description": "The agent executed the grade_analysis.py script.",
+      "points": 10,
+      "visual_evidence": "A terminal window showing the command 'python grade_analysis.py' (or similar) being executed."
+    },
+    {
+      "id": "verify_output_file",
+      "description": "The output file school_comparison.txt contains the correct average final grades for both schools.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat') displaying the contents of /home/ga/Documents/school_comparison.txt. The file must show values of approximately 12.6 for GP and 10.7 for MS."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent calculated the averages dynamically rather than hardcoding the expected results.",
+      "visual_evidence": "The Python script must show variables and calculation logic (e.g., mean(), sum()/len()) rather than explicitly writing '12.6' and '10.7' directly to the file."
+    },
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent actually ran the script to produce the output file.",
+      "visual_evidence": "Terminal history showing the execution of the Python script before the final school_comparison.txt file is opened or displayed."
+    },
+    {
+      "id": "correct_data_source",
+      "description": "The agent used the provided local dataset rather than downloading a new one or using external APIs.",
+      "visual_evidence": "The file path in the Python script points to the local extracted file (e.g., /home/ga/Documents/student_data/student-por.csv) and does not contain URLs or web requests."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected average final grade (G3 column) for the GP school is exactly 12.5768 (rounds to 12.6). The expected average final grade (G3 column) for the MS school is exactly 10.6504 (rounds to 10.7). The agent's output file must reflect these values rounded to at least one decimal place. Note: The original student.zip file contains another zip file inside it, so the agent may have needed to extract files twice to access student-por.csv."
+}

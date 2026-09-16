@@ -1,0 +1,29 @@
+{
+  "id": "enable_product_reviews@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Configure a product review system for the Urban Electronics store. Create a new Comment Type labeled 'Product Review' (machine name: 'product_review'). Add a comment field to the 'Default' Product type labeled 'Reviews' (machine name: 'field_reviews') using the 'Product Review' comment type. Verify the configuration by posting a review on the 'Sony WH-1000XM5 Wireless Headphones' product page with the subject 'Amazing Quality' and body 'Best headphones I've ever owned.'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enable_product_reviews/setup_task.sh",
+    "post_task": "/workspace/tasks/enable_product_reviews/export_result.sh"
+  },
+  "metadata": {
+    "expected_comment_type": "product_review",
+    "expected_field_name": "field_reviews",
+    "expected_review_subject": "Amazing Quality",
+    "expected_review_body": "Best headphones I've ever owned.",
+    "target_product_sku": "SONY-WH1000XM5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enable_product_reviews"
+    }
+  }
+}

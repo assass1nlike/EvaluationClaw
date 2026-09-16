@@ -1,0 +1,38 @@
+{
+  "id": "environmental_impact_summary@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Dr. Elena Marchetti, Senior Environmental Scientist at Blue Ridge Environmental Consulting. Prepare the Environmental Impact Assessment (EIA) Executive Summary for the 'Ridgeline Wind Energy Project' in Garrett County, Maryland, using the data provided in /home/ga/Documents/project_environmental_data.json. Create a professional document in Apache OpenOffice Writer saved as /home/ga/Documents/Ridgeline_Wind_EIA_Summary.odt. The document must include an auto-generated Table of Contents, page numbers in the footer, and formatted tables for the Wildlife Species Inventory, Noise Receptor Data, and Mitigation Measures. Use 'Heading 1' and 'Heading 2' styles for main sections and subsections. Synthesize the JSON data into a professional narrative of at least 25 paragraphs covering the Project Description, Regulatory Framework, Ecological Resources, Noise, Visual Impact, and Mitigation. Login: username 'ga', no password required.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/environmental_impact_summary/setup_task.sh",
+    "post_task": "/workspace/tasks/environmental_impact_summary/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Ridgeline_Wind_EIA_Summary.odt",
+    "input_file": "/home/ga/Documents/project_environmental_data.json",
+    "required_h1_min": 7,
+    "required_h2_min": 8,
+    "required_tables_min": 3,
+    "required_paragraph_min": 25,
+    "min_file_size_bytes": 5000,
+    "keywords": [
+      "Indiana Bat",
+      "Myotis sodalis",
+      "dBA",
+      "Ridgeline",
+      "Garrett County"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_environmental_impact_summary"
+    }
+  }
+}

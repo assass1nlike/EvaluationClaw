@@ -1,0 +1,36 @@
+{
+  "id": "create_concept_map_type@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "A health informatics specialist needs to create a new concept map type to support terminology mapping between the hospital's local concept dictionary and ICD-11. Create a new concept map type named 'ASSOCIATED-WITH' with the description 'Indicates that a concept is clinically associated with a concept in an external terminology system'. Ensure the map type is not hidden. Access the OpenMRS administration panel at https://localhost/openmrs/admin using username 'superman' and password 'Admin123'.",
+  "difficulty": "medium",
+  "tags": [
+    "bahmni",
+    "openmrs",
+    "admin",
+    "concept-dictionary",
+    "terminology",
+    "interoperability"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_concept_map_type/setup_task.sh",
+    "post_task": "/workspace/tasks/create_concept_map_type/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "expected_name": "ASSOCIATED-WITH",
+    "expected_description_contains": "associated",
+    "target_url": "https://localhost/openmrs/admin/conceptmaptypes/conceptMapType.list"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_concept_map_type"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "supply_chain_model_simulation@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database as the logistics user.",
+      "points": 10,
+      "visual_evidence": "A terminal or SQL client (e.g., sqlplus, SQLcl, DBeaver) showing a successful connection to the Oracle database using the user 'logistics' and PDB 'XEPDB1'."
+    },
+    {
+      "id": "write_model_query",
+      "description": "Construct the SQL query using the MODEL clause to simulate inventory.",
+      "points": 20,
+      "visual_evidence": "An SQL editor or terminal showing a query that includes 'CREATE VIEW INVENTORY_FORECAST AS', uses the 'MODEL' keyword, and references 'INVENTORY_PARAMS' and 'WEEKLY_DEMAND'."
+    },
+    {
+      "id": "execute_view_creation",
+      "description": "Execute the query to create the INVENTORY_FORECAST view.",
+      "points": 20,
+      "visual_evidence": "A success message in the SQL client such as 'View created' or 'View INVENTORY_FORECAST created'."
+    },
+    {
+      "id": "verify_view_columns",
+      "description": "Verify the view contains the required columns.",
+      "points": 20,
+      "visual_evidence": "A DESCRIBE command or a SELECT query output showing the columns: PRODUCT_ID, WEEK_NO, OPENING_STOCK, ARRIVALS, DEMAND_QTY, CLOSING_STOCK, and ORDER_QTY."
+    },
+    {
+      "id": "export_csv_command",
+      "description": "Export the view results to a CSV file.",
+      "points": 15,
+      "visual_evidence": "A command (e.g., using SPOOL, SQLcl 'set sqlformat csv', or a GUI export tool) directing the output of 'SELECT * FROM INVENTORY_FORECAST' to a CSV file."
+    },
+    {
+      "id": "verify_csv_output",
+      "description": "Verify the CSV file is created at the correct location with headers.",
+      "points": 15,
+      "visual_evidence": "A terminal showing the file '/home/ga/Desktop/forecast_results.csv' exists, or a text editor/terminal displaying the contents of the CSV file including the column headers at the top."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacts with an actual Oracle database client.",
+      "visual_evidence": "Screenshots should show a real database client interface (like sqlplus, SQLcl, SQL Developer, or DBeaver) being used, rather than just a text editor."
+    },
+    {
+      "id": "actual_query_execution",
+      "description": "The SQL query is actually executed against the database.",
+      "visual_evidence": "Look for execution times, row counts, or database system messages (e.g., 'View created') indicating the query was processed by Oracle, not just typed out."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file is generated from the database query, not manually created.",
+      "visual_evidence": "The CSV file creation should be the result of an export command or GUI export wizard from the database client, not manually typed or copy-pasted into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Database connection: User 'logistics', Password 'logistics123', PDB 'XEPDB1'. The view must be named 'INVENTORY_FORECAST' and contain exactly these columns: PRODUCT_ID, WEEK_NO, OPENING_STOCK, ARRIVALS, DEMAND_QTY, CLOSING_STOCK, ORDER_QTY. The final output must be exported to '/home/ga/Desktop/forecast_results.csv' with headers."
+}

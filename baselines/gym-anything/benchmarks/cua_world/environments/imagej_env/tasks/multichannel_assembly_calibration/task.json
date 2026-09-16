@@ -1,0 +1,43 @@
+{
+  "id": "multichannel_assembly_calibration@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Multi-Channel Fluorescence Assembly",
+  "description": "You are a microscopist processing raw data from an experiment. Create a calibrated, multi-channel composite image using the files in ~/ImageJ_Data/raw/experiment_042/. Assign mitochondria_raw.tif to Channel 1 (Red), cytoskeleton_raw.tif to Channel 2 (Green), and nucleus_raw.tif to Channel 3 (Blue). Apply spatial calibration in microns based on the pixel size information provided in microscope_metadata.txt. Ensure the cytoskeleton in the Green channel is clearly visible through brightness and contrast adjustments. Save the resulting multi-channel composite TIFF to ~/ImageJ_Data/processed/assembled_cell.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "image-processing",
+    "calibration",
+    "composite",
+    "fiji",
+    "metadata"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multichannel_assembly_calibration/setup_task.sh",
+    "post_task": "/workspace/tasks/multichannel_assembly_calibration/export_result.sh"
+  },
+  "metadata": {
+    "raw_dir": "/home/ga/ImageJ_Data/raw/experiment_042",
+    "result_path": "/home/ga/ImageJ_Data/processed/assembled_cell.tif",
+    "expected_pixel_width": 0.16,
+    "tolerance_pixel_width": 0.01,
+    "expected_unit": "micron",
+    "channel_map": {
+      "Red": "mitochondria",
+      "Green": "cytoskeleton",
+      "Blue": "nucleus"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multichannel_assembly"
+    }
+  }
+}

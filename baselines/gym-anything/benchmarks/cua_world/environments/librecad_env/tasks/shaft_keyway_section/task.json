@@ -1,0 +1,45 @@
+{
+  "id": "shaft_keyway_section@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a mechanical cross-section detail drawing of a keyed shaft in LibreCAD. The drawing must feature a 50mm diameter shaft with a rectangular keyway notch 14mm wide and 5.5mm deep (measured radially inward from the shaft circumference). Organize all elements onto the following layers: SHAFT (shaft and keyway geometry), CENTER (horizontal and vertical center lines), HATCHING (cross-section hatching for the solid shaft area, excluding the keyway), DIMENSIONS (diameter, width, and depth), and TEXT (annotations: 'SHAFT', 'KEYWAY', '1045', and 'DIN 6885'). Ensure proper drafting standards are followed and save the final drawing to /home/ga/Documents/LibreCAD/shaft_keyway_section.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/shaft_keyway_section/setup_task.sh",
+    "post_task": "/workspace/tasks/shaft_keyway_section/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "shaft_keyway_section.dxf",
+    "expected_path": "/home/ga/Documents/LibreCAD/shaft_keyway_section.dxf",
+    "specs": {
+      "diameter": 50.0,
+      "radius": 25.0,
+      "key_width": 14.0,
+      "key_depth": 5.5,
+      "tolerance": 1.0
+    },
+    "required_layers": [
+      "SHAFT",
+      "CENTER",
+      "HATCHING",
+      "DIMENSIONS",
+      "TEXT"
+    ],
+    "required_text": [
+      "SHAFT",
+      "KEYWAY",
+      "DIN 6885"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shaft_keyway_section"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "cumulative_canary_divergence_audit@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the creation of the 'Canary Release Audit' dashboard.",
+      "points": 10,
+      "visual_evidence": "Look for the title 'Canary Release Audit' at the top of the Graphite dashboard interface."
+    },
+    {
+      "id": "graph_1_title",
+      "description": "Verify the first graph is titled 'Legacy vs Canary Baseline'.",
+      "points": 10,
+      "visual_evidence": "Look for a graph panel with the header 'Legacy vs Canary Baseline'."
+    },
+    {
+      "id": "graph_1_legacy_target",
+      "description": "Verify the first graph contains the 'Legacy Fleet' target with the correct average metric.",
+      "points": 25,
+      "visual_evidence": "Look at the legend or query editor for the first graph. It should show the alias 'Legacy Fleet' and indicate an average of 'servers.ec2_instance_1.cpu.utilization' and 'servers.ec2_instance_2.cpu.utilization'."
+    },
+    {
+      "id": "graph_1_canary_target",
+      "description": "Verify the first graph contains the 'Canary Node' target with the correct metric.",
+      "points": 25,
+      "visual_evidence": "Look at the legend or query editor for the first graph. It should show the alias 'Canary Node' and the metric 'servers.ec2_instance_3.cpu.cloudwatch_utilization'."
+    },
+    {
+      "id": "graph_2_title",
+      "description": "Verify the presence of the 'Instantaneous Delta' graph.",
+      "points": 10,
+      "visual_evidence": "Look for a second graph panel with the header 'Instantaneous Delta'."
+    },
+    {
+      "id": "graph_3_title",
+      "description": "Verify the presence of the 'Net Cumulative Penalty' graph.",
+      "points": 10,
+      "visual_evidence": "Look for a third graph panel with the header 'Net Cumulative Penalty'."
+    },
+    {
+      "id": "exactly_three_graphs",
+      "description": "Verify the dashboard contains exactly three graphs.",
+      "points": 10,
+      "visual_evidence": "Count the number of graph panels in the 'Canary Release Audit' dashboard. There must be exactly three graphs visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Graphite web interface to build the dashboard.",
+      "visual_evidence": "The screenshots should show the Graphite UI (e.g., Composer or Dashboard interface), not just terminal commands, curl requests, or a text editor."
+    },
+    {
+      "id": "real_data_plotted",
+      "description": "Verify that actual metric data is being plotted.",
+      "visual_evidence": "The graphs should display actual plotted lines or data points, indicating the metrics were successfully queried from the backend, rather than empty graphs."
+    },
+    {
+      "id": "no_spoofing",
+      "description": "Verify the agent did not mock the results in a text editor or local HTML file.",
+      "visual_evidence": "The browser address bar (if visible) and page layout should correspond to a genuine Graphite instance, with no evidence of a local file path or text editor being used to fake the output."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is 'Canary Release Audit'. The dashboard must contain exactly three graphs titled: 'Legacy vs Canary Baseline', 'Instantaneous Delta', and 'Net Cumulative Penalty'. The first graph must contain two targets: an average of 'servers.ec2_instance_1.cpu.utilization' and 'servers.ec2_instance_2.cpu.utilization' aliased as 'Legacy Fleet', and 'servers.ec2_instance_3.cpu.cloudwatch_utilization' aliased as 'Canary Node'."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "conditional_event_feedback@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a 'TechSummit 2024 Post-Event Feedback' survey with five question groups: 'Attendance Information', 'Venue and Logistics', 'Virtual Experience', 'Overall Satisfaction', and 'Follow-up'. In 'Attendance Information', include a mandatory radio question (code: AttendType) 'How did you attend?' with options In-person (A1), Virtual (A2), and Hybrid (A3). Configure the 'Venue and Logistics' group (rating Venue, Catering, and Signage) to display only if AttendType is A1 or A3. Configure the 'Virtual Experience' group (rating Streaming, Platform, and Networking) to display only if AttendType is A2 or A3. In 'Overall Satisfaction', include a mandatory 5-point choice question (code: QOverall) and a Yes/No 'Recommendation' question. In 'Follow-up', set a 'Testimonial' question to appear only if QOverall is 4 or higher, and an 'Issues' question to appear only if QOverall is 2 or lower. Login credentials: admin / Admin123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/conditional_event_feedback/setup_task.sh",
+    "post_task": "/workspace/tasks/conditional_event_feedback/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "TechSummit",
+    "expected_group_count": 5,
+    "expected_min_questions": 10,
+    "branching_groups_min": 2,
+    "branching_questions_min": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_conditional_event_feedback"
+    }
+  }
+}

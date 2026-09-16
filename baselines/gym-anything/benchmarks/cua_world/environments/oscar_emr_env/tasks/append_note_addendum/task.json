@@ -1,0 +1,33 @@
+{
+  "id": "append_note_addendum@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Append the text 'Plan: Patient advised to avoid spicy foods and take antacids prn.' to the existing signed encounter note for patient Oliver Twist. The original note text ('Subjective: c/o epigastric pain. Objective: Mild tenderness.') must be preserved. Use credentials oscardoc (password: oscar, PIN: 1117).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/append_note_addendum/setup_task.sh",
+    "post_task": "/workspace/tasks/append_note_addendum/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Oliver",
+    "patient_lname": "Twist",
+    "original_text": "Subjective: c/o epigastric pain. Objective: Mild tenderness.",
+    "addendum_text": "Plan: Patient advised to avoid spicy foods and take antacids prn.",
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_append_note_addendum"
+    }
+  }
+}

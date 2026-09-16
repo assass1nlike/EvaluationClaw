@@ -1,0 +1,49 @@
+{
+  "id": "standardized_demographics_portability@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create a reusable demographics module and transfer it between surveys. In a survey titled 'Lab Master Template', create a Question Group named 'Standard Demographics' containing three questions: DEMO_AGE (Numerical input) with text 'What is your age in years?'; DEMO_EDU (List/Radio) with text 'What is the highest degree or level of school you have completed?' and options E1='Less than high school', E2='High school graduate', E3='Some college or Associate degree', E4='Bachelor\\'s degree', E5='Graduate or professional degree'; and DEMO_EMP (Yes/No) with text 'Are you currently employed for wages or salary?'. Export this Question Group to /home/ga/Documents/standard_demographics.lsg. Import this module into a new survey titled 'Social Interaction Study 2024' such that 'Standard Demographics' is the only group in the survey.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/standardized_demographics_portability/setup_task.sh",
+    "post_task": "/workspace/tasks/standardized_demographics_portability/export_result.sh"
+  },
+  "metadata": {
+    "source_survey_title": "Lab Master Template",
+    "target_survey_title": "Social Interaction Study 2024",
+    "group_name": "Standard Demographics",
+    "export_path": "/home/ga/Documents/standard_demographics.lsg",
+    "questions": [
+      {
+        "code": "DEMO_AGE",
+        "type": "N"
+      },
+      {
+        "code": "DEMO_EDU",
+        "type": "L"
+      },
+      {
+        "code": "DEMO_EMP",
+        "type": "Y"
+      }
+    ],
+    "education_options": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_standardized_demographics_portability"
+    }
+  }
+}

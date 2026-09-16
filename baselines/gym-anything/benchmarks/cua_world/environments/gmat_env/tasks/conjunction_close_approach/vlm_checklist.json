@@ -1,0 +1,59 @@
+{
+  "task_id": "conjunction_close_approach@1",
+  "task_completion": [
+    {
+      "id": "read_cdm_file",
+      "description": "Open and read the Conjunction Data Message (CDM) file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displaying the contents of 'cdm_comms_leo_7.txt'."
+    },
+    {
+      "id": "configure_gmat_objects_and_forces",
+      "description": "Create a GMAT script modeling both spacecraft and configuring the force model with Earth gravity and atmospheric drag.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing two Spacecraft resources and a Propagator with gravity and drag configured, OR a text editor showing a GMAT script (.script) defining these objects and forces."
+    },
+    {
+      "id": "configure_propagation_and_approach",
+      "description": "Configure the GMAT script to propagate for 72 hours and calculate the closest approach.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI or script text showing a Propagate command set for 72 hours (e.g., ElapsedDays = 3 or ElapsedSecs = 259200) and a mechanism to measure distance or close approach between the two objects."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Save the GMAT script to the specified missions directory.",
+      "points": 10,
+      "visual_evidence": "File manager, terminal, or save dialog showing 'conjunction_assessment.script' located in the '~/Documents/missions/' directory."
+    },
+    {
+      "id": "run_gmat_simulation",
+      "description": "Run the GMAT simulation to determine the Time of Closest Approach (TCA) and minimum miss distance.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing a completed mission run with output plots/reports, or a terminal showing the execution of the GMAT script yielding TCA and distance results."
+    },
+    {
+      "id": "write_assessment_report",
+      "description": "Write the conjunction assessment report with the required fields and logic.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'conjunction_assessment.txt' in '~/GMAT_output/' containing the fields 'TCA:', 'MISS_DISTANCE_KM:', 'RECOMMENDATION:', and 'AVOIDANCE_DV_MS:' with values filled in."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_execution",
+      "description": "The agent actually used GMAT to compute the results rather than hallucinating the TCA and miss distance.",
+      "visual_evidence": "Screenshots must show GMAT actively running, displaying output plots, or generating report files. The agent should not just type guessed answers directly into the final text file."
+    },
+    {
+      "id": "correct_recommendation_logic",
+      "description": "The recommendation strictly follows the 1.0 km threshold logic.",
+      "visual_evidence": "In the final report, if MISS_DISTANCE_KM is less than 1.0, RECOMMENDATION must be 'MANEUVER_REQUIRED' and AVOIDANCE_DV_MS must be > 0. If MISS_DISTANCE_KM is >= 1.0, RECOMMENDATION must be 'MONITOR' or 'NO_ACTION' and AVOIDANCE_DV_MS must be 0."
+    },
+    {
+      "id": "used_provided_cdm_data",
+      "description": "The agent used the specific orbital parameters from the provided CDM file.",
+      "visual_evidence": "The state vectors or Keplerian elements entered into the GMAT spacecraft configurations should match the values visible when the agent opened 'cdm_comms_leo_7.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The CDM file is located at /home/ga/Desktop/cdm_comms_leo_7.txt. The GMAT script must be saved exactly to /home/ga/Documents/missions/conjunction_assessment.script. The assessment report must be saved exactly to /home/ga/GMAT_output/conjunction_assessment.txt. The threshold for requiring an avoidance maneuver is strictly a miss distance of less than 1.0 km."
+}

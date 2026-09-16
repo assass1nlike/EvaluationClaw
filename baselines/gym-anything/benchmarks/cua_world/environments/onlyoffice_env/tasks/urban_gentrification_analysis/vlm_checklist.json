@@ -1,0 +1,59 @@
+{
+  "task_id": "urban_gentrification_analysis@1",
+  "task_completion": [
+    {
+      "id": "calculated_columns_added",
+      "description": "Verify that the four required calculated columns were added to the dataset.",
+      "points": 15,
+      "visual_evidence": "Look for new column headers named 'Income_Growth', 'Rent_Growth', 'Edu_Growth', and 'Gentrification_Index' in the spreadsheet."
+    },
+    {
+      "id": "population_filter_applied",
+      "description": "Verify that census tracts with a 2022 population of less than 500 were filtered out.",
+      "points": 15,
+      "visual_evidence": "Check the visible data or the Top 10 list to ensure the noise tracts (48453009800 and 48453009900) are NOT present, as they are filter traps with high indices but low populations."
+    },
+    {
+      "id": "sorted_descending",
+      "description": "Verify that the dataset is sorted by the Gentrification_Index in descending order.",
+      "points": 10,
+      "visual_evidence": "Look at the 'Gentrification_Index' column and confirm that the numerical values are ordered from highest to lowest."
+    },
+    {
+      "id": "top_10_sheet_created",
+      "description": "Verify that a new sheet named 'Top_10_Gentrified' was created and contains the top 10 rows.",
+      "points": 20,
+      "visual_evidence": "Look for a sheet tab named 'Top_10_Gentrified' at the bottom of the window. When active, it should display exactly 11 rows (1 header row and 10 data rows)."
+    },
+    {
+      "id": "correct_top_10_tracts",
+      "description": "Verify that the correct top 10 census tracts were extracted.",
+      "points": 25,
+      "visual_evidence": "Look at the tract IDs in the 'Top_10_Gentrified' sheet and verify they exactly match the 10 tracts listed in the privileged information."
+    },
+    {
+      "id": "averages_row_added",
+      "description": "Verify that a final row calculating averages was added to the original data sheet.",
+      "points": 15,
+      "visual_evidence": "Look at the bottom of the original data sheet for a new row that contains average values specifically for the 'Med_Inc_2012', 'Med_Inc_2022', 'Med_Rent_2012', and 'Med_Rent_2022' columns."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "Verify that the agent used a spreadsheet application GUI (like ONLYOFFICE) to perform the task.",
+      "visual_evidence": "Look for the interface of a spreadsheet application rather than a terminal window running a Python/Pandas script to generate the output file."
+    },
+    {
+      "id": "formulas_used",
+      "description": "Verify that the agent used spreadsheet formulas for calculations rather than pasting hardcoded values.",
+      "visual_evidence": "Look at the formula bar (usually at the top of the spreadsheet UI) when a calculated cell or average cell is selected to ensure it contains a formula (e.g., starting with '=')."
+    },
+    {
+      "id": "correct_filename_and_format",
+      "description": "Verify that the file was saved with the correct name and format.",
+      "visual_evidence": "Look at the application title bar or a file manager window to confirm the file is named 'austin_gentrification_analysis.xlsx'."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct top 10 gentrified census tracts (after filtering out populations < 500) are exactly: 48453000801, 48453000802, 48453000803, 48453000804, 48453000901, 48453000902, 48453001000, 48453001100, 48453001200, and 48453001300. Tracts 48453009800 and 48453009900 are noise traps with populations under 500 and artificially high gentrification indices; they must NOT appear in the top 10 list."
+}

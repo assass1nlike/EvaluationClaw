@@ -1,0 +1,26 @@
+{
+  "id": "building_annual_energy_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Building-Energy Analyst evaluating a residential design from the Concord Energy3D tutorial library. The project 'building_starter.ng3' is open in Energy3D and shows two single-family houses on a shared site - this is the upstream 'effect of orientation' tutorial setup, used as a starting point for your study. Focus on the LARGER (left) house with the yellow front door. Click on it to select it, then run the Annual Energy Analysis for that selected building (Analysis menu > Buildings > Annual Energy Analysis for Selected Building, or the equivalent shortcut), wait for the simulation to complete, and inspect the resulting graph showing monthly heating, cooling, and net energy use. Then make ONE design change to that same selected building intended to reduce its annual net energy use - for example, rotate it to a more favorable orientation (Edit menu > Rotate, or click and drag the orientation handle), or change a wall/window/roof property in the right-hand editor pane. Re-run the Annual Energy Analysis on the same building and save the modified project over the starter file path.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/building_annual_energy_analysis/setup_task.sh"
+  },
+  "metadata": {
+    "occupation": "Building Energy Analyst",
+    "industry": "Architecture / Energy Modeling",
+    "starter_file": "building_starter.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_building_annual_energy_analysis"
+    }
+  }
+}

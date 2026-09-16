@@ -1,0 +1,32 @@
+{
+  "id": "blade_modal_analysis@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform a structural modal analysis on a simplified wind turbine blade named 'BeamBlade' to determine its first natural frequency and total mass. The blade must be 10 meters long with a constant 1.0-meter chord, 0 degrees twist, and at least 5 sections using a NACA 0012 airfoil (100 panels, XFoil analysis at Re=1,000,000 and Ncrit=9, with a 360-degree polar extrapolation). The internal structure should be a 'Simple Shell' with a material density of 2000 kg/m^3, Young's Modulus of 20 GPa, and a wall thickness of 0.02 m. Save the project to /home/ga/Documents/projects/beam_modal.wpa and export the first eigenfrequency in Hz and the total blade mass in kg to /home/ga/Documents/modal_results.json using the required JSON format.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/blade_modal_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/blade_modal_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/Documents/projects/beam_modal.wpa",
+    "expected_json_path": "/home/ga/Documents/modal_results.json",
+    "physics_target": {
+      "mass_kg": 808.0,
+      "mass_tolerance_percent": 15,
+      "freq_min_hz": 0.5,
+      "freq_max_hz": 3.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_blade_modal_analysis"
+    }
+  }
+}

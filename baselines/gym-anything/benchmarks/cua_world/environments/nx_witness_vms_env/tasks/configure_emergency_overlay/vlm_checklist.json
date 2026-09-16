@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_emergency_overlay@1",
+  "task_completion": [
+    {
+      "id": "open_nx_witness_client",
+      "description": "Verify the Nx Witness VMS Desktop Client is open and connected to the local server.",
+      "points": 10,
+      "visual_evidence": "The Nx Witness VMS Desktop Client application window is visible, showing the main interface or the login screen with credentials being entered."
+    },
+    {
+      "id": "open_event_rules_dialog",
+      "description": "Verify the Event Rules configuration dialog is open.",
+      "points": 10,
+      "visual_evidence": "A window or dialog titled 'Event Rules' or similar rule configuration screen is open within the Nx Witness client."
+    },
+    {
+      "id": "configure_soft_trigger_event",
+      "description": "Verify the event is configured as a Soft Trigger named 'Activate Lockdown' for all users and devices.",
+      "points": 20,
+      "visual_evidence": "In the Event Rules dialog, the 'Event' type is set to 'Soft Trigger'. The trigger name field contains 'Activate Lockdown'. Settings for users/cameras indicate 'All users' and 'All devices' or 'All cameras'."
+    },
+    {
+      "id": "configure_action_overlay",
+      "description": "Verify the action is set to 'Show Text Overlay' on all cameras.",
+      "points": 20,
+      "visual_evidence": "In the Action section of the rule, the action type dropdown is set to 'Show text overlay' and the target cameras are set to 'All' or 'All cameras'."
+    },
+    {
+      "id": "configure_overlay_text",
+      "description": "Verify the text overlay content is set to 'SECURITY ALERT: LOCKDOWN'.",
+      "points": 20,
+      "visual_evidence": "The text input field for the overlay action contains exactly 'SECURITY ALERT: LOCKDOWN'."
+    },
+    {
+      "id": "configure_overlay_duration",
+      "description": "Verify the duration of the text overlay is set to at least 5 seconds.",
+      "points": 20,
+      "visual_evidence": "The duration, timer, or 'Show for' setting in the action configuration is set to 5 seconds (or 5000 ms) or greater."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_not_api",
+      "description": "Verify the agent used the Nx Witness GUI to create the rule rather than making direct API calls.",
+      "visual_evidence": "Screenshots show interaction with the Nx Witness Desktop Client's graphical interface (Event Rules dialog) rather than a terminal window running curl commands or Python scripts targeting the /rest/v1/eventRules endpoint."
+    },
+    {
+      "id": "genuine_application_interaction",
+      "description": "Verify the agent interacted with the actual Nx Witness application.",
+      "visual_evidence": "The Nx Witness VMS Desktop Client interface is clearly visible and being interacted with, not a text editor, notes app, or web search."
+    },
+    {
+      "id": "no_direct_database_modification",
+      "description": "Verify the agent did not attempt to bypass the client by modifying backend databases directly.",
+      "visual_evidence": "No terminal windows showing SQLite or other database command-line interfaces are used to insert the event rule."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected trigger name is 'Activate Lockdown' (case-insensitive). The expected action text is 'SECURITY ALERT: LOCKDOWN' (case-insensitive). The minimum duration for the overlay must be 5 seconds (5000 ms)."
+}

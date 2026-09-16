@@ -1,0 +1,55 @@
+{
+  "id": "add_missing_coauthors@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "The import process for several key papers in your library was interrupted, leaving them with incomplete author lists. Fix these citations by adding the missing co-authors to the following papers:\n\n- 'Attention Is All You Need': Add Noam Shazeer, Niki Parmar, and Jakob Uszkoreit (in that order) after Vaswani.\n- 'Deep Residual Learning for Image Recognition': Add Xiangyu Zhang, Shaoqing Ren, and Jian Sun.\n- 'Molecular Structure of Nucleic Acids': Add Francis H.C. Crick.\n- 'Generative Adversarial Nets': Add Jean Pouget-Abadie and Mehdi Mirza.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_missing_coauthors/setup_task.sh",
+    "post_task": "/workspace/tasks/add_missing_coauthors/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title": "Attention Is All You Need",
+        "expected_authors": [
+          "Shazeer",
+          "Parmar",
+          "Uszkoreit"
+        ]
+      },
+      {
+        "title": "Deep Residual Learning for Image Recognition",
+        "expected_authors": [
+          "Zhang",
+          "Ren",
+          "Sun"
+        ]
+      },
+      {
+        "title": "Molecular Structure of Nucleic Acids",
+        "expected_authors": [
+          "Crick"
+        ]
+      },
+      {
+        "title": "Generative Adversarial Nets",
+        "expected_authors": [
+          "Pouget-Abadie",
+          "Mirza"
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_missing_coauthors"
+    }
+  }
+}

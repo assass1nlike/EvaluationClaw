@@ -1,0 +1,59 @@
+{
+  "task_id": "archival_film_sync_and_restoration@1",
+  "task_completion": [
+    {
+      "id": "load_source_file",
+      "description": "The agent loaded the correct source video file into a video processing tool or terminal.",
+      "points": 10,
+      "visual_evidence": "A video editor (e.g., Kdenlive, DaVinci), transcoder (e.g., HandBrake), or terminal window showing '/home/ga/Videos/telecine_capture_glitched.mkv' loaded as the input file."
+    },
+    {
+      "id": "configure_audio_delay",
+      "description": "The agent configured a 1500ms delay for the audio track.",
+      "points": 20,
+      "visual_evidence": "Audio synchronization settings showing a delay/offset of 1500ms (or 1.5 seconds), or an ffmpeg command utilizing an audio delay filter (e.g., 'adelay=1500' or '-itsoffset 1.5')."
+    },
+    {
+      "id": "enable_deinterlacing",
+      "description": "The agent applied a deinterlacing filter to the footage.",
+      "points": 15,
+      "visual_evidence": "Video filter settings showing 'Deinterlace' (or specific filters like Yadif, BWDIF) checked/enabled, or an ffmpeg command including a deinterlace video filter (e.g., '-vf yadif')."
+    },
+    {
+      "id": "set_aspect_ratio",
+      "description": "The agent set the display aspect ratio to 16:9.",
+      "points": 15,
+      "visual_evidence": "Video dimension/resolution settings explicitly showing an aspect ratio of 16:9, or an ffmpeg command setting the aspect ratio (e.g., '-aspect 16:9' or 'setdar=16/9')."
+    },
+    {
+      "id": "configure_output_format",
+      "description": "The agent configured the output to H.264 video and AAC audio in an MP4 container.",
+      "points": 20,
+      "visual_evidence": "Export/Render settings showing H.264 (or x264/AVC) for video, AAC for audio, and MP4 as the format/extension, or an ffmpeg command with '-c:v libx264', '-c:a aac', and an '.mp4' output file."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "The agent created the required JSON restoration log with the correct keys.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/Documents/restoration_log.json' containing the keys 'source_file', 'issues_fixed', 'audio_delay_ms' (value 1500), 'aspect_ratio_target' (value '16:9'), and 'deinterlace_applied' (value true)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "The agent genuinely processed the video rather than faking the output.",
+      "visual_evidence": "Screenshots should show actual interaction with video processing software (GUI or valid ffmpeg terminal commands) rather than just renaming the original file or using 'cp'/'mv' commands."
+    },
+    {
+      "id": "authentic_json_creation",
+      "description": "The agent manually created or scripted the JSON report.",
+      "visual_evidence": "A text editor (e.g., nano, gedit, VS Code) is open with the JSON content, or terminal commands (like echo or cat) are used to write the file, rather than downloading a pre-made file."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "The agent saved the outputs to the exact specified directories.",
+      "visual_evidence": "Save dialogs, file managers, or terminal commands confirming the video is saved exactly to '/home/ga/Videos/restored_archive.mp4' and the log to '/home/ga/Documents/restoration_log.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The source file is '/home/ga/Videos/telecine_capture_glitched.mkv'. The required audio delay is exactly 1500ms (1.5 seconds). The target aspect ratio is '16:9'. The output video must be saved to '/home/ga/Videos/restored_archive.mp4' and the JSON report to '/home/ga/Documents/restoration_log.json'. The JSON report must include the keys: 'source_file', 'issues_fixed', 'audio_delay_ms', 'aspect_ratio_target', and 'deinterlace_applied'."
+}

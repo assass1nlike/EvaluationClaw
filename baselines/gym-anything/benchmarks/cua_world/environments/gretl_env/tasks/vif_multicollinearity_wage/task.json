@@ -1,0 +1,42 @@
+{
+  "id": "vif_multicollinearity_wage@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are a labor economist preparing a wage determination model using Current Population Survey (CPS) data. Before submitting your analysis for peer review, you need to check for multicollinearity among the regressors. Using the dataset at /home/ga/Documents/gretl_data/cps_wages.gdt, perform an OLS regression of the natural log of wage (lwage) on a constant, education (educ), experience (exper), experience squared (exper2), and the demographic/regional indicators (female, black, metro, south, west). Compute the Variance Inflation Factors (VIF) for this model. Save the Gretl script used for this analysis to /home/ga/Documents/gretl_output/vif_analysis.inp, the regression output to /home/ga/Documents/gretl_output/wage_model.txt, and the VIF results to /home/ga/Documents/gretl_output/vif_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vif_multicollinearity_wage/setup_task.sh",
+    "post_task": "/workspace/tasks/vif_multicollinearity_wage/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/Documents/gretl_output/vif_analysis.inp",
+    "model_output_path": "/home/ga/Documents/gretl_output/wage_model.txt",
+    "vif_output_path": "/home/ga/Documents/gretl_output/vif_results.txt",
+    "dataset_path": "/home/ga/Documents/gretl_data/cps_wages.gdt",
+    "required_vars": [
+      "lwage",
+      "exper2"
+    ],
+    "regressors": [
+      "educ",
+      "exper",
+      "exper2",
+      "female",
+      "black",
+      "metro",
+      "south",
+      "west"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vif_multicollinearity_wage"
+    }
+  }
+}

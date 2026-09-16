@@ -1,0 +1,30 @@
+{
+  "id": "audit_reach_length_consistency@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a Quality Assurance audit on the Muncie HEC-RAS geometry to verify channel reach lengths. In HEC-RAS, the distance to the next downstream cross-section should match the 'Channel Reach Length' property; discrepancies between the stored length and the 'Implied Length' (calculated as Current River Station minus Next Downstream River Station) indicate potential model errors. Create a Python script at /home/ga/Documents/hec_ras_results/audit_reach_lengths.py that analyzes the HDF5 geometry data in /home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf. The script must compare stored lengths to implied lengths for all rivers and reaches, flagging sections as 'FAIL' if the absolute discrepancy exceeds 1.0 foot. Export the detailed audit results to /home/ga/Documents/hec_ras_results/reach_length_audit.csv with columns for River, Reach, River_Station, Stored_Length, Implied_Length, Discrepancy, and Status. Additionally, generate a summary at /home/ga/Documents/hec_ras_results/audit_summary.txt containing the total count of failing sections and the River Station with the maximum discrepancy. You may use the rashdf or h5py libraries.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_reach_length_consistency/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_reach_length_consistency/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "hdf_file": "Muncie.p04.tmp.hdf",
+    "script_path": "/home/ga/Documents/hec_ras_results/audit_reach_lengths.py",
+    "csv_path": "/home/ga/Documents/hec_ras_results/reach_length_audit.csv",
+    "summary_path": "/home/ga/Documents/hec_ras_results/audit_summary.txt",
+    "tolerance_ft": 1.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_reach_length_consistency"
+    }
+  }
+}

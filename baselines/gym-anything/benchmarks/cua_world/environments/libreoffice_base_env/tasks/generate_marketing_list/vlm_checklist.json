@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_marketing_list@1",
+  "task_completion": [
+    {
+      "id": "filter_jazz_blues_customers",
+      "description": "Identify customers who purchased Jazz or Blues tracks.",
+      "points": 20,
+      "visual_evidence": "A SQL query or query design view in LibreOffice Base showing joins between Customer, Invoice, InvoiceLine, Track, and Genre tables, with a filter condition for Genre.Name IN ('Jazz', 'Blues') or similar logic."
+    },
+    {
+      "id": "format_formal_name",
+      "description": "Format the FormalName column as 'LastName, FirstName'.",
+      "points": 15,
+      "visual_evidence": "SQL query text showing string concatenation for the FormalName column, such as `LastName || ', ' || FirstName`."
+    },
+    {
+      "id": "format_full_address_null_handling",
+      "description": "Format the FullAddress column and handle NULL states.",
+      "points": 25,
+      "visual_evidence": "SQL query text showing string concatenation for Address, City, State, ZipCode, and Country, including conditional logic (e.g., `CASE WHEN State IS NULL`, `IFNULL`, or `COALESCE`) to ensure NULL states do not result in a NULL FullAddress or the literal string 'NULL'."
+    },
+    {
+      "id": "create_targeted_mailing_list_table",
+      "description": "Create a table named 'TargetedMailingList'.",
+      "points": 20,
+      "visual_evidence": "Execution of a `CREATE TABLE TargetedMailingList AS ...` statement in the SQL execution window, or the 'TargetedMailingList' table appearing in the LibreOffice Base Tables pane."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the table to a CSV file at /home/ga/Documents/mailing_list.csv.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog in LibreOffice Calc saving the data as Text CSV to `/home/ga/Documents/mailing_list.csv` with comma delimiters and header row options selected, or a terminal command (e.g., using sqlite3) exporting the table to the specified CSV path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_libreoffice_base",
+      "description": "The agent used LibreOffice Base for database operations.",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Base GUI (e.g., SQL execution window, query design, or table view) as requested by the task."
+    },
+    {
+      "id": "genuine_query_execution",
+      "description": "The agent constructed and executed a genuine SQL query to process the data.",
+      "visual_evidence": "The agent is seen typing or pasting a complex SQL query into the LibreOffice Base SQL window, rather than running a pre-existing script to bypass the work."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not manually create the CSV file with hardcoded data.",
+      "visual_evidence": "The CSV file is generated via an export process from the database or a script, not by manually typing customer names and addresses into a text editor or spreadsheet."
+    }
+  ],
+  "privileged_info_for_vlm": "The target mailing list should contain exactly 43 customers who purchased Jazz or Blues tracks. 24 of these customers have NULL State values that must be omitted rather than outputting 'NULL'. The FormalName must be formatted as 'LastName, FirstName'. The FullAddress must be formatted as 'Address, City, State ZipCode, Country' (with State omitted if NULL). The final output must be a CSV file at /home/ga/Documents/mailing_list.csv with a header row and comma delimiters."
+}

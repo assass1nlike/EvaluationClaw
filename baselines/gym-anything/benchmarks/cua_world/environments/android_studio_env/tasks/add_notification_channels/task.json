@@ -1,0 +1,41 @@
+{
+  "id": "add_notification_channels@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "You are working on a note-taking Android app called NotepadApp at /home/ga/AndroidStudioProjects/NotepadApp/. The app needs a notification system for note reminders and app updates. Implement a notification infrastructure by creating NotificationHelper.kt at app/src/main/java/com/example/notepadapp/notifications/NotificationHelper.kt with channel IDs CHANNEL_REMINDERS (\"note_reminders\", IMPORTANCE_HIGH) and CHANNEL_UPDATES (\"app_updates\", IMPORTANCE_DEFAULT). The helper must include a method to create these channels and a method buildReminderNotification that returns a notification using the reminders channel and the android.R.drawable.ic_dialog_info icon. Create and register a custom android.app.Application class at app/src/main/java/com/example/notepadapp/NotepadApplication.kt that initializes the notification channels on startup. Update app/src/main/AndroidManifest.xml to include the POST_NOTIFICATIONS permission and ensure the project builds successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_notification_channels/setup_task.sh",
+    "post_task": "/workspace/tasks/add_notification_channels/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/NotepadApp",
+    "app_package": "com.example.notepadapp",
+    "helper_path": "app/src/main/java/com/example/notepadapp/notifications/NotificationHelper.kt",
+    "app_class_path": "app/src/main/java/com/example/notepadapp/NotepadApplication.kt",
+    "manifest_path": "app/src/main/AndroidManifest.xml",
+    "expected_channels": [
+      "note_reminders",
+      "app_updates"
+    ],
+    "required_permission": "android.permission.POST_NOTIFICATIONS"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_notification_channels"
+    }
+  },
+  "tags": [
+    "android",
+    "kotlin",
+    "notifications",
+    "manifest",
+    "application-class"
+  ]
+}

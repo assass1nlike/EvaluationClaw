@@ -1,0 +1,59 @@
+{
+  "task_id": "compare_pv_module_technologies@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_created",
+      "description": "Agent creates a Python script that imports and uses PySAM's Pvwattsv8 module.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a text editor or IDE with a Python script containing 'import PySAM.Pvwattsv8' or similar PySAM initialization."
+    },
+    {
+      "id": "system_specs_configured",
+      "description": "Agent configures the required system specifications in the script.",
+      "points": 20,
+      "visual_evidence": "The script contains the specified parameters: system_capacity=50000, dc_ac_ratio=1.2, inv_eff=96.0, array_type=2, tilt=0, azimuth=180, losses=14.08, and gcr=0.4."
+    },
+    {
+      "id": "weather_data_read",
+      "description": "Agent retrieves the Phoenix weather data path.",
+      "points": 10,
+      "visual_evidence": "The script reads from '/home/ga/.SAM/solar_resource_dir.txt' or explicitly loads a Phoenix TMY weather file."
+    },
+    {
+      "id": "simulations_setup",
+      "description": "Agent sets up simulations for both Standard and Thin Film modules.",
+      "points": 20,
+      "visual_evidence": "The script assigns 'module_type=0' (Standard) and 'module_type=2' (Thin Film) and executes the PySAM simulation for both."
+    },
+    {
+      "id": "energy_gain_calculated",
+      "description": "Agent calculates the percentage energy gain of Thin Film over Standard modules.",
+      "points": 15,
+      "visual_evidence": "The script contains logic to calculate the percentage difference or gain in annual energy between the two module types."
+    },
+    {
+      "id": "json_output_saved",
+      "description": "Agent saves the results to the specified JSON file with the correct structure.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the creation of '/home/ga/Documents/SAM_Projects/module_comparison.json' containing the required keys: location_used, system_capacity_kw, standard_module, thin_film_module, and thin_film_energy_gain_percent."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pysam_used",
+      "description": "Agent actually executed the Python script to generate the results.",
+      "visual_evidence": "Screenshots show the terminal running the Python script without errors, rather than the agent just typing out a JSON file manually."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent did not hardcode fabricated energy results in the JSON file.",
+      "visual_evidence": "The JSON file is generated programmatically via the script's output (e.g., using the 'json' module in Python) rather than manually written with guessed numbers."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The output file is saved in the exact requested directory.",
+      "visual_evidence": "The file path '/home/ga/Documents/SAM_Projects/module_comparison.json' is visible in the file explorer, terminal, or script."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output filename is 'module_comparison.json'. The location used should be 'phoenix' (or the path to the Phoenix weather file). The system capacity must be 50000. Note: The calculated annual energy for standard modules at the instructed 0-degree tilt is approximately 103,568,078 kWh. The VLM should accept this value as correct for the given parameters."
+}

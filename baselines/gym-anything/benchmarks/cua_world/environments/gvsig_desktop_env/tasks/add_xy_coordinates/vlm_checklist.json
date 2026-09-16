@@ -1,0 +1,53 @@
+{
+  "task_id": "add_xy_coordinates@1",
+  "task_completion": [
+    {
+      "id": "load_shapefile",
+      "description": "Load the ne_110m_populated_places shapefile into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The gvSIG application is open and the layer 'ne_110m_populated_places' is visible in the Table of Contents (TOC) on the left side of the view."
+    },
+    {
+      "id": "open_attribute_table",
+      "description": "Open the attribute table for the populated places layer.",
+      "points": 10,
+      "visual_evidence": "A window displaying the attribute table for the 'ne_110m_populated_places' layer is open, showing rows of data."
+    },
+    {
+      "id": "add_xy_fields",
+      "description": "Add 'X_COORD' and 'Y_COORD' fields to the attribute table.",
+      "points": 20,
+      "visual_evidence": "The attribute table contains new columns named 'X_COORD' and 'Y_COORD', or a Field Manager/Table Editing dialog is visible showing the creation of these fields with Type Double/Numeric, Size 20, and Precision 6."
+    },
+    {
+      "id": "populate_coordinates",
+      "description": "Populate the new fields with longitude and latitude coordinates.",
+      "points": 30,
+      "visual_evidence": "The 'X_COORD' and 'Y_COORD' columns in the attribute table are filled with numeric values representing longitude (X) and latitude (Y) (e.g., decimal degrees), rather than being empty, null, or zero."
+    },
+    {
+      "id": "export_shapefile",
+      "description": "Export the modified layer as a new shapefile to the specified path.",
+      "points": 30,
+      "visual_evidence": "An export dialog (e.g., 'Export to... Shapefile') is visible with the output path set to '/home/ga/gvsig_data/exports/cities_with_coords.shp', or the new layer 'cities_with_coords' is added to the TOC, or a file manager shows the newly created file in the exports directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gvsig_gui",
+      "description": "The agent used the gvSIG graphical user interface to perform the task.",
+      "visual_evidence": "Screenshots show interaction with the gvSIG application windows, menus, and dialogs, rather than using terminal commands (like ogr2ogr) or Python scripts to process the data."
+    },
+    {
+      "id": "genuine_coordinate_values",
+      "description": "The coordinate values populated in the table appear to be genuine.",
+      "visual_evidence": "The values in X_COORD and Y_COORD look like valid geographic coordinates (X between -180 and 180, Y between -90 and 90) and vary per record, rather than being dummy data or identical copied values."
+    },
+    {
+      "id": "no_direct_file_copy",
+      "description": "The agent did not simply copy the file using a file manager or terminal without modifying it.",
+      "visual_evidence": "There is evidence of the attribute table being edited and fields being calculated within the GIS software before exporting."
+    }
+  ],
+  "privileged_info_for_vlm": "The input shapefile is located at '/home/ga/gvsig_data/cities/ne_110m_populated_places.shp' and contains exactly 243 records. The expected output must be saved to '/home/ga/gvsig_data/exports/cities_with_coords.shp' and must include the newly created 'X_COORD' and 'Y_COORD' fields."
+}

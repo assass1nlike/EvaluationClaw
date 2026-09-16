@@ -1,0 +1,53 @@
+{
+  "task_id": "hl7_enrichment_db_lookup@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Channel named 'HL7_Enricher' is created",
+      "points": 10,
+      "visual_evidence": "Look for the NextGen Connect Administrator GUI showing 'HL7_Enricher' in the Channels list, or a terminal/browser showing a REST API request (e.g., curl, python script, or Firefox network tab) creating a channel with this name."
+    },
+    {
+      "id": "source_configured",
+      "description": "Source is configured to listen on TCP port 6661",
+      "points": 20,
+      "visual_evidence": "Look for the Source tab in the GUI showing a TCP Listener on port 6661, or an API payload/script configuring the source connector with port 6661."
+    },
+    {
+      "id": "db_lookup_configured",
+      "description": "Logic is added to extract MRN, query the database, and insert the email",
+      "points": 30,
+      "visual_evidence": "Look for a Transformer, Filter, or Script in the GUI (or API payload) containing code (e.g., JavaScript or SQL) that connects to 'jdbc:postgresql://nextgen-postgres:5432/mirthdb', queries the 'patient_contacts' table, and assigns the result to PID-13.4 (or similar HL7 path like msg['PID']['PID.13']['PID.13.4'])."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Destination is configured to write to the specified output directory",
+      "points": 20,
+      "visual_evidence": "Look for the Destination tab in the GUI showing a File Writer with the directory '/home/ga/enriched_output/', or an API payload/script containing this path."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "The channel is deployed or started",
+      "points": 20,
+      "visual_evidence": "Look for the Dashboard in the GUI showing the 'HL7_Enricher' channel as 'Deployed' or 'Started', or a terminal command successfully deploying the channel via REST API."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_manual_file_creation",
+      "description": "Agent did not manually create HL7 files in the output directory",
+      "visual_evidence": "Check terminal history to ensure the agent didn't use commands like 'echo', 'cat', or a text editor to manually write HL7 files into '/home/ga/enriched_output/'."
+    },
+    {
+      "id": "no_hardcoded_emails",
+      "description": "Agent did not hardcode email addresses in the configuration",
+      "visual_evidence": "Check the transformer/script code to ensure the agent actually queries the database rather than hardcoding sample emails (e.g., pat1001@example.com)."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Agent genuinely interacted with NextGen Connect",
+      "visual_evidence": "Verify that the agent used the NextGen Connect Administrator GUI or made actual REST API calls (via curl, python, Firefox, etc.) rather than just printing fake success messages."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a NextGen Connect channel named 'HL7_Enricher'. The source must be a TCP Listener on port 6661 (MLLP). The destination must be a File Writer to '/home/ga/enriched_output/'. The channel must include logic (e.g., JavaScript or Database Reader) to extract MRN from PID-3.1, query the 'patient_contacts' table at jdbc:postgresql://nextgen-postgres:5432/mirthdb (user: postgres, pass: postgres), and map the result to PID-13.4. Finally, the channel must be deployed to process messages."
+}

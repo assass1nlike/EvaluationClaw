@@ -1,0 +1,42 @@
+{
+  "id": "color_space_segmentation@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Color-Based Segmentation of Image Regions",
+  "description": "You are designing a computer vision pipeline for vegetable sorting. Using the 'Peppers' sample image, create a binary mask that isolates only the green pepper, excluding the red and yellow peppers and the background. The resulting mask must use pixel values of 0 for the background and 255 for the green pepper. Save this binary mask as a PNG file to ~/ImageJ_Data/results/green_pepper_mask.png.",
+  "difficulty": "medium",
+  "tags": [
+    "segmentation",
+    "color-space",
+    "hsb",
+    "masking",
+    "computer-vision",
+    "imagej"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/color_space_segmentation/setup_task.sh",
+    "post_task": "/workspace/tasks/color_space_segmentation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/green_pepper_mask.png",
+    "reference_image_path": "/home/ga/.hidden/peppers_reference.png",
+    "target_object": "green pepper",
+    "avoid_objects": [
+      "red pepper",
+      "yellow pepper"
+    ],
+    "min_iou": 0.5,
+    "max_red_overlap": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_color_segmentation"
+    }
+  }
+}

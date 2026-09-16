@@ -1,0 +1,37 @@
+{
+  "id": "export_filtered_friends_json@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Add 'Captain UAL' (Airline: United) and 'Captain DAL' (Airline: Delta) to your friends list. Export a JSON list of all friends who work for United Airlines to /sdcard/united_friends.json, ensuring each entry includes 'name' and 'airline' fields.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/export_filtered_friends_json/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/export_filtered_friends_json/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/sdcard/united_friends.json",
+    "required_friends": [
+      {
+        "name": "Captain UAL",
+        "airline": "United",
+        "should_include": true
+      },
+      {
+        "name": "Captain DAL",
+        "airline": "Delta",
+        "should_include": false
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_filtered_friends"
+    }
+  }
+}

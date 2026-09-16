@@ -1,0 +1,50 @@
+{
+  "id": "inspection_report_layout@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Restructure the building inspection report at /home/ga/Documents/inspection_report.docx into a professional multi-section document. The final document must consist of five distinct sections: a Title Page (Portrait orientation, no header); Executive Summary & Body (Portrait orientation, header: 'ABC Engineering Associates — CONFIDENTIAL'); Appendix A (Landscape orientation, header: 'Appendix A — Floor Plans & Deficiency Matrix'); Appendix B (Landscape orientation, header: 'Appendix B — Cost Estimates'); and Appendix C (Portrait orientation, header: 'Appendix C — Certifications & Qualifications'). Each section must start on a new page with the specified orientation and header content. Save the result to /home/ga/Documents/inspection_report_formatted.docx.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/inspection_report_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/inspection_report_layout/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/inspection_report.docx",
+    "output_path": "/home/ga/Documents/inspection_report_formatted.docx",
+    "required_sections": 5,
+    "orientations": [
+      "portrait",
+      "portrait",
+      "landscape",
+      "landscape",
+      "portrait"
+    ],
+    "header_keywords": [
+      [],
+      [
+        "ABC Engineering",
+        "CONFIDENTIAL"
+      ],
+      [
+        "Appendix A"
+      ],
+      [
+        "Appendix B"
+      ],
+      [
+        "Appendix C"
+      ]
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inspection_report_layout"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "create_user_account@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Create a new user account in Bahmni for a newly hired doctor, Anita Sharma (Female). Log in using the admin credentials (Username: superman, Password: Admin123). At the OpenMRS Administration interface (https://localhost/openmrs/admin), create a user with the username 'anita.sharma', password 'Bahmni@2024', and the 'Provider' role.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_user_account/setup_task.sh",
+    "post_task": "/workspace/tasks/create_user_account/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_username": "anita.sharma",
+    "expected_given_name": "Anita",
+    "expected_family_name": "Sharma",
+    "expected_gender": "F",
+    "expected_role": "Provider"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_user_account"
+    }
+  }
+}

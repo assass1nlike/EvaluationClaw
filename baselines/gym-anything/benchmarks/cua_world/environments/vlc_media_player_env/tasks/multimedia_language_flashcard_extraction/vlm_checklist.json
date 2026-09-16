@@ -1,0 +1,59 @@
+{
+  "task_id": "multimedia_language_flashcard_extraction@1",
+  "task_completion": [
+    {
+      "id": "png_assets_extracted",
+      "description": "Verify the extraction of 5 PNG snapshot files with the correct naming convention.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager or terminal listing in /home/ga/Documents/AnkiDeck/ showing 5 PNG files named according to the [id]_[target_word].png convention (e.g., card_01_blade.png, card_02_innocent.png, card_03_unprepared.png, card_04_flowing.png, card_05_want.png)."
+    },
+    {
+      "id": "mp3_assets_extracted",
+      "description": "Verify the extraction of 5 MP3 audio files with the correct naming convention.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager or terminal listing in /home/ga/Documents/AnkiDeck/ showing 5 MP3 files named according to the [id]_[target_word].mp3 convention."
+    },
+    {
+      "id": "mp4_assets_extracted",
+      "description": "Verify the extraction of 5 MP4 video files with the correct naming convention.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager or terminal listing in /home/ga/Documents/AnkiDeck/ showing 5 MP4 files named according to the [id]_[target_word].mp4 convention."
+    },
+    {
+      "id": "video_hardsubbed_evidence",
+      "description": "Verify that the MP4 videos are hardsubbed (subtitles burned into the frames).",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands showing video processing with subtitle filters (e.g., ffmpeg with '-vf subtitles=' or '-filter_complex') OR a video player showing one of the extracted clips with subtitles visibly rendered on the video frame."
+    },
+    {
+      "id": "json_manifest_created",
+      "description": "Verify the creation of the deck_manifest.json file in the target directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'deck_manifest.json' in the /home/ga/Documents/AnkiDeck/ directory."
+    },
+    {
+      "id": "json_manifest_content",
+      "description": "Verify the content of the JSON manifest contains the required keys and 5 objects.",
+      "points": 20,
+      "visual_evidence": "Look for an open text editor or terminal output showing the contents of deck_manifest.json. It must be a JSON array containing 5 objects. Each object must contain the keys: 'id', 'target_word', 'audio_file', 'video_file', 'image_file', and 'duration_sec'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_provided_source_files",
+      "description": "Verify the agent used the provided local source files rather than downloading external assets.",
+      "visual_evidence": "Look for commands or script contents referencing '/home/ga/Videos/sintel_trailer.mp4', '/home/ga/Documents/dialogue_subs.srt', and '/home/ga/Documents/vocab_list.csv'."
+    },
+    {
+      "id": "genuine_media_extraction",
+      "description": "Verify the agent actually processed the media files.",
+      "visual_evidence": "Look for the use of media processing tools (like FFmpeg, VLC, or a video editor) in the terminal or GUI. The agent should not be using 'touch' to create empty files or simply renaming existing dummy files."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Verify the JSON manifest was genuinely created by the agent.",
+      "visual_evidence": "Look for a script (Python, bash, etc.) that generates the JSON, or a text editor where the agent manually typed/constructed the JSON array."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires exactly 16 files in /home/ga/Documents/AnkiDeck/: 15 media files and 1 JSON manifest. The 5 target words and their IDs are: card_01 (blade), card_02 (innocent), card_03 (unprepared), card_04 (flowing), card_05 (want). Each media clip should be approximately 3.0 seconds long. The JSON manifest must contain exactly 5 objects with keys: 'id', 'target_word', 'audio_file', 'video_file', 'image_file', and 'duration_sec'."
+}

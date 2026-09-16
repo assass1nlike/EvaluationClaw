@@ -1,0 +1,53 @@
+{
+  "task_id": "scan_vin_rename_diagnostic@1",
+  "task_completion": [
+    {
+      "id": "bcwebcam_active",
+      "description": "bcWebCam application is open and focused.",
+      "points": 10,
+      "visual_evidence": "The bcWebCam application window is visible and appears as the active window on the screen."
+    },
+    {
+      "id": "barcode_displayed",
+      "description": "The VIN barcode image is displayed on the screen.",
+      "points": 10,
+      "visual_evidence": "An image of a Code 39 barcode is open and visible on the screen, positioned so bcWebCam can capture it."
+    },
+    {
+      "id": "vin_decoded",
+      "description": "The VIN is successfully scanned and extracted by bcWebCam.",
+      "points": 30,
+      "visual_evidence": "The bcWebCam interface displays the decoded 17-character alphanumeric VIN (expected: {{expected_vin}})."
+    },
+    {
+      "id": "desktop_visible",
+      "description": "The agent navigates to the Windows Desktop where the diagnostic report is located.",
+      "points": 10,
+      "visual_evidence": "The Windows Desktop or File Explorer showing the Desktop directory is visible, containing the file '{{original_filename}}'."
+    },
+    {
+      "id": "file_renamed",
+      "description": "The diagnostic report file is renamed to include the scanned VIN.",
+      "points": 40,
+      "visual_evidence": "The file on the Desktop is shown with the new name '{{expected_filename}}' (or 'diagnostic_<SCANNED_VIN>.pdf' matching the decoded VIN)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_rename_used",
+      "description": "The file was renamed using the Windows GUI.",
+      "visual_evidence": "The file renaming action is visible in the Windows Desktop or File Explorer interface, not via a command prompt or PowerShell window."
+    },
+    {
+      "id": "genuine_bcwebcam_interaction",
+      "description": "The agent used the actual bcWebCam software to decode the barcode.",
+      "visual_evidence": "The decoded VIN appears within the genuine bcWebCam application UI, rather than being manually typed into a text editor or extracted via a custom script."
+    },
+    {
+      "id": "no_hardcoded_vin",
+      "description": "The agent did not copy-paste a hardcoded VIN without scanning.",
+      "visual_evidence": "The agent is seen obtaining the VIN from the bcWebCam interface before renaming the file, rather than magically knowing the VIN without a successful scan."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected VIN is {{expected_vin}} and the expected final filename is {{expected_filename}}. Note: The task environment is known to be defective (missing the prerequisite barcode image 'vin_barcode.png' and setup scripts). The agent may be unable to find the barcode or the initial '{{original_filename}}' file. Score strictly based on the visual evidence present in the trajectory; if the starting state is missing and the agent cannot complete the steps, award points only for the steps successfully shown."
+}

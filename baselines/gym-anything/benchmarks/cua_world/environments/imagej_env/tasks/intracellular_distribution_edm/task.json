@@ -1,0 +1,42 @@
+{
+  "id": "intracellular_distribution_edm@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Intracellular Distribution Analysis via Distance Map",
+  "description": "Quantify the spatial distribution of intracellular vesicles relative to the cell boundary using the 'Fluorescent Cells' sample image. Generate a Euclidean Distance Map from the cell body (Green channel) using a Gaussian Blur (sigma=2) and Otsu threshold. Identify vesicles in the Red channel and measure their mean distance from the cell boundary using the distance map. Export the results table, ensuring it includes the 'Mean' column representing the distance of each vesicle, to ~/ImageJ_Data/results/vesicle_distribution.csv.",
+  "difficulty": "hard",
+  "tags": [
+    "spatial-analysis",
+    "distance-map",
+    "edm",
+    "roi-manager",
+    "morphology",
+    "particle-analysis"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/intracellular_distribution_edm/setup_task.sh",
+    "post_task": "/workspace/tasks/intracellular_distribution_edm/export_result.sh"
+  },
+  "metadata": {
+    "expected_min_count": 30,
+    "expected_max_count": 200,
+    "expected_min_distance": 2.0,
+    "expected_max_distance": 100.0,
+    "required_columns": [
+      "Mean",
+      "Mean_Gray_Value"
+    ],
+    "result_file": "/home/ga/ImageJ_Data/results/vesicle_distribution.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_intracellular_distribution"
+    }
+  }
+}

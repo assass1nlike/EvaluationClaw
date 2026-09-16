@@ -1,0 +1,35 @@
+{
+  "id": "remediate_accessibility_violations@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "The 'AccessAll' app has failed an accessibility audit. Modify the activity_login.xml layout in the project at ~/AndroidStudioProjects/AccessAll to meet accessibility standards. The 'Sign In' button (btn_login) and Email/Password fields must meet the 48dp minimum touch target height. The logo image (img_logo) requires a content description using a string resource named logo_desc with the value \"App Logo\". The email input field (et_email) must include \"emailAddress\" autofill hints and the correct input type for email addresses. The 'Forgot Password' text (tv_forgot_pass) must be updated to standard black for improved contrast. All strings must be stored in strings.xml and the app must build successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/remediate_accessibility_violations/setup_task.sh",
+    "post_task": "/workspace/tasks/remediate_accessibility_violations/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/AccessAll",
+    "layout_file": "app/src/main/res/layout/activity_login.xml",
+    "strings_file": "app/src/main/res/values/strings.xml",
+    "required_min_height_dp": 48,
+    "required_views": [
+      "btn_login",
+      "et_email",
+      "et_password",
+      "img_logo",
+      "tv_forgot_pass"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_remediate_accessibility"
+    }
+  }
+}

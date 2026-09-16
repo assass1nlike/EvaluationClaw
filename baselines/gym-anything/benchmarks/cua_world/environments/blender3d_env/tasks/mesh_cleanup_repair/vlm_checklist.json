@@ -1,0 +1,59 @@
+{
+  "task_id": "mesh_cleanup_repair@1",
+  "task_completion": [
+    {
+      "id": "enter_edit_mode",
+      "description": "Select the 'BMW_Body_Corrupted' mesh and enter Edit Mode.",
+      "points": 10,
+      "visual_evidence": "The 'BMW_Body_Corrupted' object is highlighted in the Outliner, and the 3D Viewport mode dropdown (top left) shows 'Edit Mode' with vertices/edges/faces visible on the car body."
+    },
+    {
+      "id": "remove_duplicate_vertices",
+      "description": "Remove duplicate vertices from the mesh.",
+      "points": 20,
+      "visual_evidence": "The 'Mesh > Clean Up > Merge by Distance' menu item is highlighted, the 'Merge by Distance' operator panel is visible in the bottom left, or an info message at the bottom of the screen states 'Removed X vertices'."
+    },
+    {
+      "id": "remove_loose_vertices",
+      "description": "Remove loose/floating vertices from the mesh.",
+      "points": 20,
+      "visual_evidence": "The 'Mesh > Clean Up > Delete Loose' menu item is highlighted, the 'Delete Loose' operator panel is visible, or an info message states 'Deleted X vertices'."
+    },
+    {
+      "id": "remove_degenerate_faces",
+      "description": "Remove degenerate (zero-area) faces from the mesh.",
+      "points": 20,
+      "visual_evidence": "The 'Mesh > Clean Up > Degenerate Dissolve' menu item is highlighted, the 'Degenerate Dissolve' operator panel is visible, or an info message states 'Dissolved X edges/faces'."
+    },
+    {
+      "id": "correct_inconsistent_normals",
+      "description": "Correct inconsistent or flipped normals.",
+      "points": 20,
+      "visual_evidence": "The 'Mesh > Normals > Recalculate Outside' menu item is highlighted, the 'Recalculate Normals' operator panel is visible, or there is a visible improvement in the mesh shading (dark, blocky artifacts on the car body disappear)."
+    },
+    {
+      "id": "save_repaired_file",
+      "description": "Save the repaired mesh to the specified file path.",
+      "points": 10,
+      "visual_evidence": "The Blender 'Save As' dialog is open with the path '/home/ga/BlenderProjects/bmw_cleaned.blend', or the main Blender window title bar updates to show 'bmw_cleaned.blend'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "blender_gui_used",
+      "description": "The agent used the Blender GUI to perform the mesh cleanup.",
+      "visual_evidence": "Screenshots show mouse interactions with Blender's 3D viewport, menus, and toolbars, rather than a terminal window running a Python script to bypass the UI."
+    },
+    {
+      "id": "actual_cleanup_performed",
+      "description": "The agent actively used cleanup tools rather than just renaming the corrupted file.",
+      "visual_evidence": "Visible use of Blender's 'Clean Up' and 'Normals' tools in the UI, rather than just immediately saving the file without entering Edit Mode."
+    },
+    {
+      "id": "genuine_save_operation",
+      "description": "The expected output file was saved from within Blender.",
+      "visual_evidence": "The Blender 'Save As' window is used, or the Blender UI header reflects the new filename, proving it wasn't just copied via a terminal 'cp' command."
+    }
+  ],
+  "privileged_info_for_vlm": "The corrupted file is located at /home/ga/BlenderProjects/bmw_corrupted.blend. It contains ~150 duplicate vertex pairs, 80 loose vertices, ~30% flipped normals, and ~20 degenerate faces. The expected output must be saved to /home/ga/BlenderProjects/bmw_cleaned.blend. A fully correct cleanup requires exactly 0 loose vertices, 0 duplicate vertices, 0 degenerate faces, and <1.0% inconsistent normals."
+}

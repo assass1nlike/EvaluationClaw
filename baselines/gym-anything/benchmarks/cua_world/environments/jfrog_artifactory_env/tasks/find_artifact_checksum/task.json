@@ -1,0 +1,30 @@
+{
+  "id": "find_artifact_checksum@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Locate the artifact 'commons-lang3-3.14.0.jar' in the 'example-repo-local' repository within JFrog Artifactory. Save its SHA-256 checksum value to /home/ga/artifact_checksum.txt. The file must contain only the 64-character hexadecimal string, excluding the filename or algorithm name.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/find_artifact_checksum/setup_task.sh",
+    "post_task": "/workspace/tasks/find_artifact_checksum/export_result.sh"
+  },
+  "metadata": {
+    "repo_key": "example-repo-local",
+    "artifact_path": "org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar",
+    "output_file": "/home/ga/artifact_checksum.txt",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_find_artifact_checksum"
+    }
+  }
+}

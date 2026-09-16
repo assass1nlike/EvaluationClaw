@@ -1,0 +1,59 @@
+{
+  "task_id": "manual_http_latency_analysis@1",
+  "task_completion": [
+    {
+      "id": "evidence_screenshot_exists",
+      "description": "Verify that the screenshot file latency_evidence.png was created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "The file 'latency_evidence.png' is visible in the /home/ga/Documents/captures/ directory via a file manager, terminal list, or opened in an image viewer."
+    },
+    {
+      "id": "evidence_screenshot_content",
+      "description": "Verify the screenshot shows the server processing latency measurement.",
+      "points": 30,
+      "visual_evidence": "The image 'latency_evidence.png' displays a packet analyzer interface (like Wireshark) showing the packet list. It must clearly show the HTTP GET request and the HTTP 200 OK response, with some indication of the time difference (latency) between them (e.g., Time column, Time Reference, or Delta time)."
+    },
+    {
+      "id": "json_report_exists",
+      "description": "Verify that the JSON report file latency_report.json was created.",
+      "points": 10,
+      "visual_evidence": "The file 'latency_report.json' is visible in the /home/ga/Documents/captures/ directory, or its contents are actively shown in a text editor or terminal output."
+    },
+    {
+      "id": "json_report_format",
+      "description": "Verify the JSON report uses the correct formatting and keys.",
+      "points": 10,
+      "visual_evidence": "The JSON file contains exactly the keys 'network_latency_seconds' and 'server_processing_seconds' with numeric (float) values."
+    },
+    {
+      "id": "network_latency_correct",
+      "description": "Verify the network latency measurement is correct.",
+      "points": 20,
+      "visual_evidence": "The value for 'network_latency_seconds' in the JSON report is approximately 0.911 (accept any value between 0.910 and 0.912 to account for the 0.001s tolerance)."
+    },
+    {
+      "id": "server_processing_correct",
+      "description": "Verify the server processing latency measurement is correct.",
+      "points": 20,
+      "visual_evidence": "The value for 'server_processing_seconds' in the JSON report is approximately 3.044 (accept any value between 3.043 and 3.045 to account for the 0.001s tolerance)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_packet_analysis",
+      "description": "Verify the agent used a packet analyzer GUI to inspect the capture.",
+      "visual_evidence": "Wireshark or a similar packet analyzer GUI is visible in the trajectory screenshots or the generated latency_evidence.png, showing actual packet data rather than just terminal output or fabricated text."
+    },
+    {
+      "id": "genuine_screenshot_file",
+      "description": "Verify the evidence screenshot is an actual image file.",
+      "visual_evidence": "The latency_evidence.png file is treated as an image by the system (e.g., opened in an image viewer, shows an image thumbnail, or captured via a screenshot tool), not a text file renamed to .png."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Verify the JSON file was created by the agent.",
+      "visual_evidence": "A text editor (like nano, vim, gedit) or terminal commands (like echo or cat) are visible showing the agent actively writing or verifying the JSON content."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct Network Latency (TCP SYN to SYN-ACK) is 0.911310 seconds. The correct Server Processing Latency (HTTP GET to 200 OK) is 3.044378 seconds. Acceptable tolerance is +/- 0.001 seconds. The JSON keys must be exactly 'network_latency_seconds' and 'server_processing_seconds'."
+}

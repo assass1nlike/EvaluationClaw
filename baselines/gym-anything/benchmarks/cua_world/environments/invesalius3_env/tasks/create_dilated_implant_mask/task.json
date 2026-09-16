@@ -1,0 +1,28 @@
+{
+  "id": "create_dilated_implant_mask@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A biomedical engineer needs to generate a 'safety margin' model of a patient's skull to assist in designing a custom cranial implant. Using the CT Cranium DICOM dataset already loaded in InVesalius 3, export two 3D surface models (STLs) of the cranium. Export a standard bone segmentation model as a binary STL to /home/ga/Documents/anatomical_skull.stl. Export a second model, created by applying a dilation morphological operation to the bone mask, as a binary STL to /home/ga/Documents/dilated_skull.stl. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_dilated_implant_mask/setup_task.sh",
+    "post_task": "/workspace/tasks/create_dilated_implant_mask/export_result.sh"
+  },
+  "metadata": {
+    "anatomical_path": "/home/ga/Documents/anatomical_skull.stl",
+    "dilated_path": "/home/ga/Documents/dilated_skull.stl",
+    "min_volume_cm3": 500.0,
+    "dilation_ratio_threshold": 1.02
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_dilated_implant_mask"
+    }
+  }
+}

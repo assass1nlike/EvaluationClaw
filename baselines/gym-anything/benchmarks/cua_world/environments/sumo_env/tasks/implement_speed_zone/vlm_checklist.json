@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_speed_zone@1",
+  "task_completion": [
+    {
+      "id": "export_plain_xml",
+      "description": "Export the original network to plain XML files.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command using 'netconvert' with the '--plain-output-prefix /home/ga/SUMO_Scenarios/zona30/pasubio_plain' flag, or a directory listing showing generated files like 'pasubio_plain.edg.xml' and 'pasubio_plain.nod.xml'."
+    },
+    {
+      "id": "save_modified_edge_file",
+      "description": "Modify edge speeds and save to the new edge file.",
+      "points": 25,
+      "visual_evidence": "Look for a script (e.g., Python, sed, awk) or text editor modifying the 'speed' attribute to '8.33' for edges where speed was '<= 13.89', and saving the output to '/home/ga/SUMO_Scenarios/zona30/pasubio_zona30.edg.xml'."
+    },
+    {
+      "id": "generate_new_network",
+      "description": "Reimport the plain XML files to generate the new SUMO network.",
+      "points": 20,
+      "visual_evidence": "Look for a 'netconvert' command taking the modified edge file ('pasubio_zona30.edg.xml') and original node/connection files to output '/home/ga/SUMO_Scenarios/zona30/pasubio_zona30.net.xml', or a file listing confirming its creation."
+    },
+    {
+      "id": "configure_sumocfg",
+      "description": "Create or update the SUMO configuration file for the new scenario.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of '/home/ga/SUMO_Scenarios/zona30/zona30.sumocfg' in a text editor or via 'cat', showing it references the new network ('pasubio_zona30.net.xml') and the required original route and additional files."
+    },
+    {
+      "id": "execute_simulation",
+      "description": "Execute the SUMO simulation using the new configuration.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing 'sumo -c /home/ga/SUMO_Scenarios/zona30/zona30.sumocfg' (or similar) being run, with standard SUMO logging indicating simulation steps and successful completion."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_original_file_overwrite",
+      "description": "Ensure the agent did not overwrite the original network file.",
+      "visual_evidence": "Check that the agent worked within the '/home/ga/SUMO_Scenarios/zona30' directory and did not modify '/home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_buslanes.net.xml'."
+    },
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Ensure the simulation was genuinely executed by SUMO.",
+      "visual_evidence": "Look for authentic SUMO terminal output logs (e.g., Step #, Warning/Error logs, Simulation ended) rather than a simple echo or mocked text output."
+    },
+    {
+      "id": "script_or_editor_used",
+      "description": "Ensure the agent actually processed the edge file.",
+      "visual_evidence": "Look for evidence of a script execution (Python, bash) or a text editor being used to perform the speed replacements, rather than just copying the file without changes."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory for the new scenario: /home/ga/SUMO_Scenarios/zona30. Output directory: /home/ga/SUMO_Output. Speed threshold to modify: 13.89 m/s (50 km/h). New target speed: 8.33 m/s (30 km/h)."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_asian_leaders_csv@1",
+  "task_completion": [
+    {
+      "id": "layer_loaded",
+      "description": "Verify the 'ne_110m_admin_0_countries' layer is loaded in the GIS software.",
+      "points": 10,
+      "visual_evidence": "The 'ne_110m_admin_0_countries' layer is visible in the application's layer list or table of contents."
+    },
+    {
+      "id": "attribute_table_opened",
+      "description": "Verify the attribute table for the layer is opened.",
+      "points": 10,
+      "visual_evidence": "An attribute table window for the 'ne_110m_admin_0_countries' layer is open and visible on the screen."
+    },
+    {
+      "id": "continent_filtered",
+      "description": "Verify the records are filtered for the continent of Asia.",
+      "points": 20,
+      "visual_evidence": "A filter/query dialog shows a condition like \"CONTINENT = 'Asia'\", or the attribute table is visibly restricted to only show Asian countries."
+    },
+    {
+      "id": "gdp_sorted",
+      "description": "Verify the records are sorted by GDP in descending order.",
+      "points": 20,
+      "visual_evidence": "The 'GDP_MD' column header shows a descending sort indicator (e.g., a downward arrow), or the numerical values in the 'GDP_MD' column are visibly ordered from highest to lowest."
+    },
+    {
+      "id": "top_5_selected",
+      "description": "Verify exactly 5 records are selected, representing the top Asian economies.",
+      "points": 20,
+      "visual_evidence": "Exactly 5 rows are highlighted/selected in the attribute table. The visible selected rows should include China, Japan, and India."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Verify the selected records are exported to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "An export dialog shows the file being saved as 'asian_leaders.csv' in the '/home/ga/gvsig_data/exports/' directory, or a file explorer/terminal confirms the file's creation at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the GIS software GUI to perform the task.",
+      "visual_evidence": "The agent interacts with the GIS application's menus, attribute table, and export dialogs, rather than using terminal commands (like ogr2ogr) or writing a Python script to process the DBF file."
+    },
+    {
+      "id": "no_manual_csv_creation",
+      "description": "Verify the agent did not manually type the results into a text editor.",
+      "visual_evidence": "There should be no text editor (like nano, vim, or gedit) open where the agent is manually typing 'China, Japan, India' and their GDPs into a CSV format."
+    },
+    {
+      "id": "actual_data_used",
+      "description": "Verify the agent extracted the data from the provided layer.",
+      "visual_evidence": "The exported data clearly originates from the 'ne_110m_admin_0_countries' attribute table, rather than being copied from a web browser or external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output path is exactly '/home/ga/gvsig_data/exports/asian_leaders.csv'. The expected output must contain exactly 5 records. The top 3 countries in the sorted result must be China, Japan, and India. Note: The task description instructs sorting by 'GDP_MD_EST', but the actual column name in the dataset is 'GDP_MD'. The filter must be applied to the 'CONTINENT' column for the value 'Asia'."
+}

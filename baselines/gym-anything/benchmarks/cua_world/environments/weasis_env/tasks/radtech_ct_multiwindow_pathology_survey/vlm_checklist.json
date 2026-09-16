@@ -1,0 +1,53 @@
+{
+  "task_id": "radtech_ct_multiwindow_pathology_survey@1",
+  "task_completion": [
+    {
+      "id": "open_dicom_viewer",
+      "description": "Open the DICOM viewer and load the study",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application (e.g., Aeskulap, Weasis) is open and displaying a medical image loaded from /home/ga/DICOM/studies/multiwindow_ct/."
+    },
+    {
+      "id": "adjust_window_levels",
+      "description": "Apply different window presets",
+      "points": 20,
+      "visual_evidence": "The DICOM viewer shows different contrast/brightness settings across screenshots, or the window/level (W/L) values in the UI change, indicating attempts to set lung, bone, soft tissue, and mediastinal windows."
+    },
+    {
+      "id": "create_measurements",
+      "description": "Measure and annotate structures on the image",
+      "points": 20,
+      "visual_evidence": "Measurement tools (lines, calipers, rulers) and text annotations are visible on the medical image within the DICOM viewer interface."
+    },
+    {
+      "id": "export_png_images",
+      "description": "Export the views as PNG files",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'Export' dialog is visible saving a PNG file to /home/ga/DICOM/exports/, or a file manager/terminal shows multiple PNG files present in that directory."
+    },
+    {
+      "id": "write_survey_report",
+      "description": "Record the survey report in a text file",
+      "points": 30,
+      "visual_evidence": "A text editor is open showing the file 'multiwindow_survey_report.txt' being edited, containing the names of the four window presets (lung, bone, soft tissue, mediastinal), anatomical structures, and numerical measurement values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_dicom_viewer",
+      "description": "The agent interacted with a graphical DICOM viewer to view the images.",
+      "visual_evidence": "Screenshots show a genuine DICOM viewer GUI being used, rather than the agent generating dummy files purely via terminal commands or scripts."
+    },
+    {
+      "id": "actual_measurements_taken",
+      "description": "The agent used the viewer's measurement tools on the image.",
+      "visual_evidence": "Measurements and annotations are visibly drawn on the image in the viewer, proving the agent didn't just invent numbers for the text report without interacting with the image."
+    },
+    {
+      "id": "manual_report_creation",
+      "description": "The survey report was created manually using a text editor.",
+      "visual_evidence": "A text editor (like gedit, nano, or vim) is used to write the report, rather than a script automatically generating the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The provided DICOM file is actually an X-Ray Angiography sequence, not a CT scan. Applying standard CT window levels (e.g., W:1500/L:-500) will result in visually nonsensical images. Do NOT penalize the agent for the image content looking incorrect or if the identified anatomical structures do not match a real CT scan. Verify ONLY that the agent used a DICOM viewer, adjusted window/level settings, used measurement tools, exported PNG images, and wrote a text report containing the 4 required window names (lung, bone, soft tissue, mediastinal) and 4 numerical measurements."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "design_hawt_blade_multisection@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "You are a wind turbine blade designer creating a small horizontal-axis wind turbine (HAWT) blade with a 5-meter radius. Using the airfoil coordinate files naca0015.dat (root) and naca4412.dat (tip) located in /home/ga/Documents/airfoils/, design a blade in QBlade with at least 6 radial stations spanning from approximately 0.5m to 5.0m. Assign NACA 0015 to the inboard stations and NACA 4412 to the outboard stations, with a chord distribution tapering from approximately 0.5m at the root to 0.15m at the tip. Save the complete project to /home/ga/Documents/projects/my_hawt_blade.wpa. You are logged in as user 'ga'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 55
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_hawt_blade_multisection/setup_task.sh",
+    "post_task": "/workspace/tasks/design_hawt_blade_multisection/export_result.sh"
+  },
+  "metadata": {
+    "airfoils": [
+      "naca0015",
+      "naca4412"
+    ],
+    "blade_radius_m": 5.0,
+    "min_stations": 6,
+    "root_chord_m": 0.5,
+    "tip_chord_m": 0.15,
+    "expected_output": "my_hawt_blade.wpa",
+    "output_dir": "/home/ga/Documents/projects"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_hawt_blade_multisection"
+    }
+  }
+}

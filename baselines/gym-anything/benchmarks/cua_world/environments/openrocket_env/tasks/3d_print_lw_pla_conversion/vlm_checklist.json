@@ -1,0 +1,59 @@
+{
+  "task_id": "3d_print_lw_pla_conversion@1",
+  "task_completion": [
+    {
+      "id": "open_source_file",
+      "description": "Open the original janus_29mm.ork file in OpenRocket.",
+      "points": 10,
+      "visual_evidence": "The OpenRocket GUI is visible with the 'janus_29mm' rocket design loaded, showing the rocket schematic and component tree."
+    },
+    {
+      "id": "modify_material_density",
+      "description": "Change the material density of the Nose Cone, exterior Body Tubes, and Fin set to 0.65 g/cm\u00b3 (650 kg/m\u00b3).",
+      "points": 20,
+      "visual_evidence": "Component configuration dialogs (for Nose Cone, Body Tube, or Fins) show the material set to a custom value with a density of exactly 0.65 g/cm\u00b3 or 650 kg/m\u00b3."
+    },
+    {
+      "id": "remove_mass_overrides",
+      "description": "Remove the mass overrides on the primary structural components so the new material density takes effect.",
+      "points": 15,
+      "visual_evidence": "The 'Override mass' checkbox in the component configuration dialogs for the Nose Cone, Body Tubes, and Fins is unchecked."
+    },
+    {
+      "id": "add_nose_cone_ballast",
+      "description": "Add a ballast (mass component) of at least 10 grams (0.01 kg) to the nose cone.",
+      "points": 20,
+      "visual_evidence": "A 'Mass component' or 'Ballast' item is visible in the component tree as a child of the Nose Cone, and its configuration window shows a mass of >= 10g (0.01 kg)."
+    },
+    {
+      "id": "verify_stability_margin",
+      "description": "Achieve a final stability margin of at least 1.50 calibers.",
+      "points": 15,
+      "visual_evidence": "The main OpenRocket window displays a stability margin of >= 1.50 cal in the top right corner or the flight configuration summary."
+    },
+    {
+      "id": "save_files_and_report",
+      "description": "Save the modified design and export the summary report containing density, ballast mass, and stability margin.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal shows the contents of 'lw_pla_report.txt' documenting the 0.65 g/cm\u00b3 density, the specific ballast mass added, and the >= 1.50 stability margin. A file manager or terminal shows 'janus_lw_pla.ork' and 'lw_pla_report.txt' in their respective target directories."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenRocket GUI to modify the design rather than manually editing the XML file.",
+      "visual_evidence": "Screenshots show the agent clicking through the OpenRocket application interface, component tree, and configuration dialogs."
+    },
+    {
+      "id": "genuine_report_data",
+      "description": "The report contains actual values derived from the simulation rather than hardcoded target requirements.",
+      "visual_evidence": "The stability margin and ballast mass written in the text report exactly match the values visible in the OpenRocket GUI screenshots."
+    },
+    {
+      "id": "internal_components_unchanged",
+      "description": "Internal motor mounts and recovery gear densities were not modified to cheat the stability margin.",
+      "visual_evidence": "The component tree does not show unexpected modifications to internal tubes, centering rings, or parachutes, and their configuration windows (if opened) show default materials."
+    }
+  ],
+  "privileged_info_for_vlm": "Target density for LW-PLA is 650 kg/m\u00b3 (0.65 g/cm\u00b3) with a tolerance of 20 kg/m\u00b3. To achieve the required stability margin of >= 1.50 calibers, the agent MUST uncheck the 'Override mass' settings on the primary structural components (Nose Cone, Body Tubes, Fins) because the original file has hardcoded masses. The agent must also add a ballast (mass component) of at least 0.01 kg (10 grams) inside the nose cone. The final files must be saved to /home/ga/Documents/rockets/janus_lw_pla.ork and /home/ga/Documents/exports/lw_pla_report.txt."
+}

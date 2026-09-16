@@ -1,0 +1,29 @@
+{
+  "id": "register_aircraft@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are using Aerobridge, an open-source drone/UAV fleet management system. Register a new aircraft in the registry using the admin panel at http://localhost:8000/admin/ (Username: 'admin', Password: 'adminpass123'). The aircraft must be named 'Phoenix Mk3' with Flight controller id 'PHXFC2024001' and Status 'Active'. Select an available Operator and Manufacturer, and ensure the 'Complete' Final assembly is selected. Remain logged in after the registration is complete.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/register_aircraft/setup_task.sh",
+    "post_task": "/workspace/tasks/register_aircraft/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Phoenix Mk3",
+    "admin_username": "admin",
+    "admin_password": "adminpass123",
+    "admin_url": "http://localhost:8000/admin/",
+    "model_admin_url": "http://localhost:8000/admin/registry/aircraft/add/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_register_aircraft"
+    }
+  }
+}

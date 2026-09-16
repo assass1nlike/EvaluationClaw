@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_low_emission_zone@1",
+  "task_completion": [
+    {
+      "id": "identify_most_utilized_edge",
+      "description": "Identify the single most utilized non-internal edge from the baseline simulation.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the agent running the baseline simulation (e.g., using sumo with edgedata output) or a script analyzing the baseline to find the most utilized edge, which should be '1[1]' or 'a1[1]'."
+    },
+    {
+      "id": "create_modified_network",
+      "description": "Create a modified network file disallowing highly polluting vehicles on the identified edge.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command (like netconvert or a python script) creating /home/ga/SUMO_Output/pasubio_lez.net.xml, or a text editor showing the file with vClass=\"custom1\" disallowed on the restricted edge."
+    },
+    {
+      "id": "generate_new_route_file",
+      "description": "Generate a new route file with 70% clean cars and 30% polluting cars.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a script execution creating /home/ga/SUMO_Output/pasubio_lez.rou.xml, or a text editor showing the file containing vehicle definitions for 'clean_car' (vClass=\"passenger\") and 'polluting_car' (vClass=\"custom1\")."
+    },
+    {
+      "id": "run_lez_simulation",
+      "description": "Configure and run the LEZ simulation with automatic rerouting and tripinfo output.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the execution of sumo with the configuration file /home/ga/SUMO_Output/run_lez.sumocfg, which should generate /home/ga/SUMO_Output/lez_tripinfo.xml."
+    },
+    {
+      "id": "generate_report",
+      "description": "Generate a plain text report with the required 5 lines of statistics.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the contents of /home/ga/SUMO_Output/lez_report.txt (e.g., via cat command) or a text editor displaying the file, containing exactly the 5 specified lines including Restricted Edge ID, Trips, and Avg Duration for both car types."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "The agent actually ran SUMO to generate the tripinfo and edgedata, rather than just writing dummy files.",
+      "visual_evidence": "Terminal screenshots showing the SUMO simulation running and outputting standard SUMO logs (e.g., Step #, Simulation ended)."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "The agent calculated the report statistics from the actual simulation output.",
+      "visual_evidence": "Terminal showing a script (e.g., Python) reading lez_tripinfo.xml to calculate the trip counts and average durations, rather than hardcoding hallucinated values."
+    },
+    {
+      "id": "no_hardcoded_edge",
+      "description": "The agent dynamically identified the most utilized edge rather than hardcoding '1[1]' or 'a1[1]' based on prior knowledge.",
+      "visual_evidence": "A script or command that parses edgedata output to find the maximum value, rather than a script that just hardcodes the edge ID."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline scenario is 'bologna_pasubio'. The most utilized non-internal edge is either '1[1]' or 'a1[1]'. The expected output files are /home/ga/SUMO_Output/pasubio_lez.net.xml, /home/ga/SUMO_Output/pasubio_lez.rou.xml, /home/ga/SUMO_Output/run_lez.sumocfg, /home/ga/SUMO_Output/lez_tripinfo.xml, and /home/ga/SUMO_Output/lez_report.txt. The report must contain exactly 5 lines with specific labels."
+}

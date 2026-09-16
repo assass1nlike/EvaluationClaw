@@ -1,0 +1,59 @@
+{
+  "task_id": "download_artifact_from_repo@1",
+  "task_completion": [
+    {
+      "id": "access_artifactory",
+      "description": "Access the JFrog Artifactory instance",
+      "points": 10,
+      "visual_evidence": "Browser showing the JFrog Artifactory login page or dashboard at http://localhost:8082."
+    },
+    {
+      "id": "login_artifactory",
+      "description": "Log into JFrog Artifactory using the provided credentials",
+      "points": 10,
+      "visual_evidence": "The JFrog Artifactory interface is visible in an authenticated state (e.g., admin profile visible, dashboard accessible)."
+    },
+    {
+      "id": "navigate_to_repository",
+      "description": "Navigate to the 'example-repo-local' repository in the Artifacts section",
+      "points": 20,
+      "visual_evidence": "The Artifacts Tree or Repository Browser is open in the UI, showing the 'example-repo-local' repository."
+    },
+    {
+      "id": "locate_artifact",
+      "description": "Locate the specific artifact within the repository path",
+      "points": 20,
+      "visual_evidence": "The repository tree is expanded to 'org/apache/commons/commons-lang3/3.14.0' and the file 'commons-lang3-3.14.0.jar' is visible and/or selected."
+    },
+    {
+      "id": "download_artifact",
+      "description": "Initiate the download of the artifact",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Download' button in the Artifactory UI for the selected jar file, or a browser download prompt/progress bar appears."
+    },
+    {
+      "id": "verify_download_path",
+      "description": "Save the artifact to the expected download path",
+      "points": 20,
+      "visual_evidence": "Browser download history, a file manager window, or terminal output showing 'commons-lang3-3.14.0.jar' successfully saved in the '/home/ga/Downloads/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_local_copy_shortcut",
+      "description": "The agent must download the file from Artifactory, not copy the local source file.",
+      "visual_evidence": "Ensure there are no terminal commands like 'cp /home/ga/artifacts/... /home/ga/Downloads/...' used to bypass the actual download process."
+    },
+    {
+      "id": "actual_download_interaction",
+      "description": "The agent interacted with the Artifactory interface or used a valid HTTP request to download the file.",
+      "visual_evidence": "Screenshots should show the browser interacting with the Artifactory UI or a valid curl/wget command targeting localhost:8082, rather than just creating a dummy file with the touch command or a text editor."
+    },
+    {
+      "id": "correct_file_name",
+      "description": "The downloaded file has the exact correct name and extension.",
+      "visual_evidence": "The file in the Downloads folder must be named exactly 'commons-lang3-3.14.0.jar' without any extra extensions like '.txt' or browser duplication suffixes like '(1)'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target artifact is 'commons-lang3-3.14.0.jar'. It is located in the JFrog Artifactory at 'example-repo-local/org/apache/commons/commons-lang3/3.14.0/'. The expected download path is '/home/ga/Downloads/commons-lang3-3.14.0.jar'. Note: The source file originally resides at '/home/ga/artifacts/commons-lang3/commons-lang3-3.14.0.jar' - the agent must download it from Artifactory, not just copy this local source file."
+}

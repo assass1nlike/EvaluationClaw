@@ -1,0 +1,28 @@
+{
+  "id": "plan_basic_dive@1",
+  "version": "1.0",
+  "env_id": "subsurface_env@0.1",
+  "description": "Plan a recreational dive with a bottom depth of 30 meters, a bottom time of 40 minutes, using Air (21% O2, 0% He), and a Surface Air Consumption (SAC) of 20 liters/min. Save the planned dive to your logbook.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/plan_basic_dive/setup_task.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "expected_depth_m": 30,
+    "expected_duration_min": 40,
+    "expected_gas": "air",
+    "planner_mode": "recreational"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_plan_basic_dive"
+    }
+  }
+}

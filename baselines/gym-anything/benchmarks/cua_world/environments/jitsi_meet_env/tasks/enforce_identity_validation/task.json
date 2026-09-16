@@ -1,0 +1,29 @@
+{
+  "id": "enforce_identity_validation@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure Jitsi Meet to enforce a mandatory pre-join screen and require all participants to enter a display name. Update the configuration in '/home/ga/.jitsi-meet-cfg/web/custom-config.js' and apply the changes to the deployment in '~/jitsi'. Verify the policy enforcement at 'http://localhost:8080/PolicyTestRoom' by saving a screenshot of the blocked join state (attempted with an empty name) to '~/Documents/evidence_blocked.png' and a screenshot of a successful join using the name 'Verified User' to '~/Documents/evidence_success.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enforce_identity_validation/setup_task.sh",
+    "post_task": "/workspace/tasks/enforce_identity_validation/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/custom-config.js",
+    "evidence_blocked": "/home/ga/Documents/evidence_blocked.png",
+    "evidence_success": "/home/ga/Documents/evidence_success.png",
+    "target_room": "PolicyTestRoom"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_identity_validation"
+    }
+  }
+}

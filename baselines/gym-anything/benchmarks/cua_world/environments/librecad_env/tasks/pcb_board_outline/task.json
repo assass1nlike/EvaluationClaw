@@ -1,0 +1,50 @@
+{
+  "id": "pcb_board_outline@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "You are an electrical engineering technician preparing a PCB board outline drawing for fabrication. Create a LibreCAD drawing with the following specifications, using millimeters with the board lower-left corner at the origin (0, 0): a 'Board_Outline' layer (White, index 7) containing a closed rectangle from (0, 0) to (100, 80) representing the board perimeter; a 'Mounting_Holes' layer (Red, index 1) containing four circles of 3.2 mm diameter (1.6 mm radius) centered at (5, 5), (95, 5), (5, 75), and (95, 75); and a 'Keepout_Zone' layer (Yellow, index",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pcb_board_outline/setup_task.sh",
+    "post_task": "/workspace/tasks/pcb_board_outline/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/LibreCAD/pcb_outline.dxf",
+    "min_file_size_bytes": 500,
+    "layers": {
+      "Board_Outline": {
+        "color": 7,
+        "type": "rect",
+        "dims": [
+          100,
+          80
+        ]
+      },
+      "Mounting_Holes": {
+        "color": 1,
+        "type": "circles",
+        "count": 4,
+        "radius": 1.6
+      },
+      "Keepout_Zone": {
+        "color": 2,
+        "type": "rect",
+        "dims": [
+          80,
+          60
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pcb_board_outline"
+    }
+  }
+}

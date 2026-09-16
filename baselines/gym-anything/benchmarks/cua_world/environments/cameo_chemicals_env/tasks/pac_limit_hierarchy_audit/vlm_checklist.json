@@ -1,0 +1,65 @@
+{
+  "task_id": "pac_limit_hierarchy_audit@1",
+  "task_completion": [
+    {
+      "id": "access_cameo_chemicals",
+      "description": "Navigate to the CAMEO Chemicals website.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and displaying the CAMEO Chemicals homepage or search pages (cameochemicals.noaa.gov)."
+    },
+    {
+      "id": "record_chlorine",
+      "description": "Record the correct PAC-2 value and source for Chlorine.",
+      "points": 10,
+      "visual_evidence": "The final text file contains an entry for Chlorine with a PAC-2 value of 2.0 ppm and the source basis AEGL."
+    },
+    {
+      "id": "record_cyclohexane",
+      "description": "Record the correct PAC-2 value and source for Cyclohexane.",
+      "points": 10,
+      "visual_evidence": "The final text file contains an entry for Cyclohexane with a PAC-2 value of 1700 ppm and the source basis TEEL."
+    },
+    {
+      "id": "record_sodium_hydroxide",
+      "description": "Record the correct PAC-2 value and source for Sodium Hydroxide.",
+      "points": 10,
+      "visual_evidence": "The final text file contains an entry for Sodium Hydroxide with a PAC-2 value of 5 mg/m3 (or mg/m\u00b3) and the source basis TEEL."
+    },
+    {
+      "id": "record_methyl_mercaptan",
+      "description": "Record the correct PAC-2 value and source for Methyl Mercaptan, avoiding the ERPG trap.",
+      "points": 20,
+      "visual_evidence": "The final text file contains an entry for Methyl Mercaptan with a PAC-2 value of 23 ppm and the source basis AEGL (must NOT be 25 ppm or ERPG)."
+    },
+    {
+      "id": "record_acetone",
+      "description": "Record the correct PAC-2 value and source for Acetone, avoiding the TEEL metadata trap.",
+      "points": 20,
+      "visual_evidence": "The final text file contains an entry for Acetone with a PAC-2 value of 3200 ppm and the source basis AEGL (must NOT be TEEL)."
+    },
+    {
+      "id": "save_audit_report",
+      "description": "Save the audit report to the correct location on the Desktop.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window shows the file being saved exactly as '~/Desktop/pac_audit_results.txt' (or /home/user/Desktop/pac_audit_results.txt) containing the chemical data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_cameo_gui",
+      "description": "The agent actively used the CAMEO Chemicals web interface to search for the chemicals.",
+      "visual_evidence": "Screenshots show the agent typing chemical names into the CAMEO Chemicals search bar and viewing the chemical data pages, rather than just writing a script with hardcoded values."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent created a genuine text file rather than just printing output to the terminal.",
+      "visual_evidence": "Screenshots show the use of a text editor (like nano, vim, gedit) or file redirection commands (like echo or cat >) targeting the pac_audit_results.txt file."
+    },
+    {
+      "id": "no_hallucinated_sources",
+      "description": "The agent did not blindly copy the expected sources from the prompt/metadata, specifically for Acetone.",
+      "visual_evidence": "The agent correctly identifies AEGL as the source for Acetone by reading the CAMEO page, rather than assuming TEEL."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified PAC-2 values and sources: 1) Chlorine: 2.0 ppm, AEGL. 2) Cyclohexane: 1700 ppm, TEEL. 3) Methyl Mercaptan: 23 ppm, AEGL (Do NOT accept ERPG or 25 ppm). 4) Sodium Hydroxide: 5 mg/m3, TEEL. 5) Acetone: 3200 ppm, AEGL (Do NOT accept TEEL)."
+}

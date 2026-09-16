@@ -1,0 +1,53 @@
+{
+  "task_id": "git_history_revert@1",
+  "task_completion": [
+    {
+      "id": "identify_buggy_commit",
+      "description": "Identify the commit that introduced the bug in the factorial method.",
+      "points": 20,
+      "visual_evidence": "Terminal shows commands like 'git bisect', 'git log -p', or 'git blame' with output highlighting the commit that changed the code to 'factorial(n - 2)'."
+    },
+    {
+      "id": "execute_revert",
+      "description": "Execute the git revert command on the identified buggy commit.",
+      "points": 20,
+      "visual_evidence": "Terminal shows the execution of 'git revert <commit_hash>' or a text editor/prompt open for a revert commit message."
+    },
+    {
+      "id": "verify_reverted_code",
+      "description": "Verify the factorial method has been restored to the correct implementation.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'cat', 'git diff', 'git show') or an IDE window showing 'src/main/java/com/example/MathUtils.java' with the line 'return n * factorial(n - 1);'."
+    },
+    {
+      "id": "verify_commit_history",
+      "description": "Verify that subsequent changes were preserved by checking the commit history.",
+      "points": 10,
+      "visual_evidence": "Terminal shows 'git log' or 'git rev-list --count HEAD' output indicating a new revert commit was added on top of the existing history (expecting 9 total commits)."
+    },
+    {
+      "id": "verify_tests_pass",
+      "description": "Run the unit tests and verify they pass after the revert.",
+      "points": 30,
+      "visual_evidence": "Terminal or IDE shows a test runner (e.g., Maven, Gradle, or JUnit) executing 'com.example.MathUtilsTest' with a successful result ('BUILD SUCCESS', 'Tests passed', or similar)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_git_revert",
+      "description": "The agent used git revert rather than manually editing the file to fix the bug.",
+      "visual_evidence": "The commit history or terminal commands should show 'git revert' being used. There should be no evidence of the agent manually opening MathUtils.java to type the fix and committing it as a standard edit."
+    },
+    {
+      "id": "tests_unmodified",
+      "description": "The agent did not modify the test file to bypass the failure.",
+      "visual_evidence": "There should be no 'git diff' or editor activity showing modifications to 'MathUtilsTest.java' to change the expected assertion values."
+    },
+    {
+      "id": "genuine_test_output",
+      "description": "The test success output is from a genuine test runner.",
+      "visual_evidence": "The test output should include standard build tool formatting (like Maven or Gradle logs) and not just be a simple 'echo' command or manually printed text."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/IdeaProjects/git-bisect-lab. The target file is src/main/java/com/example/MathUtils.java. The buggy string introduced in the regression is 'factorial(n - 2)'. The correct string that must be restored is 'factorial(n - 1)'. The repository initially has 8 commits; after a proper revert, there should be 9 commits. The required test class to verify is com.example.MathUtilsTest."
+}

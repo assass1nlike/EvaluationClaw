@@ -1,0 +1,37 @@
+{
+  "id": "regional_rls_security@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a data governance analyst securing a regional sales report using the file sales_data.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv. Configure Row-Level Security (RLS) by creating four roles with specific DAX filters on the sales_data table: North_Manager ([Region] = \"North\"), South_Manager ([Region] = \"South\"), East_Manager ([Region] = \"East\"), and West_Manager ([Region] = \"West\"). Include a DAX measure named Total_Sales = SUM(sales_data[Sales_Amount]). The report must feature a page named 'Sales Summary' containing a Clustered Column Chart showing Sales_Amount by Region and a Table visual showing Region, Sales_Rep, and Sales_Amount. Save the final report as Regional_RLS_Report.pbix to C:\\Users\\Docker\\Desktop\\. Login: Docker, no password required.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\regional_rls_security\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\regional_rls_security\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Regional_RLS_Report.pbix",
+    "required_roles": [
+      "North_Manager",
+      "South_Manager",
+      "East_Manager",
+      "West_Manager"
+    ],
+    "required_measure": "Total_Sales",
+    "required_page": "Sales Summary",
+    "required_visuals": [
+      "clusteredColumnChart",
+      "tableEx"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regional_rls_security"
+    }
+  }
+}

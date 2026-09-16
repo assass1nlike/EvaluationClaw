@@ -1,0 +1,31 @@
+{
+  "id": "freight_corridor_capacity_analysis@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "You are a logistics operations analyst at a regional freight distribution company in Bologna, Italy, evaluating the impact of routing 80 additional heavy trucks (gross weight >= 12 tonnes, length >= 10m) through the Acosta corridor during morning peak hours (7:00-9:00 AM). Using the SUMO scenario data at /home/ga/SUMO_Scenarios/bologna_acosta/, determine if the corridor can accommodate this traffic without average travel time exceeding 300 seconds. Produce a capacity analysis report at /home/ga/SUMO_Output/corridor_capacity_report.csv including metrics for avg_travel_time, avg_speed, total_vehicles_completed, avg_waiting_time, and truck_avg_travel_time with columns: metric, baseline_value, with_trucks_value, and delta_pct. Based on your findings, provide a professional recommendation regarding corridor capacity to /home/ga/SUMO_Output/corridor_recommendation.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/freight_corridor_capacity_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/freight_corridor_capacity_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Logisticians (13-1081.00)",
+    "industry": "Transportation and Material Moving",
+    "scenario": "bologna_acosta",
+    "required_truck_count": 80,
+    "max_acceptable_travel_time": 300,
+    "report_path": "/home/ga/SUMO_Output/corridor_capacity_report.csv",
+    "recommendation_path": "/home/ga/SUMO_Output/corridor_recommendation.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_freight_corridor_capacity_analysis"
+    }
+  }
+}

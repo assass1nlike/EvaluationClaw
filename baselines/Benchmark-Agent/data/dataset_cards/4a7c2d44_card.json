@@ -1,0 +1,75 @@
+{
+  "dataset_id": "4a7c2d44",
+  "name": "Fake-News-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A binary fake-news detection dataset of 200 news-style articles, where each article is labeled as 'real' or 'fake'. It evaluates a model's ability to judge the veracity of news content from raw article text.",
+  "card_text": "This dataset contains 200 text samples for fake-news detection. Each item consists of a full news article, including title, author, and body content, drawn from political and current-affairs reporting and commentary (e.g., Breitbart, Waking Times). Alongside the raw article, an instruction prompt asks the model to classify whether the article is real or fake, and the ground-truth output is a single category label ('real' or 'fake'). The content is long-form, prose-heavy news text with varied styles, from straight reporting to opinion and conspiracy-style writing. The task assumes the model reads the whole article and emits only the category name, making it a straightforward binary text classification benchmark centered on misinformation and credibility assessment.",
+  "tasks": [
+    "classification_binary",
+    "fact_verification"
+  ],
+  "domain": "news / fake news detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "factual",
+        "semantics": "The full news article to be judged, containing a title, an author line, and multi-paragraph body content. It is the main evidence the model reads to decide whether the article is real or fake, and it may range from straight reporting to opinion or conspiracy-style commentary.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction template that embeds the raw text via a placeholder and asks the model to classify the article as real or fake, specifying that only the category name should be output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth veracity label for the article, taking one of two values: 'real' or 'fake'. It is the target the model must produce in response to the classification instruction.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample pairs a long news article with a short classification instruction and a single binary label. The article lives in input.raw_text and serves as the context; input.prompt restates the task of judging whether the article is real or fake and constrains the output format; output.category holds the ground-truth label ('real' or 'fake') for that article. The three components form a context-instruction-answer triple with no additional dialog, options, or auxiliary annotations."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Fake-News-Detection/annotation.json",
+    "existing_tags": {
+      "task": "fake_news_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

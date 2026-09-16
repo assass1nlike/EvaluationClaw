@@ -1,0 +1,44 @@
+{
+  "id": "measure_cell_areas@1",
+  "name": "Measure Cell Areas from BBBC005 Synthetic Cell Dataset",
+  "description": "You have access to Fiji (ImageJ) with the BBBC005 synthetic cell dataset from the Broad Bioimage Benchmark Collection. This dataset contains simulated fluorescent images of cells with known ground truth, making it ideal for validating cell measurement algorithms. Your task is to analyze a cell image from ~/ImageJ_Data/raw/BBBC005/ (such as SIMCEPImages_A02_C19_F1_s06_w2.TIF) to segment and measure the synthetic fluorescent cells. Process the image using Gaussian blur (sigma=2), thresholding, and watershed segmentation to separate touching cells. Perform particle analysis with a size range of 100-5000 pixels and circularity of 0.3-1.0. Report the total number of cells detected, the average cell area in pixels, and the average circularity.",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "dataset_name": "BBBC005",
+    "data_source": "Broad Bioimage Benchmark Collection",
+    "data_url": "https://data.broadinstitute.org/bbbc/BBBC005/",
+    "expected_cell_count_min": 10,
+    "expected_cell_count_max": 200,
+    "expected_avg_area_min": 200,
+    "expected_avg_area_max": 3000,
+    "expected_circularity_min": 0.5,
+    "expected_circularity_max": 1.0,
+    "image_format": "TIF",
+    "image_depth": "16-bit",
+    "min_cell_size": 100,
+    "max_cell_size": 5000
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/measure_cell_areas/setup_task.sh",
+    "post_task": "/workspace/tasks/measure_cell_areas/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_cell_areas"
+    }
+  },
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "cell-analysis",
+    "segmentation",
+    "watershed",
+    "fluorescence",
+    "real-data"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "parachute_certification_test@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Read the parachute specification document",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Documents/QGC/parachute_spec.txt."
+    },
+    {
+      "id": "configure_parameters",
+      "description": "Configure the 4 required ArduPilot parachute parameters",
+      "points": 30,
+      "visual_evidence": "QGroundControl Vehicle Setup -> Parameters screen showing the parameters CHUTE_ENABLED set to 1, CHUTE_TYPE set to 10, SERVO9_FUNCTION set to 27, and CHUTE_ALT_MIN set to 25."
+    },
+    {
+      "id": "create_takeoff_item",
+      "description": "Create a Takeoff mission item to 80 meters",
+      "points": 15,
+      "visual_evidence": "QGroundControl Plan view showing a 'Takeoff' item in the mission list with the altitude explicitly set to 80m."
+    },
+    {
+      "id": "create_waypoint_item",
+      "description": "Create a Waypoint at the Drop Zone coordinates at 80 meters altitude",
+      "points": 20,
+      "visual_evidence": "QGroundControl Plan view showing a 'Waypoint' item in the mission list with Latitude -35.3615, Longitude 149.1650, and Altitude 80m."
+    },
+    {
+      "id": "add_parachute_command",
+      "description": "Add a parachute release command to the mission",
+      "points": 15,
+      "visual_evidence": "QGroundControl Plan view showing a parachute release command (e.g., DO_PARACHUTE, Parachute, or similar vehicle command) added to the mission list."
+    },
+    {
+      "id": "save_flight_plan",
+      "description": "Save the completed flight plan to the specified path",
+      "points": 10,
+      "visual_evidence": "A file save dialog in QGroundControl or a file manager showing the file 'parachute_test.plan' saved in the /home/ga/Documents/QGC/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgc_gui",
+      "description": "Agent used the QGroundControl GUI to create the mission and configure parameters",
+      "visual_evidence": "Screenshots should show the QGroundControl application interface being actively used (Plan view, Vehicle Setup), rather than a text editor manually writing a .plan JSON file."
+    },
+    {
+      "id": "genuine_mission_creation",
+      "description": "Agent interacted with the map and mission list to build the flight plan",
+      "visual_evidence": "Visual evidence of clicking on the map to add waypoints or using the mission item list on the right side of the QGroundControl Plan view."
+    },
+    {
+      "id": "genuine_parameter_config",
+      "description": "Agent used the parameter editor to change values",
+      "visual_evidence": "The QGroundControl parameter search and edit dialogs should be visible, proving the agent didn't just mock a success message."
+    }
+  ],
+  "privileged_info_for_vlm": "Required parameters to verify in QGroundControl: CHUTE_ENABLED=1, CHUTE_TYPE=10, SERVO9_FUNCTION=27, CHUTE_ALT_MIN=25. Mission requirements: Takeoff altitude is exactly 80m. Waypoint coordinates are exactly Latitude -35.3615, Longitude 149.1650, with an altitude of 80m. The final plan must be saved to /home/ga/Documents/QGC/parachute_test.plan."
+}

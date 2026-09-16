@@ -1,0 +1,53 @@
+{
+  "task_id": "emergency_supply_rotation@1",
+  "task_completion": [
+    {
+      "id": "fill_missing_expiration_dates",
+      "description": "Fill in the missing expiration dates for the required items.",
+      "points": 15,
+      "visual_evidence": "The 'Expiration Date' column is fully populated for all 12 items. Specifically, the rows for the second 'Bottled Water' and 'Adhesive Bandages' should now have dates instead of being empty."
+    },
+    {
+      "id": "calculate_days_until_expiration",
+      "description": "Calculate the days until expiration using a formula.",
+      "points": 25,
+      "visual_evidence": "The 'Days Until Expiration' column is populated with numerical values. When a cell in this column is selected, the formula bar should display a formula (e.g., involving TODAY() or a specific date subtraction) rather than a hardcoded number."
+    },
+    {
+      "id": "categorize_urgency",
+      "description": "Categorize the urgency of each item using a formula.",
+      "points": 25,
+      "visual_evidence": "The 'Status' column is populated with text values such as 'EXPIRED', 'IMMEDIATE', 'SOON', or 'OK'. The formula bar should show an IF/IFS formula when a status cell is selected."
+    },
+    {
+      "id": "apply_conditional_formatting",
+      "description": "Apply conditional formatting for visual priority assessment.",
+      "points": 20,
+      "visual_evidence": "Cells or rows in the spreadsheet have background or text colors applied based on their status or days until expiration (e.g., red for EXPIRED/IMMEDIATE, yellow for SOON, green for OK). The conditional formatting dialog might be visible in some screenshots."
+    },
+    {
+      "id": "save_spreadsheet",
+      "description": "Save the updated spreadsheet to the specified path.",
+      "points": 15,
+      "visual_evidence": "The LibreOffice Calc window title shows 'emergency_supplies.xlsx', or a 'Save As' dialog is visible confirming the file is being saved to '/home/ga/Documents/emergency_supplies.xlsx'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_calc",
+      "description": "The agent used LibreOffice Calc to perform the task.",
+      "visual_evidence": "Screenshots show the LibreOffice Calc interface being used to edit the spreadsheet, rather than a terminal window running Python scripts or CLI commands to modify the file."
+    },
+    {
+      "id": "actual_formulas_used",
+      "description": "The agent used spreadsheet formulas rather than manual data entry.",
+      "visual_evidence": "The formula bar in Calc shows actual formulas (e.g., `=D2-TODAY()`, `=IF(...)`) when cells in the 'Days Until Expiration' or 'Status' columns are selected, proving the agent didn't just type the final values."
+    },
+    {
+      "id": "used_conditional_formatting_feature",
+      "description": "The agent used the built-in conditional formatting feature.",
+      "visual_evidence": "The agent opens the 'Conditional Formatting' dialog in LibreOffice Calc to set up the color rules, rather than manually changing the background color of each cell one by one."
+    }
+  ],
+  "privileged_info_for_vlm": "The spreadsheet contains 12 supply items. Two items initially have missing expiration dates (Bottled Water second case, Adhesive Bandages) which must be calculated. The 'Days Until Expiration' should be calculated using a formula relative to the current date. The 'Status' column must use a formula to categorize urgency based on these thresholds: EXPIRED (<0 days), IMMEDIATE (0-30 days), SOON (31-90 days), OK (>90 days). The final file must be saved as emergency_supplies.xlsx in /home/ga/Documents/."
+}

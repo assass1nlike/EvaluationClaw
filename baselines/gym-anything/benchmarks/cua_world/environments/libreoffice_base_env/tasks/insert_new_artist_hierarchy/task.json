@@ -1,0 +1,33 @@
+{
+  "id": "insert_new_artist_hierarchy@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Register a new artist release in the Chinook music store database for the artist 'Dua Lipa' and their album 'Future Nostalgia'. Add three tracks to this album: 'Don't Start Now', 'Levitating', and 'Physical', each with the composer 'Dua Lipa', a unit price of 0.99, the 'Pop' genre, and 'MPEG audio file' media type. The track durations are 183000, 203000, and 193000 milliseconds respectively. Ensure all foreign key relationships are correctly established and save the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/insert_new_artist_hierarchy/setup_task.sh",
+    "post_task": "/workspace/tasks/insert_new_artist_hierarchy/export_result.sh"
+  },
+  "metadata": {
+    "artist_name": "Dua Lipa",
+    "album_title": "Future Nostalgia",
+    "tracks": [
+      "Don't Start Now",
+      "Levitating",
+      "Physical"
+    ],
+    "expected_genre": "Pop",
+    "expected_mediatype": "MPEG audio file"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_insert_new_artist_hierarchy"
+    }
+  }
+}

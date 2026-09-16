@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_ncap_pedestrian_aeb@1",
+  "task_completion": [
+    {
+      "id": "configure_pedestrian_speed",
+      "description": "Verify the 'NCAP_TARGET' pedestrian's speed is set to 1.5 m/s.",
+      "points": 15,
+      "visual_evidence": "In the scene tree or field editor for the 'NCAP_TARGET' node, the 'speed' field should be visible and set to '1.5'."
+    },
+    {
+      "id": "configure_pedestrian_shirt_color",
+      "description": "Verify the 'NCAP_TARGET' pedestrian's shirt color is set to high-visibility orange.",
+      "points": 15,
+      "visual_evidence": "In the scene tree or field editor for the 'NCAP_TARGET' node, the 'shirtColor' field should be visible and set to [1 0.5 0] or Red=1, Green=0.5, Blue=0."
+    },
+    {
+      "id": "configure_pedestrian_trajectory",
+      "description": "Verify the 'NCAP_TARGET' pedestrian's trajectory waypoints are set correctly.",
+      "points": 20,
+      "visual_evidence": "In the scene tree or field editor for the 'NCAP_TARGET' node, the 'trajectory' or 'waypoints' field should show the coordinates [0 0 0] and [0 -6 0]."
+    },
+    {
+      "id": "enable_camera_recognition",
+      "description": "Verify that recognition is enabled on the 'front_camera' of the 'EGO_VEHICLE'.",
+      "points": 30,
+      "visual_evidence": "In the scene tree under 'EGO_VEHICLE' -> 'front_camera', a 'Recognition' node should be added/enabled in the 'recognition' field to output bounding boxes."
+    },
+    {
+      "id": "save_configured_world",
+      "description": "Verify the configured world is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing the path '/home/ga/Desktop/ncap_aeb_configured.wbt', the main window title bar displaying 'ncap_aeb_configured.wbt', or a file manager showing the saved file on the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the simulation software's GUI to configure the world.",
+      "visual_evidence": "Screenshots should show interaction with the 3D simulation software's scene tree, property editors, and menus, rather than a text editor modifying the .wbt file directly."
+    },
+    {
+      "id": "scene_tree_navigation",
+      "description": "The agent genuinely navigated the scene tree to locate the required nodes.",
+      "visual_evidence": "The scene tree is visibly expanded showing the hierarchy leading to 'NCAP_TARGET' and 'EGO_VEHICLE' -> 'front_camera'."
+    },
+    {
+      "id": "authentic_save_process",
+      "description": "The agent used the application's native save functionality.",
+      "visual_evidence": "Presence of a 'Save World As...' dialog or the application's File menu being used, rather than a terminal command like 'cp' or 'mv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target pedestrian node is 'NCAP_TARGET'. The required speed is 1.5. The required shirtColor is [1.0, 0.5, 0.0] (Red=1, Green=0.5, Blue=0). The required trajectory waypoints are [0, 0, 0] and [0, -6, 0]. The camera node is 'front_camera' under 'EGO_VEHICLE', which must have a Recognition node added/enabled. The final world must be saved to '/home/ga/Desktop/ncap_aeb_configured.wbt'."
+}

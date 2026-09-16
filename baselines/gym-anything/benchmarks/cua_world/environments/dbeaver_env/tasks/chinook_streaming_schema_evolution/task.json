@@ -1,0 +1,39 @@
+{
+  "id": "chinook_streaming_schema_evolution@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Evolve the Chinook database schema at /home/ga/Documents/databases/chinook_streaming.db to support a subscription-based music streaming platform. Using DBeaver, create a connection named 'ChinookStreaming' for the database. The updated schema must include a 'subscription_plans' table with columns PlanId (INTEGER PRIMARY KEY), PlanName (TEXT NOT NULL), MonthlyPrice (REAL NOT NULL), MaxDevices (INTEGER NOT NULL DEFAULT 1), and OfflineAccess (INTEGER NOT NULL DEFAULT 0), containing three records: Free (1, 0.00, 1, 0), Premium (2, 9.99, 3, 1), and Family (3, 14.99, 6, 1). Modify the 'customers' table to include a 'SubscriptionPlanId' column (INTEGER, DEFAULT 1) and the 'tracks' table to include a 'PlayCount' column (INTEGER, DEFAULT 0). Furthermore, implement a 'listening_history' table with columns ListenId (INTEGER PRIMARY KEY AUTOINCREMENT), CustomerId (INTEGER NOT NULL), TrackId (INTEGER NOT NULL), ListenDate (TEXT NOT NULL), and DurationMs (INTEGER), along with indexes 'idx_listening_customer' (on CustomerId) and 'idx_listening_track' (on TrackId). Save the resulting SQL migration script to /home/ga/Documents/scripts/streaming_migration.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_streaming_schema_evolution/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_streaming_schema_evolution/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_streaming.db",
+    "script_path": "/home/ga/Documents/scripts/streaming_migration.sql",
+    "connection_name": "ChinookStreaming",
+    "expected_tables": [
+      "subscription_plans",
+      "listening_history"
+    ],
+    "expected_columns": {
+      "customers": "SubscriptionPlanId",
+      "tracks": "PlayCount"
+    },
+    "expected_indexes": [
+      "idx_listening_customer",
+      "idx_listening_track"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_streaming_schema_evolution"
+    }
+  }
+}

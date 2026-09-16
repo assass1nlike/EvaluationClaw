@@ -1,0 +1,37 @@
+{
+  "id": "chinook_schema_modernization@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Database Administrator tasked with fixing a legacy SQLite database (/home/ga/Documents/databases/chinook_legacy.db) that lacks referential integrity. Establish a connection named 'ChinookLegacy'. Clean the database by removing orphaned records in the 'invoices' table (where CustomerId is not in 'customers') and the 'invoice_items' table (where InvoiceId is not in 'invoices'). Update the schema to enforce referential integrity by adding Foreign Keys: 'invoices.CustomerId' referencing 'customers.CustomerId', and 'invoice_items.InvoiceId' referencing 'invoices.InvoiceId' with an 'ON DELETE CASCADE' constraint. Ensure all changes are persisted to the database file.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_schema_modernization/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_schema_modernization/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_legacy.db",
+    "connection_name": "ChinookLegacy",
+    "orphan_invoice_ids": [
+      9001,
+      9002
+    ],
+    "orphan_item_ids": [
+      90001,
+      90002
+    ],
+    "required_fk_invoices": "REFERENCES customers(CustomerId)",
+    "required_fk_items": "REFERENCES invoices(InvoiceId)",
+    "required_cascade": "ON DELETE CASCADE"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_schema_modernization"
+    }
+  }
+}

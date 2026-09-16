@@ -1,0 +1,29 @@
+{
+  "id": "patch_recovery_operation@1",
+  "version": "1.0",
+  "env_id": "bluemail_env@0.1",
+  "description": "You are a Release Engineer performing a manual recovery operation because the automated build system missed several patch submissions. Identify at least three emails in your Inbox containing code patches (subjects with '[PATCH]' or bodies containing 'diff --git', 'Index:', or code changes) and move them into a new folder named 'Pending-Patches'. Extract the patch content from at least two of these emails and save them as individual text files in '~/Documents/patches/'. Draft a status report email to 'release-lead@company.com' with the subject 'Patch Recovery Status' confirming the patches are secured.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/patch_recovery_operation/setup_task.sh",
+    "post_task": "/workspace/tasks/patch_recovery_operation/export_result.sh"
+  },
+  "metadata": {
+    "folder_name": "Pending-Patches",
+    "output_dir": "/home/ga/Documents/patches",
+    "report_recipient": "release-lead@company.com",
+    "min_patches_moved": 3,
+    "min_files_saved": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_patch_recovery_operation"
+    }
+  }
+}

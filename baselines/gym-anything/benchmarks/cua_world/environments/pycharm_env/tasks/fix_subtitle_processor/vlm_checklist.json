@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_subtitle_processor@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_project",
+      "description": "Navigate to or open the subtitle_processor project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the current directory as '/home/ga/PycharmProjects/subtitle_processor' or an IDE/editor opened to this project path."
+    },
+    {
+      "id": "fix_timestamp_rollover",
+      "description": "Fix the timestamp rollover bug in processor/timestamp.py.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'processor/timestamp.py' with modified logic to correctly handle seconds or milliseconds rolling over (e.g., handling values like 61 seconds by incrementing minutes)."
+    },
+    {
+      "id": "fix_framerate_drift",
+      "description": "Fix the frame rate conversion drift bug in processor/converter.py.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'processor/converter.py' with corrected math/ratio logic for frame rate conversion to prevent drift."
+    },
+    {
+      "id": "fix_parser_eof",
+      "description": "Fix the missing final subtitles bug in processor/parser.py.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'processor/parser.py' with logic added to yield or process the final subtitle block when the file ends (EOF) without a trailing blank line."
+    },
+    {
+      "id": "run_pytest",
+      "description": "Run the test suite using pytest.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of the 'pytest' command within the project directory."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Ensure all tests pass successfully.",
+      "points": 20,
+      "visual_evidence": "Terminal showing pytest output with a successful exit status (e.g., green text, '100%', 'passed', and no failed tests)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "test_files_unmodified",
+      "description": "Ensure the agent did not alter the test files to force them to pass.",
+      "visual_evidence": "No evidence of test files (e.g., files starting with 'test_') being edited in the IDE or terminal. Git status or editor tabs should not show modifications to test files."
+    },
+    {
+      "id": "genuine_pytest_execution",
+      "description": "Verify that pytest was actually run and not mocked.",
+      "visual_evidence": "The pytest output in the terminal should look like genuine test execution output with standard formatting, execution times, and summary, rather than a printed string or echoed text."
+    },
+    {
+      "id": "genuine_code_editing",
+      "description": "Verify the agent genuinely edited the Python files.",
+      "visual_evidence": "Screenshots should show the agent using a text editor (e.g., PyCharm, VS Code, vim, nano) to modify the code, rather than just overwriting files with pre-computed base64 strings or echo commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/PycharmProjects/subtitle_processor. The agent must fix exactly three bugs: timestamp_rollover (in processor/timestamp.py), framerate_ratio (in processor/converter.py), and parser_eof (in processor/parser.py). The pass threshold is 60 points."
+}

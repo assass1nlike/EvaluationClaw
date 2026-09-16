@@ -1,0 +1,29 @@
+{
+  "id": "measure_star_photometry@1",
+  "version": "1.0",
+  "env_id": "astroimagej_env@0.1",
+  "description": "Perform aperture photometry on a bright star in the hst_wfpc2_sample.fits image using AstroImageJ. Save the photometry results to ~/AstroImages/measurements/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/measure_star_photometry/setup_task.sh",
+    "post_task": "/workspace/tasks/measure_star_photometry/export_result.sh"
+  },
+  "metadata": {
+    "fits_file": "hst_wfpc2_sample.fits",
+    "target_star_x": 400,
+    "target_star_y": 400,
+    "expected_min_flux": 100,
+    "expected_max_flux": 50000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_star_photometry"
+    }
+  }
+}

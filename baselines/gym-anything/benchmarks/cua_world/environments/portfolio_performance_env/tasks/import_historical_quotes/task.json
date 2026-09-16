@@ -1,0 +1,31 @@
+{
+  "id": "import_historical_quotes@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Update the Apple Inc (AAPL) security in the portfolio file at /home/ga/Documents/PortfolioData/investment_portfolio.xml by importing historical quotes from /home/ga/Documents/PortfolioData/aapl_historical_quotes.csv. The CSV file uses a semicolon (;) delimiter and contains Date and Quote columns for daily closing prices from January to June 2024. Save the updated portfolio file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_historical_quotes/setup_task.sh",
+    "post_task": "/workspace/tasks/import_historical_quotes/export_result.sh"
+  },
+  "metadata": {
+    "expected_security_name": "Apple Inc",
+    "expected_ticker": "AAPL",
+    "expected_isin": "US0378331005",
+    "csv_file": "/home/ga/Documents/PortfolioData/aapl_historical_quotes.csv",
+    "min_quotes_expected": 100,
+    "expected_date_range_start": "2024-01-02",
+    "expected_date_range_end": "2024-06-28"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_historical_quotes"
+    }
+  }
+}

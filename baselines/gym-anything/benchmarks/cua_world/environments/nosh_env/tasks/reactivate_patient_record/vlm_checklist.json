@@ -1,0 +1,53 @@
+{
+  "task_id": "reactivate_patient_record@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify the agent successfully logged into the system as admin.",
+      "points": 10,
+      "visual_evidence": "The NOSH EMR dashboard is visible, indicating a successful login (often showing 'admin' or administrator privileges)."
+    },
+    {
+      "id": "navigate_to_patient_search",
+      "description": "Verify the agent navigated to the patient search or patient management interface.",
+      "points": 10,
+      "visual_evidence": "A patient search screen, directory, or patient list interface is visible in the NOSH EMR."
+    },
+    {
+      "id": "search_inactive_patient",
+      "description": "Verify the agent searched for the specific inactive patient.",
+      "points": 20,
+      "visual_evidence": "The search bar contains 'Maria Garcia' and there is an indication that inactive or archived patients are being included in the search results (e.g., a checked box for 'Include Inactive' or searching within an 'Archive' tab)."
+    },
+    {
+      "id": "open_patient_record",
+      "description": "Verify the agent opened the correct patient record.",
+      "points": 20,
+      "visual_evidence": "The patient chart or demographic details page specifically for 'Maria Garcia' (DOB: 1980-03-25) is open."
+    },
+    {
+      "id": "reactivate_patient",
+      "description": "Verify the agent updated the patient's status to Active.",
+      "points": 40,
+      "visual_evidence": "The patient's status field is changed to 'Active' (e.g., via a dropdown, checkbox, or toggle) and saved, or a success message confirms the patient record was successfully reactivated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_terminal_cheating",
+      "description": "Verify the agent used the GUI to reactivate the patient, not terminal database commands.",
+      "visual_evidence": "The agent interacts with the NOSH web interface in a browser. There should be no terminal windows open executing SQL commands (like 'UPDATE patients SET active=1')."
+    },
+    {
+      "id": "no_duplicate_creation",
+      "description": "Verify the agent did not create a new duplicate patient.",
+      "visual_evidence": "The agent must be editing an existing record (e.g., an 'Edit Patient' or 'Demographics' screen for an existing ID) rather than filling out an 'Add New Patient' or 'Register Patient' form."
+    },
+    {
+      "id": "actual_application_used",
+      "description": "Verify the agent interacted with the genuine NOSH EMR application.",
+      "visual_evidence": "The screenshots show a real web browser navigating the NOSH EMR system, not a text editor, local HTML file, or mock interface."
+    }
+  ],
+  "privileged_info_for_vlm": "Target patient: Maria Garcia, DOB: 1980-03-25. Credentials: username 'admin', password 'Admin1234!'. The patient is initially marked as inactive in the NOSH database and must be reactivated through the GUI. Ensure the agent edits the existing inactive record rather than creating a new one."
+}

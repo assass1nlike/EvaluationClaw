@@ -1,0 +1,59 @@
+{
+  "task_id": "trading_order_book_optimization@1",
+  "task_completion": [
+    {
+      "id": "open_project_and_files",
+      "description": "Open the trading-orderbook project and locate the target Java files",
+      "points": 10,
+      "visual_evidence": "An IDE (like IntelliJ IDEA) or text editor is open with the project directory 'trading-orderbook' visible in the file explorer, and one or more of the target files (Order.java, OrderBook.java, MatchingEngine.java) are opened."
+    },
+    {
+      "id": "fix_order_java_bug",
+      "description": "Fix the bug in Order.java where fillQuantity() mutates orderedQuantity",
+      "points": 20,
+      "visual_evidence": "Order.java is visible in the editor. The fillQuantity() method is modified so it no longer alters the original 'orderedQuantity' variable (e.g., by introducing a 'filledQuantity' field or correctly tracking the remaining quantity without losing the original order size)."
+    },
+    {
+      "id": "fix_orderbook_java_bug",
+      "description": "Fix the bug in OrderBook.java to maintain price-sorted order for bids and asks",
+      "points": 20,
+      "visual_evidence": "OrderBook.java is visible in the editor. The data structures for bids and asks are changed to maintain sorted order (e.g., using PriorityQueue, TreeMap, or explicitly sorting the ArrayLists upon insertion) to enforce price-time priority."
+    },
+    {
+      "id": "fix_matchingengine_java_bug",
+      "description": "Fix the bug in MatchingEngine.java to allow at-par price matches",
+      "points": 20,
+      "visual_evidence": "MatchingEngine.java is visible in the editor. The price comparison logic between bids and asks is updated to use '>=' instead of a strict '>' (or equivalent logic) to ensure orders at the exact same price (at-par) are matched."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Execute the OrderBookTest suite",
+      "points": 10,
+      "visual_evidence": "A test runner panel in the IDE or a terminal window shows the execution of 'com.trading.OrderBookTest' (e.g., via Maven 'mvn test' or IDE run configuration)."
+    },
+    {
+      "id": "all_tests_pass",
+      "description": "Verify all 6 tests in OrderBookTest pass successfully",
+      "points": 20,
+      "visual_evidence": "The test execution results show 6 out of 6 tests passing (green checkmarks in IDE or 'BUILD SUCCESS' / 'Tests run: 6, Failures: 0' in Maven terminal output)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "test_file_unmodified",
+      "description": "Ensure OrderBookTest.java was not modified to force tests to pass",
+      "visual_evidence": "OrderBookTest.java does not show an 'edited' asterisk in the IDE tab, or terminal git status shows no modifications to OrderBookTest.java."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Ensure tests were actually executed by a test runner",
+      "visual_evidence": "The test output appears in a genuine IDE test runner UI or standard Maven Surefire plugin terminal output, not just a text file or echo command mimicking success."
+    },
+    {
+      "id": "actual_code_edits",
+      "description": "Ensure the agent actually edited the Java source files",
+      "visual_evidence": "Screenshots show the actual Java code being modified in an editor, rather than just running a pre-made patch script without inspecting the code."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/IdeaProjects/trading-orderbook. Test class: com.trading.OrderBookTest (contains exactly 6 tests). Do not modify: OrderBookTest.java. The 3 intentional bugs to fix are: 1) OrderBook.java uses unsorted ArrayLists for bids/asks instead of maintaining price-sorted order. 2) MatchingEngine.java uses strict '>' instead of '>=' for price comparison, preventing at-par matches. 3) Order.java fillQuantity() incorrectly mutates orderedQuantity, causing getRemainingQuantity() to return incorrect values."
+}

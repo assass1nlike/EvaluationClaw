@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_waveforms_scart@1",
+  "task_completion": [
+    {
+      "id": "terminal_opened",
+      "description": "Open a terminal window to execute commands.",
+      "points": 10,
+      "visual_evidence": "A terminal emulator window is visible on the screen."
+    },
+    {
+      "id": "scart_command_base",
+      "description": "Invoke the scart tool with the correct archive path.",
+      "points": 15,
+      "visual_evidence": "The terminal shows a command starting with 'scart' or '/home/ga/seiscomp/bin/scart' and includes the archive path '/home/ga/seiscomp/var/lib/archive'."
+    },
+    {
+      "id": "scart_command_filters",
+      "description": "Apply network, station, and channel filters to the scart command.",
+      "points": 20,
+      "visual_evidence": "The scart command in the terminal includes parameters or flags specifying the network 'GE', station 'BKB', and channel 'BHZ'."
+    },
+    {
+      "id": "scart_command_time",
+      "description": "Specify the time range for January 1, 2024 in the scart command.",
+      "points": 20,
+      "visual_evidence": "The scart command includes a time range argument corresponding to the full day of January 1, 2024 (e.g., '2024-01-01' to '2024-01-02' or similar format)."
+    },
+    {
+      "id": "output_file_redirected",
+      "description": "Save the extracted miniSEED data to the expected output path.",
+      "points": 20,
+      "visual_evidence": "The scart command redirects its output (e.g., using '>') to the file '/home/ga/extracted_BKB_BHZ.mseed'."
+    },
+    {
+      "id": "output_file_verified",
+      "description": "Verify the output file was created and is not empty.",
+      "points": 15,
+      "visual_evidence": "The terminal shows a command like 'ls -l /home/ga/extracted_BKB_BHZ.mseed' or 'stat' confirming the file exists and its size is at least 512 bytes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_mock_file_creation",
+      "description": "The agent must use the scart tool to generate the file, not mock it.",
+      "visual_evidence": "Ensure the file '/home/ga/extracted_BKB_BHZ.mseed' is created as a result of the scart command, and not via commands like 'touch' or 'echo'."
+    },
+    {
+      "id": "no_direct_copy",
+      "description": "The agent must extract the data using scart, not by directly copying a file from the archive.",
+      "visual_evidence": "Ensure there is no 'cp' command directly copying a .mseed file from the archive directory to the output path."
+    },
+    {
+      "id": "genuine_terminal_interaction",
+      "description": "The agent must interact with a real terminal.",
+      "visual_evidence": "The terminal window should show standard shell prompts, command execution, and realistic output, rather than being a text file edited to look like a terminal session."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is exactly '/home/ga/extracted_BKB_BHZ.mseed'. The extraction must target network 'GE', station 'BKB', and channel 'BHZ'. A valid miniSEED extraction will result in a file size of at least 512 bytes (the standard minimum size for a single miniSEED data block). The tool used must be the SeisComP 'scart' utility."
+}

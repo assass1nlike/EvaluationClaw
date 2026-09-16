@@ -1,0 +1,28 @@
+{
+  "id": "link_related_requests@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Log in to ManageEngine ServiceDesk Plus as 'administrator' (password: 'administrator') and link the two open service requests regarding VPN connectivity issues in Building A: 'VPN connection drops intermittently...' and 'Unable to establish VPN tunnel...'. Set the relationship type between these requests to 'Related'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/link_related_requests/setup_task.sh",
+    "post_task": "/workspace/tasks/link_related_requests/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "request_a_subject": "VPN connection drops intermittently for Building A users",
+    "request_b_subject": "Unable to establish VPN tunnel from Building A conference rooms",
+    "credentials": "administrator / administrator"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_link_related_requests"
+    }
+  }
+}

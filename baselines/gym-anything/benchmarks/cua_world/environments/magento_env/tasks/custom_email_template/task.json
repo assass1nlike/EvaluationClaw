@@ -1,0 +1,32 @@
+{
+  "id": "custom_email_template@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a custom transactional email template named 'NestWell Order Confirmation' based on the default 'New Order' template. Set the subject to 'Your NestWell Home Order #{{var order.increment_id}} - Thank You!' and ensure the content includes the brand name 'NestWell Home', the support email 'support@nestwell-home.com', and the order ID variable '{{var order.increment_id}}'. Configure the store to use this new template as the 'New Order Confirmation Template' for sales emails. If not logged in, use admin / Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/custom_email_template/setup_task.sh",
+    "post_task": "/workspace/tasks/custom_email_template/export_result.sh"
+  },
+  "metadata": {
+    "expected_template_name": "NestWell Order Confirmation",
+    "expected_subject_part1": "NestWell Home",
+    "expected_subject_part2": "{{var order.increment_id}}",
+    "expected_content_brand": "NestWell Home",
+    "expected_content_email": "support@nestwell-home.com",
+    "expected_content_var": "{{var order.increment_id}}",
+    "config_path": "sales_email/order/template",
+    "orig_template_code": "sales_email_order_template"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_custom_email_template"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "variable_distance_buffer_zones@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Create variable-width buffer zones around roads using the layer /home/ga/GIS_Data/roads_noise_attributed.geojson. Use the 'impact_dist' field to define the buffer radius in meters for each feature. Export the result as GeoJSON to /home/ga/GIS_Data/exports/variable_buffers.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/variable_distance_buffer_zones/setup_task.sh",
+    "post_task": "/workspace/tasks/variable_distance_buffer_zones/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/roads_noise_attributed.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/variable_buffers.geojson",
+    "feature_count": 3,
+    "attribute_field": "impact_dist",
+    "expected_values": [
+      150,
+      80,
+      30
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_variable_distance_buffer_zones"
+    }
+  }
+}

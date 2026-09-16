@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_data_migration@1",
+  "task_completion": [
+    {
+      "id": "create_veracrypt_volume",
+      "description": "Create a new VeraCrypt volume at the specified path with the correct settings.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the VeraCrypt Volume Creation Wizard configuring '/home/ga/Volumes/secure_archive.hc' with 25MB size, AES encryption, SHA-512 hash, and FAT filesystem, or terminal commands executing the equivalent creation."
+    },
+    {
+      "id": "mount_volume",
+      "description": "Mount the newly created VeraCrypt volume.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window showing 'secure_archive.hc' successfully mounted to a drive slot, or terminal output confirming the volume is mounted."
+    },
+    {
+      "id": "copy_files_to_volume",
+      "description": "Copy the 5 expected data files into the mounted volume without the checksum manifest.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal window showing the 5 specific files (SF312_Nondisclosure_Agreement.txt, FY2024_Revenue_Budget.csv, backup_authorized_keys, employee_contacts.vcf, incident_response_plan.md) inside the mounted volume directory. The 'checksums.sha256' file must NOT be present."
+    },
+    {
+      "id": "create_migration_report",
+      "description": "Create a migration report with calculated checksums and a PASS status.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Documents/migration_report.txt', which must include the list of the 5 files, their SHA-256 checksums, and the final status 'PASS'."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Dismount the VeraCrypt volume after copying and verifying files.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window showing no volumes mounted in the slots, or a terminal executing a dismount command (e.g., 'veracrypt -d')."
+    },
+    {
+      "id": "secure_delete_originals",
+      "description": "Securely delete the original files and manifest from the source directory.",
+      "points": 20,
+      "visual_evidence": "Terminal showing secure deletion commands (like 'shred', 'wipe', or 'rm') targeting the files in '/home/ga/Documents/SensitiveData/', or a file manager showing the directory is completely empty or has been removed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "Verify the agent actually used VeraCrypt to create and mount the volume.",
+      "visual_evidence": "Look for the actual VeraCrypt GUI application or valid 'veracrypt' CLI commands in the terminal. The agent should not just create a standard folder or an empty file named '.hc'."
+    },
+    {
+      "id": "genuine_checksum_calculation",
+      "description": "Verify the agent actually calculated the SHA-256 checksums.",
+      "visual_evidence": "Look for terminal execution of 'sha256sum' on the copied files. The agent should not just hallucinate the report contents or copy them blindly without running the calculation."
+    },
+    {
+      "id": "actual_file_deletion",
+      "description": "Verify the original files were actually deleted or shredded, not just moved.",
+      "visual_evidence": "Check that deletion commands were run or the files were removed from the system, rather than just being moved to a Trash folder or a hidden directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected volume path: /home/ga/Volumes/secure_archive.hc. Password: SecureMigration2024!. Source directory: /home/ga/Documents/SensitiveData. Expected files to copy: SF312_Nondisclosure_Agreement.txt, FY2024_Revenue_Budget.csv, backup_authorized_keys, employee_contacts.vcf, incident_response_plan.md. Report path: /home/ga/Documents/migration_report.txt."
+}

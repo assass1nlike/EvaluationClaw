@@ -1,0 +1,59 @@
+{
+  "task_id": "osint_web_archival@1",
+  "task_completion": [
+    {
+      "id": "cia_archive_saved",
+      "description": "Verify the CIA World Factbook page was archived as an MHTML file.",
+      "points": 16,
+      "visual_evidence": "Look for a file manager window showing the directory '/home/ga/Documents/OSINT_Evidence/' containing the file 'cia_world_factbook.mhtml', or a browser download completion/Save As dialog indicating this file was saved. If file sizes are visible, it should be > 10 KB."
+    },
+    {
+      "id": "fbi_archive_saved",
+      "description": "Verify the FBI Most Wanted page was archived as an MHTML file.",
+      "points": 16,
+      "visual_evidence": "Look for a file manager window showing the directory '/home/ga/Documents/OSINT_Evidence/' containing the file 'fbi_most_wanted.mhtml', or a browser download completion/Save As dialog indicating this file was saved. If file sizes are visible, it should be > 10 KB."
+    },
+    {
+      "id": "ofac_archive_saved",
+      "description": "Verify the OFAC Sanctions Programs page was archived as an MHTML file.",
+      "points": 17,
+      "visual_evidence": "Look for a file manager window showing the directory '/home/ga/Documents/OSINT_Evidence/' containing the file 'ofac_sanctions.mhtml', or a browser download completion/Save As dialog indicating this file was saved. If file sizes are visible, it should be > 10 KB."
+    },
+    {
+      "id": "catalog_cia_entry",
+      "description": "Verify the evidence catalog contains the required information for the CIA archive.",
+      "points": 17,
+      "visual_evidence": "Look for a text editor showing the file 'evidence_catalog.txt' (located in /home/ga/Documents/OSINT_Evidence/). It must contain the CIA URL (https://www.cia.gov/the-world-factbook/countries/), a brief description of the page, and the filename 'cia_world_factbook.mhtml'."
+    },
+    {
+      "id": "catalog_fbi_entry",
+      "description": "Verify the evidence catalog contains the required information for the FBI archive.",
+      "points": 17,
+      "visual_evidence": "Look for a text editor showing 'evidence_catalog.txt'. It must contain the FBI URL (https://www.fbi.gov/wanted), a brief description of the page, and the filename 'fbi_most_wanted.mhtml'."
+    },
+    {
+      "id": "catalog_ofac_entry",
+      "description": "Verify the evidence catalog contains the required information for the OFAC archive.",
+      "points": 17,
+      "visual_evidence": "Look for a text editor showing 'evidence_catalog.txt'. It must contain the OFAC URL (https://ofac.treasury.gov/sanctions-programs-and-country-information), a brief description of the page, and the filename 'ofac_sanctions.mhtml'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction",
+      "description": "Verify the agent used a real web browser to access the websites.",
+      "visual_evidence": "Check screenshots to ensure a GUI web browser (like Chrome or Firefox) was opened and navigated to the target URLs, rather than the agent exclusively using terminal commands like curl or wget."
+    },
+    {
+      "id": "gui_save_action",
+      "description": "Verify the agent saved the pages as genuine MHTML archives.",
+      "visual_evidence": "Look for the browser's 'Save Page As' dialog with the format set to 'Webpage, Single File' or 'mhtml', ensuring the files aren't just empty text files created via terminal commands."
+    },
+    {
+      "id": "text_editor_used",
+      "description": "Verify the agent used an editor to compile the catalog.",
+      "visual_evidence": "Check that a GUI text editor (like gedit) or an interactive terminal editor (like nano/vim) was used to write the 'evidence_catalog.txt' file, rather than just echoing a pre-written string from a script."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URLs: CIA (https://www.cia.gov/the-world-factbook/countries/), FBI (https://www.fbi.gov/wanted), OFAC (https://ofac.treasury.gov/sanctions-programs-and-country-information). All URLs are real and publicly accessible. Valid complete website archives for these pages should be at least 10 KB (10,240 bytes) in size."
+}

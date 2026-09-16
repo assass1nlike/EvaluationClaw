@@ -1,0 +1,59 @@
+{
+  "task_id": "mobile_device_aup_enforcement@1",
+  "task_completion": [
+    {
+      "id": "c1_laptops_configured",
+      "description": "Verify the 'Laptops' category is configured to require user acceptance and includes the new EULA text.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Snipe-IT Categories page or the 'Laptops' edit screen showing the 'Require users to confirm acceptance of assets in this category' checkbox is checked, and the EULA field contains the text '2026 Mobile Device Acceptable Use Policy'."
+    },
+    {
+      "id": "c2_tablets_configured",
+      "description": "Verify the 'Tablets' category is configured to require user acceptance and includes the new EULA text.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Snipe-IT Categories page or the 'Tablets' edit screen showing the 'Require users to confirm acceptance' checkbox is checked, and the EULA field contains the text '2026 Mobile Device Acceptable Use Policy'."
+    },
+    {
+      "id": "c3_desktops_unchanged",
+      "description": "Verify the 'Desktops' category was not modified to require user acceptance or include the new EULA.",
+      "points": 10,
+      "visual_evidence": "Screenshots of the Categories list or the 'Desktops' edit screen showing the acceptance requirement checkbox remains unchecked and the EULA field does not contain the new policy."
+    },
+    {
+      "id": "c4_laptop_assigned",
+      "description": "Verify the laptop asset 'LT-2026-001' is checked out to David Thorne.",
+      "points": 15,
+      "visual_evidence": "Snipe-IT Asset view, Checkout confirmation screen, or User profile showing asset 'LT-2026-001' successfully deployed/checked out to 'David Thorne' (dthorne)."
+    },
+    {
+      "id": "c5_tablet_assigned",
+      "description": "Verify the tablet asset 'TAB-2026-001' is checked out to David Thorne.",
+      "points": 15,
+      "visual_evidence": "Snipe-IT Asset view, Checkout confirmation screen, or User profile showing asset 'TAB-2026-001' successfully deployed/checked out to 'David Thorne' (dthorne)."
+    },
+    {
+      "id": "c6_process_order_validated",
+      "description": "Verify the assignments generated the required digital acceptance records, proving the categories were configured prior to checkout.",
+      "points": 20,
+      "visual_evidence": "Asset history, checkout success messages, or David Thorne's user profile showing a 'Pending Acceptance' status, 'Unaccepted Assets' list, or signature request for the newly assigned laptop and tablet."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Snipe-IT web interface to perform the configurations and checkouts.",
+      "visual_evidence": "Screenshots show the Snipe-IT web application open in a browser with visible navigation, form filling, and button clicks, rather than API scripts in the terminal."
+    },
+    {
+      "id": "genuine_file_content",
+      "description": "The agent opened and copied the actual text from the AUP file rather than hallucinating the policy.",
+      "visual_evidence": "A text editor (like gedit, nano, or cat command) displaying the contents of '~/Documents/Legal/2026_Mobile_AUP.txt' at some point in the trajectory."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "The agent did not use a database client to directly alter the Snipe-IT database.",
+      "visual_evidence": "Absence of MySQL/MariaDB terminal sessions or database GUI tools modifying the 'categories' or 'assets' tables directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Target User: David Thorne (username: dthorne). Target Laptop Asset Tag: LT-2026-001. Target Tablet Asset Tag: TAB-2026-001. Expected EULA substring to be pasted into the category configurations: '2026 Mobile Device Acceptable Use Policy'. The AUP file is located at /home/ga/Documents/Legal/2026_Mobile_AUP.txt."
+}

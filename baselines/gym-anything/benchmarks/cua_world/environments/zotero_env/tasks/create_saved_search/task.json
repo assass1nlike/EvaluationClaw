@@ -1,0 +1,28 @@
+{
+  "id": "create_saved_search@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a researcher who wants to set up a dynamic saved search in Zotero to automatically track recent publications. Your library has 18 papers spanning from 1905 to 2020. Create a saved search named exactly 'Papers Since 2010' that identifies all papers in your library published in the year 2010 or later.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_saved_search/setup_task.sh",
+    "post_task": "/workspace/tasks/create_saved_search/export_result.sh"
+  },
+  "metadata": {
+    "search_name": "Papers Since 2010",
+    "year_threshold": 2010,
+    "expected_condition_field": "date",
+    "expected_papers_matching": 8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_saved_search"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "record_disposition@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to Bahmni (User: superman, Pass: Admin123). For patient Amara Okonkwo (BAH000002), record a disposition of 'Admit Patient' with the notes: 'Admit for acute pneumonia management. SpO2 88%, temperature 39.5C. Requires IV antibiotics and oxygen therapy.'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_disposition/setup_task.sh",
+    "post_task": "/workspace/tasks/record_disposition/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "patient_identifier": "BAH000002",
+    "patient_name": "Amara Okonkwo",
+    "expected_disposition": "Admit Patient",
+    "required_note_keywords": [
+      "pneumonia",
+      "SpO2",
+      "88%",
+      "IV antibiotics",
+      "oxygen"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_disposition"
+    }
+  }
+}

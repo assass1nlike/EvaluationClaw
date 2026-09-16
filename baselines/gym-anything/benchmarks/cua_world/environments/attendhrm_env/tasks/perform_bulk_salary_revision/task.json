@@ -1,0 +1,30 @@
+{
+  "id": "perform_bulk_salary_revision@1",
+  "version": "1.0",
+  "env_id": "attendhrm_env@0.1",
+  "description": "Perform a bulk salary revision for all employees with the designation 'Junior Developer'. Update their Basic Salary to 3500.00 with an Effective Date of 01-Apr-2025. Do not modify the salary of any other employees.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\perform_bulk_salary_revision\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\perform_bulk_salary_revision\\export_result.ps1",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "target_designation": "Junior Developer",
+    "target_salary": 3500.0,
+    "effective_date": "2025-04-01",
+    "target_count": 3,
+    "db_path": "C:\\Lenvica\\AttendHRM\\Data\\AttendHRM.fdb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perform_bulk_salary_revision"
+    }
+  }
+}

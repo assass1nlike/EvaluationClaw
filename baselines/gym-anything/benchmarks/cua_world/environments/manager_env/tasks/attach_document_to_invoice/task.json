@@ -1,0 +1,27 @@
+{
+  "id": "attach_document_to_invoice@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Attach the file /home/ga/Documents/proof_of_delivery.pdf to invoice #INV-2024-001 in the Northwind Traders business within Manager.io.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/attach_document_to_invoice/setup_task.sh",
+    "post_task": "/workspace/tasks/attach_document_to_invoice/export_result.sh"
+  },
+  "metadata": {
+    "target_invoice_ref": "INV-2024-001",
+    "attachment_filename": "proof_of_delivery.pdf",
+    "source_file_path": "/home/ga/Documents/proof_of_delivery.pdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_attach_document"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "setup_service_item@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Configure Manager.io for a new service revenue stream. Create an income account named 'Consulting Revenue' and a non-inventory item named 'Supply Chain Consulting' (Code: SVC-CONSULT, Unit: Hour, Sale Price: 200.00) linked to it. Generate a sales invoice for customer 'Ernst Handel' for 5 units of 'Supply Chain Consulting' (Total 1,000.00), ensuring the revenue posts to the specific consulting account rather than the general sales account.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_service_item/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_service_item/export_result.sh"
+  },
+  "metadata": {
+    "account_name": "Consulting Revenue",
+    "item_name": "Supply Chain Consulting",
+    "item_code": "SVC-CONSULT",
+    "item_price": 200.0,
+    "invoice_customer": "Ernst Handel",
+    "invoice_total": 1000.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_service_item"
+    }
+  }
+}

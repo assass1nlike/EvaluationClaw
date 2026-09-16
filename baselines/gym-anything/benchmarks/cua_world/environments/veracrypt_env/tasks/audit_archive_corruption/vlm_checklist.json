@@ -1,0 +1,59 @@
+{
+  "task_id": "audit_archive_corruption@1",
+  "task_completion": [
+    {
+      "id": "open_veracrypt_mount",
+      "description": "Agent opens VeraCrypt and attempts to mount the encrypted volumes.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt application window is visible, with the agent selecting a volume from '~/Volumes/Evidence/' and entering a password."
+    },
+    {
+      "id": "restore_volume_header",
+      "description": "Agent attempts to restore the volume header for a failed mount using a backup.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt 'Volume Tools' or 'Restore Volume Header' dialog is open, showing the selection of an external backup file from '~/Documents/Recovery/'."
+    },
+    {
+      "id": "inspect_filesystem",
+      "description": "Agent inspects the mounted volumes to determine if the filesystem is readable or corrupt.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window is open showing the contents of a mounted volume, or displaying an OS error indicating the filesystem is unreadable/corrupt (specifically for case_003)."
+    },
+    {
+      "id": "create_csv_headers",
+      "description": "Agent creates the audit report CSV with the correct headers.",
+      "points": 10,
+      "visual_evidence": "A text editor or spreadsheet application is open showing the text 'Filename,Status'."
+    },
+    {
+      "id": "report_healthy_inaccessible",
+      "description": "Agent correctly classifies the healthy and inaccessible volumes in the report.",
+      "points": 20,
+      "visual_evidence": "The CSV report contains the lines 'case_001.hc,Healthy' and 'case_004.hc,Inaccessible'."
+    },
+    {
+      "id": "report_repaired_corrupt",
+      "description": "Agent correctly classifies the repaired and corrupt volumes in the report.",
+      "points": 20,
+      "visual_evidence": "The CSV report contains the lines 'case_002.hc,Header_Repaired' and 'case_003.hc,Filesystem_Corrupt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "Agent actually interacted with VeraCrypt to test the volumes.",
+      "visual_evidence": "Screenshots must show VeraCrypt GUI dialogs (mounting, errors, or header restoration) rather than the agent just typing out the final CSV from memory."
+    },
+    {
+      "id": "genuine_filesystem_check",
+      "description": "Agent actually verified the filesystem integrity of the mounted volumes.",
+      "visual_evidence": "Screenshots should show the agent opening the mounted volume directories in a file manager or terminal to check for readability, rather than guessing the status."
+    },
+    {
+      "id": "correct_report_path",
+      "description": "The report is saved to the correct requested path.",
+      "visual_evidence": "The text editor's title bar, save dialog, or terminal commands show the file being saved exactly to '~/Documents/audit_report.csv' (or '/home/ga/Documents/audit_report.csv')."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected final report contents are exactly: case_001.hc is 'Healthy', case_002.hc is 'Header_Repaired', case_003.hc is 'Filesystem_Corrupt', and case_004.hc is 'Inaccessible'. The report must be saved to /home/ga/Documents/audit_report.csv."
+}

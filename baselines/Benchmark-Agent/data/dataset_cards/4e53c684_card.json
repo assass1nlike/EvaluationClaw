@@ -1,0 +1,86 @@
+{
+  "dataset_id": "4e53c684",
+  "name": "Transistor Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 16,
+  "description": "A dataset for transistor anomaly detection, where models must identify and segment anomalous regions in images of transistors given a short textual instruction. It evaluates visual anomaly localization and segmentation in an industrial context.",
+  "card_text": "This dataset focuses on anomaly detection in transistor images. Each sample pairs an input image of a transistor with a textual prompt instructing the model to detect the anomaly region. The expected output is a binary segmentation mask that highlights the anomalous area. The dataset is small (16 samples) and intended for evaluating industrial anomaly detection and segmentation models. Images are likely close-up photographs of transistors with various defects. The text prompt is concise and task-specific. The mask serves as ground truth for anomaly localization. The dataset supports tasks such as anomaly segmentation and detection, with an emphasis on segmenting irregular regions. It assumes that anomalies are visually distinguishable. The evaluation likely measures mask overlap metrics (e.g., IoU).",
+  "tasks": [
+    "segmentation",
+    "detection"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "The input image depicts a transistor component, serving as the main visual context to be analyzed for anomalies.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short textual instruction asking the model to detect the anomalous region of the transistor in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary segmentation mask image that highlights the anomalous region(s) within the transistor, serving as the ground-truth annotation for anomaly localization.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image of a transistor, a short instruction prompt asking to detect the anomaly region, and an output mask image that marks the anomalous area. The prompt is the only textual component, while both input and output are images. The mask is the target annotation corresponding to the anomaly in the input image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/TransistorAnomalyDetection/transistor_anomaly_detection.json",
+    "existing_tags": {
+      "task": "transistor anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

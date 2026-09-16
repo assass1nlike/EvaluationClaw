@@ -1,0 +1,53 @@
+{
+  "task_id": "buffer_populated_places@1",
+  "task_completion": [
+    {
+      "id": "load_input_layer",
+      "description": "Load the world cities dataset into the GIS application view.",
+      "points": 10,
+      "visual_evidence": "The layer 'ne_110m_populated_places' is visible in the Table of Contents (layers panel) and point features are displayed on the map canvas."
+    },
+    {
+      "id": "open_buffer_tool",
+      "description": "Open the Buffer analysis tool.",
+      "points": 10,
+      "visual_evidence": "A geoprocessing dialog box specifically for 'Buffer' or 'Buffer analysis' is open on the screen."
+    },
+    {
+      "id": "set_buffer_distance",
+      "description": "Configure the buffer tool with the correct input layer and a distance of 3.0 degrees.",
+      "points": 30,
+      "visual_evidence": "Inside the Buffer dialog, the input layer is set to 'ne_110m_populated_places' and the buffer distance/radius field is explicitly set to '3.0'."
+    },
+    {
+      "id": "set_output_path",
+      "description": "Set the output file path for the buffer polygons.",
+      "points": 20,
+      "visual_evidence": "Inside the Buffer dialog, the output file path is specified as '/home/ga/gvsig_data/exports/city_buffers.shp'."
+    },
+    {
+      "id": "verify_output_layer_added",
+      "description": "Execute the buffer analysis and ensure the resulting layer is added to the view.",
+      "points": 30,
+      "visual_evidence": "The new layer 'city_buffers' appears in the Table of Contents (layers panel), and polygon features (circular buffers around the original points) are visible on the map canvas."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GIS graphical user interface to perform the analysis.",
+      "visual_evidence": "Screenshots show interaction with the GIS application's menus, toolbars, and dialogs, rather than a terminal window running GDAL/OGR or Python commands."
+    },
+    {
+      "id": "genuine_buffer_output",
+      "description": "The output layer visually represents a genuine buffer operation.",
+      "visual_evidence": "The map canvas shows actual polygon circles surrounding the original point features, not just an empty layer or duplicated points."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "The agent did not use a text editor to spoof the output paths or completion.",
+      "visual_evidence": "File paths and parameters are entered into the actual GIS geoprocessing dialogs, not typed into a text editor or terminal echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "Input dataset: /home/ga/gvsig_data/cities/ne_110m_populated_places.shp (contains 243 point features). Expected output: /home/ga/gvsig_data/exports/city_buffers.shp. The output must be a polygon shapefile (ESRI type 5) containing at least 100 features (expected 243 if no dissolve is used). The output must consist of city_buffers.shp, city_buffers.shx, and city_buffers.dbf."
+}

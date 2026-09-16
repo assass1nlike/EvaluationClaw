@@ -1,0 +1,47 @@
+{
+  "task_id": "implement_cross_domain_tracking@1",
+  "task_completion": [
+    {
+      "id": "landing_page_code_modified",
+      "description": "Modify the Matomo tracking snippet in landing.html to include cross-domain linking.",
+      "points": 40,
+      "visual_evidence": "A text editor or terminal showing the contents of `/home/ga/sites/landing.html`. The Matomo JavaScript snippet must include `_paq.push(['setDomains', [...]])` containing both 'localhost' and '127.0.0.1' (with or without wildcards), and `_paq.push(['enableCrossDomainLinking']);`."
+    },
+    {
+      "id": "shop_page_code_modified",
+      "description": "Modify the Matomo tracking snippet in shop.html to include cross-domain linking.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the contents of `/home/ga/sites/shop.html`. The Matomo JavaScript snippet must include `_paq.push(['setDomains', [...]])` containing both 'localhost' and '127.0.0.1' (with or without wildcards), and `_paq.push(['enableCrossDomainLinking']);`."
+    },
+    {
+      "id": "landing_page_visited",
+      "description": "Visit the landing page in a web browser to initiate the tracking test.",
+      "points": 10,
+      "visual_evidence": "A web browser is open to `http://localhost:8080/landing.html`."
+    },
+    {
+      "id": "shop_page_visited_with_vid",
+      "description": "Navigate to the shop page with cross-domain tracking active and verify the tracking.",
+      "points": 30,
+      "visual_evidence": "A web browser is open to `http://127.0.0.1:8080/shop.html` and the URL contains a `pk_vid` query parameter (e.g., `?pk_vid=...`), OR the Matomo dashboard at `http://localhost/` is shown displaying a single visitor with actions on both domains (localhost and 127.0.0.1)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_files_edited",
+      "description": "The agent actually edited the HTML files rather than just printing the expected code.",
+      "visual_evidence": "The code modifications are seen in a text editor (like VS Code, nano, vim) modifying the actual files, or via valid sed/echo commands, not just outputting the solution to the console."
+    },
+    {
+      "id": "genuine_browser_navigation",
+      "description": "The agent used a real web browser to test the cross-domain link.",
+      "visual_evidence": "The browser address bar shows the URL being navigated to, rather than a mocked or manually typed `pk_vid` parameter."
+    },
+    {
+      "id": "no_manual_vid_injection",
+      "description": "The agent did not manually type the pk_vid parameter into the URL.",
+      "visual_evidence": "The `pk_vid` parameter appears as a result of clicking the link on the landing page, not by the agent manually typing `?pk_vid=...` in the address bar."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying two files: /home/ga/sites/landing.html and /home/ga/sites/shop.html. The Matomo tracking snippets in both files must be updated to include `_paq.push(['setDomains', ['localhost', '127.0.0.1']]);` (wildcards like '*.localhost' are also acceptable) and `_paq.push(['enableCrossDomainLinking']);`. A functional test is verified when the agent visits http://localhost:8080/landing.html and clicks through to http://127.0.0.1:8080/shop.html. If successful, Matomo appends a `pk_vid` query parameter to the shop URL."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "sync_macros_to_bodyweight@1",
+  "task_completion": [
+    {
+      "id": "login_wger",
+      "description": "Log into the wger fitness manager.",
+      "points": 10,
+      "visual_evidence": "The wger dashboard or home page is visible, indicating a successful login as the admin user."
+    },
+    {
+      "id": "locate_body_weight",
+      "description": "Find the most recent body weight entry.",
+      "points": 20,
+      "visual_evidence": "A page showing body weight or measurements is visible, and the most recent body weight value (between 80.0 and 89.9 kg) is clearly displayed on the screen."
+    },
+    {
+      "id": "locate_nutrition_plan",
+      "description": "Navigate to the 'Lean Bulk Plan' nutrition plan.",
+      "points": 20,
+      "visual_evidence": "The Nutrition section is open, and the details page for the 'Lean Bulk Plan' is visible."
+    },
+    {
+      "id": "enter_macro_values",
+      "description": "Enter the calculated macronutrient values into the plan's settings.",
+      "points": 20,
+      "visual_evidence": "A form or modal for editing the macronutrient goals of the 'Lean Bulk Plan' is visible, with new values typed into the Protein, Carbohydrates, and Fat fields."
+    },
+    {
+      "id": "save_macro_goals",
+      "description": "Save the updated macronutrient goals based on the correct multipliers.",
+      "points": 30,
+      "visual_evidence": "The 'Lean Bulk Plan' page displays the successfully saved macronutrient goals. The VLM must verify that the saved values equal the most recent body weight multiplied by 2.5 for Protein, 4.0 for Carbohydrates, and 1.0 for Fat (rounded to the nearest whole gram, +/- 1g tolerance)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Verify the agent used the web browser to interact with wger.",
+      "visual_evidence": "Screenshots show the agent navigating and clicking through the wger web interface in a browser, rather than using terminal commands or API scripts."
+    },
+    {
+      "id": "no_database_tampering",
+      "description": "Verify the agent did not directly edit the database to update the macros.",
+      "visual_evidence": "No terminal windows showing sqlite3 commands, python scripts, or direct database modifications are used to complete the task."
+    },
+    {
+      "id": "actual_weight_used",
+      "description": "Verify the agent used the actual body weight displayed in the application.",
+      "visual_evidence": "The final macronutrient values correspond mathematically to the specific body weight shown in the wger UI during the run, rather than a hardcoded or guessed value."
+    }
+  ],
+  "privileged_info_for_vlm": "The target nutrition plan is 'Lean Bulk Plan'. The required multipliers are 2.5g/kg for Protein, 4.0g/kg for Carbohydrates, and 1.0g/kg for Fat. The VLM should verify that the final saved macronutrient values equal the most recent body weight (in kg) multiplied by these factors, rounded to the nearest whole gram. A tolerance of +/- 1.0 gram is acceptable for rounding differences."
+}

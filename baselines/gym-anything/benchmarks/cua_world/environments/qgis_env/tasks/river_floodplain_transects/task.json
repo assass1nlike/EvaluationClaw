@@ -1,0 +1,30 @@
+{
+  "id": "river_floodplain_transects@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Generate perpendicular transects along the Danube River for a hydrological survey using the dataset located at /home/ga/GIS_Data/natural_earth/ne_10m_rivers_lake_centerlines.shp. Create transects with a spacing of 20,000 meters and a length of 10,000 meters. Export the resulting transects as a GeoJSON file to /home/ga/GIS_Data/exports/danube_transects.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/river_floodplain_transects/setup_task.sh",
+    "post_task": "/workspace/tasks/river_floodplain_transects/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/GIS_Data/natural_earth/ne_10m_rivers_lake_centerlines.shp",
+    "expected_output_path": "/home/ga/GIS_Data/exports/danube_transects.geojson",
+    "min_feature_count": 120,
+    "max_feature_count": 170,
+    "target_length_m": 10000,
+    "length_tolerance_m": 1000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_river_floodplain_transects"
+    }
+  }
+}

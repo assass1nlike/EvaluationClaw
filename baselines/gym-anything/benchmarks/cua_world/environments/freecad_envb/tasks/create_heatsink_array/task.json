@@ -1,0 +1,35 @@
+{
+  "id": "create_heatsink_array@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a parametric plate-fin heat sink in FreeCAD featuring a 50x30x3 mm base plate and 6 evenly spaced fins, each measuring 50x1x15 mm. The fins must be modeled using a LinearPattern feature with a 5 mm pitch along the width of the plate. Save the resulting model to /home/ga/Documents/FreeCAD/heatsink.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_heatsink_array/setup_task.sh",
+    "post_task": "/workspace/tasks/create_heatsink_array/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/heatsink.FCStd",
+    "expected_bbox": [
+      50.0,
+      30.0,
+      18.0
+    ],
+    "bbox_tolerance": 2.0,
+    "expected_volume": 9000.0,
+    "volume_tolerance": 0.2,
+    "required_feature_type": "LinearPattern",
+    "min_fin_count": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_heatsink_array"
+    }
+  }
+}

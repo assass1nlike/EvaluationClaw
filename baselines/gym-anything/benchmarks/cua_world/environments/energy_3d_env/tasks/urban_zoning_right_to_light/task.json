@@ -1,0 +1,32 @@
+{
+  "id": "urban_zoning_right_to_light@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an Urban Planner evaluating a zoning proposal in Chicago. Open the project '~/Documents/Energy3D/city-block.ng3'. To comply with right-to-light regulations for the winter solstice, do the following:\n1. Set the project Location to 'Chicago'.\n2. Change the simulation Date to December 21.\n3. Visually identify the absolute tallest building in the city block.\n4. Reduce the height of this tallest building to exactly 40.0 meters. Do NOT delete the building.\n5. Visually identify the absolute shortest building in the scene.\n6. Add a minimum of 20 Solar Panels to the roof of this shortest building.\n7. Save the modified project as '~/Documents/Energy3D/chicago_zoning.ng3'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_zoning_right_to_light/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_zoning_right_to_light/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Urban and Regional Planner",
+    "industry": "Professional and Technical Services",
+    "starter_file": "city-block.ng3",
+    "target_file": "chicago_zoning.ng3",
+    "target_location": "Chicago",
+    "target_height": 40.0,
+    "target_date_month": 12,
+    "target_date_day": 21
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_urban_zoning"
+    }
+  }
+}

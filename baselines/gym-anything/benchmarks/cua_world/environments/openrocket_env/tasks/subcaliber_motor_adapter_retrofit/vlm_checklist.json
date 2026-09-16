@@ -1,0 +1,53 @@
+{
+  "task_id": "subcaliber_motor_adapter_retrofit@1",
+  "task_completion": [
+    {
+      "id": "adapter_and_rings_created",
+      "description": "A 29mm sub-caliber motor adapter with at least two centering rings is added to the design.",
+      "points": 20,
+      "visual_evidence": "In the OpenRocket component tree or design view, there should be a new inner tube (the adapter) placed inside the motor mount, supported by at least two new centering rings. The adapter length should be configured to at least 120mm and diameter to 29mm."
+    },
+    {
+      "id": "original_mount_preserved",
+      "description": "The original motor mount tube and its centering rings remain unmodified.",
+      "points": 15,
+      "visual_evidence": "The original motor mount tube and its associated centering rings must still be visible in the OpenRocket component tree and not deleted, replaced, or altered in size."
+    },
+    {
+      "id": "motor_configured_and_simulated",
+      "description": "A 29mm motor is configured, resulting in a stable flight with an apogee between 150m and 1000m.",
+      "points": 25,
+      "visual_evidence": "In the 'Flight Simulations' or 'Motors & Configuration' tab, a 29mm motor must be selected. The simulation results must show a stable flight (often indicated by a green checkmark or stable velocity off rod) and a max altitude (apogee) strictly between 150 meters and 1,000 meters."
+    },
+    {
+      "id": "design_saved",
+      "description": "The updated rocket design is saved to the specified path.",
+      "points": 15,
+      "visual_evidence": "The OpenRocket window title bar should display 'adapted_dual_deploy.ork', or a file manager/terminal window should show the file 'adapted_dual_deploy.ork' successfully saved in '~/Documents/rockets/'."
+    },
+    {
+      "id": "report_generated",
+      "description": "A hardware verification report is generated with all required details.",
+      "points": 25,
+      "visual_evidence": "A text file named 'adapter_report.txt' in '~/Documents/exports/' is visible (e.g., open in a text editor or printed in the terminal). It must explicitly include: 1) the adapter inner diameter (29mm), 2) the motor manufacturer and designation, 3) the simulated maximum altitude, and 4) a statement confirming the original motor mount was left intact."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_design",
+      "description": "The agent used the OpenRocket GUI to modify the design and run simulations.",
+      "visual_evidence": "Screenshots should show the OpenRocket application open with active interactions (adding components, running simulations), rather than just a terminal window editing the .ork XML file directly."
+    },
+    {
+      "id": "genuine_simulation_results",
+      "description": "The simulation results in the report match the actual simulation output.",
+      "visual_evidence": "The max altitude and motor details written in 'adapter_report.txt' should match the values visible in the OpenRocket 'Flight Simulations' tab."
+    },
+    {
+      "id": "report_not_hallucinated",
+      "description": "The agent did not simply hardcode a fake report without performing the task.",
+      "visual_evidence": "The agent must have actually run the simulation in OpenRocket to obtain the specific max altitude value before writing it into the report file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output files: '/home/ga/Documents/rockets/adapted_dual_deploy.ork' and '/home/ga/Documents/exports/adapter_report.txt'. The adapter must have an inner diameter of 29mm (radius 0.0145m). The simulated apogee must be strictly between 150 meters and 1000 meters. The original motor mount must be preserved (minimum radius 0.018m). Note: The programmatic verifier has a bug evaluating the inner radius of tubes in .ork files, but you should visually verify the component tree, simulation results, and the text report directly."
+}

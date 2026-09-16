@@ -1,0 +1,31 @@
+{
+  "id": "deactivate_dormant_users@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "Perform a security audit of user accounts in FreeScout. Deactivate all accounts that have never logged in or have not logged in for more than 90 days. Ensure these accounts are set to inactive status and not deleted. All users who have logged in within the last 90 days must remain active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deactivate_dormant_users/setup_task.sh",
+    "post_task": "/workspace/tasks/deactivate_dormant_users/export_result.sh"
+  },
+  "metadata": {
+    "dormant_threshold_days": 90,
+    "target_users": {
+      "dormant_old": "dormant.old@helpdesk.local",
+      "dormant_never": "dormant.never@helpdesk.local",
+      "active_recent": "active.recent@helpdesk.local",
+      "active_borderline": "active.borderline@helpdesk.local"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deactivate_dormant_users"
+    }
+  }
+}

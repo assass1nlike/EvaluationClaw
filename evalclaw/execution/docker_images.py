@@ -15,6 +15,8 @@ from typing import Any
 
 from .docker import docker_subprocess_env, resolve_docker_executable
 from .installers import apt_packages, render_install_commands
+from .process import run_bounded
+from .resource_guard import DockerResourceGuard
 
 DEFAULT_DOCKER_IMAGE = "python:3.11-slim"
 DOCKER_IMAGE_SELECTION_STRATEGY = "evalclaw_builtin_rules.v1"
@@ -600,6 +602,8 @@ def run_docker_image_check(
     workdir: str = "/workspace",
     docker_executable: str = "docker",
     timeout_s: int = 60,
+    memory_mb: int = 8192,
+    pids_limit: int = 512,
 ) -> DockerImageCheckResult:
     """Run one bounded, disposable check inside an image without host mounts."""
     image_name = str(image or "").strip()
@@ -613,10 +617,26 @@ def run_docker_image_check(
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
         raise RuntimeError("Docker executable is not available for image checks.")
+    container = "evalclaw-check-" + uuid.uuid4().hex[:12]
+    guard = DockerResourceGuard(resolved, docker_subprocess_env(docker_executable))
+    guard.register("container", container)
+    if network == "default":
+        network = container + "-network"
+        guard.register("network", network)
+        try:
+            created = run_bounded([resolved, "network", "create", network], timeout=30,
+                                  env=docker_subprocess_env(docker_executable))
+            created.check_returncode()
+        except BaseException:
+            guard.close()
+            raise
     command_args = [
         resolved,
         "run",
         "--rm",
+        "--name", container, "--init",
+        "--memory", f"{memory_mb}m", "--memory-swap", f"{memory_mb}m",
+        "--pids-limit", str(pids_limit),
         "--network",
         network,
         "--cap-drop",
@@ -631,13 +651,8 @@ def run_docker_image_check(
         check_command,
     ]
     try:
-        proc = subprocess.run(
+        proc = run_bounded(
             command_args,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            capture_output=True,
-            check=False,
             timeout=max(1, int(timeout_s)),
             env=docker_subprocess_env(docker_executable),
         )
@@ -650,6 +665,8 @@ def run_docker_image_check(
             stderr=str(exc.stderr or "") or "Docker image check timed out.",
             timed_out=True,
         )
+    finally:
+        guard.close()
     return DockerImageCheckResult(
         image=image_name,
         command=check_command,
@@ -694,6 +711,10 @@ def start_inspection_container(
     docker_executable: str = "docker",
     network: str = "default",
     timeout_s: int = 120,
+    memory_mb: int = 8192,
+    pids_limit: int = 512,
+    workspace: Path | None = None,
+    resource_guard: Any = None,
 ) -> DockerInspectResult:
     """Start a long-lived disposable container for interactive environment probing.
 
@@ -711,6 +732,17 @@ def start_inspection_container(
     if not resolved:
         raise RuntimeError("Docker executable is not available for inspection containers.")
     container = f"evalclaw-inspect-{uuid.uuid4().hex[:12]}"
+    if resource_guard is not None:
+        resource_guard.register("container", container)
+    if network == "default":
+        network = container + "-network"
+        if resource_guard is not None:
+            resource_guard.register("network", network)
+        subprocess.run(
+            [resolved, "network", "create", network], check=True,
+            capture_output=True, text=True, timeout=timeout_s,
+            env=docker_subprocess_env(docker_executable),
+        )
     command = [
         resolved,
         "run",
@@ -723,6 +755,10 @@ def start_inspection_container(
         "no-new-privileges",
         "--workdir",
         "/workspace",
+        "--init", "--memory", f"{memory_mb}m", "--memory-swap", f"{memory_mb}m",
+        "--pids-limit", str(pids_limit),
+        *(["--mount", f"type=bind,source={workspace.resolve()},target={workspace.resolve()}"]
+          if workspace is not None else []),
         image_name,
         "sleep",
         "infinity",
@@ -739,8 +775,10 @@ def start_inspection_container(
             env=docker_subprocess_env(docker_executable),
         )
     except subprocess.TimeoutExpired as exc:
+        stop_inspection_container(container, docker_executable=docker_executable)
         raise RuntimeError(f"Inspection container start timed out for {image_name}.") from exc
     if proc.returncode != 0:
+        stop_inspection_container(container, docker_executable=docker_executable)
         detail = (proc.stderr or proc.stdout or "Unknown error.").strip()
         raise RuntimeError(
             f"Failed to start inspection container from {image_name}: {detail[-4000:]}"
@@ -781,17 +819,16 @@ def run_in_inspection_container(
         check_command,
     ]
     try:
-        proc = subprocess.run(
+        proc = run_bounded(
             command_args,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            capture_output=True,
-            check=False,
             timeout=max(1, int(timeout_s)),
             env=docker_subprocess_env(docker_executable),
         )
     except subprocess.TimeoutExpired as exc:
+        subprocess.run(
+            [resolved, "kill", container_name], capture_output=True,
+            timeout=30, env=docker_subprocess_env(docker_executable),
+        )
         return DockerInspectResult(
             container=container_name,
             action="run",
@@ -843,6 +880,11 @@ def stop_inspection_container(
             action="stop",
             detail=f"Failed to stop inspection container: {exc}",
         )
+    subprocess.run(
+        [resolved, "network", "rm", container_name + "-network"],
+        capture_output=True, timeout=max(1, int(timeout_s)),
+        env=docker_subprocess_env(docker_executable),
+    )
     return DockerInspectResult(
         container=container_name,
         action="stop",

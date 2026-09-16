@@ -1,0 +1,53 @@
+{
+  "task_id": "medication_schedule_update@1",
+  "task_completion": [
+    {
+      "id": "metformin_frequency_updated",
+      "description": "Metformin frequency is updated to 8 hours",
+      "points": 15,
+      "visual_evidence": "In the spreadsheet row for Metformin, the value in the Frequency column should be 8 (changed from 12)."
+    },
+    {
+      "id": "aspirin_time_updated",
+      "description": "Aspirin last dose time is updated to 8:00 AM today",
+      "points": 15,
+      "visual_evidence": "In the spreadsheet row for Aspirin, the value in the Last Dose column should be 8:00 AM (or 08:00) with today's date."
+    },
+    {
+      "id": "next_dose_column_filled",
+      "description": "The Next Dose column is populated for all medications",
+      "points": 20,
+      "visual_evidence": "The Next Dose column should contain date and time values for every medication listed in the schedule."
+    },
+    {
+      "id": "next_dose_values_correct",
+      "description": "Next Dose values correctly reflect Last Dose plus Frequency",
+      "points": 20,
+      "visual_evidence": "Verify the math for the Next Dose column: the time shown must exactly equal the Last Dose time plus the number of hours in the Frequency column. If the formula bar is visible, it should show a formula like =D2+(C2/24)."
+    },
+    {
+      "id": "conditional_formatting_applied",
+      "description": "Urgent doses are visually highlighted",
+      "points": 30,
+      "visual_evidence": "Look for cells in the Next Dose column that have a distinct background or text color (e.g., red or yellow). These highlighted cells should correspond to times that are within 2 hours of the current system time (visible on the OS clock)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_calc_gui",
+      "description": "The agent used LibreOffice Calc to edit the spreadsheet",
+      "visual_evidence": "Screenshots should show the LibreOffice Calc application open with the medication schedule loaded, rather than a text editor or terminal."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not use terminal commands to bypass GUI interaction",
+      "visual_evidence": "The terminal should not show commands like 'sed', 'awk', or python scripts being used to directly modify the spreadsheet file or its underlying XML."
+    },
+    {
+      "id": "genuine_formatting",
+      "description": "Highlighting appears to be genuine spreadsheet formatting",
+      "visual_evidence": "The highlighting of urgent doses should look like standard cell background or text color changes in Calc, ideally applied via the Conditional Formatting dialog seen in earlier screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires updating a medication schedule in LibreOffice Calc. Key updates include changing Metformin frequency to 8 hours and Aspirin last dose to 8:00 AM today. The 'Next Dose' must be calculated using a formula (e.g., =D2+(C2/24), as Calc stores time as fractional days where 1 hour = 1/24). Conditional formatting must be applied to highlight doses due within 2 hours of the current time, typically using a formula like E2<(NOW()+(2/24))."
+}

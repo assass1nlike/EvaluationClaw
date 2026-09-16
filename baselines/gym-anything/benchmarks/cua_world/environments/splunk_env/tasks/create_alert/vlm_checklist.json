@@ -1,0 +1,59 @@
+{
+  "task_id": "create_alert@1",
+  "task_completion": [
+    {
+      "id": "splunk_search_entered",
+      "description": "The agent entered the required search query into the Splunk search bar.",
+      "points": 20,
+      "visual_evidence": "The Splunk Search & Reporting interface is visible, and the search bar contains the query: index=security_logs \"Failed password\" | stats count by src_ip | where count > 5."
+    },
+    {
+      "id": "save_as_alert_dialog",
+      "description": "The agent opened the dialog to save the search as an alert.",
+      "points": 10,
+      "visual_evidence": "The 'Save As' dropdown is clicked and 'Alert' is selected, opening the 'Save As Alert' configuration modal/dialog."
+    },
+    {
+      "id": "alert_name_configured",
+      "description": "The agent named the alert 'Brute_Force_Detection'.",
+      "points": 15,
+      "visual_evidence": "In the 'Save As Alert' dialog, the 'Title' or 'Name' field contains exactly 'Brute_Force_Detection'."
+    },
+    {
+      "id": "alert_schedule_configured",
+      "description": "The agent configured the alert to run on a 5-minute cron schedule.",
+      "points": 20,
+      "visual_evidence": "In the alert configuration dialog, the schedule type is set to 'Cron Schedule' and the cron expression field contains '*/5 * * * *'."
+    },
+    {
+      "id": "alert_trigger_configured",
+      "description": "The agent configured the alert to trigger when results are greater than 0.",
+      "points": 15,
+      "visual_evidence": "In the alert configuration dialog, the trigger condition is set to 'Number of Results' 'is greater than' '0'."
+    },
+    {
+      "id": "alert_saved_successfully",
+      "description": "The agent successfully saved the alert.",
+      "points": 20,
+      "visual_evidence": "A success modal stating 'Your alert has been created' or 'Alert has been saved' is visible, or the 'Brute_Force_Detection' alert is visible in the Splunk 'Alerts' list tab."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Splunk Web UI to create the alert.",
+      "visual_evidence": "Screenshots show the agent clicking through the Splunk web interface in a browser (http://localhost:8000), rather than using terminal commands (like curl) to interact with the Splunk API."
+    },
+    {
+      "id": "genuine_splunk_interface",
+      "description": "The agent used the actual Splunk application.",
+      "visual_evidence": "The visual elements match the standard Splunk Enterprise dashboard and dialogs, not a text editor or a mock HTML page."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "The agent did not bypass the UI by directly editing Splunk configuration files.",
+      "visual_evidence": "There is no evidence of the agent opening terminal windows to edit files like 'savedsearches.conf' to manually inject the alert configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "The target alert name must be exactly 'Brute_Force_Detection'. The search query must include 'index=security_logs' and 'Failed password'. The schedule must be a cron expression exactly matching '*/5 * * * *'. The alert must be scheduled (is_scheduled=true) and trigger when the number of results is > 0."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "record_patient_amendment@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Log in to LibreHealth EHR (admin/password) and record a formal patient amendment for 'Brandie Sammet'. The amendment must be dated 2025-01-15 with a status of 'Accepted' and include the following description: \"Patient requests correction to allergy records. Current record incorrectly lists Penicillin allergy. Patient clarifies the actual allergy is to Amoxicillin. Supporting documentation from referring allergist Dr. Marcus Webb provided.\"",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_patient_amendment/setup_task.sh",
+    "post_task": "/workspace/tasks/record_patient_amendment/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Brandie",
+    "patient_lname": "Sammet",
+    "expected_date": "2025-01-15",
+    "expected_status": "Accepted",
+    "required_keywords": [
+      "allergy",
+      "Amoxicillin",
+      "Penicillin",
+      "Webb"
+    ],
+    "target_pid": null
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_patient_amendment"
+    }
+  }
+}

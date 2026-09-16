@@ -1,0 +1,34 @@
+{
+  "id": "restrict_cod_to_local_pickup@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "category": "ecommerce",
+  "tags": [
+    "woocommerce",
+    "payments",
+    "shipping",
+    "configuration",
+    "risk-management"
+  ],
+  "description": "Configure the 'Cash on delivery' payment method to reduce refused shipments. Set the title to 'Pay on Pickup' and restrict the method so it is only available for the 'Local Pickup' shipping method. Use the WooCommerce admin panel at http://localhost/wp-admin/ (credentials: admin / Admin1234!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/restrict_cod_to_local_pickup/setup_task.sh",
+    "post_task": "/workspace/tasks/restrict_cod_to_local_pickup/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Pay on Pickup",
+    "expected_enabled": "yes"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restrict_cod_to_local_pickup"
+    }
+  }
+}

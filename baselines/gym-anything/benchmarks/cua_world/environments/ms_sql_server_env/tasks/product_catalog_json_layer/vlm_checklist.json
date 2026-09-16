@@ -1,0 +1,59 @@
+{
+  "task_id": "product_catalog_json_layer@1",
+  "task_completion": [
+    {
+      "id": "export_procedure_created",
+      "description": "Create the export stored procedure dbo.usp_ExportProductCatalog",
+      "points": 15,
+      "visual_evidence": "SQL script execution or Object Explorer showing the creation of 'dbo.usp_ExportProductCatalog' that joins Product, ProductSubcategory, and ProductCategory and uses 'FOR JSON PATH'."
+    },
+    {
+      "id": "json_file_exported",
+      "description": "Export the Bikes category to the specified JSON file path",
+      "points": 20,
+      "visual_evidence": "Terminal, file manager, or text editor showing the file '/home/ga/Documents/exports/product_catalog.json' exists and contains nested JSON data for the 'Bikes' category."
+    },
+    {
+      "id": "staging_table_created",
+      "description": "Create the staging table Production.ProductReviewStaging",
+      "points": 15,
+      "visual_evidence": "SQL script execution or Object Explorer showing the creation of 'Production.ProductReviewStaging' with columns StagingID, ProductID, ReviewerName, Rating, Comments, and ImportedDate."
+    },
+    {
+      "id": "import_procedure_created",
+      "description": "Create the import stored procedure dbo.usp_ImportProductReviews",
+      "points": 15,
+      "visual_evidence": "SQL script execution or Object Explorer showing the creation of 'dbo.usp_ImportProductReviews' that uses 'OPENJSON' to parse the payload."
+    },
+    {
+      "id": "import_procedure_executed",
+      "description": "Execute the import procedure with the provided JSON payload",
+      "points": 15,
+      "visual_evidence": "SQL script showing the execution of 'dbo.usp_ImportProductReviews' passing the JSON array containing 5 reviews (starting with David Ortiz)."
+    },
+    {
+      "id": "staging_table_populated",
+      "description": "Verify the staging table contains the imported reviews",
+      "points": 20,
+      "visual_evidence": "A SELECT query result showing the 5 imported rows in 'Production.ProductReviewStaging', including reviewers like 'David Ortiz' and 'Sarah Kim'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_used",
+      "description": "The agent interacted with the AdventureWorks2022 database",
+      "visual_evidence": "Look for 'USE AdventureWorks2022' or the database name visible in the SQL client connection details."
+    },
+    {
+      "id": "genuine_sql_execution",
+      "description": "The SQL commands were actually executed in a database client",
+      "visual_evidence": "Look for execution success messages, query result grids, or terminal output from a tool like sqlcmd, Azure Data Studio, DBeaver, or SSMS, rather than just text in an editor."
+    },
+    {
+      "id": "no_hardcoded_json_file",
+      "description": "The exported JSON file was generated via database query, not manually created",
+      "visual_evidence": "Look for evidence of the query output being saved to the file (e.g., via sqlcmd -o, bcp, or a client's export feature) rather than the agent manually pasting the JSON into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the AdventureWorks2022 database. Expected export path: '/home/ga/Documents/exports/product_catalog.json'. Staging table: 'Production.ProductReviewStaging' with columns StagingID, ProductID, ReviewerName, Rating, Comments, ImportedDate. Export proc: 'dbo.usp_ExportProductCatalog'. Import proc: 'dbo.usp_ImportProductReviews'. The import payload contains exactly 5 reviews; the first reviewer is 'David Ortiz' (Rating: 5). Product IDs 776, 749, 771, 750, and 772 are verified real bike products in the database."
+}

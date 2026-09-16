@@ -1,0 +1,32 @@
+{
+  "id": "pnw_vfr_tour_plan@1",
+  "version": "1.0",
+  "env_id": "example.avare_env@0.1",
+  "description": "You are a flight instructor planning a multi-day VFR scenic tour of the Pacific Northwest for a group of student pilots. With the VFR Sectional chart display active, create a flight plan named PNW_TOUR that includes the following waypoints: KSEA (Seattle-Tacoma), KPDX (Portland), KEUG (Eugene), and KMFR (Medford/Rogue Valley). Save the flight plan as PNW_TOUR.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/pnw_vfr_tour_plan/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/pnw_vfr_tour_plan/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_pnw_vfr_tour_plan"
+    }
+  },
+  "metadata": {
+    "required_plan_name": "PNW_TOUR",
+    "required_chart": "Sectional",
+    "required_waypoints": [
+      "KSEA",
+      "KPDX",
+      "KEUG",
+      "KMFR"
+    ]
+  }
+}

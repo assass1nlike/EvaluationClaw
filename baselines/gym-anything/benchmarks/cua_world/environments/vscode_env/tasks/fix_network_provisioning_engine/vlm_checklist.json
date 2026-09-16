@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_network_provisioning_engine@1",
+  "task_completion": [
+    {
+      "id": "open_workspace",
+      "description": "Navigate to the net_provisioner workspace",
+      "points": 10,
+      "visual_evidence": "A terminal or code editor (like VS Code) is open and shows the directory path /home/ga/workspace/net_provisioner/."
+    },
+    {
+      "id": "fix_cidr_bug",
+      "description": "Fix the CIDR string equality bug",
+      "points": 10,
+      "visual_evidence": "Code editor shows modifications to CIDR comparison logic, replacing a naive string equality check (==) with proper network/IP math."
+    },
+    {
+      "id": "fix_bgp_bug",
+      "description": "Fix the incorrect BGP operator bug",
+      "points": 10,
+      "visual_evidence": "Code editor shows modifications to BGP peering logic, specifically fixing an incorrect '!=' operator."
+    },
+    {
+      "id": "fix_vlan_bug",
+      "description": "Fix the exclusive range() bug for VLANs",
+      "points": 10,
+      "visual_evidence": "Code editor shows modifications to VLAN generation or validation logic, adjusting a Python 'range()' call to be inclusive (e.g., adding +1 to the end parameter)."
+    },
+    {
+      "id": "fix_ipam_acl_bugs",
+      "description": "Fix the IPAM overlapping and ACL wildcard math bugs",
+      "points": 20,
+      "visual_evidence": "Code editor shows modifications to IPAM (IP Address Management) overlapping checks and/or ACL (Access Control List) wildcard mask calculations."
+    },
+    {
+      "id": "run_and_pass_test_suite",
+      "description": "Run the test suite to verify all bugs are fixed",
+      "points": 40,
+      "visual_evidence": "Terminal shows the execution of a test suite (e.g., running 'pytest' or a test script) with an output indicating all tests have successfully passed (e.g., '100% passing', 'OK', or green text indicating success)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "verify_backend_models_modified",
+      "description": "Ensure the agent modified the backend models and not the test suite itself",
+      "visual_evidence": "The files being edited in the screenshots are application code (backend models) rather than test files (e.g., files starting with 'test_'). The test suite must remain unmodified to prevent cheating."
+    },
+    {
+      "id": "verify_genuine_test_output",
+      "description": "Ensure the test suite output is genuine and not spoofed",
+      "visual_evidence": "The terminal output showing the passing tests includes standard test runner formatting (like pytest headers, execution times, and itemized test results) rather than a simple 'echo' command or a basic print statement."
+    },
+    {
+      "id": "verify_no_hardcoding",
+      "description": "Ensure the agent implemented actual logic fixes rather than hardcoding expected answers",
+      "visual_evidence": "The code changes show generalized logic (e.g., using ipaddress modules, correct operators, proper math) rather than returning hardcoded strings or booleans just to satisfy specific test cases."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing exactly 5 logic bugs in the backend models: 1) CIDR string equality check, 2) incorrect BGP '!=' operator, 3) exclusive 'range()' for VLANs, 4) IPAM overlapping check defect, and 5) ACL wildcard math defect. The ultimate success criteria is the test suite passing. Note: 'verifier.py' is completely missing from the environment, so success must be judged entirely by visual confirmation of the code changes and the test suite execution output."
+}

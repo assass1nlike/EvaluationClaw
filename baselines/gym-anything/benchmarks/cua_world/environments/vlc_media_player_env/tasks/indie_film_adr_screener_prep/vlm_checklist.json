@@ -1,0 +1,53 @@
+{
+  "task_id": "indie_film_adr_screener_prep@1",
+  "task_completion": [
+    {
+      "id": "video_audio_sync_setup",
+      "description": "Verify the raw video and ADR audio are loaded and the video is trimmed by 3 seconds.",
+      "points": 15,
+      "visual_evidence": "Look for a GUI media tool (like a video editor timeline or VLC conversion dialog) showing 'scene42_camera_raw.mp4' and 'scene42_adr_master.wav' loaded. There should be visual indication that the video's first 3.0 seconds are trimmed, skipped, or offset to sync with the audio."
+    },
+    {
+      "id": "watermark_applied",
+      "description": "Verify the studio watermark is applied to the video.",
+      "points": 15,
+      "visual_evidence": "Look for 'studio_watermark.png' present in the software's media pool, placed on a timeline track above the video, or configured in a logo/overlay filter settings menu."
+    },
+    {
+      "id": "screener_export_settings",
+      "description": "Verify the video screener export settings match the requirements.",
+      "points": 25,
+      "visual_evidence": "Look for an export, render, or save dialog showing the output path ending in 'scene42_director_screener.mp4'. The settings must explicitly show the resolution as 1280x720, video codec as H.264 (or x264/AVC), and audio codec as AAC."
+    },
+    {
+      "id": "audio_mixdown_settings",
+      "description": "Verify the ADR audio mixdown export settings match the requirements.",
+      "points": 25,
+      "visual_evidence": "Look for an export or conversion dialog showing the output path ending in 'scene42_adr_mixdown.mp3'. The settings must show the format as MP3, channels set to Mono (or 1), and bitrate set to 128 kbps."
+    },
+    {
+      "id": "manifest_and_delivery_verification",
+      "description": "Verify the creation of the JSON manifest and the presence of all deliverables.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor showing JSON formatted text that documents the files, saved as 'delivery_manifest.json'. Additionally, look for a file manager window open to '/home/ga/Documents/delivery_package/' showing the screener .mp4, the mixdown .mp3, and the manifest .json."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used GUI applications for media processing rather than terminal shortcuts.",
+      "visual_evidence": "Check that the media editing, syncing, and exporting were performed in a graphical application (e.g., VLC, Kdenlive, Pitivi, Audacity) and not solely by typing 'ffmpeg' commands in a terminal window."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Ensure the agent actually rendered/exported the media files.",
+      "visual_evidence": "Look for rendering progress bars, export confirmation dialogs, or active processing windows, ensuring the agent didn't just use 'touch' or 'cp' in the terminal to create fake output files."
+    },
+    {
+      "id": "manual_manifest_creation",
+      "description": "Ensure the JSON manifest was genuinely created by the agent.",
+      "visual_evidence": "Look for a text editor (like gedit, nano, or vim) where the JSON content is being actively typed or viewed, rather than the file magically appearing without interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires trimming the first 3.0s of the camera video, replacing its audio with the ADR master, overlaying a watermark, and exporting to 1280x720 H.264/AAC. An additional mono 128kbps MP3 mixdown and a JSON manifest must be created in the delivery_package directory. The agent is expected to use GUI tools for these media operations."
+}

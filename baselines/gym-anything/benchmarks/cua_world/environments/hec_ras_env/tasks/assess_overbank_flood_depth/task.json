@@ -1,0 +1,31 @@
+{
+  "id": "assess_overbank_flood_depth@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the maximum flood depth for the five most upstream cross-sections (highest River Station numbers) in the Muncie model. For each cross-section, determine the ground elevation at a target station located exactly 50 feet into the left overbank (Target Station = Left Bank Station - 50) using linear interpolation of the cross-section geometry. Calculate the flood depth as the difference between the maximum Water Surface Elevation (WSE) from the unsteady flow simulation and the ground elevation, reporting 0.0 if the result is negative. Save the results to a CSV file at /home/ga/Documents/hec_ras_results/overbank_depth_assessment.csv with the headers: River_Station, Left_Bank_Station_ft, Target_Station_ft, Ground_Elev_ft, Max_WSE_ft, Flood_Depth_ft. Additionally, save a summary text file to /home/ga/Documents/hec_ras_results/assessment_summary.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assess_overbank_flood_depth/setup_task.sh",
+    "post_task": "/workspace/tasks/assess_overbank_flood_depth/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/hec_ras_results/overbank_depth_assessment.csv",
+    "project_path": "/home/ga/Documents/hec_ras_projects/Muncie/Muncie.prj",
+    "hdf_path": "/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.hdf",
+    "offset_distance": 50,
+    "num_cross_sections": 5,
+    "tolerance_elevation_ft": 0.1,
+    "tolerance_depth_ft": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assess_overbank_flood_depth"
+    }
+  }
+}

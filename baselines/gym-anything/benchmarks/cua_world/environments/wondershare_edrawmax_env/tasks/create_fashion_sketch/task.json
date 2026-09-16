@@ -1,0 +1,33 @@
+{
+  "id": "create_fashion_sketch@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a technical fashion flat sketch for a corporate uniform in Wondershare EdrawMax. The design should feature a Navy Blue polo or T-shirt with visible outlines, a Dark Grey or Black pocket on the left chest, and a Yellow rectangle or badge shape representing a logo. Include the title 'SkyHigh Logistics - Uniform Spec v1' at the top of the drawing. Add callouts pointing to specific features with the following text: 'Embroidered Logo' for the badge, 'Contrast Pocket' for the pocket, and 'Double Stitch Hem' for the bottom hem. Save the editable file to /home/ga/Documents/uniform_spec.eddx and export the design as an image to /home/ga/Documents/uniform_spec.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_fashion_sketch/setup_task.sh",
+    "post_task": "/workspace/tasks/create_fashion_sketch/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/uniform_spec.eddx",
+    "expected_png_path": "/home/ga/Documents/uniform_spec.png",
+    "required_text": [
+      "SkyHigh Logistics",
+      "Embroidered Logo",
+      "Contrast Pocket",
+      "Double Stitch"
+    ],
+    "min_file_size_kb": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_fashion_sketch"
+    }
+  }
+}

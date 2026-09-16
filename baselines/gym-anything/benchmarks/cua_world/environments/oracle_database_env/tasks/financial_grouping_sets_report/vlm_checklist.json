@@ -1,0 +1,59 @@
+{
+  "task_id": "financial_grouping_sets_report@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Verify the agent connected to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer) or terminal (e.g., SQL*Plus) showing an active connection to localhost:1521/XEPDB1 with the username 'hr'."
+    },
+    {
+      "id": "create_view_statement",
+      "description": "Verify the agent wrote the SQL statement to create the required view.",
+      "points": 15,
+      "visual_evidence": "An SQL editor or terminal showing the beginning of the statement: 'CREATE VIEW REVENUE_SUMMARY_VIEW AS' or 'CREATE OR REPLACE VIEW REVENUE_SUMMARY_VIEW AS'."
+    },
+    {
+      "id": "columns_and_null_replacement",
+      "description": "Verify the query selects the three required columns and handles NULL replacements for the labels.",
+      "points": 20,
+      "visual_evidence": "The SELECT clause includes logic like NVL or COALESCE to replace NULLs with 'All Regions' (aliased as REPORT_REGION) and 'All Categories' (aliased as REPORT_CATEGORY), along with a SUM() function aliased as TOTAL_REVENUE."
+    },
+    {
+      "id": "use_grouping_sets",
+      "description": "Verify the SQL query uses the GROUPING SETS clause to calculate the four required aggregation levels in a single pass.",
+      "points": 25,
+      "visual_evidence": "The SQL query contains a 'GROUP BY GROUPING SETS' clause (or equivalent CUBE/ROLLUP) specifying the combinations for (Region, Category), (Region), (Category), and the grand total (empty parentheses '()')."
+    },
+    {
+      "id": "order_by_clause",
+      "description": "Verify the query includes an ORDER BY clause to sort the output as requested.",
+      "points": 10,
+      "visual_evidence": "The SQL query ends with an 'ORDER BY REPORT_REGION, REPORT_CATEGORY' clause."
+    },
+    {
+      "id": "execute_view_creation",
+      "description": "Verify the view creation query was executed successfully.",
+      "points": 20,
+      "visual_evidence": "A success message in the database client or terminal indicating the view was created (e.g., 'View REVENUE_SUMMARY_VIEW created' or a green success checkmark in a GUI client)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_union_keywords",
+      "description": "Ensure the agent did not use UNION or UNION ALL to combine the queries.",
+      "visual_evidence": "The SQL query visible in the editor or terminal does not contain the words 'UNION' or 'UNION ALL'."
+    },
+    {
+      "id": "genuine_db_interaction",
+      "description": "Ensure the agent executed the query in a real database environment.",
+      "visual_evidence": "Presence of a database client interface or terminal executing SQL commands, rather than just typing the query into a plain text editor without running it."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "Ensure the agent wrote a dynamic query rather than hardcoding the final aggregated values.",
+      "visual_evidence": "The query selects from 'SALES_TRANSACTIONS' and uses the 'SUM()' aggregation function, rather than inserting or selecting hardcoded numerical totals."
+    }
+  ],
+  "privileged_info_for_vlm": "The target view must be named 'REVENUE_SUMMARY_VIEW' and select from the 'SALES_TRANSACTIONS' table. The view must contain exactly three columns: 'REPORT_REGION', 'REPORT_CATEGORY', and 'TOTAL_REVENUE'. NULL values in the region and category columns must be replaced with the exact strings 'All Regions' and 'All Categories'. The SQL query must NOT use 'UNION' or 'UNION ALL' keywords; it must use grouping sets to achieve the aggregations."
+}

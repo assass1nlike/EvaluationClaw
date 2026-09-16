@@ -1,0 +1,50 @@
+{
+  "id": "c4_banking_architecture@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create a C4 software architecture model for an Internet Banking System based on the specification provided in '~/Desktop/c4_architecture_spec.txt'. Produce a single draw.io file at '~/Diagrams/banking_system_c4.drawio' containing two pages: a Level 1 'System Context' diagram and a Level 2 'Container' diagram. Use specific C4 notation shapes (Person, Software System, Container, etc.) and label all relationships with the descriptions found in the specification. Export the complete multi-page diagram as a PDF to '~/Diagrams/banking_system_c4.pdf'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/c4_banking_architecture/setup_task.sh",
+    "post_task": "/workspace/tasks/c4_banking_architecture/export_result.sh"
+  },
+  "metadata": {
+    "spec_file": "/home/ga/Desktop/c4_architecture_spec.txt",
+    "target_drawio": "/home/ga/Diagrams/banking_system_c4.drawio",
+    "target_pdf": "/home/ga/Diagrams/banking_system_c4.pdf",
+    "required_pages": [
+      "System Context",
+      "Container"
+    ],
+    "context_entities": [
+      "Personal Banking Customer",
+      "Internet Banking System",
+      "Mainframe Banking System",
+      "E-mail System"
+    ],
+    "container_entities": [
+      "Single-Page Application",
+      "Web Application",
+      "API Application",
+      "Database"
+    ],
+    "required_relationship_terms": [
+      "views account",
+      "makes payments",
+      "sends e-mail",
+      "reads from",
+      "writes to"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_c4_banking_architecture"
+    }
+  }
+}

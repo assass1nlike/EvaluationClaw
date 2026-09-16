@@ -1,0 +1,84 @@
+{
+  "dataset_id": "28698c67",
+  "name": "Flood-Area-Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 116,
+  "description": "This dataset evaluates image semantic segmentation of flood areas. Each sample provides an image and a natural language prompt asking to segment flooded regions, with a corresponding ground-truth mask.",
+  "card_text": "Flood-Area-Segmentation is a paired image and text dataset for segmenting flooded regions in images. Each of the 116 samples consists of a JPEG image (e.g., aerial or satellite view) and a fixed textual instruction, 'Segment out the flood area in the image.' The target output is a PNG segmentation mask that marks flood pixels. The data is designed for segmentation models that take an image and a task prompt as input and produce a dense binary prediction. Assumptions include that the prompt is invariant across samples and that the mask aligns spatially with the input image. The domain is remote sensing and disaster monitoring.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "remote sensing / flood mapping",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short textual instruction asking the model to segment out the flood area in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "Reference to the input image that contains the flood scene to be segmented.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Reference to the ground-truth segmentation mask image that marks flooded regions corresponding to the input image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Every sample has an input object with an image_file path and a prompt string, and an output object with a map_file path. The prompt is a short instruction to segment flood areas, the image_file references the source image, and the map_file references its corresponding segmentation mask. No other semantic components are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/flood-area-segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "flood area segmentation",
+      "type": "comprehension",
+      "skill": "Image Semantic Segmentation",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "dataset_id": "76f6184a",
+  "name": "Document-Relation-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for document-level relation extraction from encyclopedic text. Given a passage, a set of pre-identified named entities with types, and a list of allowed relation types, the model must extract all subject-relation-object triples among those entities.",
+  "card_text": "This text-only dataset evaluates relation extraction from Wikipedia-style passages about people, places, and organizations. Each sample contains a raw passage, a provided list of named entities with their types, and an instruction prompt that defines the extraction task, allowed relation types, and output format. The expected output is a list of relation tuples in the form (entity1, relation, entity2), separated by <p>. The dataset assumes entities are already recognized, so the core challenge is identifying and typing the relations between them. Relation types include country, country of citizenship, instance of, member of political party, employer, author, founded by, capital, place of death, and place of birth. The data tests factual reading comprehension, entity linking within context, and structured relation extraction.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "Wikipedia",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "Encyclopedic passage providing the source text for relation extraction; it describes factual information about persons, places, or organizations.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "Instruction prompt asking the model to extract all relations between the provided entities, listing allowed relation types and specifying the tuple output format with <p> separators.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "entity": {
+        "paths": [
+          "input.entities"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Pre-identified named entities with their types (e.g., PER, LOC, ORG, MISC) that serve as candidate arguments for the relation extraction task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Target relation triples as (entity1, relation, entity2) strings, separated by <p>, representing the relations extracted between the given entities.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a context passage in input.raw_text, a pre-identified entity list in input.entities, and an instruction prompt in input.prompt that asks for relations among those entities using a fixed relation-type inventory. The target answer in output.text is a delimiter-separated list of relation tuples. The context supplies the evidence, the entities constrain the arguments, the question specifies the task and output format, and the answer gives the extracted relational facts."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Document-Relation-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "document_relation_extraction",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

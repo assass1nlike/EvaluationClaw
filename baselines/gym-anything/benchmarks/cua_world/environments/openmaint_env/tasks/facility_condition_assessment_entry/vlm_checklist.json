@@ -1,0 +1,59 @@
+{
+  "task_id": "facility_condition_assessment_entry@1",
+  "task_completion": [
+    {
+      "id": "asset_notes_updated_standard_failing",
+      "description": "Verify the Notes or Description field was updated for failing standard assets (EQ-FCA-001 or EQ-FCA-003).",
+      "points": 20,
+      "visual_evidence": "Screenshots of OpenMaint showing the asset record for EQ-FCA-001 or EQ-FCA-003 with the Notes/Description field containing exactly 'FCA 2026: Condition 2 - Severe corrosion on coils' (for 001) or 'FCA 2026: Condition 1 - Cracked heat exchanger shell' (for 003)."
+    },
+    {
+      "id": "asset_notes_updated_standard_passing",
+      "description": "Verify the Notes or Description field was updated for passing standard assets (EQ-FCA-002 or EQ-FCA-004).",
+      "points": 10,
+      "visual_evidence": "Screenshots of OpenMaint showing the asset record for EQ-FCA-002 or EQ-FCA-004 with the Notes/Description field containing 'FCA 2026: Condition 4 - Operating within parameters' (for 002) or 'FCA 2026: Condition 5 - Newly installed' (for 004)."
+    },
+    {
+      "id": "asset_notes_updated_heritage",
+      "description": "Verify the Notes or Description field was updated for the heritage asset (EQ-FCA-005).",
+      "points": 10,
+      "visual_evidence": "Screenshots of OpenMaint showing the asset record for EQ-FCA-005 with the Notes/Description field containing 'FCA 2026: Condition 2 - Engine block fatigue - historic unit'."
+    },
+    {
+      "id": "wo_eq_fca_001_created",
+      "description": "Verify a Corrective Maintenance work order was created for EQ-FCA-001.",
+      "points": 20,
+      "visual_evidence": "Screenshot of a work order in OpenMaint linked to EQ-FCA-001. The work order must be of type 'Corrective Maintenance', have a 'Critical' priority, and the description must be 'Capital Replacement Request for EQ-FCA-001'."
+    },
+    {
+      "id": "wo_eq_fca_003_created",
+      "description": "Verify a Corrective Maintenance work order was created for EQ-FCA-003.",
+      "points": 20,
+      "visual_evidence": "Screenshot of a work order in OpenMaint linked to EQ-FCA-003. The work order must be of type 'Corrective Maintenance', have a 'Critical' priority, and the description must be 'Capital Replacement Request for EQ-FCA-003'."
+    },
+    {
+      "id": "heritage_asset_skipped",
+      "description": "Verify no work order was created for the Heritage asset (EQ-FCA-005) despite its failing score.",
+      "points": 20,
+      "visual_evidence": "Screenshot of the work order list in OpenMaint showing requests for 001 and 003, but explicitly missing any 'Capital Replacement Request' for EQ-FCA-005, EQ-FCA-002, or EQ-FCA-004."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the OpenMaint web GUI to perform the updates.",
+      "visual_evidence": "Screenshots should show the OpenMaint web interface in a browser, not terminal windows executing curl commands, python scripts, or direct database queries."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Verify the agent did not use browser developer tools to fake the records.",
+      "visual_evidence": "The browser's developer tools (Elements/Console tab) should not be open and used to modify the DOM to fake the presence of work orders or notes."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Verify the agent interacted with the actual form fields in OpenMaint.",
+      "visual_evidence": "Screenshots should capture intermediate steps of the agent typing or pasting the required text into the OpenMaint input fields and clicking save/submit buttons."
+    }
+  ],
+  "privileged_info_for_vlm": "The CSV file contains 5 assets. EQ-FCA-001 (Score 2, Standard) and EQ-FCA-003 (Score 1, Standard) MUST have 'Corrective Maintenance' work orders created with 'Critical' priority and description 'Capital Replacement Request for [Asset Code]'. EQ-FCA-002 (Score 4) and EQ-FCA-004 (Score 5) do NOT get work orders because their scores are > 2. EQ-FCA-005 (Score 2, Heritage) MUST NOT get a work order because it is a Heritage asset. ALL 5 assets must have their Notes/Description updated with the format 'FCA 2026: Condition [Score] - [InspectorNotes]'."
+}

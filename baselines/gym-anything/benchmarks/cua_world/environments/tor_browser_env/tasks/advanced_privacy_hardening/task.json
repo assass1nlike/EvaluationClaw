@@ -1,0 +1,43 @@
+{
+  "id": "advanced_privacy_hardening@1",
+  "version": "1.0",
+  "env_id": "tor_browser_env@0.1",
+  "description": "You are a privacy engineer at a digital rights organization. A high-risk journalist client has asked you to harden their Tor Browser profile before they travel to a country with aggressive surveillance. Implement the following hardening measures in the running Tor Browser instance: set the Security Level to 'Safest', enable HTTPS-Only Mode for all windows, and configure the browser to never remember history. Additionally, modify the following internal preferences: set 'network.prefetch-next' to false, 'browser.sessionstore.privacy_level' to 2, and 'network.http.speculative-parallel-limit' to 0.",
+  "difficulty": "very_hard",
+  "tags": [
+    "tor",
+    "privacy",
+    "security",
+    "about:config",
+    "hardening",
+    "journalist"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/advanced_privacy_hardening/setup_task.sh",
+    "post_task": "/workspace/tasks/advanced_privacy_hardening/export_result.sh"
+  },
+  "metadata": {
+    "target_security_level": "safest",
+    "target_security_slider": 4,
+    "required_prefs": {
+      "network.prefetch-next": false,
+      "browser.sessionstore.privacy_level": 2,
+      "network.http.speculative-parallel-limit": 0
+    },
+    "required_settings": [
+      "https_only_mode",
+      "never_remember_history"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_advanced_privacy_hardening"
+    }
+  }
+}

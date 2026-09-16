@@ -1,0 +1,26 @@
+{
+  "id": "classify_tcp_connection_states@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Analyze the TCP capture file '200722_tcp_anon.pcapng' in ~/Documents/captures/ using Wireshark. Generate a report at '~/Documents/captures/tcp_connection_state_report.txt' containing exactly these seven metrics (one per line, format 'key: value'):\ntotal_tcp_streams: Total number of unique TCP conversations.\nsyn_packets: Count of initial connection attempt packets (SYN flag set, ACK flag NOT set).\nstreams_with_rst: Number of unique streams containing at least one RST packet.\nstreams_with_fin: Number of unique streams containing at least one FIN packet.\nunanswered_syn_streams: Number of unique streams that have a SYN packet but no corresponding SYN-ACK",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/classify_tcp_connection_states/setup_task.sh",
+    "post_task": "/workspace/tasks/classify_tcp_connection_states/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "/home/ga/Documents/captures/200722_tcp_anon.pcapng",
+    "output_file": "/home/ga/Documents/captures/tcp_connection_state_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_classify_tcp_connection_states"
+    }
+  }
+}

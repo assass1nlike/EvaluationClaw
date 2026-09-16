@@ -1,0 +1,57 @@
+{
+  "id": "water_reactivity_assessment@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Assess the water reactivity hazards for Sodium (CAS 7440-23-5), Calcium Carbide (CAS 75-20-7), Acetone (CAS 67-64-1), Potassium (CAS 7440-09-7), and Ethanol (CAS 64-17-5) using the CAMEO Chemicals website (https://cameochemicals.noaa.gov/). For each chemical, determine if it is water-reactive (YES/NO) and identify any hazardous gases produced. Create a report at /home/ga/Documents/water_reactivity_report.txt listing each chemical, its classification (Water-Reactive: YES or NO), and a brief description of the reaction or hazards found.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "chemicals",
+    "water-reactivity",
+    "hazard-assessment",
+    "research"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/water_reactivity_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/water_reactivity_assessment/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/water_reactivity_report.txt",
+    "chemicals": [
+      {
+        "name": "Sodium",
+        "reactive": true,
+        "keyword": "hydrogen"
+      },
+      {
+        "name": "Calcium Carbide",
+        "reactive": true,
+        "keyword": "acetylene"
+      },
+      {
+        "name": "Acetone",
+        "reactive": false
+      },
+      {
+        "name": "Potassium",
+        "reactive": true,
+        "keyword": "hydrogen"
+      },
+      {
+        "name": "Ethanol",
+        "reactive": false
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_water_reactivity_assessment"
+    }
+  }
+}

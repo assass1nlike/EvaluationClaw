@@ -1,0 +1,29 @@
+{
+  "id": "reduce_apk_size@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "The NewsReaderApp APK size has ballooned to over 25MB, which is too large for our target market. Identify the single largest file contributing to the APK size and remove it from the source project. The final debug APK must be under 5MB.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reduce_apk_size/setup_task.sh",
+    "post_task": "/workspace/tasks/reduce_apk_size/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/NewsReaderApp",
+    "bloat_file_relative_path": "app/src/main/assets/onboarding_deprecated.mp4",
+    "target_apk_size_bytes": 5242880,
+    "bloat_size_mb": 30
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reduce_apk_size"
+    }
+  }
+}

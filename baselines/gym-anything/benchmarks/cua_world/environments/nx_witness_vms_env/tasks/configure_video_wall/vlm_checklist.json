@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_video_wall@1",
+  "task_completion": [
+    {
+      "id": "api_interaction_setup",
+      "description": "Agent prepares to interact with the Nx Witness REST API.",
+      "points": 10,
+      "visual_evidence": "Terminal showing `curl` commands, a Python script being written with `requests` to `https://localhost:7001/rest/v1/`, or an API client open."
+    },
+    {
+      "id": "layouts_creation",
+      "description": "Agent creates the four required layouts with the correct cameras.",
+      "points": 20,
+      "visual_evidence": "Script code, curl commands, or API responses showing the creation of 'SOC - Parking View', 'SOC - Entrance View', 'SOC - Server Room View', and 'SOC - Overview' and linking them to the respective cameras."
+    },
+    {
+      "id": "video_wall_creation",
+      "description": "Agent creates the Video Wall named 'Distribution Hub SOC' with autorun enabled.",
+      "points": 20,
+      "visual_evidence": "Script code, curl commands, or API responses showing a POST/PUT request to create a video wall with the name 'Distribution Hub SOC' and an 'autorun' parameter set to true/enabled."
+    },
+    {
+      "id": "video_wall_items_configuration",
+      "description": "Agent configures the 2x2 screen items and assigns the layouts.",
+      "points": 30,
+      "visual_evidence": "Script code, curl commands, or API responses showing the creation of 4 video wall items, each with a resolution of 1920x1080, positioned in a 2x2 grid (e.g., coordinates or top-left/right), and linked to the previously created layouts."
+    },
+    {
+      "id": "summary_report_saved",
+      "description": "Agent saves the summary report to the specified path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the creation of `/home/ga/video_wall_report.txt` (e.g., using `echo`, `cat`, or a script writing to it), and the file content displaying the Video Wall name and item details."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_gui_configuration",
+      "description": "The agent must not use the Nx Witness Desktop GUI to configure the video wall.",
+      "visual_evidence": "The Nx Witness Desktop application should not be used to create the layouts or video wall; all configuration must be done via the REST API."
+    },
+    {
+      "id": "actual_api_requests",
+      "description": "The agent must actually execute the API requests, not just write a script without running it.",
+      "visual_evidence": "Terminal showing the execution of the script or curl commands, preferably with HTTP 200/OK or JSON responses from the server."
+    },
+    {
+      "id": "genuine_report",
+      "description": "The summary report must be generated based on the actual configuration or script.",
+      "visual_evidence": "The script writes the report dynamically, or the agent copies real IDs/details from the API responses into the report, rather than just manually typing fake data."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring a Video Wall named 'Distribution Hub SOC' via the Nx Witness REST API at https://localhost:7001/rest/v1/. Four layouts must be created: 'SOC - Parking View' (Parking Lot Camera), 'SOC - Entrance View' (Entrance Camera), 'SOC - Server Room View' (Server Room Camera), and 'SOC - Overview' (all 3 cameras). The Video Wall must have autorun enabled and a 2x2 grid of 4 items, each 1920x1080. The layouts must be assigned: Parking View (Top-Left), Entrance View (Top-Right), Server Room View (Bottom-Left), Overview (Bottom-Right). A summary report must be saved to /home/ga/video_wall_report.txt."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "multisource_spectral_integration@1",
+  "task_completion": [
+    {
+      "id": "load_spectral_bands",
+      "description": "Verify that both Sentinel-2 spectral band files (B04 and B08) are loaded into the remote sensing software.",
+      "points": 10,
+      "visual_evidence": "The software's product tree or file explorer shows both 'sentinel2_B04_red.tif' and 'sentinel2_B08_nir.tif' as opened/loaded products."
+    },
+    {
+      "id": "combine_bands",
+      "description": "Verify that the two spectral bands have been combined into a single multi-spectral product.",
+      "points": 20,
+      "visual_evidence": "A new combined product is visible in the product tree containing both the red (B04) and NIR (B08) bands, or a tool like 'Collocation', 'Band Merge', or 'Layer Stacking' is successfully executed."
+    },
+    {
+      "id": "derive_vegetation_index",
+      "description": "Verify that a vegetation characterization index (e.g., NDVI) has been derived from the combined data.",
+      "points": 30,
+      "visual_evidence": "A new band representing the vegetation index (e.g., named 'NDVI' or similar) is visible in the product tree under the combined product, or an image view of the computed index is displayed."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Verify that the integrated product is saved in BEAM-DIMAP format.",
+      "points": 20,
+      "visual_evidence": "A save dialog or file explorer shows the product being saved with a '.dim' extension, or the product properties indicate BEAM-DIMAP format."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Verify that the final product is exported as a GeoTIFF to the /home/ga/snap_exports/ directory.",
+      "points": 20,
+      "visual_evidence": "An export dialog or file manager shows a '.tif' file being saved specifically to the '/home/ga/snap_exports/' folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the graphical user interface of a remote sensing application (e.g., ESA SNAP) rather than just running terminal scripts.",
+      "visual_evidence": "Screenshots should show the GUI of the remote sensing software being actively used (menus, dialogs, product trees)."
+    },
+    {
+      "id": "genuine_computation",
+      "description": "Verify the vegetation index was actually computed using the software's tools and not just a renamed or mocked file.",
+      "visual_evidence": "Dialog boxes for 'Band Math', 'NDVI Processor', or similar tools should be visible with the correct formula or input bands selected."
+    },
+    {
+      "id": "correct_export_path",
+      "description": "Ensure the agent explicitly navigated to or typed the required export path.",
+      "visual_evidence": "The save/export dialog explicitly shows the path '/home/ga/snap_exports/' being used, rather than a default directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses real Sentinel-2 Level-2A data (B04 Red and B08 NIR) located at '/home/ga/snap_data/sentinel2_B04_red.tif' and '/home/ga/snap_data/sentinel2_B08_nir.tif'. The final outputs must include a BEAM-DIMAP file (.dim) and a GeoTIFF file (.tif) saved to '/home/ga/snap_exports/'."
+}

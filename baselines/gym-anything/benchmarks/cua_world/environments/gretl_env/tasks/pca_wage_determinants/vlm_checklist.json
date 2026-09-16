@@ -1,0 +1,53 @@
+{
+  "task_id": "pca_wage_determinants@1",
+  "task_completion": [
+    {
+      "id": "script_content",
+      "description": "Agent writes a Gretl hansl script to perform PCA and save outputs",
+      "points": 30,
+      "visual_evidence": "Look for a text editor (e.g., nano, vim, gedit) or Gretl GUI showing a script. The script should contain commands to open the dataset, run PCA on the 6 variables (wage, educ, exper, age, hrswk, tenure) while retaining scores (e.g., using the 'pca' command with '--save' or similar), redirect output to a text file, and save the augmented dataset."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent executes the Gretl script",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window where the agent runs the script using Gretl (e.g., 'gretlcli -b pca_analysis.inp' or similar) or the Gretl GUI showing the script being executed and producing output."
+    },
+    {
+      "id": "pca_results_file",
+      "description": "PCA text output is saved to pca_results.txt",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command (like 'ls', 'cat', or 'head') or a file manager showing 'pca_results.txt' in the '/home/ga/Documents/gretl_output/' directory. If contents are visible, they should display Principal Component Analysis output (eigenvalues, eigenvectors)."
+    },
+    {
+      "id": "augmented_dataset_file",
+      "description": "Augmented dataset is saved to wage_survey_pca.gdt",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command or file manager showing 'wage_survey_pca.gdt' in the '/home/ga/Documents/gretl_output/' directory."
+    },
+    {
+      "id": "script_file",
+      "description": "Gretl script is saved to pca_analysis.inp",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command or file manager showing 'pca_analysis.inp' in the '/home/ga/Documents/gretl_output/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gretl_execution",
+      "description": "Agent actually used Gretl to perform the PCA",
+      "visual_evidence": "Check that the agent used Gretl ('gretlcli' or Gretl GUI) to execute the script. It should not use Python, R, or mock the output files with 'echo' or manual text creation."
+    },
+    {
+      "id": "no_manual_output_faking",
+      "description": "Agent did not manually fake the PCA results",
+      "visual_evidence": "Check that the agent did not manually type or copy-paste the PCA results into 'pca_results.txt'. The file should be generated programmatically by Gretl."
+    },
+    {
+      "id": "correct_dataset_used",
+      "description": "Agent used the provided dataset",
+      "visual_evidence": "Ensure the agent's script opens the specific dataset '/home/ga/Documents/gretl_data/wage_survey.gdt' rather than creating a dummy dataset or using a different file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is located at /home/ga/Documents/gretl_data/wage_survey.gdt and contains 60 observations of 6 variables: wage, educ, exper, age, hrswk, tenure. The expected output directory is /home/ga/Documents/gretl_output/. Three files must be created in this directory: pca_analysis.inp, pca_results.txt, and wage_survey_pca.gdt. The PCA on the correlation matrix of these 6 variables yields an eigenvalue sum of exactly 6.0."
+}

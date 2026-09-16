@@ -1,0 +1,32 @@
+{
+  "id": "import_bank_statement@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Import the bank statement file '/home/ga/Documents/bank_import.ofx' into Ekylibre. This file contains recent transactions for the farm. Map the import to the farm's main bank account (e.g., 'Banque' or 'Compte Courant').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_bank_statement/setup_task.sh",
+    "post_task": "/workspace/tasks/import_bank_statement/export_result.sh"
+  },
+  "metadata": {
+    "import_file_path": "/home/ga/Documents/bank_import.ofx",
+    "expected_transaction_count": 3,
+    "expected_amounts": [
+      4500.0,
+      -125.5,
+      -85.2
+    ],
+    "account_name_hint": "Banque"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_bank_statement"
+    }
+  }
+}

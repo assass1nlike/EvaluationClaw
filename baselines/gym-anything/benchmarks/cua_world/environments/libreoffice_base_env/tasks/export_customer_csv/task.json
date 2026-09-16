@@ -1,0 +1,38 @@
+{
+  "id": "export_customer_csv@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Generate a customer spending report from the Chinook database and export it to /home/ga/Documents/customer_spending.csv. The report must include exactly these columns in order: CustomerId, FirstName, LastName, Email, Country, and TotalSpending (rounded to 2 decimal places). Sort the results by TotalSpending in descending order. The exported CSV must include a header row, use a comma delimiter, and contain records for all 59 customers.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_customer_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/export_customer_csv/export_result.sh"
+  },
+  "metadata": {
+    "expected_file_path": "/home/ga/Documents/customer_spending.csv",
+    "expected_header": [
+      "CustomerId",
+      "FirstName",
+      "LastName",
+      "Email",
+      "Country",
+      "TotalSpending"
+    ],
+    "expected_row_count": 59,
+    "expected_total_sum": 2328.6,
+    "top_spender_id": "6",
+    "top_spender_amount": 49.62,
+    "tolerance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_customer_csv"
+    }
+  }
+}

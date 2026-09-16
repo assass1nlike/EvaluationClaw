@@ -1,0 +1,28 @@
+{
+  "id": "set_flap_deflection@1",
+  "version": "1.0",
+  "env_id": "qblade_env@0.1",
+  "description": "Generate a NACA 4415 airfoil and a modified version featuring a 10-degree downward flap deflection at the 75% chord hinge position. Export the original airfoil coordinates to /home/ga/Documents/airfoils/naca4415_original.dat and the flap-deflected coordinates to /home/ga/Documents/airfoils/naca4415_flap10.dat in standard .dat format.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/set_flap_deflection/setup_task.sh",
+    "post_task": "/workspace/tasks/set_flap_deflection/export_result.sh"
+  },
+  "metadata": {
+    "original_file": "/home/ga/Documents/airfoils/naca4415_original.dat",
+    "modified_file": "/home/ga/Documents/airfoils/naca4415_flap10.dat",
+    "hinge_pos": 0.75,
+    "deflection_deg": 10.0,
+    "naca_digits": "4415"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_set_flap_deflection"
+    }
+  }
+}

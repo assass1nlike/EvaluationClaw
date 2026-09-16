@@ -1,0 +1,59 @@
+{
+  "task_id": "security_trend_forecast@1",
+  "task_completion": [
+    {
+      "id": "search_failed_auths",
+      "description": "Search the security_logs index for failed authentications",
+      "points": 10,
+      "visual_evidence": "Splunk search interface showing a query that includes 'index=security_logs' (or similar) and keywords/fields indicating failed authentications (e.g., 'fail', 'failure', 'action=failure')."
+    },
+    {
+      "id": "apply_forecasting",
+      "description": "Aggregate data over time and apply forecasting",
+      "points": 20,
+      "visual_evidence": "The search query includes time-series aggregation (e.g., 'timechart') and forecasting commands (e.g., 'predict'). The results should display a chart or table with future projected values."
+    },
+    {
+      "id": "save_search_auth_failure_forecast",
+      "description": "Create a saved search named 'Auth_Failure_Forecast'",
+      "points": 20,
+      "visual_evidence": "A 'Save As Report' or 'Save As Alert' dialog, or the Splunk 'Reports'/'Searches' list displaying the exact name 'Auth_Failure_Forecast'."
+    },
+    {
+      "id": "schedule_search_daily",
+      "description": "Schedule the saved search on a daily schedule",
+      "points": 15,
+      "visual_evidence": "The schedule settings dialog for the saved search showing the schedule enabled and set to 'Run every day', 'Daily', or a cron expression equivalent to daily (e.g., '0 0 * * *')."
+    },
+    {
+      "id": "create_dashboard_security_trend",
+      "description": "Create a dashboard named 'Security_Trend_Forecast'",
+      "points": 15,
+      "visual_evidence": "A dashboard creation dialog or the dashboard view itself showing the exact title 'Security_Trend_Forecast'."
+    },
+    {
+      "id": "add_forecast_panel_to_dashboard",
+      "description": "Include a visualization panel displaying the forecast data on the dashboard",
+      "points": 20,
+      "visual_evidence": "The 'Security_Trend_Forecast' dashboard contains a visualization panel (typically a line chart with confidence intervals) that clearly displays the forecasted authentication failure data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web GUI to complete the task",
+      "visual_evidence": "Screenshots should show the agent interacting with the Splunk web interface in a browser at http://localhost:8000, rather than writing API scripts or editing configuration files in a terminal."
+    },
+    {
+      "id": "genuine_data_rendering",
+      "description": "The forecast visualization renders actual data",
+      "visual_evidence": "The visualization panel on the dashboard and in the search view should show a rendered Splunk chart with axes, legends, and data points, not a static image, text mock-up, or empty panel."
+    },
+    {
+      "id": "no_direct_xml_manipulation",
+      "description": "Agent did not bypass the UI by directly editing Splunk XML files",
+      "visual_evidence": "Absence of terminal windows showing the agent manually writing XML files to /opt/splunk/etc/apps/search/local/data/ui/views/ to create the dashboard."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Search Name: 'Auth_Failure_Forecast'. Expected Dashboard Name: 'Security_Trend_Forecast'. Splunk credentials are admin / SplunkAdmin1!. The data must be sourced from the 'security_logs' index."
+}

@@ -1,0 +1,45 @@
+{
+  "id": "publish_reprojected_layer@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "A GIS technologist needs to serve Natural Earth country boundaries in Web Mercator projection (EPSG:3857) for a web mapping application. Create a new layer named 'ne_countries_3857' in the 'ne' workspace using the 'postgis_ne' data store and the 'ne_countries' PostGIS table. The layer must be reprojected from its native EPSG:4326 to a declared EPSG:3857. Set the title to 'Natural Earth Countries (Web Mercator)' and ensure bounding boxes are computed. The original 'ne_countries' layer must remain unchanged. GeoServer is at http://localhost:8080/geoserver/ with credentials admin / Admin123!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/publish_reprojected_layer/setup_task.sh",
+    "post_task": "/workspace/tasks/publish_reprojected_layer/export_result.sh"
+  },
+  "metadata": {
+    "expected_layer_name": "ne_countries_3857",
+    "expected_native_name": "ne_countries",
+    "expected_srs": "EPSG:3857",
+    "expected_title": "Natural Earth Countries (Web Mercator)",
+    "expected_policy_options": [
+      "REPROJECT",
+      "FORCE"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_publish_reprojected_layer"
+    }
+  },
+  "tags": [
+    "geoserver",
+    "crs",
+    "reprojection",
+    "layer-publishing",
+    "web-mercator",
+    "postgis"
+  ],
+  "requirements": {
+    "network": true,
+    "docker": true,
+    "browser": true
+  }
+}

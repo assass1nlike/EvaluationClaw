@@ -1,0 +1,59 @@
+{
+  "task_id": "segment_ct_tissue_types@1",
+  "task_completion": [
+    {
+      "id": "three_segments_created",
+      "description": "Verify that exactly three segments have been created in the segmentation module.",
+      "points": 15,
+      "visual_evidence": "Look at the segment list in the application's GUI (e.g., Segment Editor in 3D Slicer) and count exactly three distinct segment entries."
+    },
+    {
+      "id": "correct_segment_names",
+      "description": "Verify that the segments are correctly named 'Bone', 'Soft Tissue', and 'Air'.",
+      "points": 15,
+      "visual_evidence": "Check the text labels of the segments in the segment list to ensure they match 'Bone', 'Soft Tissue', and 'Air' exactly."
+    },
+    {
+      "id": "bone_threshold_applied",
+      "description": "Verify that the 'Bone' segment was created using a threshold of > 300 HU.",
+      "points": 15,
+      "visual_evidence": "Look for the Threshold tool settings in the GUI while the 'Bone' segment is selected, showing a minimum threshold value of 300."
+    },
+    {
+      "id": "soft_tissue_threshold_applied",
+      "description": "Verify that the 'Soft Tissue' segment was created using a threshold of 0-100 HU.",
+      "points": 15,
+      "visual_evidence": "Look for the Threshold tool settings in the GUI while the 'Soft Tissue' segment is selected, showing a minimum value of 0 and a maximum value of 100."
+    },
+    {
+      "id": "air_threshold_applied",
+      "description": "Verify that the 'Air' segment was created using a threshold of < -500 HU.",
+      "points": 15,
+      "visual_evidence": "Look for the Threshold tool settings in the GUI while the 'Air' segment is selected, showing a maximum threshold value of -500."
+    },
+    {
+      "id": "segmentation_saved",
+      "description": "Verify that the segmentation is saved to the specified path: ~/Documents/SlicerData/Exports/tissue_segmentation.seg.nrrd.",
+      "points": 25,
+      "visual_evidence": "Look for a 'Save Data' dialog, export interface, or a terminal/file manager window showing the file 'tissue_segmentation.seg.nrrd' being saved or existing in the '~/Documents/SlicerData/Exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the medical imaging software's GUI to perform the segmentation.",
+      "visual_evidence": "Screenshots should show interaction with the application's segmentation tools (like the Segment Editor) rather than just executing a Python script or terminal commands to bypass the UI."
+    },
+    {
+      "id": "anatomical_plausibility",
+      "description": "Ensure the resulting segments visually correspond to the correct anatomical structures.",
+      "visual_evidence": "In the 2D slice views or 3D viewer, the 'Bone' segment should highlight skeletal structures (spine, ribs), 'Air' should highlight the background or bowel gas, and 'Soft Tissue' should highlight organs/muscle, proving genuine thresholding occurred."
+    },
+    {
+      "id": "genuine_save_operation",
+      "description": "Ensure the file was saved through the application rather than faked via terminal.",
+      "visual_evidence": "Look for the application's native save or export dialog being used to generate the .seg.nrrd file, rather than terminal commands like 'touch' creating an empty file."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct Hounsfield Unit (HU) thresholds for identifying the tissue types are: Bone requires a minimum of 300 HU. Soft tissue requires a minimum of 0 HU. Air requires a maximum of -500 HU."
+}

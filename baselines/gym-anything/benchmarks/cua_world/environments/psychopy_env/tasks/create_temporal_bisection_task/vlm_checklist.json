@@ -1,0 +1,59 @@
+{
+  "task_id": "create_temporal_bisection_task@1",
+  "task_completion": [
+    {
+      "id": "conditions_files_created",
+      "description": "Verify that the anchors.csv and probes.csv files are created with the correct columns and values.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor, spreadsheet application, or terminal showing the contents of anchors.csv (columns: stim_dur, corr_key, label; values: 0.4/s/Short, 1.6/l/Long) and probes.csv (column: stim_dur; values: 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6)."
+    },
+    {
+      "id": "experiment_saved_correct_path",
+      "description": "Verify that the PsychoPy experiment is saved with the correct filename.",
+      "points": 10,
+      "visual_evidence": "Look at the PsychoPy Builder window title bar; it should display 'temporal_bisection.psyexp' or similar indicating the file is saved in the target directory."
+    },
+    {
+      "id": "demo_routine_configured",
+      "description": "Verify the 'demo' routine is configured with a pink circle, text label, and uses anchors.csv.",
+      "points": 20,
+      "visual_evidence": "Look for a routine named 'demo' containing a Polygon component (set to a pink circle, duration '$stim_dur' with 'set every repeat') and a Text component (text '$label'). In the loop dialog for this routine, 'anchors.csv' should be loaded with nReps=5."
+    },
+    {
+      "id": "training_routine_configured",
+      "description": "Verify the 'training' routine is configured with a pink circle, keyboard response, feedback, and uses anchors.csv.",
+      "points": 20,
+      "visual_evidence": "Look for a routine named 'training' containing a Polygon (pink circle, duration '$stim_dur' set every repeat), a Keyboard component (allowed keys 's', 'l', store correct), and a feedback component (Text or Code showing 'Correct'/'Wrong'). The loop dialog should show 'anchors.csv' loaded with nReps=5."
+    },
+    {
+      "id": "testing_routine_configured",
+      "description": "Verify the 'testing' routine is configured with a pink circle, keyboard response (no feedback), and uses probes.csv.",
+      "points": 20,
+      "visual_evidence": "Look for a routine named 'testing' containing a Polygon (pink circle, duration '$stim_dur' set every repeat) and a Keyboard component. There should be no feedback component. The loop dialog should show 'probes.csv' loaded with nReps=10."
+    },
+    {
+      "id": "flow_structure_completed",
+      "description": "Verify the overall experiment flow contains the three routines in order, each with its own loop.",
+      "points": 15,
+      "visual_evidence": "Look at the 'Flow' panel at the bottom of the PsychoPy Builder window. It should show the 'demo', 'training', and 'testing' routines sequentially, with each routine enclosed in a loop (e.g., demo_loop, training_loop, testing_loop)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "psychopy_builder_used",
+      "description": "Verify that the agent used the PsychoPy Builder GUI to construct the experiment.",
+      "visual_evidence": "Screenshots should show the PsychoPy Builder interface being actively used (adding routines, configuring components in dialog boxes, setting up loops) rather than the agent writing a .psyexp XML/JSON file directly in a text editor."
+    },
+    {
+      "id": "manual_component_configuration",
+      "description": "Verify that component properties are manually entered into the GUI.",
+      "visual_evidence": "Look for screenshots showing the properties dialog boxes for Polygons, Text, Keyboard, and Loops where variables like '$stim_dur' and '$label' are typed into the fields."
+    },
+    {
+      "id": "conditions_files_genuine",
+      "description": "Verify that the conditions files were genuinely created and loaded.",
+      "visual_evidence": "Look for the loop properties dialog in PsychoPy showing the 'Conditions' field populated with the CSV files, and the parameter preview box successfully displaying the variables (stim_dur, corr_key, label) loaded from the files."
+    }
+  ],
+  "privileged_info_for_vlm": "The experiment file must be created at /home/ga/PsychoPyExperiments/temporal_bisection.psyexp. The conditions files must be created at /home/ga/PsychoPyExperiments/conditions/anchors.csv and /home/ga/PsychoPyExperiments/conditions/probes.csv."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "create_powershell_voice@1",
+  "task_completion": [
+    {
+      "id": "directory_and_files_created",
+      "description": "Verify the target directory and the three required Talon module files were created.",
+      "points": 15,
+      "visual_evidence": "Look for a file explorer, terminal, or code editor showing the directory 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\powershell_integration' containing 'powershell_commands.py', 'powershell_commands.talon', and 'powershell_services.talon-list'."
+    },
+    {
+      "id": "python_methods_defined",
+      "description": "Verify the Python file defines the required module, capture, and 6 specific methods.",
+      "points": 25,
+      "visual_evidence": "Look at the contents of 'powershell_commands.py'. It must contain a Module() definition, a '@mod.capture(rule=...)' for 'user.ps_cmdlet', and the methods: ps_list_processes, ps_disk_space, ps_list_services, ps_network_test, ps_event_log, and ps_clear_output."
+    },
+    {
+      "id": "python_subprocess_and_logging",
+      "description": "Verify the Python methods execute PowerShell via subprocess and append to the log file with timestamps.",
+      "points": 20,
+      "visual_evidence": "In 'powershell_commands.py', look for 'subprocess.run' (or similar) with 'capture_output=True', 'text=True', and 'shell=True' executing PowerShell cmdlets. Also look for file writing logic that appends ('a' mode) to 'C:\\Users\\Docker\\talon_shell_output.txt' and includes timestamp formatting."
+    },
+    {
+      "id": "talon_voice_mappings",
+      "description": "Verify the Talon file maps the required voice phrases to the Python actions and Notepad.",
+      "points": 25,
+      "visual_evidence": "Look at the contents of 'powershell_commands.talon'. It must contain mappings for 'shell list processes', 'shell disk space', 'shell find service <user.ps_cmdlet>', 'shell network test', 'shell event log', 'shell clear output', and 'shell open output' (which should trigger Notepad to open the log file)."
+    },
+    {
+      "id": "talon_list_services",
+      "description": "Verify the Talon list file declares the correct list and contains at least 15 service mappings.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'powershell_services.talon-list'. It must start with 'list: user.ps_cmdlet' followed by a line with '-' and then at least 15 lines of voice-command-to-service-name mappings (e.g., 'windows update: wuauserv')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Ensure the files are actually saved to the disk in the correct directory.",
+      "visual_evidence": "Check that the files are not just open in an unsaved state in a text editor (e.g., no 'unsaved' dot in VS Code tabs) and are located in the correct AppData\\Roaming\\talon\\user path."
+    },
+    {
+      "id": "no_mocked_output",
+      "description": "Ensure the Python script dynamically calls PowerShell rather than hardcoding fake output.",
+      "visual_evidence": "Verify that the Python script uses subprocess to invoke actual PowerShell cmdlets (like Get-Process, Get-Service) rather than just writing static strings to the output text file."
+    },
+    {
+      "id": "actual_service_mappings",
+      "description": "Ensure the .talon-list file contains genuine Windows service names.",
+      "visual_evidence": "Look at the list items in 'powershell_services.talon-list' to ensure they look like real Windows services (e.g., spooler, wuauserv, bits) rather than placeholder text like 'service one: service1'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory must be exactly: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\powershell_integration. The output log file must be exactly: C:\\Users\\Docker\\talon_shell_output.txt. The Python file must contain exactly these methods: ps_list_processes, ps_disk_space, ps_list_services, ps_network_test, ps_event_log, ps_clear_output."
+}

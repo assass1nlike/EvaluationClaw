@@ -1,0 +1,106 @@
+{
+  "dataset_id": "d29b12a8",
+  "name": "Openset Recipe Completion",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Recipe Completion dataset evaluates multimodal recipe understanding: given an interleaved image-and-text cooking tutorial with one step label blanked out, the model must pick the correct text from a multiple-choice list to complete the recipe summary. It tests fine-grained alignment between step photographs and textual recipe structure.",
+  "card_text": "Openset Recipe Completion is an open-set multimodal benchmark of 200 examples, each pairing a text recipe tutorial with a set of step photographs. The input is a long prompt that interleaves a step-by-step recipe (ingredients, numbered steps, and <ImageHere> placeholders marking where each photo belongs) with an explicit instruction and an embedded choice list of four candidate phrases. The associated images are photographs of the cooking process/ingredients, one per step. The model must infer what summary label was replaced by 'UNKNOWN' and output the matching option as free text. Data is drawn from a diverse, open collection of web recipe tutorials, so recipes range from vegan baking to sandwiches and vary greatly in step count, ingredient complexity, and photo quality. The benchmark targets joint visual-textual reasoning about procedural cooking content rather than pure text comprehension.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "cooking recipes / recipe tutorials",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "The full recipe-completion prompt: it opens with a task instruction, then lists the recipe title, ingredients, and numbered preparation steps with <ImageHere> markers indicating where the accompanying photos belong. It ends with a partial 'Recipe Summary' containing an 'UNKNOWN' slot, the candidate choice list, and the trigger phrase 'Your answer is:'. This is the primary content the model must read and reason over, and it is aligned step-by-step with the image files.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "The interrogative part of the prompt, which instructs the model to analyze the interleaved recipe tutorial and select the most apt text to fill the missing blank in the recipe summary, choosing from the provided choice list. It is embedded at the beginning and end of the same prompt field that carries the recipe context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The answer candidates, embedded inline in the prompt as 'Choice list:[...]'. Each sample offers four short English phrases, only one of which correctly names the missing recipe-summary step (the distractors include other recipe titles and unrelated step names).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of 1-8 JPEG filenames, each corresponding to one <ImageHere> placeholder in the recipe steps and showing the food, ingredients, or preparation stage for that step. The images provide the visual evidence needed to disambiguate which summary label belongs in the blank slot.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold completion for the recipe summary blank, given as a short phrase that exactly matches one entry of the embedded choice list (e.g. 'Prepare Batter', 'Lettuce').",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three components: a long text prompt (input.prompt) that combines the task instruction, the recipe tutorial with <ImageHere> markers, the partially filled recipe summary with an 'UNKNOWN' slot, and an inline four-item choice list; a list of image filenames (input.image_file) corresponding one-to-one with the <ImageHere> markers in the tutorial steps; and a short free-text gold answer (output.text) that reproduces the correct choice from the list. The images and text steps are positionally interleaved, so the model must jointly reason over the visual sequence and the textual recipe structure to fill in the missing summary label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/RecipeCompletion/openset_recipe_completion.json",
+    "existing_tags": {
+      "task": "Recipe Completion",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

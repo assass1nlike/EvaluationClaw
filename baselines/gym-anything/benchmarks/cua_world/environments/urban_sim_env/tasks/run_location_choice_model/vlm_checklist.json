@@ -1,0 +1,59 @@
+{
+  "task_id": "run_location_choice_model@1",
+  "task_completion": [
+    {
+      "id": "notebook_created_and_opened",
+      "description": "Create or open the Jupyter notebook at the correct path.",
+      "points": 10,
+      "visual_evidence": "A Jupyter notebook interface is visible with the file path or name indicating '/home/ga/urbansim_projects/notebooks/location_choice.ipynb'."
+    },
+    {
+      "id": "data_loaded",
+      "description": "Load the UrbanSim HDF5 dataset and access the required tables.",
+      "points": 15,
+      "visual_evidence": "Code cells show pandas or similar libraries reading '/home/ga/urbansim_projects/data/sanfran_public.h5' and extracting the 'households' and 'buildings' tables."
+    },
+    {
+      "id": "data_preparation",
+      "description": "Prepare the data with a binary dependent variable and at least three building characteristics as features.",
+      "points": 20,
+      "visual_evidence": "Code cells show the creation of a binary target variable (e.g., 0 and 1) and the selection of at least 3 features from the buildings table (e.g., residential_sales_price, building_sqft, year_built) merged with the households data."
+    },
+    {
+      "id": "model_estimation",
+      "description": "Estimate the logistic regression model.",
+      "points": 20,
+      "visual_evidence": "Code cells show the initialization and fitting of a logistic regression model (e.g., using statsmodels Logit or sklearn LogisticRegression) with output logs or a summary table visible."
+    },
+    {
+      "id": "export_coefficients_csv",
+      "description": "Export the model coefficients to the specified CSV file with correct columns.",
+      "points": 15,
+      "visual_evidence": "Code cells show a DataFrame containing 'variable' and 'coefficient' columns being saved to '/home/ga/urbansim_projects/output/location_choice_coefficients.csv'. The file explorer or terminal might also show this file exists."
+    },
+    {
+      "id": "export_bar_chart_png",
+      "description": "Save a bar chart of the coefficient magnitudes to the specified PNG file.",
+      "points": 20,
+      "visual_evidence": "Code cells show matplotlib, seaborn, or similar plotting code generating a bar chart of the coefficients and saving it to '/home/ga/urbansim_projects/output/location_choice_coefficients.png'. The plot itself should ideally be visible in the notebook output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "notebook_execution_verified",
+      "description": "The agent actually executed the code cells in the Jupyter notebook.",
+      "visual_evidence": "The code cells have execution numbers (e.g., In [1], In [2]) and display corresponding outputs, rather than just being typed out without running."
+    },
+    {
+      "id": "genuine_model_training",
+      "description": "The coefficients and plot are derived from actual model training, not hardcoded.",
+      "visual_evidence": "The code extracts coefficients directly from the fitted model object (e.g., model.params or model.coef_) rather than manually typing out a list of mock variables and numbers."
+    },
+    {
+      "id": "programmatic_file_creation",
+      "description": "The CSV and PNG files were generated via Python code, not manually created.",
+      "visual_evidence": "The notebook contains explicit `to_csv()` and `savefig()` commands pointing to the correct output paths, rather than the agent opening a text editor to write the CSV or downloading an external image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/location_choice.ipynb. The dataset must be loaded from /home/ga/urbansim_projects/data/sanfran_public.h5. The model must use at least 3 features. The output CSV must be saved to /home/ga/urbansim_projects/output/location_choice_coefficients.csv and contain exactly the columns 'variable' and 'coefficient'. The output plot must be saved to /home/ga/urbansim_projects/output/location_choice_coefficients.png."
+}

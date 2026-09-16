@@ -1,0 +1,75 @@
+{
+  "dataset_id": "e1d3e0b8",
+  "name": "Temporal-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Temporal-Ner dataset consists of short text snippets paired with instructions to extract temporal expressions and classify them as DATE, DURATION, TIME, or SET. It evaluates a model's ability to identify temporal spans and assign the correct temporal type, outputting them in a structured format.",
+  "card_text": "This dataset is a text-only benchmark for temporal named entity recognition (NER). Each sample provides a raw text segment, ranging from a few words to a single sentence, and a prompt that instructs the model to extract all temporal expressions and their types. The allowed temporal types are DATE, DURATION, TIME, and SET. The expected output is a comma-separated list of pairs in the format 'expression => type'. The raw texts appear to be drawn from news-like or general factual sources. The dataset contains 200 samples. It tests span detection and type classification of temporal mentions, a core task in information extraction. No additional context, options, or rationales are provided; the prompt includes a placeholder for the raw text.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw text segment that may contain zero or more temporal expressions. It is the primary input to analyze and typically consists of a short phrase or a single sentence, often drawn from news-like factual text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract all temporal expressions and their types from the raw text. It lists the possible types (DATE, DURATION, TIME, SET) and specifies the output format 'expression => type', with multiple expressions separated by commas. It contains a placeholder <<<raw_text>>> that refers to the context field.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output: a comma-separated list of temporal expressions with their assigned types, formatted as 'expression => type'. For example, 'a year ago => DATE, a year ago => DATE'. It provides the ground truth for temporal entity extraction and typing.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three text components: a raw text snippet (input.raw_text) that serves as the context, an instruction prompt (input.prompt) that asks for temporal expression extraction and specifies the output format, and a target answer (output.text) listing the extracted temporal expressions with their types. The prompt refers to the raw text via the placeholder <<<raw_text>>>, and the answer is a comma-separated sequence of 'expression => type' pairs."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Temporal-NER/annotation.json",
+    "existing_tags": {
+      "task": "temporal_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

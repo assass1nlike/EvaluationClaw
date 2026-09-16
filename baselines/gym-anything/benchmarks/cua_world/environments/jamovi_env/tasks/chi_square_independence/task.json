@@ -1,0 +1,35 @@
+{
+  "id": "chi_square_independence@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Using the TitanicSurvival dataset at '~/Documents/Jamovi/TitanicSurvival.csv', perform a Chi-Square Test of Independence to examine the association between 'passengerClass' and 'survived'. The analysis should include expected counts, row percentages, and Cramér's V. Save the Jamovi project to '~/Documents/Jamovi/TitanicChiSquare.omv' and create a report at '~/Documents/Jamovi/chisquare_report.txt' containing the Chi-square statistic, degrees of freedom, p-value, and Cramér's V.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chi_square_independence/setup_task.sh",
+    "post_task": "/workspace/tasks/chi_square_independence/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/Jamovi/TitanicSurvival.csv",
+    "project_path": "/home/ga/Documents/Jamovi/TitanicChiSquare.omv",
+    "report_path": "/home/ga/Documents/Jamovi/chisquare_report.txt",
+    "expected_values": {
+      "chi_square_min": 115.0,
+      "chi_square_max": 145.0,
+      "df": 2,
+      "p_value_threshold": 0.001,
+      "cramers_v_min": 0.28,
+      "cramers_v_max": 0.36
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chi_square_independence"
+    }
+  }
+}

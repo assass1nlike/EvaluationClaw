@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_and_reproject_layer@1",
+  "task_completion": [
+    {
+      "id": "load_broken_shapefile",
+      "description": "Verify the agent loaded the broken shapefile into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The layer 'cities_missing_prj' should be visible in the layers panel or map view of the GIS software."
+    },
+    {
+      "id": "open_layer_properties",
+      "description": "Verify the agent opened the layer properties or CRS assignment dialog for the broken shapefile.",
+      "points": 10,
+      "visual_evidence": "A dialog box for Layer Properties, Coordinate Reference System (CRS), or similar settings is open for the 'cities_missing_prj' layer."
+    },
+    {
+      "id": "assign_source_crs",
+      "description": "Verify the agent assigned the correct source CRS (WGS 84 / EPSG:4326) to the broken shapefile.",
+      "points": 20,
+      "visual_evidence": "The CRS dialog shows 'EPSG:4326' or 'WGS 84' being selected or applied as the current/source coordinate system for the layer."
+    },
+    {
+      "id": "open_export_tool",
+      "description": "Verify the agent initiated the export or reprojection process.",
+      "points": 10,
+      "visual_evidence": "An 'Export', 'Save As', or 'Reproject' dialog box is open on the screen."
+    },
+    {
+      "id": "set_target_crs",
+      "description": "Verify the agent set the target CRS to Web Mercator (EPSG:3857) for the export.",
+      "points": 25,
+      "visual_evidence": "The export or reprojection dialog explicitly shows the target CRS set to 'EPSG:3857', 'Web Mercator', or 'Pseudo-Mercator'."
+    },
+    {
+      "id": "set_output_path",
+      "description": "Verify the agent specified the correct output file path for the reprojected shapefile.",
+      "points": 25,
+      "visual_evidence": "The file path '/home/ga/gvsig_data/exports/cities_web_mercator.shp' is typed into the save destination field, or a success message confirming this exact path is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_not_terminal",
+      "description": "Ensure the agent used the GIS graphical user interface rather than terminal commands.",
+      "visual_evidence": "The agent should be interacting with the GIS software's GUI (e.g., gvSIG or QGIS). There should be no terminal windows open running GDAL/OGR commands like 'ogr2ogr'."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Ensure the agent did not simply create a .prj file using a text editor.",
+      "visual_evidence": "The agent must use the GIS software's CRS and export tools. There should be no text editors (like gedit, nano, or vim) open to manually paste WKT projection strings into a new .prj file."
+    },
+    {
+      "id": "genuine_export_dialog",
+      "description": "Ensure the agent actually used the software's export/reproject functionality.",
+      "visual_evidence": "Look for genuine GIS export/save dialogs with CRS transformation options, rather than just renaming or copying files in a file manager."
+    }
+  ],
+  "privileged_info_for_vlm": "Source file: /home/ga/gvsig_data/projects/broken_data/cities_missing_prj.shp. Source CRS to assign: EPSG:4326 (WGS 84). Target CRS for export: EPSG:3857 (Web Mercator). Output path: /home/ga/gvsig_data/exports/cities_web_mercator.shp. Output PRJ path: /home/ga/gvsig_data/exports/cities_web_mercator.prj."
+}

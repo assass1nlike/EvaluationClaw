@@ -1,0 +1,53 @@
+{
+  "task_id": "export_profile_image@1",
+  "task_completion": [
+    {
+      "id": "subsurface_open",
+      "description": "Subsurface application is open and displaying the dive log.",
+      "points": 10,
+      "visual_evidence": "The Subsurface GUI is visible on the screen showing a list of dives."
+    },
+    {
+      "id": "dive_4_selected",
+      "description": "Dive #4 is selected in the dive list.",
+      "points": 20,
+      "visual_evidence": "In the dive list panel of Subsurface, the row corresponding to Dive #4 is highlighted or actively selected."
+    },
+    {
+      "id": "export_profile_initiated",
+      "description": "The agent initiates the profile export function for the selected dive.",
+      "points": 20,
+      "visual_evidence": "A context menu showing 'Save profile as image' (or similar export option) is open, or a file save dialog triggered from the profile graph area is visible."
+    },
+    {
+      "id": "save_dialog_configured",
+      "description": "The save dialog is configured with the correct destination directory and filename.",
+      "points": 30,
+      "visual_evidence": "A file save dialog is visible where the current directory path is set to 'Documents' (or /home/ga/Documents) and the filename input field contains 'deep_dive_profile' (e.g., deep_dive_profile.png or deep_dive_profile_4.png)."
+    },
+    {
+      "id": "save_action_executed",
+      "description": "The image file is saved to the system.",
+      "points": 20,
+      "visual_evidence": "The agent is seen clicking the 'Save' button in the dialog, OR a terminal/file manager window subsequently shows the newly created 'deep_dive_profile.png' file in the Documents folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Subsurface GUI to export the image rather than bypassing the application.",
+      "visual_evidence": "Screenshots show the agent clicking through the Subsurface interface and save dialogs, rather than just running terminal commands (like wget or touch) to create a dummy file."
+    },
+    {
+      "id": "genuine_profile_image",
+      "description": "The exported image is a genuine dive profile graph.",
+      "visual_evidence": "If the final image is opened or previewed in the file manager, it displays a graphical dive profile (a chart showing depth over time), not a blank image, random picture, or text screenshot."
+    },
+    {
+      "id": "no_file_renaming_cheat",
+      "description": "The agent did not simply rename an existing unrelated file to pass the filename check.",
+      "visual_evidence": "The agent is seen explicitly exporting the file from Subsurface, not using 'mv' or 'cp' commands on pre-existing image files in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected save directory is '/home/ga/Documents/'. The filename must match '*deep_dive_profile*' (e.g., 'deep_dive_profile.png' or 'deep_dive_profile_4.png'). A legitimate profile export from Subsurface will be at least 15KB in size. Note: The task explicitly asks to select Dive #4; verify that Dive #4 is selected in the UI, even if other dives in the dataset are technically deeper."
+}

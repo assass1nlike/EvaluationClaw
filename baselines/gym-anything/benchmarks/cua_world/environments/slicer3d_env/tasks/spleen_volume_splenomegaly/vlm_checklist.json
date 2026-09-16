@@ -1,0 +1,53 @@
+{
+  "task_id": "spleen_volume_splenomegaly@1",
+  "task_completion": [
+    {
+      "id": "segment_created_and_located",
+      "description": "A segment named 'Spleen' is created and located in the correct anatomical region.",
+      "points": 20,
+      "visual_evidence": "The Segment Editor module shows a segment explicitly named 'Spleen'. In the 2D slice views, the colored overlay is located in the patient's left upper quadrant (right side of the image), posterior to the stomach and superior to the left kidney."
+    },
+    {
+      "id": "segmentation_quality",
+      "description": "The spleen segmentation tightly fits the organ boundaries without severe oversegmentation.",
+      "points": 25,
+      "visual_evidence": "The colored segmentation overlay closely follows the borders of the spleen in the axial, sagittal, and coronal views, without spilling over into adjacent organs like the stomach, left kidney, or abdominal wall."
+    },
+    {
+      "id": "volume_measured",
+      "description": "The volume of the spleen segment is measured.",
+      "points": 20,
+      "visual_evidence": "The Segment Statistics module (or a similar measurement table in 3D Slicer) is visible, displaying the calculated volume (typically in cm3 or mm3) for the 'Spleen' segment."
+    },
+    {
+      "id": "segmentation_saved",
+      "description": "The segmentation is saved to ~/Documents/SlicerData/AMOS/spleen_segmentation.nii.gz.",
+      "points": 10,
+      "visual_evidence": "The 'Save Data' dialog in 3D Slicer, a terminal window, or a file explorer shows the file 'spleen_segmentation.nii.gz' being saved or already existing in the '~/Documents/SlicerData/AMOS/' directory."
+    },
+    {
+      "id": "report_saved_and_complete",
+      "description": "A report is saved to ~/Documents/SlicerData/AMOS/spleen_report.json containing the required fields.",
+      "points": 25,
+      "visual_evidence": "A text editor, terminal output, or file explorer shows the contents of 'spleen_report.json'. The file must contain valid JSON with the exact keys: 'volume_ml', 'classification', and 'recommendation', populated with the corresponding assessment."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the 3D Slicer GUI to perform the segmentation and measurement.",
+      "visual_evidence": "Screenshots show active interaction with 3D Slicer's Segment Editor and Segment Statistics modules, rather than just running a pre-written script in the terminal to bypass the UI."
+    },
+    {
+      "id": "genuine_measurement_values",
+      "description": "The volume reported in the JSON file matches the volume measured in the application.",
+      "visual_evidence": "The 'volume_ml' value in the final spleen_report.json closely matches the volume displayed in the 3D Slicer Segment Statistics table shown in earlier screenshots."
+    },
+    {
+      "id": "no_ground_truth_copying",
+      "description": "The agent did not simply copy a ground truth file to the output directory.",
+      "visual_evidence": "The agent is seen actively painting, thresholding, or using segmentation tools in the Slicer UI to create the mask, rather than using terminal commands to copy an existing .nii.gz file from a ground_truth directory."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

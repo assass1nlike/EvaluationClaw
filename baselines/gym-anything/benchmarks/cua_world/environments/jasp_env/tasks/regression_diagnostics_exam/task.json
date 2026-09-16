@@ -1,0 +1,33 @@
+{
+  "id": "regression_diagnostics_exam@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a multiple linear regression analysis in JASP using the dataset at /home/ga/Documents/JASP/ExamAnxiety.csv to predict 'Exam' scores based on 'Anxiety' and 'Revise'. The analysis must include collinearity diagnostics (VIF) and part and partial correlations. Save the JASP project as /home/ga/Documents/JASP/RegressionDiagnostics.jasp. Additionally, create a text report at /home/ga/Documents/JASP/diagnostics_report.txt documenting the Anxiety VIF, Anxiety Part Correlation, and an interpretation of whether multicollinearity is a concern.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/regression_diagnostics_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/regression_diagnostics_exam/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/RegressionDiagnostics.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/diagnostics_report.txt",
+    "dataset_path": "/home/ga/Documents/JASP/ExamAnxiety.csv",
+    "ground_truth": {
+      "anxiety_vif_min": 1.0,
+      "anxiety_vif_max": 1.2,
+      "anxiety_part_corr_min": -0.4,
+      "anxiety_part_corr_max": -0.2
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regression_diagnostics"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "categorize_lost_opportunities@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Analyze the chatter history for the following lost opportunities and update their 'Lost Reason' field based on the evidence found in the notes: 'Enterprise License - Summit Financial', 'Fleet Tracking System - BlueWave Logistics', and 'Cloud Storage Migration - Apex Healthcare'. Assign the most appropriate reason for each from the following options: 'Price too high', 'Budget Freeze', or 'Lacking Features'. Ensure the records remain in the 'Lost' stage.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/categorize_lost_opportunities/setup_task.sh",
+    "post_task": "/workspace/tasks/categorize_lost_opportunities/export_result.sh"
+  },
+  "metadata": {
+    "targets": {
+      "Enterprise License - Summit Financial": "Price too high",
+      "Fleet Tracking System - BlueWave Logistics": "Lacking Features",
+      "Cloud Storage Migration - Apex Healthcare": "Budget Freeze"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_categorize_lost_opportunities"
+    }
+  }
+}

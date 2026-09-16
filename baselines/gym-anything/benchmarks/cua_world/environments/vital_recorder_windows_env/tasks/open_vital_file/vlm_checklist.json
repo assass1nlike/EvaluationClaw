@@ -1,0 +1,53 @@
+{
+  "task_id": "open_vital_file@1",
+  "task_completion": [
+    {
+      "id": "vital_recorder_open",
+      "description": "Verify that the Vital Recorder application is open.",
+      "points": 10,
+      "visual_evidence": "The Vital Recorder application window is visible on the Windows desktop."
+    },
+    {
+      "id": "file_selection_process",
+      "description": "Verify the agent navigates to the correct directory to open the file.",
+      "points": 10,
+      "visual_evidence": "An 'Open' file dialog is visible showing the directory path 'C:\\Users\\Docker\\Desktop\\VitalRecorderData\\' or the file '0001.vital' being selected. (If the file is already loaded in the final state, this can be assumed complete)."
+    },
+    {
+      "id": "correct_file_loaded",
+      "description": "Verify that the specific file '0001.vital' has been loaded into the application.",
+      "points": 30,
+      "visual_evidence": "The filename '0001.vital' is clearly visible within the Vital Recorder interface, such as in the application title bar, a loaded files list, or a data source panel."
+    },
+    {
+      "id": "waveforms_visible",
+      "description": "Verify that physiological waveform traces are displayed.",
+      "points": 30,
+      "visual_evidence": "Multiple physiological waveform traces (continuous line graphs) are rendered and actively displayed in the main viewing area of the Vital Recorder window."
+    },
+    {
+      "id": "track_labels_match",
+      "description": "Verify that the displayed waveforms correspond to the expected physiological data tracks.",
+      "points": 20,
+      "visual_evidence": "Labels next to the waveform traces show expected track names such as ART, ECG_II, ECG_V5, PLETH, CO2, AWP, INSP_SEVO, or EXP_SEVO."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_used",
+      "description": "Ensure the agent used the Vital Recorder graphical user interface to load the file.",
+      "visual_evidence": "The screenshots show interaction with the Vital Recorder GUI (menus, dialogs, application window) rather than terminal commands or scripts executing in the background."
+    },
+    {
+      "id": "no_image_spoofing",
+      "description": "Ensure the agent did not simply open an image of the waveforms.",
+      "visual_evidence": "The waveforms are displayed inside the genuine Vital Recorder application interface with its native toolbars and controls, not inside an image viewer (like Windows Photo Viewer) or a web browser."
+    },
+    {
+      "id": "correct_directory_used",
+      "description": "Ensure the file was loaded from the specified directory.",
+      "visual_evidence": "If the file explorer or open dialog is visible in the trajectory, the address bar should show 'C:\\Users\\Docker\\Desktop\\VitalRecorderData'."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct file '0001.vital' contains exactly 11,542 seconds (3 hours, 12 minutes, 22 seconds) of data. Look for this duration on the time axis or in the file information panel. The loaded tracks must include ART, ECG_II, ECG_V5, PLETH, CO2, AWP, INSP_SEVO, and EXP_SEVO."
+}

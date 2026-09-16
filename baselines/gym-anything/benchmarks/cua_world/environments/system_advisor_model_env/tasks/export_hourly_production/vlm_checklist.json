@@ -1,0 +1,53 @@
+{
+  "task_id": "export_hourly_production@1",
+  "task_completion": [
+    {
+      "id": "set_location_tucson",
+      "description": "Set the simulation location to Tucson, Arizona.",
+      "points": 15,
+      "visual_evidence": "Look for a location selection screen in a solar simulation software (e.g., System Advisor Model - SAM) with 'Tucson' or 'Tucson, AZ' selected or downloaded."
+    },
+    {
+      "id": "set_system_parameters",
+      "description": "Configure a 7.5 kW fixed south-facing residential system.",
+      "points": 15,
+      "visual_evidence": "Look for a system design or configuration screen showing a system size/nameplate capacity of approximately 7.5 kW (or 7500 W), an array type of 'fixed', and an azimuth of 180 degrees (south)."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the simulation to generate hourly production data.",
+      "points": 20,
+      "visual_evidence": "Look for a results screen, data table, or graph showing the simulation output, specifically indicating hourly data (8760 hours) or annual metrics."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the hourly AC power output to Tucson_Hourly_Production.csv in the correct directory.",
+      "points": 25,
+      "visual_evidence": "Look for an export dialog, file manager, or terminal showing the file 'Tucson_Hourly_Production.csv' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "create_json_summary",
+      "description": "Create the Tucson_Hourly_Summary.json file with system configuration, annual totals, and peak hourly output.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal showing the contents of 'Tucson_Hourly_Summary.json' in '/home/ga/Documents/SAM_Projects/'. The file should contain JSON data specifying the location, system size, annual energy, and peak output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_simulation_software",
+      "description": "The agent used actual solar simulation software (like NREL SAM) to generate the data.",
+      "visual_evidence": "Look for the interface of a genuine simulation tool. The agent should not just write a Python script to generate fake/mock data or manually type out a CSV."
+    },
+    {
+      "id": "authentic_csv_data",
+      "description": "The exported CSV contains realistic hourly solar profiles.",
+      "visual_evidence": "If the CSV contents are visible, look for realistic solar generation patterns (e.g., zeros at night, varying positive values during the day). It should not be filled with static dummy values."
+    },
+    {
+      "id": "authentic_json_data",
+      "description": "The JSON summary contains values derived from the simulation.",
+      "visual_evidence": "The values in the JSON file should match the simulation results shown in the software interface, rather than being arbitrary numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV file is 'Tucson_Hourly_Production.csv' with 8760 data rows. The expected JSON file is 'Tucson_Hourly_Summary.json'. Both must be in /home/ga/Documents/SAM_Projects/. The JSON must specify the location as 'tucson'. The DC system size should be between 7.0 and 8.0 kW (target 7.5 kW). The annual energy yield should be between 12,000 and 15,000 kWh. The peak hourly output should be between 5,500 and 7,500 W."
+}

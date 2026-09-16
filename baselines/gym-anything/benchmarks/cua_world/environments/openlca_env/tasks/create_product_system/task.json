@@ -1,0 +1,27 @@
+{
+  "id": "create_product_system@1",
+  "version": "1.0",
+  "env_id": "openlca_env@0.1",
+  "description": "Create a product system for an electricity generation process in openLCA using the USLCI database (import from ~/LCA_Imports/uslci_database.zip if necessary). The product system must include its connected processes in the model graph.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_product_system/setup_task.sh",
+    "post_task": "/workspace/tasks/create_product_system/export_result.sh"
+  },
+  "metadata": {
+    "process_keyword": "electricity",
+    "expected_product_system_name_contains": "electricity",
+    "min_linked_processes": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_product_system"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "nuclei_motility_trackmate@1",
+  "task_completion": [
+    {
+      "id": "z_projection_created",
+      "description": "Perform a Max Intensity Z-Projection on the chromosome channel of mitosis.tif.",
+      "points": 10,
+      "visual_evidence": "Fiji image window titled 'MAX_mitosis.tif' (or similar) showing a 2D projection of the nuclei/chromosomes."
+    },
+    {
+      "id": "detector_configured",
+      "description": "Configure TrackMate with a LoG or DoG detector, blob diameter ~8.0, and threshold 2.0-5.0.",
+      "points": 20,
+      "visual_evidence": "TrackMate GUI wizard showing 'LoG detector' or 'DoG detector' selected, with the 'Estimated blob diameter' field set to ~8.0 and 'Threshold' set between 2.0 and 5.0."
+    },
+    {
+      "id": "tracker_configured",
+      "description": "Configure the Simple LAP tracker with linking max distance 10.0, gap-closing max distance 10.0, and max frame gap 2.",
+      "points": 20,
+      "visual_evidence": "TrackMate GUI wizard showing 'Simple LAP tracker' selected, with 'Linking max distance' set to 10.0, 'Gap-closing max distance' set to 10.0, and 'Max frame gap' set to 2."
+    },
+    {
+      "id": "tracking_executed",
+      "description": "Execute the tracking pipeline to produce tracks for dividing nuclei/chromosomes.",
+      "points": 20,
+      "visual_evidence": "Image window showing colored track lines overlaid on the moving/dividing nuclei, with at least 5 distinct tracks visible."
+    },
+    {
+      "id": "statistics_exported",
+      "description": "Export the track statistics to ~/Fiji_Data/results/tracking/track_statistics.csv.",
+      "points": 15,
+      "visual_evidence": "TrackMate statistics window open with a save dialog pointing to 'track_statistics.csv' in the correct directory, or a file manager/terminal showing the file exists."
+    },
+    {
+      "id": "visual_overlay_saved",
+      "description": "Save a visual overlay of the tracks to ~/Fiji_Data/results/tracking/tracks_visual.png.",
+      "points": 15,
+      "visual_evidence": "ImageJ save dialog saving 'tracks_visual.png' in the correct directory, or a file manager/terminal showing the saved image file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Fiji/TrackMate GUI to perform the tracking.",
+      "visual_evidence": "Screenshots show the TrackMate wizard steps being actively interacted with, rather than just running a terminal script."
+    },
+    {
+      "id": "genuine_output_generation",
+      "description": "The exported CSV and PNG files were generated via TrackMate's built-in export/capture features.",
+      "visual_evidence": "The TrackMate statistics table and capture overlay features are visible in the screenshots prior to saving, proving the outputs were not manually mocked."
+    },
+    {
+      "id": "correct_image_used",
+      "description": "The agent processed the actual mitosis.tif image.",
+      "visual_evidence": "The image window title shows 'mitosis.tif' (or 'MAX_mitosis.tif') and the visual content matches dividing nuclei."
+    }
+  ],
+  "privileged_info_for_vlm": "The input image is a 5D hyperstack (mitosis.tif) with 2 channels, 5 Z-slices, and 51 time points. The task requires tracking at least 5 nuclei/chromosomes. The expected outputs are '~/Fiji_Data/results/tracking/track_statistics.csv' and '~/Fiji_Data/results/tracking/tracks_visual.png'."
+}

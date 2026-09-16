@@ -1,0 +1,37 @@
+{
+  "id": "internal_void_segmentation@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Internal Void Segmentation and Porosity Analysis",
+  "description": "Isolate the internal voids (holes) within the particles of the 'Blobs' sample image using binary image arithmetic. The final image should show the internal holes as white objects on a black background, with the main particle bodies removed. Save the resulting 'holes-only' image to ~/ImageJ_Data/results/void_mask.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "binary-arithmetic",
+    "morphology",
+    "segmentation",
+    "materials-science"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/internal_void_segmentation/setup_task.sh",
+    "post_task": "/workspace/tasks/internal_void_segmentation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/void_mask.tif",
+    "image_width": 256,
+    "image_height": 254,
+    "max_foreground_ratio": 0.1,
+    "min_foreground_ratio": 0.005
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_void_segmentation"
+    }
+  }
+}

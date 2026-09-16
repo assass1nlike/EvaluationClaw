@@ -1,0 +1,32 @@
+{
+  "id": "shape_key_morph_animation@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A motion graphics designer needs to create a morphing animation where a geometric object smoothly transitions between three shapes using Blender's Shape Keys system. Using the 'MorphCube' mesh in the provided scene, create a Basis shape key and two additional shape keys named 'Spherical' (transforming the cube into a sphere) and 'Stretched' (scaling the cube by 2.5 on the Z axis). Animate these shape keys over a 60-frame timeline (Start: 1, End: 60) such that the object is in its base shape at frame 1, fully spherical at frame 30, and a tall column at frame 60. Save the project to /home/ga/BlenderProjects/morph_animation.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/shape_key_morph_animation/setup_task.sh",
+    "post_task": "/workspace/tasks/shape_key_morph_animation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/BlenderProjects/morph_animation.blend",
+    "target_object": "MorphCube",
+    "min_shape_keys": 3,
+    "expected_frame_range": [
+      1,
+      60
+    ],
+    "frame_tolerance": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shape_key_morph_animation"
+    }
+  }
+}

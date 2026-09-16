@@ -1,0 +1,42 @@
+{
+  "id": "configure_resource_quotas@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "A web hosting company has three client domains on a shared server. As the sysadmin, use the Virtualmin control panel (https://localhost:10000, login: root / GymAnything123!) to configure the disk quota and monthly bandwidth limits for each virtual server domain. For acmecorp.test, set a 2048 MB disk quota and 10 GB monthly bandwidth limit. For greenleaf.test, set a 1024 MB disk quota and 5 GB monthly bandwidth limit. For craftworks.test, set a 512 MB disk quota and 2 GB monthly bandwidth limit.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_resource_quotas/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_resource_quotas/export_result.sh"
+  },
+  "metadata": {
+    "targets": {
+      "acmecorp.test": {
+        "disk_quota_mb": 2048,
+        "bandwidth_gb": 10
+      },
+      "greenleaf.test": {
+        "disk_quota_mb": 1024,
+        "bandwidth_gb": 5
+      },
+      "craftworks.test": {
+        "disk_quota_mb": 512,
+        "bandwidth_gb": 2
+      }
+    },
+    "tolerances": {
+      "disk_mb": 50,
+      "bandwidth_gb": 0.5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_resource_quotas"
+    }
+  }
+}

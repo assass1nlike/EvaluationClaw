@@ -1,0 +1,59 @@
+{
+  "task_id": "ftt_motor_kinetics_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_raw_data",
+      "description": "Access or read the raw FTT data file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., cat, head) or a script/editor opening '~/pebl/data/ftt_tap_data.csv'."
+    },
+    {
+      "id": "implement_metric_calculations",
+      "description": "Implement calculations for the required clinical metrics.",
+      "points": 20,
+      "visual_evidence": "Code in a script or spreadsheet formulas calculating dominant/nondominant total taps, mean ITI, asymmetry_index_percent, and fatigue_index_percent."
+    },
+    {
+      "id": "filter_corrupted_data",
+      "description": "Identify and filter out corrupted data with hardware key-repeat artifacts.",
+      "points": 20,
+      "visual_evidence": "Code logic checking for constant ITI ~33ms or >250 taps per trial, or explicitly flagging participant P99 as corrupted."
+    },
+    {
+      "id": "create_json_report",
+      "description": "Generate the output JSON report file at the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal or editor showing the creation and saving of a file named 'ftt_report.json' in the '~/pebl/analysis/' directory."
+    },
+    {
+      "id": "verify_participants_array",
+      "description": "Ensure the JSON report contains a 'participants' array with metrics and exclusion reasons.",
+      "points": 20,
+      "visual_evidence": "Contents of 'ftt_report.json' showing a 'participants' list containing calculated metrics for valid entries and an exclusion reason for the corrupted entry (P99)."
+    },
+    {
+      "id": "verify_group_means",
+      "description": "Ensure the JSON report contains the required group mean metrics.",
+      "points": 20,
+      "visual_evidence": "Contents of 'ftt_report.json' showing the keys 'group_mean_asymmetry_percent' and 'group_mean_fatigue_percent' calculated across valid participants."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "The agent actually computed the metrics using a script or tool rather than hallucinating the final JSON.",
+      "visual_evidence": "Presence of a Python script, bash script, or spreadsheet tool being executed to process the CSV data."
+    },
+    {
+      "id": "dynamic_data_processing",
+      "description": "The agent processed the CSV dynamically rather than hardcoding the final JSON output.",
+      "visual_evidence": "The script reads from 'ftt_tap_data.csv' and contains variables/loops for processing, rather than a script that just prints a hardcoded JSON string."
+    },
+    {
+      "id": "correct_exclusion_logic",
+      "description": "The agent implemented logic to detect the artifact rather than just guessing the participant ID.",
+      "visual_evidence": "The script contains conditional logic (e.g., if ITI <= 33 or taps > 250) rather than just 'if participant == P99'."
+    }
+  ],
+  "privileged_info_for_vlm": "The raw data is located at '/home/ga/pebl/data/ftt_tap_data.csv' and the expected output is '/home/ga/pebl/analysis/ftt_report.json'. Participant 'P99' is explicitly injected with a hardware key-repeat artifact (~33ms ITI) and must be the one filtered out/flagged with an exclusion reason in the final JSON report."
+}

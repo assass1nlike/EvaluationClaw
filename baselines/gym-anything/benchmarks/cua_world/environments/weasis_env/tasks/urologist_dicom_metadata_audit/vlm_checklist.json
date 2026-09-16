@@ -1,0 +1,65 @@
+{
+  "task_id": "urologist_dicom_metadata_audit@1",
+  "task_completion": [
+    {
+      "id": "dicom_metadata_inspected",
+      "description": "Agent inspects the DICOM file metadata to identify the errors.",
+      "points": 10,
+      "visual_evidence": "Terminal showing `dcmdump` output, a Python script reading the DICOM file, or a DICOM viewer displaying the metadata of the file in `/home/ga/DICOM/studies/renal_audit/`."
+    },
+    {
+      "id": "patient_sex_corrected",
+      "description": "Agent modifies the Patient Sex tag in the DICOM file.",
+      "points": 10,
+      "visual_evidence": "Terminal command (e.g., `dcmodify -m \"(0010,0040)=M\"`), Python script modifying `PatientSex`, or GUI editor changing the sex to 'M'."
+    },
+    {
+      "id": "body_part_corrected",
+      "description": "Agent modifies the Body Part Examined tag in the DICOM file.",
+      "points": 10,
+      "visual_evidence": "Terminal command, Python script, or GUI editor changing `BodyPartExamined` to 'ABDOMEN' (or a reasonable alternative like 'CHEST')."
+    },
+    {
+      "id": "referring_physician_corrected",
+      "description": "Agent modifies the Referring Physician Name tag in the DICOM file.",
+      "points": 10,
+      "visual_evidence": "Terminal command, Python script, or GUI editor changing `ReferringPhysicianName` to a valid non-empty string (e.g., 'Dr. Smith')."
+    },
+    {
+      "id": "audit_report_created",
+      "description": "Agent creates the metadata audit report file.",
+      "points": 20,
+      "visual_evidence": "A text editor (like nano, vim, gedit) open, editing `/home/ga/DICOM/exports/metadata_audit_report.txt`."
+    },
+    {
+      "id": "audit_report_original_values",
+      "description": "The audit report documents the original erroneous values.",
+      "points": 20,
+      "visual_evidence": "The text report explicitly lists the original values found in the file (Sex: F, Body Part: HEAD, Physician: empty/blank)."
+    },
+    {
+      "id": "audit_report_corrected_values",
+      "description": "The audit report documents the corrected values, the number of affected files, and confirms consistency.",
+      "points": 20,
+      "visual_evidence": "The text report lists the corrected values, states the number of affected files (which should be 1), and includes a statement confirming metadata consistency."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_dicom_modification",
+      "description": "Verifies that the agent actually modified the DICOM file(s) rather than just writing the report.",
+      "visual_evidence": "Execution of `dcmodify`, running a Python script that calls `save()` on a DICOM object, or saving changes in a GUI DICOM editor."
+    },
+    {
+      "id": "genuine_inspection",
+      "description": "Verifies that the agent read the actual DICOM file to find the errors.",
+      "visual_evidence": "Output from `dcmdump`, Python `print()` of DICOM tags, or viewing the file in a DICOM viewer before making changes."
+    },
+    {
+      "id": "accurate_file_count",
+      "description": "Verifies that the agent didn't blindly follow the prompt's claim of a 'batch'.",
+      "visual_evidence": "The audit report states that exactly 1 file was affected, rather than hallucinating multiple files based on the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory `/home/ga/DICOM/studies/renal_audit/` contains a single DICOM file (0002.DCM), despite the prompt mentioning a 'batch'. The injected errors in this file are: PatientSex is 'F' (should be 'M'), BodyPartExamined is 'HEAD' (should be 'ABDOMEN' or similar), and ReferringPhysicianName is empty (should be a valid name like 'Dr. Smith'). The agent must correct these in the DICOM file and document them in `/home/ga/DICOM/exports/metadata_audit_report.txt`. The report must note the original values, corrected values, number of affected files (1), and confirm consistency."
+}

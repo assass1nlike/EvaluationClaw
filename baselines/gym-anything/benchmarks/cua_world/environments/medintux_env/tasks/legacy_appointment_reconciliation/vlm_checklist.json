@@ -1,0 +1,53 @@
+{
+  "task_id": "legacy_appointment_reconciliation@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Agent reads the legacy_appointments.csv file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., cat, head), a script reading the file, or the file opened in a text editor/spreadsheet."
+    },
+    {
+      "id": "database_query_setup",
+      "description": "Agent sets up a connection to the DrTuxTest database and queries the IndexNomPrenom table.",
+      "points": 15,
+      "visual_evidence": "Python script with database connection code (e.g., mysql.connector), MySQL CLI usage, or a database GUI showing queries targeting IndexNomPrenom."
+    },
+    {
+      "id": "create_ready_import",
+      "description": "Agent creates ready_import.csv with the correct headers.",
+      "points": 20,
+      "visual_evidence": "Code writing to ready_import.csv or terminal output showing the file exists with columns: GUID, Date_ISO, Time, Reason."
+    },
+    {
+      "id": "format_ready_import_data",
+      "description": "Agent correctly populates ready_import.csv with the unique match and formats the date.",
+      "points": 25,
+      "visual_evidence": "The contents of ready_import.csv show the GUID 'TEST_GUID_ALICE_001' and the date converted to '2023-12-25'."
+    },
+    {
+      "id": "create_review_required",
+      "description": "Agent creates review_required.csv with the unmatched and duplicate patients.",
+      "points": 30,
+      "visual_evidence": "The contents of review_required.csv show entries for Bob (TESTDUP) and Charlie (TESTMISSING), with columns Date, Time, LastName, FirstName, Reason, and Error_Type."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_database_query",
+      "description": "The agent dynamically queries the database for patients rather than hardcoding names or GUIDs.",
+      "visual_evidence": "A script containing a generic SQL query (e.g., using variables for LastName and FirstName) or evidence of a join/lookup operation, without hardcoded patient names like 'TESTUNIQUE'."
+    },
+    {
+      "id": "programmatic_processing",
+      "description": "The agent uses a script, database client, or spreadsheet to process the data, rather than manually typing the final output.",
+      "visual_evidence": "Presence of a script (Python, Bash, etc.) or spreadsheet formulas that perform the reconciliation logic, rather than simple 'echo' commands writing the final rows."
+    },
+    {
+      "id": "programmatic_date_conversion",
+      "description": "The date conversion to YYYY-MM-DD is done programmatically.",
+      "visual_evidence": "Code using date parsing functions (e.g., datetime.strptime, pandas) or spreadsheet date formatting, rather than hardcoded string replacements for the specific dates."
+    }
+  ],
+  "privileged_info_for_vlm": "The input CSV contains three test cases: Alice TESTUNIQUE (unique match, GUID: TEST_GUID_ALICE_001, date: 25/12/2023), Bob TESTDUP (duplicate match, date: 26/12/2023), and Charlie TESTMISSING (no match, date: 27/12/2023). The ready_import.csv must contain only Alice with her GUID and date formatted as 2023-12-25. The review_required.csv must contain Bob and Charlie with an Error_Type indicating duplicate and missing respectively."
+}

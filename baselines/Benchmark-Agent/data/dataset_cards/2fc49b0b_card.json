@@ -1,0 +1,86 @@
+{
+  "dataset_id": "2fc49b0b",
+  "name": "Abstract-Meaning-Representation",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multiple-choice dataset for evaluating understanding of Abstract Meaning Representation (AMR) relations. Each item provides a raw English sentence and asks which AMR relation in predicate -> target format is correct, with four options.",
+  "card_text": "This dataset contains 200 text-only multiple-choice questions on Abstract Meaning Representation (AMR) relations. Each sample includes a raw English sentence, often drawn from news or political discourse, and a prompt asking the model to identify the correct AMR relation among four choices. The prompt specifies the answer format as 'predicate -> target (relation)' and lists options A–D. The expected output is a single letter. The task tests whether a model can infer graph edges and relations such as ARG0, ARG1, ARG1-of, op1, and name from sentential context. No rationale or external knowledge is provided. The dataset assumes familiarity with AMR notation and focuses on linguistic relation identification.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "linguistics (AMR)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A raw English sentence, often from news or political discourse, that serves as the linguistic context. It is the sentence from which the correct Abstract Meaning Representation (AMR) relation must be identified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction asking the model to choose the correct AMR relation for the given sentence. It specifies the answer format ('predicate -> target (relation)') and includes four multiple-choice options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Four candidate AMR relations labeled A through D, embedded within the question prompt. Each option gives a predicate, a target, and a relation in parentheses.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The letter (A, B, C, or D) identifying the correct AMR relation option.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw English sentence (input.raw_text), a multiple-choice prompt (input.prompt) that contains both the question and four candidate AMR relations labeled A–D, and a gold answer letter (output.text). The prompt asks the model to select the correct relation in the form 'predicate -> target (relation)' based on the sentence. There are no separate options, rationale, or additional metadata fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Abstract-Meaning-Representation/annotation.json",
+    "existing_tags": {
+      "task": "amr_relation_mcq",
+      "type": "multiple choice",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

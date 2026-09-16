@@ -1,0 +1,33 @@
+{
+  "id": "compute_flood_arrival_time@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Analyze the HEC-RAS unsteady flow results for the Muncie project to determine flood arrival times. Write and execute a Python script using the 'h5py' library to calculate the time in simulation hours when the channel depth (Water Surface Elevation minus Invert Elevation) first strictly exceeds 8.0 feet for each cross-section found in '~/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf'. If the depth never exceeds 8.0 ft, record -1. If the depth is already greater than 8.0 ft at t=0, record 0.0. Save the results for all cross-sections to '~/Documents/hec_ras_results/flood_arrival_times.csv' with columns 'River_Station', 'Invert_Elev_ft', and 'Arrival_Time_hrs'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_flood_arrival_time/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_flood_arrival_time/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_file": "Muncie.p04.tmp.hdf",
+    "output_path": "/home/ga/Documents/hec_ras_results/flood_arrival_times.csv",
+    "depth_threshold_ft": 8.0,
+    "required_columns": [
+      "River_Station",
+      "Invert_Elev_ft",
+      "Arrival_Time_hrs"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_flood_arrival_time"
+    }
+  }
+}

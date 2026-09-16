@@ -1,0 +1,30 @@
+{
+  "id": "version_control_document@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "A security incident case 'Security Incident - Server Room B Access' has been created with a draft investigation plan 'Investigation_Plan.txt'. Upload the final version from '~/Documents/Investigation_Plan_FINAL.txt' as a new version of the existing document object to preserve file history and the Object ID. Do not delete the existing file; the update must be performed as a versioning action.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/version_control_document/setup_task.sh",
+    "post_task": "/workspace/tasks/version_control_document/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "case_title": "Security Incident - Server Room B Access",
+    "doc_name": "Investigation_Plan.txt",
+    "local_final_file": "/home/ga/Documents/Investigation_Plan_FINAL.txt",
+    "initial_content_marker": "DRAFT CONTENT",
+    "final_content_marker": "APPROVED FINAL CONTENT"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_version_control_document"
+    }
+  }
+}

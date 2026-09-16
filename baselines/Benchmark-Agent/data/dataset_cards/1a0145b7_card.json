@@ -1,0 +1,104 @@
+{
+  "dataset_id": "1a0145b7",
+  "name": "Raccoon Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 78,
+  "description": "The Raccoon Detection dataset contains images of raccoons paired with a text prompt to detect the raccoon. The goal is to output bounding boxes localizing the raccoon in each image.",
+  "card_text": "This dataset consists of 78 samples, each containing an image of a raccoon in its natural environment and a short text prompt: 'Detect the raccoon in the given image'. The expected output is a structured text object that maps the class label 'raccoon' to a list of bounding boxes, each specified as [x_min, y_min, x_max, y_max] pixel coordinates. The images are photographic and typically show a single raccoon in an outdoor scene, though multiple instances may occur. The task evaluates visual object detection and localization capabilities, requiring the model to identify the raccoon and provide its precise location. The dataset is small and focused on a single animal class, making it suitable for testing detection models on a narrow domain.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "wildlife",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "scenery",
+        "semantics": "Photographic image of a raccoon in an outdoor scene; serves as the visual context that the model must analyze to locate the raccoon.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "scenery",
+        "semantics": "Image file containing the raccoon to be detected, referenced by its filename.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction asking the model to detect the raccoon in the given image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Detection result as a dictionary mapping the class label 'raccoon' to a list of bounding boxes.",
+        "path_types": [
+          "dict"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.text.raccoon"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "List of bounding boxes, each as [x_min, y_min, x_max, y_max] coordinates, localizing the raccoon in the image.",
+        "path_types": [
+          "list<list>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image file of a raccoon, a natural-language prompt instructing the model to detect the raccoon, and an output structured text object that maps the class label 'raccoon' to a list of bounding-box coordinates. The image serves as the visual context, the prompt as the question, and the bounding boxes as the answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/RaccoonDetection/raccoon_detection.json",
+    "existing_tags": {
+      "task": "Raccoon Detection",
+      "type": "image comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

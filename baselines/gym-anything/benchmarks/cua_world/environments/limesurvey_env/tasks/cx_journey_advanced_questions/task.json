@@ -1,0 +1,38 @@
+{
+  "id": "cx_journey_advanced_questions@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a LimeSurvey titled 'Customer Experience Journey Survey Q4 2024' using the credentials admin/Admin123!. The survey must feature the welcome message 'Thank you for participating in our Customer Experience study' and the end message 'Your feedback helps us improve'. The survey structure requires three question groups: 'Purchase Details', 'Experience Evaluation', and 'Feedback'. In 'Purchase Details', include a Date/Time question 'When did your most recent purchase take place?' and a Numerical Input question 'Approximate total amount spent (USD)' restricted to values between 1 and 10000. In 'Experience Evaluation', include a 5 Point Choice Array 'Please rate your satisfaction with each of the following aspects of your experience' with sub-questions for Store Environment, Staff Helpfulness, Product Availability, Checkout Experience, and Value for Money, followed by a Ranking question 'Please rank the following factors by their importance to your shopping decision' with options for Price, Product Quality, Convenience, Customer Service, and Product Variety. In 'Feedback', include a Multiple Choice question 'How did you first learn about our store?' with options for Social Media, Word of Mouth, Online Advertisement, Walk-in / Passing By, and Email Newsletter, and a Long Free Text question 'Please share any additional comments or suggestions about your experience'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cx_journey_advanced_questions/setup_task.sh",
+    "post_task": "/workspace/tasks/cx_journey_advanced_questions/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Customer Experience Journey Survey Q4 2024",
+    "expected_welcome_snippet": "Customer Experience study",
+    "expected_end_snippet": "feedback helps us improve",
+    "min_questions": 6,
+    "required_types": [
+      "D",
+      "N",
+      "F",
+      "R",
+      "M",
+      "T"
+    ],
+    "numerical_min": 1,
+    "numerical_max": 10000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cx_survey"
+    }
+  }
+}

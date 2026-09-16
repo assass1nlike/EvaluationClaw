@@ -1,0 +1,59 @@
+{
+  "task_id": "veterinary_ultrasound_diagnostic_export@1",
+  "task_completion": [
+    {
+      "id": "read_instructions",
+      "description": "Agent opens the veterinary notes to read the instructions, patient name, and timestamps.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the contents of /home/ga/Documents/vet_notes.txt."
+    },
+    {
+      "id": "transcode_video_settings",
+      "description": "Agent configures the video transcoding to use the H.264 codec and remove audio streams.",
+      "points": 20,
+      "visual_evidence": "VLC's 'Convert/Save' profile settings window showing 'Video codec' set to H.264 and 'Audio' unchecked, OR a terminal window showing an ffmpeg command with flags like '-vcodec libx264' (or similar H.264 flag) and '-an' (remove audio)."
+    },
+    {
+      "id": "mp4_files_created",
+      "description": "Agent successfully generates the three required MP4 files in the target directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window or terminal 'ls' output showing scan_long_axis.mp4, scan_short_axis.mp4, and scan_apical.mp4 inside /home/ga/Documents/Cardiology_Referral/."
+    },
+    {
+      "id": "png_snapshots_created",
+      "description": "Agent successfully captures the three required PNG snapshots in the target directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window or terminal 'ls' output showing snapshot_long_axis.png, snapshot_short_axis.png, and snapshot_apical.png inside /home/ga/Documents/Cardiology_Referral/."
+    },
+    {
+      "id": "json_manifest_created",
+      "description": "Agent creates the required JSON manifest file in the target directory.",
+      "points": 10,
+      "visual_evidence": "A file manager window or terminal 'ls' output showing referral_manifest.json inside /home/ga/Documents/Cardiology_Referral/."
+    },
+    {
+      "id": "json_manifest_content",
+      "description": "The JSON manifest contains the correct patient data and filenames.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the contents of referral_manifest.json, which must include the patient name 'Bella' and references to the generated MP4 and PNG files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Verifies that the agent actually processed the videos rather than faking the output files.",
+      "visual_evidence": "Look for VLC media player actively converting files, VLC taking snapshots, or ffmpeg running in the terminal. The agent should not just use the 'touch' command to create empty files."
+    },
+    {
+      "id": "authentic_json_content",
+      "description": "Verifies that the JSON manifest is properly formatted and contains the required data.",
+      "visual_evidence": "The JSON file should have valid JSON syntax (curly braces, quotes, colons) and not just be a raw text dump of the task instructions."
+    },
+    {
+      "id": "correct_target_directory",
+      "description": "Verifies that the agent saved the deliverables in the correct directory.",
+      "visual_evidence": "The file manager path or terminal prompt must clearly show /home/ga/Documents/Cardiology_Referral/ as the location for the 7 deliverables, not the raw folder or desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected MP4 files are: scan_long_axis.mp4, scan_short_axis.mp4, scan_apical.mp4. The expected PNG snapshots are: snapshot_long_axis.png, snapshot_short_axis.png, snapshot_apical.png. The patient name for the JSON manifest is 'Bella'. The correct snapshot timestamps are: scan_long_axis at 5 seconds, scan_short_axis at 8 seconds, and scan_apical at 4 seconds."
+}

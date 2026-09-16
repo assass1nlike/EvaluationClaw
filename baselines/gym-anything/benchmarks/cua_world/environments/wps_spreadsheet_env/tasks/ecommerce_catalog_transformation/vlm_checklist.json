@@ -1,0 +1,59 @@
+{
+  "task_id": "ecommerce_catalog_transformation@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open retail_catalog.xlsx in WPS Spreadsheet.",
+      "points": 10,
+      "visual_evidence": "WPS Spreadsheet application is open, displaying the file 'retail_catalog.xlsx' with 'Raw_Products' and 'Margin_Rules' sheet tabs visible at the bottom."
+    },
+    {
+      "id": "populate_sku_and_margin",
+      "description": "Populate SKU (Column F) and Margin_Pct (Column G) in the 'Raw_Products' sheet.",
+      "points": 20,
+      "visual_evidence": "In the 'Raw_Products' sheet, Column F contains alphanumeric strings (3 uppercase letters followed by numbers), and Column G contains decimal or percentage values."
+    },
+    {
+      "id": "calculate_price_and_stock_value",
+      "description": "Calculate Retail_Price (Column H) and Stock_Value (Column I) in the 'Raw_Products' sheet.",
+      "points": 20,
+      "visual_evidence": "Column H contains numerical values rounded to 2 decimal places, and Column I contains numerical values representing the product of Unit_Cost and Stock_Level."
+    },
+    {
+      "id": "populate_status",
+      "description": "Populate Status (Column J) in the 'Raw_Products' sheet.",
+      "points": 20,
+      "visual_evidence": "Column J contains the text 'High Value Low Stock' or 'Standard' for the rows."
+    },
+    {
+      "id": "create_summary_sheet",
+      "description": "Create a new sheet named 'Catalog_Summary'.",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Catalog_Summary' is visible at the bottom of the WPS Spreadsheet window."
+    },
+    {
+      "id": "populate_summary_metrics",
+      "description": "Calculate and display the required metrics in the 'Catalog_Summary' sheet.",
+      "points": 20,
+      "visual_evidence": "The 'Catalog_Summary' sheet is active and displays labels for 'Total Stock Value', 'Average Retail Price', and 'High Value Alerts' alongside their corresponding calculated numerical values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the task.",
+      "visual_evidence": "Screenshots show interaction with the WPS Spreadsheet interface (menus, formula bar, cells) rather than terminal commands or Python scripts modifying the file."
+    },
+    {
+      "id": "formula_usage",
+      "description": "The agent used spreadsheet formulas rather than manually typing calculated answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar shows an Excel formula (e.g., IF, SUM, AVERAGE, VLOOKUP, arithmetic operations) instead of a hardcoded number or string."
+    },
+    {
+      "id": "no_external_cheating",
+      "description": "The agent did not copy-paste the final expected summary values directly from an external script or text.",
+      "visual_evidence": "The summary values are derived from the data in 'Raw_Products' (ideally visible via formulas in the formula bar) rather than being typed in directly without calculation."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /home/ga/Documents/retail_catalog.xlsx. The final workbook must contain exactly three sheets: 'Raw_Products', 'Margin_Rules', and 'Catalog_Summary'. The VLM should verify that the 'Catalog_Summary' sheet contains the three specific metrics: Total Stock Value, Average Retail Price, and High Value Alerts."
+}

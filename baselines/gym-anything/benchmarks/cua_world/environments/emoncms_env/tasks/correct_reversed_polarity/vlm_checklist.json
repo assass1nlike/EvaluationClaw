@@ -1,0 +1,53 @@
+{
+  "task_id": "correct_reversed_polarity@1",
+  "task_completion": [
+    {
+      "id": "locate_node_and_input",
+      "description": "Verify the agent navigated to the Inputs page and located the correct node and input.",
+      "points": 10,
+      "visual_evidence": "The Emoncms Inputs page is visible, displaying a list of inputs that includes the node 'garage_solar' and the input 'power'."
+    },
+    {
+      "id": "open_input_processing",
+      "description": "Verify the agent opened the input processing configuration for the target input.",
+      "points": 10,
+      "visual_evidence": "An 'Input processing' modal or page specific to the 'power' input of the 'garage_solar' node is open and visible."
+    },
+    {
+      "id": "configure_scale_process",
+      "description": "Verify the first process in the sequence is configured to invert the negative values.",
+      "points": 20,
+      "visual_evidence": "In the input processing list, the first item (Order 1) is a scaling or multiplication operation (e.g., 'x', 'Scale', or 'Multiply') with a parameter value of '-1'."
+    },
+    {
+      "id": "configure_log_feed",
+      "description": "Verify the second process logs the corrected real-time power to the 'solar_yield' feed.",
+      "points": 30,
+      "visual_evidence": "In the input processing list, the second item (Order 2) is 'Log to feed' with the target feed explicitly named 'solar_yield'."
+    },
+    {
+      "id": "configure_accumulate_feed",
+      "description": "Verify the third process calculates cumulative energy and logs it to the 'solar_energy' feed.",
+      "points": 30,
+      "visual_evidence": "In the input processing list, the third item (Order 3) is 'Power to kWh' with the target feed explicitly named 'solar_energy'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "Ensure the agent interacted with the Emoncms web UI rather than using terminal commands.",
+      "visual_evidence": "Screenshots show the Emoncms web interface in a browser, not a terminal window executing curl or API commands."
+    },
+    {
+      "id": "processes_saved_in_ui",
+      "description": "Ensure the input processes were actually configured and saved in the application.",
+      "visual_evidence": "The process sequence is visible within the actual Emoncms Input configuration UI (showing the active list of processes), not just typed into a text editor or planning document."
+    },
+    {
+      "id": "genuine_feed_creation",
+      "description": "Ensure the feeds were created within the application's standard workflow.",
+      "visual_evidence": "The feed names 'solar_yield' and 'solar_energy' appear in the application's standard dropdowns, tables, or feed creation dialogs, indicating genuine interaction with the software."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Node: 'garage_solar'. Target Input: 'power'. The input processing sequence must be strictly ordered to ensure positive values are logged: 1. Scale (or multiply) by -1. 2. Log to feed named 'solar_yield' (PHPFina, 10s interval). 3. Power to kWh to a feed named 'solar_energy' (PHPFina, 10s interval). The scaling process must appear before the logging and accumulation processes."
+}

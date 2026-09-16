@@ -1,0 +1,39 @@
+{
+  "id": "calculate_distance_to_river@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Calculate the distance from major cities (/home/ga/gvsig_data/cities/ne_110m_populated_places.shp) to the nearest river (/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp) using gvSIG's geoprocessing tools. The resulting layer must contain the original city attributes along with the calculated distance values. Export the final shapefile to /home/ga/gvsig_data/exports/cities_river_dist.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/calculate_distance_to_river/setup_task.sh",
+    "post_task": "/workspace/tasks/calculate_distance_to_river/export_result.sh"
+  },
+  "metadata": {
+    "cities_path": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "rivers_path": "/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp",
+    "output_path": "/home/ga/gvsig_data/exports/cities_river_dist.shp",
+    "expected_min_features": 200,
+    "check_cities": {
+      "Cairo": {
+        "max_dist": 0.5
+      },
+      "London": {
+        "max_dist": 0.5
+      },
+      "Riyadh": {
+        "min_dist": 2.0
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calculate_distance_to_river"
+    }
+  }
+}

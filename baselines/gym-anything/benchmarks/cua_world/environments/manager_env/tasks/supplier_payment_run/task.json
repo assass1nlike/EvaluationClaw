@@ -1,0 +1,32 @@
+{
+  "id": "supplier_payment_run@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Northwind Traders needs to complete an overdue payment run to resolve supplier credit issues. Process payments for all outstanding purchase invoices older than 30 days from the invoice date using the Cash on Hand bank account. Record and apply a $200.00 debit note for Pavlova, Ltd. for a damaged batch before settling their account. Login: administrator (no password) at http://localhost:8080",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "partial"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/supplier_payment_run/setup_task.sh",
+    "post_task": "/workspace/tasks/supplier_payment_run/export_result.sh"
+  },
+  "metadata": {
+    "expected_debit_note_pavlova": 200.0,
+    "expected_payment_pavlova": 1320.0,
+    "expected_payment_specialty_biscuits": 2430.0,
+    "expected_payment_grandma_kellys": 1890.0,
+    "not_overdue_pavlova": 875.0,
+    "not_overdue_exotic": 1080.0,
+    "manager_module": "purchase_invoices",
+    "pass_threshold": 65
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_supplier_payment_run"
+    }
+  }
+}

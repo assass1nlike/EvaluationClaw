@@ -1,0 +1,53 @@
+{
+  "task_id": "model_traffic_incident@1",
+  "task_completion": [
+    {
+      "id": "incident_scenario_created",
+      "description": "Verify the creation of an incident scenario file with a vehicle named 'incident_veh' stopped for 900 seconds at depart time 100.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor or a command like `cat` displaying XML content with `<vehicle id=\"incident_veh\" depart=\"100\">` and a `<stop>` element with `duration=\"900\"` on a standard traffic lane."
+    },
+    {
+      "id": "simulation_config_saved",
+      "description": "Verify the simulation configuration is saved to /home/ga/SUMO_Scenarios/bologna_pasubio/run_incident.sumocfg.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the creation, editing, or listing of the file `run_incident.sumocfg` in the `/home/ga/SUMO_Scenarios/bologna_pasubio/` directory."
+    },
+    {
+      "id": "base_simulation_run",
+      "description": "Verify the base simulation was executed and the tripinfo_incident.xml file was generated.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a SUMO command execution or an `ls` command confirming the existence of `/home/ga/SUMO_Output/tripinfo_incident.xml`."
+    },
+    {
+      "id": "rerouted_simulation_run",
+      "description": "Verify the rerouted simulation was executed with dynamic rerouting enabled and the tripinfo_rerouted.xml file was generated.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a SUMO command execution with rerouting parameters (e.g., using `--device.rerouting.probability`) or an `ls` command confirming the existence of `/home/ga/SUMO_Output/tripinfo_rerouted.xml`."
+    },
+    {
+      "id": "comparison_report_generated",
+      "description": "Verify the comparison report was produced with the correct format.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the contents of `/home/ga/SUMO_Output/impact_report.txt` containing exactly 'Base Average Duration: <X>' and 'Rerouted Average Duration: <X>' where <X> are numbers rounded to two decimal places."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "Verify that SUMO was actually executed to generate the XML files.",
+      "visual_evidence": "Terminal output showing SUMO simulation progress (e.g., 'Step #...', 'Simulation ended at time...') rather than the agent manually creating or faking the XML output files."
+    },
+    {
+      "id": "calculated_averages",
+      "description": "Verify that the agent calculated the averages from the XML files rather than making up numbers.",
+      "visual_evidence": "Terminal showing the use of a script (Python, bash, awk) or manual calculation steps to extract and average the 'duration' attributes from the tripinfo XML files."
+    },
+    {
+      "id": "plausible_report_values",
+      "description": "Verify the report contains plausible values.",
+      "visual_evidence": "The values in the impact report should reasonably reflect average trip durations (e.g., around 345 seconds or higher due to the incident), not arbitrary numbers like 0.00 or 1.23."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario directory is `/home/ga/SUMO_Scenarios/bologna_pasubio` and the output directory is `/home/ga/SUMO_Output`. The incident file is typically named `incident.rou.xml`. The base tripinfo file must be `/home/ga/SUMO_Output/tripinfo_incident.xml` and the rerouted tripinfo file must be `/home/ga/SUMO_Output/tripinfo_rerouted.xml`. The final report is `/home/ga/SUMO_Output/impact_report.txt`. A standard simulation without an incident yields an average trip duration of approximately 345.38 seconds, so the reported averages should be in this ballpark or higher depending on the severity of the blocked lane."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "update_working_schedule_fridays@1",
+  "task_completion": [
+    {
+      "id": "odoo_login",
+      "description": "Log in to Odoo as admin.",
+      "points": 10,
+      "visual_evidence": "The VLM should see the Odoo login screen being filled with admin credentials or the Odoo dashboard after a successful login."
+    },
+    {
+      "id": "open_target_schedule",
+      "description": "Open the 'Standard 40 hours/week' working schedule in Odoo.",
+      "points": 10,
+      "visual_evidence": "The VLM should see the Odoo interface with the 'Standard 40 hours/week' schedule opened (usually under Settings, Employees, or Payroll apps), showing its working hours."
+    },
+    {
+      "id": "monday_to_thursday_intact",
+      "description": "Ensure all Monday-Thursday shifts remain unchanged.",
+      "points": 20,
+      "visual_evidence": "The working hours list should display both morning (08:00-12:00) and afternoon (13:00-17:00) shifts for Monday, Tuesday, Wednesday, and Thursday."
+    },
+    {
+      "id": "friday_morning_intact",
+      "description": "Ensure the Friday morning shift remains unchanged.",
+      "points": 20,
+      "visual_evidence": "The working hours list should display a shift for Friday from 08:00 to 12:00 (Morning)."
+    },
+    {
+      "id": "friday_afternoon_removed",
+      "description": "Remove the Friday afternoon shift and save the schedule.",
+      "points": 40,
+      "visual_evidence": "The working hours list should NOT contain any shift for Friday from 13:00 to 17:00 (Afternoon). The changes should be saved (e.g., no unsaved changes indicator, or a save button was clicked)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Odoo web GUI to make changes, not terminal commands or API scripts.",
+      "visual_evidence": "Screenshots should show the agent clicking through the Odoo web interface to modify the schedule."
+    },
+    {
+      "id": "actual_application",
+      "description": "The agent interacted with the actual Odoo application in a web browser.",
+      "visual_evidence": "The browser address bar should show the local Odoo URL and the interface should be the genuine Odoo web application."
+    },
+    {
+      "id": "no_direct_db_modification",
+      "description": "The agent did not use psql or database commands in the terminal to modify the schedule directly.",
+      "visual_evidence": "Terminal windows should not show SQL UPDATE or DELETE commands targeting the Odoo database."
+    }
+  ],
+  "privileged_info_for_vlm": "The target schedule is named 'Standard 40 hours/week'. Friday is represented by day index 4 (or simply 'Friday' in the UI). The cutoff hour is 12:00 (noon). The task is successful if the Friday afternoon shift (13:00-17:00) is removed, while the Friday morning shift (08:00-12:00) and all Monday-Thursday shifts remain intact."
+}

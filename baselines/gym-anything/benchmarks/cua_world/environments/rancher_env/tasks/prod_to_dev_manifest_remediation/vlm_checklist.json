@@ -1,0 +1,53 @@
+{
+  "task_id": "prod_to_dev_manifest_remediation@1",
+  "task_completion": [
+    {
+      "id": "web_app_running",
+      "description": "The 'web-app' Deployment has all 3 replicas running.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI (Workloads -> Deployments) or terminal ('kubectl get deploy -n dev-environment'), the 'web-app' deployment shows 3/3 ready or active replicas."
+    },
+    {
+      "id": "db_backend_running",
+      "description": "The 'db-backend' StatefulSet has its pod running.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI (Workloads -> StatefulSets) or terminal ('kubectl get sts -n dev-environment'), the 'db-backend' StatefulSet shows 1/1 ready or active pods."
+    },
+    {
+      "id": "db_backend_pvc_bound",
+      "description": "The PVC for the 'db-backend' StatefulSet is bound to a locally available storage class.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI (Storage -> PersistentVolumeClaims) or terminal ('kubectl get pvc -n dev-environment'), the PVC associated with 'db-backend' shows a status of 'Bound'."
+    },
+    {
+      "id": "data_processor_running",
+      "description": "The 'data-processor' Deployment has its pod running.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI (Workloads -> Deployments) or terminal ('kubectl get deploy -n dev-environment'), the 'data-processor' deployment shows 1/1 ready or active pods."
+    },
+    {
+      "id": "web_ingress_ip",
+      "description": "The 'web-ingress' Ingress has successfully acquired an IP address.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI (Service Discovery -> Ingresses) or terminal ('kubectl get ingress -n dev-environment'), the 'web-ingress' resource displays an assigned IP address under the 'Address' or 'ADDRESS' column."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kubernetes_interaction",
+      "description": "The agent applied changes to the Kubernetes cluster rather than just editing the local manifest file.",
+      "visual_evidence": "Screenshots show the agent using 'kubectl apply', 'kubectl edit', or making changes directly in the Rancher UI, rather than only modifying '/home/ga/Desktop/prod_manifests.yaml' in a text editor without applying it."
+    },
+    {
+      "id": "correct_namespace_used",
+      "description": "The agent interacted with resources in the correct 'dev-environment' namespace.",
+      "visual_evidence": "Terminal commands explicitly include '-n dev-environment' or the Rancher UI namespace filter is set to 'dev-environment'."
+    },
+    {
+      "id": "no_spoofed_outputs",
+      "description": "The agent did not fake terminal outputs to simulate success.",
+      "visual_evidence": "Terminal outputs show standard, properly formatted 'kubectl' responses, or the Rancher UI displays genuine system-generated status badges (e.g., green 'Active' indicators). No 'echo' or text-printing commands were used to fake the status."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace for all resources is 'dev-environment'. Ensure all visual checks for Deployments, StatefulSets, PVCs, and Ingresses are confirmed within this specific namespace."
+}

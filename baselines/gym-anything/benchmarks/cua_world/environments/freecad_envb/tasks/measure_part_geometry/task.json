@@ -1,0 +1,32 @@
+{
+  "id": "measure_part_geometry@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Open the T8 housing bracket CAD model at /home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd and determine the bounding box dimensions (X, Y, Z), total volume, total surface area, and center of mass coordinates (X, Y, Z) for the main solid body. Save a report with these values rounded to 2 decimal places to /home/ga/Documents/FreeCAD/measurement_report.txt using the following format:\n\nBoundingBox_X: <value>\nBoundingBox_Y: <value>\nBoundingBox_Z: <value>\nVolume: <value>\nSurfaceArea: <value>\nCenterOfMass_X: <value>\nCenterOfMass_Y: <value>\nCenterOfMass_Z: <value>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/measure_part_geometry/setup_task.sh",
+    "post_task": "/workspace/tasks/measure_part_geometry/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/FreeCAD/measurement_report.txt",
+    "model_path": "/home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd",
+    "tolerances": {
+      "bbox_percent": 5.0,
+      "volume_percent": 5.0,
+      "area_percent": 5.0,
+      "com_mm": 2.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_part_geometry"
+    }
+  }
+}

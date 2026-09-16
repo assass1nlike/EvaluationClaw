@@ -1,0 +1,59 @@
+{
+  "task_id": "multiline_java_log_parsing@1",
+  "task_completion": [
+    {
+      "id": "index_created",
+      "description": "Verify the 'app_logs' index was created.",
+      "points": 10,
+      "visual_evidence": "Look for 'app_logs' in the Splunk 'Indexes' settings page or in a successful creation confirmation message."
+    },
+    {
+      "id": "sourcetype_created",
+      "description": "Verify the custom sourcetype 'java_multiline' was created.",
+      "points": 15,
+      "visual_evidence": "Look for 'java_multiline' in the Splunk 'Source Types' settings page or in the 'Set Source Type' step of the Add Data wizard."
+    },
+    {
+      "id": "sourcetype_configured",
+      "description": "Verify the sourcetype is configured to break before the timestamp pattern.",
+      "points": 20,
+      "visual_evidence": "Look for the regex pattern (e.g., '^\\d{4}-\\d{2}-\\d{2}') in the Event Breaks settings (e.g., 'Break only before' field) or Advanced settings for the 'java_multiline' sourcetype."
+    },
+    {
+      "id": "data_ingested",
+      "description": "Verify the log file was ingested into the correct index with the correct sourcetype.",
+      "points": 20,
+      "visual_evidence": "Look for a Splunk search query or Add Data confirmation showing source='/home/ga/Documents/java_errors.log', sourcetype='java_multiline', and index='app_logs'."
+    },
+    {
+      "id": "events_parsed_correctly",
+      "description": "Verify the multi-line logs were merged into exactly 5 events.",
+      "points": 20,
+      "visual_evidence": "Look at the search results for 'index=app_logs'. The total event count must be exactly 5 (not 17), and individual events should display multiple lines of a Java stack trace."
+    },
+    {
+      "id": "saved_search_created",
+      "description": "Verify the saved search 'Java_Error_Summary' was created.",
+      "points": 15,
+      "visual_evidence": "Look for 'Java_Error_Summary' in the 'Reports' or 'Searches, Reports, and Alerts' page, or a successful save dialog for a search that counts events."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_web_interface",
+      "description": "Verify the agent interacted with the Splunk Web UI.",
+      "visual_evidence": "Screenshots should show the Splunk web interface (http://localhost:8000) being used in a browser, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_search_results",
+      "description": "Verify the search results are from actual indexed data and not mocked.",
+      "visual_evidence": "The search query should not use commands like '| makeresults' or '| eval' to fake the event count or log contents."
+    },
+    {
+      "id": "actual_file_ingestion",
+      "description": "Verify the agent ingested the actual log file.",
+      "visual_evidence": "The 'Add Data' wizard or inputs.conf should explicitly reference the path '/home/ga/Documents/java_errors.log'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected index is 'app_logs'. The expected custom sourcetype is 'java_multiline'. The log file contains 17 lines but must be parsed into exactly 5 events using the timestamp regex. The expected saved search is named 'Java_Error_Summary'."
+}

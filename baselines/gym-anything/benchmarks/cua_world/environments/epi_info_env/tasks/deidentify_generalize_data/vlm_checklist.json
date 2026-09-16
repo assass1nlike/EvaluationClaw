@@ -1,0 +1,53 @@
+{
+  "task_id": "deidentify_generalize_data@1",
+  "task_completion": [
+    {
+      "id": "open_dataset",
+      "description": "Epi Info 7 Classic Analysis is open and the input dataset is loaded.",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 Classic Analysis window is visible. The output or script pane shows a READ command for 'hospital_admissions_sensitive.csv' or the record count (approx 303) is displayed."
+    },
+    {
+      "id": "define_agedecade",
+      "description": "A new variable 'AgeDecade' is created to generalize 'age' into 10-year bins.",
+      "points": 30,
+      "visual_evidence": "The script pane or output shows an ASSIGN or RECODE command defining 'AgeDecade' (e.g., using math like 'AgeDecade = age - (age MOD 10)' or a series of recode statements)."
+    },
+    {
+      "id": "include_required_variables",
+      "description": "The export process includes the new 'AgeDecade' variable and original clinical variables.",
+      "points": 20,
+      "visual_evidence": "The Write/Export dialog or the generated WRITE command in the script pane shows 'AgeDecade', 'sex', 'chol', 'trestbps', and other clinical variables selected for export."
+    },
+    {
+      "id": "exclude_forbidden_variables",
+      "description": "The export process excludes the exact 'age' column, 'MRN', and 'PatientName'.",
+      "points": 20,
+      "visual_evidence": "The Write/Export dialog or WRITE command shows that 'age', 'MRN', and 'PatientName' are NOT selected for export (or an EXCEPT clause is used in the command)."
+    },
+    {
+      "id": "export_execution",
+      "description": "The dataset is exported to the specified output path.",
+      "points": 20,
+      "visual_evidence": "The output pane shows the successful execution of the WRITE command exporting to 'C:\\Users\\Docker\\Documents\\EpiData\\public_heart_data.csv', or a file explorer window shows the newly created file in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_analysis",
+      "description": "The agent used Epi Info 7 Classic Analysis for the data manipulation.",
+      "visual_evidence": "The screenshots show interaction with the Epi Info 7 Classic Analysis GUI, not a Python IDE, Excel, or text editor."
+    },
+    {
+      "id": "genuine_variable_creation",
+      "description": "The 'AgeDecade' variable was created using Epi Info commands.",
+      "visual_evidence": "Look for ASSIGN or RECODE commands in the Epi Info script/output, rather than a pre-modified CSV being loaded."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The export was performed through Epi Info.",
+      "visual_evidence": "The WRITE command or Export dialog in Epi Info is used to generate the output file, rather than manually renaming or moving files outside the application."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 303 records with clinical variables like 'sex', 'chol', and 'trestbps' which must be retained. The 'age' column must be removed and replaced with 'AgeDecade'. Note: The task mentions 'MRN' and 'PatientName' as forbidden columns, but these do not exist in the actual public dataset; verify that the agent's export process excludes 'age' and does not include 'MRN' or 'PatientName'."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "change_wall_paint_color@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "In the 'Sample House' project in NCH DreamPlan Home Design Software, change all interior wall surfaces in the ground floor living room (the large central room) to a Deep Red or Burgundy color (Hex: #800020). Save the modified project as 'RedLivingRoom.ndp' and a 3D view screenshot as 'red_walls_preview.png' in 'C:\\Users\\Docker\\Documents\\DreamPlan\\'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\change_wall_paint_color\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\change_wall_paint_color\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_project_file": "RedLivingRoom.ndp",
+    "expected_screenshot_file": "red_walls_preview.png",
+    "target_directory": "C:\\Users\\Docker\\Documents\\DreamPlan",
+    "target_color_name": "Deep Red / Burgundy",
+    "target_hue_range_min": 340,
+    "target_hue_range_max": 15,
+    "min_saturation": 30,
+    "min_value": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_wall_paint_color"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_ssh_dashboard@1",
+  "task_completion": [
+    {
+      "id": "index_pattern_selected",
+      "description": "Verifies that the 'wazuh-alerts-*' index pattern is used for the visualizations.",
+      "points": 10,
+      "visual_evidence": "Look for 'wazuh-alerts-*' selected in the index pattern dropdown or displayed in the configuration panel during visualization creation."
+    },
+    {
+      "id": "filter_applied",
+      "description": "Verifies that a filter is applied for SSH authentication failures.",
+      "points": 20,
+      "visual_evidence": "Look for a filter pill (usually below the search bar) or a query in the search bar containing 'rule.groups' and either 'authentication_failed' or 'sshd'."
+    },
+    {
+      "id": "bar_chart_created",
+      "description": "Verifies the creation of the 'SSH Failures Over Time' vertical bar chart.",
+      "points": 20,
+      "visual_evidence": "Look for a vertical bar chart (histogram) with the title 'SSH Failures Over Time'. The x-axis should represent time and the y-axis should represent a count of records."
+    },
+    {
+      "id": "pie_chart_created",
+      "description": "Verifies the creation of the 'Top SSH Attacking IPs' pie chart.",
+      "points": 20,
+      "visual_evidence": "Look for a pie chart with the title 'Top SSH Attacking IPs'. The configuration panel or legend should indicate that it is aggregating by the 'data.srcip' field."
+    },
+    {
+      "id": "dashboard_assembled",
+      "description": "Verifies both visualizations are added to a single dashboard.",
+      "points": 15,
+      "visual_evidence": "Look for a dashboard canvas displaying both the 'SSH Failures Over Time' bar chart and the 'Top SSH Attacking IPs' pie chart together."
+    },
+    {
+      "id": "dashboard_named",
+      "description": "Verifies the dashboard is saved with the correct name.",
+      "points": 15,
+      "visual_evidence": "Look for the title 'SSH Threat Monitoring' at the top left of the dashboard page or in the save dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verifies the agent used the OpenSearch/Kibana web interface to create the dashboard.",
+      "visual_evidence": "Look for interaction with the OpenSearch/Kibana UI in a web browser, rather than terminal windows executing curl commands or API scripts to bypass the GUI."
+    },
+    {
+      "id": "genuine_data_rendering",
+      "description": "Verifies the visualizations are genuinely rendered by the application.",
+      "visual_evidence": "Look for standard OpenSearch/Kibana UI elements like interactive tooltips, legends, axis labels, and configuration sidebars, ensuring the charts are not mocked up in a drawing tool."
+    },
+    {
+      "id": "actual_input_fields",
+      "description": "Verifies titles and configurations were entered into the actual application fields.",
+      "visual_evidence": "Look for the titles and field names inside the proper OpenSearch/Kibana configuration text boxes or header areas, rather than text pasted over the screen."
+    }
+  ],
+  "privileged_info_for_vlm": "Dashboard Title: 'SSH Threat Monitoring'. Visualization 1: Vertical bar chart (histogram) titled 'SSH Failures Over Time'. Visualization 2: Pie chart titled 'Top SSH Attacking IPs' aggregating on the 'data.srcip' field. Filter: 'rule.groups' must include 'authentication_failed' or 'sshd'."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "wilcoxon_one_sample_median_test@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a One-Sample Wilcoxon Signed-Rank Test on the 'Exam' variable from the dataset at /home/ga/Documents/JASP/ExamAnxiety.csv to determine if the median significantly differs from a test value of 50. The analysis must include the Hodges-Lehmann estimate (location parameter) with its confidence interval and descriptive statistics. Save the analysis file to /home/ga/Documents/JASP/Exam_Wilcoxon_Test.jasp and create a text report at /home/ga/Documents/JASP/median_analysis_report.txt containing the Test Statistic (W), the p-value, and the Hodges-Lehmann estimate value.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wilcoxon_one_sample_median_test/setup_task.sh",
+    "post_task": "/workspace/tasks/wilcoxon_one_sample_median_test/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/Exam_Wilcoxon_Test.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/median_analysis_report.txt",
+    "analysis_type": "TTestOneSample",
+    "target_variable": "Exam",
+    "test_value": 50,
+    "required_settings": {
+      "student": false,
+      "wilcoxon": true,
+      "locationParameter": true,
+      "confidenceInterval": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wilcoxon_test"
+    }
+  }
+}

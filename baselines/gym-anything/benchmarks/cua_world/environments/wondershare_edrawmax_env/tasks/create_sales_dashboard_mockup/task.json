@@ -1,0 +1,35 @@
+{
+  "id": "create_sales_dashboard_mockup@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a Sales Dashboard mockup in EdrawMax. The dashboard must include a header with the title 'Executive Sales Overview - Q3 2025' and subtitle 'July 1 - September 30, 2025'. Include four KPI cards: Revenue ($4,250,000, +12.5%), Gross Margin (68%, -2.1%), New Customers (142, +8), and Avg Deal Size ($29,500, Flat). Add a bar chart titled 'Revenue by Region' with categories North, South, East, and West, and a donut or pie chart titled 'Sales by Product' with segments for SaaS Platform (50%), On-Premise (30%), and Services (20%). Save the source file to /home/ga/Documents/sales_dashboard.eddx and export the dashboard as an image to /home/ga/Documents/sales_dashboard.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_sales_dashboard_mockup/setup_task.sh",
+    "post_task": "/workspace/tasks/create_sales_dashboard_mockup/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/sales_dashboard.eddx",
+    "expected_png_path": "/home/ga/Documents/sales_dashboard.png",
+    "required_strings": [
+      "Executive Sales Overview",
+      "4,250,000",
+      "68%",
+      "142",
+      "29,500",
+      "Revenue by Region",
+      "SaaS Platform"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_sales_dashboard_mockup"
+    }
+  }
+}

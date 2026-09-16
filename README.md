@@ -159,6 +159,38 @@ benchmark clarity, correctness, faithfulness, and diversity on a 1–5 scale; wh
 Analysis runs, it also scores systematicness and credibility. Task-specific judges and dialogue
 simulators are selected with repeated `--task-model` or `--task-config` options.
 
+Agent-task LaaJ can explore private environment copies, run terminal/native tools,
+contact actors, and submit trial answers to the original evaluator. Target actions
+use target permissions; privileged inspections are labelled as reviewer access.
+Experiments and resets are saved under `debug/runs/<run>/laaj/exploration/` and do
+not change target-run results. VM exploration requires a fresh VM specification;
+shared desktops and multi-stage workflows remain available through saved evidence.
+The pooled tool budget is 200 calls per sampled item plus each probe agent item,
+with a minimum of 500 (`--laaj-tool-calls-per-item`). Analyser evidence reads allow
+500 calls per decision/review (`--analyser-tool-max-calls`). Planner allows 500
+calls, Builder 2000 per invocation; explicit configuration may increase either.
+Builder sub-budgets allow 100 image builds, 500 image checks, 100 Docker/VM starts,
+and 2000 Docker/VM commands per invocation. Actor interactions allow 200 model
+turns, 500 tool calls, and 3600 seconds by default.
+
+For scoring an agent's actual answer, a single-stage Docker task can declare
+`environment.judge` with `mode: "judge"`, task-specific `instructions`, and
+`criteria: [{id, rubric, weight}]`. Each rubric defines evidence requirements and
+score anchors in [0,1]. The judge uses a configured `--task-model` (selected by
+`metadata.task_model_id`) and can inspect a private copy of the completed task
+filesystem plus recorded episode evidence. It has 500 tool calls by default
+(`--agent-judge-tool-max-calls`). Scores, cited evidence, commands, outputs, and
+model calls are saved in the episode's `judge/` directory.
+
+`mode: "hybrid"` combines the weighted criterion score with `test_command` using
+an explicit `script_weight`. `script_gate: true` forces zero unless the script
+scores 1. Omitting `environment.judge` retains script scoring. Preflight exercises
+the configured evaluator, including the judge when selected. Judge errors remain
+evaluation errors. Review copies preserve filesystem permissions and directory
+mounts, but not running processes, memory, or external network. Optional
+`judge.setup_commands` can restart local services without resetting submitted
+data. VM and multi-stage workflow judge scoring are not supported.
+
 Builder resource tools read local UTF-8 text and PDFs, inspect ZIP/TAR members,
 and extract selected files or entire archives (up to 64 files and 1 GiB per call).
 Extraction preserves layout and executable permissions; returned paths work as
@@ -172,8 +204,8 @@ disable it with `--no-contamination`. It searches every constructed item unless
 `--contamination-sample-size` sets a stratified sample. A research agent searches,
 opens pages, follows static page links, downloads documents, and revises its
 queries based on the evidence. It keeps looking after the first match and
-records unresolved leads when it stops. Each item has a budget of 40 research
-tool calls, at most 12 queries and 20 distinct source URLs, configurable with
+records unresolved leads when it stops. Each item has a budget of 500 research
+tool calls, at most 100 queries and 200 distinct source URLs, configurable with
 `--contamination-max-tool-calls`, `--contamination-max-queries`, and
 `--contamination-max-sources`. Search, navigation, inspection, and match
 confirmation all consume the shared tool budget.
@@ -281,11 +313,13 @@ OpenHands is supplied through its dedicated tool image; invoking a host-installe
 OpenHands CLI is intentionally unsupported because it cannot enforce task-image isolation.
 
 Docker agent tasks may define environment roles under `environment.actors` and
-reusable capability groups under `environment.actor_toolsets`. The target sees
-one `send_message(actor_id, message)` tool and all public actor IDs. Each actor
+reusable capability groups under `environment.actor_toolsets`. All external shell
+harnesses access contacts through `python3 /run/evalclaw-contacts/contacts.py list`
+and `python3 /run/evalclaw-contacts/contacts.py send CONTACT_ID 'message'`.
+Actor task images must contain Python 3. Each actor
 keeps an isolated conversation history, receives only its own public benchmark
 system prompt and incoming messages, and can modify the shared workspace through
-its configured tools. Actor tasks currently require the OpenClaw harness. Configure
+its configured tools. Configure
 the single actor model used for a run with `--actor-model` and the corresponding
 `--actor-provider`, `--actor-base-url`, and `--actor-api-key` options; per-interaction
 limits use the `--actor-max-*` and `--actor-timeout` options. Actor definitions,

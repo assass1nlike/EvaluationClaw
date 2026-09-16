@@ -1,0 +1,59 @@
+{
+  "task_id": "unstructured_clinical_note_mining@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Connect to the 'DrTuxTest' database.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, MySQL Workbench) or terminal SQL interface open and explicitly connected to the 'DrTuxTest' database."
+    },
+    {
+      "id": "query_legacy_observations",
+      "description": "Query the 'Legacy_Observations' table.",
+      "points": 15,
+      "visual_evidence": "A SQL query editor or table view showing interaction with the 'Legacy_Observations' table."
+    },
+    {
+      "id": "join_patient_data",
+      "description": "Link the legacy observations to patient records to retrieve names.",
+      "points": 20,
+      "visual_evidence": "A SQL JOIN clause connecting 'Legacy_Observations' to a patient table (e.g., 'fchpat') using the patient GUID, or a result set displaying both note text and patient names."
+    },
+    {
+      "id": "filter_penicillin_keyword",
+      "description": "Filter the notes for the word 'p\u00e9nicilline' using case-insensitive and accent-insensitive matching.",
+      "points": 20,
+      "visual_evidence": "A WHERE clause in the SQL query designed to catch variations of 'penicilline' (e.g., using ILIKE, LOWER(), unaccent functions, or regex), or a GUI filter applied to the note text column."
+    },
+    {
+      "id": "select_required_columns",
+      "description": "Select the exact required columns for the report.",
+      "points": 15,
+      "visual_evidence": "The SQL SELECT statement or the final result grid explicitly containing 'PatientGUID', 'LastName', 'FirstName', 'NoteDate', and 'NoteText'."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the query results to '~/Documents/penicillin_safety_review.csv'.",
+      "points": 20,
+      "visual_evidence": "An export dialog, a terminal command saving the output, or a file manager window showing 'penicillin_safety_review.csv' located in the 'Documents' folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_query_execution",
+      "description": "Verify the agent executed a genuine database query to find the data.",
+      "visual_evidence": "The presence of a query execution time, result grid, or success message in a database client, proving the data was retrieved from the DB and not manually typed."
+    },
+    {
+      "id": "no_hardcoded_patients",
+      "description": "Ensure the agent did not hardcode patient IDs or names to bypass the search.",
+      "visual_evidence": "The SQL query or script must use dynamic filtering (e.g., WHERE NoteText LIKE '%penicilline%') rather than a hardcoded list of patient GUIDs (e.g., WHERE PatientGUID IN (...))."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Check that the CSV was generated via an export tool or script.",
+      "visual_evidence": "Evidence of using a 'Save As CSV' / 'Export Data' feature in the DB client, or a SQL command like 'COPY ... TO ... CSV', rather than manually pasting text into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be exactly at '/home/ga/Documents/penicillin_safety_review.csv'. The required columns are 'PatientGUID', 'LastName', 'FirstName', 'NoteDate', and 'NoteText'. The database is 'DrTuxTest'. The agent must join the 'Legacy_Observations' table (which contains patient_guid, note_date, note_text) with the patient table ('fchpat') to retrieve LastName and FirstName. The ground truth contains approximately 4 patients with variations of the keyword (e.g., 'P\u00e9nicilline', 'PENICILLINE', 'penicilline')."
+}

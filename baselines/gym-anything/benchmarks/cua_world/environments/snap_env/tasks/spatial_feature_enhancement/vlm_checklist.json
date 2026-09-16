@@ -1,0 +1,53 @@
+{
+  "task_id": "spatial_feature_enhancement@1",
+  "task_completion": [
+    {
+      "id": "open_sentinel2_imagery",
+      "description": "Verify that the Sentinel-2 true color imagery is opened in SNAP Desktop.",
+      "points": 10,
+      "visual_evidence": "The Product Explorer window in SNAP Desktop shows a product named 'sentinel2_tci' (or similar), and the image may be displayed in the main viewing area."
+    },
+    {
+      "id": "apply_spatial_filter",
+      "description": "Verify that a spatial filter is applied to the image to sharpen edges or highlight structural boundaries.",
+      "points": 30,
+      "visual_evidence": "A spatial filter dialog box (e.g., Raster > Filter > Spatial Filter) is open and being configured, or a new filtered band is visible in the Product Explorer with a suffix indicating filtering (e.g., '_filtered', '_sharpen', or '_edge')."
+    },
+    {
+      "id": "preserve_original_bands",
+      "description": "Verify that the original unfiltered bands are preserved in the product alongside the filtered bands.",
+      "points": 20,
+      "visual_evidence": "In the spatial filter dialog, an option like 'Replace original band' is left unchecked, OR the Product Explorer's 'Bands' folder for the processed product clearly lists both the 3 original bands and the newly created filtered bands."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Verify that the enhanced product is saved in the BEAM-DIMAP format.",
+      "points": 20,
+      "visual_evidence": "A 'Save Product As' dialog is visible with the 'BEAM-DIMAP' format selected, or the Product Explorer shows the saved product name with a '.dim' extension."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Verify that the enhanced product is exported as a GeoTIFF to the /home/ga/snap_exports/ directory.",
+      "points": 20,
+      "visual_evidence": "An export dialog (File > Export > GeoTIFF) is visible with the destination path pointing to '/home/ga/snap_exports/', or a file manager/terminal window shows the exported '.tif' file in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_snap",
+      "description": "The agent used the SNAP Desktop GUI to perform the filtering and exporting tasks.",
+      "visual_evidence": "Screenshots show the SNAP Desktop interface being actively used, with menus opened and dialogs interacted with, rather than relying solely on terminal commands like 'gpt' or 'gdal'."
+    },
+    {
+      "id": "genuine_filtering_result",
+      "description": "The spatial filtering result appears to be a genuine output of SNAP Desktop processing.",
+      "visual_evidence": "The image view in SNAP shows the actual sharpened/edge-enhanced image, or SNAP processing progress bars/dialogs are visible in the trajectory."
+    },
+    {
+      "id": "correct_input_file",
+      "description": "The agent operated on the actual provided input file.",
+      "visual_evidence": "The file path in the SNAP 'Open Product' dialog or the Product Explorer properties matches '/home/ga/snap_data/sentinel2_tci.tif'."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/sentinel2_tci.tif and contains exactly 3 original bands. The source is Copernicus Sentinel-2 L2A TCI from AWS COGs. The agent must preserve these 3 original bands while adding the spatially filtered bands to the product."
+}

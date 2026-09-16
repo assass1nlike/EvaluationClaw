@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_key_recovery@1",
+  "task_completion": [
+    {
+      "id": "docker_investigation",
+      "description": "Agent executes Docker commands to investigate the containers.",
+      "points": 20,
+      "visual_evidence": "Terminal window showing commands like 'docker ps', 'docker inspect', 'docker logs', or 'docker exec' being run against the keyvault containers."
+    },
+    {
+      "id": "recovered_key_file_created",
+      "description": "The recovered_key.txt file is created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command (like nano, vim, or echo) showing a file named 'recovered_key.txt' located in ~/Desktop or /home/ga/Desktop."
+    },
+    {
+      "id": "correct_key_content",
+      "description": "The assembled key is correct and properly formatted.",
+      "points": 30,
+      "visual_evidence": "The exact string 'c4d81f56-e9027a4d-a2f4d709-7f3a9b2e-5b6c8e31' is visible inside the recovered_key.txt file."
+    },
+    {
+      "id": "recovery_report_file_created",
+      "description": "The recovery_report.txt file is created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command showing a file named 'recovery_report.txt' located in ~/Desktop or /home/ga/Desktop."
+    },
+    {
+      "id": "report_content_methodology",
+      "description": "The report contains a methodology explaining how the fragments were found.",
+      "points": 30,
+      "visual_evidence": "Text visible in recovery_report.txt that describes finding fragments via environment variables, logs, mounted volumes, Docker labels, and internal files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_interaction",
+      "description": "The agent genuinely interacted with the Docker daemon.",
+      "visual_evidence": "Terminal outputs show real Docker responses (e.g., JSON output from docker inspect, actual log lines from docker logs) rather than just typing the final answer."
+    },
+    {
+      "id": "files_actually_saved",
+      "description": "The required files were actually saved to the disk.",
+      "visual_evidence": "Text editors show the files as saved (no unsaved indicator/asterisk), or terminal commands like 'cat' or 'ls' confirm the files exist on the Desktop."
+    },
+    {
+      "id": "no_direct_key_injection",
+      "description": "The agent did not magically know the final key without investigation.",
+      "visual_evidence": "The trajectory shows the step-by-step discovery of the individual fragments before assembling the final key."
+    }
+  ],
+  "privileged_info_for_vlm": "The 5 fragments are: cache (c4d81f56), proxy (e9027a4d), scheduler (a2f4d709), storage (7f3a9b2e), worker (5b6c8e31). The final assembled key must be exactly 'c4d81f56-e9027a4d-a2f4d709-7f3a9b2e-5b6c8e31'. The files must be saved to /home/ga/Desktop/recovered_key.txt and /home/ga/Desktop/recovery_report.txt."
+}

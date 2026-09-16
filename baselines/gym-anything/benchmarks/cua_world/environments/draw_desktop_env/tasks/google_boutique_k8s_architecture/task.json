@@ -1,0 +1,43 @@
+{
+  "id": "google_boutique_k8s_architecture@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a Kubernetes microservices architecture diagram for the Google Online Boutique application using the service manifest at ~/Desktop/boutique_services.yaml. The resulting diagram at ~/Desktop/boutique_architecture.drawio must include two pages: 'Service Architecture' and 'Service Inventory'. The 'Service Architecture' page must visualize all 11 microservices, the Redis data store, and an Ingress/Gateway, with connections following the dependencies in the YAML, labeled by protocol (gRPC or HTTP), and enclosed in a Kubernetes Namespace boundary. The 'Service Inventory' page must contain a table listing each service's name, language, and port. Export the 'Service Architecture' page as a PNG to ~/Desktop/boutique_architecture.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/google_boutique_k8s_architecture/setup_task.sh",
+    "post_task": "/workspace/tasks/google_boutique_k8s_architecture/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/boutique_architecture.drawio",
+    "expected_png": "/home/ga/Desktop/boutique_architecture.png",
+    "manifest_path": "/home/ga/Desktop/boutique_services.yaml",
+    "service_names": [
+      "frontend",
+      "cartservice",
+      "productcatalogservice",
+      "currencyservice",
+      "paymentservice",
+      "shippingservice",
+      "emailservice",
+      "checkoutservice",
+      "recommendationservice",
+      "adservice",
+      "loadgenerator"
+    ],
+    "min_shapes": 13,
+    "min_edges": 12,
+    "min_pages": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_boutique_architecture"
+    }
+  }
+}

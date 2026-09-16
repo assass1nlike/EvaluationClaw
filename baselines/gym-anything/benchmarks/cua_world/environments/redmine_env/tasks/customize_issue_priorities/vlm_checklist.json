@@ -1,0 +1,53 @@
+{
+  "task_id": "customize_issue_priorities@1",
+  "task_completion": [
+    {
+      "id": "rename_immediate_to_critical",
+      "description": "Verify that the 'Immediate' priority has been renamed to 'Critical'.",
+      "points": 20,
+      "visual_evidence": "In the Redmine Issue Priorities list (Administration -> Enumerations), there should be a priority named 'Critical', and 'Immediate' should no longer be present."
+    },
+    {
+      "id": "create_blocker_priority",
+      "description": "Verify that a new priority named 'Blocker' has been created.",
+      "points": 20,
+      "visual_evidence": "In the Redmine Issue Priorities list, there should be a priority named 'Blocker'."
+    },
+    {
+      "id": "deactivate_low_priority",
+      "description": "Verify that the 'Low' priority is deactivated but not deleted.",
+      "points": 20,
+      "visual_evidence": "The 'Low' priority must still be visible in the list but indicated as inactive (e.g., it may have an 'Activate' link next to it instead of 'Deactivate', or be visually distinct/grayed out)."
+    },
+    {
+      "id": "set_normal_as_default",
+      "description": "Verify that 'Normal' is set as the default priority.",
+      "points": 20,
+      "visual_evidence": "In the Issue Priorities list, the 'Normal' row should have a checkmark icon (or similar indicator) in the 'Default' column."
+    },
+    {
+      "id": "verify_active_priority_order",
+      "description": "Verify that the active priorities are sorted in the correct sequence of increasing urgency.",
+      "points": 20,
+      "visual_evidence": "The active priorities in the table must appear in this exact top-to-bottom order: Normal, High, Urgent, Critical, Blocker."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Verify the agent used the Redmine web interface to make changes.",
+      "visual_evidence": "Screenshots should show the agent navigating the Redmine Administration web pages in a browser, rather than using terminal commands or API scripts."
+    },
+    {
+      "id": "no_database_manipulation",
+      "description": "Verify the agent did not bypass the UI using database queries or Rails console.",
+      "visual_evidence": "There should be no evidence of terminal windows running SQL commands, sqlite3, or `rails console` to modify the enumerations directly."
+    },
+    {
+      "id": "authentic_application_state",
+      "description": "Verify the results are shown within the actual Redmine application.",
+      "visual_evidence": "The browser URL should reflect the Redmine application (e.g., /enumerations) and the page layout should match the standard Redmine interface, not a mocked or text-edited page."
+    }
+  ],
+  "privileged_info_for_vlm": "The final state of Redmine Issue Priorities must include exactly these items: Blocker, Critical, Urgent, High, Normal, and Low. 'Low' must be present but inactive. 'Normal' must be marked as the default. The active priorities must be visually ordered from top to bottom exactly as: Normal, High, Urgent, Critical, Blocker."
+}

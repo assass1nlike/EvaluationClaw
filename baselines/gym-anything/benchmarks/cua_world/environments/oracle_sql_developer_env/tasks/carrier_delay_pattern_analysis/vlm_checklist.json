@@ -1,0 +1,59 @@
+{
+  "task_id": "carrier_delay_pattern_analysis@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database as logistics_analyst.",
+      "points": 10,
+      "visual_evidence": "Look for a database client (e.g., SQL Developer, DBeaver, or SQL*Plus in terminal) showing a successful connection to XEPDB1 using the username 'logistics_analyst'."
+    },
+    {
+      "id": "consecutive_delay_view",
+      "description": "Create the CONSECUTIVE_DELAY_PATTERNS view using MATCH_RECOGNIZE.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query creating the view 'CONSECUTIVE_DELAY_PATTERNS' that explicitly includes the 'MATCH_RECOGNIZE' clause, along with a success message like 'View created'."
+    },
+    {
+      "id": "scorecards_and_bottleneck_views",
+      "description": "Create CARRIER_SCORECARDS and ROUTE_BOTTLENECK_ANALYSIS views.",
+      "points": 20,
+      "visual_evidence": "Look for SQL queries creating 'CARRIER_SCORECARDS' (using window functions with a 30-day range interval) and 'ROUTE_BOTTLENECK_ANALYSIS' (calculating > 20% SLA transit time), accompanied by success messages."
+    },
+    {
+      "id": "at_risk_procedure_table",
+      "description": "Create PROC_FLAG_AT_RISK_SHIPMENTS procedure and populate AT_RISK_SHIPMENTS table.",
+      "points": 20,
+      "visual_evidence": "Look for PL/SQL code creating 'PROC_FLAG_AT_RISK_SHIPMENTS' and a table 'AT_RISK_SHIPMENTS', followed by evidence of execution (e.g., 'Procedure created', 'PL/SQL procedure successfully completed', or a SELECT query showing populated rows)."
+    },
+    {
+      "id": "pivot_view",
+      "description": "Create CARRIER_COMPARISON_PIVOT view using the PIVOT clause.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL query creating 'CARRIER_COMPARISON_PIVOT' that explicitly uses the 'PIVOT' keyword to cross-tabulate carrier names and shipment counts, with a 'View created' success message."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the summary report to /home/ga/carrier_performance.csv.",
+      "points": 15,
+      "visual_evidence": "Look for a database client export dialog, a spool command, or a terminal command (like 'cat' or 'ls -l') confirming the file 'carrier_performance.csv' exists in the '/home/ga/' directory and contains carrier names and shipment counts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_db_interaction",
+      "description": "Ensure queries were actually executed against the database.",
+      "visual_evidence": "Check that SQL statements are not just typed into a text editor. They must be executed in a database client or terminal, showing actual Oracle execution outputs, compilation warnings, or success messages."
+    },
+    {
+      "id": "authentic_plsql_execution",
+      "description": "Verify the PL/SQL procedure was compiled and run, not just written.",
+      "visual_evidence": "Look for Oracle-specific compilation messages (e.g., 'Procedure created.') and execution messages (e.g., 'PL/SQL procedure successfully completed.') rather than just a script file."
+    },
+    {
+      "id": "no_mocked_csv",
+      "description": "Ensure the CSV file was generated from database results, not manually mocked.",
+      "visual_evidence": "Check that the CSV file creation stems from an export function or a script querying the database, rather than the agent using 'echo' or a text editor to manually type fake carrier data into the CSV."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires specific Oracle SQL features: MATCH_RECOGNIZE for consecutive delays, Window Functions (range interval 30 days) for scorecards, PL/SQL for the at-risk procedure, and PIVOT for the comparison view. The final export must be located at /home/ga/carrier_performance.csv. Note: The programmatic verifier is missing from the environment, making visual confirmation of query execution and file creation absolutely essential for scoring."
+}

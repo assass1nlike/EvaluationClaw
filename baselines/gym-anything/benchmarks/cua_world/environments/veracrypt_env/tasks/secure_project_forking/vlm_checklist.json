@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_project_forking@1",
+  "task_completion": [
+    {
+      "id": "master_volume_created",
+      "description": "Create the master keyfile and the alpha volume.",
+      "points": 15,
+      "visual_evidence": "File manager or terminal showing 'master_key' exists in /home/ga/Keyfiles/ and 'project_alpha.hc' exists in /home/ga/Volumes/."
+    },
+    {
+      "id": "master_volume_data_copied",
+      "description": "Mount the alpha volume and copy the sample file into it.",
+      "points": 15,
+      "visual_evidence": "File manager or terminal showing 'SF312_Nondisclosure_Agreement.txt' located inside the mounted project_alpha volume directory."
+    },
+    {
+      "id": "volume_forked",
+      "description": "Create an exact copy of the alpha volume named project_beta.hc.",
+      "points": 15,
+      "visual_evidence": "File manager or terminal showing 'project_beta.hc' alongside 'project_alpha.hc' in the /home/ga/Volumes/ directory."
+    },
+    {
+      "id": "rekey_password_and_keyfile",
+      "description": "Change the password for the beta volume and remove the keyfile requirement.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt 'Change Volume Password' dialog for project_beta.hc showing the new password being entered and the keyfile being removed from the 'New' section (or no keyfiles listed for the new configuration)."
+    },
+    {
+      "id": "rekey_algorithm_whirlpool",
+      "description": "Change the Header Key Derivation Algorithm to Whirlpool for the beta volume.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt dialog showing the PKCS-5 PRF (Header Key Derivation Algorithm) being changed to 'Whirlpool' during the volume password/header update."
+    },
+    {
+      "id": "beta_volume_verified",
+      "description": "Verify the beta volume mounts successfully and preserves the internal data.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt main window showing project_beta.hc successfully mounted, and a file manager or terminal showing the mounted beta volume still contains 'SF312_Nondisclosure_Agreement.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "The agent must use VeraCrypt (GUI or CLI) to create and modify the volumes.",
+      "visual_evidence": "Screenshots should show the VeraCrypt application interface or veracrypt terminal commands being executed, rather than just creating empty files with a .hc extension."
+    },
+    {
+      "id": "genuine_rekeying_process",
+      "description": "The agent must actually use the volume tools to change the password and algorithm.",
+      "visual_evidence": "Look for the VeraCrypt 'Volume Tools' -> 'Change Volume Password' dialogs or equivalent CLI commands, rather than the agent just typing the expected answers into a text editor."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "The agent must copy the actual sample file into the mounted volumes.",
+      "visual_evidence": "The file 'SF312_Nondisclosure_Agreement.txt' should be copied using file manager actions (copy/paste) or terminal commands (cp), not just created as a new empty text file."
+    }
+  ],
+  "privileged_info_for_vlm": "Alpha volume path: /home/ga/Volumes/project_alpha.hc. Beta volume path: /home/ga/Volumes/project_beta.hc. Keyfile path: /home/ga/Keyfiles/master_key. Sample file to be preserved: SF312_Nondisclosure_Agreement.txt. Alpha password: 'AlphaTeam2024!'. Beta password: 'BetaTeam2024!'. Target hash algorithm for Beta: Whirlpool."
+}

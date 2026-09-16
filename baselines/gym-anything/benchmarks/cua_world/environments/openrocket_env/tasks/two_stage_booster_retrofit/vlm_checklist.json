@@ -1,0 +1,59 @@
+{
+  "task_id": "two_stage_booster_retrofit@1",
+  "task_completion": [
+    {
+      "id": "load_base_design",
+      "description": "Load the base design 'Simple Model Rocket' in OpenRocket.",
+      "points": 10,
+      "visual_evidence": "The OpenRocket application window is visible, displaying the 'Simple Model Rocket' design in the component tree or design view."
+    },
+    {
+      "id": "add_booster_stage",
+      "description": "Append a booster stage with an airframe and fins.",
+      "points": 20,
+      "visual_evidence": "The component tree in OpenRocket shows a new stage (e.g., 'Booster') added below the main sustainer stage. This new stage must contain a Body tube (airframe) and a Fin set. The body tube configuration may show an outer diameter of 24.8 mm."
+    },
+    {
+      "id": "configure_motors",
+      "description": "Configure a staged motor setup with a 0-second delay motor in the booster and a standard motor with delay in the sustainer.",
+      "points": 20,
+      "visual_evidence": "The 'Motors & Configuration' tab shows a motor with a 0-second delay (e.g., ending in '-0') assigned to the booster stage, and a motor with a non-zero delay assigned to the sustainer stage."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run a flight simulation for the two-stage rocket.",
+      "points": 15,
+      "visual_evidence": "The 'Flight Simulations' tab shows a completed simulation run with a green checkmark or 'Up to date' status, displaying the calculated apogee altitude."
+    },
+    {
+      "id": "save_design",
+      "description": "Save the modified design to two_stage_upgrade.ork.",
+      "points": 15,
+      "visual_evidence": "The OpenRocket window title bar displays 'two_stage_upgrade.ork' or a save dialog is visible saving the file to this exact filename in the specified directory."
+    },
+    {
+      "id": "write_report",
+      "description": "Write a performance report to staging_report.txt with required details.",
+      "points": 20,
+      "visual_evidence": "A text editor window shows the file 'staging_report.txt' containing the names of the motors used for both stages, the simulated apogee altitude, and an explanation of why a 0-second delay motor is used in the booster."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenRocket GUI to modify the design.",
+      "visual_evidence": "Screenshots show the agent interacting with OpenRocket menus, component tree, and configuration dialogs to add the booster stage and configure motors."
+    },
+    {
+      "id": "no_file_copy_cheat",
+      "description": "The agent did not simply copy the original .ork file to bypass the task.",
+      "visual_evidence": "The agent did not use terminal commands like 'cp simple_model_rocket.ork two_stage_upgrade.ork' without making the required modifications in the GUI."
+    },
+    {
+      "id": "genuine_report",
+      "description": "The report contains genuine simulation results obtained from the OpenRocket GUI.",
+      "visual_evidence": "The apogee altitude written in the report matches the simulation results visible in the OpenRocket 'Flight Simulations' tab."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline single-stage rocket contains 5 motor configurations. A known flaw in the automated verifier allows passing by simply copying the original file without making changes. The VLM must strictly verify that the agent actually added a new booster stage with a body tube and fins in the OpenRocket GUI, configured the staged motors, ran the simulation, and wrote the required report. The report must explain that a 0-second delay motor is used in the booster to ensure immediate ignition of the sustainer stage upon booster burnout."
+}

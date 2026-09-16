@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_swarm_performance@1",
+  "task_completion": [
+    {
+      "id": "set_basic_time_step",
+      "description": "Set the WorldInfo basicTimeStep to 32",
+      "points": 20,
+      "visual_evidence": "In the Webots GUI Scene Tree under 'WorldInfo', or in a text editor viewing the .wbt file, the 'basicTimeStep' value should be set to 32."
+    },
+    {
+      "id": "set_optimal_thread_count",
+      "description": "Set the optimalThreadCount to 8",
+      "points": 20,
+      "visual_evidence": "In the Webots GUI Scene Tree under 'WorldInfo', or in a text editor viewing the .wbt file, the 'optimalThreadCount' value should be set to 8."
+    },
+    {
+      "id": "set_fps",
+      "description": "Set the FPS to 20",
+      "points": 20,
+      "visual_evidence": "In the Webots GUI Scene Tree under 'WorldInfo', or in a text editor viewing the .wbt file, the 'FPS' value should be set to 20."
+    },
+    {
+      "id": "disable_cast_shadows",
+      "description": "Disable dynamic shadow rendering by setting DirectionalLight castShadows to FALSE",
+      "points": 20,
+      "visual_evidence": "In the Webots GUI Scene Tree under 'DirectionalLight', or in a text editor viewing the .wbt file, the 'castShadows' property should be set to FALSE."
+    },
+    {
+      "id": "save_optimized_world",
+      "description": "Save the optimized world to the specified Desktop path",
+      "points": 20,
+      "visual_evidence": "A file named 'optimized_training_env.wbt' is visible on the Desktop, or a terminal/file explorer shows this file successfully saved at '/home/ga/Desktop/optimized_training_env.wbt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_world_file",
+      "description": "The saved file is a genuine Webots world file and not a dummy text file with only the modified lines.",
+      "visual_evidence": "If the file is shown in a text editor or terminal (e.g., via 'cat'), it should contain standard Webots headers (e.g., '#VRML_SIM R2023b utf8') and other nodes like robots or bounding objects, not just the 4 modified properties."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "The agent actively modified the file using a text editor, terminal commands (like sed/awk), or the Webots GUI.",
+      "visual_evidence": "Screenshots show the agent interacting with the file contents in an editor (nano, vim, VS Code), using valid bash text-manipulation commands, or using the Webots application interface."
+    },
+    {
+      "id": "correct_save_location",
+      "description": "The file was saved exactly to the requested path, not just left in a temporary directory or the original source folder.",
+      "visual_evidence": "Terminal commands (like 'ls /home/ga/Desktop') or the GUI file manager confirm the file exists specifically on the Desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output path must be exactly '/home/ga/Desktop/optimized_training_env.wbt'. The expected optimization parameters to verify in the .wbt file or Webots GUI are: basicTimeStep = 32, optimalThreadCount = 8 (PI accepts >= 4, but task explicitly specifies 8), FPS = 20 (PI accepts <= 20, task explicitly specifies 20), and castShadows = FALSE."
+}

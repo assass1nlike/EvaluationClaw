@@ -1,0 +1,53 @@
+{
+  "task_id": "model_ebus_charging_infrastructure@1",
+  "task_completion": [
+    {
+      "id": "equip_bus_battery",
+      "description": "Verify the bus fleet is equipped with the specified battery parameters.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output showing modification of a SUMO XML file (like a route or vehicle type file) containing attributes device.battery.capacity=\"50000\" and device.battery.chargeLevel=\"10000\"."
+    },
+    {
+      "id": "deploy_fast_charger",
+      "description": "Verify the fast charger is deployed with the correct parameters.",
+      "points": 15,
+      "visual_evidence": "Look for an XML configuration (e.g., an additional file) defining a chargingStation with id=\"fast_charger_1\", power=\"200000\", startPos=\"0\", and endPos=\"20\"."
+    },
+    {
+      "id": "schedule_charging_stop",
+      "description": "Verify a 120-second charging stop is scheduled for the bus.",
+      "points": 15,
+      "visual_evidence": "Look for a <stop> element in the bus route configuration with duration=\"120\" (or equivalent until time) at the fast_charger_1 station."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Verify the SUMO simulation was executed using run.sumocfg.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing the execution of 'sumo -c run.sumocfg' (or similar) and the resulting simulation progress/completion logs."
+    },
+    {
+      "id": "save_battery_report",
+      "description": "Verify the final actualBatteryCapacity is extracted and saved to the correct file.",
+      "points": 35,
+      "visual_evidence": "Look for terminal commands (like echo, cat) or a text editor showing the file /home/ga/SUMO_Output/battery_report.txt containing a numeric value extracted from the simulation's battery output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Ensure the agent actually ran the SUMO simulation and did not just guess or hardcode a random number into the output file.",
+      "visual_evidence": "Check the terminal history for the actual 'sumo' command execution and standard output logs, rather than just an 'echo <number> > battery_report.txt' command without prior simulation."
+    },
+    {
+      "id": "authentic_file_modification",
+      "description": "Ensure the agent modified the actual scenario files in the specified directory.",
+      "visual_evidence": "Check that the file paths being edited or viewed in the terminal/editor are within /home/ga/SUMO_Scenarios/bologna_pasubio/."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "Ensure the agent extracted the value from the actual battery output file.",
+      "visual_evidence": "Look for commands like grep, tail, awk, or a Python script reading the battery output XML file to find 'actualBatteryCapacity' at the last timestep."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must configure the following exact parameters in the SUMO XML files: Charger ID: 'fast_charger_1', Charger Power: '200000' (200 kW), Battery Capacity: '50000', Initial Battery Charge: '10000', Charging Duration: '120'. The final numeric output must be saved to '/home/ga/SUMO_Output/battery_report.txt'."
+}

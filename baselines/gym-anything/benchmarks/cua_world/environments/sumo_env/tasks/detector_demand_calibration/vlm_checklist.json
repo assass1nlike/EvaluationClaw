@@ -1,0 +1,59 @@
+{
+  "task_id": "detector_demand_calibration@1",
+  "task_completion": [
+    {
+      "id": "baseline_counts_generated",
+      "description": "Generate baseline vehicle counts from the simulation",
+      "points": 15,
+      "visual_evidence": "Terminal output or file explorer showing the creation of '/home/ga/SUMO_Output/baseline_detector_counts.csv'. If the file content is visible, it should have columns: detector_id, interval_begin, interval_end, vehicle_count."
+    },
+    {
+      "id": "observed_counts_generated",
+      "description": "Create a synthetic 'observed' reference dataset",
+      "points": 15,
+      "visual_evidence": "Terminal output or file explorer showing the creation of '/home/ga/SUMO_Output/observed_detector_counts.csv'. The content should follow the same format as the baseline counts."
+    },
+    {
+      "id": "calibrated_scenario_files",
+      "description": "Calibrate traffic demand and save new route and config files",
+      "points": 20,
+      "visual_evidence": "Presence of '/home/ga/SUMO_Scenarios/bologna_acosta/acosta_calibrated.rou.xml' and '/home/ga/SUMO_Scenarios/bologna_acosta/run_calibrated.sumocfg' in the file explorer or terminal listings."
+    },
+    {
+      "id": "calibrated_counts_extracted",
+      "description": "Extract the calibrated simulation counts",
+      "points": 15,
+      "visual_evidence": "Terminal output or file explorer showing the creation of '/home/ga/SUMO_Output/calibrated_detector_counts.csv'."
+    },
+    {
+      "id": "calibration_report_produced",
+      "description": "Produce a calibration assessment report",
+      "points": 20,
+      "visual_evidence": "Presence of '/home/ga/SUMO_Output/calibration_report.csv'. If content is visible, it must include columns: detector_id, observed_count, baseline_count, calibrated_count, baseline_geh, calibrated_geh."
+    },
+    {
+      "id": "calibration_summary_documented",
+      "description": "Document the calibration methodology and GEH statistics",
+      "points": 15,
+      "visual_evidence": "Presence of '/home/ga/SUMO_Output/calibration_summary.txt'. If content is visible, it should contain text describing the methodology and GEH statistics."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_script_execution",
+      "description": "Ensure the agent ran Python scripts or SUMO commands to perform the simulation and calibration.",
+      "visual_evidence": "Terminal history showing execution of 'sumo', 'sumo-gui', or Python scripts (e.g., 'python3 calibrate.py') rather than just creating text files manually."
+    },
+    {
+      "id": "file_contents_plausible",
+      "description": "Ensure the generated files contain plausible data rather than being empty or containing dummy text.",
+      "visual_evidence": "When files are opened or printed via 'cat', they should contain valid CSV data, XML structures for routes, and meaningful text for the summary."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not simply echo hardcoded expected answers into the report or summary.",
+      "visual_evidence": "The terminal should show data processing steps (like a Python script reading and writing files) rather than 'echo \"detector_id,observed_count...\" > calibration_report.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario is 'bologna_acosta' with 58 induction loop detectors configured to aggregate counts every 1800 seconds (30 minutes). The standard GEH acceptance threshold is 5.0. Output files must be located exactly at the specified paths in /home/ga/SUMO_Output/ and /home/ga/SUMO_Scenarios/bologna_acosta/."
+}

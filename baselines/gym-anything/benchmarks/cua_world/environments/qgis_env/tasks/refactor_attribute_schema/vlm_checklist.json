@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_attribute_schema@1",
+  "task_completion": [
+    {
+      "id": "refactor_fields_tool_opened",
+      "description": "Open the Refactor Fields tool or field management interface for the legacy_stations layer.",
+      "points": 10,
+      "visual_evidence": "The 'Refactor Fields' dialog or 'Layer Properties -> Fields' tab is open, showing the 'legacy_stations' layer as the input."
+    },
+    {
+      "id": "fields_renamed",
+      "description": "Rename STN_ID_X, LOC_NM, and OBS_DT to station_id, name, and date.",
+      "points": 20,
+      "visual_evidence": "In the field mapping interface, the 'Field name' column shows 'station_id' for STN_ID_X, 'name' for LOC_NM, and 'date' for OBS_DT."
+    },
+    {
+      "id": "temperature_field_configured",
+      "description": "Rename READ_VAL to temperature and change its type to Double/Real.",
+      "points": 30,
+      "visual_evidence": "The field originally named READ_VAL is renamed to 'temperature', and its 'Type' dropdown is set to 'Double', 'Real', 'Decimal', or a similar numeric type."
+    },
+    {
+      "id": "fields_removed",
+      "description": "Remove the LEGACY_CD and TECH_N fields.",
+      "points": 20,
+      "visual_evidence": "The fields LEGACY_CD and TECH_N are either removed from the list of output fields or marked for deletion in the interface."
+    },
+    {
+      "id": "file_exported",
+      "description": "Export the processed layer to the specified GeoJSON file path.",
+      "points": 20,
+      "visual_evidence": "The output file path in the 'Refactor Fields' tool or a 'Save Vector Layer' dialog is explicitly set to '/home/ga/GIS_Data/exports/clean_stations.geojson'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the QGIS GUI to perform the refactoring.",
+      "visual_evidence": "Screenshots show QGIS dialogs (like Refactor Fields) being used, rather than terminal commands or Python scripts."
+    },
+    {
+      "id": "no_text_editor_editing",
+      "description": "The agent did not manually edit the GeoJSON file in a text editor.",
+      "visual_evidence": "There is no evidence of a text editor (like nano, vim, or gedit) being used to find and replace field names or values."
+    },
+    {
+      "id": "genuine_layer_interaction",
+      "description": "The agent interacted with the actual legacy_stations layer.",
+      "visual_evidence": "The 'legacy_stations' layer is visible in the QGIS Layers panel and is the target of the field refactoring operations."
+    }
+  ],
+  "privileged_info_for_vlm": "The source data contains 10 records with fields: STN_ID_X, LOC_NM, READ_VAL, OBS_DT, LEGACY_CD, TECH_N. The required output fields are exactly: station_id, name, temperature, date. The 'temperature' field must be converted from String to Double/Real (numeric) type. The fields 'LEGACY_CD' and 'TECH_N' must be deleted. The final output must be saved to /home/ga/GIS_Data/exports/clean_stations.geojson."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "log_source_health_monitor@1",
+  "task_completion": [
+    {
+      "id": "report_exists",
+      "description": "Verify that a saved report named 'Log_Source_Health_Report' has been created.",
+      "points": 20,
+      "visual_evidence": "Look for 'Log_Source_Health_Report' in the Splunk 'Reports' tab list, or a success dialog showing the report was saved."
+    },
+    {
+      "id": "report_groups_by_index",
+      "description": "Verify the report shows event volume over the last 24 hours grouped by index for at least two of the critical indexes (security_logs, web_logs, system_logs).",
+      "points": 20,
+      "visual_evidence": "Look at the search query (e.g., 'index=security_logs OR index=web_logs | stats count by index') or the report results table/chart showing counts grouped by index. The time picker or search should indicate a 24-hour window."
+    },
+    {
+      "id": "alert_exists",
+      "description": "Verify that an alert named 'Log_Source_Silence_Alert' has been created and enabled.",
+      "points": 20,
+      "visual_evidence": "Look for 'Log_Source_Silence_Alert' in the Splunk 'Alerts' tab list with an 'Enabled' status, or a success dialog showing the alert was saved."
+    },
+    {
+      "id": "alert_references_all",
+      "description": "Verify the alert's search query references all three critical indexes and checks the last 60 minutes.",
+      "points": 20,
+      "visual_evidence": "Look at the alert configuration screen or search string. It must contain references to 'security_logs', 'web_logs', and 'system_logs'. The time range should be set to the last 60 minutes (e.g., '-60m@m' to 'now')."
+    },
+    {
+      "id": "alert_scheduled_hourly",
+      "description": "Verify the alert is scheduled to run every hour using the cron expression '0 * * * *'.",
+      "points": 20,
+      "visual_evidence": "Look at the alert schedule settings. It should show 'Run on Cron Schedule' with the cron expression '0 * * * *' or explicitly state it runs every hour."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Splunk Web GUI to create the report and alert.",
+      "visual_evidence": "Screenshots should show the Splunk web interface (http://localhost:8000) in a browser, not terminal commands or API scripts."
+    },
+    {
+      "id": "no_conf_file_editing",
+      "description": "Verify the agent did not bypass the UI by directly editing Splunk configuration files.",
+      "visual_evidence": "Absence of terminal windows editing files like 'savedsearches.conf'. All configurations should be done via the Splunk Web UI."
+    },
+    {
+      "id": "genuine_search_execution",
+      "description": "Verify the agent actually executed searches to build the report and alert.",
+      "visual_evidence": "Look for Splunk search results, progress bars, or the 'New Search' interface showing actual log data being queried before saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected report name is exactly 'Log_Source_Health_Report' and the alert name is 'Log_Source_Silence_Alert'. The three critical indexes that must be monitored are 'security_logs', 'web_logs', and 'system_logs'. The alert must be scheduled with the cron expression '0 * * * *' (hourly). The report must group by index and cover 24 hours, while the alert must cover 60 minutes."
+}

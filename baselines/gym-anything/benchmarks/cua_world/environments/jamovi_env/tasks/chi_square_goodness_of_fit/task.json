@@ -1,0 +1,31 @@
+{
+  "id": "chi_square_goodness_of_fit@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform a Chi-Square Goodness of Fit test on the 'passengerClass' variable from the dataset at '/home/ga/Documents/Jamovi/TitanicSurvival.csv' to determine if passenger classes were equally distributed. Ensure 'passengerClass' is treated as a nominal variable and include expected counts in the analysis. Save the analysis result to '/home/ga/Documents/Jamovi/TitanicGoF.omv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chi_square_goodness_of_fit/setup_task.sh",
+    "post_task": "/workspace/tasks/chi_square_goodness_of_fit/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/Jamovi/TitanicSurvival.csv",
+    "expected_output_path": "/home/ga/Documents/Jamovi/TitanicGoF.omv",
+    "analysis_type": "propTestN",
+    "target_variable": "passengerClass",
+    "expected_chi_square_min": 200,
+    "expected_chi_square_max": 320,
+    "expected_df": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chi_square_goodness_of_fit"
+    }
+  }
+}

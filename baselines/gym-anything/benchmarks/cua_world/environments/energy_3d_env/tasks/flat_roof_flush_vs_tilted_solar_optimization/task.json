@@ -1,0 +1,34 @@
+{
+  "id": "flat_roof_flush_vs_tilted_solar_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Design two solar array configurations (0° flush and 15° tilted with spacing) on a 50x50m flat roof in Seattle, WA. First, set the location to Seattle and draw a 50x50m flat foundation or building roof. Scenario A (Flush Mount): Fill the 50x50m area with a dense array of solar panels set to a 0-degree tilt (no row spacing). Run the 'Annual Yield Analysis' from the Analysis menu, save the project as '~/Documents/Energy3D/flush_array.ng3', and record the total annual yield (in kWh) into a new file '~/Documents/Energy3D/flush_yield.txt'. Scenario B (Tilted Mount): Modify the array to a 15-degree tilt facing South. Apply sufficient inter-row spacing so the panels do not shade each other during winter. Run the 'Annual Yield Analysis' again, save the project as '~/Documents/Energy3D/tilted_array.ng3', and record the new total annual yield into '~/Documents/Energy3D/tilted_yield.txt'. Finally, write a recommendation into '~/Documents/Energy3D/recommendation.txt' stating which array configuration yielded the highest total annual energy for the given roof area.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flat_roof_flush_vs_tilted_solar_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/flat_roof_flush_vs_tilted_solar_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Renewable Energy",
+    "location": "Seattle, WA",
+    "required_files": [
+      "flush_array.ng3",
+      "tilted_array.ng3",
+      "flush_yield.txt",
+      "tilted_yield.txt",
+      "recommendation.txt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flat_roof_optimization"
+    }
+  }
+}

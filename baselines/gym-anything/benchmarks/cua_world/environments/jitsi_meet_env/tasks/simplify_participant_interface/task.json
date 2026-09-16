@@ -1,0 +1,52 @@
+{
+  "id": "simplify_participant_interface@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Modify the Jitsi Meet web configuration in /home/ga/.jitsi-meet-cfg/web/ to restrict the toolbar to a minimal 'kiosk mode' experience. The toolbar must be configured to display only the following four buttons: 'microphone', 'camera', 'chat', and 'hangup'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/simplify_participant_interface/setup_task.sh",
+    "post_task": "/workspace/tasks/simplify_participant_interface/export_result.sh"
+  },
+  "metadata": {
+    "config_dir": "/home/ga/.jitsi-meet-cfg/web",
+    "required_buttons": [
+      "microphone",
+      "camera",
+      "chat",
+      "hangup"
+    ],
+    "forbidden_buttons": [
+      "desktop",
+      "embedmeeting",
+      "fullscreen",
+      "fodeviceselection",
+      "hangup",
+      "profile",
+      "raisehand",
+      "recording",
+      "security",
+      "settings",
+      "shareaudio",
+      "sharedvideo",
+      "shortcuts",
+      "stats",
+      "tileview",
+      "toggle-camera",
+      "videoquality",
+      "filmstrip"
+    ],
+    "meeting_url": "http://localhost:8080/YogaClass"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_simplify_participant_interface"
+    }
+  }
+}

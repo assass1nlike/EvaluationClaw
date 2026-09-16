@@ -1,0 +1,34 @@
+{
+  "id": "check_antidiabetic_interaction_with_sorafenib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Check the drug-drug interaction between the cancer drug 'Sorafenib' and the anti-diabetic medication 'Metformin' using the Liverpool Cancer iChart Archive app. Create a text file at '/sdcard/interaction_result.txt' containing the interaction color (Red, Orange, Yellow, Green, or Grey) on the first line and a brief summary of the clinical recommendation on the second line.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_antidiabetic_interaction_with_sorafenib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_antidiabetic_interaction_with_sorafenib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Sorafenib",
+    "co_medication": "Metformin",
+    "output_file": "/sdcard/interaction_result.txt",
+    "valid_colors": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "grey"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interaction_check"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_noise_actions@1",
+  "task_completion": [
+    {
+      "id": "create_noise_config_directory",
+      "description": "Create the noise_config directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal prompt, or code editor sidebar showing the directory 'noise_config' exists within 'C:\\Users\\Docker\\.talon\\user\\'."
+    },
+    {
+      "id": "create_noise_actions_setup",
+      "description": "Create noise_actions.py with Talon API imports and the scroll speed setting.",
+      "points": 20,
+      "visual_evidence": "A code editor showing 'noise_actions.py' containing imports for Talon API (Module, noise, ctrl, actions, ui) and a setting definition for 'user.noise_scroll_speed' with a type of int and default value of 5."
+    },
+    {
+      "id": "implement_pop_handler",
+      "description": "Implement the 'pop' noise handler in noise_actions.py with Notepad-specific logic.",
+      "points": 20,
+      "visual_evidence": "Code in 'noise_actions.py' showing an 'on_pop' function (or noise.register('pop', ...)) that checks if the active application is 'notepad'. It should call actions.insert('[REVIEWED]') if true, and perform a left mouse click (e.g., ctrl.mouse_click()) otherwise."
+    },
+    {
+      "id": "implement_hiss_handler",
+      "description": "Implement the 'hiss' noise handler in noise_actions.py with Notepad-specific logic.",
+      "points": 20,
+      "visual_evidence": "Code in 'noise_actions.py' showing an 'on_hiss' function (or noise.register('hiss', ...)) that checks if the active application is 'notepad'. It should trigger 'ctrl-a' (e.g., actions.key('ctrl-a')) if true, and perform a vertical mouse scroll using the 'user.noise_scroll_speed' setting otherwise."
+    },
+    {
+      "id": "create_talon_settings_file",
+      "description": "Create noise_settings.talon with the required header and setting override.",
+      "points": 15,
+      "visual_evidence": "A code editor showing 'noise_settings.talon' containing the exact header comment '# Noise action configuration settings' followed by a 'settings():' block that sets 'user.noise_scroll_speed = 3'."
+    },
+    {
+      "id": "create_readme_file",
+      "description": "Create README.md with the required title and description.",
+      "points": 15,
+      "visual_evidence": "A code editor showing 'README.md' starting with the heading '# Noise Action Configuration' and containing text that describes the default behaviors and Notepad-specific overrides for the pop and hiss actions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_absolute_path",
+      "description": "Verify that the files are saved in the exact requested directory.",
+      "visual_evidence": "The file paths visible in the editor's title bar, tab hover tooltips, or terminal commands confirm the files are located exactly in 'C:\\Users\\Docker\\.talon\\user\\noise_config\\' and not in a temporary or incorrect folder."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the agent genuinely created and edited the files.",
+      "visual_evidence": "Screenshots show the agent interacting with a text editor (like VS Code, Notepad) or using terminal commands (like echo/cat) to write the file contents, rather than the files appearing without interaction."
+    },
+    {
+      "id": "no_unrelated_modifications",
+      "description": "Verify the agent did not modify unrelated Talon configuration files.",
+      "visual_evidence": "The agent's terminal history or editor tabs only show interaction with the three requested files in the 'noise_config' directory, with no edits to other core Talon scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory for all files is exactly 'C:\\Users\\Docker\\.talon\\user\\noise_config'. The agent must create exactly three files: 'noise_actions.py', 'noise_settings.talon', and 'README.md'. The Python file must use the Talon API to register 'pop' and 'hiss' noises, with conditional logic checking if the active app is 'notepad'. The Talon settings file must override the scroll speed to 3."
+}

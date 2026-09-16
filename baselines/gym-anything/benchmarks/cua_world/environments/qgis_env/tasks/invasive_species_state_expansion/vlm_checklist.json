@@ -1,0 +1,54 @@
+{
+  "task_id": "invasive_species_state_expansion@1",
+  "task_completion": [
+    {
+      "id": "load_input_files",
+      "description": "Agent loads the occurrence and state boundary GeoJSON files.",
+      "points": 10,
+      "visual_evidence": "Look for 'harmonia_us_occurrences.geojson' and 'us_states.geojson' in the QGIS layers panel, or Python code using geopandas.read_file() for these paths."
+    },
+    {
+      "id": "filter_time_periods",
+      "description": "Agent filters the occurrence data into the 2005-2012 and 2016-2023 time periods.",
+      "points": 15,
+      "visual_evidence": "Look for QGIS filter expressions (e.g., 'year >= 2005 AND year <= 2012'), or Python pandas filtering code for the specific year ranges."
+    },
+    {
+      "id": "count_occurrences_per_state",
+      "description": "Agent counts the number of occurrences within each state for both time periods.",
+      "points": 20,
+      "visual_evidence": "Look for QGIS 'Count Points in Polygon' tool usage, or Python code performing spatial joins (sjoin) and grouping by state to get counts."
+    },
+    {
+      "id": "calculate_derived_fields",
+      "description": "Agent calculates the percentage change and assigns the invasion status based on the counts.",
+      "points": 25,
+      "visual_evidence": "Look for QGIS Field Calculator expressions implementing the pct_change formula and invasion_status logic, or equivalent Python pandas code calculating these specific fields."
+    },
+    {
+      "id": "export_geojson_deliverable",
+      "description": "Agent exports the processed state data to the specified GeoJSON file.",
+      "points": 15,
+      "visual_evidence": "Look for QGIS 'Save Vector Layer as' dialog or Python to_file() method saving to '/home/ga/GIS_Data/exports/invasion_status_by_state.geojson'."
+    },
+    {
+      "id": "export_summary_csv",
+      "description": "Agent creates and exports the summary report CSV.",
+      "points": 15,
+      "visual_evidence": "Look for Python to_csv() or QGIS export to '/home/ga/GIS_Data/exports/invasion_summary.csv' containing the required columns (invasion_status, state_count, total_occurrences_recent)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_processing",
+      "description": "The agent used a GIS application (like QGIS) or wrote a script (like Python/GeoPandas) to process the data, rather than manually typing the outputs.",
+      "visual_evidence": "Look for actual interaction with GIS software interfaces or execution of a Python script in a terminal/notebook."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected output values or bypass the spatial analysis steps.",
+      "visual_evidence": "Ensure the agent's code or tool usage dynamically calculates the counts and statuses based on the input data."
+    }
+  ],
+  "privileged_info_for_vlm": "The setup script contains a critical error: it uses the incorrect GBIF taxonKey 1045608 (Ennearthron unicolor), which returns 0 US records, instead of the correct taxonKey 4989904 for Harmonia axyridis (which has 173,436 US records). Consequently, the input file 'harmonia_us_occurrences.geojson' may be empty. The agent might either process the empty file (resulting in empty outputs) or identify the issue and download the correct data. The VLM should evaluate the agent's processing logic and steps regardless of whether the input data was empty or corrected."
+}

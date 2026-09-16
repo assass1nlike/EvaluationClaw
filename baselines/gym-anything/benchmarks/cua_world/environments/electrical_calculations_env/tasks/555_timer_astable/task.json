@@ -1,0 +1,33 @@
+{
+  "id": "555_timer_astable@1",
+  "version": "1.0",
+  "env_id": "electrical_calculations_env@0.1",
+  "description": "You are designing an LED flasher and need to verify the timing. Using the Electrical Engineering Calculations app, calculate the output parameters for a 555 Timer circuit in Astable mode with component values R1: 10 kΩ, R2: 47 kΩ, and C: 10 μF. Record the Frequency_Hz, Duty_Cycle_Percent, Time_High_ms, and Time_Low_ms (rounded to 2 decimal places) to /sdcard/555_timer_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/555_timer_astable/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/555_timer_astable/export_result.sh"
+  },
+  "metadata": {
+    "r1_ohms": 10000,
+    "r2_ohms": 47000,
+    "c_farads": 1e-05,
+    "expected_frequency": 1.38,
+    "expected_duty_cycle": 54.81,
+    "expected_time_high_ms": 395.01,
+    "expected_time_low_ms": 325.71,
+    "tolerance_pct": 5,
+    "result_file_path": "/sdcard/555_timer_results.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_555_timer_astable"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_new_bus_stop@1",
+  "task_completion": [
+    {
+      "id": "add_bus_stop",
+      "description": "Add a bus stop with ID 'new_community_stop' to the network definition.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing modifications to 'pasubio_bus_stops.add.xml' that include an XML tag like <busStop id=\"new_community_stop\" ... /> on a valid lane."
+    },
+    {
+      "id": "update_bus_route",
+      "description": "Update the bus route to include a 30-second stop at 'new_community_stop'.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing modifications to 'pasubio_busses.rou.xml' that include an XML tag like <stop busStop=\"new_community_stop\" duration=\"30\"/> inside a vehicle or route definition."
+    },
+    {
+      "id": "configure_sumocfg",
+      "description": "Configure the simulation to generate stop statistics.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output showing modifications to 'run.sumocfg' adding an output configuration such as <stopinfos-output value=\"/home/ga/SUMO_Output/stopinfos.xml\"/>."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the SUMO simulation.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal showing the execution of the SUMO simulation (e.g., 'sumo -c run.sumocfg') and the resulting standard output indicating successful routing and simulation steps."
+    },
+    {
+      "id": "create_report",
+      "description": "Create a report documenting the Target_Edge and Arrival_Time.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor, 'cat', or 'echo' command showing the creation or content of '/home/ga/SUMO_Output/new_stop_report.txt'. The content must explicitly mention the Target_Edge (the lane/edge of the bus stop) and the Arrival_Time extracted from the simulation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify the agent actually ran the SUMO simulation rather than just creating mock output files.",
+      "visual_evidence": "Look for terminal logs showing the 'sumo' command being executed and producing typical SUMO loading/step output."
+    },
+    {
+      "id": "authentic_data_extraction",
+      "description": "Verify the agent extracted the arrival time from the generated stopinfos.xml file.",
+      "visual_evidence": "Look for terminal commands (like 'cat', 'grep', or opening in an editor) where the agent views the contents of '/home/ga/SUMO_Output/stopinfos.xml' before writing the final report."
+    },
+    {
+      "id": "manual_or_scripted_report_creation",
+      "description": "Verify the report was created through genuine interaction.",
+      "visual_evidence": "Look for standard file creation methods (nano, vim, echo, python script) for 'new_stop_report.txt' rather than the file magically appearing without a corresponding command."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying three specific files in '/home/ga/SUMO_Scenarios/bologna_pasubio/': 'pasubio_bus_stops.add.xml' (must add bus stop 'new_community_stop'), 'pasubio_busses.rou.xml' (must add a stop with duration '30'), and 'run.sumocfg' (must set stopinfos output to '/home/ga/SUMO_Output/stopinfos.xml'). The final report must be saved at '/home/ga/SUMO_Output/new_stop_report.txt' and contain the Target_Edge and Arrival_Time."
+}

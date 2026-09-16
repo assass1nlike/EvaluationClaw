@@ -1,0 +1,46 @@
+{
+  "id": "ghs_sds_creation@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Product Safety Specialist at Apex Industrial Chemicals. Author a GHS-compliant Safety Data Sheet (SDS) for 'Apex-Solv 5000' using the formulation, hazard classification, and regulatory text found in /home/ga/Documents/product_data.json. The SDS must contain the 16 standard GHS sections with headers formatted in 'Heading 1' style. Ensure Section 2 includes the exact Hazard Statements (H-codes) and Precautionary Statements, and Section 3 contains a table listing chemical ingredients, CAS numbers, and concentrations. Include a footer with the current revision date and save the document as /home/ga/Documents/SDS_ApexSolv5000.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ghs_sds_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/ghs_sds_creation/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/product_data.json",
+    "output_file": "/home/ga/Documents/SDS_ApexSolv5000.odt",
+    "product_name": "Apex-Solv 5000",
+    "ingredients": [
+      {
+        "name": "Sodium Hydroxide",
+        "cas": "1310-73-2"
+      },
+      {
+        "name": "2-Butoxyethanol",
+        "cas": "111-76-2"
+      },
+      {
+        "name": "Sodium Metasilicate",
+        "cas": "6834-92-0"
+      }
+    ],
+    "required_sections_count": 16,
+    "hazard_phrases": [
+      "Causes severe skin burns",
+      "May be corrosive to metals"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ghs_sds_creation"
+    }
+  }
+}

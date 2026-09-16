@@ -1,0 +1,28 @@
+{
+  "id": "refactor_pojo_to_record@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Refactor the 'TransactionEvent' class in the 'banking-events' project (~/IdeaProjects/banking-events) from a traditional Java POJO to a Java Record. Convert 'TransactionEvent.java' to a record type while preserving the constructor validation logic (amount > 0) and removing boilerplate code like explicit getters, equals, hashCode, and toString. Update 'AuditService.java' to use the new record accessors and ensure the project compiles and all tests in 'TransactionEventTest' pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_pojo_to_record/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_pojo_to_record/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/banking-events",
+    "target_file": "src/main/java/com/bank/events/TransactionEvent.java",
+    "client_file": "src/main/java/com/bank/service/AuditService.java",
+    "test_file": "src/test/java/com/bank/events/TransactionEventTest.java"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_pojo_to_record"
+    }
+  }
+}

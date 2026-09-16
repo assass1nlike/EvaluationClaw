@@ -1,0 +1,40 @@
+{
+  "id": "create_security_role@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "A hospital is onboarding a new laboratory department. As the IT security officer, create a new security role in OpenMRS (https://localhost/openmrs/admin) named 'Lab Technician' with the description 'Role for laboratory staff to view patients and manage lab results'. The role must have no inherited roles and include exactly these six privileges: Get Patients, Get Encounters, Get Observations, Add Observations, Edit Observations, and Get Orders. You are logged in as admin (superman / Admin123). The browser is open to the Bahmni home page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_security_role/setup_task.sh",
+    "post_task": "/workspace/tasks/create_security_role/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "role_name": "Lab Technician",
+    "description_keywords": [
+      "laboratory",
+      "staff",
+      "lab results"
+    ],
+    "required_privileges": [
+      "Get Patients",
+      "Get Encounters",
+      "Get Observations",
+      "Add Observations",
+      "Edit Observations",
+      "Get Orders"
+    ],
+    "forbidden_inherited_roles": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_security_role"
+    }
+  }
+}

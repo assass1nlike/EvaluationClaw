@@ -1,0 +1,53 @@
+{
+  "task_id": "tor_ui_customization_userchrome@1",
+  "task_completion": [
+    {
+      "id": "enable_legacy_stylesheets_pref",
+      "description": "Verify that the legacy stylesheets preference is enabled in Tor Browser.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot of Tor Browser navigated to 'about:config' showing the preference 'toolkit.legacyUserProfileCustomizations.stylesheets' set to 'true'."
+    },
+    {
+      "id": "create_chrome_directory",
+      "description": "Verify the creation of a 'chrome' directory within the Tor Browser profile directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager or terminal screenshot showing a newly created folder named exactly 'chrome' located inside the Tor Browser's active profile directory."
+    },
+    {
+      "id": "create_userchrome_css_file",
+      "description": "Verify the creation of the 'userChrome.css' file inside the 'chrome' directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager or terminal screenshot showing a file named exactly 'userChrome.css' inside the 'chrome' folder."
+    },
+    {
+      "id": "css_hide_buttons",
+      "description": "Verify the CSS file contains the required rules to hide the new tab and unified extensions buttons.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor screenshot showing the 'userChrome.css' file containing '#tabs-newtab-button { display: none !important; }' and '#unified-extensions-button { display: none !important; }'."
+    },
+    {
+      "id": "css_style_active_tab",
+      "description": "Verify the CSS file contains the required rule to style the active tab background.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor screenshot showing the 'userChrome.css' file containing '.tab-background[selected=\"true\"] { background-color: #ffaa00 !important; }'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_gui_used",
+      "description": "Verify the agent interacted with the actual Tor Browser application to change preferences.",
+      "visual_evidence": "Look for screenshots showing the Tor Browser GUI open at 'about:config', rather than the agent just appending text to a 'prefs.js' file blindly via terminal."
+    },
+    {
+      "id": "correct_directory_location",
+      "description": "Verify the 'chrome' folder was created in the genuine Tor Browser profile directory.",
+      "visual_evidence": "Check the file path in the file manager or terminal to ensure it is a legitimate Tor Browser profile path (e.g., containing 'TorBrowser/Data/Browser/profile.default') and not a dummy directory."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the CSS content was actually saved into the file.",
+      "visual_evidence": "Look for evidence of a text editor saving the file or a terminal command (like 'cat') outputting the contents of the actual 'userChrome.css' file, rather than just printing the text to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "To successfully complete this task, the agent must set the preference 'toolkit.legacyUserProfileCustomizations.stylesheets' to true. Furthermore, Firefox/Tor architecture requires the agent to create a folder named exactly 'chrome' inside the active Tor Browser profile directory, and within that folder, create a file named exactly 'userChrome.css' containing the specified CSS rules."
+}

@@ -1,0 +1,53 @@
+{
+  "id": "import_bookmarks@1",
+  "version": "1.0",
+  "env_id": "microsoft_edge_env@0.1",
+  "description": "Import the bookmarks from /home/ga/bookmarks_to_import.html into Microsoft Edge. Ensure the bookmarks, which are organized into folders like News & Media, Technology, and Reference, appear in the Edge Favorites.",
+  "difficulty": "medium",
+  "tags": [
+    "edge",
+    "microsoft-edge",
+    "bookmark",
+    "import",
+    "html",
+    "file-picker"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_bookmarks/setup_task.sh",
+    "post_task": "/workspace/tasks/import_bookmarks/export_result.sh"
+  },
+  "metadata": {
+    "bookmarks_file": "/workspace/assets/sample_bookmarks.html",
+    "expected_folder_count": 9,
+    "expected_bookmark_count": 40,
+    "expected_folders": [
+      "News & Media",
+      "Technology",
+      "Reference",
+      "Shopping",
+      "Social",
+      "Productivity",
+      "Entertainment",
+      "Finance",
+      "Education"
+    ],
+    "sample_bookmarks": [
+      "BBC News",
+      "Stack Overflow",
+      "Wikipedia",
+      "Amazon",
+      "Netflix"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_bookmarks"
+    }
+  }
+}

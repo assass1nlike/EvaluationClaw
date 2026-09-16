@@ -1,0 +1,53 @@
+{
+  "task_id": "contaminated_alignment_qc@1",
+  "task_completion": [
+    {
+      "id": "remove_contaminant",
+      "description": "Identify and remove the non-homologous cytochrome protein contaminant.",
+      "points": 10,
+      "visual_evidence": "In the bioinformatics software (e.g., UGENE), the sequence with accession P99999 is selected for deletion, or the final sequence list only shows the 8 hemoglobin sequences without P99999."
+    },
+    {
+      "id": "create_alignment",
+      "description": "Create a cleaned multiple sequence alignment of the remaining homologous sequences.",
+      "points": 20,
+      "visual_evidence": "A multiple sequence alignment (MSA) view is visible in the GUI, showing aligned sequences with gaps (dashes) and colored blocks for the 8 remaining sequences."
+    },
+    {
+      "id": "export_clustalw",
+      "description": "Export the resulting alignment in ClustalW format to cleaned_alignment.aln.",
+      "points": 20,
+      "visual_evidence": "A save dialog, file manager, or terminal showing the file 'cleaned_alignment.aln' being created or existing in ~/UGENE_Data/qc_analysis/results/."
+    },
+    {
+      "id": "export_fasta",
+      "description": "Export the resulting alignment in FASTA format to cleaned_alignment.fasta.",
+      "points": 20,
+      "visual_evidence": "A save dialog, file manager, or terminal showing the file 'cleaned_alignment.fasta' being created or existing in ~/UGENE_Data/qc_analysis/results/."
+    },
+    {
+      "id": "write_qc_report",
+      "description": "Write a QC report specifying the removed contaminant, justification, and final sequence count.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the contents of 'qc_report.txt'. It must include the accession 'P99999', a justification mentioning it is a cytochrome or non-homologous, and the final count of '8' sequences."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_alignment_tool_used",
+      "description": "The agent used a GUI bioinformatics tool (like UGENE) to perform the alignment.",
+      "visual_evidence": "Screenshots show the UGENE interface (or similar GUI) being used to open the FASTA file and run the alignment, rather than relying solely on terminal commands (e.g., running muscle or clustalw directly in the shell)."
+    },
+    {
+      "id": "authentic_file_export",
+      "description": "The alignment files were exported directly from the alignment software.",
+      "visual_evidence": "The agent used the 'Export' or 'Save As' functionality within the GUI tool to generate the .aln and .fasta files, rather than manually copy-pasting alignment text into a text editor."
+    },
+    {
+      "id": "no_blind_report_generation",
+      "description": "The agent inspected the data before writing the QC report.",
+      "visual_evidence": "The agent actually viewed the sequences or alignment in a tool to identify P99999 as the cytochrome contaminant before writing the qc_report.txt, rather than blindly echoing the expected answer into the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected contaminant is Cytochrome c, accession number P99999. The remaining 8 homologous sequences are Hemoglobin beta (P68871, P02088, P02112, P02132, Q90485, P02070, P02062, P02067). The final cleaned alignment must contain exactly these 8 sequences. The QC report must explicitly mention P99999, state that it is a cytochrome/non-homologous protein, and confirm the final sequence count is 8."
+}

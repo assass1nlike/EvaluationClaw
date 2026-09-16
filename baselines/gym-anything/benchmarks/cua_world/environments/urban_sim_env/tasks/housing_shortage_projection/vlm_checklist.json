@@ -1,0 +1,53 @@
+{
+  "task_id": "housing_shortage_projection@1",
+  "task_completion": [
+    {
+      "id": "load_urbansim_dataset",
+      "description": "Load the San Francisco public dataset using UrbanSim/orca.",
+      "points": 15,
+      "visual_evidence": "Python code (e.g., in a Jupyter notebook or script) importing 'orca' or 'urbansim' and reading the HDF5 file at '/home/ga/urbansim_projects/data/sanfran_public.h5'."
+    },
+    {
+      "id": "model_household_growth",
+      "description": "Model annual household growth at 1-2% per year for the years 2020-2024.",
+      "points": 20,
+      "visual_evidence": "Code showing a loop or calculation for the years 2020 through 2024, applying a growth multiplier between 1.01 and 1.02 to the household count."
+    },
+    {
+      "id": "model_housing_production",
+      "description": "Model housing production from underdeveloped parcels based on zoning maximums and historical probabilities.",
+      "points": 25,
+      "visual_evidence": "Code filtering parcels where current density is less than zoning maximums, and applying a probability or development model to calculate 'new_units'."
+    },
+    {
+      "id": "calculate_deficits",
+      "description": "Calculate the annual deficit and cumulative shortfall.",
+      "points": 20,
+      "visual_evidence": "Code computing the difference between expected household growth and new housing units (annual deficit), and maintaining a running total of this shortfall (cumulative deficit)."
+    },
+    {
+      "id": "save_csv_output",
+      "description": "Save the results to the specified CSV file with the required columns.",
+      "points": 20,
+      "visual_evidence": "Code executing a save operation (like pandas .to_csv) to '/home/ga/urbansim_projects/output/housing_shortage.csv', or terminal/file explorer output showing the file exists. The code should specify columns: year, households_start, new_households, new_units, annual_deficit, cumulative_deficit."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_modeling_execution",
+      "description": "Verify the agent executed the UrbanSim modeling code rather than manually typing out a CSV.",
+      "visual_evidence": "Look for execution indicators in the Jupyter notebook (e.g., cell execution numbers `[1]`, output logs) or terminal output showing a Python script running."
+    },
+    {
+      "id": "no_hardcoded_deficits",
+      "description": "Ensure the agent calculated the deficits dynamically rather than hardcoding fake numbers.",
+      "visual_evidence": "The code should show mathematical operations (e.g., subtraction for annual deficit, cumulative sum for cumulative deficit) rather than assigning static lists of numbers to the dataframe."
+    },
+    {
+      "id": "correct_output_path_used",
+      "description": "Check that the agent actually saved the file to the required directory.",
+      "visual_evidence": "The file path in the save command must exactly match '/home/ga/urbansim_projects/output/housing_shortage.csv' and not just be printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The required simulation years are exactly 2020, 2021, 2022, 2023, and 2024. The output CSV must be located at /home/ga/urbansim_projects/output/housing_shortage.csv and must contain exactly 6 columns: 'year', 'households_start', 'new_households', 'new_units', 'annual_deficit', and 'cumulative_deficit'. The dataset used must be /home/ga/urbansim_projects/data/sanfran_public.h5."
+}

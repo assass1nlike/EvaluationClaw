@@ -1,0 +1,35 @@
+{
+  "id": "enforce_copyright_headers@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Configure the 'TechCorpApp' project in Android Studio to enforce a standard copyright header. Create a copyright profile named 'TechCorpLicense' using the following text:\n\nCopyright (C) 2025 TechCorp Inc.\nAll rights reserved.\n\nLicensed under the Apache License, Version 2.0.\n\nSet 'TechCorpLicense' as the default project copyright profile and ensure the header is applied to all Kotlin and XML files throughout the project.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enforce_copyright_headers/setup_task.sh",
+    "post_task": "/workspace/tasks/enforce_copyright_headers/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/TechCorpApp",
+    "profile_name": "TechCorpLicense",
+    "expected_text_parts": [
+      "Copyright (C) 2025 TechCorp Inc.",
+      "All rights reserved.",
+      "Licensed under the Apache License, Version 2.0."
+    ],
+    "target_files": [
+      "app/src/main/java/com/example/techcorpapp/MainActivity.kt",
+      "app/src/main/res/layout/activity_main.xml"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enforce_copyright_headers"
+    }
+  }
+}

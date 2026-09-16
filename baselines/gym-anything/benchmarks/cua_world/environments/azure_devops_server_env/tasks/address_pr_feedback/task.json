@@ -1,0 +1,31 @@
+{
+  "id": "address_pr_feedback@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are a developer working on the TailwindTraders project. Address the feedback on Pull Request #2 ('Update Contact Page Styles') in the Azure DevOps web portal. Update the 'feature/contact-page' branch by changing the background color in 'style.css' to '#f5f5f5' and removing the 'console.log' debug statement in 'contact.js'. Reply to the general refactoring comment with 'Added to technical debt backlog' and mark all three comment threads as resolved.\n\nLogin Credentials:\n- URL: http://localhost/DefaultCollection\n- User: Docker\n- Password: GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\address_pr_feedback\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\address_pr_feedback\\export_result.ps1"
+  },
+  "metadata": {
+    "project": "TailwindTraders",
+    "repo": "TailwindTraders",
+    "pr_id": 2,
+    "branch": "feature/contact-page",
+    "expected_hex": "#f5f5f5",
+    "forbidden_js": "console.log",
+    "reply_keyword": "backlog"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_address_pr_feedback"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "xray_binary_optical_counterparts@1",
+  "task_completion": [
+    {
+      "id": "open_target_list",
+      "description": "Open and read the provided target list.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat') displaying the contents of '~/Documents/xray_target_list.txt'."
+    },
+    {
+      "id": "configure_ekos_capture",
+      "description": "Configure the Ekos Capture module with the correct exposure, filter, and count settings.",
+      "points": 20,
+      "visual_evidence": "The Ekos Capture tab showing settings configured for: Exposure = 15s, Filter = V-band (or Slot 2), Count = 3, and Type = Light."
+    },
+    {
+      "id": "save_fits_cygnusx1",
+      "description": "Capture and save 3 FITS images for CygnusX1.",
+      "points": 10,
+      "visual_evidence": "The Ekos job queue, capture progress, or a file manager showing 3 FITS files successfully saved in the directory '~/Images/xray_followup/CygnusX1/'."
+    },
+    {
+      "id": "save_fits_v404cygni",
+      "description": "Capture and save 3 FITS images for V404Cygni.",
+      "points": 10,
+      "visual_evidence": "The Ekos job queue, capture progress, or a file manager showing 3 FITS files successfully saved in the directory '~/Images/xray_followup/V404Cygni/'."
+    },
+    {
+      "id": "save_fits_ss433",
+      "description": "Capture and save 3 FITS images for SS433.",
+      "points": 10,
+      "visual_evidence": "The Ekos job queue, capture progress, or a file manager showing 3 FITS files successfully saved in the directory '~/Images/xray_followup/SS433/'."
+    },
+    {
+      "id": "generate_finding_charts",
+      "description": "Generate finding charts for each target using the provided bash script.",
+      "points": 20,
+      "visual_evidence": "Terminal windows showing the execution of the command 'bash ~/capture_sky_view.sh ~/Images/xray_followup/<TargetName>/finding_chart.png 0.5 --palette cool' for the targets, or a file manager showing 'finding_chart.png' in each target's directory."
+    },
+    {
+      "id": "write_summary_report",
+      "description": "Write a summary report containing the target names and their J2000 coordinates in decimal format.",
+      "points": 20,
+      "visual_evidence": "A text editor showing the file '~/Documents/xray_followup_report.txt' containing the names 'CygnusX1', 'V404Cygni', and 'SS433' alongside their respective J2000 coordinates converted to decimal format (e.g., RA: 299.59, Dec: 35.20)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kstars_usage",
+      "description": "Verify that the agent used KStars/Ekos to capture the FITS files.",
+      "visual_evidence": "The KStars/Ekos GUI should be visible and actively used to run the capture sequence. The agent should not use terminal commands like 'touch' or 'cp' to create fake FITS files."
+    },
+    {
+      "id": "script_execution_for_charts",
+      "description": "Verify that the finding charts were generated using the specified bash script.",
+      "visual_evidence": "The terminal history should show the exact 'capture_sky_view.sh' command being executed. The agent should not manually download images from the web or use a GUI image editor to create the charts."
+    },
+    {
+      "id": "coordinate_conversion",
+      "description": "Verify that the agent genuinely retrieved and converted the coordinates.",
+      "visual_evidence": "The agent should be seen viewing the coordinates (e.g., in the KStars Find Object dialog or the target list) and manually or programmatically converting them to decimal format, rather than pasting pre-computed answers."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires capturing exactly 3 FITS images per target (CygnusX1, V404Cygni, SS433) with a 15-second exposure using the V-band filter (Slot 2). The images must be saved in '~/Images/xray_followup/<TargetName>/'. Finding charts must be generated using the provided bash script with the '--palette cool' argument. The final report must be saved to '~/Documents/xray_followup_report.txt' and contain the targets' J2000 coordinates in decimal format."
+}

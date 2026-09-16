@@ -1,0 +1,29 @@
+{
+  "id": "allocate_freight_cost@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In the Northwind Traders business in Manager.io, record a freight-in charge of 45.00 as a landed cost for the inventory item 'Chang' from supplier 'Exotic Liquids'. Use the description 'Freight charges for Chang shipment' on the purchase invoice.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/allocate_freight_cost/setup_task.sh",
+    "post_task": "/workspace/tasks/allocate_freight_cost/export_result.sh"
+  },
+  "metadata": {
+    "target_supplier": "Exotic Liquids",
+    "target_item": "Chang",
+    "target_amount": 45.0,
+    "target_qty_max": 0,
+    "business_name": "Northwind Traders"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_allocate_freight_cost"
+    }
+  }
+}

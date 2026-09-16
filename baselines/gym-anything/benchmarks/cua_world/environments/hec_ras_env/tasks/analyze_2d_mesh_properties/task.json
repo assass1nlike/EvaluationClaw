@@ -1,0 +1,27 @@
+{
+  "id": "analyze_2d_mesh_properties@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are an Environmental Restoration Planner assessing the computational mesh of a HEC-RAS 2D hydraulic model of the White River through Muncie, Indiana. Document the existing mesh properties from the HDF file located at /home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf.\n\nProduce a text report at /home/ga/Documents/hec_ras_results/mesh_analysis_report.txt containing:\n- Total number of 2D computational cells across all flow areas\n- Number of 2D flow areas and their names\n- For each 2D flow area: cell count, minimum, maximum, mean, and standard deviation of cell elevations, spatial extents (min X, max X, min Y, max Y), and domain width and height.\n\nProduce a CSV file at /home/ga/Documents/hec_ras_results/mesh_cell_data.csv with columns: area_name, cell_index, center_x, center_y, min_elevation (one row per computational cell).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_2d_mesh_properties/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_2d_mesh_properties/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/hec_ras_results/mesh_analysis_report.txt",
+    "csv_path": "/home/ga/Documents/hec_ras_results/mesh_cell_data.csv",
+    "hdf_path": "/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_2d_mesh_properties"
+    }
+  }
+}

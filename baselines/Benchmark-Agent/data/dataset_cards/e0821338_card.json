@@ -1,0 +1,75 @@
+{
+  "dataset_id": "e0821338",
+  "name": "Aspect-Term-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 161,
+  "description": "Dataset for aspect term extraction from restaurant reviews. Given a review text, the model must extract all aspect terms mentioned. It evaluates the ability to identify key aspects in opinionated text.",
+  "card_text": "This dataset contains 161 samples of restaurant reviews in English. Each sample includes a raw review text and a prompt instructing the model to extract all aspect terms from the review, listing them separated by commas. The output is a short comma-separated list of aspect terms (e.g., 'manager', 'Zenkichi'). The reviews are typically short, single-sentence or few-sentence opinionated texts about dining experiences. The task is a form of entity recognition and span extraction, focusing on explicit aspect terms. The dataset is useful for evaluating aspect-based sentiment analysis and information extraction models. No additional annotations such as sentiment polarity or span indices are provided.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "The raw restaurant review text that serves as the input context; it contains opinions and factual statements about dining experiences, from which aspect terms must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated instruction that embeds the review text via a placeholder and explicitly asks to extract all aspect terms from the restaurant review, listing them separated by commas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A comma-separated list of aspect terms extracted from the review, such as 'manager' or 'Zenkichi'; these are the target terms corresponding to aspects mentioned in the context.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three textual components: a restaurant review as the context (input.raw_text), an instruction prompt that asks to extract aspect terms (input.prompt), and the extracted aspect terms as a comma-separated list (output.text). The prompt references the review via a placeholder, and the answer is directly derived from the context. No other components such as options, dialog, or visual annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Term-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "aspect_term_extraction",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

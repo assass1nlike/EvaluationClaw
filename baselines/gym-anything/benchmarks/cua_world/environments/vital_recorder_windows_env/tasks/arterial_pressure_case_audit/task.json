@@ -1,0 +1,75 @@
+{
+  "id": "arterial_pressure_case_audit@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "The anesthesia quality department has commissioned a hemodynamic monitoring audit using Vital Recorder. Identify which of the three surgical cases in C:\\Users\\Docker\\Desktop\\VitalRecorderData\\ (0001.vital, 0002.vital, and 0003.vital) include invasive arterial blood pressure monitoring (ART track). For any case containing the ART track, export the full vital signs dataset to C:\\Users\\Docker\\Desktop\\art_case_export.csv. Produce a comprehensive audit report saved to C:\\Users\\Docker\\Desktop\\art_audit_report.txt documenting which cases contain invasive arterial monitoring, the recording duration of each case reviewed, and a brief clinical rationale for the importance of invasive arterial monitoring in hemodynamic management for noncardiac surgery. Login: Windows Desktop user (no Vital Recorder login required).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\arterial_pressure_case_audit\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\arterial_pressure_case_audit\\export_result.ps1"
+  },
+  "metadata": {
+    "data_dir": "C:\\Users\\Docker\\Desktop\\VitalRecorderData",
+    "case_files": [
+      "0001.vital",
+      "0002.vital",
+      "0003.vital"
+    ],
+    "art_case": "0001.vital",
+    "art_case_id": "0001",
+    "non_art_cases": [
+      "0002.vital",
+      "0003.vital"
+    ],
+    "case_0001_tracks": [
+      "ART",
+      "ECG_II",
+      "ECG_V5",
+      "PLETH",
+      "CO2",
+      "AWP",
+      "INSP_SEVO",
+      "EXP_SEVO"
+    ],
+    "case_0002_tracks": [
+      "ECG_II",
+      "PLETH",
+      "HR",
+      "ST_II",
+      "ST_V5",
+      "NIBP_SYS",
+      "NIBP_DIA",
+      "NIBP_MEAN",
+      "SpO2",
+      "VENT_TV",
+      "VENT_PEEP",
+      "VENT_RR"
+    ],
+    "case_0003_tracks": [
+      "ECG_II",
+      "ECG_V5",
+      "PLETH",
+      "COMPLIANCE",
+      "INSP_SEVO",
+      "EXP_SEVO",
+      "PAMB_MBAR",
+      "MAWP_MBAR",
+      "PPLAT_MBAR"
+    ],
+    "expected_csv": "C:\\Users\\Docker\\Desktop\\art_case_export.csv",
+    "expected_report": "C:\\Users\\Docker\\Desktop\\art_audit_report.txt",
+    "result_json_path": "C:\\Users\\Docker\\task_result_art_audit.json",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_arterial_pressure_case_audit"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "migrate_tags_to_collections@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A research librarian is restructuring the library from a tag-based system to a collection-based system. Create two new collections named exactly 'dataset-mnist' and 'dataset-imagenet'. Move all papers currently tagged with 'dataset-mnist' into the 'dataset-mnist' collection, and all papers tagged with 'dataset-imagenet' into the 'dataset-imagenet' collection. Once the papers are moved, delete the 'dataset-mnist' and 'dataset-imagenet' tags from the library.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_tags_to_collections/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_tags_to_collections/export_result.sh"
+  },
+  "metadata": {
+    "tags_to_migrate": [
+      "dataset-mnist",
+      "dataset-imagenet"
+    ],
+    "expected_mnist_papers": [
+      "Deep Learning",
+      "Generative Adversarial Nets"
+    ],
+    "expected_imagenet_papers": [
+      "ImageNet Classification with Deep Convolutional Neural Networks",
+      "Deep Residual Learning for Image Recognition"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_tags_to_collections"
+    }
+  }
+}

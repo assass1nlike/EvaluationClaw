@@ -1,0 +1,30 @@
+{
+  "id": "fix_db_connection_perms@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "The 'System Status' page at http://acmecorp.test/status.php is down due to configuration errors in `public_html/includes/db_config.php` within the `acmecorp.test` virtual server. Restore the site's functionality by setting the permissions of `db_config.php` to 644 and updating the database password in the file to `GymAnything123!`. The task is complete when the status page displays 'System Operational'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_db_connection_perms/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_db_connection_perms/export_result.sh"
+  },
+  "metadata": {
+    "domain": "acmecorp.test",
+    "target_file": "/home/acmecorp/public_html/includes/db_config.php",
+    "target_url": "http://acmecorp.test/status.php",
+    "expected_perms": "644",
+    "expected_password": "GymAnything123!",
+    "success_string": "System Operational"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_db_connection_perms"
+    }
+  }
+}

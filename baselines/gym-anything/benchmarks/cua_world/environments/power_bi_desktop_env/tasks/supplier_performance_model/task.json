@@ -1,0 +1,35 @@
+{
+  "id": "supplier_performance_model@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a procurement analyst. Build a supplier performance report in Power BI Desktop using 'Suppliers.csv', 'Products.csv', and 'Order_Details.csv' located in 'C:\\Users\\Docker\\Desktop\\PowerBITasks\\'. Configure the data model with relationships between Suppliers[SupplierID] and Products[SupplierID], and Products[ProductID] and Order_Details[ProductID]. Create a measure named 'Total_Order_Value' that calculates the sum of (UnitPrice * Quantity * (1 - Discount)). On a report page named 'Supplier Performance', include a Treemap visual showing 'Total_Order_Value' by 'Country' and 'CompanyName', and a Table visual showing 'CompanyName', 'Country', and 'Total_Order_Value'. Save the final report to 'C:\\Users\\Docker\\Desktop\\Supplier_Performance.pbix'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\supplier_performance_model\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\supplier_performance_model\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Supplier_Performance.pbix",
+    "required_visuals": [
+      "treemap",
+      "tableEx"
+    ],
+    "required_measure": "Total_Order_Value",
+    "required_tables": [
+      "Suppliers",
+      "Products",
+      "Order_Details"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_supplier_performance_model"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "generate_riparian_zones_union@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Perform a geoprocessing workflow in gvSIG Desktop to create a riparian zones land-use map. Using the loaded 'ne_110m_admin_0_countries' layer and the rivers layer (/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp), create a 1-degree river buffer saved to /home/ga/gvsig_data/exports/river_buffers.shp and a final union of countries and buffers saved to /home/ga/gvsig_data/exports/countries_rivers_union.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_riparian_zones_union/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_riparian_zones_union/export_result.sh"
+  },
+  "metadata": {
+    "rivers_shp_path": "/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp",
+    "buffer_output_path": "/home/ga/gvsig_data/exports/river_buffers.shp",
+    "union_output_path": "/home/ga/gvsig_data/exports/countries_rivers_union.shp",
+    "min_union_features": 200,
+    "expected_buffer_distance": 1.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_riparian_zones_union"
+    }
+  }
+}

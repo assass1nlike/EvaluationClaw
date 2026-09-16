@@ -1,0 +1,30 @@
+{
+  "id": "release_blocking_triage@1",
+  "version": "1.0",
+  "env_id": "redmine_env@0.1",
+  "description": "You are an engineering manager at DevLabs. The Phoenix E-Commerce Platform v1.0 Launch is 45 days away and your team has raised concerns that release-critical issues are not being managed properly. Perform a release-blocking triage on the Phoenix E-Commerce Platform project. For all open issues (not Closed or Resolved) targeted at the 'v1.0 Launch' milestone with a priority of 'Urgent' or 'Immediate', add a comment containing the exact text 'RELEASE BLOCKER: Must be resolved before v1.0 Launch.' and change the status to 'In Progress' if it is currently 'New'. Additionally, reassign the 'Login button unresponsive on mobile Safari iOS 17' issue from bob.walker to carol.santos, update its due date to match the 'v1.0 Launch' milestone's due date, and add the comment: 'Reassigned to carol.santos for immediate attention. Due date aligned with v1.0 Launch milestone.' Login credentials: admin / Admin1234!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 640,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/release_blocking_triage/setup_task.sh",
+    "post_task": "/workspace/tasks/release_blocking_triage/export_result.sh"
+  },
+  "metadata": {
+    "payment_gateway_subject_fragment": "Payment gateway timeout",
+    "login_button_subject_fragment": "Login button unresponsive",
+    "project_identifier": "phoenix-ecommerce",
+    "milestone_name": "v1.0 Launch",
+    "expected_reassignee_name": "Carol Santos",
+    "result_file": "/tmp/release_blocking_triage_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_release_blocking_triage"
+    }
+  }
+}

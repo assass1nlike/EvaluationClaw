@@ -1,0 +1,59 @@
+{
+  "task_id": "pii_anonymization_gdpr@1",
+  "task_completion": [
+    {
+      "id": "create_anonymizer_package",
+      "description": "Create the DATA_ANONYMIZER_PKG PL/SQL package with the required masking functions.",
+      "points": 15,
+      "visual_evidence": "SQL client or terminal showing the execution of 'CREATE OR REPLACE PACKAGE DATA_ANONYMIZER_PKG' containing functions like MASK_NAME, MASK_EMAIL, MASK_PHONE, MASK_IBAN, GENERALIZE_ADDRESS, and SHIFT_DATE."
+    },
+    {
+      "id": "create_customers_anon_vw",
+      "description": "Create the CUSTOMERS_ANON_VW view applying the masking functions.",
+      "points": 15,
+      "visual_evidence": "SQL execution showing 'CREATE VIEW CUSTOMERS_ANON_VW' (or CREATE OR REPLACE) with the masking functions applied to first_name/last_name, email, phone, iban, address, and date_of_birth."
+    },
+    {
+      "id": "create_transactions_support_vw",
+      "description": "Create TRANSACTIONS_ANON_VW and SUPPORT_TICKETS_ANON_VW with redaction logic.",
+      "points": 20,
+      "visual_evidence": "SQL execution showing 'CREATE VIEW TRANSACTIONS_ANON_VW' using REPLACE for descriptions, and 'CREATE VIEW SUPPORT_TICKETS_ANON_VW' using REGEXP_REPLACE on ticket_text."
+    },
+    {
+      "id": "execute_pii_scan",
+      "description": "Perform a PII scan across VARCHAR2 columns and insert findings into PII_SCAN_RESULTS.",
+      "points": 20,
+      "visual_evidence": "Execution of a PL/SQL block (DECLARE ... BEGIN ... END;) that scans columns and inserts into PII_SCAN_RESULTS, or a SELECT statement showing populated rows in the PII_SCAN_RESULTS table."
+    },
+    {
+      "id": "create_anonymization_log",
+      "description": "Create the ANONYMIZATION_LOG table and record the view creation.",
+      "points": 10,
+      "visual_evidence": "SQL commands showing 'CREATE TABLE ANONYMIZATION_LOG' and an 'INSERT INTO ANONYMIZATION_LOG' statement logging the operation."
+    },
+    {
+      "id": "export_csv_report",
+      "description": "Export a CSV report comparing original and anonymized emails and phones to /home/ga/anonymization_report.csv.",
+      "points": 20,
+      "visual_evidence": "Terminal or SQL client showing a spool/export command writing to '/home/ga/anonymization_report.csv', or a terminal showing the contents of the file via 'cat' or similar command."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with an actual Oracle SQL client (e.g., SQL*Plus, SQLcl) rather than just typing SQL into a text editor.",
+      "visual_evidence": "Screenshots show the SQL client interface, connection prompts, or command-line execution outputs like 'Package created' or 'View created'."
+    },
+    {
+      "id": "dynamic_pii_scan",
+      "description": "The PII scan was performed using dynamic SQL or a PL/SQL loop, not just hardcoded inserts.",
+      "visual_evidence": "The PL/SQL block for the PII scan contains loops over dictionary views (like USER_TAB_COLUMNS) rather than direct, hardcoded 'INSERT INTO PII_SCAN_RESULTS' statements for specific tables."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The CSV report was generated via a database query, not manually typed or echo'd with hardcoded values.",
+      "visual_evidence": "The CSV generation follows a SQL query execution or script pulling from the database, rather than a simple 'echo' command with fake data."
+    }
+  ],
+  "privileged_info_for_vlm": "The task data is fully synthetic. Note a discrepancy in the prompt: it asks to export a CSV for the first 20 customers, but the database only contains 5 customer records. Accept a CSV with only 5 rows as fully correct. The agent is expected to use Oracle features such as PL/SQL Packages, ORA_HASH, REGEXP_REPLACE, Data Masking, and Dynamic SQL."
+}

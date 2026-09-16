@@ -1,0 +1,79 @@
+{
+  "dataset_id": "2eee2b2d",
+  "name": "Multi-Page Agreement Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 108,
+  "description": "A visual question answering dataset over multi-page agreement documents, where models must answer natural-language questions by reading scanned page images. It evaluates document understanding and information extraction across multiple pages.",
+  "card_text": "This dataset contains 108 samples of multi-page agreement documents paired with natural-language questions. Each sample provides a list of document page images as visual context and a question prompt, and expects a free-form textual answer, often a list of extracted items or a numeric count. The images are scanned or rendered pages of legal or business agreements, and questions target concrete details such as actions to be taken or visual properties like the number of black bars. The dataset is designed for open-ended visual question answering where the model must locate and read relevant information from dense, multi-page document images. No additional textual context is provided beyond the question, so success depends on visual document understanding and cross-page reasoning.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "legal/agreement documents",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "A list of image file paths corresponding to scanned pages of a multi-page agreement document. These pages provide the visual context the model must read to answer questions about actions, counts, or other details.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question about the agreement document, such as asking what actions are to be taken or how many black bars appear. It directs the model's attention to specific information in the document images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target answer as a list of strings, which may contain extracted action items, a numeric count, or other short factual responses derived from the document. It is the ground truth the model should generate.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with a question prompt and a list of image file paths for document pages, and an output object with a list of answer strings. The images are the primary context; the question refers to them; the answers are short free-form text or lists derived from the document content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageAgreementDocumentVisualQuestionAnswering/multi-page_agreement_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Agreement Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

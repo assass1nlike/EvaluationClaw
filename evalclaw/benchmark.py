@@ -184,6 +184,15 @@ def _item_blocking_error_counts(report: QcReport) -> Counter[str]:
     )
 
 
+def _unbuilt_task_counts(suite: TaskSuite) -> dict[str, int]:
+    delivered = Counter(item.builder_job_id for item in suite.tasks)
+    return {
+        job.id: job.planned_task_count - delivered[job.id]
+        for job in suite.builder_jobs
+        if delivered[job.id] < job.planned_task_count
+    }
+
+
 def _qc_repair_limit(config: BenchmarkConfig) -> int:
     if config.ablation_no_builder_harness:
         return 0
@@ -247,6 +256,9 @@ def build_benchmark_suite_with_qc_loop(
     """Plan TaskDesigns and build each through one independent Builder call."""
     planning_limits = {"max_task_count": max_task_count} if max_task_count is not None else {}
     plan = resume_plan or plan_benchmark(goal, config, log=log, **planning_limits)
+    if resume_plan is not None:
+        # Runtime target identities are intentionally excluded from serialized Planner output.
+        plan = plan.model_copy(update={"subjects": [target.id for target in config.targets]})
     if ask_user is not None and resume_plan is None:
         plan = _review_plan(goal, plan, config, ask_user=ask_user, log=log)
     spec = plan.to_eval_spec()
@@ -445,12 +457,18 @@ def build_suite_from_spec_with_qc_loop(
         qc_report = selected_qc
         save_qc_checkpoint(repair_round, suite, qc_report)
 
-    if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
+    missing_counts = _unbuilt_task_counts(suite)
+    if missing_counts:
+        log(f"  Construction: {sum(missing_counts.values())} planned task(s) remain unbuilt: {missing_counts}.")
+    if (
+        missing_counts or not qc_report.is_acceptable or qc_report.rejected_item_ids
+    ) and not config.allow_incomplete_benchmark:
         blocking = [issue for issue in qc_report.issues if issue.severity == QcSeverity.error]
         for issue in blocking[:10]:
             log(f"  QC blocking issue [{issue.item_id or 'dataset'}]: {issue.message}")
         raise RuntimeError(
             "Benchmark did not produce a runner-ready suite after unified task QC: "
+            f"{sum(missing_counts.values())} unbuilt item(s), "
             f"{len(qc_report.rejected_item_ids)} rejected item(s), "
             f"quality_score={qc_report.quality_score:.3f}."
         )

@@ -1,0 +1,59 @@
+{
+  "task_id": "clothing_reviews_sentiment@1",
+  "task_completion": [
+    {
+      "id": "r_script_setup",
+      "description": "Verify the agent sets up an R script or environment to load the dataset and lexicon.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing an R script, RStudio, or R terminal with code to read '/home/ga/RProjects/datasets/clothing_reviews.csv' and '/home/ga/RProjects/datasets/afinn_lexicon.csv'."
+    },
+    {
+      "id": "tidytext_analysis_code",
+      "description": "Verify the agent writes code to perform sentiment analysis using the tidytext package.",
+      "points": 20,
+      "visual_evidence": "Visible R code utilizing tidytext functions (e.g., 'unnest_tokens', 'inner_join' with the AFINN lexicon) to calculate sentiment scores."
+    },
+    {
+      "id": "summary_csv_saved",
+      "description": "Verify the agent saves the class sentiment summary CSV.",
+      "points": 20,
+      "visual_evidence": "Code executing a save/write function for 'class_sentiment_summary.csv' to '/home/ga/RProjects/output/', or the file visible in a file explorer/terminal in that directory."
+    },
+    {
+      "id": "plot_generated",
+      "description": "Verify the agent creates a histogram or density plot of the sentiment score distribution for the 'Dresses' class.",
+      "points": 20,
+      "visual_evidence": "A histogram or density plot visible in the RStudio plot viewer, or R code explicitly filtering for 'Dresses' and generating the plot (e.g., using ggplot2)."
+    },
+    {
+      "id": "plot_saved",
+      "description": "Verify the agent saves the plot as 'dresses_sentiment_dist.png'.",
+      "points": 10,
+      "visual_evidence": "Code executing 'ggsave' or similar to save 'dresses_sentiment_dist.png' to '/home/ga/RProjects/output/', or the file visible in the output directory."
+    },
+    {
+      "id": "negative_words_csv_saved",
+      "description": "Verify the agent exports the top 20 negative words CSV for the 'Dresses' class.",
+      "points": 20,
+      "visual_evidence": "Code filtering for score < 0, sorting by frequency, and writing 'dresses_negative_words.csv' to '/home/ga/RProjects/output/', or the file visible in the directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "Verify the agent actually used R and the tidytext package as requested, rather than a different language like Python.",
+      "visual_evidence": "Presence of R syntax, RStudio, or R terminal execution, rather than Python/pandas scripts."
+    },
+    {
+      "id": "no_hardcoded_csv_outputs",
+      "description": "Verify the agent did not simply mock the output CSV files using echo or manual text editing.",
+      "visual_evidence": "The CSV files should be the output of an executed script, not manually typed or hardcoded text strings."
+    },
+    {
+      "id": "actual_plot_generation",
+      "description": "Verify the plot was generated programmatically.",
+      "visual_evidence": "The PNG file should be created via R plotting commands (like ggplot2), not downloaded from the internet or copied from an existing file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output paths: /home/ga/RProjects/output/class_sentiment_summary.csv, /home/ga/RProjects/output/dresses_sentiment_dist.png, /home/ga/RProjects/output/dresses_negative_words.csv. Expected classes in the summary include 'Dresses', 'Knits', 'Blouses', 'Pants'. CRITICAL NOTE: The original dataset URL in the environment setup is defective (404 error), so the agent may encounter missing file errors for clothing_reviews.csv. Score based on the agent's correct code logic and attempts to generate the files. Additionally, the AFINN lexicon lacks most typical clothing-related negative words, so the top 20 negative words list will mathematically look unusual or sparse if the agent successfully runs the analysis; do not penalize the agent for the specific words found as long as the logic is correct."
+}

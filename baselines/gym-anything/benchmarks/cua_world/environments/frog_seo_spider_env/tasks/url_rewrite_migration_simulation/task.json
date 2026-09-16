@@ -1,0 +1,29 @@
+{
+  "id": "url_rewrite_migration_simulation@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Simulate a site migration for 'https://books.toscrape.com/' by rewriting the '/catalogue/' path segment to '/store/'. Crawl the site and export the Internal HTML data to '/home/ga/Documents/SEO/exports/migration_simulation.csv'. The exported file must contain the modified URLs with the '/store/' path instead of the original '/catalogue/' path.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/url_rewrite_migration_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/url_rewrite_migration_simulation/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "expected_output_path": "/home/ga/Documents/SEO/exports/migration_simulation.csv",
+    "rewrite_from": "catalogue",
+    "rewrite_to": "store",
+    "min_rewritten_urls": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_url_rewrite_migration_simulation"
+    }
+  }
+}

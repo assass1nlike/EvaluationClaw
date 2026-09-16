@@ -1,0 +1,37 @@
+{
+  "id": "chinook_loyalty_migration@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Evolve the Chinook database schema at '/home/ga/Documents/databases/chinook_loyalty.db' (connection 'ChinookLoyalty') to support a new customer loyalty program. Update the 'customers' table to include 'LoyaltyTier' (TEXT), 'TotalSpend' (REAL), and 'JoinDate' (TEXT) columns, and create a 'loyalty_rewards' table with RewardId (PK), CustomerId (FK), Tier, DiscountPercent, and Description. Backfill customer data by calculating 'TotalSpend' as the sum of invoices and 'JoinDate' as the earliest invoice date. Assign 'LoyaltyTier' based on spend: Gold (>=45.00), Silver (38.00-44.99), Bronze (30.00-37.99), or None (<30.00). Populate 'loyalty_rewards' with one row per tiered customer using discounts of 15% for Gold, 10% for Silver, and 5% for Bronze. Export a summary CSV showing LoyaltyTier, CustomerCount, TotalRevenue, and AvgSpend (sorted by revenue descending) to '/home/ga/Documents/exports/loyalty_summary.csv' and save the SQL migration script to '/home/ga/Documents/scripts/loyalty_migration.sql'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_loyalty_migration/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_loyalty_migration/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_loyalty.db",
+    "csv_path": "/home/ga/Documents/exports/loyalty_summary.csv",
+    "sql_path": "/home/ga/Documents/scripts/loyalty_migration.sql",
+    "tiers": {
+      "Gold": 45.0,
+      "Silver": 38.0,
+      "Bronze": 30.0
+    },
+    "rewards": {
+      "Gold": 15.0,
+      "Silver": 10.0,
+      "Bronze": 5.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_loyalty_migration"
+    }
+  }
+}

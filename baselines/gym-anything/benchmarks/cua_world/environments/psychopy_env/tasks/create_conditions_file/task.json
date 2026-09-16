@@ -1,0 +1,25 @@
+{
+  "id": "create_conditions_file@1",
+  "version": "1.0",
+  "env_id": "psychopy_env@0.1",
+  "difficulty": "easy",
+  "description": "Create a conditions file for an Eriksen Flanker task experiment in PsychoPy. The Flanker task (Eriksen & Eriksen, 1974) measures selective attention: participants respond to a central arrow while ignoring surrounding flanking arrows that may be congruent or incongruent. Generate a CSV file at /home/ga/PsychoPyExperiments/conditions/my_flanker_conditions.csv with columns for stimulus, condition, direction, and corrAns. The file must include at least 8 rows of trial data covering congruent trials (e.g., <<<<<, >>>>>) and incongruent trials (e.g., <<><<, >><>>) for both 'left' and 'right' directions. The 'corrAns' column should indicate the correct response key based on the central arrow direction, and the 'condition' column should be labeled 'congruent' or 'incongruent'.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_conditions_file/setup_task.sh",
+    "post_task": "/workspace/tasks/create_conditions_file/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/PsychoPyExperiments/conditions/my_flanker_conditions.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_conditions_file"
+    }
+  }
+}

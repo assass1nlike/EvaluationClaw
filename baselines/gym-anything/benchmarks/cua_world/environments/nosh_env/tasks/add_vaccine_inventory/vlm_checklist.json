@@ -1,0 +1,59 @@
+{
+  "task_id": "add_vaccine_inventory@1",
+  "task_completion": [
+    {
+      "id": "login_nosh_admin",
+      "description": "Verifies the agent logged into the NOSH ChartingSystem using the provided admin credentials.",
+      "points": 10,
+      "visual_evidence": "The NOSH ChartingSystem dashboard is visible in a web browser, with UI elements indicating the user is logged in as 'admin'."
+    },
+    {
+      "id": "vaccine_type_selected",
+      "description": "Verifies the correct vaccine type (CVX 150) is selected in the inventory form.",
+      "points": 15,
+      "visual_evidence": "In the vaccine inventory addition form, 'Influenza, injectable, quadrivalent' or the CVX code '150' is selected or entered in the vaccine type/name field."
+    },
+    {
+      "id": "lot_and_expiration_entered",
+      "description": "Verifies the required lot number and expiration date are entered.",
+      "points": 20,
+      "visual_evidence": "The text 'FL-2026-QA' is visible in the Lot Number field and '2026-12-31' is visible in the Expiration Date field."
+    },
+    {
+      "id": "manufacturer_and_quantity_entered",
+      "description": "Verifies the required manufacturer and quantity are entered.",
+      "points": 20,
+      "visual_evidence": "The text 'GlaxoSmithKline' is visible in the Manufacturer field and '50' is visible in the Quantity or Doses field."
+    },
+    {
+      "id": "status_active_set",
+      "description": "Verifies the vaccine lot is set to active status.",
+      "points": 10,
+      "visual_evidence": "An 'Active' checkbox is checked, a toggle is enabled, or a status dropdown is explicitly set to 'Active' for this vaccine lot."
+    },
+    {
+      "id": "vaccine_lot_saved",
+      "description": "Verifies the vaccine lot was successfully saved to the inventory.",
+      "points": 25,
+      "visual_evidence": "A success confirmation message is displayed, or the newly added lot 'FL-2026-QA' is visible as a saved entry in the active vaccine inventory list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verifies the agent used the graphical user interface to add the inventory.",
+      "visual_evidence": "Screenshots show interaction with the NOSH web interface form fields and buttons, rather than terminal commands (like curl or python scripts) making backend API calls."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verifies the agent interacted with the actual NOSH web application.",
+      "visual_evidence": "The browser address bar shows a valid URL hosting the NOSH ChartingSystem, rather than a local text editor or a mock HTML file."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Verifies the agent did not bypass the UI by directly editing the database.",
+      "visual_evidence": "No database management tools (e.g., phpMyAdmin, MySQL CLI, SQLite browser) or terminal SQL commands are visible in the screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "CVX code 150 correctly represents Influenza, split virus, quadrivalent, preservative free vaccine. GlaxoSmithKline (GSK) is verified as the manufacturer of FLUARIX QUADRIVALENT, which matches the CVX 150 classification. The VLM should accept '150' or 'Influenza, injectable, quadrivalent' interchangeably for the vaccine type."
+}

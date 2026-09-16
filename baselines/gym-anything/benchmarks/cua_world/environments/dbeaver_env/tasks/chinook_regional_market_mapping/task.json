@@ -1,0 +1,61 @@
+{
+  "id": "chinook_regional_market_mapping@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Data Analyst at a global media company. The VP of Sales needs a high-level regional performance report. Implement a regional mapping in the Chinook database (/home/ga/Documents/databases/chinook.db) by creating a 'region_mapping' table with columns 'Country' (Primary Key), 'RegionCode', and 'RegionName'. Populate this table by mapping every distinct BillingCountry in the 'invoices' table to a region: North America (NA) for USA and Canada; Latin America (LATAM) for Brazil, Chile, and Argentina; Asia Pacific (APAC) for Australia and India; Europe/Middle East/Africa (EMEA) for United Kingdom, Germany, France, Czech Republic, Austria, Belgium, Denmark, Finland, Hungary, Ireland, Italy, Netherlands, Norway, Poland, Portugal, Spain, and Sweden; and 'OTH'/'Other' for any other country. Create a view named 'v_regional_sales' that joins 'invoices' and 'region_mapping' to calculate RegionName, InvoiceCount, TotalRevenue, and AvgOrderValue. Export the view results ordered by TotalRevenue descending to /home/ga/Documents/exports/regional_sales_summary.csv and save the SQL DDL/DML script to /home/ga/Documents/scripts/create_regions.sql.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_regional_market_mapping/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_regional_market_mapping/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "expected_csv_path": "/home/ga/Documents/exports/regional_sales_summary.csv",
+    "expected_sql_path": "/home/ga/Documents/scripts/create_regions.sql",
+    "mapping_rules": {
+      "NA": [
+        "USA",
+        "Canada"
+      ],
+      "LATAM": [
+        "Brazil",
+        "Chile",
+        "Argentina"
+      ],
+      "APAC": [
+        "Australia",
+        "India"
+      ],
+      "EMEA": [
+        "United Kingdom",
+        "Germany",
+        "France",
+        "Czech Republic",
+        "Austria",
+        "Belgium",
+        "Denmark",
+        "Finland",
+        "Hungary",
+        "Ireland",
+        "Italy",
+        "Netherlands",
+        "Norway",
+        "Poland",
+        "Portugal",
+        "Spain",
+        "Sweden"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_regional_market_mapping"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "backup_database@1",
+  "task_completion": [
+    {
+      "id": "azure_data_studio_active",
+      "description": "Azure Data Studio is open and connected to the database server",
+      "points": 10,
+      "visual_evidence": "The Azure Data Studio application window is visible and shows an active connection to a SQL Server instance in the Object Explorer or connection pane."
+    },
+    {
+      "id": "backup_command_visible",
+      "description": "The BACKUP DATABASE command is written in the query editor",
+      "points": 20,
+      "visual_evidence": "A SQL query is visible in the editor containing 'BACKUP DATABASE AdventureWorks2022' and specifying the destination 'TO DISK = '/backup/AdventureWorks2022_backup.bak''."
+    },
+    {
+      "id": "backup_success_message",
+      "description": "The backup command executed successfully",
+      "points": 30,
+      "visual_evidence": "The Messages pane at the bottom of Azure Data Studio shows a success message indicating pages were processed and 'BACKUP DATABASE successfully processed' for AdventureWorks2022."
+    },
+    {
+      "id": "verify_command_visible",
+      "description": "The RESTORE VERIFYONLY command is written in the query editor",
+      "points": 20,
+      "visual_evidence": "A SQL query is visible in the editor containing 'RESTORE VERIFYONLY FROM DISK = '/backup/AdventureWorks2022_backup.bak''."
+    },
+    {
+      "id": "verify_success_message",
+      "description": "The backup verification executed successfully",
+      "points": 20,
+      "visual_evidence": "The Messages pane at the bottom of Azure Data Studio shows a success message stating 'The backup set on file 1 is valid' (or similar verification confirmation)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_azure_data_studio",
+      "description": "The agent used Azure Data Studio as requested, rather than a terminal CLI",
+      "visual_evidence": "The queries and results are displayed within the Azure Data Studio graphical user interface, not in a terminal window using tools like sqlcmd."
+    },
+    {
+      "id": "genuine_execution_output",
+      "description": "The results appear to be from genuine SQL execution",
+      "visual_evidence": "The output is in the official 'Messages' or 'Results' tab of Azure Data Studio, complete with execution times and standard SQL Server output formatting, rather than typed into a text editor."
+    },
+    {
+      "id": "correct_file_path_used",
+      "description": "The exact requested file path was used without shortcuts",
+      "visual_evidence": "The path '/backup/AdventureWorks2022_backup.bak' is explicitly visible in the executed SQL commands, not a generic or default path."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is exactly 'AdventureWorks2022'. The required backup destination is '/backup/AdventureWorks2022_backup.bak'. The standard T-SQL commands the agent should use are 'BACKUP DATABASE AdventureWorks2022 TO DISK = ...' and 'RESTORE VERIFYONLY FROM DISK = ...'. A successful backup of this database will be approximately 883 MB (well over the 100 MB minimum threshold). Look for standard SQL Server success messages in the Azure Data Studio 'Messages' pane, specifically 'BACKUP DATABASE successfully processed' and 'The backup set on file 1 is valid'."
+}

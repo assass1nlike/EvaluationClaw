@@ -1,0 +1,32 @@
+{
+  "id": "bouncing_ball_animation@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a classic bouncing ball animation in Blender using the loaded baseline scene. Animate a UV Sphere starting at Z=4, X=-6 to bounce on the ground (Z=0) at least three times while traveling horizontally across the scene. The animation must feature realistic timing (acceleration and deceleration) and a timeline range from frame 1 to 120. Save the project to /home/ga/BlenderProjects/bouncing_ball.blend. The desktop session is already active with Blender open.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bouncing_ball_animation/setup_task.sh",
+    "post_task": "/workspace/tasks/bouncing_ball_animation/export_result.sh"
+  },
+  "metadata": {
+    "source_blend": "/home/ga/BlenderProjects/baseline_scene.blend",
+    "expected_output": "/home/ga/BlenderProjects/bouncing_ball.blend",
+    "min_bounces": 3,
+    "min_horizontal_travel": 4.0,
+    "ground_z_threshold": 1.2,
+    "expected_frame_start": 1,
+    "expected_frame_end": 120,
+    "frame_range_tolerance": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bouncing_ball"
+    }
+  }
+}

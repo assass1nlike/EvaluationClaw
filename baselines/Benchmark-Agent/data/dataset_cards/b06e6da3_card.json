@@ -1,0 +1,82 @@
+{
+  "dataset_id": "b06e6da3",
+  "name": "Fall-Human-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Fall-Human-Detection is a visual detection dataset for recognizing human falls in photographs. Each sample pairs an image with a detection target given as a bounding box labeled 'Fall', so the model must locate the falling human region in the scene.",
+  "card_text": "This dataset contains 200 image-text samples aimed at human fall detection for safety monitoring. Each item provides an image file reference plus a short model-facing prompt, and the expected output is a bounding box around the region where a person is falling. The visual content consists of photographs of people in everyday indoor or outdoor scenes, and the annotation is expressed as a list of dictionaries mapping the class name 'Fall' to four numeric coordinates. The task evaluates whether a system can ground safety-critical events spatially rather than merely classify them. Text is limited to a generic instruction prompt that varies per model, so the dataset is fundamentally vision-centric with a light textual instruction layer.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "human safety monitoring / fall detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short, model-specific instruction prompt that tells the system what it should detect in the accompanying image. It is the only textual input and acts as the task instruction for localizing a fall.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "Path to a photograph depicting people in everyday indoor or outdoor environments, some of them in the act of falling. It is the primary visual input the model must inspect to produce the spatial fall annotation.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list with one dictionary whose key 'Fall' maps to four numeric coordinates delimiting the region of the falling person. It is the ground-truth spatial target that corresponds to the contents of the image and the prompt instruction.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three components: an image reference (input.image_file) showing a person in a scene, a short textual instruction prompt (input.prompt) that asks the model to detect the relevant event, and an output annotation (output.bbox) consisting of a list of one dictionary that maps the class label 'Fall' to four numeric coordinates. The image and prompt together form the model's input, while the bounding box with its 'Fall' label is the spatial ground truth that the model must predict."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/fall-human-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "fall-human-detection",
+      "type": "comprehension",
+      "skill": "Safety Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

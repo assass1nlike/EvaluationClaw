@@ -1,0 +1,26 @@
+{
+  "id": "delete_case_record@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "As an Administrator (arkcase-admin@dev.arkcase.com / ArkCase1234!), maintain data hygiene by permanently deleting the complaint case titled 'TEST-CASE-REMOVE-ME'. Ensure that 'IMPORTANT-active-case-001' remains in the system and is not deleted.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/delete_case_record/setup_task.sh",
+    "post_task": "/workspace/tasks/delete_case_record/export_result.sh"
+  },
+  "metadata": {
+    "target_title": "TEST-CASE-REMOVE-ME",
+    "control_title": "IMPORTANT-active-case-001"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_delete_case_record"
+    }
+  }
+}

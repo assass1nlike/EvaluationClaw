@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_hybrid_generation_complementarity@1",
+  "task_completion": [
+    {
+      "id": "pv_plant_configured",
+      "description": "Verify the 50 MW PV plant is modeled with the correct parameters.",
+      "points": 20,
+      "visual_evidence": "SAM GUI or Python script showing a PV system configured with 50,000 kW DC (or 50 MW) capacity, 20 degrees tilt, and 180 degrees azimuth, using a TMY solar resource."
+    },
+    {
+      "id": "wind_plant_configured",
+      "description": "Verify the 50 MW Wind plant is modeled with the correct parameters.",
+      "points": 20,
+      "visual_evidence": "SAM GUI or Python script showing a Wind system configured with 25 turbines, 2000 kW rating per turbine, 80m hub height, and 100m rotor diameter, using a .srw wind resource."
+    },
+    {
+      "id": "cv_calculation_logic",
+      "description": "Verify the logic for calculating the Coefficient of Variation (CV) for the three 100 MW scenarios.",
+      "points": 20,
+      "visual_evidence": "Python script or spreadsheet showing the extraction of hourly AC power profiles and the calculation of CV (standard deviation divided by mean) for 100 MW PV (2x 50 MW), 100 MW Wind (2x 50 MW), and 100 MW Hybrid (sum of 50 MW PV and Wind)."
+    },
+    {
+      "id": "json_metrics_saved",
+      "description": "Verify the metrics are saved to the specified JSON file with the correct keys.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the contents of 'hybrid_complementarity.json' containing the keys: 'pv_annual_energy_kwh', 'wind_annual_energy_kwh', 'mean_50mw_pv_kw', 'mean_50mw_wind_kw', 'mean_100mw_hybrid_kw', 'cv_100mw_pv', 'cv_100mw_wind', and 'cv_100mw_hybrid'."
+    },
+    {
+      "id": "evidence_file_saved",
+      "description": "Verify the analysis script or SAM project is saved in the correct directory.",
+      "points": 20,
+      "visual_evidence": "File manager, terminal, or editor showing 'hybrid_analysis.py' or 'hybrid_analysis.sam' saved in the '/home/ga/Documents/SAM_Projects/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_modeling",
+      "description": "Ensure the agent actually used SAM or PySAM to model the plants and generate results.",
+      "visual_evidence": "SAM application open with the configured project, or a terminal showing the successful execution of the PySAM script, rather than just writing a JSON file with fabricated numbers."
+    },
+    {
+      "id": "calculated_not_hardcoded",
+      "description": "Ensure the metrics in the JSON file are the result of actual calculations.",
+      "visual_evidence": "The values in 'hybrid_complementarity.json' are precise floating-point numbers (e.g., realistic energy values and CV decimals), not simple placeholder values like 0, 1, or hardcoded text."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Ensure the agent saved the files in the exact requested directory.",
+      "visual_evidence": "File paths visible in the editor, terminal, or file manager confirm the location is exactly '/home/ga/Documents/SAM_Projects/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is 'hybrid_complementarity.json'. The evidence file must be either 'hybrid_analysis.py' or 'hybrid_analysis.sam'. Both must be located in /home/ga/Documents/SAM_Projects/."
+}

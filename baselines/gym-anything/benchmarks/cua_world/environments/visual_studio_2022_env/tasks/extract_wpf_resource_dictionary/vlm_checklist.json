@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_wpf_resource_dictionary@1",
+  "task_completion": [
+    {
+      "id": "create_theme_xaml",
+      "description": "Create a new Resource Dictionary named 'Theme.xaml' in the project.",
+      "points": 15,
+      "visual_evidence": "The Solution Explorer pane in Visual Studio shows a new file named 'Theme.xaml' under the 'SystemMonitorDashboard' project."
+    },
+    {
+      "id": "populate_theme_xaml",
+      "description": "Refactor and move the styles and brushes into Theme.xaml.",
+      "points": 25,
+      "visual_evidence": "The code editor tab for 'Theme.xaml' is visible, showing a <ResourceDictionary> containing SolidColorBrush and Style definitions (e.g., BrandPrimaryBrush, BrandSecondaryBrush, CardStyle)."
+    },
+    {
+      "id": "clean_mainwindow_xaml",
+      "description": "Remove the hardcoded styles and brushes from the Window.Resources section of MainWindow.xaml.",
+      "points": 15,
+      "visual_evidence": "The code editor tab for 'MainWindow.xaml' is visible, and its <Window.Resources> section is either empty or no longer contains the brushes and styles that were moved to Theme.xaml."
+    },
+    {
+      "id": "merge_theme_in_app_xaml",
+      "description": "Merge 'Theme.xaml' into the application resources in App.xaml.",
+      "points": 25,
+      "visual_evidence": "The code editor tab for 'App.xaml' is visible and contains a <ResourceDictionary.MergedDictionaries> block with a <ResourceDictionary Source=\"Theme.xaml\" /> entry."
+    },
+    {
+      "id": "build_solution_success",
+      "description": "Ensure the solution builds without StaticResource resolution errors.",
+      "points": 20,
+      "visual_evidence": "The Output window or Error List in Visual Studio displays a successful build message (e.g., 'Build: 1 succeeded') with no XAML StaticResource resolution errors shown."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_visual_studio_gui",
+      "description": "The agent used the Visual Studio 2022 GUI to perform the refactoring.",
+      "visual_evidence": "Screenshots show the Visual Studio 2022 IDE being actively used (Solution Explorer, XAML editor, Output window), rather than terminal commands or a basic text editor."
+    },
+    {
+      "id": "genuine_project_integration",
+      "description": "The Theme.xaml file is genuinely integrated into the WPF project.",
+      "visual_evidence": "Solution Explorer shows 'Theme.xaml' properly nested within the 'SystemMonitorDashboard' project hierarchy, indicating it was added to the project file and not just opened as a loose file."
+    },
+    {
+      "id": "actual_build_execution",
+      "description": "The agent actually triggered a build to verify the changes.",
+      "visual_evidence": "The Output window shows recent build logs, or the Visual Studio status bar indicates 'Build succeeded', proving the agent didn't just edit the text and skip verification."
+    }
+  ],
+  "privileged_info_for_vlm": "The target project name is verified as 'SystemMonitorDashboard'. The expected resource keys that should be refactored into Theme.xaml are 'BrandPrimaryBrush', 'BrandSecondaryBrush', and 'CardStyle'."
+}

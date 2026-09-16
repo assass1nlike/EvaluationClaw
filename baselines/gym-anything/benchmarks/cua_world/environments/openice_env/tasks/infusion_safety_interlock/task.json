@@ -1,0 +1,31 @@
+{
+  "id": "infusion_safety_interlock@1",
+  "version": "1.0",
+  "env_id": "openice_env@0.1",
+  "description": "You are a biomedical engineer at University Hospital preparing to deploy OpenICE's closed-loop drug infusion safety system in the cardiac ICU. Create simulated device adapters for a physiological monitor providing SpO2 readings and a controllable infusion pump. Launch the clinical application for medication infusion safety monitoring and configure the SpO2-based safety interlock threshold. Verify that both devices are communicating with the safety application and that the interlock configuration is active. Write a technical configuration report to /home/ga/Desktop/infusion_safety_config.txt documenting the specific device types created for each role, the SpO2 threshold value configured, and a description of the expected system behavior when a patient's SpO2 drops below that threshold. OpenICE Supervisor is already running on the desktop.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/infusion_safety_interlock/setup_task.sh",
+    "post_task": "/workspace/tasks/infusion_safety_interlock/export_result.sh"
+  },
+  "metadata": {
+    "required_roles": [
+      "SpO2 monitoring device",
+      "controllable infusion pump"
+    ],
+    "required_app": "Infusion Safety",
+    "required_file": "/home/ga/Desktop/infusion_safety_config.txt",
+    "clinical_context": "Closed-loop medication safety interlock for ICU",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_infusion_safety_interlock"
+    }
+  }
+}

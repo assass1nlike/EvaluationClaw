@@ -1,0 +1,78 @@
+{
+  "dataset_id": "0894094f",
+  "name": "Terrain Recognition",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for recognizing terrain types from natural-scene images. Each sample pairs a photograph with an instruction to identify the terrain, and the model must output a category label such as Mountain, Beach, or Forest. It evaluates visual scene recognition in outdoor/natural environments.",
+  "card_text": "The Terrain Recognition dataset contains 200 image–text samples for classifying outdoor terrain. Each item includes an image file path, a short imperative prompt ('recognize terrain in the image'), and a single terrain category label as the target output. Images depict natural landscapes and scenes, and labels are discrete terrain types. The task assumes the terrain is visually identifiable from the photograph alone, without additional context. It tests multimodal models' ability to interpret a brief instruction and map visual features to a terrain class. The dataset is intended for multiclass image classification or visual prompt-based recognition; no bounding boxes, masks, or free-form explanations are provided.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "nature/terrain recognition",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "Reference to a photograph of a natural terrain scene. The image is the primary visual input that the model must inspect to identify the terrain type.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short imperative prompt asking the model to recognize the terrain in the accompanying image. It specifies the task but does not name any candidate categories.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.prediction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The terrain category label (e.g., Mountain, Beach, Forest) assigned to the image. It is the target output that the model must predict.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image file path, a short instruction prompt, and a terrain category prediction. The image provides the visual scene, the prompt requests terrain recognition, and the prediction is the single-word answer label. No additional context, options, or explanations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/terrain_recognition/json/annotation.json",
+    "existing_tags": {
+      "task": "Terrain Recognition",
+      "type": "comprehension",
+      "skill": "Scene Recognition(Scene Recog)",
+      "domain": "Nature",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Nature"
+  }
+}

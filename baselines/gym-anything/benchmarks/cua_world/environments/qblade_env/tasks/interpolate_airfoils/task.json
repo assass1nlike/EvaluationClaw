@@ -1,0 +1,32 @@
+{
+  "id": "interpolate_airfoils@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Create a 50% interpolated blend between a NACA 2412 (2% camber, 40% position, 12% thickness) and a NACA 4424 (4% camber, 40% position, 24% thickness) in QBlade. Export the resulting airfoil coordinates in Selig format (name in first line, then coordinates) to /home/ga/Documents/airfoils/interpolated_naca_50pct.dat.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/interpolate_airfoils/setup_task.sh",
+    "post_task": "/workspace/tasks/interpolate_airfoils/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/airfoils/interpolated_naca_50pct.dat",
+    "parent_1": "NACA 2412",
+    "parent_2": "NACA 4424",
+    "target_thickness_min": 0.15,
+    "target_thickness_max": 0.21,
+    "target_camber_min": 0.02,
+    "target_camber_max": 0.04,
+    "min_points": 30
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interpolate_airfoils"
+    }
+  }
+}

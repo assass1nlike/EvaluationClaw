@@ -1,0 +1,38 @@
+{
+  "id": "tracked_entity_attribute_pattern_validation@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "Configure a new Tracked Entity Attribute named 'National PUI' (Short name: 'Nat PUI') for the 'Person' entity type in the DHIS2 Tracker. Set the Value Type to 'Text', enable 'Unique', and configure a Pattern (Regex) to enforce the format of two uppercase letters, a forward slash, and six digits (e.g., 'BO/123456'). Assign this attribute to the 'Person' tracked entity type and ensure 'Display in list' is enabled in the assignment settings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tracked_entity_attribute_pattern_validation/setup_task.sh",
+    "post_task": "/workspace/tasks/tracked_entity_attribute_pattern_validation/export_result.sh"
+  },
+  "metadata": {
+    "target_name": "National PUI",
+    "target_entity": "Person",
+    "test_cases_valid": [
+      "BO/123456",
+      "WA/999999",
+      "AB/000000"
+    ],
+    "test_cases_invalid": [
+      "bo/123456",
+      "BO-123456",
+      "BO/12345",
+      "123456",
+      "BO/1234567"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pattern_configuration"
+    }
+  }
+}

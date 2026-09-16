@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_food_allergen_ean@1",
+  "task_completion": [
+    {
+      "id": "bcwebcam_scanning",
+      "description": "bcWebCam application is open and scanning the camera feed.",
+      "points": 15,
+      "visual_evidence": "The bcWebCam application window is visible on the screen, showing a live camera feed or attempting to focus on a barcode."
+    },
+    {
+      "id": "barcode_decoded",
+      "description": "A decoded barcode value is obtained from bcWebCam.",
+      "points": 20,
+      "visual_evidence": "A numeric barcode string is visible in the bcWebCam interface's output or history."
+    },
+    {
+      "id": "sqlite_query_attempted",
+      "description": "Agent queries the local SQLite database.",
+      "points": 25,
+      "visual_evidence": "A terminal, command prompt, or SQLite GUI tool is open showing a query directed at C:\\workspace\\data\\food_database.db."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The allergen_report.txt file is created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "A text editor (like Notepad) is open saving a file named allergen_report.txt, or a file explorer shows this file in C:\\Users\\Docker\\Documents\\."
+    },
+    {
+      "id": "report_content_formatted",
+      "description": "The report contains the three required lines for Barcode, Product, and Status.",
+      "points": 25,
+      "visual_evidence": "The text file contents show 'Barcode: [value]', 'Product: [value]', and 'Status: [SAFE/UNSAFE]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_bcwebcam_usage",
+      "description": "Agent interacted with the bcWebCam application to get the barcode.",
+      "visual_evidence": "Screenshots show the bcWebCam GUI being actively used, not just bypassed by guessing the barcode."
+    },
+    {
+      "id": "genuine_db_query",
+      "description": "Agent attempted to extract information from the local database rather than hallucinating the product details.",
+      "visual_evidence": "Evidence of a SQL query or script execution targeting the database, rather than typing out Reese's Peanut Butter Cup details directly from prior knowledge."
+    },
+    {
+      "id": "no_internet_usage",
+      "description": "Agent did not use external internet resources.",
+      "visual_evidence": "No web browser is open searching for barcode lookups, Reese's ingredients, or allergen information."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output file must be located exactly at C:\\Users\\Docker\\Documents\\allergen_report.txt. Note: The underlying database (food_database.db) may be missing from the environment due to a defect. The agent should still be credited for genuine attempts to query the database path and format the final report based on its findings or errors."
+}

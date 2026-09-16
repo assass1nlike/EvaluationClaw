@@ -1,0 +1,40 @@
+{
+  "id": "create_case_query@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are working with the Chinook music store database in LibreOffice Base. Create a new saved query named \"TrackCategories\" that categorizes tracks from the \"Track\" table by duration and price using SQL CASE WHEN expressions. The query must include the columns \"TrackId\", \"Name\", \"Milliseconds\", and \"UnitPrice\", along with a computed column aliased as \"DurationCategory\" ('Short' for Milliseconds < 180000, 'Medium' for 180000-360000, and 'Long' for > 360000) and a computed column aliased as \"PriceCategory\" ('Budget' for UnitPrice < 1.0, 'Standard' for 1.0-1.5, and 'Premium' for > 1.5). Order the results by \"Name\" ascending. Save the query with the exact name \"TrackCategories\" and ensure the database file is saved to persist the changes to disk.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_case_query/setup_task.sh",
+    "post_task": "/workspace/tasks/create_case_query/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "query_name": "TrackCategories",
+    "expected_aliases": [
+      "DurationCategory",
+      "PriceCategory"
+    ],
+    "thresholds": {
+      "duration": [
+        "180000",
+        "360000"
+      ],
+      "price": [
+        "1.0",
+        "1.5"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_case_query"
+    }
+  }
+}

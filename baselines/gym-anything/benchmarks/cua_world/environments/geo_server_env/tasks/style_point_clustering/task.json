@@ -1,0 +1,29 @@
+{
+  "id": "style_point_clustering@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Log in to the GeoServer web admin at http://localhost:8080/geoserver/web/ (User: admin, Password: Admin123!). Configure the 'ne:ne_populated_places' layer to use a new default SLD style named 'clustered_places' that implements server-side point clustering. The style must use the 'gs:PointStacker' rendering transformation with a 'cellSize' of 60. Define two rendering rules based on the clustering count: clusters (count > 1) should be rendered as a Blue (#0000FF) Circle (size 22) with a White label showing the count, and single points (count = 1) should be rendered as a Red (#FF0000) Star (size 12).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/style_point_clustering/setup_task.sh",
+    "post_task": "/workspace/tasks/style_point_clustering/export_result.sh"
+  },
+  "metadata": {
+    "expected_style_name": "clustered_places",
+    "expected_layer_name": "ne:ne_populated_places",
+    "expected_cell_size": 60,
+    "expected_cluster_color": "#0000FF",
+    "expected_single_color": "#FF0000"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_style_point_clustering"
+    }
+  }
+}

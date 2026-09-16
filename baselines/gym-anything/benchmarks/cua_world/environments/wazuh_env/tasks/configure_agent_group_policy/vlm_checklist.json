@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_agent_group_policy@1",
+  "task_completion": [
+    {
+      "id": "group_creation_api_call",
+      "description": "Verify the agent created the 'linux-webservers' group via the API.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command (e.g., curl), Python script, or API client making a request to the Wazuh API (https://localhost:55000) to create a group named 'linux-webservers', along with a successful JSON response."
+    },
+    {
+      "id": "xml_localfile_blocks",
+      "description": "Verify the agent configuration includes the required localfile blocks.",
+      "points": 20,
+      "visual_evidence": "Look for the drafted XML payload containing exactly three <localfile> blocks: two with format 'apache' (for /var/log/apache2/access.log and /var/log/apache2/error.log) and one with format 'syslog' (for /var/log/auth.log)."
+    },
+    {
+      "id": "xml_syscheck_rootcheck_blocks",
+      "description": "Verify the agent configuration includes the required syscheck and rootcheck blocks.",
+      "points": 20,
+      "visual_evidence": "Look for the drafted XML payload containing a <syscheck> block with frequency '600' and <directories> tags for '/var/www/html' (realtime='yes') and '/etc/apache2' (check_all='yes', report_changes='yes'). Also look for a <rootcheck> block with frequency '3600'."
+    },
+    {
+      "id": "xml_wodle_block",
+      "description": "Verify the agent configuration includes the required wodle command block.",
+      "points": 20,
+      "visual_evidence": "Look for the drafted XML payload containing a <wodle name='command'> block with <tag>listening-ports</tag>, <command>ss -tlnp</command>, <interval>5m</interval>, and <run_on_start>yes</run_on_start>."
+    },
+    {
+      "id": "config_upload_api_call",
+      "description": "Verify the agent uploaded the configuration to the 'linux-webservers' group via the API.",
+      "points": 25,
+      "visual_evidence": "Look for an API request (e.g., PUT or POST to an endpoint like /agents/groups/linux-webservers/configuration) transmitting the constructed XML payload to the API at https://localhost:55000, followed by a successful response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Ensure the agent actually interacted with the Wazuh API.",
+      "visual_evidence": "Check that the agent executed network requests (via curl, a script, or an API tool) and received actual JSON responses from the server, rather than just writing an XML file locally and stopping."
+    },
+    {
+      "id": "correct_api_endpoint",
+      "description": "Ensure the agent used the specified API endpoint.",
+      "visual_evidence": "Verify that the URLs in the curl commands or scripts point to https://localhost:55000 as requested in the prompt."
+    },
+    {
+      "id": "genuine_xml_payload",
+      "description": "Ensure the XML payload was properly formatted for the API request.",
+      "visual_evidence": "If using curl with JSON, the XML should be properly escaped as a string in the JSON body, or uploaded as a file correctly, showing genuine effort to interface with the API."
+    }
+  ],
+  "privileged_info_for_vlm": "The target group ID is 'linux-webservers'. The expected agent configuration must be uploaded to this group. The XML structure must contain exactly 3 <localfile> blocks, 1 <syscheck> block, 1 <wodle> block, and 1 <rootcheck> block."
+}

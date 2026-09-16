@@ -1,0 +1,53 @@
+{
+  "task_id": "storage_hwm_optimization@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a database client (e.g., SQL*Plus, SQLcl, DBeaver) successfully connecting using user 'hr' and connection string 'localhost:1521/XEPDB1'."
+    },
+    {
+      "id": "hwm_space_reclamation",
+      "description": "Execute commands to reset the High Water Mark and reclaim unused space in the table.",
+      "points": 40,
+      "visual_evidence": "Execution of SQL commands designed to reclaim space, such as 'ALTER TABLE SHIPMENT_LOGS SHRINK SPACE;' (usually preceded by 'ALTER TABLE SHIPMENT_LOGS ENABLE ROW MOVEMENT;') or 'ALTER TABLE SHIPMENT_LOGS MOVE;'."
+    },
+    {
+      "id": "verify_table_size",
+      "description": "Verify that the physical storage footprint of the table is now below 30MB.",
+      "points": 20,
+      "visual_evidence": "A query against database dictionary views (e.g., USER_SEGMENTS or DBA_SEGMENTS) for 'SHIPMENT_LOGS' showing the BYTES or size is less than 30MB (approx 31,457,280 bytes)."
+    },
+    {
+      "id": "verify_index_validity",
+      "description": "Ensure the 'IDX_SHIP_LOG_DATE' index is in a VALID state.",
+      "points": 15,
+      "visual_evidence": "A query against USER_INDEXES checking the STATUS of 'IDX_SHIP_LOG_DATE' returning 'VALID'. If the table was moved, look for an 'ALTER INDEX IDX_SHIP_LOG_DATE REBUILD;' command prior to this check."
+    },
+    {
+      "id": "verify_row_count",
+      "description": "Ensure all 5,000 remaining records are intact and accessible.",
+      "points": 15,
+      "visual_evidence": "Execution of 'SELECT COUNT(*) FROM SHIPMENT_LOGS;' returning exactly 5000."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_client_used",
+      "description": "The agent interacted with a genuine database client or terminal.",
+      "visual_evidence": "The presence of a real SQL client interface (like SQL*Plus in a terminal, or a GUI like DBeaver/SQL Developer) rather than just typing SQL commands into a plain text editor."
+    },
+    {
+      "id": "genuine_query_execution",
+      "description": "The queries executed show actual database output/results.",
+      "visual_evidence": "Standard database output formatting (e.g., SQL*Plus tabular format, row counts, or GUI result grids) indicating the commands were actually executed against the database."
+    },
+    {
+      "id": "no_mocked_results",
+      "description": "The agent did not mock the verification steps.",
+      "visual_evidence": "The agent actually queried system tables (like USER_SEGMENTS or USER_INDEXES) to verify size and index status, rather than just echoing/printing 'Size: 20MB' or 'Index: VALID' using shell scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Table: SHIPMENT_LOGS. Target Index: IDX_SHIP_LOG_DATE. Expected Row Count: 5000. Max Acceptable Size: 30 MB. Connection details: User 'hr', Password 'hr123', String 'localhost:1521/XEPDB1'."
+}

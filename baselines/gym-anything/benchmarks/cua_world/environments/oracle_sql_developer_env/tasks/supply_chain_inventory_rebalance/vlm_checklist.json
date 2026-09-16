@@ -1,0 +1,59 @@
+{
+  "task_id": "supply_chain_inventory_rebalance@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal or database client successfully connecting to Oracle (Host=localhost, Port=1521, Service=XEPDB1) using the user 'sc_manager'."
+    },
+    {
+      "id": "calculate_moving_avg_cv",
+      "description": "Calculate the 12-week moving average demand and coefficient of variation per SKU per warehouse.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SQL queries (likely using Window Functions) querying the DEMAND_HISTORY table to calculate a 12-week moving average and demand variability (CV)."
+    },
+    {
+      "id": "calculate_seasonal_indices",
+      "description": "Calculate seasonal indices using the ratio-to-moving-average method.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SQL queries (potentially using the Oracle MODEL clause) calculating seasonal indices based on the ratio-to-moving-average method."
+    },
+    {
+      "id": "populate_demand_analysis",
+      "description": "Write the calculated demand analysis results to the DEMAND_ANALYSIS table.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing an INSERT or MERGE statement writing the calculated moving averages, CVs, and seasonal indices into the DEMAND_ANALYSIS table, followed by a success message (e.g., 'X rows created')."
+    },
+    {
+      "id": "correct_inventory_params",
+      "description": "Correct misconfigured values in the INVENTORY_PARAMS table.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing UPDATE statements modifying the INVENTORY_PARAMS table to fix zero reorder points, excessive safety stock levels, and zero lead times."
+    },
+    {
+      "id": "export_result_json",
+      "description": "Export or generate the final result file at /tmp/supply_chain_result.json.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a script execution, database export command, or terminal command creating or writing to '/tmp/supply_chain_result.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_execution",
+      "description": "The agent actually executed the SQL queries against the Oracle database.",
+      "visual_evidence": "Look for actual database client output (e.g., SQL*Plus 'Rows updated', 'Table created', or query result tables) rather than just SQL scripts written in a text editor without execution."
+    },
+    {
+      "id": "no_hardcoded_analysis",
+      "description": "The agent calculated the demand analysis dynamically rather than hardcoding fake results.",
+      "visual_evidence": "Check the SQL queries to ensure they contain actual mathematical/window functions (AVG, STDDEV, etc.) over the DEMAND_HISTORY table, rather than INSERT statements with hardcoded numeric values."
+    },
+    {
+      "id": "no_manual_json_creation",
+      "description": "The result JSON file was generated programmatically or via export, not manually typed.",
+      "visual_evidence": "Ensure the agent did not simply open a text editor (like nano or vim) and manually type out the contents of /tmp/supply_chain_result.json."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /tmp/supply_chain_result.json. The agent is expected to use Oracle-specific features such as the MODEL clause, Window Functions, JSON Columns, and DBMS_SCHEDULER to complete the analysis. The injected errors in INVENTORY_PARAMS that need fixing include exactly 5 SKUs with lead_time_days = 0 in warehouse 5, as well as specific rows having zero reorder points and excessive safety stock."
+}

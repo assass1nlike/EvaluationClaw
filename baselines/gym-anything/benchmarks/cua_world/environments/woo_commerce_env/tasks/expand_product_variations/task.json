@@ -1,0 +1,29 @@
+{
+  "id": "expand_product_variations@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Add a 'Black' color option to the 'Classic T-Shirt' variable product in WooCommerce. Add 'Black' to the global 'Color' attribute and create a new enabled variation for the product with a regular price of $25.00 and SKU 'CTS-BLK'. Use the WooCommerce admin panel at http://localhost/wp-admin/ (credentials: admin / Admin1234!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/expand_product_variations/setup_task.sh",
+    "post_task": "/workspace/tasks/expand_product_variations/export_result.sh"
+  },
+  "metadata": {
+    "parent_product_name": "Classic T-Shirt",
+    "new_color": "Black",
+    "expected_sku": "CTS-BLK",
+    "expected_price": "25.00",
+    "base_price": "20.00"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_expand_product_variations"
+    }
+  }
+}

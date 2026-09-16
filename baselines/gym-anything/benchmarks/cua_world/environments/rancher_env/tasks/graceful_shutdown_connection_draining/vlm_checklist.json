@@ -1,0 +1,53 @@
+{
+  "task_id": "graceful_shutdown_connection_draining@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Read the drain specification file to get the required configuration values.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Desktop/drain_spec.md."
+    },
+    {
+      "id": "login_rancher",
+      "description": "Log into the Rancher web interface.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the Rancher dashboard at https://localhost, indicating a successful login."
+    },
+    {
+      "id": "configure_payment_processor",
+      "description": "Configure the payment-processor deployment with the preStop hook and terminationGracePeriodSeconds.",
+      "points": 25,
+      "visual_evidence": "Rancher UI showing the edit/upgrade screen for the 'payment-processor' deployment in the 'ecommerce' namespace, with values entered for the preStop lifecycle hook and terminationGracePeriodSeconds."
+    },
+    {
+      "id": "configure_cart_service",
+      "description": "Configure the cart-service deployment with the preStop hook and terminationGracePeriodSeconds.",
+      "points": 25,
+      "visual_evidence": "Rancher UI showing the edit/upgrade screen for the 'cart-service' deployment in the 'ecommerce' namespace, with values entered for the preStop lifecycle hook and terminationGracePeriodSeconds."
+    },
+    {
+      "id": "configure_order_worker",
+      "description": "Configure the order-worker deployment with the preStop hook and terminationGracePeriodSeconds.",
+      "points": 30,
+      "visual_evidence": "Rancher UI showing the edit/upgrade screen for the 'order-worker' deployment in the 'ecommerce' namespace, with values entered for the preStop lifecycle hook and terminationGracePeriodSeconds."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_gui",
+      "description": "The agent used the Rancher web interface to configure the deployments, not terminal commands.",
+      "visual_evidence": "Configuration changes are made within the Rancher browser UI. There should be no evidence of 'kubectl edit', 'kubectl patch', or 'kubectl apply' being used in a terminal to modify the deployments."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "The agent interacted with the actual Rancher application in a web browser.",
+      "visual_evidence": "The browser URL bar shows https://localhost and standard Rancher UI elements (navigation menus, forms, buttons) are visible and interacted with."
+    },
+    {
+      "id": "saved_deployment_changes",
+      "description": "The agent actually saved the configuration changes for the deployments.",
+      "visual_evidence": "The 'Save' or 'Upgrade' button is clicked in the Rancher UI after entering the configuration, or the deployments are shown in an 'Updating' or 'Active' state after modification."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace is exactly 'ecommerce'. The target deployments to configure are 'payment-processor', 'cart-service', and 'order-worker'. The drain specification file containing the exact preStop and terminationGracePeriodSeconds values is located at '/home/ga/Desktop/drain_spec.md'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "time_production_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Access or read the input CSV file containing the time production data.",
+      "points": 10,
+      "visual_evidence": "A terminal, code editor, or spreadsheet application showing the file path '~/pebl/data/time_production_data.csv' being opened, read, or its contents displayed."
+    },
+    {
+      "id": "compute_individual_metrics",
+      "description": "Compute Constant Error (CE), Absolute Error (AE), and Coefficient of Variation (CV) for each participant and target duration.",
+      "points": 20,
+      "visual_evidence": "Code (e.g., Python script) or spreadsheet formulas showing calculations for CE (produced - target), AE (absolute difference), and CV (standard deviation / mean) grouped by participant and duration."
+    },
+    {
+      "id": "exclude_cheater_sub_99",
+      "description": "Identify and exclude participant sub-99 from the group statistics, marking them as excluded with a reason.",
+      "points": 20,
+      "visual_evidence": "Code logic explicitly filtering out 'sub-99', or a JSON structure being built that sets '\"excluded\": true' and provides a 'reason' for participant sub-99."
+    },
+    {
+      "id": "compute_group_means",
+      "description": "Calculate the group means for CE, AE, and CV across all valid participants for each target duration.",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet operations calculating the average of the individual CE, AE, and CV metrics for the target durations (500, 1000, 2000, 3000), excluding sub-99."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Write the final formatted JSON report to the specified output path.",
+      "points": 30,
+      "visual_evidence": "A code editor saving a script that writes to '~/pebl/analysis/timing_report.json', or a terminal/file explorer showing the created 'timing_report.json' file containing 'participants' and 'group_means' keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "evidence_of_computation",
+      "description": "The agent actually processed the data using a script or data analysis tool rather than hallucinating the final JSON.",
+      "visual_evidence": "Screenshots should show a script (e.g., Python, R) or spreadsheet being written/executed to perform the math, rather than just a text editor manually typing out the final JSON numbers."
+    },
+    {
+      "id": "dynamic_exclusion",
+      "description": "The agent did not hardcode the entire final JSON output from external knowledge.",
+      "visual_evidence": "The code should show programmatic logic to calculate means and format the JSON, rather than a single large block of hardcoded JSON text being pasted."
+    },
+    {
+      "id": "correct_file_placement",
+      "description": "The agent saved the file to the actual requested directory instead of just printing it to the console.",
+      "visual_evidence": "A file manager, terminal 'ls' command, or editor tab showing 'timing_report.json' specifically located in the '~/pebl/analysis/' directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains participants sub-01 through sub-15, plus a cheater 'sub-99'. The target durations are strictly 500, 1000, 2000, and 3000 ms. Participant sub-99 must be excluded due to artificially precise timing (CV near zero, consistent with stopwatch use). The final output must be saved exactly at /home/ga/pebl/analysis/timing_report.json."
+}

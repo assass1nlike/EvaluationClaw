@@ -1,0 +1,30 @@
+{
+  "id": "create_local_maven_repo@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Create a local Maven repository in JFrog Artifactory (http://localhost:8082) using username 'admin' and password 'password'. The repository must be configured with the key 'team-releases', package type 'Maven', and description 'Team release artifacts repository'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_local_maven_repo/setup_task.sh"
+  },
+  "metadata": {
+    "target_repo_key": "team-releases",
+    "target_repo_type": "local",
+    "target_package_type": "maven",
+    "target_description": "Team release artifacts repository",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_local_maven_repo"
+    }
+  }
+}

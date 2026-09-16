@@ -1,0 +1,38 @@
+{
+  "id": "create_datacenter_floorplan@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a data center facility floor plan in Wondershare EdrawMax for 'Data Center Room 101'. The floor plan must feature a 30 ft x 20 ft rectangular room with an entry door on the bottom wall and a visual indicator for a 'Raised Floor (24 in)'. Arrange four server racks in a 2x2 grid in the center, labeled 'Rack A1', 'Rack A2', 'Rack B1', and 'Rack B2', with text labels for a 'Hot Aisle' between the rows and 'Cold Aisle' spaces on the outside. Include two CRAC units labeled 'CRAC-1' (left wall) and 'CRAC-2' (right wall), a PDU labeled 'PDU-A' near the bottom-left corner, and a Fire Panel near the entry door. Save the project file to /home/ga/Documents/datacenter_floorplan.eddx and export the final image to /home/ga/Documents/datacenter_floorplan.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_datacenter_floorplan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_datacenter_floorplan/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/datacenter_floorplan.eddx",
+    "expected_png_path": "/home/ga/Documents/datacenter_floorplan.png",
+    "required_labels": [
+      "Rack A1",
+      "Rack A2",
+      "Rack B1",
+      "Rack B2",
+      "CRAC-1",
+      "CRAC-2",
+      "PDU-A",
+      "Data Center Room 101"
+    ],
+    "min_eddx_size_bytes": 5000,
+    "min_png_size_bytes": 20000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_datacenter_floorplan"
+    }
+  }
+}

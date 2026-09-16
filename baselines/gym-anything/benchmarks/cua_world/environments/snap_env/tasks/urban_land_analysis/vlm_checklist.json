@@ -1,0 +1,65 @@
+{
+  "task_id": "urban_land_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_input_imagery",
+      "description": "Open the Landsat multispectral imagery in SNAP Desktop",
+      "points": 10,
+      "visual_evidence": "SNAP Desktop application is open with 'landsat_multispectral.tif' visible in the Product Explorer pane or displayed in an image view window."
+    },
+    {
+      "id": "derive_built_up_index",
+      "description": "Derive a built-up area index using SWIR and NIR bands",
+      "points": 15,
+      "visual_evidence": "Band Maths dialog or a new band created showing an expression that uses band_1 (SWIR) and band_2 (NIR), such as (band_1 - band_2) / (band_1 + band_2)."
+    },
+    {
+      "id": "derive_vegetation_index",
+      "description": "Derive a vegetation index using NIR and Red bands",
+      "points": 15,
+      "visual_evidence": "Band Maths dialog or a new band created showing an expression that uses band_2 (NIR) and band_3 (Red), such as (band_2 - band_3) / (band_2 + band_3)."
+    },
+    {
+      "id": "create_differential_layer",
+      "description": "Create a differential urban-vegetation layer",
+      "points": 15,
+      "visual_evidence": "Band Maths dialog or a new band created showing a subtraction or difference calculation between the newly created built-up index band and the vegetation index band."
+    },
+    {
+      "id": "create_zoning_map",
+      "description": "Create a multi-class urban zoning map with at least three zones using conditional thresholds",
+      "points": 20,
+      "visual_evidence": "Band Maths dialog showing a conditional expression (e.g., using 'IF ... THEN ... ELSE' or nested conditions) that categorizes pixels into at least 3 distinct numerical values or classes based on the indices."
+    },
+    {
+      "id": "save_analysis_dimap",
+      "description": "Save the analysis product in BEAM-DIMAP format",
+      "points": 10,
+      "visual_evidence": "A 'Save Product' dialog or file explorer showing the product being saved as 'analysis.dim' in the directory '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_zoning_geotiff",
+      "description": "Export the zoning assessment as a GeoTIFF",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog (specifically selecting GeoTIFF format) or file explorer showing 'zoning_assessment.tif' being saved to '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "The agent used the SNAP Desktop GUI to perform the analysis rather than bypassing it with terminal scripts.",
+      "visual_evidence": "Screenshots show active interaction with SNAP Desktop menus, Band Maths dialogs, and export windows, rather than just a terminal window executing a Python or shell script."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "The agent actually inputted mathematical formulas for the indices rather than creating empty bands or renaming existing ones.",
+      "visual_evidence": "The Band Maths expression editor is visible in at least some screenshots showing the actual mathematical formulas using the correct bands."
+    },
+    {
+      "id": "authentic_file_export",
+      "description": "The agent used the application's export functionality rather than faking the output files.",
+      "visual_evidence": "The files 'analysis.dim' and 'zoning_assessment.tif' are seen being generated through SNAP's save/export dialogs, not via 'touch' or 'cp' commands in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif and contains genuine Landsat 7 TOA satellite imagery downloaded from github.com/opengeos/data. The band mappings for the task are: band_1=SWIR1, band_2=NIR, band_3=Red, band_4=Green."
+}

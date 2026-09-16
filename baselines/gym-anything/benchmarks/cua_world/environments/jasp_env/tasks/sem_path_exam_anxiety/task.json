@@ -1,0 +1,34 @@
+{
+  "id": "sem_path_exam_anxiety@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a structural Path Analysis on the 'Exam Anxiety' dataset (/home/ga/Documents/JASP/ExamAnxiety.csv) to test the 'Anxiety-Interference' hypothesis. Specify a model where Revision time predicts Anxiety and Anxiety predicts Exam performance, ensuring no direct path exists between Revision and Exam. The analysis must include standardized estimates, R-squared values, and a path diagram. Save the analysis to /home/ga/Documents/JASP/Exam_Path_Model.jasp. Additionally, create a text file at /home/ga/Documents/JASP/Model_Fit_Report.txt containing the Chi-square test p-value and a one-sentence conclusion on whether this restricted model fits the data (using p > 0.05 as the threshold for good fit).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sem_path_exam_anxiety/setup_task.sh",
+    "post_task": "/workspace/tasks/sem_path_exam_anxiety/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/Exam_Path_Model.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/Model_Fit_Report.txt",
+    "required_syntax_elements": [
+      "Anxiety ~ Revise",
+      "Exam ~ Anxiety"
+    ],
+    "forbidden_syntax_elements": [
+      "Exam ~ Revise"
+    ],
+    "dataset_path": "/home/ga/Documents/JASP/ExamAnxiety.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sem_path_model"
+    }
+  }
+}

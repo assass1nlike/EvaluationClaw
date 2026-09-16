@@ -1,0 +1,35 @@
+{
+  "id": "urban_park_coverage_equity@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "You are a senior urban planner at Portland, Oregon's Bureau of Planning and Sustainability conducting a greenspace equity audit to identify census tracts with inadequate park coverage. Using park data from /home/ga/GIS_Data/portland_parks_osm.geojson and census boundaries from /home/ga/GIS_Data/portland_census_tracts.geojson, calculate the proportion of each tract covered by overlapping park area. Perform all area calculations in a projected coordinate system (e.g., EPSG:2269 or EPSG:32610). Export the results to /home/ga/GIS_Data/exports/park_coverage_by_tract.geojson, including the original fields and new fields: park_area_sqm, tract_area_sqm, park_pct (to 2 decimal places), and greenspace_tier ('adequate' if park_pct >= 10.0, 'marginal' if 5.0 <= park_pct < 10.0, and 'deficient' if park_pct < 5.0). Produce a summary CSV at /home/ga/GIS_Data/exports/greenspace_equity_summary.csv containing the greenspace_tier, tract_count, total_pop, and avg_park_pct for each of the three tiers.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_park_coverage_equity/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_park_coverage_equity/export_result.sh"
+  },
+  "metadata": {
+    "parks_source": "/home/ga/GIS_Data/portland_parks_osm.geojson",
+    "tracts_source": "/home/ga/GIS_Data/portland_census_tracts.geojson",
+    "expected_geojson": "/home/ga/GIS_Data/exports/park_coverage_by_tract.geojson",
+    "expected_csv": "/home/ga/GIS_Data/exports/greenspace_equity_summary.csv",
+    "expected_fields": [
+      "park_area_sqm",
+      "tract_area_sqm",
+      "park_pct",
+      "greenspace_tier"
+    ],
+    "gt_file": "/tmp/gt_park_coverage.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_urban_park_coverage_equity"
+    }
+  }
+}

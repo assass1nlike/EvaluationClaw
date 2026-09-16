@@ -1,0 +1,59 @@
+{
+  "task_id": "debug_hl7_anonymizer@1",
+  "task_completion": [
+    {
+      "id": "fix_al1_crash",
+      "description": "Fix the crash caused by missing AL1 segments.",
+      "points": 15,
+      "visual_evidence": "Look for code edits in the IDE that add a safety check or optional chaining for 'AL1' segments before accessing their properties, or terminal output showing a test passing for missing AL1/crashes."
+    },
+    {
+      "id": "fix_obx_filtering",
+      "description": "Fix the missing lab results by correcting OBX array filtering.",
+      "points": 15,
+      "visual_evidence": "Look for code edits in the IDE modifying the filtering or mapping logic for 'OBX' segments to ensure all lab results are included, or terminal output showing a test passing for lab results/OBX."
+    },
+    {
+      "id": "fix_date_math",
+      "description": "Fix the incorrect date shifts caused by 0-indexed JS date math.",
+      "points": 15,
+      "visual_evidence": "Look for code edits in the IDE adjusting JavaScript date logic (e.g., adding +1 to getMonth() or similar date math corrections), or terminal output showing a test passing for date shifts."
+    },
+    {
+      "id": "fix_async_flow",
+      "description": "Fix premature exits by correcting asynchronous control flow.",
+      "points": 15,
+      "visual_evidence": "Look for code edits in the IDE replacing a 'forEach(async ...)' pattern with a 'for...of' loop or 'Promise.all()', or terminal output showing a test passing for premature exits/async execution."
+    },
+    {
+      "id": "fix_phi_leaks",
+      "description": "Fix PII leaks by redacting patient addresses and phone numbers.",
+      "points": 20,
+      "visual_evidence": "Look for code edits in the IDE explicitly clearing, masking, or deleting address and phone number fields in the HL7 parsed data, or terminal output showing a test passing for PII/PHI redaction."
+    },
+    {
+      "id": "test_suite_passes",
+      "description": "Ensure the entire test suite passes.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing the execution of the test suite (e.g., 'npm test', 'jest', or 'mocha') with all tests passing (typically indicated by green text, checkmarks, or 'X passing')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_edits",
+      "description": "Agent modified the actual pipeline code rather than hardcoding test outputs.",
+      "visual_evidence": "Check the IDE to ensure the agent edited the logic of the pipeline (e.g., parsing, mapping, anonymizing functions) rather than just writing a script that outputs a hardcoded JSON string to trick the tests."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Agent genuinely ran the test suite.",
+      "visual_evidence": "Check the terminal for standard test runner output (like Jest or Mocha) rather than a simple 'echo' command printing fake passing results."
+    },
+    {
+      "id": "correct_workspace",
+      "description": "Agent worked in the specified directory.",
+      "visual_evidence": "Check the file explorer or terminal prompt to confirm the agent is working within '/home/ga/workspace/hl7_anonymizer/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in a Node.js HL7 pipeline: 1) Crashes from missing 'AL1' segments, 2) Incomplete array filtering for 'OBX' lab results, 3) 0-indexed JS date math errors, 4) Asynchronous control flow errors (using 'forEach' with 'async'), and 5) Incomplete PHI redaction leaking patient addresses and phone numbers. The agent must score at least 60 points to pass, and fixing the PHI redaction bug is strictly mandatory for a passing grade."
+}

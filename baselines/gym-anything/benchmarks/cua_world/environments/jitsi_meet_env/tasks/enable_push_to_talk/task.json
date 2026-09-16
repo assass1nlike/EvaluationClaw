@@ -1,0 +1,31 @@
+{
+  "id": "enable_push_to_talk@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Join the meeting room 'NoisyCafe' and enable the 'Push-to-Talk' feature. Document the configuration and functionality with three screenshots: the settings menu showing the enabled feature at ~/ptt_settings.png, the meeting interface with the microphone in an inactive state at ~/ptt_inactive.png, and the meeting interface with the microphone in an active state while using the push-to-talk key at ~/ptt_active.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enable_push_to_talk/setup_task.sh",
+    "post_task": "/workspace/tasks/enable_push_to_talk/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "room_name": "NoisyCafe",
+    "evidence_files": {
+      "settings": "/home/ga/ptt_settings.png",
+      "inactive": "/home/ga/ptt_inactive.png",
+      "active": "/home/ga/ptt_active.png"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enable_push_to_talk"
+    }
+  }
+}

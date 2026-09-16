@@ -1,0 +1,39 @@
+{
+  "id": "ml_image_preprocessing@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Standardized Image Preprocessing for ML",
+  "description": "You are a bioimage analyst preparing a dataset for a Convolutional Neural Network (CNN). Open the 'Blobs (25K)' sample image and transform it into a standardized tensor format. Invert the image contrast so objects appear bright on a dark background. Resize the image to 128 pixels wide while maintaining the aspect ratio, then pad the canvas to exactly 256x256 pixels (centered with a black background). Save the resulting TIFF file to ~/ImageJ_Data/processed/blobs_ml_ready.tif. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "preprocessing",
+    "machine-learning",
+    "resizing",
+    "padding",
+    "macro-logic"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ml_image_preprocessing/setup_task.sh",
+    "post_task": "/workspace/tasks/ml_image_preprocessing/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/ImageJ_Data/processed/blobs_ml_ready.tif",
+    "target_width": 256,
+    "target_height": 256,
+    "content_width": 128,
+    "padding_color_max": 5,
+    "expected_format": "TIFF"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ml_preprocessing"
+    }
+  }
+}

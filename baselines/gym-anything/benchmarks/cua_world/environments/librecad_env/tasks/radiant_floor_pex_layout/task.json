@@ -1,0 +1,41 @@
+{
+  "id": "radiant_floor_pex_layout@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a radiant floor heating layout in LibreCAD. Draw a 3000mm x 2500mm room boundary starting at (0,0) on layer 'WALLS' (White). On layer 'HEATING' (Red), draw a continuous serpentine PEX tubing loop starting at (150, 150) and ending at (150, 2350). The loop must maintain a 150mm offset from all walls with 200mm spacing between horizontal runs. Save the drawing to /home/ga/Documents/LibreCAD/radiant_heating_layout.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/radiant_floor_pex_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/radiant_floor_pex_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/radiant_heating_layout.dxf",
+    "room_width": 3000,
+    "room_height": 2500,
+    "wall_offset": 150,
+    "spacing": 200,
+    "start_point": [
+      150,
+      150
+    ],
+    "end_point": [
+      150,
+      2350
+    ],
+    "min_vertices": 22,
+    "max_vertices": 26,
+    "layer_walls": "WALLS",
+    "layer_heating": "HEATING"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_radiant_floor"
+    }
+  }
+}

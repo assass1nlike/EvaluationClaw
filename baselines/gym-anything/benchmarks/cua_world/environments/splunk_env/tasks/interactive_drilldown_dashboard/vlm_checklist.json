@@ -1,0 +1,53 @@
+{
+  "task_id": "interactive_drilldown_dashboard@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Log in to Splunk using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Splunk web interface visible in a browser, indicating a successful login (e.g., Splunk home page or search app visible)."
+    },
+    {
+      "id": "create_dashboard",
+      "description": "Create a Classic (SimpleXML) dashboard named 'Targeted_User_Investigation'.",
+      "points": 15,
+      "visual_evidence": "Dashboard creation dialog or the dashboard view itself displaying the title 'Targeted_User_Investigation'."
+    },
+    {
+      "id": "first_panel_top_users",
+      "description": "Create a panel displaying top targeted users based on failed logins in 'index=security_logs'.",
+      "points": 25,
+      "visual_evidence": "A dashboard panel or search interface showing a query with 'index=security_logs' and an aggregation by user (e.g., 'top user' or 'stats count by user'), displaying user data."
+    },
+    {
+      "id": "configure_drilldown_token",
+      "description": "Configure the first panel to set a token named 'clicked_user' upon selection.",
+      "points": 25,
+      "visual_evidence": "Drilldown configuration menu for the first panel showing a 'Set Token' action with the token name 'clicked_user', or the SimpleXML source showing <set token=\"clicked_user\">."
+    },
+    {
+      "id": "second_panel_filtered_ips",
+      "description": "Create a second panel displaying attacking IPs filtered by the '$clicked_user$' token.",
+      "points": 25,
+      "visual_evidence": "A second dashboard panel or its search configuration showing a query that includes the token '$clicked_user$' and displays IP addresses (e.g., timeline or statistics of IPs)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Splunk Web GUI to create the dashboard.",
+      "visual_evidence": "Screenshots show the agent clicking through the Splunk web interface in a browser, rather than using terminal commands to generate the dashboard."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Splunk application on localhost:8000.",
+      "visual_evidence": "The browser URL bar shows localhost:8000 and the standard Splunk Enterprise interface is visible."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply write the dashboard XML in an external text editor.",
+      "visual_evidence": "Interactions occur within the browser (either the Splunk UI dashboard builder or the Splunk SimpleXML source editor), not in external editors like nano or gedit."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: Dashboard name must be 'Targeted_User_Investigation'. Token name must be 'clicked_user' (referenced as '$clicked_user$' in the second panel). The index used in the first panel must be 'security_logs'. Splunk username is 'admin' and password is 'SplunkAdmin1!'."
+}

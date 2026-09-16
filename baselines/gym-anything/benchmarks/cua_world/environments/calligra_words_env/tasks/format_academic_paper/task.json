@@ -1,0 +1,52 @@
+{
+  "id": "format_academic_paper@1",
+  "version": "1.0",
+  "env_id": "calligra_words_env@0.1",
+  "description": "A document 'origin_of_species.odt' is open in Calligra Words containing an unformatted excerpt from Charles Darwin's 'On the Origin of Species' (1859). Format the document as an academic paper by setting the title 'On the Origin of Species' to centered, bold, and 16pt or larger, and the author line 'Charles Darwin' to centered and italic. Apply Heading 1 style to the main section headings ('Variation Under Domestication', 'Variation Under Nature', 'Struggle for Existence', 'Natural Selection') and Heading 2 style to the subsection headings ('Causes of Variability', 'Effects of Habit and Use', 'Geometrical Ratio of Increase', 'Complex Relations of All Animals'). Ensure all body text is justified and save the",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/format_academic_paper/setup_task.sh",
+    "post_task": "/workspace/tasks/format_academic_paper/export_result.sh"
+  },
+  "metadata": {
+    "document_path": "/home/ga/Documents/origin_of_species.odt",
+    "title": "On the Origin of Species",
+    "authors": "Charles Darwin",
+    "section_headings": [
+      "Variation Under Domestication",
+      "Variation Under Nature",
+      "Struggle for Existence",
+      "Natural Selection"
+    ],
+    "subsection_headings": [
+      "Causes of Variability",
+      "Effects of Habit and Use",
+      "Geometrical Ratio of Increase",
+      "Complex Relations of All Animals"
+    ],
+    "body_alignment_samples": [
+      "great variability is due to our domestic productions",
+      "No one supposes that all the individuals",
+      "on the principle of geometrical increase",
+      "the relations of all animals and plants"
+    ],
+    "content_keywords": [
+      "domestic productions",
+      "individual differences",
+      "geometrical increase",
+      "relations of all animals and plants"
+    ],
+    "source": "Charles Darwin, On the Origin of Species (1859), Project Gutenberg #1228"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_format_academic_paper"
+    }
+  }
+}

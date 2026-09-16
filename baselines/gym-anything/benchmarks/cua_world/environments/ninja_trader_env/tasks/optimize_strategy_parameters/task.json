@@ -1,0 +1,37 @@
+{
+  "id": "optimize_strategy_parameters@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running on the Windows desktop with daily OHLCV data for MSFT (January 2023 - December 2024). As a quantitative analyst, run a parameter optimization sweep using the Strategy Analyzer for the SampleMACrossOver strategy on MSFT daily bars. Configure the optimization for the Fast moving average period (5 to 20, step 5) and the Slow moving average period (30 to 60, step 10). Export the optimization results grid to C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\msft_optimization_results.csv. Login credentials: Docker / GymAnything123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\optimize_strategy_parameters\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\optimize_strategy_parameters\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "MSFT",
+    "strategy": "SampleMACrossOver",
+    "fast_range": {
+      "min": 5,
+      "max": 20,
+      "step": 5
+    },
+    "slow_range": {
+      "min": 30,
+      "max": 60,
+      "step": 10
+    },
+    "expected_combinations": 16,
+    "expected_output_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\msft_optimization_results.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_optimize_strategy_parameters"
+    }
+  }
+}

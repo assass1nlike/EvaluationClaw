@@ -1,0 +1,59 @@
+{
+  "task_id": "first_party_circuit_isolation_audit@1",
+  "task_completion": [
+    {
+      "id": "open_tor_browser",
+      "description": "Open the Tor Browser",
+      "points": 10,
+      "visual_evidence": "The Tor Browser window is visible on the screen."
+    },
+    {
+      "id": "visit_api_ipify",
+      "description": "Visit api.ipify.org to extract the IP address",
+      "points": 15,
+      "visual_evidence": "Tor Browser's address bar shows 'api.ipify.org' and the webpage displays an IP address."
+    },
+    {
+      "id": "visit_icanhazip",
+      "description": "Visit icanhazip.com to extract the IP address",
+      "points": 15,
+      "visual_evidence": "Tor Browser's address bar shows 'icanhazip.com' and the webpage displays an IP address."
+    },
+    {
+      "id": "visit_checkip_amazonaws",
+      "description": "Visit checkip.amazonaws.com to extract the IP address",
+      "points": 15,
+      "visual_evidence": "Tor Browser's address bar shows 'checkip.amazonaws.com' and the webpage displays an IP address."
+    },
+    {
+      "id": "create_json_file",
+      "description": "Create or open the target JSON file for editing",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal is open showing the file path '/home/ga/Documents/isolation_audit.json'."
+    },
+    {
+      "id": "document_ips_in_json",
+      "description": "Document the observed IPs in the JSON file using the URLs as keys",
+      "points": 30,
+      "visual_evidence": "The content of the JSON file is visible, showing keys 'api.ipify.org', 'icanhazip.com', and 'checkip.amazonaws.com', each mapped to an IP address value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_tor_browser",
+      "description": "The agent used Tor Browser to check the IPs, not a standard browser or terminal curl commands without Tor.",
+      "visual_evidence": "The browser used to visit the IP-echo services has Tor Browser branding, onion routing UI elements, or is clearly identifiable as Tor Browser."
+    },
+    {
+      "id": "matching_observed_ips",
+      "description": "The IP addresses written to the JSON file match the ones actually observed during the browsing session.",
+      "visual_evidence": "The IP values typed into the JSON file correspond exactly to the IPs displayed on the screen when the agent visited the respective websites."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually saved the JSON file to the file system rather than just printing the JSON structure to a terminal or leaving it unsaved in an editor.",
+      "visual_evidence": "Evidence of saving the file in a text editor (e.g., no 'unsaved' indicator) or a terminal command confirming the file was written to '/home/ga/Documents/isolation_audit.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be located exactly at '/home/ga/Documents/isolation_audit.json'. The required domains that must be used as keys in the JSON file are 'api.ipify.org', 'icanhazip.com', and 'checkip.amazonaws.com'."
+}

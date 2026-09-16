@@ -1,0 +1,59 @@
+{
+  "task_id": "survey_mission_planning@1",
+  "task_completion": [
+    {
+      "id": "read_requirements",
+      "description": "Agent opens and reads the survey requirements document.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of 'survey_requirements.txt' showing the camera and survey specifications."
+    },
+    {
+      "id": "create_survey_pattern",
+      "description": "Agent opens QGroundControl and creates a Survey mission pattern.",
+      "points": 10,
+      "visual_evidence": "QGroundControl application is open in the 'Plan' view, and a 'Survey' polygon/pattern is visible on the map interface."
+    },
+    {
+      "id": "configure_camera_specs",
+      "description": "Agent configures the custom camera specifications in QGroundControl.",
+      "points": 20,
+      "visual_evidence": "The QGroundControl Survey settings panel shows camera parameters set to: focal length 16mm, sensor width 23.5mm, sensor height 15.6mm, and image width 6000."
+    },
+    {
+      "id": "configure_altitude_gsd",
+      "description": "Agent configures the flight altitude or GSD to meet the requirements.",
+      "points": 20,
+      "visual_evidence": "The QGroundControl Survey settings panel shows the altitude set to approximately 163.4 m OR the Ground Sample Distance (GSD) set to 4.0 cm/px (0.04 m)."
+    },
+    {
+      "id": "configure_overlap",
+      "description": "Agent configures the frontal and side overlap percentages.",
+      "points": 20,
+      "visual_evidence": "The QGroundControl Survey settings panel shows Frontal overlap set to 75% and Side overlap set to 65%."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Agent saves the mission plan to the required file path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog or QGroundControl file menu showing the mission plan being saved as 'field_survey.plan' in the '/home/ga/Documents/QGC/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgc_gui",
+      "description": "Agent used the QGroundControl GUI to configure the mission, not a text editor.",
+      "visual_evidence": "Screenshots should show the agent actively clicking and typing inside the QGroundControl application window to set parameters, rather than writing a JSON/XML .plan file manually in a text editor."
+    },
+    {
+      "id": "genuine_qgc_interaction",
+      "description": "Agent interacted with the actual map and settings panels.",
+      "visual_evidence": "Visuals of QGroundControl's map interface being manipulated (e.g., adjusting survey polygon vertices) and settings panels being actively modified."
+    },
+    {
+      "id": "no_file_spoofing",
+      "description": "Agent saved the file through the application rather than spoofing it via terminal.",
+      "visual_evidence": "The final file creation should be the result of a 'Save' action within QGroundControl, not a terminal command like 'cp', 'mv', or 'echo' creating the 'field_survey.plan' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The survey requirements document is located at /home/ga/Documents/QGC/survey_requirements.txt. The required camera specifications are: focal length 16 mm, sensor width 23.5 mm, sensor height 15.6 mm, and image width 6000 px. The target GSD is 0.04 m (4.0 cm/px), which corresponds to a target altitude of 163.4 m. The required frontal overlap is 75% and side overlap is 65%. The final mission plan must be saved to /home/ga/Documents/QGC/field_survey.plan."
+}

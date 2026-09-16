@@ -1,0 +1,59 @@
+{
+  "task_id": "create_survey_call_script@1",
+  "task_completion": [
+    {
+      "id": "access_add_script_page",
+      "description": "Navigate to the Vicidial admin interface and access the page to add a new script.",
+      "points": 10,
+      "visual_evidence": "The Vicidial administration web interface is open in a browser, showing the 'ADD NEW SCRIPT' form or the Scripts section."
+    },
+    {
+      "id": "enter_script_id_and_name",
+      "description": "Enter the required Script ID and Script Name.",
+      "points": 15,
+      "visual_evidence": "The 'Script ID' field is filled with 'NPS_TELECOM_2025' and the 'Script Name' field is filled with 'Telecom NPS Customer Survey'."
+    },
+    {
+      "id": "enter_comments_and_active_status",
+      "description": "Enter the required comments and set the script to active.",
+      "points": 15,
+      "visual_evidence": "The 'Script Comments' field contains 'Net Promoter Score survey for telecom customer satisfaction campaign' and the 'Active' field is set to 'Y'."
+    },
+    {
+      "id": "script_text_tokens",
+      "description": "Include the required dynamic tokens in the script text.",
+      "points": 20,
+      "visual_evidence": "The 'Script Text' textarea contains the exact strings '--A--first_name--B--', '--A--last_name--B--', and '--A--phone_number--B--'."
+    },
+    {
+      "id": "script_text_nps_content",
+      "description": "Include the NPS question, follow-up reason question, polite closing, and HTML formatting in the script text.",
+      "points": 20,
+      "visual_evidence": "The 'Script Text' textarea contains HTML tags (like <b>, <p>, <br>, etc.), the phrase '0 to 10', words like 'recommend' and 'reason', and a polite closing statement."
+    },
+    {
+      "id": "save_script",
+      "description": "Submit the form to save the new script in Vicidial.",
+      "points": 20,
+      "visual_evidence": "A confirmation message indicating the script was successfully added/modified, or the script 'NPS_TELECOM_2025' is visible in the list of existing scripts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web browser to interact with the Vicidial GUI.",
+      "visual_evidence": "Screenshots should show a web browser navigating the Vicidial admin interface (http://localhost/vicidial/admin.php), not terminal curl commands or API scripts."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent interacted with the actual Vicidial application.",
+      "visual_evidence": "The browser URL should point to the localhost Vicidial admin path, and the interface should match the standard Vicidial layout, rather than a local text editor or mocked HTML file."
+    },
+    {
+      "id": "no_direct_db_insertion",
+      "description": "Verify the agent did not bypass the GUI by inserting the script directly into the database.",
+      "visual_evidence": "Absence of terminal windows showing MySQL commands inserting records into the 'vicidial_scripts' table."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Script ID is 'NPS_TELECOM_2025' and the Script Name is 'Telecom NPS Customer Survey'. The script text must contain the exact dynamic tokens '--A--first_name--B--', '--A--last_name--B--', and '--A--phone_number--B--'. It must also include NPS concepts such as '0 to 10', 'recommend', and 'reason', be formatted in HTML, and be at least 200 characters long."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "nuclear_cytoplasmic_ratio@1",
+  "task_completion": [
+    {
+      "id": "open_sample_image",
+      "description": "Open the 'Fluorescent Cells' sample image in Fiji.",
+      "points": 10,
+      "visual_evidence": "Fiji application window showing an open image titled 'Fluorescent Cells' (typically a multi-channel composite image showing cells)."
+    },
+    {
+      "id": "isolate_channels",
+      "description": "Use the Blue channel for nuclei and Green channel for intensities.",
+      "points": 20,
+      "visual_evidence": "The image split into separate channel windows (e.g., 'blue' and 'green'), or the Channels Tool being used to isolate the Blue channel for drawing regions and the Green channel for taking measurements."
+    },
+    {
+      "id": "define_regions",
+      "description": "Define nuclear and cytoplasmic regions for at least 3 individual cells.",
+      "points": 20,
+      "visual_evidence": "Selection outlines (yellow lines) drawn around nuclei and whole cells/cytoplasm on the image, or the Fiji ROI Manager open containing at least 6 regions (3 nuclear, 3 cytoplasmic)."
+    },
+    {
+      "id": "measure_intensities",
+      "description": "Measure the mean intensities of the defined regions using the Green channel.",
+      "points": 20,
+      "visual_evidence": "Fiji 'Results' window open displaying 'Mean' intensity values for the selected regions, with the active image window set to the Green channel during measurement."
+    },
+    {
+      "id": "calculate_and_save_results",
+      "description": "Calculate the N/C ratio for each cell and save the results table with the required columns to the specified path.",
+      "points": 30,
+      "visual_evidence": "A spreadsheet, text editor, or terminal showing a table with columns for 'Nuclear Mean', 'Cytoplasmic Mean', and 'N/C Ratio' for at least 3 cells, and evidence of saving it to '~/ImageJ_Data/results/nc_ratio_results.csv' (e.g., a save dialog or terminal command)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fiji_gui_interaction",
+      "description": "The agent actually used the Fiji GUI to open the image and measure regions.",
+      "visual_evidence": "Screenshots show the Fiji interface, ROI Manager, and Results window being actively used, rather than just a script being executed in the terminal to bypass GUI interaction."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "The measurements appear to be genuine outputs from the image analysis.",
+      "visual_evidence": "The intensity values in the final table are precise floating-point numbers or realistic integers derived from the Fiji Results window, not mocked or placeholder values (like 1, 2, 3)."
+    },
+    {
+      "id": "valid_ratio_calculation",
+      "description": "The N/C ratio is actually calculated from the measured means.",
+      "visual_evidence": "In the final results table, the 'N/C Ratio' column values mathematically equal the 'Nuclear Mean' divided by the 'Cytoplasmic Mean' for each respective row."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file must be exactly saved to '/home/ga/ImageJ_Data/results/nc_ratio_results.csv'. The task requires measuring at least 3 cells. The image used must be the built-in Fiji sample 'Fluorescent Cells' (accessible via File > Open Samples). Expected N/C ratios for biological cells are typically > 0.1."
+}

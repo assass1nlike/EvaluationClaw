@@ -1,0 +1,44 @@
+{
+  "id": "fec_super_pac_analysis@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a data journalist covering the 2024 election money race. Research the 2023-2024 election cycle financial summaries for Make America Great Again Inc., Future Forward USA PAC, and Senate Leadership Fund on the Federal Election Commission website (https://www.fec.gov). For each committee, extract the Committee ID, Total Receipts, Total Independent Expenditures, Ending Cash on Hand, and Coverage Through Date. Create a Firefox bookmark folder named 'FEC Research' containing the FEC profile page for each committee. Save the findings to ~/Documents/super_pac_financials.json using keys 'make_america_great_again_inc', 'future_forward_usa_pac', and 'senate_leadership_fund'.",
+  "difficulty": "hard",
+  "tags": [
+    "firefox",
+    "research",
+    "data-extraction",
+    "finance",
+    "politics",
+    "fec"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fec_super_pac_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/fec_super_pac_analysis/export_result.sh"
+  },
+  "metadata": {
+    "required_file": "/home/ga/Documents/super_pac_financials.json",
+    "expected_ids": {
+      "make_america_great_again_inc": "C00825851",
+      "future_forward_usa_pac": "C00669259",
+      "senate_leadership_fund": "C00571703"
+    },
+    "financial_thresholds": {
+      "receipts_min": 50000000,
+      "expenditures_min": 10000000,
+      "cash_min": 1000000
+    },
+    "bookmark_folder_name": "FEC Research"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fec_super_pac_analysis"
+    }
+  }
+}

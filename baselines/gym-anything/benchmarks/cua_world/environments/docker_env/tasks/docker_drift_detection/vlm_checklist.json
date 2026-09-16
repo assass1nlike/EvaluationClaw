@@ -1,0 +1,47 @@
+{
+  "task_id": "docker_drift_detection@1",
+  "task_completion": [
+    {
+      "id": "drift_report_created",
+      "description": "Agent created a drift report documenting unauthorized changes and legitimate configurations.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor open with 'drift_report.txt' (located on the Desktop) or terminal commands like `cat ~/Desktop/drift_report.txt`. The content should mention specific unauthorized changes (e.g., 'curl' in webserver, 'debugpy' in appserver)."
+    },
+    {
+      "id": "configs_extracted",
+      "description": "Agent extracted legitimate configuration files to the specified directories.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands such as `docker cp` copying files from the containers to `~/projects/container-configs/webserver/`, `appserver/`, and `taskrunner/`, or `ls` commands showing files populated in these directories."
+    },
+    {
+      "id": "original_containers_stopped",
+      "description": "Agent stopped the original drifted containers.",
+      "points": 15,
+      "visual_evidence": "Look for `docker stop` or `docker rm` commands targeting 'acme-webserver', 'acme-appserver', and 'acme-taskrunner', or a `docker ps` output where these original container names are no longer listed."
+    },
+    {
+      "id": "clean_containers_deployed",
+      "description": "Agent deployed clean replacement containers using the original base images and mounted the preserved configurations.",
+      "points": 45,
+      "visual_evidence": "Look for `docker run` commands creating 'acme-webserver-clean', 'acme-appserver-clean', and 'acme-taskrunner-clean'. These commands should include volume mounts (`-v` or `--mount`) pointing to the extracted configs and use the correct base images. Alternatively, look for `docker ps` showing these '-clean' containers running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "docker_inspection_performed",
+      "description": "Agent actually inspected the containers to find the drift.",
+      "visual_evidence": "Look for commands like `docker diff`, `docker exec`, or `docker inspect` being run in the terminal to genuinely discover the changes."
+    },
+    {
+      "id": "authentic_report",
+      "description": "The drift report contains genuine findings rather than generic text or copy-pasted instructions.",
+      "visual_evidence": "The text in 'drift_report.txt' should reflect actual findings from the terminal output (e.g., specific file paths modified) rather than just repeating the prompt."
+    },
+    {
+      "id": "manual_remediation",
+      "description": "Agent manually executed the remediation steps.",
+      "visual_evidence": "Look for explicit `docker run` and `docker cp` commands typed in the terminal, ensuring the agent didn't just run a pre-existing script to bypass the task."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves three containers: 'acme-webserver' (image: nginx:1.24-alpine), 'acme-appserver' (image: python:3.11-slim), and 'acme-taskrunner' (image: alpine:3.19). Unauthorized drift includes '/usr/bin/curl' installed in the webserver and the 'debugpy' package in the appserver. The agent must extract configs to /home/ga/projects/container-configs/{webserver,appserver,taskrunner}/, write a report to /home/ga/Desktop/drift_report.txt, stop the original containers, and start new ones with the '-clean' suffix using the original images and mounting the extracted configs."
+}

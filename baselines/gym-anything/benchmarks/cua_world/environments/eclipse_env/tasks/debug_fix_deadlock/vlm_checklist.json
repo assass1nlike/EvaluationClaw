@@ -1,0 +1,59 @@
+{
+  "task_id": "debug_fix_deadlock@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the FinancialSystem project in an IDE or text editor",
+      "points": 10,
+      "visual_evidence": "An IDE (like Eclipse) or text editor is open showing the 'FinancialSystem' directory structure in its file explorer."
+    },
+    {
+      "id": "create_analysis_file",
+      "description": "Create or open the analysis.txt file",
+      "points": 10,
+      "visual_evidence": "A file named 'analysis.txt' is visible in the file tree under the FinancialSystem project root, or is open in the editor."
+    },
+    {
+      "id": "record_stuck_threads",
+      "description": "Record the names of the two stuck threads in analysis.txt",
+      "points": 20,
+      "visual_evidence": "The 'analysis.txt' file is open and contains the text 'Transfer-Worker-A' and 'Transfer-Worker-B'."
+    },
+    {
+      "id": "open_transfer_service",
+      "description": "Open TransferService.java for editing",
+      "points": 10,
+      "visual_evidence": "The file 'TransferService.java' is open in the code editor."
+    },
+    {
+      "id": "modify_transfer_service",
+      "description": "Implement a resource ordering strategy in TransferService.java",
+      "points": 20,
+      "visual_evidence": "The code in 'TransferService.java' shows logic to order locks before synchronizing, such as comparing account IDs (e.g., `if (fromAccount.getId() < toAccount.getId())`) to determine which account to lock first."
+    },
+    {
+      "id": "run_simulation_completed",
+      "description": "Run DeadlockDemo and verify it completes successfully",
+      "points": 30,
+      "visual_evidence": "A terminal or IDE run console shows the execution of the DeadlockDemo class, ending with the exact output 'SIMULATION COMPLETED' and returning to the command prompt or showing the process has terminated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_execution",
+      "description": "Verify the simulation was actually executed",
+      "visual_evidence": "The 'SIMULATION COMPLETED' output appears in a genuine terminal or IDE run console executing Java, not just typed into a text file or echoed directly."
+    },
+    {
+      "id": "actual_code_modification",
+      "description": "Verify TransferService.java contains actual code changes",
+      "visual_evidence": "The modifications in TransferService.java are valid Java code implementing resource ordering, not just comments or pseudo-code."
+    },
+    {
+      "id": "no_hardcoded_output",
+      "description": "Verify the agent didn't bypass the Java execution",
+      "visual_evidence": "The terminal shows a proper Java execution command (e.g., `java com.financial.simulation.DeadlockDemo`, `mvn exec:java`, or an IDE run action) rather than a script that simply prints the expected output."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/eclipse-workspace/FinancialSystem. The target source file to fix is src/main/java/com/financial/core/TransferService.java. The main entry point is com.financial.simulation.DeadlockDemo. The two stuck threads that must be recorded in analysis.txt are 'Transfer-Worker-A' and 'Transfer-Worker-B'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "record_track_statistics@1",
+  "task_completion": [
+    {
+      "id": "open_basecamp",
+      "description": "Open the Garmin BaseCamp application.",
+      "points": 10,
+      "visual_evidence": "The Garmin BaseCamp application window is visible on the screen."
+    },
+    {
+      "id": "locate_fells_loop",
+      "description": "Locate and select 'Fells Loop' in 'My Collection'.",
+      "points": 15,
+      "visual_evidence": "In BaseCamp, 'My Collection' is selected in the library pane, and 'Fells Loop' is visible and selected in the data pane."
+    },
+    {
+      "id": "open_properties",
+      "description": "Open the properties or statistics window for 'Fells Loop'.",
+      "points": 20,
+      "visual_evidence": "A properties dialog box for 'Fells Loop' is open in BaseCamp, displaying statistics such as distance, points, and coordinates."
+    },
+    {
+      "id": "open_text_editor",
+      "description": "Open a text editor to create the summary report.",
+      "points": 10,
+      "visual_evidence": "A text editor application (e.g., Notepad) is visible on the screen."
+    },
+    {
+      "id": "write_report_content",
+      "description": "Write the summary report using the exact requested format.",
+      "points": 25,
+      "visual_evidence": "The text editor shows the text formatted with the exact labels: 'Track Name:', 'Distance:', 'Track Points:', 'Start Latitude:', and 'Start Longitude:', populated with corresponding values."
+    },
+    {
+      "id": "save_report",
+      "description": "Save the summary report to the specified workspace path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog shows the directory `C:\\workspace\\` and filename `track_report.txt`, or the text editor title bar shows `track_report.txt` indicating it has been saved to the correct location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_basecamp_gui",
+      "description": "The agent extracted the information by viewing the properties in the Garmin BaseCamp GUI.",
+      "visual_evidence": "Screenshots should show the agent interacting with BaseCamp to find the stats, rather than opening the GPX file directly in a text editor or using a python script to parse it."
+    },
+    {
+      "id": "used_text_editor_gui",
+      "description": "The agent used a GUI text editor to create the report.",
+      "visual_evidence": "The report is typed into a GUI application like Notepad, not generated via terminal commands like 'echo'."
+    },
+    {
+      "id": "authentic_data_extraction",
+      "description": "The data entered into the text file matches the data displayed in BaseCamp.",
+      "visual_evidence": "The values for distance, points, and coordinates in the text file should correspond to the values visible in the BaseCamp properties window."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is C:\\workspace\\track_report.txt. Note: The underlying GPX data (fells_loop.gpx) contains routes instead of tracks. 'Fells Loop' will likely appear as a Route in BaseCamp. The agent should extract the statistics (Distance, Points, Start Latitude, Start Longitude) for this route as displayed in the BaseCamp GUI, despite the task description calling it a 'track'. The programmatic verifier has a bug that expects a track, but you should score based on the agent successfully extracting the route's stats from the GUI."
+}

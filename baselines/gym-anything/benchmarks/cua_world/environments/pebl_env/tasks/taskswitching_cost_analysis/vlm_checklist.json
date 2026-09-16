@@ -1,0 +1,59 @@
+{
+  "task_id": "taskswitching_cost_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Agent accesses the task-switching behavioral data CSV.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a script, spreadsheet, or terminal command opening or loading '~/pebl/data/taskswitching_data.csv'."
+    },
+    {
+      "id": "filter_invalid_trials",
+      "description": "Agent filters out 'FIRST' trials and trials with 0 ms reaction time.",
+      "points": 15,
+      "visual_evidence": "Code or data manipulation steps explicitly excluding rows where 'trial_type' is 'FIRST' or 'rt_ms' is 0."
+    },
+    {
+      "id": "calculate_participant_metrics",
+      "description": "Agent calculates mean RT (for correct trials) and accuracy for both switch and repeat trials per participant.",
+      "points": 20,
+      "visual_evidence": "Code or intermediate outputs showing grouping by participant ID and trial type, computing the mean of 'rt_ms' (filtered for correct responses) and the mean of accuracy."
+    },
+    {
+      "id": "calculate_switch_costs",
+      "description": "Agent calculates RT and accuracy switch costs for each participant.",
+      "points": 15,
+      "visual_evidence": "Code or formulas showing RT switch cost (mean_rt_switch_ms - mean_rt_repeat_ms) and accuracy switch cost (accuracy_repeat - accuracy_switch)."
+    },
+    {
+      "id": "handle_exclusions_and_group_means",
+      "description": "Agent excludes participant sub-99999 and calculates group means for the valid participants.",
+      "points": 20,
+      "visual_evidence": "Code or output showing sub-99999 being flagged/excluded, and the calculation of 'group_mean_rt_switch_cost_ms' and 'group_mean_accuracy_switch_cost' across the remaining 11 participants."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent saves the final results to the specified JSON file with the correct structure.",
+      "points": 20,
+      "visual_evidence": "The final JSON file '~/pebl/analysis/taskswitching_report.json' visible in an editor or terminal, containing a 'participants' list (with sub-99999 showing 'excluded': true and a 'reason') and the two 'group_mean' keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "computational_evidence",
+      "description": "Agent actually performed the calculations rather than hardcoding the final JSON.",
+      "visual_evidence": "Presence of a script (e.g., Python, R) or spreadsheet formulas that perform data aggregation and math. The agent should not just type out a JSON file manually."
+    },
+    {
+      "id": "correct_input_source",
+      "description": "Agent used the correct input file for analysis.",
+      "visual_evidence": "The script or tool explicitly references '~/pebl/data/taskswitching_data.csv' rather than a different or fabricated dataset."
+    },
+    {
+      "id": "no_hallucinated_keys",
+      "description": "Agent strictly followed the requested JSON schema without hallucinating extra metrics.",
+      "visual_evidence": "The final JSON keys exactly match the requested keys (e.g., 'mean_rt_switch_ms', 'rt_switch_cost_ms', 'accuracy_switch_cost') without extra fabricated data fields."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant that must be excluded is 'sub-99999'. The data is synthetically generated to mimic CNP OpenNeuro ds000030 task-switching data."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "terrain_roughness_assessment@1",
+  "task_completion": [
+    {
+      "id": "load_input_dem",
+      "description": "Verify the input SRTM DEM file is loaded into the application.",
+      "points": 10,
+      "visual_evidence": "The SNAP Product Explorer panel shows a product loaded from '/home/ga/snap_data/srtm_dem.tif'."
+    },
+    {
+      "id": "create_roughness_band",
+      "description": "Verify the creation of a 'roughness' band.",
+      "points": 20,
+      "visual_evidence": "A band named 'roughness' is visible in the Product Explorer under the loaded product's 'Bands' folder, or a Band Maths dialog shows the calculation for 'roughness' (e.g., subtracting a smoothed elevation from the original elevation)."
+    },
+    {
+      "id": "create_abs_roughness_band",
+      "description": "Verify the creation of an 'abs_roughness' band.",
+      "points": 20,
+      "visual_evidence": "A band named 'abs_roughness' is visible in the Product Explorer under the 'Bands' folder, or a Band Maths dialog shows the calculation using an absolute value function like 'abs(roughness)'."
+    },
+    {
+      "id": "create_suitability_band",
+      "description": "Verify the creation of a 'suitability' classification band.",
+      "points": 20,
+      "visual_evidence": "A band named 'suitability' is visible in the Product Explorer, or a Band Maths dialog shows conditional logic (e.g., IF...THEN...ELSE) creating at least three classes based on the 'abs_roughness' band."
+    },
+    {
+      "id": "save_dimap_format",
+      "description": "Verify the multi-band product is saved in BEAM-DIMAP format.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' dialog, SNAP interface, or file manager shows 'terrain_roughness.dim' being saved to or existing in the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "export_geotiff_format",
+      "description": "Verify the product is exported in GeoTIFF format.",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog (specifically for GeoTIFF) or file manager shows 'terrain_roughness.tif' being saved to or existing in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the SNAP GUI to perform the tasks.",
+      "visual_evidence": "Screenshots should show the SNAP application open with active use of the Product Explorer, Band Maths dialogs, and Export menus, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "Verify the agent actually computed the bands using mathematical expressions.",
+      "visual_evidence": "The Band Maths dialogs should show actual mathematical expressions (e.g., 'elevation - smoothed_elevation', 'abs(roughness)', and conditional IF/THEN logic) rather than creating empty bands or renaming existing ones."
+    },
+    {
+      "id": "correct_export_paths",
+      "description": "Verify the agent saved and exported files to the exact required directories.",
+      "visual_evidence": "Save and Export dialogs, or terminal file listings, must explicitly show the path '/home/ga/snap_exports/' being used for the output files."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/snap_data/srtm_dem.tif. Required outputs: /home/ga/snap_exports/terrain_roughness.dim (BEAM-DIMAP format) and /home/ga/snap_exports/terrain_roughness.tif (GeoTIFF format). The final product must contain at least 4 bands, including the base elevation, 'roughness', 'abs_roughness', and 'suitability'."
+}

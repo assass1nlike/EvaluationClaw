@@ -1,0 +1,28 @@
+{
+  "id": "commercial_solar_canopy_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Photovoltaic Engineer optimizing a parking canopy for a new location. The project 'solar-canopy.ng3' is open. Adapt this baseline design: 1) Change the geographic city location to 'Phoenix' (Arizona). 2) Select the solar canopy and adjust the solar panel tilt angle to 15 degrees. 3) Run a Solar Radiation or Daily Yield analysis to generate a performance graph, leaving the graph visible on screen. 4) Save the modified project as 'phoenix_canopy.ng3' in the ~/Documents/Energy3D/ directory.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/commercial_solar_canopy_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/commercial_solar_canopy_optimization/export_result.sh"
+  },
+  "metadata": {
+    "expected_location": "Phoenix",
+    "expected_tilt": "15",
+    "output_file": "/home/ga/Documents/Energy3D/phoenix_canopy.ng3",
+    "start_file": "/home/ga/Documents/Energy3D/solar-canopy.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_canopy_optimization"
+    }
+  }
+}

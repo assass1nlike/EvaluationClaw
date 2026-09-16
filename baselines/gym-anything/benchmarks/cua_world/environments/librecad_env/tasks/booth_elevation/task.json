@@ -1,0 +1,62 @@
+{
+  "id": "booth_elevation@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a front elevation drawing of a trade show display booth in LibreCAD using millimeters. The drawing must include a 'FRAME' layer (Color: White/Black/7) with a 3000x2500 outer frame starting at (0,0), a 3000x400 header panel at (0,2100), and two 200x2100 side vertical panels at (0,0) and (2800,0). On a 'SHELVES' layer (Color: Green), include two horizontal shelf lines from x=200 to x=2800 at y=700 and y=1400. Add the text 'ACME DISPLAYS' (height 150) centered in the header panel on a 'TEXT' layer (Color: Cyan). Include a 'DIMENSIONS' layer (Color: Red) with linear dimensions for the total width (3000) and total height (2500). Save the drawing to /home/ga/Documents/LibreCAD/booth_elevation.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/booth_elevation/setup_task.sh",
+    "post_task": "/workspace/tasks/booth_elevation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/booth_elevation.dxf",
+    "layers": {
+      "FRAME": {
+        "color": 7,
+        "entities": [
+          "LWPOLYLINE",
+          "LINE",
+          "POLYLINE"
+        ]
+      },
+      "SHELVES": {
+        "color": 3,
+        "entities": [
+          "LINE"
+        ]
+      },
+      "TEXT": {
+        "color": 4,
+        "entities": [
+          "TEXT",
+          "MTEXT"
+        ]
+      },
+      "DIMENSIONS": {
+        "color": 1,
+        "entities": [
+          "DIMENSION"
+        ]
+      }
+    },
+    "geometry": {
+      "width": 3000,
+      "height": 2500,
+      "header_height": 400,
+      "shelf_y1": 700,
+      "shelf_y2": 1400
+    },
+    "text_content": "ACME DISPLAYS"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_booth_elevation"
+    }
+  }
+}

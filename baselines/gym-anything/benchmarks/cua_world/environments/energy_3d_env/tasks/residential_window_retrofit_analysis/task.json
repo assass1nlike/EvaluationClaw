@@ -1,0 +1,30 @@
+{
+  "id": "residential_window_retrofit_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Evaluate the annual energy savings of upgrading all windows in a residential building to high-efficiency glazing. 1. Open the existing project '~/Documents/Energy3D/building-passive-heating.ng3'. 2. Run an Annual Energy Analysis (Analysis menu > Buildings > Annual Energy Analysis) and record the baseline total energy (Heating + Cooling). 3. Modify the properties of ALL windows in the building to simulate high-efficiency Low-E glazing: set the U-Value to 1.2 and the Solar Heat Gain Coefficient (SHGC) to 0.3. 4. Run the Annual Energy Analysis again with the upgraded windows. 5. Take a screenshot of the completed analysis dialog showing the new results and save it exactly as '~/Documents/Energy3D/upgraded_analysis.png'. 6. Calculate the energy savings and create a report at '~/Documents/Energy3D/retrofit_report.txt' formatted exactly with three lines: 'Baseline Total Energy: [Value] kWh', 'Upgraded Total Energy: [Value] kWh', and 'Total Savings: [Value] kWh'. 7. Save the modified building model as '~/Documents/Energy3D/window_retrofit.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/residential_window_retrofit_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/residential_window_retrofit_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_u_value": 1.2,
+    "expected_shgc": 0.3,
+    "starter_file": "building-passive-heating.ng3",
+    "target_ng3_path": "/home/ga/Documents/Energy3D/window_retrofit.ng3",
+    "target_report_path": "/home/ga/Documents/Energy3D/retrofit_report.txt",
+    "target_png_path": "/home/ga/Documents/Energy3D/upgraded_analysis.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_window_retrofit"
+    }
+  }
+}

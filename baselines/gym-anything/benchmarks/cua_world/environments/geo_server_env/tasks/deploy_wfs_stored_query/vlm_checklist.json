@@ -1,0 +1,41 @@
+{
+  "task_id": "deploy_wfs_stored_query@1",
+  "task_completion": [
+    {
+      "id": "draft_stored_query_payload",
+      "description": "The agent drafts the XML payload required to create the WFS Stored Query.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing an XML document that includes '<wfs:CreateStoredQuery>', a definition for 'GetLargeCities', a parameter named 'minPop', and a filter (e.g., '<fes:PropertyIsGreaterThanOrEqualTo>') comparing the 'POP_MAX' or 'pop_max' attribute to the 'minPop' parameter."
+    },
+    {
+      "id": "deploy_stored_query",
+      "description": "The agent deploys the stored query to the GeoServer instance.",
+      "points": 30,
+      "visual_evidence": "A terminal or API client showing a POST request (e.g., using 'curl' with admin credentials) sending the XML payload to the GeoServer WFS endpoint (e.g., http://localhost:8080/geoserver/wfs), and receiving a successful response (like 'CreateStoredQueryResponse' or HTTP 200)."
+    },
+    {
+      "id": "execute_query_and_save",
+      "description": "The agent executes the deployed stored query with the required parameter and saves the response.",
+      "points": 40,
+      "visual_evidence": "A terminal showing a command (e.g., 'curl' or 'wget') making a WFS GetFeature request with 'STOREDQUERY_ID=GetLargeCities' and 'minPop=10000000', and redirecting or saving the output to '/home/ga/large_cities_response.xml'. Alternatively, viewing the contents of the saved XML file showing the returned city features."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_geoserver_interaction",
+      "description": "The agent actually interacted with the GeoServer instance to deploy and execute the query.",
+      "visual_evidence": "Commands are executed against the localhost:8080/geoserver endpoint, rather than the agent just mocking the output file locally."
+    },
+    {
+      "id": "genuine_xml_response",
+      "description": "The saved XML response comes from GeoServer, not manually typed or copied.",
+      "visual_evidence": "The file /home/ga/large_cities_response.xml is generated via a network request command (curl/wget/script) and contains a complex WFS GetFeature response, not a manually created stub."
+    },
+    {
+      "id": "correct_parameter_usage",
+      "description": "The agent used the stored query parameter rather than a hardcoded CQL filter in the final request.",
+      "visual_evidence": "The final request explicitly uses 'STOREDQUERY_ID=GetLargeCities' and 'minPop=10000000' instead of bypassing the stored query with something like 'cql_filter=pop_max>=10000000'."
+    }
+  ],
+  "privileged_info_for_vlm": "GeoServer is running at http://localhost:8080/geoserver/ with credentials admin/Admin123!. The target layer is 'ne:ne_populated_places' and the attribute for filtering is 'POP_MAX' (or 'pop_max'). The task description explicitly asks for a test threshold of 10,000,000. The agent must create a WFS 2.0 Stored Query named 'GetLargeCities' with a parameter 'minPop'. The final output must be saved to /home/ga/large_cities_response.xml."
+}

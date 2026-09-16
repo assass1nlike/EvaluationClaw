@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_metadata_harvester@1",
+  "task_completion": [
+    {
+      "id": "open_harvester_script",
+      "description": "The agent opens the harvester.py script in a text editor.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., VS Code, nano, vim) is open showing the contents of the /home/ga/workspace/metadata_harvester/harvester.py file."
+    },
+    {
+      "id": "handle_namespace_and_deleted",
+      "description": "The agent modifies the script to handle the OAI-PMH namespace and skip deleted records.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor showing XML namespace handling (e.g., using a namespace dictionary or searching with namespaces) and a conditional check to skip records where the status attribute is 'deleted'."
+    },
+    {
+      "id": "extract_creators",
+      "description": "The agent modifies the script to extract all creators and join them with a semicolon and space.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor showing a join operation on the extracted creators or authors using the string '; '."
+    },
+    {
+      "id": "normalize_title",
+      "description": "The agent modifies the script to normalize title whitespace to single spaces.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor showing whitespace normalization for the title, such as `' '.join(title.split())` or `re.sub(r'\\s+', ' ', title)`."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "The agent runs the local test suite or script, which completes without errors.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the execution of the test suite (e.g., pytest, python test_harvester.py) or the script itself, with output indicating success (e.g., 'passed', 'OK', or successful database population with 3 records)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_modification",
+      "description": "The agent actually modified the Python script rather than just printing out a fake success message.",
+      "visual_evidence": "The screenshots should show the agent editing the harvester.py file in an editor, not just running echo commands to fake output."
+    },
+    {
+      "id": "ran_tests_in_terminal",
+      "description": "The test suite was executed in a real terminal environment.",
+      "visual_evidence": "The test execution should be visible in a standard terminal emulator or VS Code terminal, showing genuine command execution."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not hardcode the expected database values to bypass the parsing logic.",
+      "visual_evidence": "The code in harvester.py should contain actual XML parsing and string manipulation logic, not hardcoded strings like 'First string theory on a multiverse' or specific author names."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected valid record count is exactly 3 (5 total records minus 2 skipped due to deleted status). The expected multi-author string is 'Bal\u00e1zs, C.; Berger, E. L.; Nadolsky, P. M.; Yuan, C. -P.'. The expected unicode author is '\u0160t\u011bp\u00e1n, J.'. The expected normalized title is 'First string theory on a multiverse'. The test suite will verify these exact values."
+}

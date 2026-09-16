@@ -1,0 +1,53 @@
+{
+  "task_id": "create_audit_trail@1",
+  "task_completion": [
+    {
+      "id": "create_audit_table",
+      "description": "Create the 'patient_audit_log' table with the required columns.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a SQL CREATE TABLE statement for 'patient_audit_log' with columns audit_id, operation_type, table_name, record_id, old_values, new_values, and changed_at being executed in a database client (e.g., mysql terminal, DBeaver)."
+    },
+    {
+      "id": "create_triggers",
+      "description": "Implement the six required triggers on 'IndexNomPrenom' and 'fchpat' tables.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing SQL CREATE TRIGGER statements for 'trg_index_after_insert', 'trg_index_after_update', 'trg_index_after_delete', 'trg_fchpat_after_insert', 'trg_fchpat_after_update', and 'trg_fchpat_after_delete' being executed."
+    },
+    {
+      "id": "insert_test_patient",
+      "description": "Insert the test patient data to verify the insert triggers.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing SQL INSERT statements adding a patient with GUID 'AUDIT-TEST-001', NomDos 'AUDITTEST', and Prenom 'Veronique' into 'IndexNomPrenom' and corresponding data into 'fchpat'."
+    },
+    {
+      "id": "update_test_patient",
+      "description": "Update the test patient's first name to verify the update triggers.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SQL UPDATE statement changing the first name (Prenom) to 'V\u00e9ronique' for the previously inserted test patient."
+    },
+    {
+      "id": "export_verification_report",
+      "description": "Export the verification report containing triggers and audit log contents.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a terminal command redirecting the output of 'SHOW TRIGGERS' and 'SELECT * FROM patient_audit_log' to '/home/ga/audit_trail_report.txt', or the contents of this file being viewed showing the database output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with the actual MySQL database.",
+      "visual_evidence": "Look for the use of a genuine database client (like the 'mysql' command-line tool or a graphical SQL client) rather than just typing SQL commands into a text editor without executing them."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "The report file was generated from actual database queries.",
+      "visual_evidence": "The contents of '/home/ga/audit_trail_report.txt' should look like standard MySQL output (e.g., ASCII tables) rather than manually typed text."
+    },
+    {
+      "id": "triggers_actually_executed",
+      "description": "The triggers were successfully created in the database.",
+      "visual_evidence": "Look for confirmation messages from the database client (e.g., 'Query OK, 0 rows affected') after the CREATE TRIGGER statements, or the presence of the triggers in the final SHOW TRIGGERS output."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: DrTuxTest. Audit Table: patient_audit_log. Test GUID: AUDIT-TEST-001. Required Triggers: trg_index_after_insert, trg_index_after_update, trg_index_after_delete, trg_fchpat_after_insert, trg_fchpat_after_update, trg_fchpat_after_delete. Report Path: /home/ga/audit_trail_report.txt."
+}

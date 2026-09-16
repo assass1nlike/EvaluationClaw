@@ -1,0 +1,59 @@
+{
+  "task_id": "batch_import_legacy_events@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Check if the agent created the Python script at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (like nano, vim, or VS Code) open with the file path `~/Documents/csv_to_scml.py` or `/home/ga/Documents/csv_to_scml.py`."
+    },
+    {
+      "id": "script_api_usage",
+      "description": "Check if the script uses the seiscomp.datamodel API to create Event, Origin, and Magnitude objects.",
+      "points": 20,
+      "visual_evidence": "Look at the visible Python code for imports related to `seiscomp.datamodel` and the instantiation of `Event()`, `Origin()`, and `Magnitude()` objects."
+    },
+    {
+      "id": "script_agency_id",
+      "description": "Check if the script sets the agencyID to 'LEGACY_IMPORT'.",
+      "points": 10,
+      "visual_evidence": "Look at the visible Python code for the exact string 'LEGACY_IMPORT' being assigned to an `agencyID` or `creationInfo.agencyID` attribute."
+    },
+    {
+      "id": "script_execution",
+      "description": "Check if the agent executed the Python script to process the CSV.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command executing the script, such as `python3 ~/Documents/csv_to_scml.py` or `python csv_to_scml.py`."
+    },
+    {
+      "id": "scml_file_generated",
+      "description": "Check if the SCML file was successfully generated at the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for `legacy_events.scml` in a directory listing (e.g., `ls ~/Documents`), or the file being viewed in the terminal (e.g., `cat ~/Documents/legacy_events.scml`) showing XML content."
+    },
+    {
+      "id": "scdb_import_execution",
+      "description": "Check if the agent imported the SCML file into the SeisComP database using the scdb tool.",
+      "points": 30,
+      "visual_evidence": "Look for a terminal command invoking the `scdb` tool (e.g., `scdb -i ~/Documents/legacy_events.scml -d ...`) and the subsequent output indicating the database was updated or events were processed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_manual_scml_creation",
+      "description": "Verify the agent generated the SCML file via the Python script and did not manually type the XML.",
+      "visual_evidence": "The agent should not be seen manually writing XML tags for the events in a text editor for `legacy_events.scml`."
+    },
+    {
+      "id": "no_hardcoded_events_in_script",
+      "description": "Verify the Python script actually parses the CSV file rather than hardcoding the event data.",
+      "visual_evidence": "The Python script should contain code to open and read `legacy_events.csv` (e.g., using the `csv` module or `pandas`). It should not have the 5 specific latitudes, longitudes, and magnitudes hardcoded as lists or dictionaries in the script."
+    },
+    {
+      "id": "genuine_scdb_execution",
+      "description": "Verify the scdb command was genuinely executed and not faked.",
+      "visual_evidence": "Look for actual execution output from the `scdb` tool in the terminal. The agent should not just `echo` a success message or type the command without pressing Enter."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires processing exactly 5 synthetic aftershocks from '/home/ga/Documents/legacy_events.csv'. The expected events have the following (lat, lon, depth, mag) values: (37.204, 136.945, 10.0, 5.7), (37.218, 136.852, 10.0, 4.9), (37.362, 137.059, 10.0, 5.2), (37.108, 136.68, 10.0, 5.6), and (37.379, 137.284, 10.0, 4.8). The generated SCML file must be located at '/home/ga/Documents/legacy_events.scml' and the Python script at '/home/ga/Documents/csv_to_scml.py'. The agencyID for the created objects must be exactly 'LEGACY_IMPORT'."
+}

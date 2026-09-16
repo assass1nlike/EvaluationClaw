@@ -1,0 +1,59 @@
+{
+  "task_id": "model_custom_orc_generator@1",
+  "task_completion": [
+    {
+      "id": "sam_project_setup",
+      "description": "Verify the SAM project is created with the correct performance and financial models.",
+      "points": 10,
+      "visual_evidence": "SAM GUI showing a project created with 'Generic System' and 'LCOE Calculator (FCR Method)', OR a Python script (`orc_model.py`) importing PySAM and setting up a Generic System model."
+    },
+    {
+      "id": "system_capacity_set",
+      "description": "Verify the nameplate capacity is set to 250 kW.",
+      "points": 10,
+      "visual_evidence": "SAM GUI 'System Design' page showing 'Nameplate capacity' set to 250 kW (and 0% degradation/losses), OR a Python script setting the capacity variable to 250."
+    },
+    {
+      "id": "generation_profile_set",
+      "description": "Verify the custom generation profile is configured correctly.",
+      "points": 20,
+      "visual_evidence": "SAM GUI showing the custom generation profile (200 kW for indices 0-6551 and 7296-8759, 0 kW for 6552-7295) or the SAM results page showing an Annual Energy of ~1,603,200 kWh, OR a Python script defining the array of 200s and 0s."
+    },
+    {
+      "id": "financial_parameters_set",
+      "description": "Verify the financial parameters are set correctly.",
+      "points": 20,
+      "visual_evidence": "SAM GUI 'System Costs' and 'Financial Parameters' pages showing Total installed cost = $1,250,000, Fixed operating cost = $10,000/year, and Fixed Charge Rate (FCR) = 8.0%, OR a Python script setting these specific financial variables."
+    },
+    {
+      "id": "model_saved",
+      "description": "Verify the model is saved in the correct directory.",
+      "points": 20,
+      "visual_evidence": "File manager, terminal (e.g., `ls`), or SAM interface showing `orc_model.sam` or `orc_model.py` saved in the `/home/ga/Documents/SAM_Projects/` directory."
+    },
+    {
+      "id": "results_exported",
+      "description": "Verify the results are exported to the JSON file with the correct keys and values.",
+      "points": 20,
+      "visual_evidence": "Terminal (e.g., `cat`) or text editor showing the contents of `/home/ga/Documents/SAM_Projects/orc_recovery_results.json` containing the keys 'annual_energy_kwh', 'capacity_factor_percent', and 'lcoe_cents_per_kwh' with values matching the expected results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_model_execution",
+      "description": "Verify the agent actually ran the SAM model or Python script to generate the results.",
+      "visual_evidence": "Screenshots showing the SAM 'Results' page being generated, or terminal output showing the execution of the Python script, rather than just jumping straight to creating the JSON file."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "Verify the agent did not bypass the modeling step by hardcoding the expected answers directly into the JSON file.",
+      "visual_evidence": "The agent should not be seen manually typing the exact expected values (1603200, 73.205, 6.861) into a text editor without first extracting them from the SAM GUI or a script output."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Verify the agent used the exact requested directory for saving files.",
+      "visual_evidence": "File paths in the terminal, text editor, or SAM save dialog must explicitly show `/home/ga/Documents/SAM_Projects/`."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected values for the JSON export: annual_energy_kwh = 1603200, capacity_factor_percent = 73.205, lcoe_cents_per_kwh = 6.861. A tolerance of 1.0% is acceptable. The JSON file must be located at /home/ga/Documents/SAM_Projects/orc_recovery_results.json."
+}

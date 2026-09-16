@@ -1,0 +1,53 @@
+{
+  "task_id": "patient_data_audit@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the DrTuxTest MySQL database.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like `mysql -u root DrTuxTest` or a script containing connection parameters for the 'DrTuxTest' database with user 'root'."
+    },
+    {
+      "id": "table_join_logic",
+      "description": "Construct a query joining the fchpat and IndexNomPrenom tables.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query in the terminal or a script that includes a JOIN between `fchpat` and `IndexNomPrenom` on `fchpat.FchPat_GUID_Doss = IndexNomPrenom.FchGnrl_IDDos` and filters by `IndexNomPrenom.FchGnrl_Type = 'Dossier'`."
+    },
+    {
+      "id": "missing_field_evaluation",
+      "description": "Evaluate missing demographic fields and map them to 1 or 0.",
+      "points": 20,
+      "visual_evidence": "Look for SQL `CASE` or `IF` statements (or script logic) checking if `FchPat_Nee` is NULL/''/'0000-00-00', and if `FchPat_NumSS`, `FchPat_Adresse`, `FchPat_Tel1` are NULL/''. It should output 1 for missing and 0 for present."
+    },
+    {
+      "id": "incomplete_filter",
+      "description": "Filter the results to include only patients with at least one missing field.",
+      "points": 20,
+      "visual_evidence": "Look for a `WHERE` or `HAVING` clause in SQL, or script logic, ensuring only records where at least one of the missing field flags is 1 (or the original fields are missing) are included in the final output."
+    },
+    {
+      "id": "csv_output_creation",
+      "description": "Generate the final CSV audit report with the required headers.",
+      "points": 30,
+      "visual_evidence": "Look for the creation of `~/audit_report.csv` (e.g., via SQL `INTO OUTFILE`, a Python script, or terminal redirection). The file or its output (e.g., via `cat`) must show the headers: last_name, first_name, dob_missing, ssn_missing, address_missing, phone_missing."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "query_executed",
+      "description": "The agent actually executed the query against the database.",
+      "visual_evidence": "Check that the SQL query or script was run (e.g., seeing query results, a successful execution message, or the terminal prompt returning after execution) rather than just being written in an editor."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not hardcode the CSV output.",
+      "visual_evidence": "Ensure the agent did not manually type out the CSV contents using `echo` or a text editor. The data must be dynamically derived from the database query."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The output file is saved in the correct location.",
+      "visual_evidence": "Verify the output file is saved exactly as `~/audit_report.csv` (or `/home/<user>/audit_report.csv`), not in a temporary directory or with a different name."
+    }
+  ],
+  "privileged_info_for_vlm": "The database 'DrTuxTest' contains synthetic test data. The final CSV report at ~/audit_report.csv must contain exactly 4 patients with missing fields (AUDIT_NODOB, AUDIT_NOSS, AUDIT_NOADDR, AUDIT_MULTI). The patient AUDIT_COMPLET must be excluded because they have no missing fields. The CSV must have exactly the headers: last_name, first_name, dob_missing, ssn_missing, address_missing, phone_missing. Missing fields are represented by 1, present by 0. For example, AUDIT_MULTI will have 1 for dob_missing, address_missing, and phone_missing."
+}

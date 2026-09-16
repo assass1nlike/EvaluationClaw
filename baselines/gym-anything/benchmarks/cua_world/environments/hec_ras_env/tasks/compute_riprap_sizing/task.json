@@ -1,0 +1,33 @@
+{
+  "id": "compute_riprap_sizing@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the required riprap size (D50) for scour protection on the White River using the maximum channel velocity identified from the Muncie unsteady flow simulation results (Plan 04). Use the Isbash equation: D50 = (V_max^2) / (C^2 * 2g * (Sg - 1)) with a turbulence coefficient (C) of 1.20, gravity (g) of 32.174 ft/s^2, and specific gravity (Sg) of 2.65. Save the analysis results, including the river station, maximum velocity in fps, and required D50 in both feet and inches, to /home/ga/Documents/hec_ras_results/riprap_design.csv. Additionally, provide a summary text file at /home/ga/Documents/hec_ras_results/riprap_summary.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_riprap_sizing/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_riprap_sizing/export_result.sh"
+  },
+  "metadata": {
+    "constants": {
+      "C": 1.2,
+      "g": 32.174,
+      "Sg": 2.65
+    },
+    "output_csv": "/home/ga/Documents/hec_ras_results/riprap_design.csv",
+    "output_txt": "/home/ga/Documents/hec_ras_results/riprap_summary.txt",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "result_hdf": "Muncie.p04.hdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_riprap_sizing"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "export_dicom_secondary_capture@1",
+  "task_completion": [
+    {
+      "id": "annotation_added",
+      "description": "A visible annotation is added to the loaded medical CT image.",
+      "points": 20,
+      "visual_evidence": "The main Weasis image viewer displays an overlay, drawing, arrow, text, or measurement marking a region of interest on the CT scan."
+    },
+    {
+      "id": "open_export_dialog",
+      "description": "The export dialog in Weasis is opened.",
+      "points": 10,
+      "visual_evidence": "A dialog box for exporting or saving the image is visible over the Weasis interface (e.g., accessed via File > Export)."
+    },
+    {
+      "id": "select_secondary_capture",
+      "description": "The export format is configured to create a DICOM Secondary Capture of the current view.",
+      "points": 30,
+      "visual_evidence": "The export settings explicitly show 'DICOM' and options related to 'Secondary Capture', 'Capture current view', or 'View' selected, rather than standard image formats (JPEG/PNG) or bulk original DICOM export."
+    },
+    {
+      "id": "enter_export_path",
+      "description": "The export destination path is set to the requested location.",
+      "points": 20,
+      "visual_evidence": "The file path input field in the export dialog shows '/home/ga/DICOM/exports/surgical_plan.dcm' or the directory is set to 'exports' with the filename 'surgical_plan.dcm'."
+    },
+    {
+      "id": "execute_export",
+      "description": "The export action is executed to save the file.",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Export', 'Save', or 'OK' button in the export dialog, or a progress bar/success message indicating the export is complete is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_weasis",
+      "description": "The agent used the Weasis GUI to perform the task.",
+      "visual_evidence": "Screenshots show mouse clicks and interactions with Weasis menus, toolbars, and dialogs, rather than terminal commands using external DICOM tools."
+    },
+    {
+      "id": "genuine_weasis_annotation",
+      "description": "The annotation was created using Weasis built-in tools.",
+      "visual_evidence": "Weasis annotation tools (e.g., measurement, arrow, or drawing tools in the toolbar) are selected and actively used, rather than the image being edited in an external paint program."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent genuinely exported the file via the application rather than creating a dummy file.",
+      "visual_evidence": "The Weasis export dialog is filled out and submitted. There should be no terminal window showing commands like 'touch ~/DICOM/exports/surgical_plan.dcm' or 'cp'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected export path is exactly '/home/ga/DICOM/exports/surgical_plan.dcm'. The task requires a DICOM Secondary Capture (SOP Class UID: 1.2.840.10008.5.1.4.1.1.7). In the Weasis GUI, this means the agent must choose to export the 'current view' or 'capture' to DICOM format, rather than exporting as a standard image (like JPEG) or simply copying the original raw DICOM files."
+}

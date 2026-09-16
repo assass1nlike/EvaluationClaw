@@ -1,0 +1,35 @@
+{
+  "id": "aggregate_attack_rates@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Using the Oswego outbreak dataset in Epi Info 7 Classic Analysis, generate a summary table that counts cases by 'Ill' status and a new 'AgeGroup' variable. Recode the 'Age' variable into 'AgeGroup' using the categories '0-19', '20-39', '40-59', and '60+'. Export the summary table, including columns for AgeGroup, Ill, and the frequency count, to C:\\Users\\Docker\\Documents\\AgeIllnessSummary.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\aggregate_attack_rates\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\aggregate_attack_rates\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "AgeIllnessSummary.csv",
+    "expected_path": "C:\\Users\\Docker\\Documents\\AgeIllnessSummary.csv",
+    "project_path": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\Sample\\Sample.prj",
+    "dataset_name": "Oswego",
+    "total_records": 75,
+    "age_groups": [
+      "0-19",
+      "20-39",
+      "40-59",
+      "60+"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_aggregate_attack_rates"
+    }
+  }
+}

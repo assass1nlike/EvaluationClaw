@@ -1,0 +1,32 @@
+{
+  "id": "bulk_update_category_pricing@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "A recent increase in material costs requires a price adjustment. Increase the Regular Price of all products in the 'Clothing' category by 15%. Ensure that products in other categories, such as 'Electronics', are not affected by this change.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_update_category_pricing/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_update_category_pricing/export_result.sh"
+  },
+  "metadata": {
+    "target_category": "Clothing",
+    "control_category": "Electronics",
+    "price_increase_percent": 15,
+    "target_products": [
+      "Organic Cotton T-Shirt",
+      "Slim Fit Denim Jeans",
+      "Merino Wool Sweater"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_update_category_pricing"
+    }
+  }
+}

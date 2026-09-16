@@ -1,0 +1,59 @@
+{
+  "task_id": "redevelopment_potential_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_notebook",
+      "description": "Open the redevelopment_potential.ipynb notebook",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook interface (in a browser or IDE) showing the file 'redevelopment_potential.ipynb' is open."
+    },
+    {
+      "id": "data_loading_and_joining",
+      "description": "Load required tables and correctly join them using 'zoning_for_parcels'",
+      "points": 20,
+      "visual_evidence": "Code cells showing the loading of data from 'sanfran_public.h5' and joining 'parcels' with 'zoning' using the intermediate 'zoning_for_parcels' table."
+    },
+    {
+      "id": "rpi_calculation",
+      "description": "Calculate the three scores and the composite RPI",
+      "points": 20,
+      "visual_evidence": "Code cells showing calculations for underutilization_score, age_score, and value_score, and combining them into an 'rpi' column using the weights 0.4, 0.35, and 0.25 respectively."
+    },
+    {
+      "id": "csv_export",
+      "description": "Save the top 50 parcels to a CSV file",
+      "points": 20,
+      "visual_evidence": "Code showing the selection of the top 50 rows by RPI and saving them to '/home/ga/urbansim_projects/output/top_redevelopment_parcels.csv' with the required columns (parcel_id, underutilization_score, age_score, value_score, rpi, rank)."
+    },
+    {
+      "id": "plot_generation",
+      "description": "Generate and save the RPI scatter plot",
+      "points": 20,
+      "visual_evidence": "Code creating a scatter plot of underutilization_score (x) vs age_score (y) colored by rpi, saving it to '/home/ga/urbansim_projects/output/rpi_scatter.png', and the plot is visible in the cell output."
+    },
+    {
+      "id": "cells_executed",
+      "description": "Ensure all notebook cells are executed",
+      "points": 10,
+      "visual_evidence": "All visible code cells have execution numbers (e.g., In [1], In [2]) indicating they have been run, with no empty brackets [ ]."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_jupyter_usage",
+      "description": "Agent used a real Jupyter environment to execute code",
+      "visual_evidence": "The screenshots show a functional Jupyter Notebook or JupyterLab interface (or VS Code notebook editor) with actual cell execution outputs, not just a static text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent computed the results rather than hardcoding them",
+      "visual_evidence": "The code contains actual pandas/numpy operations to calculate the scores and RPI, rather than hardcoding a list of parcel IDs or mock data."
+    },
+    {
+      "id": "programmatic_file_creation",
+      "description": "Agent generated the CSV and PNG files programmatically",
+      "visual_evidence": "The presence of `to_csv` and `savefig` (or equivalent) commands in the executed notebook cells, rather than manual file creation or terminal commands echoing text into files."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct database join requires using the unmentioned 'zoning_for_parcels' table to link 'parcels' and 'zoning'. Joining directly on parcels.zone_id and zoning.id is incorrect and will result in too few parcels. The expected CSV must have exactly 50 rows and include columns: parcel_id, underutilization_score, age_score, value_score, rpi, rank. The RPI weights are 0.4 (underutilization), 0.35 (age), and 0.25 (value)."
+}

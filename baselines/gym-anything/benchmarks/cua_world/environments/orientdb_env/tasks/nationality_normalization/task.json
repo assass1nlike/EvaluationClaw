@@ -1,0 +1,50 @@
+{
+  "id": "nationality_normalization@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Normalize the nationality data in the 'demodb' database by creating a new edge class named 'IsCitizenOf' that links 'Profiles' to their corresponding 'Countries' vertices. Map the 'Nationality' string property on Profiles to the 'Name' property on Countries using semantic mappings (e.g., 'American' to 'United States', 'British' to 'United Kingdom', 'Dutch' to 'Netherlands'). Identify any Profiles whose nationality cannot be mapped to an existing Country without creating new country vertices. Save a report to '/home/ga/nationality_audit.txt' listing the successful mappings (Email -> Country) and a separate section for 'Unmapped Nationalities'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nationality_normalization/setup_task.sh",
+    "post_task": "/workspace/tasks/nationality_normalization/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/nationality_audit.txt",
+    "required_edge_class": "IsCitizenOf",
+    "mappings_to_verify": [
+      {
+        "nationality": "American",
+        "country": "United States"
+      },
+      {
+        "nationality": "British",
+        "country": "United Kingdom"
+      },
+      {
+        "nationality": "Dutch",
+        "country": "Netherlands"
+      },
+      {
+        "nationality": "Spanish",
+        "country": "Spain"
+      }
+    ],
+    "expected_orphans": [
+      {
+        "nationality": "Mexican",
+        "email": "carlos.lopez@example.com"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nationality_normalization"
+    }
+  }
+}

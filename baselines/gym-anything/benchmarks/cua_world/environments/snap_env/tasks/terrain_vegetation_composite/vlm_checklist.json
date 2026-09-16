@@ -1,0 +1,65 @@
+{
+  "task_id": "terrain_vegetation_composite@1",
+  "task_completion": [
+    {
+      "id": "load_source_data",
+      "description": "Load the DEM and Landsat multispectral imagery into the software",
+      "points": 10,
+      "visual_evidence": "Look for the Product Explorer or layer panel showing both 'srtm_dem' and 'landsat_multispectral' loaded into the GIS/Remote Sensing software (e.g., SNAP)."
+    },
+    {
+      "id": "coregister_source_data",
+      "description": "Co-register or collocate the source datasets",
+      "points": 15,
+      "visual_evidence": "Look for a collocation or co-registration tool being used, or a new product in the layer panel that combines bands from both the DEM and Landsat datasets."
+    },
+    {
+      "id": "derive_vegetation_index",
+      "description": "Derive a vegetation vigor index from the Landsat imagery",
+      "points": 15,
+      "visual_evidence": "Look for a Band Maths dialog or a new band created for a vegetation vigor index (e.g., NDVI) using the Landsat bands."
+    },
+    {
+      "id": "derive_terrain_steepness",
+      "description": "Derive a terrain steepness metric from the DEM",
+      "points": 15,
+      "visual_evidence": "Look for a slope calculation tool being used or a new band representing terrain steepness/slope derived from the DEM."
+    },
+    {
+      "id": "classify_suitability",
+      "description": "Create a classified suitability map with at least three categories",
+      "points": 20,
+      "visual_evidence": "Look for a classification tool, Band Maths, or a color palette setup that defines at least three categories explicitly named or logically representing 'suitable', 'marginal', and 'unsuitable'."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the integrated analysis product in BEAM-DIMAP format",
+      "points": 10,
+      "visual_evidence": "Look for a 'Save Product' dialog or file manager showing the integrated analysis product being saved with a '.dim' extension (BEAM-DIMAP format)."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the suitability map as a GeoTIFF",
+      "points": 15,
+      "visual_evidence": "Look for an export dialog or terminal/file manager confirming the suitability map is saved as a '.tif' or '.tiff' file in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_software",
+      "description": "Verify the agent used graphical software for the analysis",
+      "visual_evidence": "Ensure the agent interacted with the GUI of a remote sensing software (like SNAP) rather than just writing a script or using terminal commands to mock the output files."
+    },
+    {
+      "id": "genuine_analysis",
+      "description": "Verify the agent actually performed the derivations and classification",
+      "visual_evidence": "Check that the agent used tools like Band Maths, Slope, or Collocation, rather than just renaming the source files or creating empty files with the expected names."
+    },
+    {
+      "id": "actual_export_path",
+      "description": "Verify the GeoTIFF was exported to the correct directory via the software",
+      "visual_evidence": "Check that the export to '/home/ga/snap_exports/' was done through the software's export interface, not just moved or copied there via terminal without processing."
+    }
+  ],
+  "privileged_info_for_vlm": "The provided Landsat imagery and DEM do not overlap geographically, making true spatial co-registration impossible (it will likely result in an empty overlap). Additionally, the Landsat image contains standard visible and NIR bands (B1=Blue, B2=Green, B3=Red, B4=NIR), which contradicts the task description's claim about the band mappings (B1=SWIR1, B4=Green). The agent may encounter errors or produce empty outputs due to these contradictions, but should still be evaluated on attempting the required steps (co-registration, index calculation, classification, and saving/exporting)."
+}

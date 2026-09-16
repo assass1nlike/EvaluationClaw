@@ -1,0 +1,33 @@
+{
+  "id": "place_neuronavigation_markers@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "The CT Cranium DICOM scan is already loaded in InVesalius 3. As a surgical planner preparing for image-guided neurosurgery, place fiducial markers on the Nasion (midline nasal bridge), Right Pre-Auricular point (just in front of right ear tragus), and Left Pre-Auricular point (just in front of left ear tragus). Document the coordinates for each landmark in a text report at /home/ga/Documents/fiducial_report.txt using the format 'LandmarkName: X, Y, Z'. Save the InVesalius project to /home/ga/Documents/neuronavigation_plan.inv3. Login credentials: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/place_neuronavigation_markers/setup_task.sh",
+    "post_task": "/workspace/tasks/place_neuronavigation_markers/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/fiducial_report.txt",
+    "project_path": "/home/ga/Documents/neuronavigation_plan.inv3",
+    "min_markers": 3,
+    "min_separation_mm": 20.0,
+    "volume_bounds_mm": [
+      500,
+      500,
+      200
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_place_neuronavigation_markers"
+    }
+  }
+}

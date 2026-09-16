@@ -1,0 +1,57 @@
+{
+  "id": "bundle_product_camping@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a Bundle Product in Magento named 'Ultimate Camping Kit' (SKU: 'CAMP-BUNDLE-001') in the 'Sports' category. Configure the product with Dynamic Price: Yes, Dynamic Weight: Yes, Status: Enabled, Visibility: Catalog, Search, and Ship Bundle Items: Together. Include three bundle options: 'Choose Your Tent' (Radio Buttons, Required) with 'Basic 2-Person Tent' (as default) and 'Family 4-Person Tent'; 'Select Sleeping Gear' (Drop-down, Required) with 'Lightweight Sleeping Bag' (as default) and 'Winter Insulated Sleeping Bag'; and 'Add Camp Kitchen' (Checkbox, Not Required) with 'Portable Camp Stove' and 'Camp Cookware Set'. The constituent simple products are already available in the catalog for assignment.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bundle_product_camping/setup_task.sh",
+    "post_task": "/workspace/tasks/bundle_product_camping/export_result.sh"
+  },
+  "metadata": {
+    "expected_sku": "CAMP-BUNDLE-001",
+    "expected_name": "Ultimate Camping Kit",
+    "expected_category": "Sports",
+    "expected_shipment_type": 0,
+    "options": [
+      {
+        "title": "Choose Your Tent",
+        "type": "radio",
+        "required": true,
+        "skus": [
+          "TENT-BASIC",
+          "TENT-FAMILY"
+        ]
+      },
+      {
+        "title": "Select Sleeping Gear",
+        "type": "select",
+        "required": true,
+        "skus": [
+          "SLEEP-LITE",
+          "SLEEP-WINTER"
+        ]
+      },
+      {
+        "title": "Add Camp Kitchen",
+        "type": "checkbox",
+        "required": false,
+        "skus": [
+          "COOK-STOVE",
+          "COOK-SET"
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bundle_product"
+    }
+  }
+}

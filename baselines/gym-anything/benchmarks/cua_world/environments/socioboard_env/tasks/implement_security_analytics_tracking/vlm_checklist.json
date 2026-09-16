@@ -1,0 +1,65 @@
+{
+  "task_id": "implement_security_analytics_tracking@1",
+  "task_completion": [
+    {
+      "id": "create_security_txt",
+      "description": "Create the security.txt file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor showing the file `/opt/socioboard/socioboard-web-php/public/.well-known/security.txt` being created or opened for editing."
+    },
+    {
+      "id": "security_txt_content",
+      "description": "Add the required content to the security.txt file.",
+      "points": 15,
+      "visual_evidence": "The text editor or terminal shows the exact content being written: 'Contact: mailto:security@socioboard.local', 'Expires: 2027-12-31T23:59:59.000Z', and 'Preferred-Languages: en'."
+    },
+    {
+      "id": "edit_layout_template",
+      "description": "Open the main HTML/Blade layout template for editing.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing a Socioboard layout file (e.g., a file ending in `.blade.php` within the Socioboard directory) being modified."
+    },
+    {
+      "id": "inject_tracking_snippet",
+      "description": "Inject the tracking snippet before the closing head tag.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the snippet `<!-- SOCIOBOARD_CUSTOM_TRACKING_V1 -->` and `<script>console.log('Tracking active');</script>` placed immediately before the `</head>` tag in the layout file."
+    },
+    {
+      "id": "verify_security_txt_browser",
+      "description": "Verify the security.txt file is accessible via the web server.",
+      "points": 10,
+      "visual_evidence": "A web browser navigated to `http://localhost/.well-known/security.txt` displaying the correct security policy text."
+    },
+    {
+      "id": "verify_homepage_functional",
+      "description": "Verify the Socioboard homepage remains functional.",
+      "points": 15,
+      "visual_evidence": "A web browser navigated to `http://localhost/` showing the Socioboard application loading normally with its full UI, without any HTTP 500 errors."
+    },
+    {
+      "id": "verify_tracking_snippet_browser",
+      "description": "Verify the tracking snippet is present in the homepage source code.",
+      "points": 15,
+      "visual_evidence": "The browser's View Source or Developer Tools (Elements tab) for `http://localhost/` showing the injected tracking snippet (`SOCIOBOARD_CUSTOM_TRACKING_V1`) inside the `<head>` section of the HTML."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_paths",
+      "description": "Ensure the agent modified the actual application files.",
+      "visual_evidence": "File paths in the editor or terminal must point to `/opt/socioboard/socioboard-web-php/...` and not a temporary or unrelated directory."
+    },
+    {
+      "id": "genuine_browser_urls",
+      "description": "Ensure browser verification uses the correct local web server.",
+      "visual_evidence": "The browser address bar must show `http://localhost/...` and not a `file://` URL."
+    },
+    {
+      "id": "no_destructive_edits",
+      "description": "Ensure the layout template was not completely overwritten.",
+      "visual_evidence": "The homepage at `http://localhost/` must display its original complex layout and styling, rather than a blank or broken page, confirming the file size remains substantial (over 5000 bytes)."
+    }
+  ],
+  "privileged_info_for_vlm": "The security policy must contain 'Contact: mailto:security@socioboard.local' and 'Expires: 2027-12-31T23:59:59.000Z'. The tracking snippet must contain the marker 'SOCIOBOARD_CUSTOM_TRACKING_V1'. The homepage must remain functional and its size must be at least 5000 bytes, meaning the agent should not overwrite the entire layout file but only inject the snippet."
+}

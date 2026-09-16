@@ -1,0 +1,59 @@
+{
+  "task_id": "hunt_anomalous_uri_lengths@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Log in to Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "Splunk web interface is visible, either at the login screen with credentials entered or the logged-in home screen."
+    },
+    {
+      "id": "search_index",
+      "description": "Query the correct index for web access logs.",
+      "points": 15,
+      "visual_evidence": "The Splunk search bar contains a query starting with 'index=tutorial' or 'index=web_logs'."
+    },
+    {
+      "id": "uri_length_aggregation",
+      "description": "Aggregate the average and maximum lengths of the requested URI per client IP.",
+      "points": 25,
+      "visual_evidence": "The search query contains functions to calculate string length (e.g., eval len=len(uri)) and aggregate them (e.g., stats avg(len) max(len) by clientip)."
+    },
+    {
+      "id": "filter_average_length",
+      "description": "Filter the results where the average URI length is strictly greater than 60.",
+      "points": 20,
+      "visual_evidence": "The search query contains a filtering clause like 'where avg_len > 60' or 'search avg > 60' applied after the aggregation."
+    },
+    {
+      "id": "save_as_report",
+      "description": "Save the search query as a Report.",
+      "points": 10,
+      "visual_evidence": "The 'Save As Report' dialog box is open, or a success message confirms the report has been created."
+    },
+    {
+      "id": "correct_report_name",
+      "description": "Name the saved report 'URI_Length_Anomaly_Hunt'.",
+      "points": 20,
+      "visual_evidence": "The text 'URI_Length_Anomaly_Hunt' is visible in the Title field of the 'Save As Report' dialog, or in the Splunk Reports list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the Splunk Web UI in a browser rather than terminal commands.",
+      "visual_evidence": "A web browser window showing the Splunk interface at localhost:8000."
+    },
+    {
+      "id": "genuine_search_execution",
+      "description": "The agent actually executed the search and retrieved results.",
+      "visual_evidence": "Search results (events or statistics table) are visible below the search bar in the Splunk UI."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply write the expected answers into a text file.",
+      "visual_evidence": "Interactions occur within the Splunk application, not in a text editor or terminal echoing the report name."
+    }
+  ],
+  "privileged_info_for_vlm": "The required report name is exactly 'URI_Length_Anomaly_Hunt'. The Splunk credentials are 'admin' and 'SplunkAdmin1!'. The search must target the 'tutorial' or 'web_logs' index, calculate the length of the URI, use 'stats' to find the average and maximum length by client IP, and filter for average length > 60."
+}

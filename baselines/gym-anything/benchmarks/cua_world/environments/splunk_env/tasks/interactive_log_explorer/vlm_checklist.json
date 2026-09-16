@@ -1,0 +1,59 @@
+{
+  "task_id": "interactive_log_explorer@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the dashboard named 'Web_Error_Investigator' (or 'web_error_investigator') has been created.",
+      "points": 10,
+      "visual_evidence": "The Splunk Web UI should be visible with the dashboard title 'Web_Error_Investigator' displayed at the top."
+    },
+    {
+      "id": "text_input_ip_filter",
+      "description": "Verify a Text Input exists with the token 'ip_filter' and a default value of '*'.",
+      "points": 15,
+      "visual_evidence": "In the dashboard edit mode, input configuration modal, or source XML view, look for a text input element assigned the token 'ip_filter' and a default value set to '*'."
+    },
+    {
+      "id": "dropdown_input_level_filter",
+      "description": "Verify a Dropdown Input exists with the token 'level_filter', a default value of '*', and choices including '*' and 'error'.",
+      "points": 20,
+      "visual_evidence": "In the dashboard edit mode, input configuration modal, or source XML view, look for a dropdown element assigned the token 'level_filter', with default '*' and options that include '*' and 'error'."
+    },
+    {
+      "id": "time_picker_present",
+      "description": "Verify a Time Picker input is included on the dashboard.",
+      "points": 10,
+      "visual_evidence": "A Time Picker control (e.g., showing 'Last 24 hours', 'All time', etc.) should be visible alongside the other inputs at the top of the dashboard."
+    },
+    {
+      "id": "panel_query_index",
+      "description": "Verify the dashboard contains a panel with a search query targeting 'index=web_logs'.",
+      "points": 20,
+      "visual_evidence": "In the panel's search configuration, edit mode, or source XML view, the search string must explicitly contain 'index=web_logs'."
+    },
+    {
+      "id": "panel_query_tokens",
+      "description": "Verify the panel's search query dynamically incorporates the '$ip_filter$' and '$level_filter$' tokens.",
+      "points": 25,
+      "visual_evidence": "In the panel's search configuration, edit mode, or source XML view, the search string must contain both '$ip_filter$' and '$level_filter$' to filter the results dynamically."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_gui_used",
+      "description": "Verify the agent used the Splunk Web UI to create and configure the dashboard.",
+      "visual_evidence": "Screenshots should show the Splunk web interface (http://localhost:8000) in a browser, rather than just terminal commands or API scripts."
+    },
+    {
+      "id": "actual_dashboard_rendered",
+      "description": "Verify the dashboard is genuinely rendered within Splunk.",
+      "visual_evidence": "The inputs and panels should be rendered as interactive Splunk UI components, not just text in a file or a mock-up."
+    },
+    {
+      "id": "no_xml_text_editor_shortcut",
+      "description": "Verify the agent did not simply type the expected XML into a standalone text editor without applying it to Splunk.",
+      "visual_evidence": "If XML is shown, it must be within the Splunk 'Source' editor view for the dashboard, not in an external text editor like nano, vim, or gedit."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard ID must be 'web_error_investigator'. The text input must use the token 'ip_filter'. The dropdown input must use the token 'level_filter'. The search query in the panel must query 'index=web_logs' and include both tokens."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "split_invoice_items@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "A customer (Leonie Köhler) needs separate invoices for her purchase on Invoice #1. Currently, Invoice #1 contains two tracks: 'Balls to the Wall' and 'Restless and Wild'. Split these into two separate invoices for Customer 2 (Leonie Köhler) dated 2009-01-01 with the billing address Theodor-Heuss-Straße 34, Stuttgart, BW, Germany, 70174. Move the line item for track 'Restless and Wild' (Track ID 4) from Invoice #1 to a new invoice, ensuring both invoices have a total of $0.99. Save the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/split_invoice_items/setup_task.sh",
+    "post_task": "/workspace/tasks/split_invoice_items/export_result.sh"
+  },
+  "metadata": {
+    "customer_id": 2,
+    "original_invoice_id": 1,
+    "track_to_move": 4,
+    "track_to_stay": 2,
+    "expected_total": 0.99,
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_split_invoice_items"
+    }
+  }
+}

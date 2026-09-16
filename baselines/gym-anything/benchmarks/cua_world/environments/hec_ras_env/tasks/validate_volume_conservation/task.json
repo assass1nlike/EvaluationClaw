@@ -1,0 +1,30 @@
+{
+  "id": "validate_volume_conservation@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Run the Muncie HEC-RAS unsteady flow simulation (Plan 04) and verify mass conservation by analyzing the output HDF5 file (Muncie.p04.hdf). Create a Python script to calculate the mass balance error percentage between the most upstream and most downstream cross-sections using trapezoidal integration for volume calculations. Save the findings to /home/ga/Documents/hec_ras_results/volume_conservation.json using the following JSON structure:\n\n{\n  \"upstream_station\": \"<station_id>\",\n  \"downstream_station\": \"<station_id>\",\n  \"total_inflow_volume_ft3\": <float>,\n  \"total_outflow_volume_ft3\": <float>,\n  \"peak_inflow_ft3_per_s\": <float>,\n  \"peak_outflow_ft3_per_s\": <float>,\n  \"volume_difference_ft3\": <float>,\n  \"mass_balance_error_percent\": <float>,\n  \"simulation_duration_hours\": <float>,\n  \"conservation_acceptable\": <bool>,\n  \"num_time_steps\": <int>,\n  \"num_cross_sections\": <int>\n}\n\nSet conservation_acceptable to true if the mass balance error is less than 5.0%.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/validate_volume_conservation/setup_task.sh",
+    "post_task": "/workspace/tasks/validate_volume_conservation/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/hec_ras_results/volume_conservation.json",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "hdf_filename": "Muncie.p04.hdf",
+    "expected_error_threshold": 5.0,
+    "min_expected_volume": 1000000.0,
+    "max_expected_error": 100.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_validate_volume_conservation"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "travel_itinerary_layout@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a travel consultant at Global Horizons. Create a visually engaging 7-day 'Italian Renaissance' tour proposal for Mr. & Mrs. Sterling in a landscape-oriented document. The proposal must include a cover section featuring the agency logo (/home/ga/Documents/images/logo.png), the tour title 'Italian Renaissance Tour', and the client name. Use a two-column layout for the daily itinerary details sourced from /home/ga/Documents/tour_data.json, ensuring day titles use heading styles and include activity and hotel details. Incorporate the destination images (rome_colosseum.jpg, florence_duomo.jpg, and venice_canal.jpg) at appropriate locations within the itinerary. Save the completed proposal to /home/ga/Documents/Italy_Proposal_2025.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/travel_itinerary_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/travel_itinerary_layout/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Italy_Proposal_2025.odt",
+    "required_orientation": "landscape",
+    "min_column_count": 2,
+    "min_images": 3,
+    "expected_text": [
+      "Italian Renaissance Tour",
+      "Mr. & Mrs. Sterling",
+      "Hotel de Russie",
+      "Four Seasons",
+      "Hotel Danieli"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_travel_itinerary"
+    }
+  }
+}

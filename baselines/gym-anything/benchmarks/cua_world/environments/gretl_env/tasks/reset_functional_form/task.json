@@ -1,0 +1,40 @@
+{
+  "id": "reset_functional_form@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are an economist verifying whether a linear regression of food expenditure on income is correctly specified using the food expenditure dataset (food.gdt). Estimate a linear OLS model of food_exp on a constant and income, and perform Ramsey's RESET test using squared and cubed fitted values. Generate log transformations for both variables (l_food_exp and l_income) and estimate a log-linear OLS model. Save the estimation results for both models and the RESET test results—including coefficients, standard errors, R-squared, test statistics, and p-values—to /home/ga/Documents/gretl_output/reset_comparison.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reset_functional_form/setup_task.sh",
+    "post_task": "/workspace/tasks/reset_functional_form/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/gretl_output/reset_comparison.txt",
+    "dataset": "food.gdt",
+    "linear_intercept": 83.42,
+    "linear_slope": 10.21,
+    "linear_r2": 0.385,
+    "log_intercept": 3.69,
+    "log_elasticity": 0.38,
+    "log_r2": 0.36,
+    "tolerances": {
+      "intercept": 10.0,
+      "slope": 2.0,
+      "r2": 0.1,
+      "log_intercept": 0.5,
+      "log_slope": 0.1,
+      "log_r2": 0.15
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reset_functional_form"
+    }
+  }
+}

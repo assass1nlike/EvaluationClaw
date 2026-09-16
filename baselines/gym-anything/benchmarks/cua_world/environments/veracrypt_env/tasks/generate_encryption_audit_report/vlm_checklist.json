@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_encryption_audit_report@1",
+  "task_completion": [
+    {
+      "id": "finance_volume_inspected",
+      "description": "Agent mounted and inspected the finance department volume.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with finance_dept.hc mounted and its Volume Properties window open (showing AES and SHA-512), or terminal output from a VeraCrypt command displaying these properties."
+    },
+    {
+      "id": "hr_volume_inspected",
+      "description": "Agent mounted and inspected the HR department volume.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with hr_dept.hc mounted and its Volume Properties window open (showing Serpent and SHA-256), or terminal output from a VeraCrypt command displaying these properties."
+    },
+    {
+      "id": "engineering_volume_inspected",
+      "description": "Agent mounted and inspected the engineering department volume.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with engineering_dept.hc mounted and its Volume Properties window open (showing Twofish and Whirlpool), or terminal output from a VeraCrypt command displaying these properties."
+    },
+    {
+      "id": "json_report_created",
+      "description": "Agent created the structured JSON compliance report with correct extracted properties.",
+      "points": 40,
+      "visual_evidence": "A text editor or terminal showing the contents of encryption_audit_report.json. It must contain valid JSON with today's date, auditor 'ga', and an array of volumes matching the correct encryption and hash algorithms for each respective file."
+    },
+    {
+      "id": "volumes_dismounted",
+      "description": "Agent dismounted all volumes after completing the audit.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with all drive slots empty, or a terminal showing the successful execution of a dismount command (e.g., 'veracrypt -d') after the report was created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "Agent genuinely interacted with VeraCrypt to extract properties.",
+      "visual_evidence": "Look for actual usage of the VeraCrypt GUI or CLI commands to mount the volumes. The agent should not just guess the algorithms or use a pre-written script without interacting with the software."
+    },
+    {
+      "id": "chronological_inspection",
+      "description": "Agent inspected the volumes before writing the final report.",
+      "visual_evidence": "The JSON file creation or population should happen after the agent has viewed the properties of the volumes in VeraCrypt."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "The report is saved in the correct directory.",
+      "visual_evidence": "The text editor or terminal commands must show the file being saved exactly at /home/ga/Documents/encryption_audit_report.json, not in a temporary folder or just printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected JSON report must be saved at /home/ga/Documents/encryption_audit_report.json. The correct properties for the volumes are: finance_dept.hc (Encryption: AES, Hash: SHA-512), hr_dept.hc (Encryption: Serpent, Hash: SHA-256), engineering_dept.hc (Encryption: Twofish, Hash: Whirlpool). The volume_type for all should be 'Normal'."
+}

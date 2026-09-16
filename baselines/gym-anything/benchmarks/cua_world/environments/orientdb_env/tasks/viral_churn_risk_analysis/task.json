@@ -1,0 +1,29 @@
+{
+  "id": "viral_churn_risk_analysis@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Perform a viral risk analysis in OrientDB by linking support tickets to users and identifying friends of dissatisfied customers in the 'demodb' database. Link 'Profiles' to 'Tickets' using a new edge class named 'FiledTicket' where the email addresses match. Identify profiles associated with 'High' severity tickets and mark all their directly connected friends (via 'HasFriend' edges) with a boolean property 'ChurnRisk' set to true. Export the list of emails for these at-risk friends as a JSON array to ~/at_risk_users.json.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/viral_churn_risk_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/viral_churn_risk_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/at_risk_users.json",
+    "high_risk_user_email": "john.smith@example.com",
+    "target_at_risk_email": "maria.garcia@example.com",
+    "low_risk_user_email": "david.jones@example.com",
+    "target_safe_email": "sophie.martin@example.com"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_viral_churn_risk"
+    }
+  }
+}

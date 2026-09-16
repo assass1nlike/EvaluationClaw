@@ -1,0 +1,65 @@
+{
+  "task_id": "extract_csharp_shared_project@1",
+  "task_completion": [
+    {
+      "id": "create_shared_project",
+      "description": "Create a new C# Shared Project named 'SecurityCore'",
+      "points": 15,
+      "visual_evidence": "The Solution Explorer in Visual Studio shows a project named 'SecurityCore' (typically with a Shared Project icon)."
+    },
+    {
+      "id": "extract_crypto_engine",
+      "description": "Extract 'CryptoEngine.cs' into the new Shared Project",
+      "points": 15,
+      "visual_evidence": "The Solution Explorer shows the file 'CryptoEngine.cs' located inside the 'SecurityCore' project."
+    },
+    {
+      "id": "remove_duplicate_files",
+      "description": "Remove the duplicate 'CryptoEngine.cs' files from the original projects",
+      "points": 10,
+      "visual_evidence": "The Solution Explorer does NOT show 'CryptoEngine.cs' directly under the 'IncidentAgent' or 'AuditTool' project file trees."
+    },
+    {
+      "id": "reference_shared_project",
+      "description": "Reference the 'SecurityCore' project from both 'IncidentAgent' and 'AuditTool'",
+      "points": 20,
+      "visual_evidence": "The Solution Explorer shows 'SecurityCore' listed under the 'Dependencies' -> 'Projects' (or 'Shared Projects') node for both the 'IncidentAgent' and 'AuditTool' projects."
+    },
+    {
+      "id": "define_ir_symbol",
+      "description": "Define the conditional compilation symbol 'IR_AGENT' for the 'IncidentAgent' project",
+      "points": 10,
+      "visual_evidence": "The Visual Studio Project Properties window for 'IncidentAgent' (Build -> General) shows 'IR_AGENT' entered in the 'Conditional compilation symbols' text box."
+    },
+    {
+      "id": "define_audit_symbol",
+      "description": "Define the conditional compilation symbol 'AUDIT_TOOL' for the 'AuditTool' project",
+      "points": 10,
+      "visual_evidence": "The Visual Studio Project Properties window for 'AuditTool' (Build -> General) shows 'AUDIT_TOOL' entered in the 'Conditional compilation symbols' text box."
+    },
+    {
+      "id": "rebuild_solution",
+      "description": "The final solution must rebuild without errors",
+      "points": 20,
+      "visual_evidence": "The Visual Studio Output window or Error List shows a successful build message (e.g., 'Rebuild All: 3 succeeded, 0 failed' or '0 errors') after the changes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_visual_studio_gui",
+      "description": "The agent used the Visual Studio 2022 GUI to perform the refactoring and configuration",
+      "visual_evidence": "Screenshots show interactions within the Visual Studio IDE (Solution Explorer, Properties windows, Output panel) rather than just editing .csproj files in a basic text editor or using terminal commands."
+    },
+    {
+      "id": "genuine_build_output",
+      "description": "The build success message comes from the actual Visual Studio build process",
+      "visual_evidence": "The build output is visible in the integrated Visual Studio Output window or Error List, showing standard MSBuild logs, not a mocked text file or manually typed terminal output."
+    },
+    {
+      "id": "correct_solution_context",
+      "description": "The agent is working within the correct 'SecurityToolsSuite.sln' solution",
+      "visual_evidence": "The top of the Solution Explorer clearly displays 'Solution SecurityToolsSuite' containing the required projects."
+    }
+  ],
+  "privileged_info_for_vlm": "The shared project must be named exactly 'SecurityCore' (standard extension .shproj). The conditional compilation symbol for the IncidentAgent project must be exactly 'IR_AGENT'. The conditional compilation symbol for the AuditTool project must be exactly 'AUDIT_TOOL'."
+}

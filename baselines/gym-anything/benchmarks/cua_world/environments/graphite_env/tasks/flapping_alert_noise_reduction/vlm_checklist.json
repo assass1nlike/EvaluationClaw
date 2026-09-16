@@ -1,0 +1,53 @@
+{
+  "task_id": "flapping_alert_noise_reduction@1",
+  "task_completion": [
+    {
+      "id": "dashboard_named",
+      "description": "Create a new dashboard and name it 'Alert Noise Reduction'.",
+      "points": 10,
+      "visual_evidence": "The Graphite dashboard UI should be visible with the title 'Alert Noise Reduction' at the top."
+    },
+    {
+      "id": "ec2_graph_configured",
+      "description": "Configure the 'Sustained EC2 Load (>85%)' graph with the correct target and mathematical functions.",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Sustained EC2 Load (>85%)' is visible. The target/query box or legend should show the logic: removeBelowValue(movingAverage(servers.ec2_instance_*.cpu.*, 5), 85)."
+    },
+    {
+      "id": "rds_graph_configured",
+      "description": "Configure the 'Sustained RDS Load (>60%)' graph with the correct target and mathematical functions.",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Sustained RDS Load (>60%)' is visible. The target/query box or legend should show the logic: removeBelowValue(movingAverage(servers.rds_database.cpu.utilization, 4), 60)."
+    },
+    {
+      "id": "differential_graph_configured",
+      "description": "Configure the 'Instance 1 Noise Differential' graph with the correct target and mathematical functions.",
+      "points": 30,
+      "visual_evidence": "A graph titled 'Instance 1 Noise Differential' is visible. The target/query box or legend should show the logic: diffSeries(servers.ec2_instance_1.cpu.utilization, movingAverage(servers.ec2_instance_1.cpu.utilization, 5))."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the completed dashboard.",
+      "points": 10,
+      "visual_evidence": "A visual confirmation that the dashboard has been saved, such as a 'Dashboard saved' notification, the save icon appearing inactive/completed, or the dashboard appearing in the saved dashboards list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent must use the Graphite Web UI to create the dashboard and graphs.",
+      "visual_evidence": "Screenshots should show the agent interacting with the actual Graphite web interface in a browser, not a terminal or API client."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "The agent must not bypass the UI by manually writing a JSON dashboard file in a text editor.",
+      "visual_evidence": "There should be no screenshots of the agent writing JSON code in an editor like nano, vim, or VS Code to create the dashboard."
+    },
+    {
+      "id": "genuine_graph_rendering",
+      "description": "The graphs should be genuinely rendered by the application.",
+      "visual_evidence": "The graphs should display actual axes, grid lines, and data lines (or empty graph areas if no data matches the time range), characteristic of Graphite's rendering engine."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Alert Noise Reduction'. The expected graph titles are exactly 'Sustained EC2 Load (>85%)', 'Sustained RDS Load (>60%)', and 'Instance 1 Noise Differential'."
+}

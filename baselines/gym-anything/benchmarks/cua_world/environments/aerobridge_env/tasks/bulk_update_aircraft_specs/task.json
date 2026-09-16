@@ -1,0 +1,46 @@
+{
+  "id": "bulk_update_aircraft_specs@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "A compliance audit revealed that several registered aircraft are missing mandatory weight specifications. Update the 'mass' field for 'Aircraft' records in the 'registry' app of the Aerobridge database using the manufacturer datasheet located at '~/manufacturer_datasheet.csv'. The datasheet provides takeoff weights in grams, which must be converted to kilograms for the database. Match the CSV 'model' field against the aircraft 'model' or 'name' fields as appropriate.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_update_aircraft_specs/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_update_aircraft_specs/export_result.sh"
+  },
+  "metadata": {
+    "datasheet_path": "/home/ga/manufacturer_datasheet.csv",
+    "targets": [
+      {
+        "model": "Mavic 2 Pro",
+        "grams": 907,
+        "expected_kg": 0.907
+      },
+      {
+        "model": "Autel Evo II",
+        "grams": 1150,
+        "expected_kg": 1.15
+      },
+      {
+        "model": "Parrot Anafi",
+        "grams": 320,
+        "expected_kg": 0.32
+      }
+    ],
+    "distractor": {
+      "model": "Custom Heavy Lifter",
+      "initial_kg": 25.5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_update_aircraft_specs"
+    }
+  }
+}

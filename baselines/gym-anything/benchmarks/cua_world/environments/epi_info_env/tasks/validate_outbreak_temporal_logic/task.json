@@ -1,0 +1,33 @@
+{
+  "id": "validate_outbreak_temporal_logic@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Perform data quality assurance on an outbreak dataset (C:\\Users\\Docker\\Documents\\EpiInfoData\\Ebola_Check.csv) using Epi Info 7 Classic Analysis. Identify records where DateOnset occurs before DateExposure or DateReport occurs before DateOnset. Generate a list of these invalid records including only the variables GlobalID, DateExposure, DateOnset, and DateReport. Save the output to C:\\Users\\Docker\\Documents\\EpiInfoData\\Temporal_Errors.html.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\validate_outbreak_temporal_logic\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\validate_outbreak_temporal_logic\\export_result.ps1"
+  },
+  "metadata": {
+    "data_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\Ebola_Check.csv",
+    "output_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\Temporal_Errors.html",
+    "error_ids": [
+      "CASE_015",
+      "CASE_042",
+      "CASE_088",
+      "CASE_101"
+    ],
+    "total_records": 150
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_validate_outbreak_temporal_logic"
+    }
+  }
+}

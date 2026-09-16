@@ -1,0 +1,42 @@
+{
+  "id": "generate_pipeline_pivot_report@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Generate a revenue forecast report in Odoo CRM using the pivot view. The report must show Expected Revenue as the only measure, with rows grouped by Salesperson and columns grouped by Stage. Export the final report to /home/ga/Documents/revenue_report.xlsx.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_pipeline_pivot_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_pipeline_pivot_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "revenue_report.xlsx",
+    "expected_path": "/home/ga/Documents/revenue_report.xlsx",
+    "required_rows": [
+      "Alice Sales",
+      "Mitchell Admin"
+    ],
+    "required_cols": [
+      "New",
+      "Won"
+    ],
+    "check_values": {
+      "Mitchell Admin": {
+        "Won": 50000
+      },
+      "Alice Sales": {
+        "Qualified": 25000
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_pipeline_pivot_report"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_field_injection_to_constructor@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open OrderProcessingService.java in the IDE",
+      "points": 10,
+      "visual_evidence": "The file OrderProcessingService.java is visible in the active editor tab in IntelliJ IDEA."
+    },
+    {
+      "id": "remove_autowired",
+      "description": "Remove @Autowired annotations from the dependency fields",
+      "points": 20,
+      "visual_evidence": "The @Autowired annotations are no longer present above the InventoryService, PaymentGateway, and NotificationService fields in OrderProcessingService.java."
+    },
+    {
+      "id": "make_fields_final",
+      "description": "Declare the dependency fields as final",
+      "points": 20,
+      "visual_evidence": "The fields for InventoryService, PaymentGateway, and NotificationService are explicitly declared with the 'final' keyword (e.g., 'private final InventoryService inventoryService;')."
+    },
+    {
+      "id": "add_public_constructor",
+      "description": "Create a public constructor for dependency injection",
+      "points": 20,
+      "visual_evidence": "A public constructor 'public OrderProcessingService(...)' is present in the class, taking the three dependencies as arguments and assigning them to the final fields."
+    },
+    {
+      "id": "run_tests_success",
+      "description": "Compile the project and ensure all tests pass",
+      "points": 30,
+      "visual_evidence": "A successful test run is visible in the IntelliJ test runner (green checkmarks for OrderProcessingServiceTest) or a successful Maven build/test output ('BUILD SUCCESS') is visible in the terminal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ide_gui",
+      "description": "The agent used the IntelliJ IDEA GUI to perform the refactoring.",
+      "visual_evidence": "Screenshots show interaction with the IntelliJ IDEA editor, menus, or automated refactoring tools, rather than just terminal text editors or sed commands."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Tests were genuinely executed.",
+      "visual_evidence": "The test runner tool window in IntelliJ is visible showing the execution of OrderProcessingServiceTest, or a genuine Maven test command was run in the terminal."
+    },
+    {
+      "id": "tests_not_bypassed",
+      "description": "The test file was not gutted or bypassed to force a pass.",
+      "visual_evidence": "If the test file is visible, it still contains the original Mockito @InjectMocks setup and assertions, rather than being deleted, commented out, or replaced with empty tests."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is `src/main/java/com/example/orders/service/OrderProcessingService.java`. The three dependencies that must be refactored are `InventoryService`, `PaymentGateway`, and `NotificationService`. The VLM should verify that: 1) `@Autowired` is removed from these fields, 2) the fields are marked `private final`, 3) a `public OrderProcessingService(...)` constructor is added to initialize them. The test file `OrderProcessingServiceTest.java` uses `@InjectMocks`, which automatically supports constructor injection, so the tests should pass without needing modification if the refactoring is done correctly."
+}

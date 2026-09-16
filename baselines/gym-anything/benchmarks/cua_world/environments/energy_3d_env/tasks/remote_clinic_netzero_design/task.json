@@ -1,0 +1,30 @@
+{
+  "id": "remote_clinic_netzero_design@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are designing a net-zero medical clinic for a remote deployment in Phoenix, AZ. The Energy3D project 'building-shape.ng3' is open and contains four differently shaped buildings. First, identify and KEEP the building with the Flat Roof, and DELETE the other three buildings from the scene. Second, change the project's geographic location/city to Phoenix, AZ. Third, configure the building for a hot desert climate: change the U-value of all walls to 0.2 W/m²·K and the Solar Heat Gain Coefficient (SHGC) of all windows to 0.25. Next, add a solar array to the flat roof consisting of exactly 40 solar panels, configured with a 15° tilt angle and 180° azimuth (facing South). Run the Annual Building Energy Analysis to confirm generation, then export the analysis results to a CSV file at '~/Documents/Energy3D/phoenix_clinic_energy.csv'. Finally, save the modified 3D model as '~/Documents/Energy3D/phoenix_clinic.ng3'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/remote_clinic_netzero_design/setup_task.sh",
+    "post_task": "/workspace/tasks/remote_clinic_netzero_design/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Humanitarian Engineering / Renewable Energy",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/phoenix_clinic_energy.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/phoenix_clinic.ng3",
+    "target_location": "Phoenix",
+    "target_panel_count": 40
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_remote_clinic_design"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "manage_lobby_admission@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Secure the meeting room 'HR_Interview_Confidential' (http://localhost:8080/HR_Interview_Confidential) by enabling Lobby Mode as 'Interviewer' in Firefox and admitting 'Jane_Doe_Candidate' who is joining from Epiphany. Both browsers must remain open with the meeting active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manage_lobby_admission/setup_task.sh",
+    "post_task": "/workspace/tasks/manage_lobby_admission/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "room_name": "HR_Interview_Confidential",
+    "host_name": "Interviewer",
+    "guest_name": "Jane_Doe_Candidate",
+    "guest_name_alt": "Jane",
+    "jitsi_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manage_lobby_admission"
+    }
+  }
+}

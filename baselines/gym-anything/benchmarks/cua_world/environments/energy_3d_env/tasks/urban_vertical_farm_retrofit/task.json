@@ -1,0 +1,27 @@
+{
+  "id": "urban_vertical_farm_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Model a warehouse in Chicago, upgrade its walls and windows for vertical farming daylighting and thermal retention, install a rooftop solar array, and run an annual energy analysis.\n\nExpected Actions:\n1. Change the project location to Chicago, IL.\n2. Draw a rectangular building (approximately 30m x 20m, exact dimensions not strict) with a height of at least 12 meters (to simulate a multi-story warehouse). Ensure it has a flat roof.\n3. Select the building walls and add windows to maximize daylighting. Set the Window-to-Wall Ratio (WWR) to 60%.\n4. Upgrade the window thermal properties by changing the windows' U-value to 1.2 W/(m²·K).\n5. Insulate the exterior by changing the walls' U-value to 0.3 W/(m²·K).\n6. Add a Solar Panel Array covering the flat roof. Configure the panels to face South with a tilt angle of 35 degrees.\n7. Run an 'Annual Energy Analysis' for the building (via the Analysis menu) and wait for the chart to fully render.\n8. Save the project file as `vertical_farm_retrofit.ng3` in the `~/Documents/Energy3D/` directory.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_vertical_farm_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_vertical_farm_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/Energy3D/vertical_farm_retrofit.ng3",
+    "occupation": "Architectural Designer",
+    "industry": "Urban Agriculture"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_urban_vertical_farm_retrofit"
+    }
+  }
+}

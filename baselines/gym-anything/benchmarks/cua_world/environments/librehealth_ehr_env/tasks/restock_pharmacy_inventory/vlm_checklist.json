@@ -1,0 +1,59 @@
+{
+  "task_id": "restock_pharmacy_inventory@1",
+  "task_completion": [
+    {
+      "id": "login_librehealth",
+      "description": "Verify the agent successfully logged into LibreHealth EHR.",
+      "points": 10,
+      "visual_evidence": "Look for the LibreHealth EHR dashboard or a screen indicating the user 'admin' is logged in."
+    },
+    {
+      "id": "navigate_inventory_transaction",
+      "description": "Verify the agent navigated to the inventory transaction or stock addition screen.",
+      "points": 10,
+      "visual_evidence": "Look for an 'Inventory', 'Dispensary', or 'Transactions' page with a form to add or purchase stock."
+    },
+    {
+      "id": "select_drug",
+      "description": "Verify 'Simvastatin 20mg' is selected as the medication.",
+      "points": 15,
+      "visual_evidence": "Look for 'Simvastatin 20mg' entered or selected in the drug name, product, or medication field of the transaction form."
+    },
+    {
+      "id": "enter_transaction_type_and_qty",
+      "description": "Verify the transaction type is set to Purchase/Addition and the quantity is 500.",
+      "points": 20,
+      "visual_evidence": "Look for 'Purchase', 'Addition', or a similar positive adjustment selected in the transaction type field, and '500' entered in the quantity field."
+    },
+    {
+      "id": "enter_lot_exp_vendor",
+      "description": "Verify the lot number, expiration date, and vendor are entered correctly.",
+      "points": 25,
+      "visual_evidence": "Look for 'SIM-2025-X84' in the lot number field, '2028-12-31' in the expiration date field, and 'PharmaDistro Inc' in the vendor field."
+    },
+    {
+      "id": "verify_stock_updated",
+      "description": "Verify the transaction was saved and the stock level is updated.",
+      "points": 20,
+      "visual_evidence": "Look for a success message (e.g., 'Transaction saved', 'Stock updated') or an inventory summary list showing the new stock level for Simvastatin 20mg."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the LibreHealth EHR web interface to complete the task.",
+      "visual_evidence": "Look for a web browser displaying the LibreHealth EHR application. The agent should not be using terminal commands (like curl or mysql) to bypass the UI."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Ensure the agent did not just type the required details into a text editor or a fake HTML page.",
+      "visual_evidence": "The screenshots must show the actual LibreHealth EHR interface with its standard navigation menus and styling, not a generic text editor or isolated form."
+    },
+    {
+      "id": "genuine_submission",
+      "description": "Ensure the agent actually submitted the form rather than just filling it out and stopping.",
+      "visual_evidence": "Look for evidence of form submission, such as a loading indicator, a confirmation screen, or the updated inventory table appearing after the form was filled."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an inventory transaction in LibreHealth EHR for the real drug 'Simvastatin 20mg'. The transaction details to verify are synthetic and must match exactly: Quantity = 500, Lot Number = 'SIM-2025-X84', Expiration Date = '2028-12-31', and Vendor = 'PharmaDistro Inc'."
+}

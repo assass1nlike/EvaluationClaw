@@ -1,0 +1,53 @@
+{
+  "task_id": "pci_dss_compliance_controls@1",
+  "task_completion": [
+    {
+      "id": "wazuh_dashboard_accessed",
+      "description": "Access the Wazuh dashboard",
+      "points": 10,
+      "visual_evidence": "A web browser window showing the Wazuh dashboard interface accessed via https://localhost."
+    },
+    {
+      "id": "sca_policy_deployed",
+      "description": "Deploy a custom SCA policy YAML file with at least 5 compliance checks",
+      "points": 25,
+      "visual_evidence": "A terminal or text editor showing a YAML file located in the Wazuh shared directory (e.g., /var/ossec/etc/shared/) containing at least 5 distinct Security Configuration Assessment (SCA) checks targeting PCI DSS Requirement 10."
+    },
+    {
+      "id": "email_alerting_configured",
+      "description": "Configure email alerting in ossec.conf",
+      "points": 15,
+      "visual_evidence": "A terminal or text editor showing the /var/ossec/etc/ossec.conf file with email alerting settings configured (e.g., <email_notification>yes</email_notification> and related SMTP settings)."
+    },
+    {
+      "id": "custom_rules_implemented",
+      "description": "Implement at least two custom detection rules of severity 10 or higher",
+      "points": 25,
+      "visual_evidence": "A terminal or text editor showing a custom Wazuh rules XML file (e.g., in /var/ossec/etc/rules/) containing at least 2 distinct rules with level=\"10\" (or higher) designed to identify PCI DSS Requirement 10 violations."
+    },
+    {
+      "id": "compliance_report_saved",
+      "description": "Save a compliance evidence report mapping controls to sub-requirements",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing a file saved exactly at /home/ga/Desktop/pci_compliance_report.txt containing a substantial amount of text (at least 800 characters) that documents the implemented controls and maps them to PCI DSS sub-requirements 10.1 through 10.7."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration_files",
+      "description": "Ensure the agent edits the actual Wazuh configuration files rather than creating dummy files in unrelated directories.",
+      "visual_evidence": "File paths visible in the terminal or text editor should point to the genuine Wazuh installation directories (e.g., /var/ossec/etc/shared/ for SCA, /var/ossec/etc/ossec.conf, and /var/ossec/etc/rules/ for custom rules)."
+    },
+    {
+      "id": "report_content_authenticity",
+      "description": "Verify the compliance report contains actual documentation rather than copy-pasted task instructions or repeated placeholder text.",
+      "visual_evidence": "The text in pci_compliance_report.txt should show coherent, structured documentation explicitly mapping specific implemented controls to sub-requirements 10.1 through 10.7."
+    },
+    {
+      "id": "correct_file_formats",
+      "description": "Ensure the rules and SCA policies are written in their correct respective formats.",
+      "visual_evidence": "The custom rules file must use valid XML syntax (e.g., <group>, <rule id=\"...\">), and the SCA policy file must use valid YAML syntax."
+    }
+  ],
+  "privileged_info_for_vlm": "The SCA policy must contain at least 5 checks. The custom detection rules must include at least 2 distinct rules with a severity level of 10 or higher (look for level=\"10\" or above). The compliance report must be saved exactly at /home/ga/Desktop/pci_compliance_report.txt and contain at least 800 characters. The passing threshold for the automated script is 65 points."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "import_ediscovery_mbox@1",
+  "task_completion": [
+    {
+      "id": "extract_mbox_file",
+      "description": "Extract the MBOX file from the downloaded ZIP archive.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window showing the extraction of 'ediscovery_export.zip' or the presence of the extracted '.mbox' file (e.g., 'client_archive.mbox') in the Downloads folder."
+    },
+    {
+      "id": "open_thunderbird",
+      "description": "Launch the Thunderbird application.",
+      "points": 10,
+      "visual_evidence": "The Mozilla Thunderbird application window is open and visible on the screen."
+    },
+    {
+      "id": "import_mbox_thunderbird",
+      "description": "Import or access the MBOX file through Thunderbird's Local Folders.",
+      "points": 25,
+      "visual_evidence": "Thunderbird's left sidebar shows a folder corresponding to the imported MBOX (e.g., 'client_archive') listed under 'Local Folders'."
+    },
+    {
+      "id": "open_target_email",
+      "description": "Locate and open the target email containing the W-9 form.",
+      "points": 25,
+      "visual_evidence": "The email with the subject 'Fwd: Executed W-9 Form for Project' is selected in Thunderbird's message list, and the email body or the 'fw9.pdf' attachment is visible in the message reading pane."
+    },
+    {
+      "id": "save_pdf_attachment",
+      "description": "Save the PDF attachment to the specified Case_Files directory.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog box in Thunderbird saving 'fw9.pdf' to the 'Case_Files' directory (inside Documents), or a file manager window showing 'fw9.pdf' successfully located in '~/Documents/Case_Files/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "thunderbird_used_for_email",
+      "description": "Verify that the email was accessed and viewed within the Thunderbird GUI.",
+      "visual_evidence": "The email and its contents should be visible inside the Thunderbird application interface, not opened in a text editor or read via terminal commands (e.g., cat, grep)."
+    },
+    {
+      "id": "attachment_saved_via_gui",
+      "description": "Verify that the PDF was saved using Thunderbird's attachment saving functionality.",
+      "visual_evidence": "The agent should use Thunderbird's 'Save' or 'Save As' buttons/context menus for the attachment, rather than using terminal commands to manually extract and decode the base64 string from the MBOX file."
+    },
+    {
+      "id": "no_fake_pdf_creation",
+      "description": "Verify that the PDF file was genuinely extracted and not created as a dummy file.",
+      "visual_evidence": "There should be no terminal commands like 'touch ~/Documents/Case_Files/fw9.pdf' or 'echo > fw9.pdf' used to bypass the actual extraction process."
+    }
+  ],
+  "privileged_info_for_vlm": "The ZIP archive is located at '/home/ga/Downloads/ediscovery_export.zip' and contains an MBOX file (typically 'client_archive.mbox'). The target email subject is exactly 'Fwd: Executed W-9 Form for Project'. The expected output path for the extracted PDF attachment is '/home/ga/Documents/Case_Files/fw9.pdf'."
+}

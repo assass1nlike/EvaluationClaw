@@ -1,0 +1,44 @@
+{
+  "id": "tcp_state_machine_completion@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Complete the TCP Connection State Machine diagram in `~/Diagrams/tcp_state_machine.drawio` based on the RFC 793 reference provided in `~/Desktop/tcp_rfc793_state_machine.txt`. The final diagram must accurately reflect the RFC, containing exactly 11 states (including `FIN_WAIT_2`, `CLOSING`, `TIME_WAIT`, `CLOSE_WAIT`, and `LAST_ACK`) and all required transitions such as teardown sequences and the `Simultaneous Open` transition. Ensure the incorrect direct transition from `ESTABLISHED` to `CLOSED` is removed and all transitions are labeled with their corresponding events and actions. Export the final diagram as a PNG image to `~/Diagrams/tcp_state_machine.png`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tcp_state_machine_completion/setup_task.sh",
+    "post_task": "/workspace/tasks/tcp_state_machine_completion/export_result.sh"
+  },
+  "metadata": {
+    "diagram_path": "/home/ga/Diagrams/tcp_state_machine.drawio",
+    "export_path": "/home/ga/Diagrams/tcp_state_machine.png",
+    "rfc_path": "/home/ga/Desktop/tcp_rfc793_state_machine.txt",
+    "required_states": [
+      "CLOSED",
+      "LISTEN",
+      "SYN_SENT",
+      "SYN_RCVD",
+      "ESTABLISHED",
+      "FIN_WAIT_1",
+      "FIN_WAIT_2",
+      "CLOSING",
+      "TIME_WAIT",
+      "CLOSE_WAIT",
+      "LAST_ACK"
+    ],
+    "forbidden_transition": {
+      "source": "ESTABLISHED",
+      "target": "CLOSED"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tcp_state_machine"
+    }
+  }
+}

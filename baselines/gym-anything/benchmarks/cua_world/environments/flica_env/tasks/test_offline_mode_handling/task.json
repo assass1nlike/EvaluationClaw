@@ -1,0 +1,36 @@
+{
+  "id": "test_offline_mode_handling@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Test the Flight Crew View app's behavior when the device is offline. Search for flight 'UA 100' while disconnected from Wi-Fi and document the application's response in a report at /sdcard/offline_test_report.txt. Ensure device connectivity is restored before completing the task.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/test_offline_mode_handling/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/test_offline_mode_handling/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/sdcard/offline_test_report.txt",
+    "flight_query": "UA 100",
+    "required_keywords": [
+      "error",
+      "network",
+      "connect",
+      "fail",
+      "offline",
+      "internet",
+      "loading",
+      "spin"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_test_offline_mode_handling"
+    }
+  }
+}

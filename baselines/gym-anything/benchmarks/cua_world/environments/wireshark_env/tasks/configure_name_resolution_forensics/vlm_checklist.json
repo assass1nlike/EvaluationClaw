@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_name_resolution_forensics@1",
+  "task_completion": [
+    {
+      "id": "wireshark_opened_pcap",
+      "description": "Open the smtp.pcap file in Wireshark",
+      "points": 10,
+      "visual_evidence": "Wireshark is open and the packet list displays the contents of smtp.pcap."
+    },
+    {
+      "id": "client_name_resolved",
+      "description": "Configure name resolution for the Client IP",
+      "points": 25,
+      "visual_evidence": "The IP address 10.10.1.4 is replaced by 'Infected_Client' in the Source or Destination columns of the Wireshark packet list, or in the exported text file."
+    },
+    {
+      "id": "server_name_resolved",
+      "description": "Configure name resolution for the Server IP",
+      "points": 25,
+      "visual_evidence": "The IP address 74.53.140.153 is replaced by 'Corporate_Mail_Server' in the Source or Destination columns of the Wireshark packet list, or in the exported text file."
+    },
+    {
+      "id": "export_range_configured",
+      "description": "Set the export range to the first 20 packets",
+      "points": 20,
+      "visual_evidence": "The 'Export Packet Dissections' dialog shows the packet range set to 1-20, or the final exported text file is shown containing exactly 20 packet summary lines."
+    },
+    {
+      "id": "file_exported_correctly",
+      "description": "Export the packet summary to the specified text file",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal, or file manager shows the file /home/ga/Documents/captures/smtp_resolved.txt exists and contains the plain text packet summary with the resolved names."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_wireshark_usage",
+      "description": "The agent used Wireshark's features to configure name resolution and export the file.",
+      "visual_evidence": "Screenshots should show interaction with Wireshark's 'Hosts' configuration, preferences, or export dialogs, rather than manually typing the output in a text editor."
+    },
+    {
+      "id": "no_manual_text_editing",
+      "description": "The agent did not manually edit the exported text file to fake the name resolution.",
+      "visual_evidence": "The name resolution should be visible within the Wireshark GUI before or during the export process, not just in the final text file via find-and-replace."
+    },
+    {
+      "id": "correct_ip_mapping",
+      "description": "The agent mapped the correct IPs based on the task description.",
+      "visual_evidence": "The agent specifically mapped 10.10.1.4 to 'Infected_Client' and 74.53.140.153 to 'Corporate_Mail_Server', rather than guessing or mapping all IPs."
+    }
+  ],
+  "privileged_info_for_vlm": "The Client IP (sending HELO/EHLO) is 10.10.1.4. The Server IP (sending 220 greeting) is 74.53.140.153. The correct export path is /home/ga/Documents/captures/smtp_resolved.txt. The expected client name is 'Infected_Client' and the expected server name is 'Corporate_Mail_Server'."
+}

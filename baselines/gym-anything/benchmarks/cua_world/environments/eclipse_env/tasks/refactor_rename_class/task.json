@@ -1,0 +1,28 @@
+{
+  "id": "refactor_rename_class@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Rename the Java class 'OldClassName' in the 'com.example.demo' package to 'NewClassName' within the Maven project located at ~/eclipse-workspace/refactor-demo/. Ensure all references are updated and the project compiles successfully after the change.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_rename_class/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_rename_class/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/refactor-demo",
+    "old_class_name": "OldClassName",
+    "new_class_name": "NewClassName",
+    "package": "com.example.demo"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_rename_class"
+    }
+  }
+}

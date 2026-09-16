@@ -1,0 +1,35 @@
+{
+  "id": "safety_bulletin_layout@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are the Safety Director at Summit Construction Group. Create a professional one-page 'Site Safety Alert' bulletin regarding Winter Weather Hazards using the draft text in '/home/ga/Documents/safety_draft.txt' and assets in '/home/ga/Documents/assets/'. The document must feature a single-column layout for the headline ('SITE SAFETY ALERT') and subtitle at the top, while the rest of the body text is formatted into two columns. Incorporate the image 'hazard_photo.jpg' with text wrapping, apply bullet points to the 'Key Precautions' list, and place the 'IMMEDIATE ACTION REQUIRED' section inside a bordered box. Save the final document as '/home/ga/Documents/Winter_Safety_Alert.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/safety_bulletin_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/safety_bulletin_layout/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Winter_Safety_Alert.odt",
+    "input_text": "/home/ga/Documents/safety_draft.txt",
+    "required_images": [
+      "hazard_photo.jpg"
+    ],
+    "min_file_size_bytes": 10000,
+    "required_structure": {
+      "columns": 2,
+      "images_wrapped": true,
+      "borders_present": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_safety_bulletin"
+    }
+  }
+}

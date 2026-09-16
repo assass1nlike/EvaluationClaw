@@ -1,0 +1,33 @@
+{
+  "id": "clinical_app_tour@1",
+  "version": "1.0",
+  "env_id": "openice_env@0.1",
+  "description": "You are a clinical informatics specialist leading a structured orientation session for new ICU staff on the OpenICE medical device interoperability platform. Your goal is to demonstrate the clinical applications available in OpenICE Supervisor. Create a Simulated Multiparameter Monitor device adapter to provide live data, then evaluate the four clinical demonstration applications: Vital Signs, Xray Viewer, Patient ID, and Infusion Safety. Document your findings in a clinical education guide saved to /home/ga/Desktop/clinical_guide.txt. For each application, the guide must include a dedicated section describing: (1) the clinical problem or patient safety scenario addressed, (2) the required device data or connections, (3) its use in daily clinical practice, and (4) how it demonstrates OpenICE's goal of medical device interoperability for patient safety. OpenICE Supervisor is already running on the desktop.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clinical_app_tour/setup_task.sh",
+    "post_task": "/workspace/tasks/clinical_app_tour/export_result.sh"
+  },
+  "metadata": {
+    "required_device": "Multiparameter Monitor",
+    "required_apps": [
+      "Vital Signs",
+      "Xray Viewer",
+      "Patient ID",
+      "Infusion Safety"
+    ],
+    "required_file": "/home/ga/Desktop/clinical_guide.txt",
+    "clinical_context": "ICU staff education and orientation",
+    "pass_threshold": 65
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clinical_app_tour"
+    }
+  }
+}

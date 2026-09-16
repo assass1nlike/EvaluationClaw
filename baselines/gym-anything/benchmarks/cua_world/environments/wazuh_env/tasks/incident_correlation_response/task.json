@@ -1,0 +1,28 @@
+{
+  "id": "incident_correlation_response@1",
+  "version": "1.0",
+  "env_id": "wazuh_env@0.1",
+  "description": "You are a detection engineer at an enterprise SOC responding to a security incident. Investigate the alerts and security events in the Wazuh dashboard to identify frequently firing rules and create a correlation rule using 'frequency', 'timeframe', and 'if_matched_sid' attributes to escalate repeated occurrences of a suspicious event type to a high-severity alert (level 13 or above). Configure a Wazuh active response in ossec.conf triggered by this rule and document the investigation—including rule IDs, correlation patterns, thresholds, and the automated response configuration—in a report (minimum 300 characters) at /home/ga/Desktop/incident_report.txt. \n\nDashboard: admin/SecretPassword at https://localhost\nAPI: wazuh-wui/MyS",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/incident_correlation_response/setup_task.sh",
+    "post_task": "/workspace/tasks/incident_correlation_response/export_result.sh"
+  },
+  "metadata": {
+    "min_rule_level": 13,
+    "report_path": "/home/ga/Desktop/incident_report.txt",
+    "min_report_chars": 300,
+    "description": "Investigate real alerts, create correlation rule with frequency/timeframe, configure active response, write incident report"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_incident_correlation_response"
+    }
+  }
+}

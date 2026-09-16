@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_classroom_autograder@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Agent opened the autograder project in an IDE or text editor.",
+      "points": 10,
+      "visual_evidence": "An IDE (like PyCharm or VS Code) or text editor is open showing the file tree for '/home/ga/PycharmProjects/autograder/' with 'grader/', 'tests/', and 'data/' directories visible."
+    },
+    {
+      "id": "fix_late_penalty",
+      "description": "Agent modified the late penalty logic in the grader module.",
+      "points": 15,
+      "visual_evidence": "Code editor showing modifications to the late penalty calculation (e.g., reducing the deduction amount or adding a grace period) in a Python file within the 'grader/' directory."
+    },
+    {
+      "id": "fix_boundary_scores",
+      "description": "Agent modified the letter grade boundary logic.",
+      "points": 15,
+      "visual_evidence": "Code editor showing changes to the grade boundary conditions (e.g., changing '<' to '<=' or adjusting thresholds for 90.0, 80.0) in a Python file within the 'grader/' directory."
+    },
+    {
+      "id": "fix_weighted_average",
+      "description": "Agent modified the weighted average calculation to handle the unadministered Final Exam.",
+      "points": 15,
+      "visual_evidence": "Code editor showing changes to the weighted average logic, such as excluding the 'Final Exam' from the calculation or adjusting the total weight denominator, in the 'grader/' directory."
+    },
+    {
+      "id": "fix_csv_export",
+      "description": "Agent modified the CSV export logic to align columns.",
+      "points": 15,
+      "visual_evidence": "Code editor showing changes to the CSV writing logic (e.g., adding missing fields, reordering variables, or fixing the dictionary keys) to match the header row in the 'grader/' directory."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Agent successfully ran the test suite with all tests passing.",
+      "points": 30,
+      "visual_evidence": "Terminal or IDE test runner output showing 'pytest' execution with exactly 9 tests passing (e.g., '9 passed' in green text)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_modification",
+      "description": "Agent did not modify the test files to force them to pass.",
+      "visual_evidence": "No files in the 'tests/' directory show unsaved changes, and terminal history does not show commands editing files inside 'tests/'."
+    },
+    {
+      "id": "data_folder_intact",
+      "description": "Agent did not delete the data folder.",
+      "visual_evidence": "The 'data/' folder remains visible in the project file tree throughout the trajectory."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Test results are generated from actual execution.",
+      "visual_evidence": "The pytest output appears in a genuine terminal emulator or IDE run window, with standard pytest formatting, execution times, and collection output, rather than being typed out in a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/PycharmProjects/autograder. Although some metadata might suggest 10 tests, pytest will collect exactly 9 tests. The agent must fix 4 specific logic bugs in the grader/ module to achieve a passing score (>= 60 points). The tests/ directory and data/ directory must remain unmodified/undeleted."
+}

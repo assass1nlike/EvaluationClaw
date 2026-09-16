@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_patient_demographics_report@1",
+  "task_completion": [
+    {
+      "id": "login_librehealth",
+      "description": "Log in to LibreHealth EHR",
+      "points": 10,
+      "visual_evidence": "The LibreHealth EHR dashboard or interface is visible in a web browser, indicating successful login."
+    },
+    {
+      "id": "navigate_to_report",
+      "description": "Navigate to the patient demographics report section",
+      "points": 10,
+      "visual_evidence": "A reporting interface within LibreHealth EHR is open, specifically for patient demographics, clinical reports, or patient searches."
+    },
+    {
+      "id": "apply_demographic_filters",
+      "description": "Apply filters for male patients born before January 1, 1960",
+      "points": 30,
+      "visual_evidence": "Filter criteria are visible in the report interface, showing 'Male' selected for sex/gender and a date condition for Date of Birth before January 1, 1960 (e.g., < 1960-01-01)."
+    },
+    {
+      "id": "view_report_results",
+      "description": "Generate the report and identify the total count",
+      "points": 20,
+      "visual_evidence": "The generated report or results table is visible in the EHR interface, showing the filtered patients and ideally displaying the total count of matching patients (1002)."
+    },
+    {
+      "id": "save_count_to_file",
+      "description": "Write the total count to the specified output file",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal shows the file '/home/ga/patient_report_count.txt' with the integer '1002' written on the first line."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_report",
+      "description": "The agent used the LibreHealth EHR web interface to generate the report",
+      "visual_evidence": "Screenshots should show the agent interacting with the EHR GUI in a web browser to set filters and view results, rather than querying the database directly."
+    },
+    {
+      "id": "no_direct_db_access",
+      "description": "The agent did not bypass the GUI using terminal SQL commands",
+      "visual_evidence": "There should be no evidence of the agent opening a MySQL prompt or running SQL scripts in the terminal to find the patient count."
+    },
+    {
+      "id": "exact_output_format",
+      "description": "The output file contains only the integer",
+      "visual_evidence": "The file '/home/ga/patient_report_count.txt' must contain only the number '1002' on the first line, without any conversational text, labels, or additional formatting."
+    }
+  ],
+  "privileged_info_for_vlm": "The ground truth count for male patients born before January 1, 1960 (with non-null, non-empty DOB) is exactly 1002. The agent must write this integer to the first line of /home/ga/patient_report_count.txt."
+}

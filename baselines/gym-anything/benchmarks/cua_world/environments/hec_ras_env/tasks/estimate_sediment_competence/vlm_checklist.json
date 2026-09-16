@@ -1,0 +1,53 @@
+{
+  "task_id": "estimate_sediment_competence@1",
+  "task_completion": [
+    {
+      "id": "access_hdf_file",
+      "description": "Agent accesses the specified HEC-RAS HDF simulation results file.",
+      "points": 10,
+      "visual_evidence": "Look for a Python script, terminal command, or HDF viewer opening '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf'."
+    },
+    {
+      "id": "implement_shields_equation",
+      "description": "Agent implements the modified Shields equation to calculate Critical Diameter.",
+      "points": 20,
+      "visual_evidence": "Look for code or a formula in a spreadsheet matching the calculation: (Shear_Stress / (0.047 * (165.36 - 62.4))) * 12."
+    },
+    {
+      "id": "implement_stability_logic",
+      "description": "Agent implements the logic to determine if the gravel is stable based on the 2.0-inch threshold.",
+      "points": 20,
+      "visual_evidence": "Look for conditional logic (e.g., an if/else statement in code) assigning 'UNSTABLE' if the critical diameter is > 2.0, and 'STABLE' if <= 2.0."
+    },
+    {
+      "id": "generate_csv_file",
+      "description": "Agent saves the results to the specified CSV file with the correct columns.",
+      "points": 25,
+      "visual_evidence": "Look for a script writing to, or a file explorer/terminal showing '/home/ga/Documents/hec_ras_results/sediment_competence.csv' with columns 'River_Station', 'Shear_Stress_lb_sq_ft', 'Critical_Diameter_in', and 'Stability_Status'."
+    },
+    {
+      "id": "generate_summary_file",
+      "description": "Agent saves the text summary identifying the River Station with the highest critical diameter.",
+      "points": 25,
+      "visual_evidence": "Look for a script writing to, or a file explorer/terminal showing '/home/ga/Documents/hec_ras_results/competence_summary.txt' containing text that identifies the station with the maximum critical diameter."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_calculation_performed",
+      "description": "Verify the agent used a script or data processing tool to calculate the values.",
+      "visual_evidence": "Look for a Python script (e.g., using h5py/pandas) or a spreadsheet application performing the math, ensuring the agent didn't just hallucinate and type a fake CSV manually."
+    },
+    {
+      "id": "correct_input_source",
+      "description": "Verify the agent extracted data from the correct HDF file.",
+      "visual_evidence": "Check that the file path '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf' is explicitly used in the data extraction step."
+    },
+    {
+      "id": "dynamic_max_finding",
+      "description": "Verify the agent programmatically determined the highest critical diameter.",
+      "visual_evidence": "Look for code using functions like max(), idxmax(), or sorting to find the highest value, rather than hardcoding a guessed station number."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must use the exact constants provided: specific weight of water = 62.4, sediment specific weight = 165.36, and Shields parameter = 0.047. The threshold for stability is 2.0 inches. Outputs must be saved exactly to '/home/ga/Documents/hec_ras_results/sediment_competence.csv' and '/home/ga/Documents/hec_ras_results/competence_summary.txt'."
+}

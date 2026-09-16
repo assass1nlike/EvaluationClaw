@@ -1,0 +1,27 @@
+{
+  "id": "emergency_response_coordination@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "A critical security incident has been detected in your organization and you must immediately deploy an emergency coordination meeting using Jitsi Meet at http://localhost:8080. Set up a secure meeting room named 'Incident-Response-CRIT001' with the Lobby feature enabled, a meeting password set, and the policy that all participants start with their microphone muted. Send the message 'INCIDENT RESPONSE ACTIVE - All responders acknowledge attendance' in the meeting chat and copy the meeting invitation link to the clipboard. Document the setup, including the full meeting URL, activated security controls, chat message, and access instructions, in a report at /home/ga/Desktop/incident_response_meeting_report.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/emergency_response_coordination/setup_task.sh",
+    "post_task": "/workspace/tasks/emergency_response_coordination/export_result.sh"
+  },
+  "metadata": {
+    "room_name": "Incident-Response-CRIT001",
+    "chat_message": "INCIDENT RESPONSE ACTIVE - All responders acknowledge attendance",
+    "report_path": "/home/ga/Desktop/incident_response_meeting_report.txt",
+    "jitsi_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_emergency_response_coordination"
+    }
+  }
+}

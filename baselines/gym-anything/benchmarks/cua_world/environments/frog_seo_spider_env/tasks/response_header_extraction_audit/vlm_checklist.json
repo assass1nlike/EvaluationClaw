@@ -1,0 +1,53 @@
+{
+  "task_id": "response_header_extraction_audit@1",
+  "task_completion": [
+    {
+      "id": "custom_extraction_configured",
+      "description": "Verify that Custom Extraction is configured for the three specified HTTP response headers.",
+      "points": 20,
+      "visual_evidence": "Look for the Screaming Frog 'Custom Extraction' configuration window or the 'Custom Extraction' tab in the main UI. It must show rules set to extract HTTP Headers: 'Server' named as 'Server_Header', 'Content-Type' named as 'Mime_Type', and 'Date' named as 'Response_Date'."
+    },
+    {
+      "id": "crawl_executed",
+      "description": "Verify that the crawler has run on the target URL and crawled at least 20 URLs.",
+      "points": 20,
+      "visual_evidence": "Look at the Screaming Frog main UI. The URL bar should show 'https://crawler-test.com/' and the crawl progress/status bar should indicate that at least 20 URLs have been crawled."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Verify that the results were exported to the correct CSV file path.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window, terminal listing, or Screaming Frog export dialog confirming that a file named 'header_audit.csv' has been saved in the '~/Documents/SEO/exports/' directory."
+    },
+    {
+      "id": "csv_content_valid",
+      "description": "Verify that the exported CSV contains the extracted header columns.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot showing the contents of 'header_audit.csv' (opened in a spreadsheet viewer, text editor, or terminal). The file must contain columns or headers for 'Server_Header', 'Mime_Type', and 'Response_Date'."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify that the server fingerprint report was created with the required analysis.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the contents of '~/Documents/SEO/reports/server_fingerprint.txt'. The text must mention the web server software (or lack thereof) and state a count of unique content types found during the crawl."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_screaming_frog_gui",
+      "description": "Verify that the agent actually used the Screaming Frog SEO Spider application to perform the crawl.",
+      "visual_evidence": "Look for screenshots showing the Screaming Frog graphical user interface being interacted with. The agent should not bypass the application by using curl, python scripts, or other terminal-based crawling tools to generate the CSV."
+    },
+    {
+      "id": "authentic_report_data",
+      "description": "Verify that the report reflects genuine crawl data and does not hallucinate the Server header.",
+      "visual_evidence": "Check the contents of 'server_fingerprint.txt'. Because the target site does not return a Server header, the report should state that the server software is unknown, missing, or not found. If the report claims a specific server like 'Apache' or 'Nginx', the agent hallucinated the data."
+    },
+    {
+      "id": "no_manual_csv_fabrication",
+      "description": "Verify that the CSV was exported from the software and not manually typed.",
+      "visual_evidence": "Look for the Screaming Frog 'Export' dialog or 'Save As' window. The CSV should contain standard Screaming Frog export formatting (like Address, Status Code, etc., alongside the custom extraction columns), rather than being a manually typed minimal CSV."
+    }
+  ],
+  "privileged_info_for_vlm": "The target website https://crawler-test.com/ returns 'Content-Type' and 'Date' HTTP headers, but it does NOT return a 'Server' header. Therefore, the 'Server_Header' column in the extracted data should be empty, and the final report should indicate that the web server software could not be identified or is missing. If the agent reports a specific server software (e.g., Apache, Nginx), it has hallucinated the result."
+}

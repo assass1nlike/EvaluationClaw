@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_failed_post@1",
+  "task_completion": [
+    {
+      "id": "source_file_located",
+      "description": "Agent locates the backup media file in the specified source directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal command (like 'ls /home/ga/Documents/CampaignAssets/') or a file manager GUI displaying 'summer_sale_promo.jpg' in the CampaignAssets folder."
+    },
+    {
+      "id": "image_restored",
+      "description": "Agent copies or moves the media file to the correct Socioboard media directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a 'cp' or 'mv' command targeting '/opt/socioboard/socioboard-api/publish/public/media/', or an 'ls' command/GUI confirming 'summer_sale_promo.jpg' is now in that exact directory."
+    },
+    {
+      "id": "permissions_verified",
+      "description": "Agent ensures the restored media file has necessary read permissions.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a 'chmod' command adding read permissions (e.g., 'chmod +r' or 'chmod 644'), or an 'ls -l' output verifying that the file has read ('r') permissions for the relevant users."
+    },
+    {
+      "id": "mongodb_post_found",
+      "description": "Agent accesses the local MongoDB 'socioboard' database and locates the failed post in the 'scheduled_informations' collection.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a MongoDB client (like 'mongosh' or MongoDB Compass) connected to the 'socioboard' database, querying the 'scheduled_informations' collection, and displaying the document with the description 'Huge Summer Sale! Get 50% off all items.'."
+    },
+    {
+      "id": "status_updated",
+      "description": "Agent updates the status of the failed post from 6 to 0.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing an update command (e.g., 'updateOne({..., {$set: {status: 0}}})') executing successfully, or a subsequent query showing the specific 'Summer Sale' document now has 'status: 0'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Agent used a genuine database client to interact with MongoDB.",
+      "visual_evidence": "Screenshots should show a real MongoDB interface (like the 'mongosh' shell prompt or MongoDB Compass GUI), not just a text editor with JSON typed into it."
+    },
+    {
+      "id": "genuine_file_operations",
+      "description": "Agent performed actual file system operations.",
+      "visual_evidence": "Screenshots should show standard Linux file manipulation commands (cp, mv, chmod) executing in a real terminal, or interactions within a standard file manager GUI."
+    },
+    {
+      "id": "no_echo_spoofing",
+      "description": "Agent did not spoof success messages using echo or print statements.",
+      "visual_evidence": "Ensure the terminal outputs are genuine responses from the system or MongoDB shell, and not the result of the agent typing 'echo \"status: 0\"' or similar bypasses."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory for the image is exactly '/opt/socioboard/socioboard-api/publish/public/media/'. The filename is 'summer_sale_promo.jpg'. The target post in MongoDB has the exact description 'Huge Summer Sale! Get 50% off all items.'. The final expected status value in the database is 0."
+}

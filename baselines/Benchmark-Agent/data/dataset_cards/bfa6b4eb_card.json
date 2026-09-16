@@ -1,0 +1,75 @@
+{
+  "dataset_id": "bfa6b4eb",
+  "name": "Chemical-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for chemical named entity recognition (NER) in biomedical scientific text. Given a sentence from chemical/biomedical literature, the model must extract all chemical entities and assign one of the predefined types (ABBREVIATION, FAMILY, FORMULA, IDENTIFIER, MULTIPLE, NO CLASS, SYSTEMATIC, TRIVIAL).",
+  "card_text": "This is a text-only dataset of 200 samples for chemical named entity recognition (NER). Each sample contains a scientific sentence or short abstract excerpt (raw_text) and an instruction prompt that asks the model to extract all chemical entities and their types from the raw_text. The possible entity types are ABBREVIATION, FAMILY, FORMULA, IDENTIFIER, MULTIPLE, NO CLASS, SYSTEMATIC, and TRIVIAL. Outputs are formatted as comma-separated 'entity => type' pairs, e.g. 'glucose => TRIVIAL'. The data is drawn from biomedical and chemistry-related literature, so entities include small molecules, drugs, natural products, and chemical classes. The task evaluates exact extraction of entity mentions and their correct type assignment.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction"
+  ],
+  "domain": "biomedical chemistry",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "Scientific sentence or abstract excerpt from chemical/biomedical literature. It serves as the source text from which chemical entities must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction that asks the model to extract all chemical entities and their types from the given raw_text. It lists the possible entity types and specifies the output format 'entity => type' separated by commas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Target extraction result containing comma-separated chemical entities paired with their entity types in the format 'entity => type'. It directly answers the prompt by listing all chemical mentions found in the context.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object and an output object. The input object contains a raw_text field with a scientific sentence or short excerpt, and a prompt field with an instruction to extract chemical entities and their types. The output object contains a text field with the extracted entities formatted as comma-separated 'entity => type' pairs. No dialog, options, images, tables, or other auxiliary components are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Chemical-NER/annotation.json",
+    "existing_tags": {
+      "task": "chemical_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

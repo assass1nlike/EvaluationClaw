@@ -1,0 +1,27 @@
+{
+  "id": "migrate_asynctask_to_coroutines@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "The FeedReaderApp project is open in Android Studio. The app currently uses the deprecated AsyncTask API for background operations, specifically in FetchArticlesTask, SaveArticleTask, SearchArticlesTask, and LoadSavedTask. Migrate these four usages to Kotlin Coroutines by adding the kotlinx-coroutines-android dependency to app/build.gradle.kts, converting ArticleRepository methods to suspend functions, and updating FeedActivity and SearchActivity to use lifecycleScope.launch and withContext(Dispatchers.IO) instead of AsyncTask.execute(). Login credentials: user 'ga', password 'password123'. Ensure the project compiles successfully.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_asynctask_to_coroutines/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_asynctask_to_coroutines/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/FeedReaderApp",
+    "data_source": "/workspace/data/FeedReaderApp",
+    "package_path": "com/example/feedreader"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_asynctask_to_coroutines"
+    }
+  }
+}

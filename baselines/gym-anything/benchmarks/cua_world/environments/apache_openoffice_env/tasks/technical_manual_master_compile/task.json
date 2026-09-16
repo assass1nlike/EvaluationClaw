@@ -1,0 +1,35 @@
+{
+  "id": "technical_manual_master_compile@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Technical Writer for AeroTech Dynamics. Compile the final 'AeroTurbine 500-X Operator Manual' by creating a Master Document (.odm) that links the five chapter files located in '/home/ga/Documents/chapters/' in numerical order (01 through 05). The document must include the title 'AeroTurbine 500-X Operator Manual' at the top, followed by an automatic Table of Contents before the first chapter. Save the final document to /home/ga/Documents/AeroTurbine_Master.odm.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/technical_manual_master_compile/setup_task.sh",
+    "post_task": "/workspace/tasks/technical_manual_master_compile/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/AeroTurbine_Master.odm",
+    "chapter_dir": "/home/ga/Documents/chapters",
+    "expected_chapters": [
+      "01_introduction.odt",
+      "02_safety_protocols.odt",
+      "03_operation_procedures.odt",
+      "04_maintenance_schedule.odt",
+      "05_troubleshooting.odt"
+    ],
+    "expected_title": "AeroTurbine 500-X Operator Manual",
+    "min_link_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_technical_manual_master_compile"
+    }
+  }
+}

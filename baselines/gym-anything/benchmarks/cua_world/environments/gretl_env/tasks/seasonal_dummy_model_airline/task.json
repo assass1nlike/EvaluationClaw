@@ -1,0 +1,30 @@
+{
+  "id": "seasonal_dummy_model_airline@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a seasonal decomposition analysis on airline passenger traffic using the data in ~/Documents/gretl_data/airline_passengers.csv. Configure the dataset as a monthly time series starting in January 1949. Estimate an OLS regression model using the log-transformed passenger count as the dependent variable, with a time trend and seasonal dummy variables as regressors. Conduct a joint F-test for the significance of the seasonal dummies. Save the regression results and the F-test output to ~/Documents/gretl_output/seasonal_analysis.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/seasonal_dummy_model_airline/setup_task.sh",
+    "post_task": "/workspace/tasks/seasonal_dummy_model_airline/export_result.sh"
+  },
+  "metadata": {
+    "data_path": "/home/ga/Documents/gretl_data/airline_passengers.csv",
+    "output_path": "/home/ga/Documents/gretl_output/seasonal_analysis.txt",
+    "expected_obs": 144,
+    "expected_trend_coeff": 0.01,
+    "expected_trend_tolerance": 0.002,
+    "min_dummy_vars": 11
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_seasonal_dummy_model_airline"
+    }
+  }
+}

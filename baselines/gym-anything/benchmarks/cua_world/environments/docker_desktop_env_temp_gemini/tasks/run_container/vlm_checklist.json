@@ -1,0 +1,53 @@
+{
+  "task_id": "run_container@1",
+  "task_completion": [
+    {
+      "id": "image_used",
+      "description": "Verify the container is created from the 'nginx:alpine' image.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command containing 'nginx:alpine' (e.g., docker run ... nginx:alpine) or the image name 'nginx:alpine' listed next to the container in a Docker GUI."
+    },
+    {
+      "id": "container_named",
+      "description": "Verify the container is named 'my-nginx-server'.",
+      "points": 15,
+      "visual_evidence": "Look for '--name my-nginx-server' in the terminal command, or the name 'my-nginx-server' explicitly shown in the container list of a Docker GUI or 'docker ps' output."
+    },
+    {
+      "id": "ports_mapped",
+      "description": "Verify host port 8888 is mapped to container port 80.",
+      "points": 20,
+      "visual_evidence": "Look for '-p 8888:80' in the terminal command, or '8888->80/tcp' (or similar port mapping notation) in 'docker ps' output or a Docker GUI."
+    },
+    {
+      "id": "container_running",
+      "description": "Verify the container is in a running state.",
+      "points": 20,
+      "visual_evidence": "Look for a status of 'Up' in 'docker ps' terminal output, or a green 'Running' indicator/status next to the container in a Docker GUI."
+    },
+    {
+      "id": "web_response_verified",
+      "description": "Verify that http://localhost:8888 returns a response.",
+      "points": 30,
+      "visual_evidence": "Look for a web browser navigated to 'http://localhost:8888' showing the 'Welcome to nginx!' page, or a terminal showing the HTML response from a command like 'curl http://localhost:8888'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Ensure the agent interacted with an actual terminal or Docker GUI.",
+      "visual_evidence": "Check that Docker commands were run in a real terminal emulator or actions were taken in a legitimate Docker desktop application, not just typed into a text editor."
+    },
+    {
+      "id": "authentic_web_request",
+      "description": "Ensure the web response is genuinely from the local server.",
+      "visual_evidence": "Check the browser address bar explicitly shows 'http://localhost:8888' or '127.0.0.1:8888' (not a local file path like 'file://...'), or that a real HTTP client like curl/wget was used."
+    },
+    {
+      "id": "no_echo_spoofing",
+      "description": "Ensure the agent did not fake the success output.",
+      "visual_evidence": "Verify the agent didn't simply use 'echo' or 'print' commands to output fake 'docker ps' results or fake HTML responses to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected container name: 'my-nginx-server'. Expected image: 'nginx:alpine'. Expected host port: 8888. Expected container port: 80."
+}

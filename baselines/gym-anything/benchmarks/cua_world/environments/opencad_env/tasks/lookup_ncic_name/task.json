@@ -1,0 +1,28 @@
+{
+  "id": "lookup_ncic_name@1",
+  "version": "1.0",
+  "env_id": "opencad_env@0.1",
+  "description": "Log in to the OpenCAD system (http://localhost) using the administrator credentials (admin@opencad.local / Admin123!). In the CAD Console, perform an NCIC Name Lookup for 'Trevor Philips' and issue a citation to him for 'Reckless Driving' with a fine amount of 350.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lookup_ncic_name/setup_task.sh",
+    "post_task": "/workspace/tasks/lookup_ncic_name/export_result.sh"
+  },
+  "metadata": {
+    "expected_first_name": "Trevor",
+    "expected_last_name": "Philips",
+    "expected_citation": "Reckless Driving",
+    "expected_fine": 350.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lookup_ncic_name"
+    }
+  }
+}

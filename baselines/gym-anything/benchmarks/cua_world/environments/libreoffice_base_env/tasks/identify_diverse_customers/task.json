@@ -1,0 +1,30 @@
+{
+  "id": "identify_diverse_customers@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a SQL query named 'DiverseCustomerReport' in the Chinook database to identify customers who have purchased tracks from 5 or more distinct genres. The query should return two columns: 'CustomerName' (First Name and Last Name concatenated with a space) and 'DiversityRating' (the count of distinct genres followed by the text ' Genres'). Sort the results by the genre count in descending order.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_diverse_customers/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_diverse_customers/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "sqlite_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite",
+    "query_name": "DiverseCustomerReport",
+    "min_genres": 5,
+    "expected_column_1": "CustomerName",
+    "expected_column_2": "DiversityRating"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_diverse_customers"
+    }
+  }
+}

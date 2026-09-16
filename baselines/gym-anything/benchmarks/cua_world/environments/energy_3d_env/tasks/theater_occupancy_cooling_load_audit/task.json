@@ -1,0 +1,27 @@
+{
+  "id": "theater_occupancy_cooling_load_audit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an HVAC engineer evaluating a building retrofit in Energy3D. The project 'building_shape_starter.ng3' is open and contains several building massings. Focus on the large rectangular building with the flat roof. \n\nYour task:\n1. Change the city/location to 'Miami, FL'.\n2. Change the simulation date to July 21.\n3. Run a 'Daily Building Energy Analysis' on the large rectangular building in its default (empty) state and note the daily Cooling Load (kWh).\n4. Select the building, access its properties, and change the 'Number of Occupants' to 400 to simulate a sold-out theater.\n5. Re-run the 'Daily Building Energy Analysis' and note the new fully-occupied Cooling Load.\n6. Create a text file at `~/Documents/Energy3D/cooling_audit.txt` containing the baseline cooling load, the fully-occupied cooling load, and the net increase (delta) between them.\n7. Save the modified 3D scene as `~/Documents/Energy3D/occupied_theater.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/theater_occupancy_cooling_load_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/theater_occupancy_cooling_load_audit/export_result.sh"
+  },
+  "metadata": {
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/occupied_theater.ng3",
+    "expected_report_path": "/home/ga/Documents/Energy3D/cooling_audit.txt",
+    "starter_file": "building-shape.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_theater_occupancy_audit"
+    }
+  }
+}

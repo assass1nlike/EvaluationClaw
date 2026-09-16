@@ -1,0 +1,65 @@
+{
+  "task_id": "ventilation_erv_upgrade@1",
+  "task_completion": [
+    {
+      "id": "open_equest_project",
+      "description": "Open the 4StoreyBuilding project in eQUEST.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the eQUEST application open with the '4StoreyBuilding' project loaded (visible in the title bar or project tree)."
+    },
+    {
+      "id": "navigate_to_target_hvac_systems",
+      "description": "Navigate to the HVAC systems for the top floor.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent viewing the Air-Side HVAC system components, specifically targeting the systems with the 'T.' prefix (T.S31, T.E32, T.N33, T.W34, T.C35)."
+    },
+    {
+      "id": "set_min_outside_air",
+      "description": "Update the MIN-OUTSIDE-AIR parameter to 0.30 for the target systems.",
+      "points": 15,
+      "visual_evidence": "Screenshots of the HVAC system properties or spreadsheet view showing the 'Minimum Outside Air' (or MIN-OUTSIDE-AIR) field set to 0.30 for the 'T.' prefixed systems."
+    },
+    {
+      "id": "enable_exhaust_recovery_and_type",
+      "description": "Set RECOVER-EXHAUST to YES and ERV-RECOVER-TYPE to ENTHALPY.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the exhaust recovery option enabled ('YES') and the recovery type selected as 'ENTHALPY' in the system properties dialog or spreadsheet."
+    },
+    {
+      "id": "set_erv_efficiencies",
+      "description": "Set ERV-SENSIBLE-EFF to 0.76 and ERV-LATENT-EFF to 0.65.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the sensible effectiveness ratio set to 0.76 and the latent effectiveness ratio set to 0.65 for the target systems."
+    },
+    {
+      "id": "run_annual_simulation",
+      "description": "Run the annual simulation.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the eQUEST simulation dialog, progress bar, or the simulation completion summary screen indicating the annual simulation was executed."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the eQUEST project.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent clicking the save icon, using the File -> Save menu, or a confirmation dialog indicating the project has been saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Ensure the agent used the eQUEST graphical user interface to make changes.",
+      "visual_evidence": "Screenshots should show interaction with eQUEST dialog boxes, menus, and spreadsheet views, rather than a text editor modifying the .inp file directly."
+    },
+    {
+      "id": "correct_system_identification",
+      "description": "Ensure the agent modified the correct systems despite the misleading task description.",
+      "visual_evidence": "The agent must modify systems starting with 'T.' (T.S31, T.E32, etc.). Modifying non-existent '3.' systems or guessing wrong systems indicates failure to properly inspect the model."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "Ensure the simulation was genuinely executed within the software.",
+      "visual_evidence": "Presence of the actual eQUEST calculation/simulation window with progress indicators or results, not just a terminal command or skipped step."
+    }
+  ],
+  "privileged_info_for_vlm": "CRITICAL: The task description incorrectly states the target systems start with '3.'. The actual 5 systems for the 3rd/top floor in the 4StoreyBuilding model start with 'T' (T.S31, T.E32, T.N33, T.W34, T.C35). The agent must discover this and modify the 'T' prefixed systems. Target parameters to verify: MIN-OUTSIDE-AIR = 0.30, RECOVER-EXHAUST = YES, ERV-RECOVER-TYPE = ENTHALPY, ERV-SENSIBLE-EFF = 0.76, ERV-LATENT-EFF = 0.65. The agent must also run the annual simulation and save the project."
+}

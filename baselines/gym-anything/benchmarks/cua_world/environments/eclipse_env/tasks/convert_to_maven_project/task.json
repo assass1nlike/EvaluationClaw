@@ -1,0 +1,32 @@
+{
+  "id": "convert_to_maven_project@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "The project 'DateUtilsLegacy' is currently a plain Java project in Eclipse that uses a manually added Joda-Time JAR (lib/joda-time-2.12.5.jar) on its build path. Convert this project to a Maven project using Group ID 'com.legacy.dateutils', Artifact ID 'DateUtilsLegacy', and Version '1.0.0'. Replace the manual JAR dependency with a Maven dependency for joda-time:joda-time:2.12.5. Ensure the project, including source files DateFormatter.java, DateCalculator.java, and App.java, compiles successfully after the conversion.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_to_maven_project/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_to_maven_project/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "DateUtilsLegacy",
+    "project_dir": "/home/ga/eclipse-workspace/DateUtilsLegacy",
+    "expected_group_id": "com.legacy.dateutils",
+    "expected_artifact_id": "DateUtilsLegacy",
+    "expected_version": "1.0.0",
+    "dependency_group": "joda-time",
+    "dependency_artifact": "joda-time",
+    "dependency_version": "2.12.5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_to_maven_project"
+    }
+  }
+}

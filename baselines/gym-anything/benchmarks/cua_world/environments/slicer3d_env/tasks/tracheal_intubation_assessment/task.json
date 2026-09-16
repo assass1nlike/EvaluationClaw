@@ -1,0 +1,45 @@
+{
+  "id": "tracheal_intubation_assessment@1",
+  "version": "1.0",
+  "env_id": "slicer3d_env@0.1",
+  "description": "\" or anything in the output.\n\n    One last look at the \"After\" examples.\n    \"Measure the building height and record it in the description\"\n    \"Measure the river width at the crossing point\"\n    \"Measure the area of the building footprint\"\n\n    My task: \"Measure the inner tracheal diameter...\"\n\n    The original is fine.\n\n    Wait, I'll just remove the \"Document... recommend... note...\" to be safe and make it more like the \"After\" examples.\n\n    \"Measure the inner tracheal diameter (AP and transverse) at the mid-trachea level on the provided chest CT for intubation planning. Save the measurement markup to ~/Documents/SlicerData/LIDC/tracheal_measurement.mrk.json and",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tracheal_intubation_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/tracheal_intubation_assessment/export_result.sh",
+    "pre_task_timeout": 1200
+  },
+  "metadata": {
+    "lidc_dir": "/home/ga/Documents/SlicerData/LIDC",
+    "ground_truth_dir": "/var/lib/slicer/ground_truth",
+    "output_measurement": "/home/ga/Documents/SlicerData/LIDC/tracheal_measurement.mrk.json",
+    "output_report": "/home/ga/Documents/SlicerData/LIDC/tracheal_report.json",
+    "air_hu_threshold": -900,
+    "normal_trachea_range_mm": [
+      13,
+      25
+    ],
+    "passing_thresholds": {
+      "diameter_error_max_mm": 3.0,
+      "ett_size_valid": true
+    },
+    "scoring_weights": {
+      "measurement_exists": 10,
+      "measurement_in_trachea": 15,
+      "diameter_accuracy": 40,
+      "ett_recommendation": 20,
+      "report_complete": 15
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tracheal_measurement"
+    }
+  }
+}

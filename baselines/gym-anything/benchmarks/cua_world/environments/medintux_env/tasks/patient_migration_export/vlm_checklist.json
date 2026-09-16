@@ -1,0 +1,59 @@
+{
+  "task_id": "patient_migration_export@1",
+  "task_completion": [
+    {
+      "id": "database_exploration",
+      "description": "Explore the DrTuxTest database to understand the patient schema.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing terminal commands (e.g., MySQL CLI DESCRIBE), a database GUI, or a script exploring the schema of the 'IndexNomPrenom' and 'fchpat' tables in the 'DrTuxTest' database."
+    },
+    {
+      "id": "table_creation_query",
+      "description": "Create the normalized patient_export table by joining the source tables.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing an SQL CREATE TABLE or INSERT query (in a script, terminal, or GUI) that joins 'IndexNomPrenom' and 'fchpat' to form the 'patient_export' table."
+    },
+    {
+      "id": "patient_export_schema",
+      "description": "The patient_export table contains the correct English column names.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the schema or query mapping for 'patient_export' with exactly these 13 columns: id, source_guid, last_name, first_name, maiden_name, date_of_birth, sex, title, address, postal_code, city, phone, social_security_number."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the data to ~/Documents/patient_export.csv with headers.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 'patient_export.csv' file in the '~/Documents/' directory, and its contents displaying the English column headers along with the exported patient data."
+    },
+    {
+      "id": "summary_report_file",
+      "description": "Generate a summary report at ~/Documents/migration_summary.txt.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the 'migration_summary.txt' file created in the '~/Documents/' directory."
+    },
+    {
+      "id": "summary_report_content",
+      "description": "The summary report contains the required statistics.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the contents of 'migration_summary.txt' (in an editor or via terminal output like 'cat'), which must include the total record count, male/female breakdown, count of missing phone numbers, and count of missing addresses."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verifies the agent actually queried the MySQL database rather than fabricating the output files.",
+      "visual_evidence": "Look for executed SQL queries, MySQL CLI usage, or Python scripts using database connectors (like mysql.connector or pymysql) to interact with the DrTuxTest database."
+    },
+    {
+      "id": "authentic_data",
+      "description": "Verifies the exported data is from the synthetic database.",
+      "visual_evidence": "The CSV and report should reflect realistic French patient data (e.g., French names, cities like Paris or Lyon, 20-25 total records) rather than placeholder text or dummy data."
+    },
+    {
+      "id": "derived_statistics",
+      "description": "Verifies the statistics in the summary report were actually calculated from the database.",
+      "visual_evidence": "Look for SQL COUNT queries, script logic calculating the missing values, or database outputs matching the final report numbers, rather than hardcoded guesses."
+    }
+  ],
+  "privileged_info_for_vlm": "The MySQL database 'DrTuxTest' contains 20-25 synthetic patient records. Source table 'IndexNomPrenom' columns: FchGnrl_IDDos (GUID), FchGnrl_NomDos (surname), FchGnrl_Prenom (first name). Source table 'fchpat' columns: FchPat_GUID_Doss (GUID), FchPat_NomFille (maiden name), FchPat_Nee (DOB), FchPat_Sexe, FchPat_Titre, FchPat_Adresse, FchPat_CP (postal code), FchPat_Ville (city), FchPat_Tel1 (phone), FchPat_NumSS (social security). The agent must join these tables (e.g., on GUID) to create 'patient_export' with 13 English columns: id, source_guid, last_name, first_name, maiden_name, date_of_birth, sex, title, address, postal_code, city, phone, social_security_number. The CSV must be at ~/Documents/patient_export.csv. The summary report at ~/Documents/migration_summary.txt must contain the total count (20-25), male/female breakdown, missing addresses (~15%), and missing phones (~20%)."
+}

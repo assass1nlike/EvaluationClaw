@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_fleet_qr_codes@1",
+  "task_completion": [
+    {
+      "id": "install_or_import_qrcode",
+      "description": "Verify the agent installed or imported a QR code generation library.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'pip install qrcode' or a Python script containing 'import qrcode'."
+    },
+    {
+      "id": "query_aerobridge_database",
+      "description": "Verify the agent accessed the Aerobridge database to retrieve aircraft data.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a sqlite3 query, a Django shell session, or a Python script querying the 'registry_aircraft' and 'registry_aircraftdetail' tables to get UUIDs and registration marks."
+    },
+    {
+      "id": "construct_admin_urls",
+      "description": "Verify the agent constructed the correct Django admin URLs for the QR codes.",
+      "points": 20,
+      "visual_evidence": "A Python script or command showing the URL pattern 'http://localhost:8000/admin/registry/aircraft/<uuid>/change/' being formatted with the retrieved UUIDs."
+    },
+    {
+      "id": "target_output_directory",
+      "description": "Verify the agent saved the outputs to the correct directory.",
+      "points": 20,
+      "visual_evidence": "A script containing the path '/home/ga/Documents/fleet_tags/' or terminal commands navigating to/listing this directory."
+    },
+    {
+      "id": "generate_correct_filenames",
+      "description": "Verify exactly two PNG files were created with the correct registration mark filenames.",
+      "points": 30,
+      "visual_evidence": "Terminal showing 'ls' output or a file manager in '/home/ga/Documents/fleet_tags/' displaying exactly two files: 'tag_FE-2212.png' and 'tag_FE-21.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_visible",
+      "description": "Ensure the agent actually executed a script or command to generate the images.",
+      "visual_evidence": "Terminal showing the execution of the Python script (e.g., 'python generate_qrs.py') or interactive shell commands that perform the generation, rather than files just appearing."
+    },
+    {
+      "id": "dynamic_data_extraction",
+      "description": "Ensure the agent extracted the UUIDs and registration marks from the database rather than hallucinating or hardcoding them without querying.",
+      "visual_evidence": "The Python script should contain database connection/ORM logic (e.g., sqlite3.connect or Django ORM imports) rather than just having the UUIDs '0797d9ef...' and '0450852f...' hardcoded from the start."
+    },
+    {
+      "id": "valid_image_generation",
+      "description": "Ensure the agent generated actual image files, not empty text files.",
+      "visual_evidence": "The script should show actual QR code generation logic (e.g., 'img.save()'), or an 'ls -l' command should show the .png files have a file size greater than 0 bytes."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains exactly 2 aircraft instances. Their registration marks are 'FE-2212' and 'FE-21', and their UUIDs are '0797d9ef-02d9-41cf-93ff-439aaf1609ae' and '0450852f-856e-4ecb-beb6-01ccded8529d'. The expected output files are 'tag_FE-2212.png' and 'tag_FE-21.png' located in '/home/ga/Documents/fleet_tags/'. The QR codes must encode URLs matching 'http://localhost:8000/admin/registry/aircraft/<uuid>/change/'."
+}

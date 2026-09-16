@@ -1,0 +1,33 @@
+{
+  "id": "nla_camera_shake_layering@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a layout artist polishing a camera move. The current scene has a 'Dolly_Move' animation on the camera. Layer the 'Handheld_Shake' action on top of the dolly move using the Non-Linear Animation (NLA) system, ensuring the shake effect is added to the original movement without overwriting its keyframes. Save the final scene to /home/ga/BlenderProjects/nla_camera_composite.blend.\n\nLogin: The desktop session is already active. Blender is open with the scene loaded.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nla_camera_shake_layering/setup_task.sh",
+    "post_task": "/workspace/tasks/nla_camera_shake_layering/export_result.sh"
+  },
+  "metadata": {
+    "source_blend": "/home/ga/BlenderProjects/nla_setup.blend",
+    "expected_output": "/home/ga/BlenderProjects/nla_camera_composite.blend",
+    "required_tracks": 2,
+    "dolly_action_name": "Dolly_Move",
+    "shake_action_name": "Handheld_Shake",
+    "expected_blend_mode": [
+      "ADD",
+      "COMBINE"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nla_layering"
+    }
+  }
+}

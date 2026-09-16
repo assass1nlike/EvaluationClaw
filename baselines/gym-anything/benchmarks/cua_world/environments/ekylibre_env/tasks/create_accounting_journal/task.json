@@ -1,0 +1,28 @@
+{
+  "id": "create_accounting_journal@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Create a new accounting journal in Ekylibre for tracking agricultural subsidy receipts (EU Common Agricultural Policy / PAC payments). The journal must be named 'Subventions PAC' with the code 'SUBV', nature set to 'Various' (Opérations diverses), and currency in 'EUR'. You are logged in as admin and starting from the dashboard.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_accounting_journal/setup_task.sh",
+    "post_task": "/workspace/tasks/create_accounting_journal/export_result.sh"
+  },
+  "metadata": {
+    "expected_code": "SUBV",
+    "expected_name": "Subventions PAC",
+    "expected_nature": "various",
+    "expected_currency": "EUR"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_accounting_journal"
+    }
+  }
+}

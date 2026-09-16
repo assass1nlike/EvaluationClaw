@@ -1,0 +1,30 @@
+{
+  "id": "garch_volatility_inflation@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are a macroeconomist studying inflation volatility. Estimate a GARCH(1,1) model for the 'inf' variable in the dataset /home/ga/Documents/gretl_data/usa.gdt using a constant in the mean equation. Create and execute a Gretl script at /home/ga/Documents/gretl_output/garch_inflation.inp that performs this estimation, redirects the full model output to /home/ga/Documents/gretl_output/garch_output.txt, and saves the estimated conditional variance series ($h) and the inflation series to /home/ga/Documents/gretl_output/garch_cond_variance.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/garch_volatility_inflation/setup_task.sh",
+    "post_task": "/workspace/tasks/garch_volatility_inflation/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/Documents/gretl_output/garch_inflation.inp",
+    "output_txt_path": "/home/ga/Documents/gretl_output/garch_output.txt",
+    "output_csv_path": "/home/ga/Documents/gretl_output/garch_cond_variance.csv",
+    "dataset_path": "/home/ga/Documents/gretl_data/usa.gdt",
+    "target_var": "inf",
+    "min_obs": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_garch_volatility_inflation"
+    }
+  }
+}

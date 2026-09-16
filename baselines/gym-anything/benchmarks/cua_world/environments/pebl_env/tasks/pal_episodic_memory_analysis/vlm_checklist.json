@@ -1,0 +1,59 @@
+{
+  "task_id": "pal_episodic_memory_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_raw_data",
+      "description": "Agent accesses the raw PAL data file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening ~/pebl/data/pal_raw_data.csv in a spreadsheet, text editor, or referencing it in a data analysis script (e.g., pandas.read_csv)."
+    },
+    {
+      "id": "implement_exclusion_criteria",
+      "description": "Agent excludes participants with a global average reaction time < 200 ms.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of code, terminal commands, or spreadsheet filters that calculate the mean of 'mean_rt_ms' per participant and exclude those under 200 ms (or explicitly dropping participant 'PAL-999')."
+    },
+    {
+      "id": "compute_max_stage",
+      "description": "Agent calculates the 'max_stage_completed' metric for valid participants.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing logic (code or spreadsheet formulas) that finds the maximum value in the 'stage' column where the 'passed' column equals 1."
+    },
+    {
+      "id": "compute_first_attempt_score",
+      "description": "Agent calculates the 'first_attempt_memory_score' metric for valid participants.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing logic (code or spreadsheet formulas) that sums the 'patterns_correct' column specifically for rows where 'attempt' equals 1."
+    },
+    {
+      "id": "compute_total_errors",
+      "description": "Agent calculates the 'total_errors' metric for valid participants.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing logic (code or spreadsheet formulas) that calculates the sum of the 'errors' column for each valid participant."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Agent saves the final computed metrics as a JSON report in the correct directory.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the agent writing, saving, or exporting the final results to a file named /home/ga/pebl/analysis/pal_report.json."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis_performed",
+      "description": "Agent actually processed the data to derive the answers.",
+      "visual_evidence": "Look for a written script (e.g., Python/pandas), a sequence of terminal data manipulation commands, or spreadsheet usage. The agent should not just instantly output a completed JSON file without showing the work."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent did not hardcode the final answers without computing them.",
+      "visual_evidence": "The script or commands used to generate the JSON should use variables derived from the dataset, rather than hardcoded numbers typed directly into the final JSON structure."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Agent saved the file to the actual requested path.",
+      "visual_evidence": "Check terminal paths, file explorer windows, or script save paths to ensure the file was genuinely saved to /home/ga/pebl/analysis/pal_report.json and not just printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected final output file must be saved exactly at /home/ga/pebl/analysis/pal_report.json. The dataset contains a dummy participant 'PAL-999' with physiologically impossible low reaction times (< 200ms) that must be excluded from the final metrics."
+}

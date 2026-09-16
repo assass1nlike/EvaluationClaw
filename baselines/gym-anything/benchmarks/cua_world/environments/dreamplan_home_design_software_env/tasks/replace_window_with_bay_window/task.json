@@ -1,0 +1,27 @@
+{
+  "id": "replace_window_with_bay_window@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "In the NCH DreamPlan 'Sample House' project, replace the standard flat window on the living room's exterior wall with a 'Bay Window'. Save the modified project as 'RenovatedBayWindow.dpp' in the 'Documents\\DreamPlan' folder.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\replace_window_with_bay_window\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\replace_window_with_bay_window\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "RenovatedBayWindow.dpp",
+    "expected_directory": "C:\\Users\\Docker\\Documents\\DreamPlan",
+    "app_name": "dreamplan"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_replace_window_with_bay_window"
+    }
+  }
+}

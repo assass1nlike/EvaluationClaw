@@ -1,0 +1,39 @@
+{
+  "id": "one_sample_ttest_toothgrowth@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform a one-sample t-test on the 'len' variable from the Tooth Growth dataset (/home/ga/Documents/Jamovi/ToothGrowth.csv) against a test value of 20. The analysis must include both Student's and Wilcoxon rank tests, as well as the mean difference, effect size, confidence interval, and descriptives table. Include Shapiro-Wilk and Q-Q plot assumption checks. Save the results to /home/ga/Documents/Jamovi/OneSampleTTest_ToothGrowth.omv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/one_sample_ttest_toothgrowth/setup_task.sh",
+    "post_task": "/workspace/tasks/one_sample_ttest_toothgrowth/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "OneSampleTTest_ToothGrowth.omv",
+    "expected_dir": "/home/ga/Documents/Jamovi",
+    "data_file": "ToothGrowth.csv",
+    "test_value": 20,
+    "variable": "len",
+    "required_options": [
+      "student",
+      "wilcoxon",
+      "meanDiff",
+      "effectSize",
+      "ci",
+      "desc",
+      "norm",
+      "qq"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_one_sample_ttest_toothgrowth"
+    }
+  }
+}

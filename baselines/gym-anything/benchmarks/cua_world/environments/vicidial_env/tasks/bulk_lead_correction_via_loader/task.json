@@ -1,0 +1,35 @@
+{
+  "id": "bulk_lead_correction_via_loader@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "A recent import of leads into List 9999 ('DC Metro Errors') contains a typo in the City field for 5 records: 'Washingtun' instead of 'Washington'. Correct these records in bulk using the Lead Loader by updating the City to 'Washington' for phone numbers 2025550101 through 2025550105. The original 'Entry Date' of these leads must be preserved and no duplicate records should be created.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_lead_correction_via_loader/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_lead_correction_via_loader/export_result.sh"
+  },
+  "metadata": {
+    "list_id": "9999",
+    "target_phones": [
+      "2025550101",
+      "2025550102",
+      "2025550103",
+      "2025550104",
+      "2025550105"
+    ],
+    "correct_city": "Washington",
+    "incorrect_city": "Washingtun",
+    "preservation_date_threshold": "2021-01-01"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_lead_correction"
+    }
+  }
+}

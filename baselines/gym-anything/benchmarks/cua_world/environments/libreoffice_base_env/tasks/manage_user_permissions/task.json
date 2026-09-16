@@ -1,0 +1,58 @@
+{
+  "id": "manage_user_permissions@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "The Chinook music store database is open in LibreOffice Base. Set up security roles for the library staff by creating three users with specific permissions. Create user REFDESK (Password: \"refdesk2024\") with SELECT access on all 11 tables (Artist, Album, Track, Genre, MediaType, Playlist, PlaylistTrack, Customer, Employee, Invoice, InvoiceLine). Create user CATALOGER (Password: \"catalog2024\") with SELECT, INSERT, UPDATE, and DELETE permissions on the 7 content tables (Artist, Album, Track, Genre, MediaType, Playlist, PlaylistTrack) and SELECT permission on the 4 financial/admin tables (Customer, Employee, Invoice, InvoiceLine). Create user LIBADMIN (Password: \"admin2024\") with the DBA role. Save the database to persist these changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manage_user_permissions/setup_task.sh",
+    "post_task": "/workspace/tasks/manage_user_permissions/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "expected_users": [
+      "REFDESK",
+      "CATALOGER",
+      "LIBADMIN"
+    ],
+    "tables_all": [
+      "Artist",
+      "Album",
+      "Track",
+      "Genre",
+      "MediaType",
+      "Playlist",
+      "PlaylistTrack",
+      "Customer",
+      "Employee",
+      "Invoice",
+      "InvoiceLine"
+    ],
+    "tables_content": [
+      "Artist",
+      "Album",
+      "Track",
+      "Genre",
+      "MediaType",
+      "Playlist",
+      "PlaylistTrack"
+    ],
+    "tables_admin": [
+      "Customer",
+      "Employee",
+      "Invoice",
+      "InvoiceLine"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manage_user_permissions"
+    }
+  }
+}

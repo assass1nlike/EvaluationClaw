@@ -1,0 +1,92 @@
+{
+  "dataset_id": "f3cd4d5e",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A benchmark for attribute hallucination detection in image-grounded narratives. Given an image and a descriptive context, the model must identify the original item in the context that is hallucinated relative to the image.",
+  "card_text": "Annotation Open contains 200 image-text samples for attribute hallucination detection. Each sample pairs a real-world image (e.g., people skiing, a man playing a Wii) with a short narrative description that may contain an attribute or object hallucination. A prompt instructs the model to output the original item in the context where the hallucination occurs, and the target is a single word or phrase (e.g., 'turquoise', 'Carpeted'). The dataset evaluates visual grounding, attribute verification, and exact span extraction from narrative text. The descriptions are fluent, image-grounded, and typically contain one deliberate hallucinated attribute.",
+  "tasks": [
+    "hallucination_detection",
+    "span_extraction"
+  ],
+  "domain": "everyday visual scenes",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "Reference to an image file that provides visual grounding for verifying the attributes described in the context. The images are everyday scenes or objects, such as people skiing or a man playing a Wii.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "context": {
+        "paths": [
+          "input.context"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "narrative",
+        "semantics": "A descriptive narrative paragraph about the image, typically two to four sentences. It contains attributes or objects that may be hallucinated relative to the image; exactly one such item is the target.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to find the original item in the context where an attribute hallucination occurs, based on the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.hitem"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The original word or phrase from the context that constitutes the attribute hallucination, such as 'turquoise' or 'Carpeted'. It is the exact text span the model should output.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference, a narrative context describing the image, an instruction prompt, and a single-word answer 'hitem'. The image and context provide the visual scene and its textual description; the prompt asks to locate the attribute hallucination; the answer gives the exact hallucinated item from the context."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Attribute_Hallucination_Detection/annotation_open.json",
+    "existing_tags": {
+      "task": "Attribute_Hallucination_Detection",
+      "type": "comprehension",
+      "skill": "Hallucination Detection",
+      "domain": "Ethics",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Ethics"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "west_facade_glare_control_blinds@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "Occupants on the West side of the 4StoreyBuilding are complaining about afternoon glare. Implement a glare control strategy in eQUEST by applying 'Venetian Blinds' to all windows on the exterior walls of West-facing zones (spaces containing '.W'). The blinds must use a hierarchical schedule named 'Glare-Year-Sch' (composed of 'Glare-Week-Sch' and 'Glare-Day-Sch'), with 'Glare-Day-Sch' set to 0.0 from 00:00-14:00, 1.0 from 14:00-18:00, and 0.0 from 18:00-24:00. Run the full annual DOE-2.2 simulation and save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\west_facade_glare_control_blinds\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\west_facade_glare_control_blinds\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "4StoreyBuilding",
+    "inp_file_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp",
+    "sim_file_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.sim",
+    "target_day_sch_name": "Glare-Day-Sch",
+    "target_week_sch_name": "Glare-Week-Sch",
+    "target_year_sch_name": "Glare-Year-Sch",
+    "target_shade_type": "VENETIAN-BLINDS",
+    "target_hours_closed": [
+      15,
+      16,
+      17,
+      18
+    ],
+    "target_zone_pattern": "\\.W"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_west_facade_glare_control_blinds"
+    }
+  }
+}

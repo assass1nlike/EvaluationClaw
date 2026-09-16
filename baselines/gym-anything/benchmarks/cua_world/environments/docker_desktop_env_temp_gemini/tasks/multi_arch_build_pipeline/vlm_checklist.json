@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_arch_build_pipeline@1",
+  "task_completion": [
+    {
+      "id": "create_buildx_builder",
+      "description": "Create a Buildx builder instance using the 'docker-container' driver.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command like 'docker buildx create --driver docker-container' or 'docker buildx ls' displaying a builder configured with the 'docker-container' driver."
+    },
+    {
+      "id": "configure_builder_network",
+      "description": "Configure the builder to communicate with the local registry.",
+      "points": 15,
+      "visual_evidence": "Terminal showing network configuration for the builder, such as using '--driver-opt network=host' during creation, or configuring a buildkitd.toml file to allow insecure local registries."
+    },
+    {
+      "id": "execute_multi_arch_build",
+      "description": "Build the Go application for both linux/amd64 and linux/arm64 platforms.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the 'docker buildx build' command with the flag '--platform linux/amd64,linux/arm64' executed against the '/home/ga/edge-app/' directory."
+    },
+    {
+      "id": "push_to_local_registry",
+      "description": "Tag the image correctly and set it to push to the local registry.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the build command includes the tags '-t localhost:5000/edge-app:latest' and the '--push' flag."
+    },
+    {
+      "id": "verify_pushed_image",
+      "description": "Successfully export and push the multi-architecture manifest to the local registry.",
+      "points": 20,
+      "visual_evidence": "Terminal showing BuildKit output successfully 'exporting to image' and 'pushing layers' to localhost:5000, or a verification command like 'docker buildx imagetools inspect localhost:5000/edge-app:latest' showing both amd64 and arm64 architectures."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_mocked_build_output",
+      "description": "Ensure the build output is genuine and not mocked.",
+      "visual_evidence": "The terminal should display standard BuildKit progress logs (e.g., '[+] Building...', '=> [internal] load build definition') rather than simple echo statements or instantly appearing completion messages."
+    },
+    {
+      "id": "no_pre_built_image_tagging",
+      "description": "Ensure the agent actually built the image from source.",
+      "visual_evidence": "The terminal should show the actual build steps executing (downloading Go modules, compiling) rather than just pulling an external multi-arch image and re-tagging it."
+    },
+    {
+      "id": "genuine_registry_push",
+      "description": "Ensure the image is pushed to the local registry and not a remote one.",
+      "visual_evidence": "The push logs in the terminal must explicitly show interaction with 'localhost:5000' or '127.0.0.1:5000', not docker.io or another external registry."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is '/home/ga/edge-app'. The local registry must be running on port 5000. The target image repository is 'edge-app' with the tag 'latest' (i.e., localhost:5000/edge-app:latest). The build must explicitly target both 'linux/amd64' and 'linux/arm64' platforms. The final pushed image manifest should be a manifest list or OCI index containing both architectures."
+}

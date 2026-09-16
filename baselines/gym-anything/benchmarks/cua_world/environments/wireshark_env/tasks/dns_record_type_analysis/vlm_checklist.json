@@ -1,0 +1,59 @@
+{
+  "task_id": "dns_record_type_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open and analyze the dns.cap file",
+      "points": 10,
+      "visual_evidence": "A packet analyzer like Wireshark open with 'dns.cap' loaded, or a terminal window showing commands (like tshark or tcpdump) reading the file."
+    },
+    {
+      "id": "report_unique_domains",
+      "description": "Include a section for all unique domain names queried",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the audit report with a clearly labeled section listing unique domain names, formatted one per line."
+    },
+    {
+      "id": "report_record_types_counts",
+      "description": "Include a section for DNS record types and their query counts",
+      "points": 25,
+      "visual_evidence": "The audit report showing a clearly labeled section that lists observed DNS record types (e.g., A, AAAA, MX, TXT, LOC, PTR) alongside the count of queries for each type."
+    },
+    {
+      "id": "report_dns_server_ips",
+      "description": "Include a section for the IP addresses of the DNS servers used",
+      "points": 15,
+      "visual_evidence": "The audit report showing a clearly labeled section listing the IP addresses of the DNS servers."
+    },
+    {
+      "id": "report_packet_counts",
+      "description": "Include a section for total DNS query and response packet counts",
+      "points": 20,
+      "visual_evidence": "The audit report showing a clearly labeled section stating the total number of DNS query packets and the total number of DNS response packets."
+    },
+    {
+      "id": "save_audit_report",
+      "description": "Save the comprehensive audit report to the specified path",
+      "points": 10,
+      "visual_evidence": "A text editor, file manager, or terminal confirming the file has been saved exactly at '/home/ga/Documents/captures/dns_audit_report.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pcap_analysis",
+      "description": "Verify the agent actually analyzed the PCAP file using appropriate tools",
+      "visual_evidence": "Screenshots should show interaction with Wireshark, tshark, tcpdump, or a similar tool to extract the data, rather than hallucinating the report contents."
+    },
+    {
+      "id": "accurate_report_data",
+      "description": "Verify the report contains genuine data derived from the specific PCAP file",
+      "visual_evidence": "The report should reflect the actual contents of the 38-packet capture (e.g., presence of TXT, MX, LOC, PTR, A, AAAA records) and not generic or placeholder DNS data."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Verify the report is saved in the correct directory and not just displayed on screen",
+      "visual_evidence": "The file path '/home/ga/Documents/captures/dns_audit_report.txt' must be visible in the save dialog, text editor title bar, or terminal commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file '/home/ga/Documents/captures/dns.cap' is a real network capture containing exactly 38 packets. The DNS traffic within this capture includes multiple specific record types: A, AAAA, MX, TXT, LOC, and PTR. The agent must successfully identify these types, count the queries/responses, extract unique domains and DNS server IPs, and save the final formatted report exactly to '/home/ga/Documents/captures/dns_audit_report.txt'."
+}

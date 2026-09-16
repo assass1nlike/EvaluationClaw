@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_disk_space_management@1",
+  "task_completion": [
+    {
+      "id": "disable_global_search",
+      "description": "Verify that Global Search and Indexer is disabled.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Settings (General tab), the checkbox for 'Enable Global Search and Indexer' should be unchecked."
+    },
+    {
+      "id": "set_compaction_threshold",
+      "description": "Verify that the folder compaction threshold is set to 15 MB.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Settings (General tab, Disk Space section), the 'Compact folders when it will save over' checkbox should be checked and the text field value set to '15' MB."
+    },
+    {
+      "id": "enable_empty_trash_on_exit",
+      "description": "Verify that 'Empty trash on exit' is enabled for Local Folders.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Account Settings, under 'Local Folders' -> 'Disk Space', the checkbox for 'Empty Trash on Exit' must be checked."
+    },
+    {
+      "id": "update_retention_policy",
+      "description": "Verify that the retention policy for Local Folders is set to delete messages older than 60 days.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Account Settings, under 'Local Folders' -> 'Disk Space', the radio button for 'Delete messages more than' should be selected, and the text field value set to '60' days old."
+    },
+    {
+      "id": "empty_trash_folder",
+      "description": "Verify that the Trash folder under Local Folders has been manually emptied.",
+      "points": 20,
+      "visual_evidence": "In the main Thunderbird mail view, when the 'Trash' folder under 'Local Folders' is selected, the message list pane should be completely empty."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Thunderbird GUI to configure settings rather than modifying configuration files via terminal.",
+      "visual_evidence": "Screenshots should show the agent navigating Thunderbird's Settings and Account Settings windows, not using a terminal to edit 'prefs.js' or running command-line tools."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Thunderbird application.",
+      "visual_evidence": "The standard Thunderbird application interface (menus, sidebars, settings tabs) should be visible, rather than a text editor or mock interface."
+    },
+    {
+      "id": "manual_trash_empty",
+      "description": "The agent manually emptied the trash via the GUI.",
+      "visual_evidence": "Screenshots should show the agent right-clicking the Trash folder and selecting 'Empty Trash', or selecting and deleting emails within the Thunderbird UI, rather than running a script to clear the mailbox file."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: 1. Global Search and Indexer must be disabled (mailnews.database.global.indexer.enabled = false). 2. Folder compaction threshold must be exactly 15 MB (mail.purge_threshhold_mb = 15). 3. 'Empty trash on exit' must be enabled for Local Folders (mail.server.server1.empty_trash_on_exit = true). 4. Retention policy for Local Folders must be set to delete messages older than 60 days (mail.server.server1.retainBy = 2, mail.server.server1.daysToKeepHdrs = 60). 5. The Trash folder must be completely empty (0 emails)."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "analyze_dynamic_stage_range@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Analyze the HEC-RAS unsteady flow results for the Muncie project ('Muncie.p04.hdf') to determine the dynamic range of water surface elevation (WSE) at each cross-section. Extract the Minimum WSE, Maximum WSE, and Channel Invert Elevation for every cross-section and calculate the Fluctuation Range (Max - Min). Save a summary CSV sorted by River Station to '/home/ga/Documents/hec_ras_results/stage_fluctuation_summary.csv' containing columns: 'River_Station', 'Invert_Elev_ft', 'Min_WSE_ft', 'Max_WSE_ft', and 'Fluctuation_Range_ft'. Record the River Station with the largest fluctuation range in '/home/ga/Documents/hec_ras_results/max_fluctuation_location.txt' using the format 'Station: <ID>, Range: <Value>'. Additionally, generate a profile plot of the Invert, Min WSE, and Max WSE envelopes versus River Station and save it to '/home/ga/Documents/hec_ras_results/wse_envelope_plot.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_dynamic_stage_range/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_dynamic_stage_range/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "hdf_file": "Muncie.p04.hdf",
+    "output_csv": "stage_fluctuation_summary.csv",
+    "output_txt": "max_fluctuation_location.txt",
+    "output_plot": "wse_envelope_plot.png",
+    "min_plot_size_bytes": 10240
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_dynamic_stage_range"
+    }
+  }
+}

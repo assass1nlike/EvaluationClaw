@@ -1,0 +1,29 @@
+{
+  "id": "xfoil_polar_analysis@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform an XFoil direct analysis in QBlade for a NACA 0012 airfoil. Define a polar analysis with Reynolds Number 500,000, Mach 0, and NCrit 9. Run the analysis for Angle of Attack (Alpha) from -5° to 15° with a step of 0.5°. Export the polar data to /home/ga/Documents/polar_analysis_output.txt. Create a summary file at /home/ga/Documents/polar_summary.txt containing the maximum lift coefficient (Cl_max), minimum drag coefficient (Cd_min), and maximum lift-to-drag ratio (L/D_max) along with their corresponding alpha values in the following format:\nCl_max=<value> at alpha=<angle>\nCd_min=<value> at alpha=<angle>\nL/D_max=<value> at alpha=<angle>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/xfoil_polar_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/xfoil_polar_analysis/export_result.sh"
+  },
+  "metadata": {
+    "reynolds_number": 500000,
+    "alpha_start": -5,
+    "alpha_end": 15,
+    "polar_output_path": "/home/ga/Documents/polar_analysis_output.txt",
+    "summary_output_path": "/home/ga/Documents/polar_summary.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_xfoil_polar_analysis"
+    }
+  }
+}

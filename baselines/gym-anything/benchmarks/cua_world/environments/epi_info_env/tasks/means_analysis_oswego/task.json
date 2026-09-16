@@ -1,0 +1,31 @@
+{
+  "id": "means_analysis_oswego@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Perform a statistical comparison of means for the 'Age' variable grouped by the 'Ill' variable using the Oswego dataset located in 'C:\\Epi Info 7\\Projects\\Sample\\Sample.prj'. Save the analysis results as an HTML file to 'C:\\Users\\Docker\\Documents\\oswego_means_output.html'. Additionally, create a summary text file at 'C:\\Users\\Docker\\Documents\\means_summary.txt' containing the mean age for the 'Ill=Yes' group on line 1, the mean age for the 'Ill=No' group on line 2, the ANOVA p-value on line 3, and the significance status ('Significant' or 'Not Significant' based on p < 0.05) on line 4.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\means_analysis_oswego\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\means_analysis_oswego\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_mean_yes": 36.3,
+    "expected_mean_no": 33.9,
+    "expected_p_value": 0.54,
+    "tolerance_mean": 2.0,
+    "tolerance_p": 0.1,
+    "output_html": "C:\\Users\\Docker\\Documents\\oswego_means_output.html",
+    "output_summary": "C:\\Users\\Docker\\Documents\\means_summary.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_means_analysis_oswego"
+    }
+  }
+}

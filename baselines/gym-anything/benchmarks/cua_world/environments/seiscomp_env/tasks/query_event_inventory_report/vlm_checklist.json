@@ -1,0 +1,59 @@
+{
+  "task_id": "query_event_inventory_report@1",
+  "task_completion": [
+    {
+      "id": "extract_earthquake_data",
+      "description": "Extract the 2024 Noto Peninsula earthquake parameters from the SeisComP database.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SeisComP GUI (like scolv), a database query (e.g., MySQL/SQLite), or terminal output displaying the earthquake's origin time, latitude, longitude, depth, magnitude, magnitude type, and agency."
+    },
+    {
+      "id": "extract_station_data",
+      "description": "Retrieve coordinates for GE network stations TOLI, GSI, KWP, SANI, and BKB.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SeisComP GUI (like scconfig), a database query, or terminal output displaying the latitude and longitude for the specified GE network stations."
+    },
+    {
+      "id": "calculate_distances",
+      "description": "Calculate the great-circle epicentral distance in kilometers from each station to the epicenter.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a Python script, calculator, or terminal execution where the agent computes the great-circle distances using the extracted coordinates."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the report file at /home/ga/noto_earthquake_report.txt.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a text editor (like nano, vim, gedit) or terminal command creating/editing the file specifically at '/home/ga/noto_earthquake_report.txt'."
+    },
+    {
+      "id": "format_earthquake_section",
+      "description": "Format the earthquake parameters section exactly as requested.",
+      "points": 20,
+      "visual_evidence": "The text file contains the exact header '=== EARTHQUAKE PARAMETERS ===' followed by the keys OriginTime, Latitude, Longitude, Depth_km, Magnitude, MagnitudeType, and Agency with their corresponding extracted values."
+    },
+    {
+      "id": "format_station_section",
+      "description": "Format the station distances section exactly as requested.",
+      "points": 20,
+      "visual_evidence": "The text file contains the exact header '=== STATION DISTANCES ===' followed by the column headers 'Network Station Latitude Longitude Distance_km' and the corresponding data rows for the 5 GE stations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "Verify the agent actually queried the SeisComP database for the data.",
+      "visual_evidence": "Look for active use of SeisComP tools (scolv, scconfig) or direct database queries (mysql, sqlite3) rather than hallucinating or copying values from external web searches."
+    },
+    {
+      "id": "genuine_distance_calculation",
+      "description": "Verify the agent calculated the distances programmatically or manually.",
+      "visual_evidence": "Look for a script (e.g., Python using geopy or math formulas) or a calculator tool being used to compute the distances, rather than the agent guessing or hardcoding hallucinated values."
+    },
+    {
+      "id": "no_pre_generated_text_pasting",
+      "description": "Verify the agent constructed the report based on its findings.",
+      "visual_evidence": "The agent should be seen typing, formatting, or using a script to write the file contents, rather than pasting a pre-generated block of text that bypasses the extraction and calculation steps."
+    }
+  ],
+  "privileged_info_for_vlm": "The true database coordinates for the 2024 Noto Peninsula earthquake are Latitude 37.4874, Longitude 137.271. The true coordinates for station KWP are Latitude 49.6305, Longitude 22.7078 (resulting in a distance of ~8397 km). Other verified earthquake parameters: Depth 10.0 km, Magnitude 7.5, MagnitudeType mww, Agency USGS. The expected output path is /home/ga/noto_earthquake_report.txt."
+}

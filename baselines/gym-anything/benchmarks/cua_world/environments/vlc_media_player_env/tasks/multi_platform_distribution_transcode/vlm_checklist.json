@@ -1,0 +1,59 @@
+{
+  "task_id": "multi_platform_distribution_transcode@1",
+  "task_completion": [
+    {
+      "id": "view_platform_specs",
+      "description": "Agent opens and reads the platform specifications JSON file.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal (e.g., cat, less), or file viewer displaying the contents of /home/ga/Documents/platform_specs.json."
+    },
+    {
+      "id": "transcoding_in_progress",
+      "description": "Agent performs the transcoding process on the master video.",
+      "points": 20,
+      "visual_evidence": "A terminal running FFmpeg commands or a GUI application (like Handbrake) actively transcoding /home/ga/Videos/master_content.mp4 into different formats."
+    },
+    {
+      "id": "deliverables_saved",
+      "description": "Agent saves the transcoded files to the deliverables directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal (ls command) showing at least four new media files (e.g., mp4, mkv, mp3) located in /home/ga/Videos/deliverables/."
+    },
+    {
+      "id": "deliverables_named_correctly",
+      "description": "Agent applies the correct naming conventions to the deliverables.",
+      "points": 10,
+      "visual_evidence": "The filenames in the deliverables directory clearly follow a structured naming convention derived from the platform specs (e.g., including platform names, resolutions, or codecs in the filename)."
+    },
+    {
+      "id": "manifest_created",
+      "description": "Agent creates the deliverables manifest file.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal showing the existence of deliverables_manifest.json in the /home/ga/Documents/ directory."
+    },
+    {
+      "id": "manifest_content_populated",
+      "description": "Agent populates the manifest with the verified technical properties of each output file.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal displaying the contents of deliverables_manifest.json, showing a JSON structure that lists the four output files along with their technical properties (e.g., codec, resolution, framerate)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_transcoding_performed",
+      "description": "Verifies that the agent actually transcoded the files rather than just copying or renaming the master file.",
+      "visual_evidence": "Presence of transcoding software UI (like Handbrake) or terminal commands invoking a transcoder (like FFmpeg) with specific codec/resolution flags, rather than simple 'cp' or 'mv' commands."
+    },
+    {
+      "id": "properties_actually_verified",
+      "description": "Verifies that the agent inspected the output files to confirm their technical properties before writing the manifest.",
+      "visual_evidence": "Terminal commands like 'ffprobe', 'mediainfo', or GUI file property windows being used on the output files in the deliverables folder."
+    },
+    {
+      "id": "genuine_manifest_creation",
+      "description": "Verifies that the manifest was genuinely created and typed/scripted by the agent.",
+      "visual_evidence": "A text editor open with the agent actively typing/formatting the JSON, or a Python/bash script written by the agent to generate the JSON, rather than a single paste action of a pre-existing file."
+    }
+  ],
+  "privileged_info_for_vlm": "The master video is a 60-second 1080p synthetic video with 440Hz and 880Hz audio tones. The task requires transcoding it for four platforms (broadcast, mobile, web streaming, audio-only podcast) using specific codecs (h264, aac, mp3), resolutions, and framerates. The deliverables must be saved in /home/ga/Videos/deliverables/ and a JSON manifest must be created at /home/ga/Documents/deliverables_manifest.json containing the verified technical properties of the four output files."
+}

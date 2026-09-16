@@ -1,0 +1,53 @@
+{
+  "task_id": "capture_onion_network_profile@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_onion_url",
+      "description": "Verify the browser has navigated to the DuckDuckGo onion service.",
+      "points": 20,
+      "visual_evidence": "The browser address bar displays 'duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion'."
+    },
+    {
+      "id": "open_network_panel",
+      "description": "Verify the browser's Developer Tools are open to the Network tab.",
+      "points": 10,
+      "visual_evidence": "The Developer Tools pane is visible in the browser, and the 'Network' tab is actively selected."
+    },
+    {
+      "id": "capture_network_traffic",
+      "description": "Verify network traffic for the fully loaded page is captured.",
+      "points": 20,
+      "visual_evidence": "The Network tab shows a populated list of HTTP requests (including HTML, images, and scripts) with status codes and a loading waterfall, indicating the page assets have loaded."
+    },
+    {
+      "id": "initiate_har_export",
+      "description": "Verify the agent initiates the export of the network traffic as a HAR file.",
+      "points": 20,
+      "visual_evidence": "A context menu showing 'Save all as HAR' (or similar) is open, or the export/download button within the Network tab is being clicked."
+    },
+    {
+      "id": "save_har_file",
+      "description": "Verify the HAR file is saved to the correct directory with the correct filename.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog box shows the file name 'ddg_onion_profile.har' and the directory path '/home/ga/Documents/', or a file manager/terminal window confirms the file exists at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_usage",
+      "description": "Verify the agent used a real web browser's Developer Tools to capture the HAR file.",
+      "visual_evidence": "The screenshots show a genuine browser interface (e.g., Tor Browser, Firefox, Chrome) with DevTools open, rather than a script or text editor being used to mock the output."
+    },
+    {
+      "id": "real_network_traffic",
+      "description": "Verify the network requests are genuinely for the DuckDuckGo onion site.",
+      "visual_evidence": "The domain column or request URLs in the Network tab clearly show the target onion address ('duckduckgogg42xjoc...'), not localhost, a local file path, or a standard cleartext domain."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "Verify the HAR file wasn't manually typed or mocked using a text editor.",
+      "visual_evidence": "There is no evidence of the agent opening a text editor (like nano, vim, or gedit) to manually paste or type JSON/HAR content into 'ddg_onion_profile.har'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target URL is strictly 'duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion'. The expected output path for the HAR file is exactly '/home/ga/Documents/ddg_onion_profile.har'."
+}

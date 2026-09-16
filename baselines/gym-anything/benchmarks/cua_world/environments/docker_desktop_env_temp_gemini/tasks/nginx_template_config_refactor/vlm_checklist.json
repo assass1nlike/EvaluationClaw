@@ -1,0 +1,59 @@
+{
+  "task_id": "nginx_template_config_refactor@1",
+  "task_completion": [
+    {
+      "id": "nginx_template_file_exists",
+      "description": "A template file for Nginx configuration is created in the project directory.",
+      "points": 15,
+      "visual_evidence": "An editor or terminal showing a file like `default.conf.template` or `nginx.conf.template` inside the `/home/ga/proxy-refactor/` directory."
+    },
+    {
+      "id": "nginx_template_uses_env_var",
+      "description": "The Nginx template utilizes the `${BACKEND_URL}` environment variable.",
+      "points": 20,
+      "visual_evidence": "The contents of the template file show `proxy_pass ${BACKEND_URL};` or similar usage of the variable instead of a hardcoded URL."
+    },
+    {
+      "id": "docker_compose_volume_mount",
+      "description": "The `docker-compose.yml` file is updated to mount the template correctly.",
+      "points": 20,
+      "visual_evidence": "The `docker-compose.yml` file shows a `volumes` entry for the proxy service mapping the local template file to a path under `/etc/nginx/templates/` inside the container."
+    },
+    {
+      "id": "docker_compose_env_var",
+      "description": "The `docker-compose.yml` file passes the `BACKEND_URL` environment variable to the proxy service.",
+      "points": 15,
+      "visual_evidence": "The `docker-compose.yml` file shows an `environment` section for the proxy service containing `BACKEND_URL=http://backend:8080`."
+    },
+    {
+      "id": "docker_services_restarted",
+      "description": "The Docker services are restarted to apply the new configuration.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing commands like `docker-compose down` and `docker-compose up -d`, or `docker compose up -d`, indicating the proxy service was recreated with the new settings."
+    },
+    {
+      "id": "curl_verification",
+      "description": "The refactor is verified by curling localhost.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of `curl http://localhost` and a successful response from the backend."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_url_in_template",
+      "description": "The agent did not hardcode the backend URL in the Nginx template.",
+      "visual_evidence": "The template file must show `${BACKEND_URL}` and not `http://backend:8080` directly in the `proxy_pass` directive."
+    },
+    {
+      "id": "genuine_docker_interaction",
+      "description": "The agent genuinely interacted with Docker to apply the changes.",
+      "visual_evidence": "Terminal logs showing actual Docker Compose output (e.g., 'Recreating...', 'Starting...', 'Attaching to...') rather than just echoing text."
+    },
+    {
+      "id": "genuine_curl_response",
+      "description": "The curl command returns a genuine response from the backend service.",
+      "visual_evidence": "The output of `curl http://localhost` looks like a real HTTP response body or backend message, not manually typed or faked output."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/proxy-refactor'. The Nginx template must use the environment variable '${BACKEND_URL}'. The docker-compose.yml must pass 'BACKEND_URL=http://backend:8080' to the proxy service. The automated verifier will test with 'http://verification-test:9999', but the agent's screenshots should show 'http://backend:8080'."
+}

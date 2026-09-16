@@ -1,0 +1,59 @@
+{
+  "task_id": "study_build_qa_remediation@1",
+  "task_completion": [
+    {
+      "id": "active_study_onc_2025",
+      "description": "Verify 'ONC-2025' is set as the active study.",
+      "points": 10,
+      "visual_evidence": "Look for 'ONC-2025' displayed as the active study in the OpenClinica header, sidebar, or study selection screen."
+    },
+    {
+      "id": "study_phase_updated",
+      "description": "Verify the study phase is updated to 'Phase II'.",
+      "points": 15,
+      "visual_evidence": "Look at the Study Details or Update Study screen for 'ONC-2025' and verify the 'Phase' field is set to 'Phase II'."
+    },
+    {
+      "id": "baseline_visit_non_repeating",
+      "description": "Verify the 'Baseline Visit' event definition is set to non-repeating.",
+      "points": 20,
+      "visual_evidence": "Look at the Build Study or Event Definitions screen. Find the 'Baseline Visit' event and verify its 'Repeating' status is set to 'No' or the repeating checkbox is unchecked."
+    },
+    {
+      "id": "adverse_event_unscheduled",
+      "description": "Verify the 'Adverse Event Report' event type is changed to 'Unscheduled'.",
+      "points": 20,
+      "visual_evidence": "Look at the Build Study or Event Definitions screen. Find the 'Adverse Event Report' event and verify its 'Type' is set to 'Unscheduled'."
+    },
+    {
+      "id": "demographics_crf_removed",
+      "description": "Verify the 'Demographics' CRF is removed from the 'Week 8 Follow-up' event.",
+      "points": 15,
+      "visual_evidence": "Look at the Event-CRF matrix or the 'Week 8 Follow-up' event configuration. Verify that the 'Demographics' CRF is not checked, not listed, or is explicitly marked as unassigned for this event."
+    },
+    {
+      "id": "vital_signs_crf_assigned",
+      "description": "Verify the 'Vital Signs' CRF is assigned to the 'Screening Visit' event.",
+      "points": 20,
+      "visual_evidence": "Look at the Event-CRF matrix or the 'Screening Visit' event configuration. Verify that the 'Vital Signs' CRF is checked, listed as assigned, or selected for this event."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the OpenClinica web interface to make changes.",
+      "visual_evidence": "Screenshots should show the OpenClinica web application in a browser, not terminal commands or API scripts."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Agent did not use direct database queries to bypass the UI.",
+      "visual_evidence": "Ensure there are no terminal windows open showing PostgreSQL (psql) queries updating the study, event, or CRF tables."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Agent interacted with the actual OpenClinica application.",
+      "visual_evidence": "The interface should be the genuine OpenClinica web UI, not a text editor or a mocked HTML file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target study is 'ONC-2025'. The expected configuration changes are: 1) Study Phase: 'Phase II', 2) 'Baseline Visit' event: Non-repeating (Repeating = No/False), 3) 'Adverse Event Report' event: Type = 'Unscheduled', 4) 'Week 8 Follow-up' event: 'Demographics' CRF must be removed/unassigned, 5) 'Screening Visit' event: 'Vital Signs' CRF must be assigned."
+}

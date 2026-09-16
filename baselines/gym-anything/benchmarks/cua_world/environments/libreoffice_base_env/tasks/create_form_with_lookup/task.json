@@ -1,0 +1,29 @@
+{
+  "id": "create_form_with_lookup@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a form named 'CustomerEntry' in the Chinook database for editing the 'Customer' table. The form must include the fields CustomerId, FirstName, LastName, Email, and SupportRepId. The SupportRepId field must be implemented as a List Box that displays the concatenated FirstName and LastName from the 'Employee' table while storing the corresponding EmployeeId. Save the form as 'CustomerEntry'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_form_with_lookup/setup_task.sh",
+    "post_task": "/workspace/tasks/create_form_with_lookup/export_result.sh"
+  },
+  "metadata": {
+    "expected_form_name": "CustomerEntry",
+    "target_table": "Customer",
+    "lookup_field": "SupportRepId",
+    "lookup_table": "Employee",
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_form_with_lookup"
+    }
+  }
+}

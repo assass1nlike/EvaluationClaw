@@ -1,0 +1,53 @@
+{
+  "task_id": "deploy_linux_endpoint_agent@1",
+  "task_completion": [
+    {
+      "id": "install_wazuh_agent",
+      "description": "Install the Wazuh agent package on the Linux workstation.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the successful download and installation of the 'wazuh-agent' package (e.g., via apt, yum, or dpkg)."
+    },
+    {
+      "id": "configure_manager_ip",
+      "description": "Configure the agent to connect to the local Wazuh Manager at 127.0.0.1.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of an enrollment command (like agent-auth) with the IP '127.0.0.1', or a text editor/echo command modifying '/var/ossec/etc/ossec.conf' to set the server address to '127.0.0.1'."
+    },
+    {
+      "id": "configure_agent_name",
+      "description": "Configure the agent with the specific name 'production-db-01'.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the enrollment command using the '-A production-db-01' flag, or configuration file edits explicitly setting the agent name to 'production-db-01'."
+    },
+    {
+      "id": "start_agent_service",
+      "description": "Ensure the Wazuh agent service is started and active.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'systemctl status wazuh-agent' or similar service command showing the service state as 'Active: active (running)'."
+    },
+    {
+      "id": "verify_agent_connection",
+      "description": "Verify the agent is successfully connected to the manager and has an 'active' status.",
+      "points": 25,
+      "visual_evidence": "Terminal showing Wazuh logs (e.g., /var/ossec/logs/ossec.log) stating 'Connected to server', or output from 'agent_control -l' / Wazuh API showing the agent 'production-db-01' with a status of 'Active'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_execution",
+      "description": "The agent executed commands in a real terminal rather than just writing them in a text editor.",
+      "visual_evidence": "Screenshots show standard bash/zsh prompts with command execution and system responses, not just a script file open in nano/vim without execution."
+    },
+    {
+      "id": "no_echo_spoofing",
+      "description": "The agent did not spoof the verification outputs using echo or print commands.",
+      "visual_evidence": "Outputs for service status and agent connection appear as genuine system/application output formatting, without evidence of 'echo' or 'cat' of manually created fake log files."
+    },
+    {
+      "id": "actual_installation_flow",
+      "description": "The agent performed the actual installation and enrollment steps.",
+      "visual_evidence": "Presence of intermediate steps like package manager output, downloading keys/packages, or restarting services, rather than magically showing a finished state."
+    }
+  ],
+  "privileged_info_for_vlm": "The Wazuh agent must be configured with the exact name 'production-db-01'. The manager IP address must be set to '127.0.0.1' (or 'localhost'). The final verification must show the agent's connection status as 'active'."
+}

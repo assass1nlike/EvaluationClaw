@@ -1,0 +1,59 @@
+{
+  "task_id": "compose_profiles_multi_team@1",
+  "task_completion": [
+    {
+      "id": "open_compose_file",
+      "description": "Open the correct docker-compose.yml file",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (like nano, vim, or VS Code) or terminal output showing the contents of /home/ga/ecommerce-platform/docker-compose.yml."
+    },
+    {
+      "id": "base_services_unmodified",
+      "description": "Ensure base services have no profiles assigned",
+      "points": 10,
+      "visual_evidence": "Look at the 'postgres' and 'redis' service definitions in the docker-compose.yml file. They must NOT have a 'profiles:' attribute added to them."
+    },
+    {
+      "id": "frontend_profile_added",
+      "description": "Add the frontend profile to nginx and storefront",
+      "points": 20,
+      "visual_evidence": "Look at the 'nginx' and 'storefront' service definitions. They should have a 'profiles:' attribute that includes 'frontend' (e.g., profiles: [\"frontend\", \"full\"] or a YAML list)."
+    },
+    {
+      "id": "backend_profile_added",
+      "description": "Add the backend profile to api and worker",
+      "points": 20,
+      "visual_evidence": "Look at the 'api' and 'worker' service definitions. They should have a 'profiles:' attribute that includes 'backend'."
+    },
+    {
+      "id": "debug_profile_added",
+      "description": "Add the debug profile to test-runner and prometheus",
+      "points": 20,
+      "visual_evidence": "Look at the 'test-runner' and 'prometheus' service definitions. They should have a 'profiles:' attribute that includes 'debug'."
+    },
+    {
+      "id": "full_profile_added",
+      "description": "Add the full profile to all non-base services",
+      "points": 20,
+      "visual_evidence": "Look at the 'nginx', 'storefront', 'api', 'worker', 'test-runner', and 'prometheus' service definitions. Every single one of these must ALSO include 'full' in their 'profiles:' attribute list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_unauthorized_modifications",
+      "description": "Ensure existing configurations are not altered",
+      "visual_evidence": "Check that 'image', 'ports', and 'depends_on' attributes for the services remain intact and have not been deleted or modified."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "Ensure the correct file was modified",
+      "visual_evidence": "The file path visible in the editor or terminal commands must be /home/ga/ecommerce-platform/docker-compose.yml, not a copy in a different directory."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Agent genuinely edited the file",
+      "visual_evidence": "Look for evidence of terminal commands (like sed/awk) or a text editor interface (nano, vim, gedit) being used to modify the file, rather than just hallucinating completion."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /home/ga/ecommerce-platform/docker-compose.yml. Base services 'postgres' and 'redis' must have NO 'profiles' attribute. The 'frontend' profile must be assigned to 'nginx' and 'storefront'. The 'backend' profile must be assigned to 'api' and 'worker'. The 'debug' profile must be assigned to 'test-runner' and 'prometheus'. The 'full' profile must be assigned to all services EXCEPT 'postgres' and 'redis'. Therefore, 'nginx', 'storefront', 'api', 'worker', 'test-runner', and 'prometheus' should each have a list of profiles containing their specific profile AND 'full' (e.g., profiles: [\"frontend\", \"full\"]). Existing port mappings, image names, and depends_on relations must remain unchanged."
+}

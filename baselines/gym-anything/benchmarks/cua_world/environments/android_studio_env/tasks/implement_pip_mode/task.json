@@ -1,0 +1,33 @@
+{
+  "id": "implement_pip_mode@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Enable Picture-in-Picture (PiP) mode for the 'PlayerActivity' in the StreamFlix app. The app currently stops playback when the user leaves the activity; it should instead automatically enter PiP mode with a 16:9 aspect ratio. Ensure the activity handles the transition without restarting and that the 'closeButton' (ID: closeButton) is hidden during PiP mode and visible otherwise. Ensure the project builds successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_pip_mode/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_pip_mode/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/StreamFlix",
+    "activity_path": "app/src/main/java/com/example/streamflix/PlayerActivity.kt",
+    "manifest_path": "app/src/main/AndroidManifest.xml",
+    "required_config_changes": [
+      "screenSize",
+      "smallestScreenSize",
+      "screenLayout",
+      "orientation"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_pip_mode"
+    }
+  }
+}

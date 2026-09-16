@@ -1,0 +1,59 @@
+{
+  "task_id": "gng_inhibitory_control_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_gng_data",
+      "description": "Agent reads the input GNG dataset.",
+      "points": 10,
+      "visual_evidence": "Visual evidence of code (e.g., Python pandas or csv module) loading the file '~/pebl/data/gng_data.csv'."
+    },
+    {
+      "id": "compute_metrics_and_sdt",
+      "description": "Agent implements logic to calculate the required metrics and apply SDT corrections.",
+      "points": 20,
+      "visual_evidence": "Code showing calculations for Omission Errors, Commission Errors, Hit Rate, False Alarm Rate, Mean Hit RT, and d-prime, including the specific '0.5/N' adjustment for rates of 0 or 1."
+    },
+    {
+      "id": "apply_exclusion_rule",
+      "description": "Agent implements the specific exclusion criteria for contaminated records.",
+      "points": 20,
+      "visual_evidence": "Code showing a conditional check to exclude participants where False Alarm Rate >= 0.90 AND Mean Hit RT < 100 ms."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent generates the output report at the correct path.",
+      "points": 20,
+      "visual_evidence": "Code writing to '~/pebl/analysis/gng_report.json' or terminal/file explorer showing this file has been created."
+    },
+    {
+      "id": "json_participants_list",
+      "description": "The JSON report contains the 'participants' list with individual metrics and exclusion flags.",
+      "points": 15,
+      "visual_evidence": "Contents of the JSON file (viewed in an editor or terminal) showing a 'participants' array. Look for 'sub-99' having an 'excluded' flag and a reason provided."
+    },
+    {
+      "id": "json_group_means",
+      "description": "The JSON report contains the 'group_means' dictionary.",
+      "points": 15,
+      "visual_evidence": "Contents of the JSON file showing a 'group_means' key containing the calculated averages for the six metrics across valid participants."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution",
+      "description": "Agent actually executed the analysis script.",
+      "visual_evidence": "Terminal output showing the execution of the script (e.g., 'python analyze.py') and no errors, rather than just writing code without running it."
+    },
+    {
+      "id": "no_hardcoded_exclusion",
+      "description": "Agent programmatically evaluated the exclusion criteria.",
+      "visual_evidence": "The code must use the calculated FA Rate and Mean Hit RT to exclude participants. It should NOT explicitly hardcode 'if participant == \"sub-99\"'."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Agent used the provided dataset rather than creating mock data.",
+      "visual_evidence": "The script must read from the actual CSV file path and not contain hardcoded mock data arrays or data generation functions."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 25 valid participants (sub-01 to sub-25) and 1 contaminated participant (sub-99). The contaminated participant sub-99 has a 100% response rate and ~17.5ms RT, which triggers the exclusion criteria (False Alarm Rate >= 0.90 and Mean Hit RT < 100 ms). The final output must be located exactly at /home/ga/pebl/analysis/gng_report.json and must explicitly flag sub-99 as excluded."
+}

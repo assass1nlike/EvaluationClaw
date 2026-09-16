@@ -1,0 +1,40 @@
+{
+  "id": "package_layers_geopackage@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "A field survey team needs all project GIS data consolidated into a single GeoPackage (.gpkg) file for their mobile mapping application. Consolidate the polygon zones (/home/ga/GIS_Data/sample_polygon.geojson), monitoring stations (/home/ga/GIS_Data/sample_points.geojson), and road network (/home/ga/GIS_Data/sample_lines.geojson) into a single GeoPackage file at /home/ga/GIS_Data/exports/project_data.gpkg. The layers within the GeoPackage must be named 'zones', 'stations', and 'roads' respectively. Save the QGIS project to /home/ga/GIS_Data/projects/delivery_project.qgs.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/package_layers_geopackage/setup_task.sh",
+    "post_task": "/workspace/tasks/package_layers_geopackage/export_result.sh"
+  },
+  "metadata": {
+    "expected_gpkg_path": "/home/ga/GIS_Data/exports/project_data.gpkg",
+    "expected_project_path": "/home/ga/GIS_Data/projects/delivery_project",
+    "layers": {
+      "zones": {
+        "type": "polygon",
+        "count": 2
+      },
+      "stations": {
+        "type": "point",
+        "count": 3
+      },
+      "roads": {
+        "type": "line",
+        "count": 2
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_package_layers_geopackage"
+    }
+  }
+}

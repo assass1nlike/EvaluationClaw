@@ -1,0 +1,59 @@
+{
+  "task_id": "packet_size_distribution_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Agent opens the target pcapng file for analysis.",
+      "points": 10,
+      "visual_evidence": "Screenshots show Wireshark with '200722_tcp_anon.pcapng' loaded, or a terminal window running a network analysis command (like tshark or capinfos) against this file."
+    },
+    {
+      "id": "view_packet_statistics",
+      "description": "Agent accesses packet size/length statistics.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the 'Packet Lengths' or 'Summary' statistics window in Wireshark, or terminal output displaying packet size statistics and bucket counts."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Agent creates or opens the required report file.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a text editor (like gedit, nano, or vim) open with a file named 'packet_size_report.txt'."
+    },
+    {
+      "id": "report_basic_stats",
+      "description": "Agent records the basic packet statistics in the report.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the '=== Packet Size Distribution Report ===' section with 'Total Packets: 35', and numeric values filled in for Min Size, Max Size, and Avg Size."
+    },
+    {
+      "id": "report_bucket_distribution",
+      "description": "Agent records the packet counts and percentages for all required size buckets.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the '=== Size Bucket Distribution ===' section with counts and percentages filled in for all six specified buckets (0-79, 80-159, 160-319, 320-639, 640-1279, 1280-2559)."
+    },
+    {
+      "id": "report_dominant_bucket",
+      "description": "Agent identifies the dominant bucket in the report.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the '=== Dominant Bucket ===' section identifying one of the bucket ranges and its corresponding packet count."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tool_usage",
+      "description": "Verify that the agent used a proper network analysis tool to extract the data.",
+      "visual_evidence": "The agent must be seen using Wireshark GUI or command-line tools like tshark/capinfos to analyze the file, rather than guessing or hallucinating the statistics."
+    },
+    {
+      "id": "consistent_data",
+      "description": "Verify that the reported statistics match the analysis output.",
+      "visual_evidence": "The numbers entered into the report should match the numbers displayed in the Wireshark/tshark analysis output in earlier screenshots."
+    },
+    {
+      "id": "correct_report_path",
+      "description": "Verify the report is saved to the correct directory.",
+      "visual_evidence": "The text editor or terminal commands should indicate the file is being saved exactly to '/home/ga/Documents/captures/packet_size_report.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The capture file '200722_tcp_anon.pcapng' is a real network traffic dataset containing exactly 35 packets. The report must be saved to '/home/ga/Documents/captures/packet_size_report.txt'. The VLM should verify that the 'Total Packets' in the report is exactly 35. The agent must analyze the file using network analysis tools (Wireshark or tshark) to find the min, max, avg sizes and bucket distributions."
+}

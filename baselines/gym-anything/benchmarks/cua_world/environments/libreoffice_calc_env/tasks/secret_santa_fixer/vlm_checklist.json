@@ -1,0 +1,59 @@
+{
+  "task_id": "secret_santa_fixer@1",
+  "task_completion": [
+    {
+      "id": "spreadsheet_opened",
+      "description": "Open the Secret Santa spreadsheet",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the Secret Santa data with columns for participants, spouses, 'Gives To', and budgets."
+    },
+    {
+      "id": "self_assignment_fixed",
+      "description": "Resolve the self-assignment violation",
+      "points": 15,
+      "visual_evidence": "In the row for Alice, the 'Gives To' column contains a name other than Alice."
+    },
+    {
+      "id": "spouse_pairings_fixed",
+      "description": "Resolve the spouse pairing violations",
+      "points": 20,
+      "visual_evidence": "In the row for Carol, the 'Gives To' column is not Dave. In the row for Kelly, the 'Gives To' column is not Leo."
+    },
+    {
+      "id": "missing_assignment_fixed",
+      "description": "Resolve the missing assignment",
+      "points": 15,
+      "visual_evidence": "In the row for Dave, the 'Gives To' column is no longer empty and contains a valid participant's name."
+    },
+    {
+      "id": "budgets_standardized",
+      "description": "Standardize the budget formats",
+      "points": 15,
+      "visual_evidence": "The budget column contains consistent numeric values for all participants. Specifically, the non-numeric entry 'thirty' has been replaced with a numeric value (e.g., 30 or $30)."
+    },
+    {
+      "id": "valid_cycle_established",
+      "description": "Ensure the exchange forms a valid gift-giving cycle",
+      "points": 25,
+      "visual_evidence": "The 'Gives To' column is completely filled with exactly 15 names, and there are no duplicate names in this column, ensuring everyone receives exactly one gift."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent used a spreadsheet GUI to edit the file",
+      "visual_evidence": "Screenshots show interaction with a spreadsheet application interface (like LibreOffice Calc) rather than just terminal commands or text editors."
+    },
+    {
+      "id": "edited_existing_data",
+      "description": "The agent modified the existing data rather than generating a new file from scratch",
+      "visual_evidence": "The original 15 participant names and their respective spouses remain intact in the spreadsheet."
+    },
+    {
+      "id": "no_external_solver_script",
+      "description": "The agent did not use a pre-written external script to solve the constraints",
+      "visual_evidence": "The terminal does not show the execution of a Python or shell script designed to automatically solve Secret Santa graphs."
+    }
+  ],
+  "privileged_info_for_vlm": "The original spreadsheet has exactly 15 participants with specific intentional errors: 1 self-assignment (Alice -> Alice), 2 spouse pairings (Carol -> Dave, Kelly -> Leo), 1 missing assignment (Dave's 'Gives To' cell is empty), and 1 non-numeric budget ('thirty' for Dave). The VLM should verify that Alice's recipient is no longer Alice, Carol's is no longer Dave, Kelly's is no longer Leo, Dave has a recipient, Dave's budget is a number (e.g., 30), and the 'Gives To' column contains exactly the 15 original participant names with no duplicates."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_actuated_tsp@1",
+  "task_completion": [
+    {
+      "id": "modify_tllogic_type",
+      "description": "Update the traffic light configuration to use actuated control.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output showing the file /home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_tls.add.xml where the <tlLogic> tags have been updated to include type=\"actuated\"."
+    },
+    {
+      "id": "modify_phase_durations",
+      "description": "Add or update minDur and maxDur attributes for each phase based on the duration.",
+      "points": 25,
+      "visual_evidence": "Look for modifications to the <phase> tags in pasubio_tls.add.xml. Each phase should now have minDur (50% of duration, minimum 5) and maxDur (150% of duration) attributes. Note that some pre-existing minDur/maxDur values must be overwritten by the agent."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation using the provided configuration file.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing the execution of the SUMO simulation (e.g., running `sumo -c run.sumocfg` or `sumo -c /home/ga/SUMO_Scenarios/bologna_pasubio/run.sumocfg`) and successfully generating the tripinfos.xml file."
+    },
+    {
+      "id": "create_report_format",
+      "description": "Generate the summary report file with the correct formatting keys.",
+      "points": 20,
+      "visual_evidence": "Look for the creation or display of /home/ga/SUMO_Output/bus_travel_times.txt containing exactly the keys: 'bus_trips_completed:', 'avg_duration_s:', and 'avg_waitingTime_s:'."
+    },
+    {
+      "id": "report_content_accuracy",
+      "description": "Calculate and report the correct statistics for the bus trips.",
+      "points": 20,
+      "visual_evidence": "Look at the values in bus_travel_times.txt. Because of a flaw in the task instructions (IDs do not contain 'bus', but vType does), accept 'bus_trips_completed: 0' (if the agent strictly filtered by ID) OR 'bus_trips_completed: 112' (if the agent smartly filtered by vType). The averages should correspond to the chosen filtering method (0/NaN if 0 trips)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_phase_state_changes",
+      "description": "Ensure the agent did not modify any phase states in the XML file.",
+      "visual_evidence": "Check the pasubio_tls.add.xml file modifications to ensure the 'state=\"...\"' strings inside the <phase> tags remain unchanged from their original values."
+    },
+    {
+      "id": "script_used_for_parsing",
+      "description": "Ensure the agent parsed the XML data programmatically rather than hallucinating the report.",
+      "visual_evidence": "Look for a Python script, shell command (like grep/awk), or similar programmatic method used to read tripinfos.xml and calculate the averages, rather than the agent just echoing hardcoded numbers into the text file."
+    },
+    {
+      "id": "authentic_sumo_run",
+      "description": "Ensure the agent actually ran the SUMO simulation to generate the tripinfos.",
+      "visual_evidence": "Look for genuine SUMO terminal output logs (e.g., 'Step #...', 'Simulation ended at time...') rather than the agent manually creating a fake tripinfos.xml file."
+    }
+  ],
+  "privileged_info_for_vlm": "The working directory is /home/ga/SUMO_Scenarios/bologna_pasubio and output is /home/ga/SUMO_Output. The file pasubio_tls.add.xml already contains some predefined minDur and maxDur attributes; the agent MUST overwrite these to strictly follow the 50%/150% rule. CRITICAL SCORING NOTE: The task instructs the agent to filter trips where the vehicle ID contains 'bus'. However, in the provided tripinfos.xml, NO vehicle IDs contain 'bus' (they are formatted like '11_0'). The string 'bus' is actually in the 'vType' attribute (which yields 112 trips). If the agent strictly follows the prompt's literal instruction, it will output 0 completed trips. If it adapts and uses vType, it will output 112. Both approaches MUST be considered correct for the report content."
+}

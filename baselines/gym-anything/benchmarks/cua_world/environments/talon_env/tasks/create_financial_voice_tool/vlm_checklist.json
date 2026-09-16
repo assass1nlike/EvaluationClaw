@@ -1,0 +1,53 @@
+{
+  "task_id": "create_financial_voice_tool@1",
+  "task_completion": [
+    {
+      "id": "create_module_files",
+      "description": "Verify the creation of the Python and Talon files in the correct directory.",
+      "points": 10,
+      "visual_evidence": "File explorer, terminal, or IDE breadcrumbs showing both 'finance_tool.py' and 'finance_tool.talon' located within 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\finance_tool\\'."
+    },
+    {
+      "id": "python_normalization_rules",
+      "description": "Verify the Python file implements the specified company name normalization rules.",
+      "points": 20,
+      "visual_evidence": "Code in 'finance_tool.py' showing string manipulation that includes lowercase conversion, removing commas, removing the exact substrings ' inc.', ' corp.', ' ltd.', and ' company', and stripping whitespace."
+    },
+    {
+      "id": "python_list_and_action",
+      "description": "Verify the Python file defines the required Talon list and action signature.",
+      "points": 20,
+      "visual_evidence": "Code in 'finance_tool.py' showing the declaration of a list named 'company_ticker' and a function/action defined exactly as 'insert_finance_metric(ticker: str, metric: str)'."
+    },
+    {
+      "id": "python_csv_metrics",
+      "description": "Verify the Python file includes logic to read the CSV and extract the specific metrics.",
+      "points": 20,
+      "visual_evidence": "Code in 'finance_tool.py' showing file reading operations targeting 'C:\\workspace\\data\\sp500_financials.csv' and logic to retrieve 'Price', 'Market Cap', and 'Price/Earnings'."
+    },
+    {
+      "id": "talon_commands",
+      "description": "Verify the Talon file defines the required global voice commands.",
+      "points": 30,
+      "visual_evidence": "Code in 'finance_tool.talon' showing the exact commands 'company price {user.company_ticker}', 'company valuation {user.company_ticker}', and 'company multiple {user.company_ticker}' mapped to call the insert_finance_metric action."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Verify that the code files were actually saved to the disk.",
+      "visual_evidence": "The text editor or IDE tabs for 'finance_tool.py' and 'finance_tool.talon' do not show an 'unsaved' indicator (like a dot or asterisk next to the filename), or terminal output confirms the files were written."
+    },
+    {
+      "id": "no_hardcoded_metrics",
+      "description": "Verify the agent implemented dynamic CSV parsing rather than hardcoding fake metric values.",
+      "visual_evidence": "The 'insert_finance_metric' function contains genuine file reading/parsing logic (e.g., using the 'csv' module or 'pandas') rather than a static dictionary or if/else chain returning hardcoded numbers."
+    },
+    {
+      "id": "correct_directory_used",
+      "description": "Verify the agent used the exact requested Talon user directory path.",
+      "visual_evidence": "The file path visible in the editor's title bar, tree view, or terminal strictly matches 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\finance_tool' and is not a generic workspace folder."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified Talon user directory path: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\finance_tool. Note: The underlying CSV dataset (sp500_financials.csv) may be missing from the environment, making it impossible for the agent to successfully test the module. Score the agent based on the creation and saving of the code files as specified, even if execution/testing fails."
+}

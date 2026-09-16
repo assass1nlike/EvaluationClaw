@@ -1,0 +1,48 @@
+{
+  "id": "triple_window_level_export@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "The CT Cranium DICOM scan is loaded in InVesalius 3. Create a reference sheet by exporting axial slice 54 under three different window/level settings. Export a PNG screenshot for the Bone Window (WW 2000, WL 300) to /home/ga/Documents/bone_window.png, the Brain Window (WW 80, WL 40) to /home/ga/Documents/brain_window.png, and the Soft Tissue Window (WW 350, WL 50) to /home/ga/Documents/soft_tissue_window.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/triple_window_level_export/setup_task.sh",
+    "post_task": "/workspace/tasks/triple_window_level_export/export_result.sh"
+  },
+  "metadata": {
+    "outputs": [
+      {
+        "name": "bone",
+        "path": "/home/ga/Documents/bone_window.png",
+        "ww": 2000,
+        "wl": 300,
+        "desc": "High contrast bone, dark background"
+      },
+      {
+        "name": "brain",
+        "path": "/home/ga/Documents/brain_window.png",
+        "ww": 80,
+        "wl": 40,
+        "desc": "Gray brain matter, white skull"
+      },
+      {
+        "name": "soft_tissue",
+        "path": "/home/ga/Documents/soft_tissue_window.png",
+        "ww": 350,
+        "wl": 50,
+        "desc": "Visible skin/muscle contours"
+      }
+    ],
+    "dicom_series": "ct_cranium"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_triple_window_level_export"
+    }
+  }
+}

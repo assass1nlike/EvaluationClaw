@@ -1,0 +1,54 @@
+{
+  "task_id": "mars_transfer_trajectory_design@1",
+  "task_completion": [
+    {
+      "id": "read_requirements",
+      "description": "Read the mission requirements file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displaying the contents of ~/Desktop/mars_mission_requirements.txt."
+    },
+    {
+      "id": "gmat_configuration",
+      "description": "Configure the Earth parking orbit and TMI impulsive burn in GMAT.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing the setup of the spacecraft's Earth parking orbit (200 km circular, 28.5 deg inclination) and TMI burn, OR a text editor showing a GMAT script defining these parameters."
+    },
+    {
+      "id": "gmat_targeting",
+      "description": "Configure a DifferentialCorrector to target Mars closest approach.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing a DifferentialCorrector configured to target a Mars closest approach (< 500,000 km), OR a text editor showing GMAT script commands for the Target sequence."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the GMAT simulation to compute the trajectory.",
+      "points": 10,
+      "visual_evidence": "GMAT GUI running the mission sequence (e.g., showing a 3D orbit view or message window), OR a terminal showing GMAT being executed from the command line."
+    },
+    {
+      "id": "save_script",
+      "description": "Save the final GMAT script to the required location.",
+      "points": 20,
+      "visual_evidence": "File manager, terminal, or text editor showing the existence or saving of mars_transfer.script in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "save_results",
+      "description": "Record the required trajectory parameters in the results file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal displaying the contents of ~/GMAT_output/mars_transfer_results.txt with recorded values for C3, TMI DeltaV, time of flight, and closest approach distance."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_usage",
+      "description": "Verify the agent actually used GMAT to compute the trajectory.",
+      "visual_evidence": "Look for the GMAT GUI being interacted with or GMAT being executed in the terminal. The agent should not just write a script without running it."
+    },
+    {
+      "id": "authentic_results",
+      "description": "Verify the recorded results come from the actual GMAT simulation.",
+      "visual_evidence": "The values in mars_transfer_results.txt should correspond to the output seen in GMAT's message window, report file, or command-line output, rather than being hallucinated."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires saving the GMAT script to /home/ga/GMAT_output/mars_transfer.script and results to /home/ga/GMAT_output/mars_transfer_results.txt. Note: There is a physical contradiction in the task's date (July 14, 2026) which makes the expected C3 (6-20 km^2/s^2) and TMI DeltaV (3.4-4.5 km/s) impossible to achieve. A correct GMAT simulation for this date will yield a C3 of ~85 km^2/s^2 and TMI DeltaV > 6.5 km/s. The agent should not be penalized if its calculated values fall outside the expected metadata bounds, as long as it correctly set up the simulation and recorded the results. The target for Mars closest approach is <= 500,000 km."
+}

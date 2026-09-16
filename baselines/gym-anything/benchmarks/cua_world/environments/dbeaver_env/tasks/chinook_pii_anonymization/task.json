@@ -1,0 +1,29 @@
+{
+  "id": "chinook_pii_anonymization@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Anonymize customer PII in the 'chinook_vendor.db' database (/home/ga/Documents/databases/chinook_vendor.db) to prepare it for external sharing using DBeaver (Connection name: 'ChinookVendor'). Update the 'customers' table with the following rules: FirstName is 'Customer', LastName is 'C' followed by CustomerId zero-padded to 3 digits (e.g., 'C007'), Company is 'REDACTED' if currently present (otherwise NULL), Address is 'REDACTED', Phone and Fax are NULL, and Email is 'customer' + CustomerId + '@example.com'. Do not modify other columns and ensure referential integrity remains intact. Save the SQL script to '/home/ga/Documents/scripts/",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_pii_anonymization/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_pii_anonymization/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_vendor.db",
+    "connection_name": "ChinookVendor",
+    "report_path": "/home/ga/Documents/exports/anonymization_report.csv",
+    "script_path": "/home/ga/Documents/scripts/anonymize_customers.sql",
+    "expected_customer_count": 59
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_pii_anonymization"
+    }
+  }
+}

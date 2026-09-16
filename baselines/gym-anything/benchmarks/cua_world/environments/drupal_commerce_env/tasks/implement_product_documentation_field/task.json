@@ -1,0 +1,28 @@
+{
+  "id": "implement_product_documentation_field@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "The customer support team needs a way to link official documentation on product pages. Add a 'Link' field labeled 'User Manual' (machine name: field_user_manual) to the 'Default' product type. Configure the field to allow external links only, with link text enabled, and ensure it is visible on the product display with an inline label. Populate this field for the 'Sony WH-1000XM5 Wireless Headphones' product using the URL https://www.sony.com/electronics/support/wireless-headphones-bluetooth-headphones/wh-1000xm5/manuals and the link text 'Official PDF Manual'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_product_documentation_field/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_product_documentation_field/export_result.sh"
+  },
+  "metadata": {
+    "field_machine_name": "field_user_manual",
+    "target_product_sku": "SONY-WH1000XM5",
+    "expected_url": "https://www.sony.com/electronics/support/wireless-headphones-bluetooth-headphones/wh-1000xm5/manuals",
+    "expected_link_text": "Official PDF Manual"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_product_documentation_field"
+    }
+  }
+}

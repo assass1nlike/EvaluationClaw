@@ -1,0 +1,28 @@
+{
+  "id": "retrieve_wfs_filtered_features@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Query the GeoServer WFS service (http://localhost:8080/geoserver/ne/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ne:ne_countries) to retrieve all European countries from the 'ne:ne_countries' layer. Use a CQL filter to select features where the 'continent' attribute is 'Europe' and request the output in 'application/json' format. Save the GeoJSON result to /home/ga/Documents/europe_countries.geojson. Create a summary report at /home/ga/Documents/europe_report.txt where the first line is the total count of features and the subsequent lines list the country names (from the 'name' attribute) in alphabetical order.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/retrieve_wfs_filtered_features/setup_task.sh",
+    "post_task": "/workspace/tasks/retrieve_wfs_filtered_features/export_result.sh"
+  },
+  "metadata": {
+    "expected_geojson_path": "/home/ga/Documents/europe_countries.geojson",
+    "expected_report_path": "/home/ga/Documents/europe_report.txt",
+    "target_continent": "Europe",
+    "layer_name": "ne:ne_countries"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retrieve_wfs_filtered_features"
+    }
+  }
+}

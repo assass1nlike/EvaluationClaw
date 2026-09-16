@@ -1,0 +1,35 @@
+{
+  "id": "compile_transfer_summary@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Patient Walter Bishop (P_WB001) is being transferred to another facility. Compile a text summary of his active medications and known allergies. Save the list of medication names and allergy names to /home/ga/transfer_summary.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compile_transfer_summary/setup_task.sh",
+    "post_task": "/workspace/tasks/compile_transfer_summary/export_result.sh"
+  },
+  "metadata": {
+    "patient_name": "Walter Bishop",
+    "output_file": "/home/ga/transfer_summary.txt",
+    "required_strings": [
+      "Digoxin",
+      "Warfarin",
+      "Penicillin",
+      "Strawberries"
+    ],
+    "forbidden_strings": [
+      "Amoxicillin"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compile_transfer_summary"
+    }
+  }
+}

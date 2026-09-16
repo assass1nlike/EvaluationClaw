@@ -1,0 +1,53 @@
+{
+  "task_id": "ssh_session_transactions@1",
+  "task_completion": [
+    {
+      "id": "search_security_logs",
+      "description": "Search the correct index for SSH events",
+      "points": 10,
+      "visual_evidence": "The Splunk search bar should contain a query starting with or including 'index=\"security_logs\"' or 'index=security_logs'."
+    },
+    {
+      "id": "use_transaction_command",
+      "description": "Use the transaction command to group events by source IP",
+      "points": 20,
+      "visual_evidence": "The SPL query in the search bar or panel configuration must contain the '| transaction' command, likely followed by an IP-related field."
+    },
+    {
+      "id": "save_report",
+      "description": "Save the search as a report named 'SSH_Brute_Force_Sessions'",
+      "points": 20,
+      "visual_evidence": "A success message showing the report 'SSH_Brute_Force_Sessions' was saved, or the report visible in the Splunk 'Reports' tab."
+    },
+    {
+      "id": "create_dashboard",
+      "description": "Create a dashboard named 'SSH_Session_Analysis'",
+      "points": 20,
+      "visual_evidence": "A dashboard titled 'SSH_Session_Analysis' being viewed, edited, or listed in the Splunk 'Dashboards' tab."
+    },
+    {
+      "id": "dashboard_two_panels",
+      "description": "Add at least two visualization panels to the dashboard",
+      "points": 30,
+      "visual_evidence": "The 'SSH_Session_Analysis' dashboard must display at least two distinct panels (e.g., a table of longest sessions and a chart of events per session) populated with data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Splunk Web UI in a browser",
+      "visual_evidence": "Screenshots should show the Splunk Enterprise web interface (http://localhost:8000) in a web browser, not terminal curl commands or API scripts."
+    },
+    {
+      "id": "genuine_data_display",
+      "description": "The dashboard panels display actual Splunk data",
+      "visual_evidence": "The tables and charts in the dashboard should show realistic data (e.g., IP addresses, event counts, durations) rather than being empty, mocked, or showing error messages."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not just write the SPL query in a text editor",
+      "visual_evidence": "The SPL queries and configurations must be entered into the actual Splunk interface, not just typed into a notepad or terminal text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The target index is 'security_logs'. The SPL query must explicitly use the 'transaction' command to group events. The saved report must be named 'SSH_Brute_Force_Sessions'. The dashboard must be named 'SSH_Session_Analysis' and contain at least two visualization panels."
+}

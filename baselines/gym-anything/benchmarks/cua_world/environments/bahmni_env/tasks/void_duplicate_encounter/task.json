@@ -1,0 +1,29 @@
+{
+  "id": "void_duplicate_encounter@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "A data entry error has resulted in duplicate 'Vitals' encounters for patient Lisa Thompson (Identifier: BAH000008). Log in with username superman and password Admin123 and clean up the medical record by voiding exactly one of the duplicate encounters. Ensure the other encounter remains active so the clinical data is preserved. Provide a reason for the voiding action (e.g., 'Duplicate entry'). Do not void the patient record or the visit itself.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/void_duplicate_encounter/setup_task.sh",
+    "post_task": "/workspace/tasks/void_duplicate_encounter/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "patient_identifier": "BAH000008",
+    "patient_name": "Lisa Thompson",
+    "admin_user": "superman",
+    "admin_pass": "Admin123"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_void_duplicate_encounter"
+    }
+  }
+}

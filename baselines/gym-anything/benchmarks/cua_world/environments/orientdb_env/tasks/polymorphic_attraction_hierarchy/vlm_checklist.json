@@ -1,0 +1,59 @@
+{
+  "task_id": "polymorphic_attraction_hierarchy@1",
+  "task_completion": [
+    {
+      "id": "create_museums_class",
+      "description": "Create 'Museums' class extending 'Attractions' with specified properties",
+      "points": 20,
+      "visual_evidence": "Screenshots showing OrientDB Studio Schema page or console commands (e.g., CREATE CLASS Museums EXTENDS Attractions) and the creation of properties: Name, Collection, FreeEntry, AnnualVisitors, City, and Country."
+    },
+    {
+      "id": "insert_museum_records",
+      "description": "Insert the 5 specified museum records into the 'Museums' class",
+      "points": 20,
+      "visual_evidence": "Screenshots showing INSERT commands or a database browse view displaying the 5 museums (Louvre Museum, British Museum, Metropolitan Museum of Art, Uffizi Gallery, Rijksmuseum) with their respective data in the Museums class."
+    },
+    {
+      "id": "add_category_property",
+      "description": "Add 'Category' property to the parent 'Attractions' class",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Schema page for the 'Attractions' class with a new 'Category' property of type STRING, or the corresponding CREATE PROPERTY command."
+    },
+    {
+      "id": "update_category_museums",
+      "description": "Update all records in the 'Museums' class to set Category to 'museum'",
+      "points": 15,
+      "visual_evidence": "Screenshots showing an UPDATE command (e.g., UPDATE Museums SET Category = 'museum') or a data view where the Category field for the museum records is populated with 'museum'."
+    },
+    {
+      "id": "execute_polymorphic_query",
+      "description": "Execute the polymorphic query on the Attractions class",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the execution of the exact query 'SELECT Name, Category, @class FROM Attractions' in OrientDB Studio or console, returning results that include the museum records with their @class shown as 'Museums'."
+    },
+    {
+      "id": "export_results",
+      "description": "Export the query results to /home/ga/attraction_hierarchy_report.txt",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a terminal window or text editor displaying the contents of /home/ga/attraction_hierarchy_report.txt containing the results of the polymorphic query."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_used",
+      "description": "The agent interacted with the OrientDB database (via Studio GUI or console) to perform the schema changes and queries.",
+      "visual_evidence": "Presence of OrientDB Studio web interface or OrientDB console in the screenshots, rather than just a text editor."
+    },
+    {
+      "id": "polymorphic_query_executed",
+      "description": "The agent actually executed the polymorphic query on the parent class rather than faking it.",
+      "visual_evidence": "The query executed must be 'SELECT Name, Category, @class FROM Attractions' and not a direct query on the 'Museums' class."
+    },
+    {
+      "id": "no_direct_file_mocking",
+      "description": "The exported report file was generated from actual query results, not manually typed.",
+      "visual_evidence": "The contents of the report file should match the database output format, and there should be evidence of the query being run before the file was created."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a 'Museums' class that extends 'Attractions', inserting 5 specific real-world museums (Louvre, British Museum, Metropolitan Museum of Art, Uffizi Gallery, Rijksmuseum), adding a 'Category' property to 'Attractions', updating the museums to have Category='museum', and exporting the results of 'SELECT Name, Category, @class FROM Attractions' to /home/ga/attraction_hierarchy_report.txt. The British Museum and Rijksmuseum visitor counts (5.8M and 2.7M) are verified 2023 statistics."
+}

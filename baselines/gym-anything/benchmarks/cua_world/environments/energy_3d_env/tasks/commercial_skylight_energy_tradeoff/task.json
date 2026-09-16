@@ -1,0 +1,29 @@
+{
+  "id": "commercial_skylight_energy_tradeoff@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Run an annual energy analysis on a baseline building, add skylights to the roof, re-run the analysis, and report the energy tradeoff.\n\n1. Open the file `~/Documents/Energy3D/building-roof-insulation.ng3`.\n2. Set the project location/city to 'Chicago, IL' (to ensure pronounced seasonal heating and cooling loads).\n3. Run the Annual Building Energy Analysis for the baseline state.\n4. Record the baseline values for Heating Energy, Cooling Energy, and Total Energy.\n5. Modify the building by adding skylights. Use the window/fenestration tool to add windows directly to the roof. The skylights should cover approximately 20% to 30% of the roof surface.\n6. Re-run the Annual Building Energy Analysis with the skylights installed.\n7. Record the new values for Heating Energy, Cooling Energy, and Total Energy.\n8. Create a report at `~/Documents/Energy3D/skylight_tradeoff_report.txt` formatted EXACTLY as follows:\n\nBaseline Heating: [value] kWh\nBaseline Cooling: [value] kWh\nBaseline Total: [value] kWh\nSkylight Heating: [value] kWh\nSkylight Cooling: [value] kWh\nSkylight Total: [value] kWh\nConclusion: [Net Increase / Net Decrease]\n\n9. Save the modified building model as `~/Documents/Energy3D/building_with_skylights.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/commercial_skylight_energy_tradeoff/setup_task.sh",
+    "post_task": "/workspace/tasks/commercial_skylight_energy_tradeoff/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Engineer",
+    "industry": "Commercial Building Retrofitting",
+    "starter_file": "building-roof-insulation.ng3",
+    "expected_report_path": "/home/ga/Documents/Energy3D/skylight_tradeoff_report.txt",
+    "expected_project_path": "/home/ga/Documents/Energy3D/building_with_skylights.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_skylight_tradeoff"
+    }
+  }
+}

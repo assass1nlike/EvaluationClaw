@@ -1,0 +1,26 @@
+{
+  "id": "reconcile_flight_logs@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "A recent telemetry sync failure caused several Flight Logs to be saved without being linked to their approved Flight Plans. Reconcile these orphaned records by linking FlightLogs where flight_plan is NULL to the appropriate FlightPlan. A match occurs when the Aircraft is the same and the Log's 'created_at' time falls strictly between the Plan's 'start_time' and 'end_time'. For any FlightLog that cannot be matched to a valid plan, append its ID to a report file at /home/ga/Documents/unmatched_logs.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reconcile_flight_logs/setup_task.sh",
+    "post_task": "/workspace/tasks/reconcile_flight_logs/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/unmatched_logs.txt",
+    "admin_url": "http://localhost:8000/admin/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reconcile_flight_logs"
+    }
+  }
+}

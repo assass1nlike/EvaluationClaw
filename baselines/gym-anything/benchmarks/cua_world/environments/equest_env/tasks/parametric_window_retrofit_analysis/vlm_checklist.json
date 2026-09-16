@@ -1,0 +1,53 @@
+{
+  "task_id": "parametric_window_retrofit_analysis@1",
+  "task_completion": [
+    {
+      "id": "create_parametric_run",
+      "description": "Configure a Parametric Run named 'Low-E Retrofit'.",
+      "points": 20,
+      "visual_evidence": "Look for the eQUEST 'Parametric Runs' dialog or project tree showing a new run explicitly named 'Low-E Retrofit'."
+    },
+    {
+      "id": "set_shading_coef",
+      "description": "Modify glass types by setting SHADING-COEF to 0.35 in the parametric run.",
+      "points": 25,
+      "visual_evidence": "Look for the parametric run variables/components dialog showing the Shading Coefficient (or SHADING-COEF) set to 0.35 (allowable tolerance +/- 0.02) for the glass types."
+    },
+    {
+      "id": "set_glass_conductance",
+      "description": "Modify glass types by setting GLASS-CONDUCTANCE to 0.28 in the parametric run.",
+      "points": 25,
+      "visual_evidence": "Look for the parametric run variables/components dialog showing the Glass Conductance (or GLASS-CONDUCTANCE) set to 0.28 (allowable tolerance +/- 0.02) for the glass types."
+    },
+    {
+      "id": "execute_simulations",
+      "description": "Execute the simulation for both the baseline and the 'Low-E Retrofit' run.",
+      "points": 20,
+      "visual_evidence": "Look for the eQUEST simulation calculation dialog showing progress or completion for both the baseline design and the 'Low-E Retrofit' run, or a results screen displaying output for both runs."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the project.",
+      "points": 10,
+      "visual_evidence": "Look for the 'File -> Save' menu action being clicked, a save confirmation dialog, or the main window indicating the project has been saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the eQUEST GUI to configure the parametric run.",
+      "visual_evidence": "Screenshots should show interaction with the eQUEST graphical user interface (dialog boxes, menus) rather than a text editor modifying the .inp file directly."
+    },
+    {
+      "id": "genuine_simulation",
+      "description": "The agent actually ran the simulation in the software.",
+      "visual_evidence": "The eQUEST simulation progress bar or calculation window should be visible, indicating the engine is genuinely processing the runs."
+    },
+    {
+      "id": "baseline_preserved",
+      "description": "The baseline design was not overwritten.",
+      "visual_evidence": "Modifications to SHADING-COEF and GLASS-CONDUCTANCE should only appear within the 'Parametric Runs' dialog windows, not in the main baseline component properties."
+    }
+  ],
+  "privileged_info_for_vlm": "The target SHADING-COEF is 0.35 and GLASS-CONDUCTANCE is 0.28 (acceptable tolerance is 0.02 for both). The 4StoreyBuilding model contains three glass types: 'Window Type #1 GT', 'Window Type #2 GT', and 'Door Type #1 GT'. The agent must modify these parameters using the Parametric Runs interface in eQUEST 3.65 to avoid overwriting the baseline model."
+}

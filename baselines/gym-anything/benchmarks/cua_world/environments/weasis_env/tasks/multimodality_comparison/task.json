@@ -1,0 +1,37 @@
+{
+  "id": "multimodality_comparison@1",
+  "version": "1.0",
+  "env_id": "weasis_env@0.1",
+  "description": "You are a Physical Medicine and Rehabilitation physician evaluating a patient with chronic joint pain and limited mobility. Correlate bony findings from the CT series (/home/ga/DICOM/studies/pmr_ct/) with soft tissue findings from the MRI series (/home/ga/DICOM/studies/pmr_mri/) by displaying both simultaneously in Weasis. Perform line measurements across a bony structure on the CT (using bone windowing) and the corresponding soft tissue region on the MRI (using soft tissue windowing). Export the side-by-side comparison view to /home/ga/DICOM/exports/comparison_view.png and record the measurements in mm along with your clinical correlation in a report at /home/ga/DICOM/exports/comparison_report.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multimodality_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/multimodality_comparison/export_result.sh"
+  },
+  "metadata": {
+    "ct_directory": "/home/ga/DICOM/studies/pmr_ct/",
+    "mri_directory": "/home/ga/DICOM/studies/pmr_mri/",
+    "export_image": "/home/ga/DICOM/exports/comparison_view.png",
+    "export_report": "/home/ga/DICOM/exports/comparison_report.txt",
+    "occupation": "Physical Medicine and Rehabilitation Physician",
+    "clinical_scenario": "Multimodality CT+MRI correlation for joint pain assessment",
+    "required_features": [
+      "multi_series_load",
+      "layout_comparison",
+      "window_level_dual",
+      "measurements",
+      "export_image",
+      "text_report"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multimodality_comparison"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "building_passive_heating_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Green Building Designer evaluating a residential concept for passive solar performance. Your goal is to maximize winter heat gain and analyze the results.\n\n1. Open the starter project: ~/Documents/Energy3D/building-passive-heating.ng3\n2. Modify the building's envelope: Add at least one new Window (or significantly enlarge an existing one) on the South-facing wall to increase passive solar heating.\n3. Set the simulation date to January 15 using the top toolbar date controls.\n4. Select the building and run a Daily Energy Analysis (Analysis menu -> Buildings -> Daily Energy Analysis for Selected Building).\n5. Once the analysis finishes, export the graph data as a CSV file to ~/Documents/Energy3D/jan15_energy_load.csv.\n6. Save the modified 3D model to a new file at ~/Documents/Energy3D/optimized_passive_heating.ng3.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/building_passive_heating_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/building_passive_heating_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Green Building Designer",
+    "industry": "Architecture",
+    "starter_file": "building-passive-heating.ng3",
+    "expected_csv": "/home/ga/Documents/Energy3D/jan15_energy_load.csv",
+    "expected_ng3": "/home/ga/Documents/Energy3D/optimized_passive_heating.ng3",
+    "min_csv_size_bytes": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_passive_heating"
+    }
+  }
+}

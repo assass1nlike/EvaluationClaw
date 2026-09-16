@@ -1,0 +1,53 @@
+{
+  "task_id": "verify_onion_location_header@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_onion_service",
+      "description": "Verify the agent navigated to the Tor Project's v3 onion service.",
+      "points": 20,
+      "visual_evidence": "A web browser is open and displaying the Tor Project website, with a .onion address visible in the URL bar."
+    },
+    {
+      "id": "create_bookmark",
+      "description": "Verify a bookmark was created with the exact title 'Tor Project Onion'.",
+      "points": 20,
+      "visual_evidence": "The browser's bookmark menu, sidebar, or bookmark creation popup shows a saved bookmark titled exactly 'Tor Project Onion' pointing to the onion site."
+    },
+    {
+      "id": "create_audit_file",
+      "description": "Verify the text file onion_location_audit.txt is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A text editor or file manager shows the file named 'onion_location_audit.txt' located in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "audit_file_format",
+      "description": "Verify the audit file contains the required 'Target Site' and 'Header Detected' lines.",
+      "points": 20,
+      "visual_evidence": "The text file contains the exact lines 'Target Site: https://www.torproject.org/' and 'Header Detected: Yes'."
+    },
+    {
+      "id": "audit_file_onion_value",
+      "description": "Verify the audit file contains the correct 'Onion-Location Value'.",
+      "points": 30,
+      "visual_evidence": "The text file contains 'Onion-Location Value: ' followed by a valid 56-character v3 onion URL (e.g., starting with http:// or https:// and ending in .onion)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_used_for_bookmark",
+      "description": "Ensure the bookmark was created using a real web browser GUI.",
+      "visual_evidence": "Screenshots should show the bookmark being created or existing within a genuine web browser interface, rather than being injected via terminal commands or scripts into a database."
+    },
+    {
+      "id": "authentic_header_retrieval",
+      "description": "Verify the agent actually inspected the HTTP headers to find the Onion-Location value.",
+      "visual_evidence": "Screenshots should show the agent using browser developer tools (Network tab), a terminal with a curl command (e.g., curl -I), or a similar method to genuinely inspect the headers of https://www.torproject.org/."
+    },
+    {
+      "id": "no_hallucinated_onion_address",
+      "description": "Ensure the agent documented the real onion address and did not hallucinate a fake one.",
+      "visual_evidence": "The onion address written in the text file must match the one discovered in the HTTP headers or the one navigated to in the browser URL bar."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Site: https://www.torproject.org/. Expected File: /home/ga/Documents/onion_location_audit.txt. Expected Bookmark Title: 'Tor Project Onion'. The valid Onion-Location value must be a 56-character v3 onion address matching the regex `https?://[a-z2-7]{56}\\.onion` (e.g., http://2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion/index.html)."
+}

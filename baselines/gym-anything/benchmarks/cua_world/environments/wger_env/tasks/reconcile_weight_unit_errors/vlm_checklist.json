@@ -1,0 +1,53 @@
+{
+  "task_id": "reconcile_weight_unit_errors@1",
+  "task_completion": [
+    {
+      "id": "login_admin",
+      "description": "Log into the wger fitness manager as the admin user.",
+      "points": 10,
+      "visual_evidence": "The wger dashboard or navigation bar is visible, showing the user is logged in as 'admin'."
+    },
+    {
+      "id": "navigate_weight_log",
+      "description": "Navigate to the body weight log or weight trend chart.",
+      "points": 10,
+      "visual_evidence": "The screen displays the body weight measurements page, showing either a list of logged weights or the weight trend chart."
+    },
+    {
+      "id": "identify_anomalies",
+      "description": "Locate the 5 anomalous weight entries logged in pounds.",
+      "points": 20,
+      "visual_evidence": "The screen shows weight entries with values significantly higher than the rest (above 150, specifically around 185.6 to 187.0), either in the list view or by opening the edit form for these specific entries."
+    },
+    {
+      "id": "edit_existing_entries",
+      "description": "Edit the existing anomalous entries without deleting them.",
+      "points": 20,
+      "visual_evidence": "The agent is seen using the 'Edit' interface (e.g., an edit modal or form) for the existing anomalous weight entries, rather than using a 'Delete' button or adding completely new entries."
+    },
+    {
+      "id": "verify_corrected_weights",
+      "description": "Update the anomalous entries to their kilogram equivalents (rounded to 1 decimal place).",
+      "points": 40,
+      "visual_evidence": "The final weight log or chart shows the massive spikes are gone. All visible weight entries are now within a normal range (between 70 and 100 kg, specifically around 84.2 to 84.8 kg), and the total number of entries appears preserved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "The agent interacted with the wger web interface rather than using terminal commands or direct database modifications.",
+      "visual_evidence": "Screenshots show a web browser navigating the wger UI. There are no terminal windows open executing SQL queries, curl commands, or python scripts to modify the database."
+    },
+    {
+      "id": "no_entry_deletion",
+      "description": "The agent did not delete any weight entries to fix the issue.",
+      "visual_evidence": "There is no visual evidence of the agent clicking 'Delete' on weight entries or confirming a deletion prompt. The streak and total number of entries should remain intact."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual wger application.",
+      "visual_evidence": "The screenshots display the authentic wger fitness manager interface at localhost, not a text editor, static HTML file, or mocked interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The user has exactly 30 weight entries in total. The 5 anomalous entries have values > 150 (specifically between 185.6 and 187.0 lbs). The corrected values must be between 70 and 100 kg (specifically around 84.2 to 84.8 kg). The agent must edit the existing entries to preserve the 30-day streak; deleting and recreating entries is a failure."
+}

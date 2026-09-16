@@ -1,0 +1,53 @@
+{
+  "task_id": "email_routing_forensics@1",
+  "task_completion": [
+    {
+      "id": "create_evidence_folder",
+      "description": "Create a folder named 'Forensic-Evidence' in the email client.",
+      "points": 10,
+      "visual_evidence": "The folder pane in the email client shows a folder named exactly 'Forensic-Evidence'."
+    },
+    {
+      "id": "move_suspicious_emails",
+      "description": "Move at least three suspicious emails into the 'Forensic-Evidence' folder.",
+      "points": 20,
+      "visual_evidence": "The 'Forensic-Evidence' folder is selected or its contents are visible, showing at least 3 emails inside it."
+    },
+    {
+      "id": "create_forensic_report",
+      "description": "Generate a report at /home/ga/Documents/forensic_report.txt.",
+      "points": 10,
+      "visual_evidence": "A text editor is open showing a file named 'forensic_report.txt' saved in the '/home/ga/Documents/' directory, or the file is visible in the file manager at that path."
+    },
+    {
+      "id": "report_contains_analysis",
+      "description": "The report analyzes spam emails, including Subject, From, Return-Path, and originating IP/server.",
+      "points": 30,
+      "visual_evidence": "The contents of 'forensic_report.txt' show analysis of multiple emails, explicitly listing at least 3 unique IP addresses and containing terms like 'Subject', 'From', 'Return-Path', 'Received', 'IP', 'relay', or 'originating'."
+    },
+    {
+      "id": "draft_abuse_email",
+      "description": "Draft an email to 'abuse-reports@company.com' with the subject 'Spam Forensic Analysis' summarizing the findings.",
+      "points": 30,
+      "visual_evidence": "An email composition window is open in the email client with 'abuse-reports@company.com' in the 'To' field, 'Spam Forensic Analysis' in the 'Subject' field, and a body text that summarizes the forensic findings."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_interaction",
+      "description": "The agent used the email client GUI to view email headers and move emails.",
+      "visual_evidence": "Screenshots show the agent opening emails in the email client and viewing raw message headers/source, rather than exclusively using terminal commands (like grep or cat) on mail spool files."
+    },
+    {
+      "id": "genuine_header_analysis",
+      "description": "The report contains genuine data extracted from the emails rather than hallucinated placeholders.",
+      "visual_evidence": "The IP addresses, subjects, and sender addresses in the report match the actual spam emails visible in the Junk or Forensic-Evidence folders."
+    },
+    {
+      "id": "gui_email_drafting",
+      "description": "The agent drafted the abuse report email using the email client.",
+      "visual_evidence": "The drafted email is visible in the email client's composer or 'Drafts' folder, not just written as a plain text file pretending to be an email."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected report path is /home/ga/Documents/forensic_report.txt. The evidence folder must be named 'Forensic-Evidence' and contain at least 3 emails. The drafted email must be addressed to 'abuse-reports@company.com'. Although the prompt asks for 5 emails to be analyzed, the report is only strictly required to contain 3 unique IP addresses and should include the terms: Received, Return-Path, IP, relay, originating, Subject, and From."
+}

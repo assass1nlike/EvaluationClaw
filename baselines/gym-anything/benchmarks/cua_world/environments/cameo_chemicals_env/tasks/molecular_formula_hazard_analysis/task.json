@@ -1,0 +1,49 @@
+{
+  "id": "molecular_formula_hazard_analysis@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are a safety officer analyzing a container labeled with the molecular formula 'C3H6O'. Using CAMEO Chemicals (https://cameochemicals.noaa.gov/), identify the NFPA 704 ratings (Health, Flammability, Instability) for four isomers: Acetone, Propionaldehyde, Allyl alcohol, and Propylene oxide. If a rating is not listed, record it as 0. Create a CSV file at ~/Desktop/isomer_hazards.csv with the header 'Chemical,CAS,Health,Flammability,Instability' containing data for all four chemicals. Identify the chemical with the highest Health rating and record it in ~/Desktop/worst_case_analysis.txt using the format 'WORST_CASE_CHEMICAL: [Chemical Name]'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/molecular_formula_hazard_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/molecular_formula_hazard_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Desktop/isomer_hazards.csv",
+    "expected_txt_path": "/home/ga/Desktop/worst_case_analysis.txt",
+    "target_chemicals": {
+      "acetone": {
+        "health": 1,
+        "flammability": 3,
+        "instability": 0
+      },
+      "propionaldehyde": {
+        "health": 2,
+        "flammability": 3,
+        "instability": 1
+      },
+      "allyl alcohol": {
+        "health": 4,
+        "flammability": 3,
+        "instability": 1
+      },
+      "propylene oxide": {
+        "health": 3,
+        "flammability": 4,
+        "instability": 2
+      }
+    },
+    "worst_case_target": "Allyl alcohol"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_molecular_formula_hazard_analysis"
+    }
+  }
+}

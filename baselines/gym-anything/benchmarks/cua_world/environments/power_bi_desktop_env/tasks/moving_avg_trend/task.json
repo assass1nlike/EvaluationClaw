@@ -1,0 +1,42 @@
+{
+  "id": "moving_avg_trend@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a demand planner creating a trend analysis report to smooth out daily volatility using the file sales_data.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv. Build a Power BI report named Moving_Average_Report.pbix and save it to C:\\Users\\Docker\\Desktop\\. The report must include a page renamed to 'Trend Analysis' featuring a line chart comparing Monthly_Sales and Moving_Avg_3M over the Sale_Date, a card visual displaying the Trend_Variance, and a slicer for Product_Category. Within the data model, define the following measures: Monthly_Sales (the sum of Sales_Amount), Moving_Avg_3M (a 3-month rolling average of Monthly_Sales), and Trend_Variance (the difference between Monthly_Sales and Moving_Avg_3M).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\moving_avg_trend\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\moving_avg_trend\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Moving_Average_Report.pbix",
+    "expected_page_name": "Trend Analysis",
+    "required_measures": [
+      "Monthly_Sales",
+      "Moving_Avg_3M",
+      "Trend_Variance"
+    ],
+    "required_visuals": [
+      "lineChart",
+      "card",
+      "slicer"
+    ],
+    "time_intelligence_keywords": [
+      "DATESINPERIOD",
+      "DATEADD",
+      "DATESBETWEEN",
+      "AVERAGEX"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_moving_avg_trend"
+    }
+  }
+}

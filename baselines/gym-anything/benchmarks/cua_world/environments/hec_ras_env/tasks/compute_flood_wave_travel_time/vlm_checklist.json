@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_flood_wave_travel_time@1",
+  "task_completion": [
+    {
+      "id": "access_hdf_file",
+      "description": "Access the HEC-RAS plan HDF file for the Muncie model.",
+      "points": 10,
+      "visual_evidence": "Look for a Python script (e.g., using h5py), an HDF viewer application, or a terminal command targeting the file ending in .p04.hdf or .p04.tmp.hdf in the /home/ga/Documents/hec_ras_projects/Muncie/ directory."
+    },
+    {
+      "id": "extract_station_data",
+      "description": "Identify the upstream and downstream cross-section stations and the reach length.",
+      "points": 15,
+      "visual_evidence": "Look for console output, script variables, or a data viewer showing the most upstream station (15696.24), downstream station (237.6455), and reach length (15458.6 ft)."
+    },
+    {
+      "id": "extract_peak_data",
+      "description": "Identify the peak flows and times of peak for the upstream and downstream stations.",
+      "points": 15,
+      "visual_evidence": "Look for console output, script variables, or a data viewer showing the peak flows (~21000.0 cfs upstream, ~20998.4 cfs downstream) and times of peak (15.00 hrs upstream, 20.17 hrs downstream)."
+    },
+    {
+      "id": "calculate_metrics",
+      "description": "Calculate the flood wave travel time and average wave celerity.",
+      "points": 20,
+      "visual_evidence": "Look for a calculator app, script execution, or console output showing the calculation of travel time (difference in peak times, ~5.17 hrs) and average wave celerity (reach length divided by travel time in seconds, ~0.83 ft/s)."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save the results to the specified text file with all required labels.",
+      "points": 40,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., using 'cat') showing the final 'flood_wave_travel_time.txt' file in /home/ga/Documents/hec_ras_results/. The file must contain all 9 required labels (Upstream Station, Downstream Station, Reach Length, Peak Flows, Times of Peak, Travel Time, Average Wave Celerity) with their corresponding computed values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_extraction",
+      "description": "Verify that the agent actually extracted data from the HDF file.",
+      "visual_evidence": "The agent must use a script, tool, or viewer to read the .hdf file. It should not magically produce the correct values without evidence of inspecting the file contents."
+    },
+    {
+      "id": "no_hardcoded_script",
+      "description": "Verify that any script used performs actual extraction and calculation.",
+      "visual_evidence": "If a Python or bash script is used, it should contain logic to read the HDF file and compute the differences, rather than just containing print statements with hardcoded final answers."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Verify the output file is saved in the correct directory.",
+      "visual_evidence": "The file path in the text editor or terminal must explicitly show /home/ga/Documents/hec_ras_results/flood_wave_travel_time.txt, not just a local or temporary directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The true values for the Muncie model are: Upstream Station: 15696.24, Downstream Station: 237.6455, Reach Length: 15458.6 ft, Upstream Peak Flow: 21000.0 cfs at 15.00 hrs, Downstream Peak Flow: 20998.4 cfs at 20.17 hrs, Travel Time: 5.17 hrs, Average Wave Celerity: 0.83 ft/s. The output file must be saved to /home/ga/Documents/hec_ras_results/flood_wave_travel_time.txt."
+}

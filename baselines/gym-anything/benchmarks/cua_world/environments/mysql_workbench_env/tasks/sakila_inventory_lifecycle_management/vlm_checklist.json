@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_inventory_lifecycle_management@1",
+  "task_completion": [
+    {
+      "id": "alter_inventory_table",
+      "description": "Alter the inventory table to add the status column with the correct ENUM type and default value.",
+      "points": 15,
+      "visual_evidence": "Look for an executed SQL 'ALTER TABLE inventory ADD COLUMN status ENUM(...)' statement or a table schema view in a database client showing the 'status' column with type ENUM('Active', 'Lost', 'Damaged', 'Withdrawn') and default 'Active'."
+    },
+    {
+      "id": "create_stored_procedure",
+      "description": "Implement the stored procedure sp_set_inventory_status with rental validation logic.",
+      "points": 20,
+      "visual_evidence": "Look for a 'CREATE PROCEDURE sp_set_inventory_status' statement that includes logic to check the 'rental' table for a NULL 'return_date' for the given item, and raises an error signal if it is currently rented."
+    },
+    {
+      "id": "create_trigger",
+      "description": "Create the BEFORE INSERT trigger trg_prevent_renting_unavailable on the rental table.",
+      "points": 20,
+      "visual_evidence": "Look for a 'CREATE TRIGGER trg_prevent_renting_unavailable BEFORE INSERT ON rental' statement that checks if the inventory item's status is not 'Active' and executes 'SIGNAL SQLSTATE '45000''."
+    },
+    {
+      "id": "update_inventory_items",
+      "description": "Mark inventory item 10 as 'Damaged' and item 11 as 'Lost'.",
+      "points": 15,
+      "visual_evidence": "Look for executed SQL statements such as 'CALL sp_set_inventory_status(10, 'Damaged')' and 'CALL sp_set_inventory_status(11, 'Lost')', or direct UPDATE statements, or a SELECT query result confirming these specific statuses for items 10 and 11."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the list of non-Active inventory items to the specified CSV file.",
+      "points": 30,
+      "visual_evidence": "Look for a file manager, text editor, or terminal output showing the file '/home/ga/Documents/exports/unavailable_inventory.csv'. The file contents should include columns for inventory_id, film_title, store_id, and status, and contain the rows for the updated items (10 and 11)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent actually executed the SQL commands against the database.",
+      "visual_evidence": "Look for a database client (e.g., MySQL Workbench, DBeaver, or mysql CLI) showing successful execution messages or query results, rather than just SQL scripts written in a text editor without being run."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file was generated from a database query rather than manually typed.",
+      "visual_evidence": "Look for evidence of an export action from the database client (like 'Export Recordset' or an 'INTO OUTFILE' query) rather than the agent manually typing the film titles and IDs into a text document."
+    },
+    {
+      "id": "dynamic_logic_used",
+      "description": "The stored procedure and trigger use actual table lookups rather than hardcoded IDs.",
+      "visual_evidence": "Ensure the stored procedure and trigger definitions contain actual SELECT/JOIN logic against the 'rental' and 'inventory' tables, and are not just hardcoded to fail specifically for item 1 or succeed only for items 10 and 11."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output CSV file must be located exactly at '/home/ga/Documents/exports/unavailable_inventory.csv'. The target inventory items to be updated are item 10 (status: 'Damaged') and item 11 (status: 'Lost'). Inventory item 1 is specifically staged as a rented item in the database to test the stored procedure's business logic constraints (it should fail if the agent tries to update it). The database credentials are user 'ga' and password 'password123'."
+}

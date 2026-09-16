@@ -1,0 +1,29 @@
+{
+  "id": "vfx_shadow_catcher_setup@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a VFX artist integrating a 3D car into a background plate. The scene contains a BMW car and a GroundPlane. Configure the 'GroundPlane' object to act as a shadow catcher so it only receives shadows and is otherwise invisible. Enable transparency for the environment background and ensure the Cycles render engine is used. Render the final image showing the car casting a shadow onto a transparent background and save it to /home/ga/BlenderProjects/shadow_composite.png. Save the project file to /home/ga/BlenderProjects/shadow_setup.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vfx_shadow_catcher_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/vfx_shadow_catcher_setup/export_result.sh"
+  },
+  "metadata": {
+    "start_blend": "/home/ga/BlenderProjects/vfx_start.blend",
+    "expected_blend": "/home/ga/BlenderProjects/shadow_setup.blend",
+    "expected_render": "/home/ga/BlenderProjects/shadow_composite.png",
+    "target_object": "GroundPlane",
+    "required_engine": "CYCLES"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vfx_shadow_catcher"
+    }
+  }
+}

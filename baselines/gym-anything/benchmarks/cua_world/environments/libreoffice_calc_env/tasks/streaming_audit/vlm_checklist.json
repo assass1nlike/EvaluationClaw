@@ -1,0 +1,59 @@
+{
+  "task_id": "streaming_audit@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the streaming subscriptions spreadsheet",
+      "points": 10,
+      "visual_evidence": "LibreOffice Calc is open displaying the `streaming_subscriptions.ods` file with 8 streaming services (Netflix, Disney+, etc.)."
+    },
+    {
+      "id": "monthly_cost_column",
+      "description": "Calculate normalized monthly costs",
+      "points": 15,
+      "visual_evidence": "A new column for Monthly Cost is present, showing the original cost for monthly subscriptions and the annual cost divided by 12 for annual subscriptions (e.g., Amazon Prime's $139.00 becomes ~$11.58)."
+    },
+    {
+      "id": "days_to_renewal_column",
+      "description": "Calculate days to renewal",
+      "points": 15,
+      "visual_evidence": "A new column for Days to Renewal is present, showing integer values representing the days remaining until the renewal date."
+    },
+    {
+      "id": "renewal_alert_column",
+      "description": "Flag subscriptions renewing soon",
+      "points": 15,
+      "visual_evidence": "A new column for Renewal Alerts is present, showing a text flag (e.g., 'RENEWING SOON') for the 3 services that renew within 30 days, and empty for the others."
+    },
+    {
+      "id": "cost_per_hour_column",
+      "description": "Calculate cost per hour with zero-handling",
+      "points": 25,
+      "visual_evidence": "A new column for Cost/Hour is present. The row for Hulu (which has 0 hours watched) must show a text output (like 'Not Used') or be handled gracefully without displaying a `#DIV/0!` error."
+    },
+    {
+      "id": "amount_owed_column",
+      "description": "Calculate amount owed for shared subscriptions",
+      "points": 20,
+      "visual_evidence": "A new column for Amount Owed is present, showing exactly 50% of the monthly cost for the 3 shared subscriptions (HBO Max, YouTube Premium, Amazon Prime), and 0 or empty for non-shared ones."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_calc_gui",
+      "description": "The agent used the LibreOffice Calc GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Calc interface, not a terminal running Python scripts or CLI tools to modify the .ods file."
+    },
+    {
+      "id": "formulas_visible",
+      "description": "The agent used actual spreadsheet formulas rather than hardcoding values",
+      "visual_evidence": "When a calculated cell is selected, the formula bar shows a formula (e.g., containing `IF`, `TODAY()`, or cell references like `B2/12`), not a manually typed static number or text."
+    },
+    {
+      "id": "consistent_application",
+      "description": "Calculations are applied to all data rows",
+      "visual_evidence": "The new calculated columns contain data for all 8 streaming service rows, indicating formulas were dragged or applied consistently across the dataset."
+    }
+  ],
+  "privileged_info_for_vlm": "The spreadsheet contains 8 streaming services (3 annual, 5 monthly). 3 services are shared, and 1 (Hulu) has 0 hours watched. 3 services renew within 30 days. The agent must create 5 calculated columns: 1) Monthly Cost: Annual costs divided by 12. Total normalized monthly cost should be ~$89.53. 2) Days to Renewal: Renewal Date minus TODAY(). 3) Renewal Alert: Flag if Days to Renewal <= 30. 4) Cost/Hour: Monthly Cost divided by hours watched, with division by zero handled (e.g., using IF/IFERROR) for Hulu. 5) Amount Owed: 50% of Monthly Cost for shared subscriptions. Formulas must be applied consistently across all rows."
+}

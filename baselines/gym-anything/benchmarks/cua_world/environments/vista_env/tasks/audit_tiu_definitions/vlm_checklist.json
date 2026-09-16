@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_tiu_definitions@1",
+  "task_completion": [
+    {
+      "id": "ydbgui_running",
+      "description": "Verify that the YDBGui application is open and running.",
+      "points": 10,
+      "visual_evidence": "The YDBGui application window is visible on the screen."
+    },
+    {
+      "id": "global_accessed",
+      "description": "Verify that the agent navigated to the ^TIU(8925.1) global in YDBGui.",
+      "points": 15,
+      "visual_evidence": "The YDBGui interface shows the global ^TIU(8925.1) being accessed, searched, or viewed in the database tree."
+    },
+    {
+      "id": "node_inspected",
+      "description": "Verify that the agent inspected the zero-nodes of the global entries to identify the 'Type'.",
+      "points": 15,
+      "visual_evidence": "YDBGui shows the expanded tree for ^TIU(8925.1) revealing IENs and their '0' nodes, displaying caret-delimited strings where the agent can check the 4th piece for 'TL'."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify that the report file tiu_titles_report.txt was created in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A text editor is shown saving a file named 'tiu_titles_report.txt' to '/home/ga/Documents/', or a file manager/terminal shows the file exists in that path."
+    },
+    {
+      "id": "report_content_valid",
+      "description": "Verify that the report contains at least 5 distinct 'Title' entries in the correct format.",
+      "points": 40,
+      "visual_evidence": "The open text file or terminal output shows at least 5 lines formatted as 'IEN | NAME | TL' (e.g., '12 | PROGRESS NOTE | TL')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ydbgui_for_audit",
+      "description": "Verify the agent used YDBGui to inspect the database rather than using terminal commands or scripts to extract the data.",
+      "visual_evidence": "Screenshots show interaction with the YDBGui interface to browse the ^TIU(8925.1) global, rather than terminal windows running MUMPS or Python extraction scripts."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "Verify the agent extracted data by looking at the actual database entries.",
+      "visual_evidence": "The agent is seen cross-referencing the YDBGui window with the text editor, manually transcribing or copying the IEN, NAME, and TYPE from the database."
+    },
+    {
+      "id": "actual_file_saved",
+      "description": "Verify the agent actually created and saved the text file at the specified path.",
+      "visual_evidence": "A text editor (like gedit, nano, or vim) is shown actively saving the file to /home/ga/Documents/tiu_titles_report.txt, rather than just typing text into a temporary buffer."
+    }
+  ],
+  "privileged_info_for_vlm": "Target report path: /home/ga/Documents/tiu_titles_report.txt. Target global: ^TIU(8925.1). Minimum required entries: 5. Required format per line: 'IEN | NAME | TYPE' (where TYPE must be 'TL' for Titles). The 'Type' is the 4th piece of the zero-node (^TIU(8925.1,IEN,0))."
+}

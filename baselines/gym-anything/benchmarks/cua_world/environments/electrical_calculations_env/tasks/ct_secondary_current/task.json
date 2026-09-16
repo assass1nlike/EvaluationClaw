@@ -1,0 +1,30 @@
+{
+  "id": "ct_secondary_current@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the secondary output current of a metering Current Transformer (CT) using the 'CT and PT' calculator in the Electrical Engineering Calculations app. Use a CT Primary Rating of 400 A, a CT Secondary Rating of 5 A, and a Measured Primary Current of 280 A. Save the result to /sdcard/ct_check.txt in the format 'secondary_current=<value>'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/ct_secondary_current/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/ct_secondary_current/export_result.sh"
+  },
+  "metadata": {
+    "ct_primary": 400,
+    "ct_secondary": 5,
+    "measured_primary": 280,
+    "expected_result": 3.5,
+    "tolerance": 0.1,
+    "result_file_path": "/sdcard/ct_check.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ct_secondary_current"
+    }
+  }
+}

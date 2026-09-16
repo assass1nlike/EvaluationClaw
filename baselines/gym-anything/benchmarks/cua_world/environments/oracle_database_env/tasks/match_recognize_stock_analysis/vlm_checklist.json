@@ -1,0 +1,59 @@
+{
+  "task_id": "match_recognize_stock_analysis@1",
+  "task_completion": [
+    {
+      "id": "db_connection_established",
+      "description": "Connect to the HR database",
+      "points": 10,
+      "visual_evidence": "Look for a database client (e.g., DBeaver, SQL Developer, or terminal sqlplus) open and showing a successful connection to localhost:1521/XEPDB1 using the 'hr' user."
+    },
+    {
+      "id": "sql_query_written",
+      "description": "Query the STOCK_PRICES table for ORCL",
+      "points": 10,
+      "visual_evidence": "Look for a SQL query in an editor or terminal that explicitly selects from the STOCK_PRICES table and filters for the stock ticker 'ORCL'."
+    },
+    {
+      "id": "v_shape_logic_present",
+      "description": "Implement logic for >= 2 down days and >= 2 up days",
+      "points": 25,
+      "visual_evidence": "Look for SQL logic (such as Oracle's MATCH_RECOGNIZE clause or complex window functions) defining a pattern of at least two consecutive price drops followed immediately by at least two consecutive price increases."
+    },
+    {
+      "id": "drop_percentage_logic_present",
+      "description": "Implement logic for the 5.0% minimum drop",
+      "points": 25,
+      "visual_evidence": "Look for mathematical conditions in the SQL query ensuring the lowest price in the pattern is at least 5.0% lower than the starting price (e.g., bottom_price <= start_price * 0.95 or similar logic)."
+    },
+    {
+      "id": "correct_pattern_detected",
+      "description": "Successfully detect the planted V-Shape Reversal pattern",
+      "points": 20,
+      "visual_evidence": "Look for query execution results in the database client showing the planted pattern: a start date of 2026-02-03, a bottom date of 2026-02-05, and a bottom price of 136.48."
+    },
+    {
+      "id": "sql_file_saved",
+      "description": "Save the SQL query to the Desktop",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal output, or text editor confirming that a .sql file (e.g., find_patterns.sql) containing the query has been saved to /home/ga/Desktop/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent genuinely interacted with the database to test the query",
+      "visual_evidence": "Verify the agent used a database client or CLI to execute the query and retrieve results, rather than just typing the expected output into a text file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent did not hardcode the expected dates or prices",
+      "visual_evidence": "Verify the SQL query uses general pattern-matching logic and does not contain hardcoded dates like '2026-02-03' or prices like '136.48' to fake the result."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "SQL file was genuinely saved to the filesystem",
+      "visual_evidence": "Verify the SQL file is actually saved to the disk (e.g., visible as an icon on the Desktop GUI or via a terminal 'ls' command), not just left as an unsaved draft in an editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The planted V-shape reversal pattern for ORCL starts on 2026-02-03, reaches a bottom on 2026-02-05 with a closing price of 136.48, and constitutes an 11.76% price drop. The expected output file is /home/ga/Desktop/find_patterns.sql."
+}

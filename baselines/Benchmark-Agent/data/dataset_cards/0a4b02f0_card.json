@@ -1,0 +1,75 @@
+{
+  "dataset_id": "0a4b02f0",
+  "name": "Fact-Verification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Fact-Verification dataset contains short user-generated statements paired with an instruction to classify each statement as factual or counterfactual. It evaluates binary factuality classification of everyday claims.",
+  "card_text": "The dataset consists of 200 text-only samples, each with a raw_text statement, a prompt, and an output category. The raw_text is a short, opinion-like or observational sentence, often taken from reviews or everyday writing. The prompt instructs the model to classify the statement as factual or counterfactual and to provide only the category name. The output is a single label: 'factual' or 'counterfactual'. The task is binary classification of factuality, testing whether a model can distinguish statements that are presented as factual from those that are counterfactual or speculative. No additional context or rationale is provided.",
+  "tasks": [
+    "classification_binary",
+    "fact_verification"
+  ],
+  "domain": "everyday statements",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The raw_text field contains a short statement or opinion that serves as the input to be classified. It is the main content the model must analyze to determine its factuality status.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt field contains an explicit instruction asking the model to classify the preceding raw_text as either factual or counterfactual and to output only the category name.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The category field holds the target classification label for the statement, taking one of two values: 'factual' or 'counterfactual'. It indicates the factuality category assigned to the raw_text.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw_text statement (context), a prompt instruction (question) that asks to classify the statement as factual or counterfactual, and an output category label (category) giving the classification. No other components such as dialog, options, or rationale are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Fact-Verification/annotation.json",
+    "existing_tags": {
+      "task": "fact_verification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

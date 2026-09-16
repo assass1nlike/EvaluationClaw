@@ -1,0 +1,35 @@
+{
+  "id": "jacoco_coverage_enforcement@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You are a QA engineer introducing test coverage standards at a fintech company. The transaction-service project at /home/ga/transaction-service currently has no test coverage. Import the project into Eclipse and configure the JaCoCo Maven plugin in pom.xml to generate an HTML coverage report during the test phase with a 70% minimum line coverage rule. Write JUnit 5 tests using Mockito mocks for TransactionRepository and AccountRepository to test TransactionService (deposit, withdrawal, transfer, reversal, error cases), FeeCalculator (all account types and transaction types), and TransactionValidator (valid and invalid inputs). Generate the JaCoCo coverage report at target/site/jacoco/index.html ensuring line coverage reaches at least 70% across the service classes.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 2700,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/jacoco_coverage_enforcement/setup_task.sh",
+    "post_task": "/workspace/tasks/jacoco_coverage_enforcement/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "transaction-service",
+    "workspace_path": "/home/ga/transaction-service",
+    "jacoco_report_path": "target/site/jacoco/index.html",
+    "jacoco_xml_path": "target/site/jacoco/jacoco.xml",
+    "min_coverage_pct": 70,
+    "classes_to_cover": [
+      "TransactionService",
+      "FeeCalculator",
+      "TransactionValidator",
+      "AccountService"
+    ],
+    "test_framework": "JUnit 5 + Mockito"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_jacoco_coverage_enforcement"
+    }
+  }
+}

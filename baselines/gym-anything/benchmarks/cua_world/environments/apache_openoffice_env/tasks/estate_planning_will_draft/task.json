@@ -1,0 +1,34 @@
+{
+  "id": "estate_planning_will_draft@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a paralegal at Highland Estate Law. Create a draft Last Will and Testament for a new client, Elias Thorne, using the client data in /home/ga/Documents/client_intake.json and the standard legal text in /home/ga/Documents/standard_clauses.txt. The document should incorporate the client's specific information regarding Spouse, Children, Executors, and Bequests. Include an 'Appointment of Guardian' article only if the client data indicates any children are minors (under 18). Format all 'ARTICLE' headings using the 'Heading 1' style and all section headings using the 'Heading 2' style. The document must include a footer with page numbers in the format 'Page X of Y'. Save the completed document as /home/ga/Documents/Draft_Will_Thorne.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/estate_planning_will_draft/setup_task.sh",
+    "post_task": "/workspace/tasks/estate_planning_will_draft/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Draft_Will_Thorne.odt",
+    "client_name": "Elias Thorne",
+    "spouse_name": "Clara Thorne",
+    "minor_child": "Sophie Thorne",
+    "guardian_names": "Sarah and James Miller",
+    "required_clause": "Appointment of Guardian",
+    "required_styles": [
+      "Heading 1",
+      "Heading 2"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_estate_planning_will"
+    }
+  }
+}

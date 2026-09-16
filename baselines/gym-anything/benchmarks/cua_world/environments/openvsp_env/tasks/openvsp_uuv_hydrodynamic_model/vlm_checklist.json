@@ -1,0 +1,65 @@
+{
+  "task_id": "openvsp_uuv_hydrodynamic_model@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Read the UUV specification file",
+      "points": 10,
+      "visual_evidence": "Terminal window using a command like 'cat' or a text editor showing the contents of ~/Desktop/uuv_spec.txt."
+    },
+    {
+      "id": "build_hull",
+      "description": "Build the axisymmetric hull in OpenVSP",
+      "points": 15,
+      "visual_evidence": "OpenVSP geometry window showing a cylindrical or tapered hull (fuselage) component. The parameter window showing Length = 3.5 and Max Diameter = 0.35 is strong evidence."
+    },
+    {
+      "id": "build_fins",
+      "description": "Add cruciform tail fins to the model",
+      "points": 15,
+      "visual_evidence": "OpenVSP geometry window showing 4 symmetric tail fins (cruciform configuration) attached near the aft section of the hull."
+    },
+    {
+      "id": "build_propeller",
+      "description": "Add a 3-blade aft propeller to the model",
+      "points": 15,
+      "visual_evidence": "OpenVSP geometry window showing a propeller component with exactly 3 blades positioned at the very rear of the vehicle (X = 3.50)."
+    },
+    {
+      "id": "run_compgeom",
+      "description": "Run the CompGeom analysis tool",
+      "points": 20,
+      "visual_evidence": "OpenVSP CompGeom analysis dialog or results window open, displaying calculated values for Theoretical Volume and Wetted Area."
+    },
+    {
+      "id": "save_model",
+      "description": "Save the OpenVSP model",
+      "points": 10,
+      "visual_evidence": "OpenVSP save dialog, file manager, or terminal confirming 'uuv_model.vsp3' is saved in the ~/Documents/OpenVSP/ directory."
+    },
+    {
+      "id": "write_report",
+      "description": "Write the hydrodynamic report",
+      "points": 15,
+      "visual_evidence": "Text editor showing 'uuv_hydro_report.txt' saved on the Desktop, containing the Theoretical Volume and Wetted Area values obtained from the CompGeom analysis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openvsp_gui",
+      "description": "Agent used the OpenVSP GUI to build the model and run the analysis",
+      "visual_evidence": "Screenshots should show active interaction with the OpenVSP graphical interface (adding components, changing parameters, opening the CompGeom tool) rather than generating the .vsp3 file purely via terminal scripts."
+    },
+    {
+      "id": "authentic_analysis_results",
+      "description": "Report values match the actual CompGeom output",
+      "visual_evidence": "The Theoretical Volume and Wetted Area values typed into the final text report must exactly match the numbers displayed in the OpenVSP CompGeom results window."
+    },
+    {
+      "id": "no_pre_computed_answers",
+      "description": "Agent did not skip the modeling process to write the report",
+      "visual_evidence": "The agent must build the model and run the CompGeom analysis before writing the final report. The report should not be created at the very beginning of the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "The UUV model must have a hull length of 3.50 m, max diameter of 0.35 m, and a 3-blade propeller with a 0.25 m diameter. A correctly built model will yield a Theoretical Volume between 0.20 and 0.32 m\u00b3, and a Wetted Area between 2.5 and 4.0 m\u00b2 in the CompGeom analysis. The final report must be saved to ~/Desktop/uuv_hydro_report.txt and the model to ~/Documents/OpenVSP/uuv_model.vsp3."
+}

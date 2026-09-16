@@ -1,0 +1,50 @@
+{
+  "id": "usda_nutrition_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a personal trainer creating a nutrition guide. Research nutritional information for 7 common whole foods (per 100g) using the USDA FoodData Central database (https://fdc.nal.usda.gov/): chicken breast (raw, boneless, skinless), brown rice (cooked, long-grain), broccoli (raw), salmon (Atlantic, raw), sweet potato (baked, flesh only), Greek yogurt (plain, nonfat), and almonds (raw, whole). Bookmark the detail page for each food into a new bookmark folder named 'Nutrition Research'. Extract the Energy (Calories/kcal), Protein (g), Total lipid/Fat (g), Carbohydrate (g), and Fiber (g) for each food and save the results to ~/Documents/nutrition_reference.json. The JSON file must use the keys chicken_breast, brown_rice, broccoli, salmon, sweet_potato, greek_yogurt, and almonds, with each entry containing the fields: calories, protein_g, fat_g, carbs_g, and fiber_g.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "data-entry",
+    "json",
+    "nutrition"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/usda_nutrition_research/setup_task.sh",
+    "post_task": "/workspace/tasks/usda_nutrition_research/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/nutrition_reference.json",
+    "required_foods": [
+      "chicken_breast",
+      "brown_rice",
+      "broccoli",
+      "salmon",
+      "sweet_potato",
+      "greek_yogurt",
+      "almonds"
+    ],
+    "required_fields": [
+      "calories",
+      "protein_g",
+      "fat_g",
+      "carbs_g",
+      "fiber_g"
+    ],
+    "bookmark_folder": "Nutrition Research",
+    "target_domain": "fdc.nal.usda.gov"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_usda_nutrition_research"
+    }
+  }
+}

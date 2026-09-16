@@ -1,0 +1,28 @@
+{
+  "id": "enforce_dispo_timeouts@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure strict efficiency measures for a new Vicidial campaign to prevent agent idling. Create and configure a campaign with ID 'FASTTRACK' and name 'Fast Track Outbound' (Active: Y, Dial Method: RATIO, Auto Dial Level: 1.0). The campaign must enforce a 30-second disposition limit using a custom status 'DISPTO' (Name: 'Disposition Timeout', Selectable: N, Human Answer: N). Additionally, set 'Wrapup Seconds' to 5 and 'Agent Pause After Each Call' to N.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enforce_dispo_timeouts/setup_task.sh",
+    "post_task": "/workspace/tasks/enforce_dispo_timeouts/export_result.sh"
+  },
+  "metadata": {
+    "target_campaign_id": "FASTTRACK",
+    "target_status_id": "DISPTO",
+    "expected_time_limit": "30",
+    "expected_wrapup": "5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enforce_dispo_timeouts"
+    }
+  }
+}

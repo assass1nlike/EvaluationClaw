@@ -1,0 +1,34 @@
+{
+  "id": "wfs_t_insert_feature@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "A new settlement named 'Nova Cartografia' has been officially established in Brazil and needs to be added to the geospatial database through GeoServer's WFS-T (Transactional Web Feature Service) interface. GeoServer is running at http://localhost:8080/geoserver with admin credentials admin / Admin123!. The workspace 'ne' contains the layer 'ne_populated_places' backed by a PostGIS datastore ('postgis_ne'). Insert a new point feature into the ne:ne_populated_places layer with the following attributes: name 'Nova Cartografia', nameascii 'Nova Cartografia', adm0name 'Brazil', featurecla 'Populated place', pop_max 45000, latitude -15.7801, longitude -47.9292, and a Geometry Point at longitude -47.9292, latitude -15.7801 (EPSG:4326). Save the constructed WFS-T transaction XML to ~/wfst_insert.xml and the transaction response to ~/wfst_response.xml.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wfs_t_insert_feature/setup_task.sh",
+    "post_task": "/workspace/tasks/wfs_t_insert_feature/export_result.sh"
+  },
+  "metadata": {
+    "target_name": "Nova Cartografia",
+    "target_adm0": "Brazil",
+    "target_pop": 45000,
+    "target_lat": -15.7801,
+    "target_lon": -47.9292,
+    "tolerance_degrees": 0.01,
+    "expected_files": [
+      "wfst_insert.xml",
+      "wfst_response.xml"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wfs_t_insert_feature"
+    }
+  }
+}

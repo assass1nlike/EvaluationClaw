@@ -1,0 +1,47 @@
+{
+  "task_id": "neurologist_mri_ventricle_morphometry@1",
+  "task_completion": [
+    {
+      "id": "load_study_weasis",
+      "description": "Load the DICOM study in Weasis",
+      "points": 20,
+      "visual_evidence": "Weasis application is open and displaying a medical image (note: it will look like an X-Ray Angiography, not an MRI)."
+    },
+    {
+      "id": "draw_measurements",
+      "description": "Draw measurement lines on the image",
+      "points": 30,
+      "visual_evidence": "Measurement tools (like distance lines) are visible on the image in Weasis, representing the required measurements."
+    },
+    {
+      "id": "export_measurement_image",
+      "description": "Export the annotated image",
+      "points": 20,
+      "visual_evidence": "A save/export dialog in Weasis or a terminal/file manager showing the image saved to /home/ga/DICOM/exports/evans_index_measurement.png."
+    },
+    {
+      "id": "create_assessment_report",
+      "description": "Create the structured neurometrics report",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the creation of /home/ga/DICOM/exports/nph_assessment_report.txt with numerical measurements, Evans index, and a clinical determination."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_weasis_gui",
+      "description": "Agent used the Weasis GUI to load the image and draw measurements",
+      "visual_evidence": "Screenshots show Weasis interface with active measurement tools, rather than terminal commands bypassing the GUI."
+    },
+    {
+      "id": "authentic_report",
+      "description": "The report was generated based on actual GUI measurements",
+      "visual_evidence": "The text editor contains measurements that plausibly derive from the annotations made in Weasis, rather than hardcoded dummy values."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The exported image is a genuine export from Weasis",
+      "visual_evidence": "The agent uses Weasis's export functionality or takes a screenshot of the Weasis window to create the png file."
+    }
+  ],
+  "privileged_info_for_vlm": "The DICOM study provided is actually an X-Ray Angiography study, not an MRI. The agent should still draw measurements on this image. The required measurements are frontal horn width, biparietal diameter, third ventricle width, and temporal horn width. The Evans index is calculated as frontal horn width divided by biparietal diameter (threshold > 0.3). The exported image must be saved to /home/ga/DICOM/exports/evans_index_measurement.png and the report to /home/ga/DICOM/exports/nph_assessment_report.txt."
+}

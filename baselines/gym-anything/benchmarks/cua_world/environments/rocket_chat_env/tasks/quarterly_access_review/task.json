@@ -1,0 +1,45 @@
+{
+  "id": "quarterly_access_review@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "You are an IT Security Manager conducting a quarterly access review in Rocket.Chat (Username: admin, Password: Admin1234!). Remediate access violations in #finance-reports and #hr-confidential based on the policy found in #compliance-announcements. The policy specifies that #finance-reports is restricted to finance.manager and senior.analyst, while #hr-confidential is restricted to hr.director and finance.manager. Furthermore, contractor.smith must be removed from all restricted channels, and former.intern must be removed from all channels except #general. \n\nFor every user removal, post an audit trail message in the affected channel stating which users were removed and why, referencing the Q1 2026 access review. Create a new public channel named 'access-review-q1-2026' and post a summary report of all changes organized by channel. Additionally, send direct messages to contractor.smith and former.intern informing them that their access to restricted channels has been revoked per the quarterly review.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "dense"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/quarterly_access_review/setup_task.sh",
+    "pre_task_timeout": 600,
+    "post_task": "/workspace/tasks/quarterly_access_review/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Computer and Information Systems Manager",
+    "industry": "Information Security / Compliance",
+    "review_channel": "access-review-q1-2026",
+    "restricted_channels": [
+      "finance-reports",
+      "hr-confidential"
+    ],
+    "users_to_remove_finance": [
+      "contractor.smith",
+      "former.intern",
+      "dev.jones",
+      "dev.wilson"
+    ],
+    "users_to_remove_hr": [
+      "contractor.smith",
+      "former.intern",
+      "dev.jones",
+      "dev.wilson",
+      "senior.analyst"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_quarterly_access_review"
+    }
+  }
+}

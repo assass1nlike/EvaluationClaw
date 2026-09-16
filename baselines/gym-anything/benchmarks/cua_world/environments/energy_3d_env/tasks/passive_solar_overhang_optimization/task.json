@@ -1,0 +1,29 @@
+{
+  "id": "passive_solar_overhang_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an Architect adapting a residential home model for a hot-summer climate. Open the existing project file located at '~/Documents/Energy3D/building-passive-heating.ng3'. First, change the project's geographic location/city to Phoenix (Arizona, USA). Next, locate the South-facing wall of the building and add 1.5-meter window overhangs to all the windows on that specific wall to reduce summer solar heat gain (do not add overhangs to other walls). Run a 'Daily Building Energy Analysis' (Analysis > Building Energy > Daily Building Energy Analysis) to simulate the thermal performance and view the graph. Finally, save the modified project as a new file: '~/Documents/Energy3D/phoenix_passive.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/passive_solar_overhang_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/passive_solar_overhang_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Architects, Except Landscape and Naval",
+    "industry": "Professional, Scientific, and Technical Services",
+    "expected_output_path": "/home/ga/Documents/Energy3D/phoenix_passive.ng3",
+    "expected_location": "Phoenix",
+    "expected_overhang": "1.5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_passive_solar_overhang"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "create_security_user_role@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Create a new security configuration in GeoServer (http://localhost:8080/geoserver/web/) using credentials 'admin' and 'Admin123!'. Create a role named 'ROLE_DATA_ANALYST' and an enabled user named 'analyst_jones' with password 'Analyst2024!'. Assign the 'ROLE_DATA_ANALYST' role to 'analyst_jones'. Verify the new user's authentication against the GeoServer REST API and save the resulting HTTP status code to /home/ga/auth_test_result.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_security_user_role/setup_task.sh",
+    "post_task": "/workspace/tasks/create_security_user_role/export_result.sh"
+  },
+  "metadata": {
+    "expected_role": "ROLE_DATA_ANALYST",
+    "expected_user": "analyst_jones",
+    "expected_password": "Analyst2024!"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_security_user_role"
+    }
+  }
+}

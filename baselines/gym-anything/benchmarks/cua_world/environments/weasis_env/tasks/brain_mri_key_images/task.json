@@ -1,0 +1,21 @@
+{
+  "id": "brain_mri_key_images@1",
+  "description": "You are a Radiologic Technologist at a hospital neuroradiology department. Prepare a brain MRI study from /home/ga/DICOM/studies/brain_mri/ for the patient's electronic record by exporting a standard set of 'key images' using a brain window preset (Window Width: 80, Window Level: 40). Export three key images (minimum 20KB each) as PNG files to /home/ga/DICOM/exports/key_images/: key_image_01.png (vertex / high convexity level), key_image_02.png (basal ganglia / thalamus level), and key_image_03.png (posterior fossa / cerebellum level). Document the anatomical level, slice number or position, and window settings for each exported image in a summary file at /home/ga/DICOM/exports/key_image_summary.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "chmod +x /workspace/tasks/brain_mri_key_images/setup_task.sh && bash -l /workspace/tasks/brain_mri_key_images/setup_task.sh",
+    "post_task": "chmod +x /workspace/tasks/brain_mri_key_images/export_result.sh && bash -l /workspace/tasks/brain_mri_key_images/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Radiologic Technologist",
+    "industry": "Hospital Neuroradiology",
+    "required_exports": 3,
+    "min_image_size_kb": 20,
+    "window_width": 80,
+    "window_level": 40
+  }
+}

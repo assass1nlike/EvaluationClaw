@@ -1,0 +1,34 @@
+{
+  "id": "economics_cobb_douglas_optimization@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create an interactive microeconomics simulation of the Consumer Choice Problem in GeoGebra. The scenario involves a consumer with a Cobb-Douglas utility function U(x,y) = x*y facing a budget constraint I = x*Px + y*Py. The worksheet must include dynamic sliders for Income (I) with a range of 0 to 100, and prices Px and Py with ranges of 1 to 20. The simulation must visualize the Budget Line in red, the Optimal Consumption Bundle as a point labeled 'Optimal', and the Indifference Curve passing through the optimal bundle in blue. Save the file as 'utility_max.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/economics_cobb_douglas_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/economics_cobb_douglas_optimization/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "utility_max.ggb",
+    "sliders": [
+      "I",
+      "Px",
+      "Py"
+    ],
+    "colors": {
+      "budget_line": "red",
+      "indifference_curve": "blue"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_economics_optimization"
+    }
+  }
+}

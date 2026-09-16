@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_multicurrency_extension@1",
+  "task_completion": [
+    {
+      "id": "currencies_table_created",
+      "description": "The 'currencies' table is created and populated with the specified currencies and exchange rates.",
+      "points": 15,
+      "visual_evidence": "Look for a database GUI (e.g., DBeaver) showing the 'currencies' table, a terminal executing sqlite3 commands, or an executed SQL script containing 'CREATE TABLE currencies' and 'INSERT INTO currencies' with values for USD, EUR, GBP, CAD, BRL, and AUD."
+    },
+    {
+      "id": "invoices_table_updated",
+      "description": "The 'invoices' table is updated with a 'CurrencyCode' column, mapped correctly based on BillingCountry.",
+      "points": 25,
+      "visual_evidence": "Look for a database GUI showing the new 'CurrencyCode' column in the 'invoices' table, or an executed SQL script containing 'ALTER TABLE invoices ADD COLUMN CurrencyCode' and 'UPDATE invoices SET CurrencyCode = ...' mapping countries like France/Germany to EUR, Brazil to BRL, etc."
+    },
+    {
+      "id": "view_created",
+      "description": "The 'currency_revenue_summary' view is created with the required aggregations and calculations.",
+      "points": 30,
+      "visual_evidence": "Look for the view in a database GUI, or an executed SQL script containing 'CREATE VIEW currency_revenue_summary AS SELECT ... SUM(Total) ... SUM(Total * ExchangeRateToUSD) ... ORDER BY TotalRevenueUSD DESC'."
+    },
+    {
+      "id": "csv_exported",
+      "description": "The view results are exported to a CSV file at the specified path.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager showing 'currency_revenue.csv' in '/home/ga/Documents/exports/', the file open in a text editor/spreadsheet showing aggregated revenue data, or a terminal command/GUI dialog performing the export."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "The SQL migration script is saved to the specified path.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager showing 'multicurrency_migration.sql' in '/home/ga/Documents/scripts/', or a text editor/IDE displaying the file containing the SQL migration commands."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_modification",
+      "description": "Verify that the agent actually executed the SQL commands against the database, rather than just writing the SQL script without running it.",
+      "visual_evidence": "Look for execution success messages in a terminal, query results in DBeaver, or the updated database schema visible in a database client."
+    },
+    {
+      "id": "genuine_csv_content",
+      "description": "Verify that the CSV file contains actual aggregated data from the database, not manually typed fake data.",
+      "visual_evidence": "The CSV should contain realistic calculated sums and exact invoice counts (e.g., EUR count of 126, BRL count of 35) derived from the database, rather than placeholder or rounded numbers."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Verify that the agent used the exact file paths specified in the instructions.",
+      "visual_evidence": "Check file managers, terminal commands, or editor titles to ensure the paths are exactly '/home/ga/Documents/exports/currency_revenue.csv' and '/home/ga/Documents/scripts/multicurrency_migration.sql'."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database contains 412 total invoices. The Eurozone countries (Austria, Belgium, Finland, France, Germany, Ireland, Italy, Netherlands, Portugal, Spain) account for exactly 126 invoices. Brazil accounts for 35 invoices. The 'currency_revenue_summary' view and the resulting CSV export must reflect these exact invoice counts (e.g., EUR InvoiceCount = 126, BRL InvoiceCount = 35). The original database tables include Albums, Artists, Customers, Employees, Genres, Invoice_Items, Invoices, Media_Types, Playlists, Playlist_Track, and Tracks."
+}

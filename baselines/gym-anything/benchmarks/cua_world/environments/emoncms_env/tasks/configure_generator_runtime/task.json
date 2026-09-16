@@ -1,0 +1,28 @@
+{
+  "id": "configure_generator_runtime@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "A backup generator is reporting its status to Emoncms (1 = Running, 0 = Stopped) on the input 'generator_status'. Configure an input processing chain to track the total running hours of the generator, ensuring that one hour of 'Running' status results in a cumulative increment of 1.0. Log the result to a new feed named 'generator_hours' (Tag: 'generator', Engine: PHPFina, Interval: 10s).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_generator_runtime/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_generator_runtime/export_result.sh"
+  },
+  "metadata": {
+    "expected_feed_name": "generator_hours",
+    "expected_scale_factor": 1000,
+    "expected_slope_10s": 0.00277,
+    "slope_tolerance": 0.0005
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_generator_runtime"
+    }
+  }
+}

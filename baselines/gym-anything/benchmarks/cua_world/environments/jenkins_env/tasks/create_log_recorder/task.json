@@ -1,0 +1,39 @@
+{
+  "id": "create_log_recorder@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "A QA analyst is investigating intermittent Git checkout failures in Jenkins pipelines. Create a custom log recorder named 'git-debug-recorder' to capture targeted diagnostic logs. Configure the recorder with the following loggers: 'hudson.plugins.git' at level FINE, 'org.jenkinsci.plugins.gitclient' at level FINE, and 'com.cloudbees.plugins.credentials' at level WARNING. You are already logged in as admin. If prompted, use Username: admin, Password: Admin123!",
+  "difficulty": "medium",
+  "category": "system-administration",
+  "tags": [
+    "jenkins",
+    "logging",
+    "debugging",
+    "system-config",
+    "qa"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_log_recorder/setup_task.sh",
+    "post_task": "/workspace/tasks/create_log_recorder/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "target_recorder_name": "git-debug-recorder",
+    "required_loggers": {
+      "hudson.plugins.git": "FINE",
+      "org.jenkinsci.plugins.gitclient": "FINE",
+      "com.cloudbees.plugins.credentials": "WARNING"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_log_recorder"
+    }
+  }
+}

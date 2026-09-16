@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_receptionist_workspace@1",
+  "task_completion": [
+    {
+      "id": "role_creation_and_permissions",
+      "description": "Verify the 'Front Desk Role' is created with correct permissions.",
+      "points": 15,
+      "visual_evidence": "Look for the 'User Roles' or 'Role Settings' dialog showing a role named 'Front Desk Role' with checkboxes for 'View Live Video' and 'Use Soft Triggers' explicitly checked."
+    },
+    {
+      "id": "role_camera_access",
+      "description": "Verify the 'Front Desk Role' is restricted to the correct cameras.",
+      "points": 15,
+      "visual_evidence": "Look for the Resources/Cameras access tab within the 'Front Desk Role' settings. Only 'Lobby Camera' and 'Entrance Camera' should be selected/checked. Ensure 'Server Room Camera' is visible but unchecked/denied."
+    },
+    {
+      "id": "user_creation",
+      "description": "Verify the 'receptionist' user is created and assigned to the correct role.",
+      "points": 15,
+      "visual_evidence": "Look for the 'User Settings' dialog showing Login: 'receptionist', Name: 'Alex Reception', Email: 'alex.r@gymanything.com', and the Role set to 'Front Desk Role'."
+    },
+    {
+      "id": "soft_trigger_unlock_door",
+      "description": "Verify the 'Unlock Door' soft trigger is configured on the Entrance Camera.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Event Rules' dialog showing an event of type 'Soft Trigger' named 'Unlock Door' with 'Entrance Camera' as the source. The Action should be 'Do HTTP request' (GET) to 'http://door-controller.local/api/open'."
+    },
+    {
+      "id": "soft_trigger_panic_alert",
+      "description": "Verify the 'Panic Alert' soft trigger is configured on the Lobby Camera.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Event Rules' dialog showing an event of type 'Soft Trigger' named 'Panic Alert' with 'Lobby Camera' as the source. The Action should be 'Create Bookmark' with the tag 'Security Alert'."
+    },
+    {
+      "id": "shared_layout_creation",
+      "description": "Verify the 'Reception Desk View' shared layout is created with the correct cameras.",
+      "points": 15,
+      "visual_evidence": "Look for a layout tab or resource tree entry named 'Reception Desk View' (often indicated by a shared icon). The layout itself should contain video panels for exactly two cameras: 'Lobby Camera' and 'Entrance Camera'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Nx Witness GUI to configure the system.",
+      "visual_evidence": "Screenshots should show the Nx Witness desktop client interface (menus, dialog boxes, resource tree) rather than terminal windows executing API commands or scripts."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Verify the agent actually filled out the forms and dialogs.",
+      "visual_evidence": "Look for intermediate screenshots showing the agent typing into fields (e.g., user email, HTTP URL, bookmark tags) within the Nx Witness application, not just a text editor."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Verify the results are from genuine software interaction.",
+      "visual_evidence": "The UI elements should match the standard Nx Witness client styling without signs of HTML/UI spoofing or image manipulation."
+    }
+  ],
+  "privileged_info_for_vlm": "The environment contains specific virtual cameras: 'Lobby Camera', 'Entrance Camera', and 'Server Room Camera'. Verify that the 'Front Desk Role' explicitly grants access to 'Lobby Camera' and 'Entrance Camera' while leaving 'Server Room Camera' unchecked/denied."
+}

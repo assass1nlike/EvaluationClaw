@@ -1,0 +1,53 @@
+{
+  "task_id": "laboratory_zone_ventilation_retrofit@1",
+  "task_completion": [
+    {
+      "id": "locate_target_zone",
+      "description": "Navigate to the properties of the target zone in the eQUEST model.",
+      "points": 10,
+      "visual_evidence": "The eQUEST interface is open, and the 'East Perim Zn (G.E12)' zone is selected in the project tree or its specific Zone Properties dialog box is open."
+    },
+    {
+      "id": "update_throttling_range",
+      "description": "Set the Throttling Range for the target zone to 0.5\u00b0F.",
+      "points": 30,
+      "visual_evidence": "In the Zone Properties dialog for 'East Perim Zn (G.E12)', the 'Throttling Range' field is visible and set to a value of 0.5 (acceptable tolerance +/- 0.05)."
+    },
+    {
+      "id": "update_oa_flow_area",
+      "description": "Set the Outside Air (OA) Flow/Area for the target zone to 1.0 CFM/ft\u00b2.",
+      "points": 30,
+      "visual_evidence": "In the Zone Properties dialog for 'East Perim Zn (G.E12)', the 'OA Flow/Area' field (or equivalent area-based ventilation parameter) is visible and set to a value of 1.0 (acceptable tolerance +/- 0.05)."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the full annual DOE-2.2 simulation.",
+      "points": 20,
+      "visual_evidence": "A simulation progress window, a 'Simulation completed successfully' dialog, or the eQUEST results viewer showing newly generated reports is visible on screen."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the updated eQUEST project.",
+      "points": 10,
+      "visual_evidence": "The agent clicks the 'Save' icon, uses the File -> Save menu option, or a confirmation dialog for saving the project is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_equest_gui",
+      "description": "The agent used the eQUEST graphical user interface to make changes rather than directly editing the .inp file in a text editor.",
+      "visual_evidence": "Screenshots show interaction with eQUEST application windows and dialog boxes, not a text editor like Notepad or VS Code."
+    },
+    {
+      "id": "zone_isolation",
+      "description": "The agent applied changes only to the target zone, not globally.",
+      "visual_evidence": "The properties dialogs being edited clearly indicate they are for 'East Perim Zn (G.E12)' specifically, rather than a global default, building-wide parameter, or parent system level that cascades to all zones."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "The simulation was actually executed within eQUEST.",
+      "visual_evidence": "The DOE-2 simulation calculation window or progress bar appears on screen during the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "The actual zone name in the eQUEST model is 'East Perim Zn (G.E12)', despite the task description referring to 'G.East Perim Zn'. The target values are 0.5\u00b0F for Throttling Range and 1.0 CFM/ft\u00b2 for OA Flow/Area. These parameters might need to be explicitly added or changed from existing parameters (like OA-FLOW/PER) in the eQUEST GUI. A tolerance of 0.05 is acceptable for the numerical values."
+}

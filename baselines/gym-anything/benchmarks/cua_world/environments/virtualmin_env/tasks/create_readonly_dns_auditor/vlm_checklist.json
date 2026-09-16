@@ -1,0 +1,53 @@
+{
+  "task_id": "create_readonly_dns_auditor@1",
+  "task_completion": [
+    {
+      "id": "create_user_form",
+      "description": "Navigate to the Create Webmin User form.",
+      "points": 10,
+      "visual_evidence": "A screen showing the 'Create Webmin User' form in the Webmin web interface."
+    },
+    {
+      "id": "user_credentials_entered",
+      "description": "Enter the username 'dns_auditor' and the required password.",
+      "points": 20,
+      "visual_evidence": "The username field contains 'dns_auditor' and the password field is filled (either visible as 'AuditorAccess2024!' or masked with dots)."
+    },
+    {
+      "id": "bind_module_assigned",
+      "description": "Assign only the 'BIND DNS Server' module to the user.",
+      "points": 20,
+      "visual_evidence": "In the 'Available Webmin modules' section, the checkbox for 'BIND DNS Server' is selected. No other modules should be selected."
+    },
+    {
+      "id": "module_acl_opened",
+      "description": "Open the Module Access Control page for the BIND DNS Server module.",
+      "points": 20,
+      "visual_evidence": "A screen showing the 'Module Access Control' or 'ACL' settings specifically for the 'BIND DNS Server' module and the user 'dns_auditor'."
+    },
+    {
+      "id": "readonly_permissions_set",
+      "description": "Set the BIND DNS Server module permissions to read-only, disabling configuration and server control.",
+      "points": 30,
+      "visual_evidence": "Options restricting access are selected in the ACL page, such as 'Read-only access mode' set to Yes, 'Can edit module configuration' set to No, and 'Can stop, start and apply' set to No."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Webmin GUI to create the user and configure ACLs.",
+      "visual_evidence": "Screenshots show interaction with the Webmin web interface in a browser, rather than terminal commands or scripts."
+    },
+    {
+      "id": "genuine_webmin",
+      "description": "The agent interacted with the actual Webmin application.",
+      "visual_evidence": "The browser shows the Webmin interface with its typical layout, menus, and forms, not a mock-up or text editor."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "The agent did not bypass the GUI by editing Webmin configuration files directly.",
+      "visual_evidence": "There are no screenshots showing terminal-based text editors (like nano or vim) editing files in `/etc/webmin/`."
+    }
+  ],
+  "privileged_info_for_vlm": "The target user must be 'dns_auditor' with the password 'AuditorAccess2024!'. The user must be assigned ONLY the 'BIND DNS Server' (bind8) module. The ACL for this module must be configured with read-only access (readonly=1), no module configuration access (noconfig=1), and no ability to start/stop the server (stop=0)."
+}

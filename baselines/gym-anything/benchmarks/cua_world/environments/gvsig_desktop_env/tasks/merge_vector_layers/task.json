@@ -1,0 +1,29 @@
+{
+  "id": "merge_vector_layers@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Merge the polygon shapefiles eurasia_countries.shp and rest_countries.shp from /home/ga/gvsig_data/split/ into a single unified layer. Ensure the output shapefile contains all features from both input files with the attribute table preserved (including fields like NAME and POP_EST). Export the final layer to /home/ga/gvsig_data/exports/world_merged.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_vector_layers/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_vector_layers/export_result.sh"
+  },
+  "metadata": {
+    "input_eurasia": "/home/ga/gvsig_data/split/eurasia_countries.shp",
+    "input_rest": "/home/ga/gvsig_data/split/rest_countries.shp",
+    "output_path": "/home/ga/gvsig_data/exports/world_merged.shp",
+    "expected_min_features": 170,
+    "expected_max_features": 185
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_vector_layers"
+    }
+  }
+}

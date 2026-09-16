@@ -1,0 +1,28 @@
+{
+  "id": "generate_weighted_city_buffers@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Generate variable-sized buffer zones around major cities based on their population in gvSIG. Using the Populated Places layer (/home/ga/gvsig_data/cities/ne_110m_populated_places.shp), create a new field named inf_deg (Double/Float) calculated as [POP_MAX] / 10000000. Generate individual, non-dissolved buffer polygons using the inf_deg field for the radius. Export the result to /home/ga/gvsig_data/exports/city_influence.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_weighted_city_buffers/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_weighted_city_buffers/export_result.sh"
+  },
+  "metadata": {
+    "input_shp": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "output_shp": "/home/ga/gvsig_data/exports/city_influence.shp",
+    "expected_feature_count_min": 200,
+    "correlation_threshold": 0.8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_weighted_buffers"
+    }
+  }
+}

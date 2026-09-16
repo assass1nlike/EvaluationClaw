@@ -1,0 +1,32 @@
+{
+  "id": "manage_inventory_shrinkage@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "In NCH Copper Point of Sale, create a new inventory item named 'Crystal Wine Decanter' with the description '750ml Lead-Free Crystal Decanter', a unit cost of 25.00, a sales price of 45.00, and an initial quantity of 12. Perform a stock quantity adjustment of -3 for this item with the reason 'Shipping Damage' and verify the updated inventory level.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\manage_inventory_shrinkage\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\manage_inventory_shrinkage\\export_result.ps1"
+  },
+  "metadata": {
+    "item_name": "Crystal Wine Decanter",
+    "initial_qty": 12,
+    "adjustment_qty": -3,
+    "final_qty": 9,
+    "reason_text": "Shipping Damage",
+    "cost": "25.00",
+    "price": "45.00",
+    "data_path": "C:\\ProgramData\\NCH Software\\Copper"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inventory_shrinkage"
+    }
+  }
+}

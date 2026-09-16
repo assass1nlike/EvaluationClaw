@@ -1,0 +1,28 @@
+{
+  "id": "configure_skills_based_routing@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure Skills-Based Routing for the 'AGENTDIRECT' Inbound Group by setting its 'Next Agent Call' routing method to 'rank'. Additionally, assign User '6666' a Rank of '9' for the 'AGENTDIRECT' group within their 'Allowed Inbound Groups' configuration.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_skills_based_routing/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_skills_based_routing/export_result.sh"
+  },
+  "metadata": {
+    "target_group": "AGENTDIRECT",
+    "target_user": "6666",
+    "expected_routing": "rank",
+    "expected_rank": 9
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_skills_routing"
+    }
+  }
+}

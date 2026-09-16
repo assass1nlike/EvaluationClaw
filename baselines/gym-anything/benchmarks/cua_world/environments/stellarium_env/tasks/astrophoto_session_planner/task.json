@@ -1,0 +1,51 @@
+{
+  "id": "astrophoto_session_planner@1",
+  "version": "1.0",
+  "env_id": "stellarium_env@0.1",
+  "description": "You are a professional astrophotographer at ESO's Paranal Observatory in Chile planning a deep-sky imaging session for July 16, 2023, at 01:00 UTC. Capture screenshots of NGC 3372, NGC 5128, and NGC 5139 to /home/ga/Pictures/stellarium/ using the location coordinates provided in /home/ga/data/observatory_locations.json. The simulation must show pure sky conditions without atmosphere or ground obstructions and include the equatorial coordinate grid. Document the target names and observation date in a session notes file at /home/ga/Desktop/session_notes.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 800,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/astrophoto_session_planner/setup_task.sh",
+    "post_task": "/workspace/tasks/astrophoto_session_planner/export_result.sh"
+  },
+  "metadata": {
+    "observatory_name": "Paranal Observatory",
+    "observatory_iau_code": "309",
+    "target_lat_deg": -24.6272,
+    "target_lon_deg": -70.4042,
+    "target_lat_rad": -0.4297,
+    "target_lon_rad": -1.22862,
+    "target_altitude_m": 2635,
+    "observation_date": "2023-07-16",
+    "observation_time_utc": "01:00:00",
+    "targets": [
+      "NGC 3372",
+      "NGC 5128",
+      "NGC 5139"
+    ],
+    "target_common_names": [
+      "Eta Carinae Nebula",
+      "Centaurus A",
+      "Omega Centauri"
+    ],
+    "required_display_flags": {
+      "flag_atmosphere": false,
+      "flag_landscape": false,
+      "flag_equatorial_grid": true
+    },
+    "session_notes_path": "/home/ga/Desktop/session_notes.txt",
+    "screenshots_dir": "/home/ga/Pictures/stellarium",
+    "min_screenshots": 3,
+    "data_source": "IAU Minor Planet Center Observatory Codes, ESO official site"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_astrophoto_session_planner"
+    }
+  }
+}

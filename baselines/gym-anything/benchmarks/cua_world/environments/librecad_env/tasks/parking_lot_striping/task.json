@@ -1,0 +1,31 @@
+{
+  "id": "parking_lot_striping@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a perpendicular parking lot striping plan for a 6-space lot in LibreCAD using feet as units. The drawing must include a 57' wide x 42' high boundary rectangle on layer LOT-BOUNDARY (Color: White/7) starting at (0,0). The layout consists of a 24' drive aisle (Y=0 to Y=24) and 18' deep parking spaces (Y=24 to Y=42). The space configuration from left to right includes one 8' wide ADA space with a 4' wide access aisle (X=8 to X=12), followed by five 9' wide standard spaces. Use layer STRIPING (Color: Yellow/2) for vertical dividers and the horizontal back line at Y=24. On layer ADA (Color: Blue/5), hatch the access aisle and place the text \"ADA\" inside the first space. Include linear dimensions on layer DIMENSIONS (Color: Green/3) for overall width (57'), space depth (18'), drive aisle width (24'), and typical space width (9'). Save the drawing to /home/ga/Documents/LibreCAD/parking_lot.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/parking_lot_striping/setup_task.sh",
+    "post_task": "/workspace/tasks/parking_lot_striping/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/LibreCAD/parking_lot.dxf",
+    "required_layers": {
+      "LOT-BOUNDARY": 7,
+      "STRIPING": 2,
+      "ADA": 5,
+      "DIMENSIONS": 3
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_parking_lot"
+    }
+  }
+}

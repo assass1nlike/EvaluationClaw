@@ -1,0 +1,59 @@
+{
+  "task_id": "hierarchical_rbac_implementation@1",
+  "task_completion": [
+    {
+      "id": "vertex_classes_created",
+      "description": "Verify that the vertex classes 'AppUser', 'AppGroup', and 'AppResource' were created in the database.",
+      "points": 10,
+      "visual_evidence": "Look for database schema views, CLI output, or executed queries (e.g., CREATE CLASS) showing the creation of 'AppUser', 'AppGroup', and 'AppResource'."
+    },
+    {
+      "id": "edge_classes_created",
+      "description": "Verify that the edge classes 'MemberOf' and 'HasAccess' (with a 'level' string property) were created.",
+      "points": 10,
+      "visual_evidence": "Look for database schema views, CLI output, or executed queries showing the creation of 'MemberOf' and 'HasAccess' edges, specifically noting the 'level' property on 'HasAccess'."
+    },
+    {
+      "id": "group_hierarchy_established",
+      "description": "Verify the group hierarchy is set up: Engineering_Leads -> Software_Engineers -> Full_Time_Staff.",
+      "points": 15,
+      "visual_evidence": "Look for graph visualizations, query results, or insert statements showing 'Engineering_Leads' connected via a 'MemberOf' edge to 'Software_Engineers', which in turn is connected via 'MemberOf' to 'Full_Time_Staff'."
+    },
+    {
+      "id": "user_memberships_assigned",
+      "description": "Verify that 'sarah.connor' is a MemberOf 'Engineering_Leads' and 'john.smith' is a MemberOf 'Full_Time_Staff'.",
+      "points": 15,
+      "visual_evidence": "Look for graph visualizations or query results showing 'sarah.connor' connected to 'Engineering_Leads' and 'john.smith' connected to 'Full_Time_Staff' via 'MemberOf' edges."
+    },
+    {
+      "id": "resource_permissions_granted",
+      "description": "Verify that groups have correct HasAccess edges to resources with the appropriate 'level' properties.",
+      "points": 20,
+      "visual_evidence": "Look for queries or graph views showing 'Engineering_Leads' having 'admin' access to 'aws_prod_keys', 'Software_Engineers' having 'write' access to 'git_repository', and 'Full_Time_Staff' having 'read' access to 'office_wifi'."
+    },
+    {
+      "id": "entitlements_json_exported",
+      "description": "Verify the final audit results for 'sarah.connor' are exported to '/home/ga/sarah_entitlements.json' in the correct format.",
+      "points": 30,
+      "visual_evidence": "Look for a terminal command (like cat) or a text editor showing the contents of '/home/ga/sarah_entitlements.json'. It must be a JSON array containing the 3 expected entitlements with keys 'resource', 'permission', and 'via_group'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_interaction_visible",
+      "description": "Verifies the agent actually interacted with a database client, CLI, or UI to create the schema and data.",
+      "visual_evidence": "Look for an open database management tool, terminal running database shell commands, or scripts executing DB queries."
+    },
+    {
+      "id": "query_execution_visible",
+      "description": "Verifies the agent executed a graph traversal or query to determine the entitlements, rather than just hardcoding the final JSON from the prompt.",
+      "visual_evidence": "Look for complex graph queries (e.g., traversing out() or MATCH statements) in the database interface used to compute Sarah's inherited permissions."
+    },
+    {
+      "id": "genuine_file_export",
+      "description": "Verifies the JSON file was genuinely created in the terminal or a text editor.",
+      "visual_evidence": "Look for standard file creation commands (echo, nano, vim, or a script writing to a file) in the terminal targeting '/home/ga/sarah_entitlements.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/sarah_entitlements.json'. The required vertex classes are AppUser, AppGroup, and AppResource. The required edge classes are MemberOf and HasAccess. The final JSON must contain exactly these three entitlements for sarah.connor: 1) resource: 'aws_prod_keys', permission: 'admin', via_group: 'Engineering_Leads'. 2) resource: 'git_repository', permission: 'write', via_group: 'Software_Engineers'. 3) resource: 'office_wifi', permission: 'read', via_group: 'Full_Time_Staff'."
+}

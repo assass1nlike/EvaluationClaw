@@ -1,0 +1,59 @@
+{
+  "task_id": "water_body_delineation@1",
+  "task_completion": [
+    {
+      "id": "open_landsat_imagery",
+      "description": "Open the Landsat multispectral imagery in SNAP Desktop",
+      "points": 10,
+      "visual_evidence": "SNAP Desktop application is open with 'landsat_multispectral.tif' visible in the Product Explorer window."
+    },
+    {
+      "id": "calculate_green_nir_index",
+      "description": "Calculate the Green-to-NIR normalized difference spectral index",
+      "points": 20,
+      "visual_evidence": "Band Maths dialog or Product Explorer showing the creation of a new band using the formula for Green-to-NIR. The formula must use band_4 (Green) and band_2 (NIR), typically (band_4 - band_2) / (band_4 + band_2)."
+    },
+    {
+      "id": "calculate_green_swir_index",
+      "description": "Calculate the Green-to-SWIR normalized difference spectral index",
+      "points": 20,
+      "visual_evidence": "Band Maths dialog or Product Explorer showing the creation of a new band using the formula for Green-to-SWIR. The formula must use band_4 (Green) and band_1 (SWIR1), typically (band_4 - band_1) / (band_4 + band_1)."
+    },
+    {
+      "id": "produce_water_assessment_layers",
+      "description": "Produce a binary water mask and a water confidence layer",
+      "points": 20,
+      "visual_evidence": "Product Explorer showing newly created bands or masks specifically named or configured to represent a binary water mask (e.g., thresholded values) and a water confidence layer derived from the previously calculated indices."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the analysis in BEAM-DIMAP format to the specified directory",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' dialog showing the path '/home/ga/snap_exports/analysis.dim' with BEAM-DIMAP format selected, or a file manager/terminal showing 'analysis.dim' and the 'analysis.data' folder inside '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the water assessment as a GeoTIFF to the specified directory",
+      "points": 15,
+      "visual_evidence": "An export dialog in SNAP showing GeoTIFF format and the destination folder '/home/ga/snap_exports/', or a file manager/terminal showing a newly created '.tif' file containing the assessment in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the SNAP Desktop GUI to perform the analysis as requested.",
+      "visual_evidence": "Screenshots show active interaction with SNAP Desktop menus, Band Maths dialogs, and the Product Explorer, rather than just running terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "The agent genuinely calculated the indices using the specified band mappings.",
+      "visual_evidence": "The Band Maths expressions explicitly use 'band_4', 'band_2', and 'band_1' as instructed by the prompt, rather than relying on external knowledge to guess the true band wavelengths."
+    },
+    {
+      "id": "no_terminal_mocking",
+      "description": "The agent did not mock the output files using terminal commands.",
+      "visual_evidence": "The final .dim and .tif files were generated via SNAP Desktop's save/export functions, not by using 'touch', 'cp', or basic Python scripts in the terminal to create empty or dummy files."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif. The task explicitly requires treating the bands as: band_1=SWIR1, band_2=NIR, band_3=Red, band_4=Green. The VLM must strictly verify that the agent uses band_4 for Green, band_2 for NIR, and band_1 for SWIR1 when calculating the normalized difference indices (e.g., Green-to-NIR should use band_4 and band_2; Green-to-SWIR should use band_4 and band_1). The final outputs must be saved as analysis.dim (BEAM-DIMAP format) and a GeoTIFF in the /home/ga/snap_exports/ directory."
+}

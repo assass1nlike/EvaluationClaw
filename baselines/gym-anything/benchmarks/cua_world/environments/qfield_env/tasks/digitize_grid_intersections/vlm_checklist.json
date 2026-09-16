@@ -1,0 +1,54 @@
+{
+  "task_id": "digitize_grid_intersections@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the 'world_survey.gpkg' project in a GIS application.",
+      "points": 10,
+      "visual_evidence": "Look for a GIS application (such as QGIS) open with the 'world_survey.gpkg' loaded, showing layers like 'field_observations' and 'world_capitals' in the layers panel."
+    },
+    {
+      "id": "reference_capitals",
+      "description": "Reference the 'world_capitals' layer for city coordinates.",
+      "points": 10,
+      "visual_evidence": "Look for the agent opening the attribute table of the 'world_capitals' layer, using the identify tool on it, or otherwise inspecting it to find the coordinates of Rome, Oslo, Cairo, and Cape Town."
+    },
+    {
+      "id": "create_station_north",
+      "description": "Create the 'Station_North' point in the 'field_observations' layer at the correct intersection.",
+      "points": 20,
+      "visual_evidence": "Look for a new point being added to the 'field_observations' layer. The location should be approximately 59.9\u00b0 N, 12.5\u00b0 E (the intersection of Oslo's latitude and Rome's longitude)."
+    },
+    {
+      "id": "attributes_station_north",
+      "description": "Add the required name and notes for 'Station_North'.",
+      "points": 20,
+      "visual_evidence": "Look for a feature attributes dialog or attribute table where the agent enters 'Station_North' and the notes 'Lat Oslo, Lon Rome'. The agent may have had to create new columns for these if they were missing."
+    },
+    {
+      "id": "create_station_south",
+      "description": "Create the 'Station_South' point in the 'field_observations' layer at the correct intersection.",
+      "points": 20,
+      "visual_evidence": "Look for a new point being added to the 'field_observations' layer. The location should be approximately -33.9\u00b0 S, 31.2\u00b0 E (the intersection of Cape Town's latitude and Cairo's longitude)."
+    },
+    {
+      "id": "attributes_station_south",
+      "description": "Add the required name and notes for 'Station_South'.",
+      "points": 20,
+      "visual_evidence": "Look for a feature attributes dialog or attribute table where the agent enters 'Station_South' and the notes 'Lat Cape Town, Lon Cairo'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GIS software's graphical interface to perform the task.",
+      "visual_evidence": "Look for interaction with map canvases, digitizing toolbars, and attribute tables rather than just running a Python/SQL script in a terminal to bypass the UI."
+    },
+    {
+      "id": "genuine_layer_edits",
+      "description": "The agent edited the actual 'field_observations' layer.",
+      "visual_evidence": "Look for the toggle editing pencil icon on the 'field_observations' layer and the use of the 'Add Point Feature' tool, ensuring the agent didn't just create a dummy layer."
+    }
+  ],
+  "privileged_info_for_vlm": "Target coordinates: Station_North at approximately 59.9139\u00b0 N, 12.4964\u00b0 E. Station_South at approximately -33.9249\u00b0 S, 31.2357\u00b0 E. Acceptable tolerance is 1.5 degrees. Note: The task contains contradictions. Oslo and Cape Town are missing from the 'world_capitals' layer, and the 'field_observations' layer lacks 'name' and 'notes' columns. The agent may use external web searches to find the missing coordinates and may need to manually add the missing columns to the attribute table to complete the task."
+}

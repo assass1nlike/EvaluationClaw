@@ -1,0 +1,65 @@
+{
+  "task_id": "roi_box_volume_render@1",
+  "task_completion": [
+    {
+      "id": "volume_rendering_active",
+      "description": "Verify that 3D volume rendering of the CT scan is active.",
+      "points": 10,
+      "visual_evidence": "The 3D viewer window should display a 3D rendered model of the abdominal CT, not just 2D cross-sectional slices."
+    },
+    {
+      "id": "roi_box_created",
+      "description": "Verify that an ROI (Region of Interest) bounding box has been created.",
+      "points": 15,
+      "visual_evidence": "A 3D bounding box (usually with colored control points or a wireframe) should be visible in the 3D viewer or the 2D slice views."
+    },
+    {
+      "id": "roi_reasonable_size",
+      "description": "Verify that the ROI box is sized appropriately for a kidney.",
+      "points": 10,
+      "visual_evidence": "The ROI box should be sized to enclose a single kidney. It should not encompass the entire abdomen, nor should it be too small to contain the organ."
+    },
+    {
+      "id": "roi_correct_location",
+      "description": "Verify that the ROI box is positioned over the anatomical right kidney.",
+      "points": 20,
+      "visual_evidence": "The ROI box must be located on the patient's anatomical right side (which typically appears on the left side of the screen in radiological axial views) where the right kidney is situated."
+    },
+    {
+      "id": "roi_cropping_enabled",
+      "description": "Verify that ROI cropping is enabled for the volume rendering.",
+      "points": 20,
+      "visual_evidence": "The 3D volume rendering should be visibly restricted or cut off strictly at the boundaries of the ROI box, with anatomy outside the box hidden from view."
+    },
+    {
+      "id": "right_kidney_isolated",
+      "description": "Verify that the right kidney is successfully isolated in the cropped rendering.",
+      "points": 15,
+      "visual_evidence": "Examine the cropped 3D rendering. The primary visible structure should be the right kidney, with minimal surrounding organs or irrelevant tissue obstructing it."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify that a screenshot of the cropped 3D visualization was saved to the specified path.",
+      "points": 10,
+      "visual_evidence": "Look for evidence of the screenshot being saved, such as the Screen Capture module being used with the path '/home/ga/Documents/SlicerData/Exports/roi_kidney_render.png', a save dialog, or the final image file being displayed in an image viewer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the 3D Slicer GUI to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with 3D Slicer's Volume Rendering and Data modules, rather than just a terminal window executing a script to bypass the UI."
+    },
+    {
+      "id": "genuine_render",
+      "description": "Ensure the visualization is a genuine render of the provided CT data.",
+      "visual_evidence": "The 3D render should match the visual style of 3D Slicer's volume rendering of a CT scan, not a stock image, an external diagram, or a pre-computed image downloaded from the web."
+    },
+    {
+      "id": "actual_cropping",
+      "description": "Verify that the image was actually cropped using the ROI tool.",
+      "visual_evidence": "The isolation of the kidney should be achieved via the ROI cropping feature (evidenced by the visible ROI box boundaries cutting the volume), not by merely zooming in closely on the uncropped volume or using an external image editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The right kidney in case amos_0001 is centered at RAS coordinates [70, -10, 20]. The evaluation accepts an ROI center within the ranges R: 30 to 110, A: -60 to 40, and S: -60 to 80. The ROI dimensions must be between 40mm and 160mm per axis. The final screenshot must be at least 50KB."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "perimeter_hvac_cooling_sizing_adjustment@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "You are a mechanical engineer performing a Value Engineering review on the `4StoreyBuilding` model. To address humidity control issues caused by over-sized perimeter HVAC systems, set the Cooling Sizing Ratio (`COOL-SIZING-RATI`) to 1.0 for all 12 Perimeter Packaged Single Zone (PSZ) systems (South, East, North, and West orientations on Ground, Middle, and Top floors). Do not modify Core systems or Heating Sizing Ratios. Run the full annual DOE-2.2 simulation and save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\perimeter_hvac_cooling_sizing_adjustment\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\perimeter_hvac_cooling_sizing_adjustment\\export_result.ps1"
+  },
+  "metadata": {
+    "building_model": "4StoreyBuilding",
+    "target_value": 1.0,
+    "perimeter_systems_count": 12,
+    "core_systems_count": 3,
+    "expected_output_file": "4StoreyBuilding.sim"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perimeter_hvac_sizing"
+    }
+  }
+}

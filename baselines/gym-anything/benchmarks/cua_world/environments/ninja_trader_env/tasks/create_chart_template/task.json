@@ -1,0 +1,42 @@
+{
+  "id": "create_chart_template@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Create a chart template in NinjaTrader 8 named 'DayTrading' for intraday charts. Configure a 'SPY' chart using the Daily data series and Candlestick bar type. Include the VWAP, ATR (Period 14), and CurrentDayOHL indicators. Save the template with the exact name 'DayTrading' and ensure the workspace is saved to persist the changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_chart_template\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_chart_template\\export_result.ps1"
+  },
+  "metadata": {
+    "template_name": "DayTrading",
+    "template_path": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\templates\\Chart\\DayTrading.xml",
+    "required_indicators": [
+      {
+        "name": "VWAP",
+        "pattern": "VolumeWeightedAveragePrice"
+      },
+      {
+        "name": "ATR",
+        "pattern": "AverageTrueRange",
+        "param_pattern": "<Period>14</Period>"
+      },
+      {
+        "name": "CurrentDayOHL",
+        "pattern": "CurrentDayOHL"
+      }
+    ],
+    "bar_type_pattern": "CandleStick"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_chart_template"
+    }
+  }
+}

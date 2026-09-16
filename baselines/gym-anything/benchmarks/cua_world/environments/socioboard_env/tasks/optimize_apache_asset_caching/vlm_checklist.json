@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_apache_asset_caching@1",
+  "task_completion": [
+    {
+      "id": "locate_target_directory",
+      "description": "Navigate to or open the configuration file for the target web root.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal or text editor open in '/opt/socioboard/socioboard-web-php/public/', editing a file such as '.htaccess' or the Apache virtual host configuration file."
+    },
+    {
+      "id": "configure_image_caching",
+      "description": "Configure Apache to cache images (PNG, JPEG, GIF) for 1 month.",
+      "points": 30,
+      "visual_evidence": "Text editor showing Apache directives (like 'ExpiresByType', 'Header set Cache-Control', or 'FilesMatch') targeting image extensions (png, jpeg, jpg, gif) with an expiration of 1 month, 30 days, or 2592000 seconds."
+    },
+    {
+      "id": "configure_css_js_caching",
+      "description": "Configure Apache to cache stylesheets (CSS) and JavaScript (JS) for 1 week.",
+      "points": 30,
+      "visual_evidence": "Text editor showing Apache directives targeting '.css' and '.js' files with an expiration of 1 week, 7 days, or 604800 seconds."
+    },
+    {
+      "id": "verify_php_exclusion",
+      "description": "Ensure dynamic PHP files are not aggressively cached.",
+      "points": 15,
+      "visual_evidence": "The caching configuration explicitly targets only static asset extensions (e.g., using FilesMatch \"\\.(css|js|png|jpg|jpeg|gif)$\") OR explicitly excludes '.php' files, ensuring the global cache does not apply to dynamic scripts."
+    },
+    {
+      "id": "apply_configuration",
+      "description": "Save the configuration and apply changes to the Apache server.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the file being saved (e.g., exiting nano/vim) and, if a main Apache config was edited, a command like 'systemctl restart apache2', 'service apache2 reload', or 'apachectl restart' being executed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "The agent modifies the actual configuration file in the correct directory.",
+      "visual_evidence": "The file path in the text editor or terminal commands must clearly show '/opt/socioboard/socioboard-web-php/public/.htaccess' or the legitimate Apache sites-available configuration, not a dummy or temporary file."
+    },
+    {
+      "id": "no_mocked_headers",
+      "description": "The agent does not use a script to fake HTTP responses or manually write HTTP headers into a text file to trick a curl test.",
+      "visual_evidence": "Changes are made using standard Apache configuration directives (mod_expires or mod_headers), not by creating a mock server or overriding curl."
+    },
+    {
+      "id": "genuine_apache_restart",
+      "description": "The agent uses real system commands to restart Apache if required.",
+      "visual_evidence": "Terminal shows standard Linux service management commands (systemctl, service) rather than just echoing success messages."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory is definitively /opt/socioboard/socioboard-web-php/public. The caching requirement for images (PNG, JPEG, GIF) is exactly 1 month (2592000 seconds). The caching requirement for CSS and JS is exactly 1 week (604800 seconds). Look for these exact values or equivalent Apache directives (e.g., 'ExpiresByType image/png \"access plus 1 month\"' or 'max-age=2592000')."
+}

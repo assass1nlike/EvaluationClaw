@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_broken_rules_configuration@1",
+  "task_completion": [
+    {
+      "id": "access_wazuh_container",
+      "description": "Access the Wazuh Manager container",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'docker exec -it wazuh-wazuh.manager-1 bash' or a shell prompt indicating the user is inside the wazuh-wazuh.manager-1 container."
+    },
+    {
+      "id": "open_rules_file",
+      "description": "Open the local_rules.xml file for editing",
+      "points": 10,
+      "visual_evidence": "Terminal showing a text editor (e.g., nano, vim) or a command (e.g., cat, grep) accessing '/var/ossec/etc/rules/local_rules.xml'."
+    },
+    {
+      "id": "fix_configuration_errors",
+      "description": "Fix the XML syntax, invalid rule level, and duplicate rule ID",
+      "points": 30,
+      "visual_evidence": "An editor or terminal output showing the corrected XML content. Look for valid XML tags, valid rule levels (e.g., level=\"3\"), and distinct rule IDs specifically showing '<rule id=\"100200\"' and '<rule id=\"100201\"'."
+    },
+    {
+      "id": "restart_wazuh_manager",
+      "description": "Restart the Wazuh Manager service to apply changes",
+      "points": 20,
+      "visual_evidence": "Terminal showing a restart command such as '/var/ossec/bin/wazuh-control restart' or 'systemctl restart wazuh-manager', followed by output indicating the service started successfully without errors."
+    },
+    {
+      "id": "verify_rules_active",
+      "description": "Verify that custom rules 100200 and 100201 are loaded and active",
+      "points": 30,
+      "visual_evidence": "Terminal output from a tool like '/var/ossec/bin/wazuh-logtest', grep on Wazuh logs, or the Wazuh dashboard showing that rules 100200 and 100201 are successfully loaded and active."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_interaction",
+      "description": "Verify the agent used a real terminal to interact with the container",
+      "visual_evidence": "Standard terminal prompts, realistic command execution times, and genuine standard output/error messages rather than manually typed mock outputs."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the rules file was modified inside the actual container",
+      "visual_evidence": "The file path '/var/ossec/etc/rules/local_rules.xml' is visible in the editor or command line while inside the 'wazuh-wazuh.manager-1' container environment, not a local host file."
+    },
+    {
+      "id": "genuine_service_restart",
+      "description": "Verify the Wazuh manager restart sequence is authentic",
+      "visual_evidence": "The restart command produces the standard multi-line Wazuh control output (e.g., stopping/starting wazuh-modulesd, wazuh-analysisd, etc.) rather than just a generic success echo."
+    }
+  ],
+  "privileged_info_for_vlm": "Target container: wazuh-wazuh.manager-1. Target file: /var/ossec/etc/rules/local_rules.xml. The broken configuration contains an XML syntax error, an invalid rule level, and a duplicate rule ID (100200). The agent must fix these errors, changing the duplicate ID to 100201, and restart the service so that rules 100200 and 100201 are active."
+}

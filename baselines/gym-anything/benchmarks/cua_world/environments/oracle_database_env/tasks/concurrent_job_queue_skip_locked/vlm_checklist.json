@@ -1,0 +1,53 @@
+{
+  "task_id": "concurrent_job_queue_skip_locked@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database as the hr user.",
+      "points": 10,
+      "visual_evidence": "A database client (like DBeaver, SQL Developer) or terminal (like SQL*Plus) showing an active connection to the database using the username 'hr'."
+    },
+    {
+      "id": "procedure_signature",
+      "description": "Define the CLAIM_NEXT_JOB procedure with the required input and output parameters.",
+      "points": 20,
+      "visual_evidence": "SQL code visible in the editor or terminal showing `CREATE [OR REPLACE] PROCEDURE CLAIM_NEXT_JOB` with parameters including `p_worker_id` (IN), `o_job_id` (OUT), and `o_payload` (OUT)."
+    },
+    {
+      "id": "skip_locked_query",
+      "description": "Implement the job selection logic using FOR UPDATE SKIP LOCKED and correct ordering.",
+      "points": 30,
+      "visual_evidence": "SQL code showing a query on the `PAYMENT_JOBS` table with a `WHERE STATUS = 'PENDING'` clause, an `ORDER BY PRIORITY DESC, CREATED_AT ASC, JOB_ID ASC` clause (or equivalent logic), and the `FOR UPDATE SKIP LOCKED` keywords."
+    },
+    {
+      "id": "update_and_commit",
+      "description": "Update the claimed job's status and worker ID, and commit the transaction.",
+      "points": 20,
+      "visual_evidence": "SQL code showing an `UPDATE PAYMENT_JOBS` statement that sets `STATUS = 'PROCESSING'` and `WORKER_ID = p_worker_id` for the selected job, followed by a `COMMIT;` statement."
+    },
+    {
+      "id": "procedure_compilation",
+      "description": "Successfully compile the stored procedure in the database.",
+      "points": 20,
+      "visual_evidence": "A success message in the database client or terminal (e.g., 'Procedure created.', 'Compiled successfully') indicating that the `CLAIM_NEXT_JOB` procedure was executed/compiled without syntax errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent executed the SQL commands in a real database environment.",
+      "visual_evidence": "The screenshots should show a database client interface (e.g., DBeaver, SQL*Plus) with execution results, not just a text editor with unexecuted code."
+    },
+    {
+      "id": "no_manual_data_manipulation",
+      "description": "Verify the agent created the procedure instead of manually altering the table data.",
+      "visual_evidence": "The agent should be executing a `CREATE PROCEDURE` script rather than running direct `UPDATE` statements to manually change the job statuses to bypass the task."
+    },
+    {
+      "id": "genuine_compilation_output",
+      "description": "Verify the compilation success message is genuine.",
+      "visual_evidence": "The success message should appear in the standard output console or result pane of the database tool, matching the expected format for Oracle database responses."
+    }
+  ],
+  "privileged_info_for_vlm": "The procedure must be named 'CLAIM_NEXT_JOB'. The target table is 'PAYMENT_JOBS'. The SQL code must include the keywords 'SKIP LOCKED' and 'FOR UPDATE'. The connection user is 'hr' and password is 'hr123'."
+}

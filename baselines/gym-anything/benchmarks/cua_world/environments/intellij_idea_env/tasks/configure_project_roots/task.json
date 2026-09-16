@@ -1,0 +1,32 @@
+{
+  "id": "configure_project_roots@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "A legacy Java project 'LegacyInventory' has been opened in IntelliJ IDEA, but it is not configured correctly. The IDE treats all files as plain text, and the code is full of errors. Configure the project structure so that 'src' is marked as Sources, 'test' as Tests, and 'config' as Resources. Additionally, add all JAR files in the 'lib' folder as project dependencies. The goal is to resolve all 'Cannot resolve symbol' errors and successfully build the project to generate the compiled class files.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_project_roots/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_project_roots/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "LegacyInventory",
+    "project_dir": "/home/ga/IdeaProjects/LegacyInventory",
+    "output_class_rel_path": "out/production/LegacyInventory/com/inventory/Main.class",
+    "required_libs": [
+      "commons-lang3",
+      "junit",
+      "hamcrest"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_project_roots"
+    }
+  }
+}

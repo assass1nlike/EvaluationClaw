@@ -1,0 +1,53 @@
+{
+  "task_id": "legacy_service_abstraction@1",
+  "task_completion": [
+    {
+      "id": "view_migration_spec",
+      "description": "The agent views the migration specification file to understand the required changes.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Desktop/migration_spec.md'."
+    },
+    {
+      "id": "login_rancher",
+      "description": "The agent logs into the Rancher dashboard.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the Rancher UI dashboard, logged in at 'https://localhost'."
+    },
+    {
+      "id": "create_oracle_abstraction",
+      "description": "The agent creates a Service and Endpoints for the Oracle RAC database.",
+      "points": 25,
+      "visual_evidence": "Rancher UI or terminal showing the creation of a Service and Endpoints (or a Service without selectors) in the 'retail-system' namespace, pointing to IPs 10.50.2.100 and 10.50.2.101 on port 1521."
+    },
+    {
+      "id": "create_stripe_abstraction",
+      "description": "The agent creates an ExternalName Service for the Stripe API.",
+      "points": 25,
+      "visual_evidence": "Rancher UI or terminal showing the creation of a Service of type ExternalName in the 'retail-system' namespace, pointing to the external domain 'api.stripe.com'."
+    },
+    {
+      "id": "update_inventory_api_deployment",
+      "description": "The agent updates the 'inventory-api' deployment to use the new internal DNS names.",
+      "points": 30,
+      "visual_evidence": "Rancher UI or terminal showing the environment variables of the 'inventory-api' deployment in the 'retail-system' namespace being updated to use the newly created Service names instead of the hardcoded IPs and external domain."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_cluster_interaction",
+      "description": "The agent applies the changes to the Kubernetes cluster.",
+      "visual_evidence": "The agent uses the Rancher UI to save/create resources, or runs 'kubectl apply' / 'kubectl edit' in the terminal, rather than just writing YAML files without applying them."
+    },
+    {
+      "id": "no_hardcoded_values_in_deployment",
+      "description": "The updated deployment no longer contains hardcoded external IPs or domains.",
+      "visual_evidence": "The environment variables for the 'inventory-api' deployment show internal Kubernetes DNS names instead of 10.50.2.100, 10.50.2.101, or api.stripe.com."
+    },
+    {
+      "id": "correct_namespace_used",
+      "description": "The agent creates the resources in the correct namespace.",
+      "visual_evidence": "The Services, Endpoints, and Deployment updates are all performed within the 'retail-system' namespace, as visible in the Rancher UI namespace selector or kubectl commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: retail-system. Oracle RAC IPs to abstract: 10.50.2.100, 10.50.2.101. Oracle Port: 1521. Stripe Domain to abstract: api.stripe.com. The agent must create Services/Endpoints for these and update the 'inventory-api' deployment to use the new internal DNS names."
+}

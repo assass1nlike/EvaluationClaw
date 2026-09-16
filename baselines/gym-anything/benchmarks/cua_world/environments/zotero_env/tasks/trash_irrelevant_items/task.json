@@ -1,0 +1,35 @@
+{
+  "id": "trash_irrelevant_items@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Clean up your Zotero library by moving exactly these four papers to the Trash: 'On the Electrodynamics of Moving Bodies' (Einstein, 1905), 'Molecular Structure of Nucleic Acids: A Structure for Deoxyribose Nucleic Acid' (Watson & Crick, 1953), 'The Mathematical Theory of Communication' (Shannon & Weaver, 1949 - the book version, not the 1948 paper), and 'An Unsolvable Problem of Elementary Number Theory' (Church, 1936). All other papers must remain in the library. Do not empty the trash.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/trash_irrelevant_items/setup_task.sh",
+    "post_task": "/workspace/tasks/trash_irrelevant_items/export_result.sh"
+  },
+  "metadata": {
+    "target_trash_titles": [
+      "On the Electrodynamics of Moving Bodies",
+      "Molecular Structure of Nucleic Acids: A Structure for Deoxyribose Nucleic Acid",
+      "The Mathematical Theory of Communication",
+      "An Unsolvable Problem of Elementary Number Theory"
+    ],
+    "critical_keep_titles": [
+      "A Mathematical Theory of Communication"
+    ],
+    "expected_trash_count": 4,
+    "expected_library_count": 14
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_trash_irrelevant_items"
+    }
+  }
+}

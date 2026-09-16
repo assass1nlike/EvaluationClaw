@@ -1,0 +1,50 @@
+{
+  "id": "pharma_rca_fishbone@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Quality Engineer at PharmaCo Manufacturing investigating a dissolution failure in Metformin HCl 500mg tablets (Batch BT-20240312). Using the investigation details in '~/Desktop/deviation_report_DEV-2024-0847.txt', create a formal Ishikawa (Fishbone) diagram in draw.io to document the root causes. The diagram must include a page titled 'Fishbone - DEV-2024-0847' featuring a standard Fishbone structure with the 6 categories (Manpower, Machine, Method, Material, Measurement, Milieu) populated with all 14 root causes from the report. Include a second page titled 'Corrective Actions' listing the 5 Corrective and Preventive Actions (CAPAs) from the report. Save the diagram to '~/Desktop/rca_fishbone.drawio' and export the first page as a PNG to '~/Desktop/rca_fishbone.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pharma_rca_fishbone/setup_task.sh",
+    "post_task": "/workspace/tasks/pharma_rca_fishbone/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Desktop/deviation_report_DEV-2024-0847.txt",
+    "output_drawio": "/home/ga/Desktop/rca_fishbone.drawio",
+    "output_png": "/home/ga/Desktop/rca_fishbone.png",
+    "categories": [
+      "Manpower",
+      "Machine",
+      "Method",
+      "Material",
+      "Measurement",
+      "Milieu"
+    ],
+    "required_cause_keywords": [
+      "granulation endpoint",
+      "night shift",
+      "punch",
+      "dryer",
+      "sensor",
+      "humidity",
+      "blending time",
+      "particle size",
+      "moisture",
+      "paddle",
+      "hplc",
+      "excursion",
+      "temperature"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pharma_rca_fishbone"
+    }
+  }
+}

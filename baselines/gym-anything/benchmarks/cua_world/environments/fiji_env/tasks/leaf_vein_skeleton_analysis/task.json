@@ -1,0 +1,30 @@
+{
+  "id": "leaf_vein_skeleton_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a biologist studying leaf hydraulic architecture. Extract and analyze the vein network from the grayscale leaf image at ~/Fiji_Data/raw/leaf/leaf_grayscale.tif. Calibrate the image using a pixel size of 5.0 microns/pixel (unit: 'um'). Process the image to create a binary skeleton of the veins and perform a network topology analysis.\n\nSave the following results to ~/Fiji_Data/results/skeleton/:\n- leaf_skeleton.png: The final binary skeleton image.\n- skeleton_overlay.png: An image showing the skeleton overlaid on the original leaf or a labeled skeleton map.\n- network_topology.csv: A CSV file containing the skeleton analysis results, including columns for # Branches, # Junctions, and Maximum Branch Length.\n- analysis_report.txt: A text summary stating the total number of branches, junctions, and the mean branch length in microns.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/leaf_vein_skeleton_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/leaf_vein_skeleton_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "~/Fiji_Data/raw/leaf/leaf_grayscale.tif",
+    "pixel_scale_um": 5.0,
+    "expected_output_dir": "~/Fiji_Data/results/skeleton/",
+    "min_branches": 10,
+    "min_junctions": 5,
+    "min_length_um": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_leaf_vein_skeleton_analysis"
+    }
+  }
+}

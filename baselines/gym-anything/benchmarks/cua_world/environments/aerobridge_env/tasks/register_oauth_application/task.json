@@ -1,0 +1,29 @@
+{
+  "id": "register_oauth_application@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Register a new OAuth2 application in the Aerobridge system to allow external integration for a partner logistics company. Log in to the Django admin panel at http://localhost:8000/admin/ (Username: 'admin', Password: 'adminpass123') and create an application named 'SkyLinks GCS' for user 'admin' with Client Type 'Confidential', Authorization Grant Type 'Client credentials', and default Algorithm. Save the generated Client ID and Client Secret to /home/ga/Documents/skylinks_creds.txt in the following format:\n\nClient ID: <your_client_id>\nClient Secret: <your_client_secret>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/register_oauth_application/setup_task.sh",
+    "post_task": "/workspace/tasks/register_oauth_application/export_result.sh"
+  },
+  "metadata": {
+    "app_name": "SkyLinks GCS",
+    "output_file": "/home/ga/Documents/skylinks_creds.txt",
+    "expected_grant_type": "client-credentials",
+    "expected_client_type": "confidential",
+    "owner_username": "admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_register_oauth_application"
+    }
+  }
+}

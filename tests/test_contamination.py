@@ -267,7 +267,7 @@ def test_cli_contamination_options_reach_configuration():
     command = get_command(app).commands["generate"]
     context = command.make_context("generate", [], resilient_parsing=True)
     assert context.params["contamination_enabled"] is True
-    assert context.params["contamination_max_tool_calls"] == 40
+    assert context.params["contamination_max_tool_calls"] == BenchmarkConfig().contamination_max_tool_calls
     context = command.make_context("generate", ["--no-contamination", "--contamination-min-overlap-chars", "300",
                                               "--contamination-max-tool-calls", "60"], resilient_parsing=True)
     assert context.params["contamination_enabled"] is False

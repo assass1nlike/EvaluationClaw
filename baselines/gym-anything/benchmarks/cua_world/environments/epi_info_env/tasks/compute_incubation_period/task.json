@@ -1,0 +1,37 @@
+{
+  "id": "compute_incubation_period@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Compute the incubation period in hours for a gastroenteritis outbreak using Epi Info 7 Classic Analysis. Using the 'CaseData' table in the 'StigenOutbreak' project, calculate the time interval between 'MealDateTime' and 'OnsetDateTime' for all confirmed and probable cases (CaseStatus <> 'Not a case'). Analyze the distribution to identify the likely pathogen. Save a results file to C:\\Users\\Docker\\Documents\\EpiInfoData\\StigenOutbreak\\incubation_results.txt including the number of cases analyzed, the median, mean, minimum, and maximum incubation periods, and the name of the likely pathogen.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\compute_incubation_period\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\compute_incubation_period\\export_result.ps1",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\StigenOutbreak\\StigenOutbreak.prj",
+    "results_path": "C:\\Users\\Docker\\Documents\\EpiInfoData\\StigenOutbreak\\incubation_results.txt",
+    "expected_n_min": 85,
+    "expected_n_max": 91,
+    "expected_median_min": 28.0,
+    "expected_median_max": 40.0,
+    "expected_pathogen": "Norovirus",
+    "ground_truth": {
+      "median": 33.0,
+      "pathogen": "Norovirus",
+      "n": 91
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_incubation_period"
+    }
+  }
+}

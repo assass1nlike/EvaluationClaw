@@ -1,0 +1,36 @@
+{
+  "id": "single_phase_power_calc@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the Active Power (kW), Reactive Power (kVAR), and Apparent Power (kVA) for a single-phase AC load using the Electrical Engineering Calculations app. Use a Voltage of 230 V, Current of 14.5 A, and a Power Factor of 0.82. Save the results to /sdcard/power_analysis.txt in the following format:\n\nActive Power: <value> kW\nReactive Power: <value> kVAR\nApparent Power: <value> kVA",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/single_phase_power_calc/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/single_phase_power_calc/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/sdcard/power_analysis.txt",
+    "inputs": {
+      "voltage": 230,
+      "current": 14.5,
+      "pf": 0.82
+    },
+    "ground_truth": {
+      "active_kw": 2.735,
+      "reactive_kvar": 1.909,
+      "apparent_kva": 3.335
+    },
+    "tolerance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_single_phase_power"
+    }
+  }
+}

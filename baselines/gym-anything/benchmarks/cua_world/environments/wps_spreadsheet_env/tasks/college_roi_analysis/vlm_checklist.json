@@ -1,0 +1,65 @@
+{
+  "task_id": "college_roi_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_csv_wps",
+      "description": "Open the college_scorecard.csv file in WPS Spreadsheet",
+      "points": 10,
+      "visual_evidence": "WPS Spreadsheet application is open and displaying the contents of the college_scorecard.csv dataset."
+    },
+    {
+      "id": "filter_dataset",
+      "description": "Filter the dataset based on STABBR, PREDDEG, GRAD_DEBT_MDN, and MD_EARN_WNE_P10 criteria",
+      "points": 15,
+      "visual_evidence": "Filter icons are visible on the column headers. Filter dialogs or active filters show STABBR set to 'PA', PREDDEG set to 3, and 'PrivacySuppressed'/'NULL' unchecked for the debt and earnings columns."
+    },
+    {
+      "id": "transfer_to_pa_analysis_sheet",
+      "description": "Transfer the filtered data to a new sheet named 'PA_Analysis'",
+      "points": 15,
+      "visual_evidence": "A sheet tab named 'PA_Analysis' is visible at the bottom of the WPS window, containing the filtered data (should be exactly 24 rows of data plus the header row, ending at row 25)."
+    },
+    {
+      "id": "calculate_debt_to_earnings",
+      "description": "Create a new 'Debt_to_Earnings' column calculated as GRAD_DEBT_MDN divided by MD_EARN_WNE_P10",
+      "points": 20,
+      "visual_evidence": "A new column header 'Debt_to_Earnings' is visible. The cells below it contain decimal values, and the formula bar may show a division formula (e.g., =E2/F2) when a cell in this column is selected."
+    },
+    {
+      "id": "sort_earnings_descending",
+      "description": "Sort the data by MD_EARN_WNE_P10 in descending order",
+      "points": 15,
+      "visual_evidence": "The values in the MD_EARN_WNE_P10 column are ordered from highest to lowest from top to bottom."
+    },
+    {
+      "id": "highlight_top_5_schools",
+      "description": "Highlight the top 5 school names in the INSTNM column with a yellow background",
+      "points": 15,
+      "visual_evidence": "Exactly 5 cells in the INSTNM (Institution Name) column, specifically the top 5 data rows (e.g., rows 2 through 6), have a yellow background fill color."
+    },
+    {
+      "id": "save_resulting_workbook",
+      "description": "Save the workbook as PA_College_ROI.xlsx",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet window title shows 'PA_College_ROI.xlsx' or a 'Save As' dialog is visible saving the file to /home/ga/Documents/ with this name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_spreadsheet",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the tasks rather than a terminal script",
+      "visual_evidence": "Screenshots show interaction with the WPS Spreadsheet interface (menus, ribbons, dialog boxes) rather than a terminal window running Python or bash scripts."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent used spreadsheet formulas or built-in tools for calculations and sorting",
+      "visual_evidence": "The formula bar shows actual formulas for the Debt_to_Earnings column, and the sort dialog/buttons were used, rather than manually typing in pre-calculated answers."
+    },
+    {
+      "id": "genuine_formatting",
+      "description": "The agent used the spreadsheet's fill color tool to highlight the cells",
+      "visual_evidence": "The ribbon's 'Fill Color' (paint bucket) tool is seen being used or selected to apply the yellow background to the cells."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/Documents/PA_College_ROI.xlsx'. The filtered data must be placed in a sheet named 'PA_Analysis'. There should be exactly 24 valid rows of data (plus the header row, totaling 25 rows) after applying the filters for PA state, PREDDEG=3, and excluding NULL/PrivacySuppressed values."
+}

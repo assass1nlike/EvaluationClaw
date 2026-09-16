@@ -1,0 +1,42 @@
+{
+  "id": "river_morphometry@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Water Body Delineation and River Morphometry",
+  "description": "You are an environmental hydrologist analyzing the Nile River. Extract morphometric parameters from the 'Nile Bend' sample image. Measure the total water surface area in pixels squared, the river channel width at three distinct cross-sections (upstream, bend apex, and downstream), and the channel sinuosity (calculated as channel length divided by straight-line distance). Save these measurements, including the area, the three widths, and the sinuosity index, to a CSV file at ~/ImageJ_Data/results/river_morphometry.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "remote-sensing",
+    "segmentation",
+    "morphometry",
+    "hydrology",
+    "thresholding",
+    "measurements"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/river_morphometry/setup_task.sh",
+    "post_task": "/workspace/tasks/river_morphometry/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "Nile Bend",
+    "image_source": "Fiji built-in sample (File > Open Samples > Nile Bend)",
+    "expected_output_path": "/home/ga/ImageJ_Data/results/river_morphometry.csv",
+    "min_water_area_px": 10000,
+    "max_water_area_px": 500000,
+    "min_width_px": 20,
+    "max_width_px": 600,
+    "min_sinuosity": 1.0,
+    "max_sinuosity": 5.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_river_morphometry"
+    }
+  }
+}

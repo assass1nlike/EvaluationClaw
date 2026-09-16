@@ -1,0 +1,38 @@
+{
+  "id": "export_database@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "A database administrator at a travel agency needs to create a complete backup export of the 'demodb' database before a planned infrastructure migration. Export the entire 'demodb' database (including schema and all data) to a gzipped JSON file at /home/ga/exports/demodb_export.json.gz. Use the credentials root / GymAnything123! for any required authentication.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_database/setup_task.sh",
+    "post_task": "/workspace/tasks/export_database/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "/home/ga/exports/demodb_export.json.gz",
+    "expected_classes": [
+      "Hotels",
+      "Profiles",
+      "Restaurants",
+      "Countries"
+    ],
+    "expected_data_markers": [
+      "Hotel Artemide",
+      "Hotel Adlon Kempinski",
+      "Italy",
+      "john.smith@example.com",
+      "Park Hyatt Tokyo"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_database"
+    }
+  }
+}

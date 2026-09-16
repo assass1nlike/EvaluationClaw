@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_multi_format_export@1",
+  "task_completion": [
+    {
+      "id": "load_vsp3_model",
+      "description": "Verify that the eCRM-001_wing_tail.vsp3 model is successfully loaded into OpenVSP.",
+      "points": 15,
+      "visual_evidence": "The OpenVSP application window is open, and the 3D workspace displays a wing-body aircraft model. The window title or geometry browser should indicate 'eCRM-001_wing_tail'."
+    },
+    {
+      "id": "open_export_menu",
+      "description": "Verify that the agent uses the 'File > Export' menu as strictly instructed.",
+      "points": 10,
+      "visual_evidence": "The 'File' dropdown menu is open with 'Export...' highlighted, or an OpenVSP 'Export' dialog box is visible on the screen."
+    },
+    {
+      "id": "export_stl_file",
+      "description": "Verify the export of the STL triangulated surface mesh.",
+      "points": 20,
+      "visual_evidence": "A save dialog or export settings window is visible, showing the STL format selected and the target filename set exactly to 'eCRM001_mesh.stl' inside the '/home/ga/Documents/OpenVSP/exports/' directory."
+    },
+    {
+      "id": "export_cart3d_file",
+      "description": "Verify the export of the Cart3D triangulated surface file.",
+      "points": 20,
+      "visual_evidence": "A save dialog or export settings window is visible, showing the Cart3D (.tri) format selected and the target filename set exactly to 'eCRM001_cart3d.tri' inside the '/home/ga/Documents/OpenVSP/exports/' directory."
+    },
+    {
+      "id": "export_degengeom_file",
+      "description": "Verify the export of the Degen Geom CSV file.",
+      "points": 20,
+      "visual_evidence": "A save dialog or export settings window is visible, showing the Degen Geom (.csv) format selected and the target filename set exactly to 'eCRM001_degengeom.csv' inside the '/home/ga/Documents/OpenVSP/exports/' directory."
+    },
+    {
+      "id": "verify_exports_created",
+      "description": "Verify that the exported files or the final result JSON file were successfully created.",
+      "points": 15,
+      "visual_evidence": "A terminal or file manager window showing the three newly created files (.stl, .tri, .csv) in the 'exports' directory, OR a terminal showing the execution of a verification script writing to '/tmp/openvsp_multi_format_export_result.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Ensure the agent actually used the OpenVSP GUI to export the files.",
+      "visual_evidence": "Screenshots must show the OpenVSP interface, menus, and export dialogs being interacted with, rather than terminal commands like 'touch' or 'cp' being used to create dummy files with the target names."
+    },
+    {
+      "id": "genuine_application_running",
+      "description": "Ensure the actual OpenVSP software is running.",
+      "visual_evidence": "The OpenVSP 3D rendering window and native UI elements are visible, not a text editor, image viewer, or web browser displaying a static image of the software."
+    },
+    {
+      "id": "menu_constraint_followed",
+      "description": "Check if the agent attempted to follow the strict 'File > Export' constraint.",
+      "visual_evidence": "Look for evidence that the agent navigated to 'File > Export' for the operations, rather than immediately bypassing the instructions to use 'Analysis > Degen Geom' without first checking the Export menu."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected result file path is '/tmp/openvsp_multi_format_export_result.json'. Note a critical contradiction in the prompt: the task strictly demands that ALL exports use the 'File > Export' menu, but OpenVSP conventionally locates Degen Geom under 'Analysis > Degen Geom'. The agent should ideally attempt to follow the strict 'File > Export' instruction as requested."
+}

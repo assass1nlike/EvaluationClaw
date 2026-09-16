@@ -1,0 +1,53 @@
+{
+  "task_id": "iat_dscore_bias_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Locate and read the IAT dataset",
+      "points": 10,
+      "visual_evidence": "A script, terminal command, or data analysis tool opening or reading the file at ~/pebl/data/iat_data.csv."
+    },
+    {
+      "id": "implement_exclusion_rule",
+      "description": "Implement the participant exclusion logic based on reaction times",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet logic that filters for blocks 3, 4, 6, and 7, checks for rt_ms < 300, and calculates if this occurs in more than 10% of those trials for each participant."
+    },
+    {
+      "id": "implement_d_score_math",
+      "description": "Implement the Greenwald et al. (2003) D-score calculation",
+      "points": 30,
+      "visual_evidence": "Code showing the calculation of mean differences (Block 6 minus Block 3; Block 7 minus Block 4) and dividing them by the pooled standard deviations of the corresponding block pairs (3 & 6; 4 & 7), then averaging the two quotients."
+    },
+    {
+      "id": "save_json_output",
+      "description": "Save the results to the specified JSON file path",
+      "points": 10,
+      "visual_evidence": "A script writing to or a file explorer/terminal showing the creation of ~/pebl/analysis/iat_report.json."
+    },
+    {
+      "id": "verify_json_contents",
+      "description": "Verify the JSON structure and correct calculation results",
+      "points": 30,
+      "visual_evidence": "The contents of iat_report.json showing a 'participants' list where participant 'sub-99' has '\"excluded\": true', and a 'group_mean_d_score' field with a value of approximately 0.563 (between 0.548 and 0.578)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "The agent actually computed the D-scores using a script or tool rather than hardcoding the final expected JSON.",
+      "visual_evidence": "Presence of a Python script, R script, or similar data processing code containing the math operations (mean, std, filtering) rather than just a text editor manually typing the final JSON output."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent used the exact specified input and output paths.",
+      "visual_evidence": "The script explicitly references '/home/ga/pebl/data/iat_data.csv' for reading and '/home/ga/pebl/analysis/iat_report.json' for writing."
+    },
+    {
+      "id": "processed_full_dataset",
+      "description": "The agent processed the actual dataset rather than a mocked subset.",
+      "visual_evidence": "The output JSON contains a large list of participants (around 21 total), not just one or two dummy entries."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data is located at /home/ga/pebl/data/iat_data.csv. The output must be saved to /home/ga/pebl/analysis/iat_report.json. Participant 'sub-99' is an explicit bot and must be marked as excluded ('\"excluded\": true') due to the >10% trials under 300ms rule. The expected 'group_mean_d_score' for valid participants is approximately 0.563 (acceptable range: 0.548 to 0.578)."
+}

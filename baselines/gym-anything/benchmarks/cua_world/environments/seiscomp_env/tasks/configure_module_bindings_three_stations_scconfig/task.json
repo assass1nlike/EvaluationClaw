@@ -1,0 +1,37 @@
+{
+  "id": "configure_module_bindings_three_stations_scconfig@1",
+  "version": "1.0",
+  "env_id": "seiscomp_env@0.1",
+  "description": "Three seismic stations in the GEOFON network (GE.GSI (Geostationary), GE.BKB, and GE.SANI) currently have no module bindings configured, meaning their waveform data is not being processed. Configure all three stations for automatic phase detection and amplitude computation by adding scautopick and scamp module bindings using the default profile for each. The resulting configuration must be reflected in the station key files at /home/ga/seiscomp/etc/key/station_GE_GSI, /home/ga/seiscomp/etc/key/station_GE_BKB, and /home/ga/seiscomp/etc/key/station_GE_SANI.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "partial"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_module_bindings_three_stations_scconfig/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_module_bindings_three_stations_scconfig/export_result.sh"
+  },
+  "metadata": {
+    "target_stations": [
+      "GE.GSI",
+      "GE.BKB",
+      "GE.SANI"
+    ],
+    "required_modules": [
+      "scautopick",
+      "scamp"
+    ],
+    "key_file_dir": "/home/ga/seiscomp/etc/key",
+    "seiscomp_gui_app": "scconfig",
+    "occupation": "Geoscientists (SOC 19-2042.00)",
+    "task_type": "network_station_configuration"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_module_bindings_three_stations_scconfig"
+    }
+  }
+}

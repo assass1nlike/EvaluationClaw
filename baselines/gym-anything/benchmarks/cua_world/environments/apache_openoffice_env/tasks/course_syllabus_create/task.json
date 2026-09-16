@@ -1,0 +1,38 @@
+{
+  "id": "course_syllabus_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "Create a professionally formatted 16-week course syllabus in Apache OpenOffice Writer using data from /home/ga/Documents/course_data.json. The document must be titled 'ENVS 410: Urban Ecology and Sustainability — Fall 2024 Syllabus' and include an auto-generated Table of Contents at the beginning and page numbers in the footer. Use Heading 1 style for the following sections: Course Information, Instructor Information, Course Description, Learning Outcomes, Required Texts, Course Schedule, Grading Policy, Assignment Descriptions, Course Policies, and University Policies. Include Heading 2 subsections under Course Policies and University Policies. The syllabus must feature a 16-row Weekly Schedule table (Week, Date, Topic, Reading, Assignment) and a grading breakdown table. Save the final document as /home/ga/Documents/ENVS410_Syllabus_Fall2024.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/course_syllabus_create/setup_task.sh",
+    "post_task": "/workspace/tasks/course_syllabus_create/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/ENVS410_Syllabus_Fall2024.odt",
+    "input_file": "/home/ga/Documents/course_data.json",
+    "course_code": "ENVS 410",
+    "instructor_name": "Al-Rashid",
+    "min_h1_count": 8,
+    "min_h2_count": 5,
+    "min_schedule_rows": 16,
+    "min_file_size_bytes": 8000,
+    "required_content": [
+      "urban ecology",
+      "portland state",
+      "forman",
+      "beatley"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_course_syllabus_create"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "navon_global_precedence_analysis@1",
+  "task_completion": [
+    {
+      "id": "inspect_dataset",
+      "description": "Agent inspects the Navon Figures dataset.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., head, cat), a text editor, or a data analysis script showing the contents or loading of ~/pebl/data/navon_data.csv."
+    },
+    {
+      "id": "exclude_invalid_participant",
+      "description": "Agent identifies and excludes the participant with below 60% accuracy on 'local' blocks.",
+      "points": 20,
+      "visual_evidence": "Script logic, terminal output, or data filtering steps explicitly showing the exclusion of participant 'sub-99' due to low accuracy on local blocks."
+    },
+    {
+      "id": "calculate_metrics",
+      "description": "Agent calculates Global Advantage, Global Interference, and Local Interference.",
+      "points": 20,
+      "visual_evidence": "Code (e.g., Python/pandas) or terminal output showing the formulas or computation of the three required metrics using only correct trials."
+    },
+    {
+      "id": "export_json_report",
+      "description": "Agent exports the analysis results to a JSON file.",
+      "points": 25,
+      "visual_evidence": "A file named navon_report.json in ~/pebl/analysis/ (visible via ls, file explorer, or text editor) containing a 'participants' list and a 'group_means' object."
+    },
+    {
+      "id": "generate_interaction_plot",
+      "description": "Agent generates and saves an interaction bar chart of the condition group mean RTs.",
+      "points": 25,
+      "visual_evidence": "A file named navon_interaction_plot.png in ~/pebl/analysis/ is created, and/or an image viewer/plot window shows a bar chart displaying the four condition group mean RTs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis_script",
+      "description": "Agent used a script or data analysis tool to process the data.",
+      "visual_evidence": "Presence of a Python, R, or shell script performing pandas/dataframe operations, rather than the agent manually typing out the JSON report."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "Agent generated the plot using code.",
+      "visual_evidence": "Script contains plotting code (e.g., matplotlib, seaborn, ggplot2) that corresponds to the saved navon_interaction_plot.png file."
+    },
+    {
+      "id": "calculated_exclusion",
+      "description": "Agent calculated the accuracy to determine the excluded participant.",
+      "visual_evidence": "The code calculates accuracy per participant for 'local' blocks rather than hardcoding 'sub-99' without prior computation."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant that must be excluded is 'sub-99'. The expected output files are exactly '/home/ga/pebl/analysis/navon_report.json' and '/home/ga/pebl/analysis/navon_interaction_plot.png'."
+}

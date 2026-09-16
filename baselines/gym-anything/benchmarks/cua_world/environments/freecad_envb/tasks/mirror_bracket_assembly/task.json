@@ -1,0 +1,27 @@
+{
+  "id": "mirror_bracket_assembly@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a symmetric assembly of the pre-loaded T8 housing bracket model by mirroring the bracket body across the YZ plane (normal to X axis). Combine the original and mirrored shapes into a Part Compound and save the result to /home/ga/Documents/FreeCAD/symmetric_bracket_assembly.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mirror_bracket_assembly/setup_task.sh",
+    "post_task": "/workspace/tasks/mirror_bracket_assembly/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/symmetric_bracket_assembly.FCStd",
+    "input_file_path": "/home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd",
+    "min_expected_size_kb": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mirror_bracket_assembly"
+    }
+  }
+}

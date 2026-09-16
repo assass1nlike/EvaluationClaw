@@ -1,0 +1,59 @@
+{
+  "task_id": "structure_scan_silo_inspection@1",
+  "task_completion": [
+    {
+      "id": "read_inspection_brief",
+      "description": "Verify the agent opened and read the inspection brief document.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit or nano) or a terminal window (using cat/less) displaying the contents of /home/ga/Documents/QGC/inspection_brief.txt."
+    },
+    {
+      "id": "open_qgc_plan_view",
+      "description": "Verify the agent opened QGroundControl and navigated to the Plan view.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl application is open and the 'Plan' view is active, showing the map and mission planning tools."
+    },
+    {
+      "id": "add_takeoff_and_rtl",
+      "description": "Verify the mission begins with a Takeoff command and ends with an RTL command.",
+      "points": 20,
+      "visual_evidence": "The mission item list on the right side of the QGroundControl interface shows 'Takeoff' as the first active mission item and 'Return To Launch' (or RTL) as the final mission item."
+    },
+    {
+      "id": "add_structure_scan",
+      "description": "Verify a Structure Scan pattern was added to the mission.",
+      "points": 20,
+      "visual_evidence": "A 'Structure Scan' item is visible in the mission list, and a green polygon or circular scan pattern is visible on the map over the target area."
+    },
+    {
+      "id": "configure_scan_parameters",
+      "description": "Verify the Structure Scan parameters are configured according to the brief.",
+      "points": 20,
+      "visual_evidence": "The Structure Scan settings panel is visible on the right. 'Structure Height' is set to 28 (or at least 25), 'Layers' is set to 3 (or more), and 'Gimbal Pitch' is set to 0 (or between -10 and 10)."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Verify the mission plan was saved to the correct file path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'File' dialog in QGroundControl showing the file being saved as 'silo_inspection.plan' in the '/home/ga/Documents/QGC/' directory, or a terminal window showing the file exists at that path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgc_gui",
+      "description": "Verify the agent used the QGroundControl GUI to create the mission.",
+      "visual_evidence": "Screenshots show the agent clicking on the map, adjusting sliders, and interacting with the QGroundControl interface, rather than writing a JSON .plan file manually in a text editor."
+    },
+    {
+      "id": "genuine_save_operation",
+      "description": "Verify the agent saved the file using the application's built-in save functionality.",
+      "visual_evidence": "The QGroundControl 'File' or 'Sync' menu and subsequent save dialog are visible in the screenshots."
+    },
+    {
+      "id": "no_direct_file_spoofing",
+      "description": "Verify the agent did not bypass the task by echoing or copying a pre-made plan file.",
+      "visual_evidence": "No terminal commands like 'echo' or 'cp' are used to directly generate or place the 'silo_inspection.plan' file without using QGroundControl."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/QGC/silo_inspection.plan. The mission plan must contain a Takeoff command (MAV_CMD_NAV_TAKEOFF), a Structure Scan, and an RTL command (MAV_CMD_NAV_RETURN_TO_LAUNCH). The Structure Scan must be configured with a structure height of 28m (acceptable >= 25m), at least 3 layers, and a gimbal pitch of 0 degrees (acceptable between -10 and 10 degrees)."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "configure_chart_projection_view@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running on the Windows 11 desktop with daily OHLCV data for SPY (S&P 500 ETF) available. Create a 'Projection' chart view for SPY to facilitate forward-looking technical analysis. Configure a daily SPY chart with a 250-pixel right side margin and 15-pixel bar spacing. Set the Y-axis scaling to 'Fixed' with a maximum of 550 and a minimum of 350. Disable the vertical grid lines so only horizontal lines remain and save the workspace to ensure the configuration persists.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_chart_projection_view\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_chart_projection_view\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "expected_right_margin": 250,
+    "expected_bar_spacing": 15,
+    "bar_spacing_tolerance": 2,
+    "scale_mode": "Fixed",
+    "scale_min": 350,
+    "scale_max": 550,
+    "scale_tolerance": 5,
+    "grid_vertical_visible": false
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_chart_projection_view"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "task_id": "docker_remote_context_setup@1",
+  "task_completion": [
+    {
+      "id": "context_created",
+      "description": "Verify the creation of a Docker context named 'prod'.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the command 'docker context create prod' or the output of 'docker context ls' listing 'prod'."
+    },
+    {
+      "id": "context_tls_configured",
+      "description": "Verify the 'prod' context is configured with the correct remote host and TLS certificates.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the context creation command with flags pointing to port 2376 and the certificates in ~/credentials/ (ca.pem, cert.pem, key.pem), or 'docker context inspect prod' showing these TLS details."
+    },
+    {
+      "id": "container_deployed",
+      "description": "Verify the deployment of the 'prod-web' container using the 'nginx:1.24-alpine' image via the 'prod' context.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a command like 'docker --context prod run --name prod-web ... nginx:1.24-alpine' or a 'docker run' command executed after 'docker context use prod'."
+    },
+    {
+      "id": "container_running",
+      "description": "Verify the 'prod-web' container is successfully running on the remote daemon.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the output of 'docker --context prod ps' (or 'docker ps' if the context is active) listing the 'prod-web' container as running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "terminal_usage",
+      "description": "Verify the agent used a genuine terminal to execute commands.",
+      "visual_evidence": "Commands are typed and executed in a terminal emulator (e.g., GNOME Terminal, xterm), not a text editor."
+    },
+    {
+      "id": "command_execution",
+      "description": "Verify commands were actually executed and returned output.",
+      "visual_evidence": "Presence of command outputs, new shell prompts appearing after commands, or Docker daemon responses (e.g., container IDs)."
+    },
+    {
+      "id": "no_output_spoofing",
+      "description": "Verify the agent did not fake the verification outputs.",
+      "visual_evidence": "No use of 'echo' or text manipulation tools to print fake 'docker ps' or 'docker context ls' outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "Context name: 'prod'. Remote host: 'prod-node' on port 2376. Credentials directory: '/home/ga/credentials' containing 'ca.pem', 'cert.pem', and 'key.pem'. Workload container name: 'prod-web'. Workload image: 'nginx:1.24-alpine'."
+}

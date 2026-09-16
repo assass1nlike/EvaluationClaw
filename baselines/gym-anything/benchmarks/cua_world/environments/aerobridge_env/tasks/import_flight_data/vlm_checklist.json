@@ -1,0 +1,59 @@
+{
+  "task_id": "import_flight_data@1",
+  "task_completion": [
+    {
+      "id": "access_aerobridge_admin",
+      "description": "Access the Aerobridge admin interface",
+      "points": 10,
+      "visual_evidence": "A web browser is open showing the Aerobridge Django admin dashboard or login page at http://localhost:8000/admin/."
+    },
+    {
+      "id": "select_flight_plan",
+      "description": "Select the 'Draft Survey Mission' flight plan for editing",
+      "points": 10,
+      "visual_evidence": "The browser shows the edit page for the 'Draft Survey Mission' under the Flight Plans section in the Aerobridge admin."
+    },
+    {
+      "id": "update_start_time",
+      "description": "Update the Start Time field",
+      "points": 20,
+      "visual_evidence": "The 'Start time' input field on the flight plan edit page contains the value '2025-11-15 08:30:00'."
+    },
+    {
+      "id": "update_end_time",
+      "description": "Update the End Time field",
+      "points": 20,
+      "visual_evidence": "The 'End time' input field on the flight plan edit page contains the value '2025-11-15 12:45:00'."
+    },
+    {
+      "id": "update_geometry",
+      "description": "Update the Geometry field with valid GeoJSON",
+      "points": 30,
+      "visual_evidence": "The 'Geometry' input field contains a valid GeoJSON object with '\"type\": \"Polygon\"' and coordinates matching '[[[-95.1, 38.9], [-95.09, 38.9], [-95.09, 38.91], [-95.1, 38.91], [-95.1, 38.9]]]' (Longitude, Latitude order)."
+    },
+    {
+      "id": "save_flight_plan",
+      "description": "Save the updated flight plan",
+      "points": 10,
+      "visual_evidence": "A success message (e.g., 'The flight plan \"Draft Survey Mission\" was changed successfully.') is visible in the admin interface, or the browser has returned to the flight plan list after saving."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the web browser to interact with the Aerobridge admin interface.",
+      "visual_evidence": "Screenshots show a web browser being used to navigate and fill out forms, rather than terminal commands (like curl or python scripts) making API requests."
+    },
+    {
+      "id": "genuine_geojson_formatting",
+      "description": "The agent correctly formatted the coordinates into a GeoJSON Polygon.",
+      "visual_evidence": "The Geometry field contains properly formatted JSON with 'type' and 'coordinates' keys, not just a raw copy-paste of the text file contents."
+    },
+    {
+      "id": "actual_application",
+      "description": "The agent interacted with the actual Aerobridge application.",
+      "visual_evidence": "The browser address bar shows 'localhost:8000' or '127.0.0.1:8000', confirming interaction with the live application and not a local HTML file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target flight plan: 'Draft Survey Mission'. Expected Start Time: '2025-11-15 08:30:00'. Expected End Time: '2025-11-15 12:45:00'. Expected Geometry: A GeoJSON object with type 'Polygon' and coordinates [[[-95.1, 38.9], [-95.09, 38.9], [-95.09, 38.91], [-95.1, 38.91], [-95.1, 38.9]]] (Note: GeoJSON requires Longitude first, then Latitude, and the polygon must be closed by repeating the first coordinate at the end)."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "chinook_customer_similarity@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Compute a customer-to-customer similarity matrix based on shared artist purchases in the Chinook database (/home/ga/Documents/databases/chinook.db). Identify the top 20 customer pairs (where CustomerIdA < CustomerIdB and they share at least one artist) with the highest Jaccard Similarity based on artists purchased. Calculate Jaccard Similarity as the count of shared artists divided by the count of the union of artists purchased by both customers, rounded to 4 decimal places. Sort the results by JaccardSimilarity descending, then by SharedArtists descending. Export the top 20 results to /home/ga/Documents/exports/customer_similarity.csv with columns: CustomerIdA, CustomerIdB, CustomerNameA (FirstName LastName), CustomerNameB (FirstName LastName), SharedArtists, TotalArtists, and JaccardSimilarity. Save the SQL query used to /home/ga/Documents/scripts/similarity_query.sql. Use 'Chinook' as the connection name.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_customer_similarity/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_customer_similarity/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "output_csv": "/home/ga/Documents/exports/customer_similarity.csv",
+    "output_sql": "/home/ga/Documents/scripts/similarity_query.sql",
+    "required_columns": [
+      "CustomerIdA",
+      "CustomerIdB",
+      "CustomerNameA",
+      "CustomerNameB",
+      "SharedArtists",
+      "TotalArtists",
+      "JaccardSimilarity"
+    ],
+    "expected_rows": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_customer_similarity"
+    }
+  }
+}

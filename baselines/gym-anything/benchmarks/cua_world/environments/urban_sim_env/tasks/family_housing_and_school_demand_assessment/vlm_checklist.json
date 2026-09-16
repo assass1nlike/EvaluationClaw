@@ -1,0 +1,59 @@
+{
+  "task_id": "family_housing_and_school_demand_assessment@1",
+  "task_completion": [
+    {
+      "id": "notebook_setup",
+      "description": "Verify the Jupyter notebook is open at the correct path.",
+      "points": 10,
+      "visual_evidence": "The file 'family_housing_assessment.ipynb' is open in a Jupyter environment or IDE, and the path indicates it is in '/home/ga/urbansim_projects/notebooks/'."
+    },
+    {
+      "id": "data_processing_logic",
+      "description": "Verify the code loads the correct data and applies the required filtering and classification logic.",
+      "points": 20,
+      "visual_evidence": "Code cells show loading 'sanfran_public.h5' (households, buildings, parcels), merging them, filling missing residential units with 0, classifying Single-Family (1 unit) vs Multi-Family (>1 unit), filtering for zones with >= 50 households, and identifying families as >= 3 persons."
+    },
+    {
+      "id": "csv_export_code",
+      "description": "Verify the code exports the top 15 zones to a CSV file with the required columns.",
+      "points": 15,
+      "visual_evidence": "Code cell shows exporting a dataframe to '/home/ga/urbansim_projects/output/top_family_zones.csv' containing the top 15 zones and columns: zone_id, total_households, total_family_households, family_in_sf, family_in_mf, and family_concentration_rate."
+    },
+    {
+      "id": "json_export_code",
+      "description": "Verify the code exports the citywide summary metrics to a JSON file.",
+      "points": 15,
+      "visual_evidence": "Code cell shows saving a JSON file to '/home/ga/urbansim_projects/output/family_housing_summary.json' with keys: 'citywide_total_households', 'citywide_family_households', 'citywide_family_rate', and 'most_family_dense_zone_id'."
+    },
+    {
+      "id": "plot_generation_code",
+      "description": "Verify the code generates and saves a chart comparing family households in single-family vs multi-family buildings.",
+      "points": 15,
+      "visual_evidence": "Code cell shows plotting a chart for the top 15 zones comparing single-family and multi-family family households, and saving it to '/home/ga/urbansim_projects/output/family_housing_distribution.png'."
+    },
+    {
+      "id": "notebook_execution_and_outputs",
+      "description": "Verify the notebook is fully executed with all outputs visible.",
+      "points": 25,
+      "visual_evidence": "Execution numbers (e.g., [1], [2]) are visible next to the code cells, and outputs such as printed dataframes, JSON dictionaries, and the generated chart are visible below the cells."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_computation",
+      "description": "Verify the agent computes the results dynamically rather than hardcoding values.",
+      "visual_evidence": "The code uses pandas or similar libraries to calculate the metrics from the HDF5 dataset. There should be no hardcoded final numbers for the JSON summary or CSV rows."
+    },
+    {
+      "id": "jupyter_environment_used",
+      "description": "Verify the agent interacted with a Jupyter notebook environment.",
+      "visual_evidence": "The interface shows a Jupyter Notebook or an IDE with notebook support (like VS Code), with distinct code cells and output areas, rather than just a plain text script."
+    },
+    {
+      "id": "outputs_generated",
+      "description": "Verify the output files were actually created in the correct directory.",
+      "visual_evidence": "The file explorer pane or a terminal window shows the existence of 'top_family_zones.csv', 'family_housing_summary.json', and 'family_housing_distribution.png' in the 'output' folder."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected CSV path: /home/ga/urbansim_projects/output/top_family_zones.csv with columns: zone_id, total_households, total_family_households, family_in_sf, family_in_mf, family_concentration_rate. Expected JSON path: /home/ga/urbansim_projects/output/family_housing_summary.json with keys: citywide_total_households, citywide_family_households, citywide_family_rate, most_family_dense_zone_id. Expected Plot path: /home/ga/urbansim_projects/output/family_housing_distribution.png. Data source: /home/ga/urbansim_projects/data/sanfran_public.h5. Thresholds: top 15 zones, min 50 households, family >= 3 persons."
+}

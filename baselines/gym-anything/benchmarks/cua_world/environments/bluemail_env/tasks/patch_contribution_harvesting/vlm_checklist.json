@@ -1,0 +1,59 @@
+{
+  "task_id": "patch_contribution_harvesting@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verify the agent logged into the email client.",
+      "points": 10,
+      "visual_evidence": "The email client interface is open and shows the inbox for the user 'ga'."
+    },
+    {
+      "id": "folder_created",
+      "description": "Verify the creation of the 'Patch-Review' folder.",
+      "points": 20,
+      "visual_evidence": "A folder named exactly 'Patch-Review' is visible in the email client's folder list or sidebar."
+    },
+    {
+      "id": "search_for_patches",
+      "description": "Verify the agent attempted to identify patch emails.",
+      "points": 20,
+      "visual_evidence": "The email client's search bar contains queries for patch markers such as 'PATCH', '+++', '---', 'Index:', or 'diff -u', or the agent is actively viewing emails looking for these markers."
+    },
+    {
+      "id": "emails_moved",
+      "description": "Verify emails were moved to the 'Patch-Review' folder.",
+      "points": 20,
+      "visual_evidence": "The 'Patch-Review' folder is selected/open and contains at least 3 emails. (Note: Since the inbox has no actual patch emails, any moved emails fulfill the visual attempt of this step)."
+    },
+    {
+      "id": "draft_recipient_subject",
+      "description": "Verify the draft email has the correct recipient and subject.",
+      "points": 15,
+      "visual_evidence": "An email composer window is open with 'lead-dev@project.org' in the 'To' field and exactly 'Patch Review Status' in the 'Subject' field."
+    },
+    {
+      "id": "draft_body_summary",
+      "description": "Verify the draft email body contains a summary of the patches found.",
+      "points": 15,
+      "visual_evidence": "The body of the drafted email contains text summarizing the total number of patches found in the inbox (e.g., stating '0 patches found' or a fabricated number)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_client_used",
+      "description": "Verify the agent used the graphical email client to perform the tasks.",
+      "visual_evidence": "Actions like creating folders, moving emails, and drafting the report are done within a GUI email application (like Thunderbird, Roundcube, etc.), not via terminal scripts or text editors."
+    },
+    {
+      "id": "no_terminal_manipulation",
+      "description": "Verify the agent did not use terminal commands to bypass the email client.",
+      "visual_evidence": "There should be no terminal windows showing commands like 'mv', 'grep', or 'sqlite3' being used to directly manipulate the underlying maildir files."
+    },
+    {
+      "id": "genuine_draft_creation",
+      "description": "Verify the email draft is genuinely created in the email client.",
+      "visual_evidence": "The draft email must be visible inside the email client's actual message composer, not just written as a plain text file in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target folder: 'Patch-Review'. Report recipient: 'lead-dev@project.org'. Minimum patches to move: 3. Patch markers: 'diff -u', 'Index:', '+++', '---', '[PATCH]'. CRITICAL NOTE: The provided inbox actually contains 0 emails with these patch markers, making the task technically impossible to complete perfectly. Score the agent based on its genuine attempts to complete the required actions (creating the folder, searching for markers, moving emails, and drafting the report), even if the reported patch count is 0 or the moved emails do not actually contain patches."
+}

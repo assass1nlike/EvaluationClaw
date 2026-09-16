@@ -1,0 +1,48 @@
+{
+  "id": "gitlab_c4_container_diagram@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a C4 Model architecture diagram for GitLab's core platform based on the specification provided at ~/Desktop/gitlab_architecture_spec.txt. The diagram must consist of two pages: a System Context (Level 1) diagram showing the User, CI Runner, GitLab System, Email Server, and LDAP; and a Container Diagram (Level 2) showing the internal components (Workhorse, Puma, Sidekiq, Gitaly, etc.) and their protocols (HTTPS, gRPC, TCP, etc.) as described in the spec. Save the diagram to ~/Desktop/gitlab_c4_diagram.drawio and export the Container Diagram (Page 2) as a PNG image to ~/Desktop/gitlab_c4_diagram.png. The diagram must contain the specific component names listed in the specification file.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/gitlab_c4_container_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/gitlab_c4_container_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "gitlab_c4_diagram.drawio",
+    "expected_png": "gitlab_c4_diagram.png",
+    "required_components": [
+      "workhorse",
+      "puma",
+      "sidekiq",
+      "gitaly",
+      "shell",
+      "postgresql",
+      "redis",
+      "object storage",
+      "registry",
+      "prometheus"
+    ],
+    "required_protocols": [
+      "https",
+      "grpc",
+      "tcp",
+      "ssh",
+      "smtp"
+    ],
+    "min_pages": 2,
+    "min_shapes": 12,
+    "min_edges": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gitlab_c4_diagram"
+    }
+  }
+}

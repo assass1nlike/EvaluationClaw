@@ -1,0 +1,70 @@
+{
+  "id": "solar_array_plan@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "You are an agricultural engineer designing a ground-mounted solar photovoltaic array for a rural farm. Create a site plan layout in LibreCAD using millimeters as the unit. The plan must include a 'PANELS' layer (Green, index 3) containing four 10000mm x 2000mm rectangles with lower-left corners at (0, 0), (0, 4000), (0, 8000), and (0, 12000). On an 'ELECTRICAL' layer (Red, index 1), include a 600mm x 600mm combiner box rectangle with its lower-left corner at (11000, 6700) and four conduit lines connecting (10000, 1000), (10000, 5000), (10000, 9000), and (10000, 13000) to the point (11300, 7000). Finally, include a 'BORDER' layer (White, index 7) with a site boundary rectangle defined by corners (-2000, -2000) and (14000, 16000). Save the drawing to ~/Documents/LibreCAD/solar_array_plan.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/solar_array_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/solar_array_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/solar_array_plan.dxf",
+    "layer_specs": {
+      "PANELS": 3,
+      "ELECTRICAL": 1,
+      "BORDER": 7
+    },
+    "geometry_specs": {
+      "panels": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 10000,
+          "h": 2000
+        },
+        {
+          "x": 0,
+          "y": 4000,
+          "w": 10000,
+          "h": 2000
+        },
+        {
+          "x": 0,
+          "y": 8000,
+          "w": 10000,
+          "h": 2000
+        },
+        {
+          "x": 0,
+          "y": 12000,
+          "w": 10000,
+          "h": 2000
+        }
+      ],
+      "combiner": {
+        "x": 11000,
+        "y": 6700,
+        "w": 600,
+        "h": 600
+      },
+      "boundary": {
+        "x": -2000,
+        "y": -2000,
+        "w": 16000,
+        "h": 18000
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_array_plan"
+    }
+  }
+}

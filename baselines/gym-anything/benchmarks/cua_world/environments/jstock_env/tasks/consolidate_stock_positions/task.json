@@ -1,0 +1,31 @@
+{
+  "id": "consolidate_stock_positions@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "You have purchased more NVIDIA (NVDA) stock and need to consolidate your position in JStock to track a single 'Average Cost' line item. Your portfolio currently contains 25 shares of NVDA bought at $615.30, and you just bought 25 more shares on Feb 15, 2024, at $584.70 per share. Consolidate these into a single NVDA entry in 'My Portfolio' with 50 total units, the calculated weighted average price, the date Feb 15, 2024, and the comment 'Average Cost Merge'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/consolidate_stock_positions/setup_task.sh",
+    "post_task": "/workspace/tasks/consolidate_stock_positions/export_result.sh"
+  },
+  "metadata": {
+    "target_symbol": "NVDA",
+    "expected_units": 50.0,
+    "expected_price": 600.0,
+    "price_tolerance": 0.05,
+    "expected_date_str": "Feb 15, 2024",
+    "expected_comment": "Average Cost Merge",
+    "portfolio_file": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/buyportfolio.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_consolidate_stock_positions"
+    }
+  }
+}

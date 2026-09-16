@@ -1,0 +1,40 @@
+{
+  "id": "standardized_patch_montage@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Standardized ROI Patch Montage",
+  "description": "Create a standardized figure panel by extracting patches from the 'Blobs (25K)' sample image. Extract four distinct 64x64 pixel crops of different blobs and arrange them into a 2x2 montage with a scale factor of 1.0 and 0 border width. Save the resulting 128x128 pixel montage as a PNG to ~/ImageJ_Data/results/blobs_montage.png.",
+  "difficulty": "medium",
+  "tags": [
+    "imagej",
+    "fiji",
+    "montage",
+    "stack",
+    "roi",
+    "figure-creation",
+    "publishing"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/standardized_patch_montage/setup_task.sh",
+    "post_task": "/workspace/tasks/standardized_patch_montage/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/blobs_montage.png",
+    "expected_width": 128,
+    "expected_height": 128,
+    "patch_size": 64,
+    "grid_columns": 2,
+    "grid_rows": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_standardized_patch_montage"
+    }
+  }
+}

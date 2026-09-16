@@ -1,0 +1,34 @@
+{
+  "id": "verify_menu_order_workflow@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Perform an end-to-end workflow starting in the BACK OFFICE (PIN: 1111) by creating a 'Burger Toppings' modifier group containing 'Bacon' ($1.50), 'Avocado' ($2.00), and 'Extra Cheese' ($0.75). Configure a new 'Build-Your-Own Burger' menu item ($9.99) within an existing group (e.g., 'Entree' or 'Sandwich') and link it to the 'Burger Toppings' group. Complete the process in DINE IN by ordering the 'Build-Your-Own Burger' with 'Bacon' and 'Avocado' modifiers for a table and settling the transaction with CASH.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/verify_menu_order_workflow/setup_task.sh",
+    "post_task": "/workspace/tasks/verify_menu_order_workflow/export_result.sh"
+  },
+  "metadata": {
+    "mod_group_name": "Burger Toppings",
+    "menu_item_name": "Build-Your-Own Burger",
+    "menu_item_price": 9.99,
+    "modifiers": {
+      "Bacon": 1.5,
+      "Avocado": 2.0,
+      "Extra Cheese": 0.75
+    },
+    "expected_subtotal": 13.49,
+    "expected_subtotal_tolerance": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_menu_order_workflow"
+    }
+  }
+}

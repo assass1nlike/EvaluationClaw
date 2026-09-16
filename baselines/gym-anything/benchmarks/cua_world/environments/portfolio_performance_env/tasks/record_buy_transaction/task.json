@@ -1,0 +1,32 @@
+{
+  "id": "record_buy_transaction@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Record a BUY transaction for Microsoft Corp (MSFT) in the portfolio file at /home/ga/Documents/PortfolioData/trading_portfolio.xml. Transaction details: Date: 2024-04-15, Shares: 8, Price per share: $420.00, Fees: $9.99, Securities account: Main Brokerage, and Cash account: Main Brokerage (USD). Save the updated portfolio to the original file path.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_buy_transaction/setup_task.sh",
+    "post_task": "/workspace/tasks/record_buy_transaction/export_result.sh"
+  },
+  "metadata": {
+    "expected_security": "Microsoft Corp",
+    "expected_ticker": "MSFT",
+    "expected_date": "2024-04-15",
+    "expected_shares": 8,
+    "expected_price_per_share": 420.0,
+    "expected_total_value": 3360.0,
+    "expected_fees": 9.99,
+    "value_tolerance": 50.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_buy_transaction"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "open_attribute_table@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Open the attribute table for the Natural Earth countries layer (ne_110m_admin_0_countries) in gvSIG Desktop.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/open_attribute_table/setup_task.sh"
+  },
+  "metadata": {
+    "layer_name": "ne_110m_admin_0_countries",
+    "expected_record_count": 177,
+    "key_fields": [
+      "NAME",
+      "POP_EST",
+      "CONTINENT",
+      "GDP_MD_EST"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_open_attribute_table"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "materialize_monthly_revenue@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Create a materialized view for monthly revenue statistics in the 'demodb' database (Credentials: root / GymAnything123!). Create a vertex class named 'MonthlyStats' with properties Year (Integer), Month (Integer), TotalRevenue (Double), and OrderCount (Integer), including a unique index on the Year and Month properties. Populate 'MonthlyStats' with aggregated data from the 'Orders' class by filtering for 'paid' status, grouping by the Year and Month of the 'Date' field, and calculating the sum of Price (as TotalRevenue) and the count of orders (as OrderCount).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/materialize_monthly_revenue/setup_task.sh",
+    "post_task": "/workspace/tasks/materialize_monthly_revenue/export_result.sh"
+  },
+  "metadata": {
+    "database": "demodb",
+    "source_class": "Orders",
+    "target_class": "MonthlyStats",
+    "required_properties": {
+      "Year": "INTEGER",
+      "Month": "INTEGER",
+      "TotalRevenue": "DOUBLE",
+      "OrderCount": "INTEGER"
+    },
+    "required_index_type": "UNIQUE"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_materialize_monthly_revenue"
+    }
+  }
+}

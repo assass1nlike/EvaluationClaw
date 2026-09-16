@@ -1,0 +1,44 @@
+{
+  "id": "sysml_cubesat_bdd@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Systems Engineer. Create a SysML Block Definition Diagram (BDD) for the 'Aurora-3 Power Subsystem' based on the engineering specifications provided in '~/Desktop/aurora3_power_spec.txt'. The diagram must include a root Block named 'Power Subsystem' and child Blocks for 'Solar Panel', 'Battery Module', 'EPS Mainboard', and 'Wiring Harness'. Ensure the BDD incorporates the specified Value Properties, Composition relationships, and Multiplicity labels. Save the diagram as 'aurora3_bdd.drawio' and export it as 'aurora3_bdd.pdf' in the '~/Diagrams' directory.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sysml_cubesat_bdd/setup_task.sh",
+    "post_task": "/workspace/tasks/sysml_cubesat_bdd/export_result.sh"
+  },
+  "metadata": {
+    "spec_file": "/home/ga/Desktop/aurora3_power_spec.txt",
+    "expected_drawio": "/home/ga/Diagrams/aurora3_bdd.drawio",
+    "expected_pdf": "/home/ga/Diagrams/aurora3_bdd.pdf",
+    "required_blocks": [
+      "Power Subsystem",
+      "Solar Panel",
+      "Battery Module",
+      "EPS Mainboard",
+      "Wiring Harness"
+    ],
+    "required_properties": [
+      "mass",
+      "capacity",
+      "efficiency",
+      "voltage"
+    ],
+    "required_multiplicities": [
+      "4",
+      "1"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sysml_cubesat_bdd"
+    }
+  }
+}

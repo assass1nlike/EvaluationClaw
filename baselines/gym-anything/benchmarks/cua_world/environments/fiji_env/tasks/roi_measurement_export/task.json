@@ -1,0 +1,46 @@
+{
+  "id": "roi_measurement_export@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "A medical scientist needs to quantify fluorescence intensity in heterogeneous tumor cell clusters in ~/Fiji_Data/raw/analysis_image.tif. Calibrate the image to 0.65 microns/pixel and define at least 6 ROIs using a mix of shapes (minimum 2 ellipses, 2 rectangles, and 2 freehand selections). Configure measurements for Area, Mean gray value, Standard deviation, Min/Max, Integrated density, and Median. Export the following to ~/Fiji_Data/results/roi_analysis/: the measurements as 'roi_measurements.csv', the ROI set as 'roi_set.zip', and a flattened image with ROI overlays as 'annotated_overlay.png'. Generate a 'summary_report.txt' in the same folder reporting the ROI count, the mean of the mean intensities, the coefficient of variation of the means, and the identifier of the ROI with the highest mean intensity.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/roi_measurement_export/setup_task.sh",
+    "post_task": "/workspace/tasks/roi_measurement_export/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "~/Fiji_Data/raw/analysis_image.tif",
+    "output_dir": "~/Fiji_Data/results/roi_analysis",
+    "pixel_scale_um": 0.65,
+    "min_rois": 6,
+    "required_roi_types": [
+      "ellipse",
+      "rectangle",
+      "freehand"
+    ],
+    "expected_files": [
+      "roi_measurements.csv",
+      "roi_set.zip",
+      "annotated_overlay.png",
+      "summary_report.txt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_roi_measurement_export"
+    }
+  },
+  "tags": [
+    "roi-manager",
+    "measurement",
+    "export",
+    "microscopy",
+    "quantification"
+  ]
+}

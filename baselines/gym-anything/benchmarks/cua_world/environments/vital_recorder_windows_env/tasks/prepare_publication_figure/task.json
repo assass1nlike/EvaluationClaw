@@ -1,0 +1,35 @@
+{
+  "id": "prepare_publication_figure@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Create a standardized publication figure from VitalDB case #6. The figure should display only three tracks in this vertical order: 'Heart Rate' (Green), 'Systolic BP' (Red, renamed from Systolic Arterial Pressure), and 'SpO2' (Blue/Cyan). Export a screenshot of this view to C:\\Users\\Docker\\Documents\\publication_figure.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\prepare_publication_figure\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\prepare_publication_figure\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\publication_figure.png",
+    "required_tracks": [
+      "Heart Rate",
+      "Systolic BP",
+      "SpO2"
+    ],
+    "required_colors": {
+      "Heart Rate": "Green",
+      "Systolic BP": "Red",
+      "SpO2": "Blue"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_publication_figure"
+    }
+  }
+}

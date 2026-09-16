@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_momentum_flux@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Verify the Python script compute_momentum_flux.py is created in the results directory.",
+      "points": 10,
+      "visual_evidence": "File explorer, IDE, or terminal showing the file compute_momentum_flux.py located in ~/Documents/hec_ras_results/."
+    },
+    {
+      "id": "script_formulas_correct",
+      "description": "Verify the script contains the correct formulas for Dynamic Momentum Flux and Specific Force using the specified constants.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the calculation for M_dynamic using rho=1.94 (e.g., 1.94 * Q * V) and Specific_Force using g=32.2 and y_bar=Depth/2 (e.g., (Q**2)/(32.2 * A) + A * (Depth/2))."
+    },
+    {
+      "id": "csv_generated",
+      "description": "Verify the momentum_flux.csv file is generated in the results directory.",
+      "points": 20,
+      "visual_evidence": "File explorer, IDE, or terminal showing the file momentum_flux.csv located in ~/Documents/hec_ras_results/."
+    },
+    {
+      "id": "csv_columns_correct",
+      "description": "Verify the CSV file contains the exact expected columns.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., head command), spreadsheet viewer, or text editor showing the CSV headers: River_Station, Q_peak, Velocity, Flow_Area, Depth, M_dynamic, Specific_Force."
+    },
+    {
+      "id": "report_generated",
+      "description": "Verify the momentum_summary.txt file is generated in the results directory.",
+      "points": 15,
+      "visual_evidence": "File explorer, IDE, or terminal showing the file momentum_summary.txt located in ~/Documents/hec_ras_results/."
+    },
+    {
+      "id": "report_content_correct",
+      "description": "Verify the summary report identifies the river stations with the maximum Momentum Flux and maximum Specific Force.",
+      "points": 15,
+      "visual_evidence": "Text editor or terminal output (e.g., cat command) showing the contents of momentum_summary.txt, explicitly naming the river stations that have the highest M_dynamic and Specific_Force."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "reads_hdf5_file",
+      "description": "Ensure the script actually opens and reads the HEC-RAS HDF5 results file rather than hardcoding values.",
+      "visual_evidence": "Code showing an HDF5 library (like h5py) opening a .hdf file from the Muncie project directory."
+    },
+    {
+      "id": "no_hardcoded_summary",
+      "description": "Ensure the summary report is generated programmatically by the script based on the data, not manually typed by the agent.",
+      "visual_evidence": "The Python script contains code to write to momentum_summary.txt (e.g., with open(..., 'w')), rather than the agent using a text editor or echo commands in the terminal to manually create the file with guessed values."
+    },
+    {
+      "id": "script_execution_visible",
+      "description": "Ensure the agent actually ran the Python script to generate the outputs.",
+      "visual_evidence": "Terminal showing the execution command (e.g., python compute_momentum_flux.py) completing without errors."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/Documents/hec_ras_projects/Muncie. The results directory is /home/ga/Documents/hec_ras_results. The script must be at /home/ga/Documents/hec_ras_results/compute_momentum_flux.py. The CSV must be at /home/ga/Documents/hec_ras_results/momentum_flux.csv and contain exactly these columns: River_Station, Q_peak, Velocity, Flow_Area, Depth, M_dynamic, Specific_Force. The report must be at /home/ga/Documents/hec_ras_results/momentum_summary.txt. The physics constants to look for in the code are rho = 1.94 and g = 32.2."
+}

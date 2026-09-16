@@ -1,0 +1,31 @@
+{
+  "id": "prepare_course_reading_list@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Create a collection named 'Week 1 - Judicial Review' containing the case 'Marbury v. Madison' and the article 'Constitutional Fact Review'. Include a child note on the 'Marbury v. Madison' item with the text: 'Focus on Marshall's reasoning regarding original jurisdiction vs appellate jurisdiction.' Export a report of this collection as an HTML file to /home/ga/Documents/week1_syllabus.html.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/prepare_course_reading_list/setup_task.sh",
+    "post_task": "/workspace/tasks/prepare_course_reading_list/export_result.sh"
+  },
+  "metadata": {
+    "collection_name": "Week 1 - Judicial Review",
+    "required_items": [
+      "Marbury v. Madison",
+      "Constitutional Fact Review"
+    ],
+    "note_content_fragment": "original jurisdiction",
+    "output_path": "/home/ga/Documents/week1_syllabus.html"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_prepare_course_reading_list"
+    }
+  }
+}

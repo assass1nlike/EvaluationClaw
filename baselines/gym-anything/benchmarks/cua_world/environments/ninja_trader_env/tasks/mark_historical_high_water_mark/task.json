@@ -1,0 +1,30 @@
+{
+  "id": "mark_historical_high_water_mark@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Identify the highest daily closing price of SPY for the year 2023 using NinjaTrader 8. Note that the current simulated date is in 2026, so historical data for 2023 must be loaded. Mark the identified price level on a daily chart with a horizontal line and a text label '2023 High'. Save the workspace and record the numeric price value in a text file at C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\spy_2023_high.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\mark_historical_high_water_mark\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\mark_historical_high_water_mark\\export_result.ps1"
+  },
+  "metadata": {
+    "target_instrument": "SPY",
+    "target_year": 2023,
+    "expected_price": 465.18,
+    "tolerance": 0.5,
+    "output_file": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\spy_2023_high.txt",
+    "ground_truth_date": "2023-12-28"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mark_historical_high_water_mark"
+    }
+  }
+}

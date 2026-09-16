@@ -1,0 +1,34 @@
+{
+  "id": "create_employee_payslip@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Northwind Traders is onboarding its first employee, a warehouse worker named Maria Anders. Set up the payroll system and issue the first monthly payslip. Enable the Employees, Payslip Items, and Payslips modules. Create a Payslip Item named 'Gross Salary' as an Earnings/Addition type and another named 'Income Tax Withholding' as a Deduction type. Create an employee record for 'Maria Anders'. Generate and save a payslip for Maria Anders dated 2025-01-31, including the 'Gross Salary' of 4,500.00 and 'Income Tax Withholding' of 675.00.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_employee_payslip/setup_task.sh",
+    "post_task": "/workspace/tasks/create_employee_payslip/export_result.sh"
+  },
+  "metadata": {
+    "expected_employee_name": "Maria Anders",
+    "expected_payslip_date": "2025-01-31",
+    "expected_gross_amount": 4500.0,
+    "expected_net_amount": 3825.0,
+    "expected_deduction_amount": 675.0,
+    "expected_modules": [
+      "Employees",
+      "Payslip Items",
+      "Payslips"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_employee_payslip"
+    }
+  }
+}

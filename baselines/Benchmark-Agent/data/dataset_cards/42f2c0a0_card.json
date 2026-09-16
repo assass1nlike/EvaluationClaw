@@ -1,0 +1,97 @@
+{
+  "dataset_id": "42f2c0a0",
+  "name": "Geometry Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 120,
+  "description": "A small visual question answering dataset focused on geometry diagrams. Each sample pairs a geometry diagram with a textual question that includes multiple-choice options, and the model must select the correct numeric or symbolic answer.",
+  "card_text": "Geometry VQA is a multimodal benchmark for answering geometry questions from diagram images. Each example contains an image file referencing a geometric figure (e.g., labeled points, lines, shapes), a generic prompt instructing the model to answer based on the image, a question that asks for a missing length, angle, or variable and embeds multiple candidate choices, and a short text answer indicating the correct option. The questions are typically short and rely on reading geometric relationships from the diagram. Answers are concise numeric or symbolic strings. This dataset evaluates spatial reasoning, diagram comprehension, and multiple-choice visual question answering in the domain of geometry.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "geometry",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short generic instruction that tells the model to answer the question based on the accompanying image and to select one from the given choices. It frames the task but does not contain the geometric problem itself.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "A reference to a geometry diagram image (e.g., labeled points, lines, shapes) that provides the visual information needed to solve the problem. The filename points to a technical drawing whose geometric relationships must be read to determine the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A geometry question asking for a missing length, angle, or variable given specific measurements. The question text also embeds the multiple candidate choices as a list, e.g., ['6', '7', '12', '14']. The model must combine the diagram with this textual query to select the correct option.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct choice as a short string, matching exactly one of the candidate options embedded in the question (e.g., '6' or a symbolic expression like '10 sqrt(2)'). It is the final numeric or symbolic value asked for and serves as the supervised target.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image diagram (input.image_file), a short instruction prompt (input.prompt), a geometry question with embedded multiple-choice options (input.question), and a short textual answer (output.text). The image carries the geometric figure; the question specifies the target quantity and lists candidate answers; the prompt instructs the model to answer using the image; and the answer field holds the selected option. There is no separate long context or rationale."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/geometry_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "geometry vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Geometry"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Geometry"
+    ]
+  }
+}

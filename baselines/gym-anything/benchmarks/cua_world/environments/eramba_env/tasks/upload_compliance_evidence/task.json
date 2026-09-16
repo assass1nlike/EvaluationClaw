@@ -1,0 +1,28 @@
+{
+  "id": "upload_compliance_evidence@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "An auditor has requested evidence for the 'Information Backup' control. Upload the backup log located at /home/ga/Documents/Evidence/Backup_Log_Sept2025.pdf as an attachment to the 'A.12.3.1 - Information Backup' Compliance Analysis record in Eramba.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/upload_compliance_evidence/setup_task.sh",
+    "post_task": "/workspace/tasks/upload_compliance_evidence/export_result.sh"
+  },
+  "metadata": {
+    "evidence_path": "/home/ga/Documents/Evidence/Backup_Log_Sept2025.pdf",
+    "evidence_filename": "Backup_Log_Sept2025.pdf",
+    "target_item_name": "A.12.3.1 - Information Backup",
+    "target_package_name": "ISO 27001 (Internal)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_upload_compliance_evidence"
+    }
+  }
+}

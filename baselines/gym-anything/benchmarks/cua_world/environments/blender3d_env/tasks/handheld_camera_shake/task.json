@@ -1,0 +1,34 @@
+{
+  "id": "handheld_camera_shake@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a realistic handheld camera shake effect for the camera in the BMW27 scene by applying procedural animation noise to the X and Z Euler Rotation channels. Save the project to /home/ga/BlenderProjects/handheld_cam.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/handheld_camera_shake/setup_task.sh",
+    "post_task": "/workspace/tasks/handheld_camera_shake/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/BlenderProjects/handheld_cam.blend",
+    "target_object": "Camera",
+    "target_channels": [
+      "rotation_euler.0",
+      "rotation_euler.2"
+    ],
+    "min_strength": 0.005,
+    "max_strength": 0.2,
+    "min_scale": 2.0,
+    "max_scale": 100.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_handheld_camera_shake"
+    }
+  }
+}

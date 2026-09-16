@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_pv_temperature_coefficient_impact@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "Agent creates a Python script that imports and initializes PySAM's Pvwattsv8 module.",
+      "points": 10,
+      "visual_evidence": "A code editor showing a Python script with imports for PySAM (e.g., `import PySAM.Pvwattsv8` or `import PySAM.Pvwattsv8 as pvwatts`) and initialization of the model."
+    },
+    {
+      "id": "system_configuration",
+      "description": "Agent configures the PV system parameters according to the task description.",
+      "points": 20,
+      "visual_evidence": "Code showing the assignment of system parameters: capacity of 50000 (kW for 50 MW), array_type 2 (1-axis tracking), dc_ac_ratio 1.25, inv_eff 96.0, losses 14.08, gcr 0.35, tilt 0, and azimuth 180."
+    },
+    {
+      "id": "module_type_comparison",
+      "description": "Agent sets up the script to run the simulation for both Premium Crystalline Silicon and Thin Film modules.",
+      "points": 20,
+      "visual_evidence": "Code showing the execution of the PySAM model twice or in a loop, specifically changing the `module_type` parameter to 1 (Premium) and 2 (Thin Film)."
+    },
+    {
+      "id": "seasonal_energy_calculations",
+      "description": "Agent calculates the summer and winter energy totals and the seasonal percentage gains.",
+      "points": 20,
+      "visual_evidence": "Code showing the extraction of monthly or hourly AC energy generation data, summing June through August for summer, summing December through February for winter, and calculating the percentage gain of Thin Film over Premium for both seasons."
+    },
+    {
+      "id": "json_output_generation",
+      "description": "Agent saves the calculated metrics to the specified JSON file with the correct keys.",
+      "points": 30,
+      "visual_evidence": "A file named `temp_coef_comparison.json` in `/home/ga/Documents/SAM_Projects/` containing the exact keys: `premium_annual_energy_kwh`, `thinfilm_annual_energy_kwh`, `premium_summer_energy_kwh`, `thinfilm_summer_energy_kwh`, `premium_winter_energy_kwh`, `thinfilm_winter_energy_kwh`, `thinfilm_summer_gain_percent`, and `thinfilm_winter_gain_percent` with numerical values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_script_execution",
+      "description": "The agent actually executed the Python script to generate the results.",
+      "visual_evidence": "A terminal window showing the execution of the Python script (e.g., `python script.py`) without errors, rather than the agent just manually typing out a JSON file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent calculated the values programmatically rather than hardcoding fake results.",
+      "visual_evidence": "The Python script contains logic to extract and calculate the energy values and percentage gains from the PySAM outputs, rather than assigning hardcoded numbers to the JSON dictionary."
+    },
+    {
+      "id": "correct_weather_file",
+      "description": "The agent used the correct Phoenix TMY weather file.",
+      "visual_evidence": "The Python script explicitly references the file path `/home/ga/SAM_Weather_Data/phoenix_az_tmy.csv` for the `solar_resource_file` parameter."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is 'temp_coef_comparison.json'. The calculated annual energy for both systems should be between 100,000,000 and 130,000,000 kWh (~105 million kWh). The summer energy (June-August) should account for roughly 28% to 38% of the annual energy (~30.7%). The winter energy (December-February) should account for roughly 15% to 25% of the annual energy (~16.7%)."
+}

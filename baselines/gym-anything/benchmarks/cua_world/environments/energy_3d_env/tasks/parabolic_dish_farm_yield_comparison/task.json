@@ -1,0 +1,30 @@
+{
+  "id": "parabolic_dish_farm_yield_comparison@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Engineer evaluating Concentrating Solar Power (CSP) feasibility. Generate a parabolic dish array on a foundation, calculate its annual yield in Phoenix, AZ, then change the location to Seattle, WA, and calculate the new yield to compare performance.\n\nStarting State: Energy3D is open with `desert_plot.ng3` loaded. The scene contains a foundation with an existing solar rack array.\n\nExpected Actions:\n1. Delete the existing solar rack array on the main foundation to clear the site.\n2. Select the foundation and add a Parabolic Dish array (via the right-click menu or Solar Panel menu).\n3. Configure the dish array with the following parameters:\n   - Dish diameter: 10 meters\n   - Row spacing: 16 meters\n   - Column spacing: 16 meters\n4. Change the project location to Phoenix, AZ (if not already) and run an 'Annual Energy Analysis' (Analysis > Solar Panels > Annual Yield Analysis) to calculate the total annual yield for Phoenix.\n5. Change the project location to Seattle, WA using the Location menu.\n6. Run the Annual Energy Analysis again to calculate the yield for Seattle.\n7. Save the final design as `~/Documents/Energy3D/dish_farm_final.ng3`.\n8. Create a report file at `~/Documents/Energy3D/yield_comparison.txt` that lists:\n   - The total number of dishes generated on the foundation\n   - The total annual energy yield in Phoenix (in kWh)\n   - The total annual energy yield in Seattle (in kWh)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/parabolic_dish_farm_yield_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/parabolic_dish_farm_yield_comparison/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Engineer",
+    "industry": "Renewable Energy",
+    "starter_file": "desert_plot.ng3",
+    "min_dish_count": 25,
+    "max_dish_count": 45,
+    "yield_ratio_min": 1.3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dish_farm"
+    }
+  }
+}

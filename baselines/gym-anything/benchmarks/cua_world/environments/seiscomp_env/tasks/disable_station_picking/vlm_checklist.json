@@ -1,0 +1,59 @@
+{
+  "task_id": "disable_station_picking@1",
+  "task_completion": [
+    {
+      "id": "open_scconfig",
+      "description": "Open the SeisComP Configuration GUI (scconfig)",
+      "points": 10,
+      "visual_evidence": "The 'scconfig' application window is open and visible on the screen."
+    },
+    {
+      "id": "navigate_to_bindings_tab",
+      "description": "Navigate to the Bindings section",
+      "points": 15,
+      "visual_evidence": "The 'Bindings' tab or section is selected in the scconfig interface, displaying the network and station tree."
+    },
+    {
+      "id": "select_target_station",
+      "description": "Locate and select the target station GE.KWP",
+      "points": 15,
+      "visual_evidence": "The station 'KWP' under the 'GE' network is visible and highlighted/selected in the station list."
+    },
+    {
+      "id": "disable_scautopick_binding",
+      "description": "Remove or disable the scautopick binding for GE.KWP",
+      "points": 30,
+      "visual_evidence": "The 'scautopick' module checkbox is unchecked, or its binding profile is removed/deleted in the configuration panel specifically for station GE.KWP."
+    },
+    {
+      "id": "control_station_remains_active",
+      "description": "Ensure the control station GE.TOLI remains active",
+      "points": 15,
+      "visual_evidence": "The station 'TOLI' under the 'GE' network is visible, and its 'scautopick' binding remains checked or active."
+    },
+    {
+      "id": "save_configuration",
+      "description": "Save the updated configuration",
+      "points": 15,
+      "visual_evidence": "The 'Save' button is clicked, or a confirmation dialog/log message indicating the configuration has been saved is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_not_terminal",
+      "description": "The agent used the scconfig GUI to make changes rather than editing configuration files directly in the terminal.",
+      "visual_evidence": "Screenshots show interaction with the graphical scconfig interface (checkboxes, menus) rather than terminal text editors like nano or vim."
+    },
+    {
+      "id": "station_inventory_intact",
+      "description": "The target station was not deleted from the inventory.",
+      "visual_evidence": "Station GE.KWP is still visible in the station tree/inventory list; only its binding configuration was modified."
+    },
+    {
+      "id": "genuine_gui_interaction",
+      "description": "The agent genuinely navigated the GUI to accomplish the task.",
+      "visual_evidence": "A logical sequence of expanding the network tree, selecting stations, and modifying bindings is shown across the screenshots, rather than jumping inexplicably to a final state."
+    }
+  ],
+  "privileged_info_for_vlm": "Target station to disable: GE.KWP. Control station that must remain active: GE.TOLI. Target module: scautopick. The expected GUI application is 'scconfig'. The VLM should verify that the scautopick binding for GE.KWP is removed via the GUI while GE.TOLI's binding remains intact."
+}

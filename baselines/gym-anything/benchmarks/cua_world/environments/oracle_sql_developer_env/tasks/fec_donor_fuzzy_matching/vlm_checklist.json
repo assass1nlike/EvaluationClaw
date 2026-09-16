@@ -1,0 +1,59 @@
+{
+  "task_id": "fec_donor_fuzzy_matching@1",
+  "task_completion": [
+    {
+      "id": "connect_database",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (like DBeaver, SQL Developer, or SQL*Plus in a terminal) showing an active connection to the XEPDB1 database as the elections_admin user."
+    },
+    {
+      "id": "create_donor_match_pairs",
+      "description": "Create the DONOR_MATCH_PAIRS table using Oracle fuzzy matching.",
+      "points": 20,
+      "visual_evidence": "SQL execution or script showing the creation of the DONOR_MATCH_PAIRS table, specifically using UTL_MATCH.JARO_WINKLER_SIMILARITY(UPPER(name1), UPPER(name2)) >= 90."
+    },
+    {
+      "id": "create_canonical_map",
+      "description": "Create the DONOR_CANONICAL_MAP view to map donor_ids to their ultimate canonical_id.",
+      "points": 20,
+      "visual_evidence": "SQL execution or script showing the creation of the DONOR_CANONICAL_MAP view, likely utilizing a Recursive CTE or CONNECT BY clause to find the minimum donor_id in a cluster."
+    },
+    {
+      "id": "create_financials_mv",
+      "description": "Create the CONSOLIDATED_DONOR_FINANCIALS_MV materialized view.",
+      "points": 20,
+      "visual_evidence": "SQL execution or script showing the creation of a materialized view named CONSOLIDATED_DONOR_FINANCIALS_MV that joins the canonical map to CONTRIBUTIONS."
+    },
+    {
+      "id": "create_violation_alerts",
+      "description": "Create the VIOLATION_ALERTS table for individuals exceeding the $3,300 limit.",
+      "points": 15,
+      "visual_evidence": "SQL execution or script showing the creation of the VIOLATION_ALERTS table filtering for consolidated totals strictly greater than 3300."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the VIOLATION_ALERTS table to a CSV file.",
+      "points": 15,
+      "visual_evidence": "A terminal command, file explorer, or database client export dialog showing the creation or existence of limit_violators.csv in /home/ga/Documents/exports/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "The agent actually executed the SQL queries against the database.",
+      "visual_evidence": "Screenshots should show SQL commands being executed in a database client or terminal with success messages or query results, not just typed into a text editor."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The CSV file was generated from the database query, not manually created.",
+      "visual_evidence": "The agent used an export function from the database client or a command-line tool (like sqlcl or spool) to generate the CSV, rather than manually typing data into a file."
+    },
+    {
+      "id": "correct_schema_used",
+      "description": "The agent interacted with the correct ELECTIONS_ADMIN schema.",
+      "visual_evidence": "The database connection or SQL queries explicitly reference or use the ELECTIONS_ADMIN schema and XEPDB1 service."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output CSV path is exactly '/home/ga/Documents/exports/limit_violators.csv'. The task requires the use of specific Oracle features: UTL_MATCH for fuzzy matching, Recursive CTE or CONNECT BY for the canonical map, and Materialized Views for the financials. The contribution limit for violations is strictly > 3300."
+}

@@ -1,0 +1,34 @@
+{
+  "id": "create_medical_illustration_base@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A medical illustrator needs a specific base image for a textbook cover. Generate a high-contrast 3D visualization of the skull from the loaded CT Cranium scan. The visualization must feature a red 3D bone surface against a solid white background, with the 3D bounding box and reference axes hidden. Orient the camera to a clean anterior view and export the result as a PNG to /home/ga/Documents/illustration_base.png. Login credentials: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_medical_illustration_base/setup_task.sh",
+    "post_task": "/workspace/tasks/create_medical_illustration_base/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/illustration_base.png",
+    "min_width": 400,
+    "min_height": 400,
+    "expected_bg_color": [
+      255,
+      255,
+      255
+    ],
+    "expected_object_color_hue_range": "red",
+    "dicom_series": "ct_cranium"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_medical_illustration_base"
+    }
+  }
+}

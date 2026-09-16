@@ -1,0 +1,47 @@
+{
+  "task_id": "compose_credential_rotation@1",
+  "task_completion": [
+    {
+      "id": "update_docker_compose",
+      "description": "Update docker-compose.yml with the new password",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the docker-compose.yml file at /home/ga/app-stack/ with the password changed to 'SecureNewPass!2024' for the database service and Adminer."
+    },
+    {
+      "id": "restart_services",
+      "description": "Restart Docker Compose services",
+      "points": 20,
+      "visual_evidence": "Terminal showing commands like `docker compose down` and `docker compose up -d` (or similar restart commands) being executed in the /home/ga/app-stack directory, with output indicating services are starting."
+    },
+    {
+      "id": "adminer_login_success",
+      "description": "Connect to the database via Adminer using the new credentials",
+      "points": 30,
+      "visual_evidence": "Web browser open to http://localhost:8081 showing the Adminer interface successfully logged in (displaying database 'appdb', user 'appuser', and PostgreSQL server)."
+    },
+    {
+      "id": "verify_preserved_records",
+      "description": "Verify that existing project records are preserved",
+      "points": 30,
+      "visual_evidence": "Adminer interface showing the contents of the database table with exactly 5 records visible, confirming data was not lost."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_adminer_usage",
+      "description": "Agent used a real web browser to access Adminer",
+      "visual_evidence": "A web browser window is visible with the address bar showing localhost:8081 or 127.0.0.1:8081, and the genuine Adminer UI is displayed."
+    },
+    {
+      "id": "real_docker_commands",
+      "description": "Agent executed real Docker commands in the terminal",
+      "visual_evidence": "Terminal window shows actual Docker Compose command execution and standard Docker output logs, not just echoed text."
+    },
+    {
+      "id": "no_data_recreation",
+      "description": "Agent did not manually recreate the database records",
+      "visual_evidence": "No SQL INSERT statements or scripts are visible in the terminal or Adminer SQL command interface to manually insert the 5 rows."
+    }
+  ],
+  "privileged_info_for_vlm": "The Docker Compose environment is at /home/ga/app-stack. The database service is 'db', user is 'appuser', and database is 'appdb'. The new password must be 'SecureNewPass!2024'. The database contains exactly 5 records which must be preserved."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "splunk_metrics_pipeline_conversion@1",
+  "task_completion": [
+    {
+      "id": "login_splunk",
+      "description": "Log in to the Splunk web interface as admin.",
+      "points": 10,
+      "visual_evidence": "The Splunk web interface (http://localhost:8000) is open in a browser, and the user is logged in (typically indicated by 'Administrator' or 'admin' in the top navigation bar)."
+    },
+    {
+      "id": "create_auth_metrics_index",
+      "description": "Create a dedicated Metrics index named 'auth_metrics'.",
+      "points": 20,
+      "visual_evidence": "The Settings > Indexes page or New Index dialog is visible, showing an index named 'auth_metrics' with its 'Index Data Type' explicitly set to 'Metrics' (or 'metric')."
+    },
+    {
+      "id": "execute_backfill_search",
+      "description": "Query the security_logs index for failed authentications, pipe to mcollect, and run for the last 30 days to backfill.",
+      "points": 25,
+      "visual_evidence": "The Splunk Search interface is visible. The search bar contains a query starting with 'index=security_logs' filtering for failed authentications, and includes a pipe to the 'mcollect' command (e.g., '| mcollect index=auth_metrics'). The time range picker must be set to 'Last 30 days' and the search must be executed."
+    },
+    {
+      "id": "save_report_auth_metrics_rollup",
+      "description": "Save the aggregation query as a report named 'Auth_Metrics_Rollup'.",
+      "points": 25,
+      "visual_evidence": "The 'Save As Report' dialog or the Splunk Reports list is visible, showing a report explicitly named 'Auth_Metrics_Rollup' containing the mcollect query."
+    },
+    {
+      "id": "schedule_report_hourly",
+      "description": "Schedule the 'Auth_Metrics_Rollup' report to run hourly.",
+      "points": 20,
+      "visual_evidence": "The 'Edit Schedule' dialog for the report is visible, with the 'Schedule Report' checkbox checked and the schedule configured to run every hour (e.g., 'Run every hour' or cron expression '0 * * * *')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must interact with the Splunk Web UI in a browser.",
+      "visual_evidence": "Screenshots should show a web browser navigating the Splunk UI at localhost:8000, rather than terminal windows using curl or Python scripts to configure Splunk via API."
+    },
+    {
+      "id": "authentic_data_loading",
+      "description": "The search results should reflect genuine log processing.",
+      "visual_evidence": "The search timeline and job inspector (if visible) should show actual event data being processed and matched, indicating genuine interaction with the indexed logs rather than a mocked interface."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The Splunk UI should not be faked using browser developer tools.",
+      "visual_evidence": "The browser developer tools (Elements tab, Console) should not be open and used to manually inject the expected index or report names into the HTML."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: 1. The index must be named 'auth_metrics'. 2. The index datatype must be 'metric'. 3. The report must be named 'Auth_Metrics_Rollup'. 4. The search query must use the 'mcollect' command to route data to the metrics index."
+}

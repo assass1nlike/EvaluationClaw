@@ -1,0 +1,48 @@
+{
+  "task_id": "camera_coverage_gap_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_vms_api",
+      "description": "Agent accesses the Nx Witness VMS API or system.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the agent reading '/home/ga/nx_token.txt' and making curl/Python requests to https://localhost:7001, or a browser showing the VMS web interface or API documentation."
+    },
+    {
+      "id": "analyze_camera_gaps",
+      "description": "Agent retrieves and analyzes camera data for recording status and layout inclusion.",
+      "points": 20,
+      "visual_evidence": "Script logic or terminal commands querying camera and layout endpoints, filtering for cameras with recording disabled or not present in any layout."
+    },
+    {
+      "id": "analyze_user_gaps",
+      "description": "Agent retrieves and analyzes user data for layout assignments.",
+      "points": 20,
+      "visual_evidence": "Script logic or terminal commands querying user and layout endpoints, filtering for users with no layouts assigned or shared."
+    },
+    {
+      "id": "format_json_report",
+      "description": "Agent constructs the JSON report with the required structure.",
+      "points": 30,
+      "visual_evidence": "Code or text editor showing the construction of a JSON object containing keys like 'report_timestamp', 'system_name', 'total_cameras', 'gaps', and 'summary'."
+    },
+    {
+      "id": "save_report_file",
+      "description": "Agent saves the final JSON report to the expected output path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the report being written to '/home/ga/coverage_gap_report.json' (e.g., via script output, file redirection, or text editor save)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "Agent actually interacted with the VMS API rather than hallucinating the system state.",
+      "visual_evidence": "API requests are visible in the terminal or script, utilizing the authentication token to fetch real system data."
+    },
+    {
+      "id": "dynamic_data_usage",
+      "description": "The JSON report is generated using actual data retrieved from the API.",
+      "visual_evidence": "Script variables map API response data to the JSON structure, rather than using hardcoded placeholder values for the gaps."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must analyze the Nx Witness VMS system via its REST API (https://localhost:7001) to find configuration gaps. Authentication uses a bearer token (available in /home/ga/nx_token.txt). The final output must be a JSON file saved exactly to /home/ga/coverage_gap_report.json containing the specified structure."
+}

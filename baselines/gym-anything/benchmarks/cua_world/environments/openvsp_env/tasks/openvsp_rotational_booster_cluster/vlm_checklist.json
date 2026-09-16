@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_rotational_booster_cluster@1",
+  "task_completion": [
+    {
+      "id": "read_specification",
+      "description": "Read the upgrade specification document to get the dimensions.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Desktop/upgrade_spec.txt'."
+    },
+    {
+      "id": "create_and_size_core",
+      "description": "Create the Core stage using a Fuselage/Pod component and set its length.",
+      "points": 20,
+      "visual_evidence": "A Fuselage/Pod component added to the OpenVSP geometry browser, with its length parameter set to 25.0m in the Design/Parm window."
+    },
+    {
+      "id": "create_and_size_srb",
+      "description": "Create the Solid Rocket Booster (SRB) using a Fuselage/Pod component and set its length.",
+      "points": 20,
+      "visual_evidence": "A second Fuselage/Pod component added to the geometry browser, with its length parameter set to 15.0m."
+    },
+    {
+      "id": "position_srb",
+      "description": "Apply the correct spatial offsets to the SRB component.",
+      "points": 20,
+      "visual_evidence": "The SRB component's location parameters (X Loc and Y Loc) set to an X-offset of 10.0m and a Y-offset of 2.2m."
+    },
+    {
+      "id": "apply_rotational_symmetry",
+      "description": "Apply rotational symmetry to the SRB component.",
+      "points": 15,
+      "visual_evidence": "The 'Sym' tab in the geometry window showing 'Axial' or 'Rotational' symmetry enabled for the SRB, OR the 3D workspace visually displaying multiple SRBs arranged in a circular pattern around the core."
+    },
+    {
+      "id": "save_model",
+      "description": "Save the completed model to the specified path.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog saving the file to '/home/ga/Documents/OpenVSP/heavy_launch_vehicle.vsp3', or the OpenVSP main window title bar updating to show 'heavy_launch_vehicle.vsp3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the OpenVSP graphical interface to build the model.",
+      "visual_evidence": "Screenshots should show the agent clicking through OpenVSP menus, the geometry browser, and parameter windows, rather than using a terminal script to generate the XML/vsp3 file."
+    },
+    {
+      "id": "genuine_3d_model",
+      "description": "Verify the 3D model actually renders in the workspace.",
+      "visual_evidence": "The OpenVSP 3D view should display the rocket components (the central core and the offset SRBs) updating as parameters are entered."
+    },
+    {
+      "id": "no_direct_file_mocking",
+      "description": "Verify the agent did not bypass the application by directly writing the save file.",
+      "visual_evidence": "There should be no terminal commands (like 'echo' or 'cp') used to create '/home/ga/Documents/OpenVSP/heavy_launch_vehicle.vsp3'. The save action must occur within the OpenVSP GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "Target dimensions from the spec: Core length = 25.0m. SRB length = 15.0m, X-offset = 10.0m, Y-offset = 2.2m. The model must be saved as /home/ga/Documents/OpenVSP/heavy_launch_vehicle.vsp3. Note: In OpenVSP v3, rotational symmetry is typically managed under 'Axial' symmetry settings in the UI."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "create_value_stream_map@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a Current-State Value Stream Map (VSM) in EdrawMax to document a software deployment pipeline. The diagram should feature a 'Release Planning' process control connected to a 'Development Team' supplier and 'Production Users' customer via electronic information flows. Model a process flow consisting of five steps: 'Code Review' (CT: 2 hours, CO: 15 min), 'Build & Unit Test' (CT: 30 min, CO: 5 min), 'Integration Testing' (CT: 4 hours, CO: 30 min), 'Staging Deploy' (CT: 1 hour, CO: 20 min), and 'Production Deploy' (CT: 45 min, CO: 10 min). Connect these steps with push arrows and include inventory/queue wait times between them: 8 hours (Step 1 to 2), 12 hours (Step 2 to 3), 24 hours (Step 3 to 4), and 4 hours (Step 4 to 5). Include a timeline ladder that calculates and labels the Total Lead Time and Total Processing Time. Save the completed diagram as /home/ga/Diagrams/deployment_vsm.eddx.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_value_stream_map/setup_task.sh",
+    "post_task": "/workspace/tasks/create_value_stream_map/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "deployment_vsm.eddx",
+    "expected_path": "/home/ga/Diagrams/deployment_vsm.eddx",
+    "min_size_bytes": 10000,
+    "required_text": [
+      "Code Review",
+      "Integration Testing",
+      "Staging Deploy",
+      "56.25",
+      "8.25",
+      "Release Planning"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_value_stream_map"
+    }
+  }
+}

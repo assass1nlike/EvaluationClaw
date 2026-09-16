@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_tls_offset_sweep@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Create the Python script optimize_offset.py",
+      "points": 10,
+      "visual_evidence": "Terminal showing the creation of /home/ga/SUMO_Output/optimize_offset.py or an open text editor with this file path visible."
+    },
+    {
+      "id": "script_logic",
+      "description": "Script contains logic for parameter sweep, headless SUMO execution, and XML parsing",
+      "points": 20,
+      "visual_evidence": "The Python script contains a loop for offsets (e.g., range(0, 121, 10)), a subprocess call to 'sumo' (not sumo-gui), and code to read tripinfos.xml and write to a CSV."
+    },
+    {
+      "id": "csv_headers",
+      "description": "Export results to offset_results.csv with correct headers",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., cat or head) or editor showing /home/ga/SUMO_Output/offset_results.csv with the first row exactly as 'offset,total_waiting_time'."
+    },
+    {
+      "id": "csv_data",
+      "description": "CSV contains 13 data points with the correct optimal value",
+      "points": 25,
+      "visual_evidence": "The CSV file contains 13 rows of data (offsets 0, 10, 20... 120). The row for offset 0 (or 90) should show a total_waiting_time of approximately 1353898.0."
+    },
+    {
+      "id": "best_xml_creation",
+      "description": "Generate the final best_tls.add.xml with the optimal offset",
+      "points": 25,
+      "visual_evidence": "Terminal or editor showing /home/ga/SUMO_Output/best_tls.add.xml where the first <tlLogic> element has its 'offset' attribute set to the optimal value (0 or 90)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_execution",
+      "description": "The agent actually executed the Python script to run the SUMO simulations.",
+      "visual_evidence": "Terminal showing the execution of 'python3 optimize_offset.py' and subsequent SUMO logging output, rather than just manually creating the CSV and XML files."
+    },
+    {
+      "id": "no_hardcoding",
+      "description": "The agent did not hardcode the expected results.",
+      "visual_evidence": "The Python script dynamically calculates the minimum waiting time and writes the CSV/XML based on variables, rather than containing hardcoded strings like '1353898.0' or 'offset=\"0\"'."
+    },
+    {
+      "id": "headless_sumo",
+      "description": "The agent used headless SUMO as requested.",
+      "visual_evidence": "The script uses the 'sumo' command, not 'sumo-gui', and no SUMO graphical interface windows are opened during the sweep."
+    }
+  ],
+  "privileged_info_for_vlm": "The parameter sweep from 0 to 120 in steps of 10 yields exactly 13 data points. The optimal offset for the first traffic light (id 218) is 0 (or its cycle equivalent, 90), which results in a minimum total waiting time of exactly 1353898.0 seconds. The final best_tls.add.xml should reflect this optimal offset."
+}

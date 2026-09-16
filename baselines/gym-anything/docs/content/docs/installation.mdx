@@ -1,0 +1,74 @@
+---
+title: Installation
+description: What you need installed before you can run Gym Anything.
+---
+
+## Python
+
+Gym Anything requires Python `3.10+`. We recommend [uv](https://docs.astral.sh/uv/) for environment and dependency management.
+
+```bash
+uv venv --python 3.12
+source .venv/bin/activate
+```
+
+Install with all extras:
+
+```bash
+uv pip install -e ".[all]"
+```
+
+Or a minimal install (core only, no reference agents or model providers):
+
+```bash
+uv pip install -e .
+```
+
+<Callout type="info">
+If you prefer plain pip, replace `uv pip` with `pip` in the commands above. Make sure you're in a virtual environment either way.
+</Callout>
+
+## Environment Variables
+
+If you use model providers:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the keys you need.
+
+## System Tools
+
+What you need depends on how you want to launch environments.
+
+`gym-anything doctor` will tell you what is missing and help you setup.
+
+In general, depending on the system you're running this on. Some examples are:
+- Rootless Slurm: QEMU and Apptainer,
+- Macos: Apple Virtualization Framework (AVF)
+- General: Docker
+
+## Run The Setup Checker
+
+<Callout type="info">
+If setup is unclear, start here. `gym-anything doctor` will tell you what's missing and what to try next.
+</Callout>
+
+```bash
+gym-anything doctor
+```
+
+## Docs Tooling
+
+The docs project uses Fumadocs.
+
+```bash
+cd docs-v2
+npm install
+npm run dev
+```
+
+<Callout type="warn">
+Use a current LTS Node release (`20` or `22`).
+</Callout>

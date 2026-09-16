@@ -1,0 +1,41 @@
+{
+  "id": "particle_solidity_screening@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Particle Solidity and Roughness Screening",
+  "description": "Perform a shape morphometry analysis on the 'Blobs (25K)' sample image to identify the 'roughest' particle, defined as the one with the lowest Solidity value. Include 'Solidity', 'Area', and 'Display Label' in the measurements and filter out particles with an area less than 50 pixels. Save the complete results table to '~/ImageJ_Data/results/solidity_measurements.csv'. Record the Label/ID and Solidity value of the roughest particle in '~/ImageJ_Data/results/roughest_particle.txt'.",
+  "difficulty": "medium",
+  "tags": [
+    "imagej",
+    "morphometry",
+    "shape-analysis",
+    "solidity",
+    "convexity",
+    "screening"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/particle_solidity_screening/setup_task.sh",
+    "post_task": "/workspace/tasks/particle_solidity_screening/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/ImageJ_Data/results/solidity_measurements.csv",
+    "expected_txt_path": "/home/ga/ImageJ_Data/results/roughest_particle.txt",
+    "expected_min_solidity_range": [
+      0.6,
+      0.85
+    ],
+    "expected_particle_count_min": 40,
+    "expected_particle_count_max": 80
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_particle_solidity_screening"
+    }
+  }
+}

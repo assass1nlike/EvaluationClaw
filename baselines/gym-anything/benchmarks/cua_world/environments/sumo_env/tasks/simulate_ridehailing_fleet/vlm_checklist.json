@@ -1,0 +1,53 @@
+{
+  "task_id": "simulate_ridehailing_fleet@1",
+  "task_completion": [
+    {
+      "id": "generate_passenger_demand",
+      "description": "Generate approximately 50 passenger requests for taxi mode ending at 50 seconds and save to persons.rou.xml.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a script/command generating the demand, or a file editor/cat showing ~/SUMO_Scenarios/ridehailing/persons.rou.xml with <person> elements containing <ride lines=\"taxi\"/>."
+    },
+    {
+      "id": "create_taxi_fleet",
+      "description": "Create a fleet of 15 idle taxis with the taxi device enabled, departing at time 0, saved to taxis.add.xml.",
+      "points": 20,
+      "visual_evidence": "Terminal or file editor showing ~/SUMO_Scenarios/ridehailing/taxis.add.xml containing <vType id=\"taxi\" vClass=\"taxi\">, <param key=\"has.taxi.device\" value=\"true\"/>, and 15 <vehicle> entries with depart=\"0\"."
+    },
+    {
+      "id": "setup_simulation_config",
+      "description": "Set up a SUMO configuration file at taxi.sumocfg using a greedy dispatch algorithm and running for 3600 seconds.",
+      "points": 20,
+      "visual_evidence": "File editor or terminal output showing ~/SUMO_Scenarios/ridehailing/taxi.sumocfg referencing the network and generated XML files, with <param key=\"device.taxi.dispatch-algorithm\" value=\"greedy\"/> and <end value=\"3600\"/>."
+    },
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation to process the ride-hailing requests and generate trip information.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the SUMO simulation (e.g., `sumo -c taxi.sumocfg`) with output logs indicating successful routing and simulation completion."
+    },
+    {
+      "id": "calculate_average_wait_time",
+      "description": "Calculate the average waiting time for all served persons and save the single numeric result to average_wait.txt.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a script or command parsing the simulation's trip info to compute the average wait time, and `cat average_wait.txt` displaying a single numeric value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_generation",
+      "description": "The agent dynamically generated the XML files rather than faking the output.",
+      "visual_evidence": "Terminal history showing python scripts, SUMO tools (like randomTrips.py), or manual file editing being used to create the .xml files."
+    },
+    {
+      "id": "genuine_simulation_execution",
+      "description": "The agent actually ran the SUMO simulation to get the results.",
+      "visual_evidence": "Terminal output showing genuine SUMO execution logs (e.g., step progression, warnings, or summary statistics) matching the configured files."
+    },
+    {
+      "id": "authentic_result_extraction",
+      "description": "The average wait time was calculated from actual simulation outputs rather than fabricated.",
+      "visual_evidence": "A script or command (e.g., Python, awk, grep) reading the simulation output file (like tripinfo.xml) and computing the average, or terminal output showing the calculation process."
+    }
+  ],
+  "privileged_info_for_vlm": "The working directory is /home/ga/SUMO_Scenarios/ridehailing. The network file used must be /home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_buslanes.net.xml. The agent must generate the passenger demand and taxi fleet dynamically; they are not pre-existing."
+}

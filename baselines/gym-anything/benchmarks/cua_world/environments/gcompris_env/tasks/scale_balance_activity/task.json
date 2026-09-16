@@ -1,0 +1,32 @@
+{
+  "id": "scale_balance_activity@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Scales Board' activity in GCompris and successfully complete at least 3 levels.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scale_balance_activity/setup_task.sh",
+    "post_task": "/workspace/tasks/scale_balance_activity/export_result.sh"
+  },
+  "metadata": {
+    "activity_name": "scalesboard",
+    "min_levels": 3,
+    "category_hint": "Science/Experiment or Discovery",
+    "visual_cues": [
+      "balance scale",
+      "weights",
+      "drag and drop"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scale_balance_activity"
+    }
+  }
+}

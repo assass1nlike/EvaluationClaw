@@ -1,0 +1,29 @@
+{
+  "id": "sudoku_puzzle@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the Sudoku activity in GCompris and complete the first puzzle level. Solve the grid until the congratulations animation appears. Leave GCompris open.",
+  "category": "logic_puzzle",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sudoku_puzzle/setup_task.sh",
+    "post_task": "/workspace/tasks/sudoku_puzzle/export_result.sh"
+  },
+  "metadata": {
+    "target_activity": "Sudoku",
+    "category_icon_hint": "Puzzle piece / Strategy section",
+    "grid_size": "4x4",
+    "verification_method": "hybrid_vlm_file"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sudoku_puzzle"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "dashboard_filter_export@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Using the Epi Info 7 Visual Dashboard, identify individuals from the Oswego outbreak dataset (Oswego form in the Sample project) who consumed vanilla ice cream but did not become ill. Export this filtered cohort to C:\\Users\\Docker\\Documents\\Vanilla_Healthy_Cohort.csv and save the dashboard workspace as C:\\Users\\Docker\\Documents\\Cohort_Analysis.cvs7.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dashboard_filter_export\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dashboard_filter_export\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_csv_path": "C:\\Users\\Docker\\Documents\\Vanilla_Healthy_Cohort.csv",
+    "expected_workspace_path": "C:\\Users\\Docker\\Documents\\Cohort_Analysis.cvs7",
+    "ground_truth": {
+      "row_count": 18,
+      "filter_criteria": {
+        "Vanilla": "Yes",
+        "Ill": "No"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dashboard_filter_export"
+    }
+  }
+}

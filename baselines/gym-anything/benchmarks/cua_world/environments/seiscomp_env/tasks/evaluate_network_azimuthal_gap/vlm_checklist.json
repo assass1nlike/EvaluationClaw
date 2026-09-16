@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_network_azimuthal_gap@1",
+  "task_completion": [
+    {
+      "id": "access_data_source",
+      "description": "Access the SeisComP MySQL database or SCML inventory.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a connection to the MySQL database (e.g., 'mysql -u sysop -p seiscomp') or commands viewing SCML inventory files."
+    },
+    {
+      "id": "query_coordinates",
+      "description": "Retrieve the epicenter and station coordinates.",
+      "points": 25,
+      "visual_evidence": "SQL queries or text parsing commands extracting the origin coordinates of the Noto earthquake and the coordinates of the 5 GE stations (TOLI, GSI, KWP, SANI, BKB)."
+    },
+    {
+      "id": "compute_gaps",
+      "description": "Compute the current and proposed azimuthal gaps.",
+      "points": 30,
+      "visual_evidence": "A script (e.g., Python) or mathematical tool being written or executed to calculate the azimuths and gaps for the current 5 stations and the proposed 6 stations."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Generate the JSON report file at the correct path.",
+      "points": 15,
+      "visual_evidence": "Terminal or text editor showing the creation or saving of a file named 'azimuthal_gap_report.json' in the '/home/ga/' directory."
+    },
+    {
+      "id": "report_schema_correct",
+      "description": "Verify the JSON report follows the required schema.",
+      "points": 15,
+      "visual_evidence": "The contents of the JSON report are visible and include the keys 'epicenter' (with 'latitude' and 'longitude'), 'current_stations' (value 5), 'current_gap_degrees', 'proposed_gap_degrees', and 'improvement_degrees'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "data_extraction_evidence",
+      "description": "Agent must extract coordinates from the database or inventory.",
+      "visual_evidence": "Screenshots should show the agent querying or reading the actual coordinates from the system, not just hardcoding them from external knowledge."
+    },
+    {
+      "id": "calculation_evidence",
+      "description": "Agent must compute the gaps programmatically or mathematically.",
+      "visual_evidence": "Screenshots should show a script or tool performing the azimuthal gap calculations, rather than the agent hallucinating or fabricating the final numbers."
+    },
+    {
+      "id": "no_hallucinated_stations",
+      "description": "Agent must only use the specified stations.",
+      "visual_evidence": "The calculation script or queries should only include the 5 existing stations (TOLI, GSI, KWP, SANI, BKB) and the 1 proposed station (GE.TK01)."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected JSON report path is exactly '/home/ga/azimuthal_gap_report.json'. The proposed station GE.TK01 coordinates must be latitude 35.689 and longitude 139.692."
+}

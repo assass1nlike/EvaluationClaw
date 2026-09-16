@@ -1,0 +1,78 @@
+{
+  "id": "bulk_csv_import_requirements@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are a Product Manager for TailwindTraders. Import the 8 work items (User Stories and Bugs) from the CSV file located at C:\\Users\\Docker\\Documents\\client_requirements.csv into the TailwindTraders project. Ensure all fields including Title, Priority, Description, and Tags are correctly mapped and saved without modification. Assign the 5 User Stories to the Sprint 2 iteration and leave the 3 Bugs unassigned in the backlog.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\bulk_csv_import_requirements\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\bulk_csv_import_requirements\\export_result.ps1"
+  },
+  "metadata": {
+    "csv_path": "C:\\Users\\Docker\\Documents\\client_requirements.csv",
+    "expected_count": 8,
+    "target_project": "TailwindTraders",
+    "target_sprint": "TailwindTraders\\Sprint 2",
+    "items": [
+      {
+        "title": "Implement customer wishlist functionality",
+        "type": "User Story",
+        "priority": 2,
+        "tags": "frontend;e-commerce"
+      },
+      {
+        "title": "Add multi-currency support for international checkout",
+        "type": "User Story",
+        "priority": 1,
+        "tags": "payments;internationalization"
+      },
+      {
+        "title": "Build product recommendation engine",
+        "type": "User Story",
+        "priority": 3,
+        "tags": "machine-learning;backend"
+      },
+      {
+        "title": "Create admin dashboard for order analytics",
+        "type": "User Story",
+        "priority": 2,
+        "tags": "admin;analytics"
+      },
+      {
+        "title": "Implement real-time inventory sync with warehouse API",
+        "type": "User Story",
+        "priority": 1,
+        "tags": "backend;integration"
+      },
+      {
+        "title": "Shopping cart total miscalculates with percentage discounts",
+        "type": "Bug",
+        "priority": 1,
+        "tags": "cart;critical"
+      },
+      {
+        "title": "Product image gallery fails to load on mobile Safari",
+        "type": "Bug",
+        "priority": 2,
+        "tags": "mobile;frontend"
+      },
+      {
+        "title": "Search results return duplicate products after re-indexing",
+        "type": "Bug",
+        "priority": 2,
+        "tags": "search;backend"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_csv_import_requirements"
+    }
+  }
+}

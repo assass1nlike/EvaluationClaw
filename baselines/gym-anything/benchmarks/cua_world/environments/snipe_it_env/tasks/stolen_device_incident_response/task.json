@@ -1,0 +1,41 @@
+{
+  "id": "stolen_device_incident_response@1",
+  "version": "1.0",
+  "env_id": "snipe_it_env@0.1",
+  "description": "As an IT Security Analyst at a healthcare organization, process a security incident for employee David Kim, who reported his company laptop stolen. In Snipe-IT, check in David Kim's laptop, updating its status to 'Lost/Stolen' with the note 'SECURITY INCIDENT #SI-2025-0042: Reported stolen on 2025-03-06. Police report filed. Remote wipe initiated.' Check out the MacBook Pro 16 (ASSET-L009) from the New Hire Pool to David Kim with the checkout note 'Emergency replacement for stolen device - SI-2025-0042'. Create a new asset to track the insurance claim with asset tag 'ASSET-L012",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stolen_device_incident_response/setup_task.sh",
+    "post_task": "/workspace/tasks/stolen_device_incident_response/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "IT Security Analyst",
+    "industry": "Healthcare",
+    "victim_user": "dkim",
+    "stolen_asset_tag": "ASSET-L007",
+    "replacement_asset_tag": "ASSET-L009",
+    "insurance_asset_tag": "ASSET-L012",
+    "incident_id": "SI-2025-0042",
+    "scoring_weights": {
+      "c1_stolen_laptop_checked_in": 15,
+      "c2_stolen_laptop_lost_status": 15,
+      "c3_stolen_laptop_incident_note": 10,
+      "c4_replacement_checked_out_to_dkim": 20,
+      "c5_replacement_checkout_note": 10,
+      "c6_insurance_asset_created": 15,
+      "c7_insurance_asset_correct_details": 10,
+      "c8_wrong_target_gate": 5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stolen_device_incident_response"
+    }
+  }
+}

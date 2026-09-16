@@ -1,0 +1,53 @@
+{
+  "task_id": "mbp_conformational_morph@1",
+  "task_completion": [
+    {
+      "id": "fetch_and_clean_structures",
+      "description": "Fetch 1OMP and 1ANF structures and remove heteroatoms/solvent",
+      "points": 15,
+      "visual_evidence": "Look for '1omp' and '1anf' in the PyMOL object menu (right panel). The 3D viewer should display the protein structures without any small dots or crosses (which would indicate water or ligands)."
+    },
+    {
+      "id": "align_and_morph",
+      "description": "Structurally align the proteins and generate a morph trajectory",
+      "points": 20,
+      "visual_evidence": "Look for a new object (often named 'aligndummy', 'morph', or similar) in the PyMOL object menu. The 3D viewer should show the two structures superimposed, indicating alignment."
+    },
+    {
+      "id": "save_morph_pdb",
+      "description": "Save the multi-state morph trajectory as a PDB file",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window, file manager, or PyMOL command history showing the file 'mbp_morph.pdb' being saved or existing in the '~/PyMOL_Data/' directory."
+    },
+    {
+      "id": "save_superposition_image",
+      "description": "Create and save a high-resolution image of the superimposed structures",
+      "points": 25,
+      "visual_evidence": "Look for the file 'mbp_superposition.png' in '~/PyMOL_Data/images/'. The image itself or the PyMOL viewer just before saving should show the two structures superimposed and colored differently."
+    },
+    {
+      "id": "write_report",
+      "description": "Write a structural report with specific details",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the contents of 'mbp_morph_report.txt'. It must explicitly state 1OMP is open/apo, 1ANF is closed/holo, mention an RMSD value (around 3.77), and state there are 30 frames."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pymol_usage",
+      "description": "Verify the agent actually used PyMOL to perform the tasks",
+      "visual_evidence": "Screenshots should show the PyMOL GUI open with the relevant structures loaded, or a terminal showing a PyMOL script being executed. The agent should not just create mock files with a text editor."
+    },
+    {
+      "id": "genuine_image",
+      "description": "Verify the superposition image is a genuine PyMOL render",
+      "visual_evidence": "The image should look like a typical PyMOL render (e.g., cartoon representation, default lighting/background) rather than a downloaded stock image of MBP."
+    },
+    {
+      "id": "calculated_rmsd",
+      "description": "Verify the RMSD value was actually calculated",
+      "visual_evidence": "The RMSD value in the report should be a specific decimal number (e.g., ~3.77), indicating it was extracted from PyMOL's alignment output, rather than a generic placeholder."
+    }
+  ],
+  "privileged_info_for_vlm": "1OMP is the unliganded open (apo) state and 1ANF is the maltose-bound closed (holo) state. The structural alignment CA RMSD between 1OMP and 1ANF is approximately 3.77 \u00c5. The morph trajectory should contain 30 models/frames. The output files must be located at ~/PyMOL_Data/mbp_morph.pdb, ~/PyMOL_Data/images/mbp_superposition.png, and ~/PyMOL_Data/mbp_morph_report.txt."
+}

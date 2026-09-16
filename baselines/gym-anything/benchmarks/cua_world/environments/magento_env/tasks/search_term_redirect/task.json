@@ -1,0 +1,38 @@
+{
+  "id": "search_term_redirect@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "You are a merchandising manager at an online store. Your goal is to fix 'zero result' searches by redirecting specific search terms to relevant category pages. Create search term redirects for the following queries: 'cheap laptops' to '/electronics.html', 'gym equipment' to '/sports.html', and 'mens outfit' to '/clothing.html'. Set all redirects to 'All Store Views'. If required, log in using admin / Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/search_term_redirect/setup_task.sh",
+    "post_task": "/workspace/tasks/search_term_redirect/export_result.sh"
+  },
+  "metadata": {
+    "terms": [
+      {
+        "query": "cheap laptops",
+        "redirect": "/electronics.html"
+      },
+      {
+        "query": "gym equipment",
+        "redirect": "/sports.html"
+      },
+      {
+        "query": "mens outfit",
+        "redirect": "/clothing.html"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_search_term_redirect"
+    }
+  }
+}

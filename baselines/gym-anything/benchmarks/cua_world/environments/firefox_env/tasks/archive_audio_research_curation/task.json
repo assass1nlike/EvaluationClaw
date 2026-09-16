@@ -1,0 +1,43 @@
+{
+  "id": "archive_audio_research_curation@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a digital archivist. Curate a collection of 3 distinct 'Fireside Chat' audio recordings by President Franklin D. Roosevelt from the Internet Archive (archive.org). Download 3 different episodes as MP3 files (VBR or 64kbps, no zip files) to ~/Documents/FDR_Audio/, renaming them to the format 'fireside_chat_<topic>.mp3'. In the same directory, create a 'manifest.json' file containing a list of metadata objects for each recording, including 'filename', 'original_title', 'date', and 'source_url'.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "download",
+    "json",
+    "curation",
+    "archive"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archive_audio_research_curation/setup_task.sh",
+    "post_task": "/workspace/tasks/archive_audio_research_curation/export_result.sh"
+  },
+  "metadata": {
+    "target_dir": "/home/ga/Documents/FDR_Audio",
+    "manifest_file": "manifest.json",
+    "min_files": 3,
+    "min_file_size_bytes": 500000,
+    "required_domain": "archive.org",
+    "required_json_keys": [
+      "filename",
+      "original_title",
+      "date",
+      "source_url"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archive_audio_curation"
+    }
+  }
+}

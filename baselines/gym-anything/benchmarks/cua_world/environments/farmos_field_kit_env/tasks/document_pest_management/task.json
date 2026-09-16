@@ -1,0 +1,41 @@
+{
+  "id": "document_pest_management@1",
+  "version": "1.0",
+  "env_id": "farmos_field_kit_env@0.1",
+  "description": "As a Farm and Home Management Educator conducting an Integrated Pest Management (IPM) workshop, document a pest event and its treatment by creating two sequential log entries in farmOS Field Kit.\n\nCreate an Observation log dated November 15, 2024, with the notes: \"Aphid infestation observed on soybean crop in Field B, Rows 12-18. Estimated 30% of plants affected with moderate colony density on leaf undersides. Species appears to be soybean aphid (Aphis glycines). Recommend immediate treatment.\"\n\nCreate an Input log dated November 15, 2024, for a quantity of 12 liters with the notes: \"Applied organic neem oil spray to soybean Field B, Rows 12-18 in response to aphid infestation. Concentration: 2% solution at 4 liters per acre using backpack sprayer. Weather: 72F, wind calm, no rain forecast 48hrs.\"",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/document_pest_management/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/document_pest_management/export_result.sh"
+  },
+  "metadata": {
+    "observation_date": "2024-11-15",
+    "observation_keywords": [
+      "Aphid",
+      "soybean",
+      "Field B",
+      "30%",
+      "Aphis glycines"
+    ],
+    "input_date": "2024-11-15",
+    "input_keywords": [
+      "neem oil",
+      "2%",
+      "4 liters",
+      "backpack sprayer"
+    ],
+    "input_quantity": "12",
+    "input_unit": "liters"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pest_management"
+    }
+  }
+}

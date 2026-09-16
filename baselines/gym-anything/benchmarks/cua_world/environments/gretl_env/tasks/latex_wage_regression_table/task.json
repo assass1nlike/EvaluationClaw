@@ -1,0 +1,41 @@
+{
+  "id": "latex_wage_regression_table@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Estimate three wage regression models using the 'cps5_small.gdt' dataset (~/Documents/gretl_data/cps5_small.gdt). Model 1 is an OLS regression of 'wage' on 'educ' and 'exper'. Model 2 is an OLS regression of 'wage' on 'educ', 'exper', and 'metro'. Model 3 is an OLS regression of 'wage' on 'educ', 'exper', 'metro', 'female', and 'black' using robust standard errors (HC1). Export a comparison table containing all three models to /home/ga/Documents/gretl_output/wage_models.tex in LaTeX format.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/latex_wage_regression_table/setup_task.sh",
+    "post_task": "/workspace/tasks/latex_wage_regression_table/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "cps5_small.gdt",
+    "expected_output_path": "/home/ga/Documents/gretl_output/wage_models.tex",
+    "required_vars_model_1": [
+      "educ",
+      "exper"
+    ],
+    "required_vars_model_2": [
+      "metro"
+    ],
+    "required_vars_model_3": [
+      "female",
+      "black"
+    ],
+    "robust_indicator": [
+      "Robust",
+      "Heteroskedasticity"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_latex_wage_regression_table"
+    }
+  }
+}

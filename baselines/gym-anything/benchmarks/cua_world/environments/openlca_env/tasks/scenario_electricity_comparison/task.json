@@ -1,0 +1,35 @@
+{
+  "id": "scenario_electricity_comparison@1",
+  "version": "1.0",
+  "env_id": "openlca_env@0.1",
+  "description": "You are an industrial ecologist advising a regional utility company on their decarbonization roadmap. The utility is evaluating whether switching from coal-fired power to natural gas combined-cycle generation would meaningfully reduce their climate and acidification impacts. Using openLCA, the USLCI database at ~/LCA_Imports/uslci_database.zip, and LCIA methods at ~/LCA_Imports/lcia_methods.zip, compare the environmental impacts of coal electricity generation versus natural gas electricity generation. Calculate the Global Warming Potential (GWP) and Acidification Potential for both systems and determine the percentage reduction in GWP when switching to natural gas. Export the comparison results, including impact values for both systems and the calculated percentage difference, to ~/LCA_Results/electricity_scenarios.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 110,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scenario_electricity_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/scenario_electricity_comparison/export_result.sh"
+  },
+  "metadata": {
+    "expected_product_systems": 2,
+    "scenarios": [
+      "coal electricity",
+      "natural gas electricity"
+    ],
+    "target_categories": [
+      "global warming",
+      "acidification"
+    ],
+    "output_file": "/home/ga/LCA_Results/electricity_scenarios.csv",
+    "results_dir": "/home/ga/LCA_Results"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scenario_electricity_comparison"
+    }
+  }
+}

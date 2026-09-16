@@ -1,0 +1,29 @@
+{
+  "id": "configure_drawing_tool_alert@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Configure a technical alert in NinjaTrader 8 on a Daily chart for SPY. Place a horizontal line at the $500.00 price level and enable its internal alert with the condition set to 'Cross Above'. Save the workspace to ensure the configuration is persisted.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_drawing_tool_alert\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_drawing_tool_alert\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "drawing_tool": "HorizontalLine",
+    "price_level": 500.0,
+    "price_tolerance": 0.05,
+    "alert_condition_pattern": "Cross.*Above"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_drawing_tool_alert"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "restore_archived_contact_opportunity@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "A former client, 'Meridian Technologies', was archived in the Contacts module when they became inactive. They have now reached out again from their new San Francisco office and you need to reactivate them and track the new deal. Unarchive the contact 'Meridian Technologies' and update their details to reflect their new office: Phone +1-415-555-0200, Street 785 Market Street, City San Francisco, and State California. Create a new opportunity linked to this contact named 'Meridian Technologies - Enterprise Software Renewal' with an expected revenue of 75000 and a 2-star (High) priority. Ensure the contact is active and correctly associated with the new opportunity.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/restore_archived_contact_opportunity/setup_task.sh",
+    "post_task": "/workspace/tasks/restore_archived_contact_opportunity/export_result.sh"
+  },
+  "metadata": {
+    "contact_name": "Meridian Technologies",
+    "expected_phone": "+1-415-555-0200",
+    "expected_street": "785 Market Street",
+    "expected_city": "San Francisco",
+    "expected_state": "California",
+    "opportunity_name": "Meridian Technologies - Enterprise Software Renewal",
+    "expected_revenue": 75000,
+    "expected_priority": "2"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restore_archived_contact_opportunity"
+    }
+  }
+}

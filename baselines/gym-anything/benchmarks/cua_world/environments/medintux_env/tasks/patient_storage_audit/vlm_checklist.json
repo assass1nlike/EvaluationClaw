@@ -1,0 +1,59 @@
+{
+  "task_id": "patient_storage_audit@1",
+  "task_completion": [
+    {
+      "id": "inspect_patient_folders",
+      "description": "Agent inspects the patient folders to determine their sizes.",
+      "points": 15,
+      "visual_evidence": "Terminal showing commands like `du -sh *` or `ls -l` in the `DrTux/FichePatient` directory, or a file manager displaying the folder sizes."
+    },
+    {
+      "id": "access_database",
+      "description": "Agent accesses the DrTuxTest MySQL database.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a MySQL prompt connected to `DrTuxTest`, or a database GUI tool connected to the database."
+    },
+    {
+      "id": "query_patient_names",
+      "description": "Agent queries the database to correlate GUIDs with patient names.",
+      "points": 20,
+      "visual_evidence": "Terminal or database GUI showing SQL queries selecting from `IndexNomPrenom` or `fchpat` tables, with patient names and GUIDs visible in the output."
+    },
+    {
+      "id": "create_csv_file",
+      "description": "Agent creates or opens the high_usage_patients.csv file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, gedit) open with the file `high_usage_patients.csv`, or terminal commands writing to this file path."
+    },
+    {
+      "id": "csv_headers_correct",
+      "description": "The CSV file contains the required columns.",
+      "points": 10,
+      "visual_evidence": "The first line of the CSV file visible in an editor or terminal output shows the headers: Rank, PatientName, GUID, Size_MB."
+    },
+    {
+      "id": "csv_data_correct",
+      "description": "The CSV file contains the correct top 5 patients ordered by size.",
+      "points": 30,
+      "visual_evidence": "The CSV file contents show the correct top 5 patients and their sizes: Rank 1 is DURAND Michel (120), Rank 2 is MARTIN Sophie (85), Rank 3 is LEFEBVRE Marie (60), Rank 4 is BERNARD Pierre (40), Rank 5 is PETIT Francois (15)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_size_analysis",
+      "description": "Agent actually checked the folder sizes rather than guessing or hallucinating.",
+      "visual_evidence": "Screenshots show the agent running commands to check folder sizes (e.g., `du`) or viewing them in a file manager."
+    },
+    {
+      "id": "genuine_database_query",
+      "description": "Agent actually queried the database for patient names.",
+      "visual_evidence": "Screenshots show the agent executing SQL queries and receiving results from the `DrTuxTest` database."
+    },
+    {
+      "id": "visible_correlation_process",
+      "description": "Agent performed the correlation and CSV generation through visible commands, scripts, or manual entry.",
+      "visual_evidence": "Terminal history or editor windows show the process of assembling the CSV data, rather than the final file appearing without prior exploration."
+    }
+  ],
+  "privileged_info_for_vlm": "The top 5 patients by storage size are: Rank 1: DURAND Michel (120MB), Rank 2: MARTIN Sophie (85MB), Rank 3: LEFEBVRE Marie (60MB), Rank 4: BERNARD Pierre (40MB), Rank 5: PETIT Francois (15MB). The CSV file must be saved at `/home/ga/high_usage_patients.csv` and contain the columns: Rank, PatientName, GUID, Size_MB. The database tables to query are `IndexNomPrenom` and/or `fchpat` in the `DrTuxTest` database. The patient files are located at `/home/ga/.wine/drive_c/MedinTux-2.16/DrTux/FichePatient`."
+}

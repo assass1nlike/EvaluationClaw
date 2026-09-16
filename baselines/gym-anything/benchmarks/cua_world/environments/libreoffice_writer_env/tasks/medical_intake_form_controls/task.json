@@ -1,0 +1,53 @@
+{
+  "id": "medical_intake_form_controls@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Digitize the medical intake form draft at /home/ga/Documents/intake_form_draft.odt by adding interactive form controls. Configure a text box named 'full_name' for 'Full Name' and a date field named 'dob' for 'Date of Birth'. In the 'Gender' section, create three option buttons sharing the name 'gender' with labels 'Male', 'Female', and 'Non-Binary' and corresponding reference values 'M', 'F', and 'NB'. For 'Medical History', include three checkboxes named 'hist_asthma', 'hist_diabetes', and 'hist_hypertension'. Save the completed interactive form to /home/ga/Documents/intake_form_interactive.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/medical_intake_form_controls/setup_task.sh",
+    "post_task": "/workspace/tasks/medical_intake_form_controls/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/intake_form_draft.odt",
+    "output_path": "/home/ga/Documents/intake_form_interactive.odt",
+    "controls": [
+      {
+        "type": "text",
+        "name": "full_name"
+      },
+      {
+        "type": "date",
+        "name": "dob"
+      },
+      {
+        "type": "radio",
+        "name": "gender",
+        "count": 3
+      },
+      {
+        "type": "checkbox",
+        "name": "hist_asthma"
+      },
+      {
+        "type": "checkbox",
+        "name": "hist_diabetes"
+      },
+      {
+        "type": "checkbox",
+        "name": "hist_hypertension"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_medical_intake_form"
+    }
+  }
+}

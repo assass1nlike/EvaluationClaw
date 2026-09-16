@@ -1,0 +1,59 @@
+{
+  "task_id": "simulate_vehicle_breakdown_traci@1",
+  "task_completion": [
+    {
+      "id": "create_python_script",
+      "description": "Create the TraCI Python script at the specified location.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the creation or editing of a file named 'simulate_breakdown.py' in the '/home/ga/SUMO_Output/' directory."
+    },
+    {
+      "id": "script_reads_json",
+      "description": "The script includes logic to read the target edges from the JSON configuration file.",
+      "points": 10,
+      "visual_evidence": "Code visible in the script showing 'json.load()' or similar file reading operations targeting '/home/ga/SUMO_Scenarios/bologna_pasubio/target_edges.json' to extract 'critical_edge' and 'upstream_edge'."
+    },
+    {
+      "id": "script_vehicle_breakdown_logic",
+      "description": "The script includes logic to stop a vehicle at step 150, change its color to red, and hold it for 300 steps.",
+      "points": 30,
+      "visual_evidence": "Code showing TraCI commands like 'traci.vehicle.setColor(..., (255, 0, 0))', 'traci.vehicle.setSpeed(..., 0)', and conditional logic checking for step 150 to start the breakdown and step 450 (150+300) to restore speed."
+    },
+    {
+      "id": "script_csv_logging_logic",
+      "description": "The script includes logic to record halted vehicles and write them to a CSV with the correct header.",
+      "points": 20,
+      "visual_evidence": "Code showing 'traci.edge.getLastStepHaltingNumber' (or similar), file writing logic for 'breakdown_queue.csv', and the exact header 'step,target_vehicle_id,critical_edge_halted,upstream_edge_halted'."
+    },
+    {
+      "id": "execute_script",
+      "description": "Execute the Python script to run the SUMO simulation.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the command 'python simulate_breakdown.py' (or similar) being executed, accompanied by TraCI/SUMO startup logs or execution progress."
+    },
+    {
+      "id": "csv_file_generated",
+      "description": "The breakdown_queue.csv file is successfully generated and contains the required data format.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'cat', 'head', 'tail', or a file explorer displaying the contents of '/home/ga/SUMO_Output/breakdown_queue.csv'. The contents should show the correct header, 'NONE' for early steps, and a specific vehicle ID starting at step 150, continuing to at least step 600."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent executed the script using Python and TraCI, rather than manually faking the CSV output.",
+      "visual_evidence": "Terminal history showing the execution of the Python script and SUMO/TraCI initialization logs, rather than bash 'echo' commands or manual text editing to create the CSV."
+    },
+    {
+      "id": "dynamic_vehicle_identification",
+      "description": "The agent dynamically identifies the vehicle on the critical edge rather than hardcoding a specific vehicle ID.",
+      "visual_evidence": "The Python script uses TraCI functions (e.g., 'traci.edge.getLastStepVehicleIDs') to get the list of vehicles on the edge, rather than containing a hardcoded string for the target vehicle ID."
+    },
+    {
+      "id": "dynamic_edge_reading",
+      "description": "The agent reads the edge IDs from the JSON file rather than hardcoding them in the script.",
+      "visual_evidence": "The Python script parses 'target_edges.json' and assigns the values to variables, rather than containing hardcoded edge ID strings."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Python script path is /home/ga/SUMO_Output/simulate_breakdown.py. The expected CSV output path is /home/ga/SUMO_Output/breakdown_queue.csv. The scenario directory is /home/ga/SUMO_Scenarios/bologna_pasubio. The simulation must run for a minimum of 600 steps."
+}

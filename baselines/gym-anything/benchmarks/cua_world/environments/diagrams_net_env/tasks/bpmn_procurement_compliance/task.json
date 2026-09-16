@@ -1,0 +1,29 @@
+{
+  "id": "bpmn_procurement_compliance@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a management analyst performing a BPMN 2.0 compliance audit on a procurement workflow diagram (~/Diagrams/procurement_process.drawio) using the audit checklist at ~/Desktop/bpmn_audit_checklist.txt. Correct all BPMN 2.0 violations so the final diagram features properly separated swimlanes for the Requester, Budget Owner/Manager, Procurement Officer, and Finance/AP roles. The corrected diagram must utilize correct BPMN gateway types, labeled sequence flows on gateway exits showing conditions, a rejection path with a notification task and end event, correctly typed intermediate events, labeled data objects for key tasks, and a labeled start event. Export the final version as a PDF to ~/Diagrams/procurement_process.pdf and as a PNG to ~/Diagrams/procurement_process.png. Login: username ga, password password123.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bpmn_procurement_compliance/setup_task.sh",
+    "post_task": "/workspace/tasks/bpmn_procurement_compliance/export_result.sh"
+  },
+  "metadata": {
+    "output_diagram": "/home/ga/Diagrams/procurement_process.drawio",
+    "output_pdf": "/home/ga/Diagrams/procurement_process.pdf",
+    "output_png": "/home/ga/Diagrams/procurement_process.png",
+    "initial_lane_count": 1,
+    "required_min_lanes": 3,
+    "violations_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bpmn_procurement_compliance"
+    }
+  }
+}

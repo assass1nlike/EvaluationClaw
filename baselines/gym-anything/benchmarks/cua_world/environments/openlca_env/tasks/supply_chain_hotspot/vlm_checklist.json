@@ -1,0 +1,53 @@
+{
+  "task_id": "supply_chain_hotspot@1",
+  "task_completion": [
+    {
+      "id": "database_lcia_imported",
+      "description": "Verify that the USLCI database and LCIA methods have been imported into openLCA.",
+      "points": 10,
+      "visual_evidence": "The openLCA navigation pane (usually on the left) shows the USLCI database active and LCIA methods (like TRACI 2.1) loaded in the 'Indicators and parameters' or 'LCIA methods' section."
+    },
+    {
+      "id": "product_system_built",
+      "description": "Verify that a product system for cement or concrete has been built with at least 4 linked upstream processes.",
+      "points": 20,
+      "visual_evidence": "A Product System tab is open in the main openLCA editor for a cement or concrete process (e.g., 'Portland cement'). The Model Graph, Statistics tab, or input/output list should visually indicate that at least 4 upstream provider processes are linked."
+    },
+    {
+      "id": "gwp_calculated",
+      "description": "Verify that the Global Warming Potential (GWP) has been calculated for the product system.",
+      "points": 20,
+      "visual_evidence": "An openLCA Results tab is visible showing LCIA results, specifically displaying the 'Global warming' impact category with a calculated numerical value."
+    },
+    {
+      "id": "contribution_analysis_viewed",
+      "description": "Verify that a process contribution analysis was performed for the GWP.",
+      "points": 20,
+      "visual_evidence": "The 'Process results' or 'Contribution tree' tab in the openLCA results window is open, showing a breakdown of upstream processes and their percentage contributions to the total Global Warming Potential."
+    },
+    {
+      "id": "csv_exported_and_formatted",
+      "description": "Verify that the hotspot analysis was exported to a CSV file with the correct formatting and 'Other' grouping.",
+      "points": 30,
+      "visual_evidence": "A terminal window showing the output of 'cat ~/LCA_Results/hotspot_analysis.csv' or a text editor/spreadsheet showing the file contents. The file must list upstream process names, their percentage contributions to GWP, and crucially, must contain a row labeled 'Other' that groups processes contributing less than 1%."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_openlca_usage",
+      "description": "Verify that the agent actually used the openLCA GUI to perform the analysis.",
+      "visual_evidence": "Screenshots should show the openLCA application open with the specific databases, product systems, and calculation results actively displayed, rather than just terminal commands or a script."
+    },
+    {
+      "id": "plausible_lca_results",
+      "description": "Verify that the upstream processes listed in the CSV are genuine inputs for cement/concrete production.",
+      "visual_evidence": "The CSV contents should list realistic industrial inputs (e.g., electricity, natural gas, coal, diesel, transport) rather than generic placeholders like 'Process A' or 'Test Process'."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "Verify that the agent did not manually type or hardcode the final CSV without running the calculation.",
+      "visual_evidence": "The percentage values in the CSV should be precise, non-round numbers (e.g., 45.23%) that correspond to actual LCA outputs, and there should be evidence of the agent extracting or exporting these numbers from openLCA."
+    }
+  ],
+  "privileged_info_for_vlm": "The target material is Portland cement (or concrete). In the USLCI database, Portland cement has 8 default upstream provider processes: Diesel, Lubricant, Bituminous coal, Residual fuel oil, LPG, Natural gas, Electricity mix, and Gasoline. The LCIA method provided is TRACI 2.1, which contains the 'Global warming' impact category required for the GWP calculation. The final output must be located at /home/ga/LCA_Results/hotspot_analysis.csv and must explicitly group any process contributing <1% into a single row named 'Other'."
+}

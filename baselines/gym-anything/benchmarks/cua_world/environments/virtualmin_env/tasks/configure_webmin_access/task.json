@@ -1,0 +1,33 @@
+{
+  "id": "configure_webmin_access@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "Configure Webmin's IP Access Control to restrict access to the server. Set the allowed IP addresses to exactly 127.0.0.1 and 10.8.0.42. Ensure 127.0.0.1 is included to prevent being locked out of the interface.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_webmin_access/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_webmin_access/export_result.sh"
+  },
+  "metadata": {
+    "config_file": "/etc/webmin/miniserv.conf",
+    "required_ips": [
+      "127.0.0.1",
+      "10.8.0.42"
+    ],
+    "forbidden_ips": [
+      "0.0.0.0",
+      "all"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_webmin_access"
+    }
+  }
+}

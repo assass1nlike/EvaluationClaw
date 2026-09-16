@@ -1,0 +1,59 @@
+{
+  "task_id": "tune_php_fpm_pool@1",
+  "task_completion": [
+    {
+      "id": "select_target_domain",
+      "description": "Verify the agent selects or targets the 'acmecorp.test' virtual server.",
+      "points": 10,
+      "visual_evidence": "Look for 'acmecorp.test' selected in the Virtualmin domain dropdown menu, or the agent opening a configuration file specifically named after the domain (e.g., /etc/php/*/fpm/pool.d/acmecorp.test.conf or similar) in a terminal/text editor."
+    },
+    {
+      "id": "set_pm_dynamic",
+      "description": "Verify the process manager (pm) mode is set to dynamic.",
+      "points": 15,
+      "visual_evidence": "Look for 'pm = dynamic' typed in a configuration file, or a 'Process Manager'/'PM' setting changed to 'Dynamic' in the Virtualmin GUI."
+    },
+    {
+      "id": "set_max_children",
+      "description": "Verify pm.max_children is set to 40.",
+      "points": 15,
+      "visual_evidence": "Look for 'pm.max_children = 40' in the configuration file, or the value '40' entered into the 'Maximum child processes' (or similar) field in the GUI."
+    },
+    {
+      "id": "set_start_servers",
+      "description": "Verify pm.start_servers is set to 10.",
+      "points": 15,
+      "visual_evidence": "Look for 'pm.start_servers = 10' in the configuration file, or the value '10' entered into the 'Initial child processes' (or similar) field in the GUI."
+    },
+    {
+      "id": "set_spare_servers",
+      "description": "Verify pm.min_spare_servers is set to 5 and pm.max_spare_servers is set to 15.",
+      "points": 25,
+      "visual_evidence": "Look for 'pm.min_spare_servers = 5' and 'pm.max_spare_servers = 15' in the configuration file, or the values '5' and '15' entered into the minimum and maximum idle/spare processes fields in the GUI."
+    },
+    {
+      "id": "apply_configuration",
+      "description": "Verify the configuration changes are saved and applied.",
+      "points": 20,
+      "visual_evidence": "Look for the agent clicking a 'Save' or 'Apply' button in the Virtualmin GUI, followed by a success message, OR the agent saving the file in a text editor and running a command to restart/reload the PHP-FPM service (e.g., 'systemctl restart php8.1-fpm' or similar)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration_edit",
+      "description": "Ensure the agent is modifying the actual PHP-FPM configuration via Virtualmin or a legitimate text editor/terminal.",
+      "visual_evidence": "The agent should be interacting with the Virtualmin control panel (Services -> PHP-FPM Configuration) or a terminal editor (nano, vim) editing a .conf file. It should not be typing the answers into a blank text document or a mock interface."
+    },
+    {
+      "id": "correct_domain_context",
+      "description": "Ensure the changes are applied to the specific domain pool, not globally.",
+      "visual_evidence": "The configuration screen or file path must clearly indicate it belongs to 'acmecorp.test' (e.g., the pool name at the top of the file should be [acmecorp.test] or the Virtualmin context must be set to this domain)."
+    },
+    {
+      "id": "no_inspect_element_cheat",
+      "description": "Ensure the agent did not use browser developer tools to fake the configuration values.",
+      "visual_evidence": "There should be no browser developer tools (Elements/Console tab) open to manipulate the HTML of the Virtualmin page to display the target values."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain: 'acmecorp.test'. The task requires modifying the PHP-FPM pool configuration for this domain. The required values are: pm = dynamic, pm.max_children = 40, pm.start_servers = 10, pm.min_spare_servers = 5, and pm.max_spare_servers = 15. These can be set via the Virtualmin GUI or by editing the domain's pool configuration file (typically located in /etc/php/*/fpm/pool.d/). The configuration must be saved and the PHP-FPM service must be restarted or reloaded for the changes to apply."
+}

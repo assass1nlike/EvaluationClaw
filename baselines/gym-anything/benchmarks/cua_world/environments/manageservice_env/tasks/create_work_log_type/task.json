@@ -1,0 +1,33 @@
+{
+  "id": "create_work_log_type@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "As an administrator (password: administrator), create a new Work Log Type for field services in ManageEngine ServiceDesk Plus. The type must be named 'On-Site Repair' with the description 'Billable time for physical equipment repair and maintenance at client location.' and an hourly rate of $150.00.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_work_log_type/setup_task.sh",
+    "post_task": "/workspace/tasks/create_work_log_type/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_name": "On-Site Repair",
+    "target_rate": 150.0,
+    "target_desc_keywords": [
+      "physical equipment",
+      "repair",
+      "maintenance",
+      "client location"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_work_log_type"
+    }
+  }
+}

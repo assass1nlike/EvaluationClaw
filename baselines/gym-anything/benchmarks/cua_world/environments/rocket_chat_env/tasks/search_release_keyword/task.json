@@ -1,0 +1,27 @@
+{
+  "id": "search_release_keyword@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "Reply to the message mentioning release \"7.8.5\" in the #release-updates channel on Rocket.Chat (Username: admin, Password: Admin1234!). The reply must be in a thread and contain the exact text: \"Confirmed: 7.8.5 backport patches verified in staging environment.\"",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/search_release_keyword/setup_task.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "search_keyword": "7.8.5",
+    "target_channel": "release-updates",
+    "reply_text": "Confirmed: 7.8.5 backport patches verified in staging environment."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_search_release_keyword"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "mft_record_raw_extraction_and_validation@1",
+  "task_completion": [
+    {
+      "id": "analyze_deleted_files",
+      "description": "Identify the largest deleted file on the evidence drive.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing forensic tools (like 'fls -d', 'ils', or Autopsy GUI) being used on '/home/ga/evidence/ntfs_undel.dd' to list deleted files and their sizes."
+    },
+    {
+      "id": "recover_file_content",
+      "description": "Recover the content of the target deleted file to the specified path.",
+      "points": 20,
+      "visual_evidence": "Terminal command (e.g., 'icat') redirecting output to '/home/ga/Reports/target_file_content.bin', or an 'ls' command showing this file exists."
+    },
+    {
+      "id": "extract_mft_record",
+      "description": "Extract the 1024-byte raw MFT record for the target file.",
+      "points": 25,
+      "visual_evidence": "Terminal command (e.g., 'dd', 'blkcat', or 'istat') extracting data to '/home/ga/Reports/target_mft_record.bin'. An 'ls -l' command showing the file size is exactly 1024 bytes is strong evidence."
+    },
+    {
+      "id": "create_validation_report",
+      "description": "Create the daubert_validation.txt report file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) open with the file '/home/ga/Reports/daubert_validation.txt', or a 'cat'/'echo' command writing to this path."
+    },
+    {
+      "id": "report_contains_required_keys",
+      "description": "Populate the validation report with the exact required keys.",
+      "points": 30,
+      "visual_evidence": "The contents of '/home/ga/Reports/daubert_validation.txt' visible on screen, containing the keys: TARGET_INODE, TARGET_FILENAME, TARGET_SIZE_BYTES, MFT_RECORD_HEX_SIGNATURE, STANDARD_INFORMATION_MTIME, and FILE_NAME_MTIME, each followed by a colon and a value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_forensic_analysis",
+      "description": "The agent used actual forensic tools or scripts to extract the data rather than creating dummy files.",
+      "visual_evidence": "Presence of Sleuthkit commands (fls, icat, istat, blkcat) or custom Python scripts interacting with the evidence file in the terminal history."
+    },
+    {
+      "id": "correct_evidence_source",
+      "description": "The agent operated on the correct evidence file.",
+      "visual_evidence": "Commands explicitly reference '/home/ga/evidence/ntfs_undel.dd' as the input file."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent derived the answers from the evidence rather than hallucinating or pasting a pre-computed block.",
+      "visual_evidence": "Terminal history shows the agent querying the file system (e.g., viewing 'istat' output to find M-times and sizes) before writing those values into the report."
+    }
+  ],
+  "privileged_info_for_vlm": "Evidence path: /home/ga/evidence/ntfs_undel.dd. Report path: /home/ga/Reports/daubert_validation.txt. MFT record path: /home/ga/Reports/target_mft_record.bin. File content path: /home/ga/Reports/target_file_content.bin. The report must contain exactly these keys: TARGET_INODE, TARGET_FILENAME, TARGET_SIZE_BYTES, MFT_RECORD_HEX_SIGNATURE, STANDARD_INFORMATION_MTIME, FILE_NAME_MTIME."
+}

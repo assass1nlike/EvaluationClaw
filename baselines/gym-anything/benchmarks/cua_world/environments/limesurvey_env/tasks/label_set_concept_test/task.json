@@ -1,0 +1,33 @@
+{
+  "id": "label_set_concept_test@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "You are a market research analyst preparing a product concept test for a new sparkling water line. Create two label sets in LimeSurvey: '7-Point Satisfaction Scale' (Codes 1-7: Very Dissatisfied, Dissatisfied, Somewhat Dissatisfied, Neutral, Somewhat Satisfied, Satisfied, Very Satisfied) and '5-Point Purchase Intent Scale' (Codes 1-5: Definitely Would Not Buy, Probably Would Not Buy, Might or Might Not Buy, Probably Would Buy, Definitely Would Buy). Build and activate an anonymized survey titled 'Q4 2024 Product Concept Test - Sparkling Water Line' with the welcome message: 'Thank you for participating in this product concept evaluation. Your feedback will help shape our new sparkling water product line. This survey takes approximately 5 minutes.' The survey must include two mandatory array questions. The first question, in group 'Product Appeal' (Code: Q_APPEAL), uses the text 'Based on the product concept you just reviewed, how satisfied are you with each of the following aspects?' with the 7-point scale and sub-questions: SQ001 'Overall appeal of the product concept', SQ002 'Uniqueness compared to existing sparkling water products', SQ003 'Relevance to your personal beverage preferences', SQ004 'Believability of the product claims', SQ005 'Clarity of the product description', and SQ006 'Attractiveness of the proposed packaging design'. The second question, in group 'Purchase Likelihood' (Code: Q_PURCHASE), uses the text 'How likely would you be to purchase this sparkling water product in each of the following scenarios?' with the 5-point scale and sub-questions: SQ001 'At the suggested retail price of $2.49 per can', SQ002 'If available at your preferred grocery store', SQ003 'If recommended by a friend or family member', and SQ004 'If offered as part of a variety pack with multiple flavors'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/label_set_concept_test/setup_task.sh",
+    "post_task": "/workspace/tasks/label_set_concept_test/export_result.sh"
+  },
+  "metadata": {
+    "expected_labelset_1": "7-Point Satisfaction Scale",
+    "expected_labelset_2": "5-Point Purchase Intent Scale",
+    "expected_survey_title": "Q4 2024 Product Concept Test - Sparkling Water Line",
+    "expected_survey_title_keywords": [
+      "product concept",
+      "sparkling water"
+    ],
+    "min_questions": 2,
+    "min_groups": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_label_set_concept_test"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_corrupted_feed_data@1",
+  "task_completion": [
+    {
+      "id": "get_api_key",
+      "description": "Agent retrieves the Emoncms API key.",
+      "points": 10,
+      "visual_evidence": "A browser window showing the JSON response from http://localhost/user/get.json, or a terminal command/script fetching the API key."
+    },
+    {
+      "id": "get_feed_id",
+      "description": "Agent retrieves the feed list to find the ID for 'solar_gen'.",
+      "points": 10,
+      "visual_evidence": "A browser window showing http://localhost/feed/list.json, or terminal output/script identifying the feed ID for 'solar_gen'."
+    },
+    {
+      "id": "retrieve_feed_data",
+      "description": "Agent retrieves the feed data using the data.json API.",
+      "points": 20,
+      "visual_evidence": "A script, curl command, or browser request to http://localhost/feed/data.json with the correct parameters (id, start, end, interval, apikey)."
+    },
+    {
+      "id": "identify_corrupted_points",
+      "description": "Agent identifies the 5 corrupted data points.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the identified spikes (values around 50,000), or script logic that filters for these high values."
+    },
+    {
+      "id": "insert_corrected_values",
+      "description": "Agent inserts corrected values using the insert.json API.",
+      "points": 40,
+      "visual_evidence": "A script executing requests to http://localhost/feed/insert.json with corrected values (between 0 and 4000) and timestamps converted to seconds, or terminal output showing successful insertion."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "The agent actually executed the API requests to insert the data.",
+      "visual_evidence": "Terminal output showing the script running successfully or curl commands returning a success response, rather than just writing code without executing it."
+    },
+    {
+      "id": "no_hardcoded_timestamps",
+      "description": "The agent dynamically found the corrupted points instead of using hardcoded timestamps.",
+      "visual_evidence": "The script or commands contain logic to fetch and parse the data to find the spikes, rather than containing pre-written hardcoded timestamps."
+    },
+    {
+      "id": "valid_correction_logic",
+      "description": "The agent calculated corrected values based on surrounding readings.",
+      "visual_evidence": "The script shows logic to interpolate or average surrounding valid points to determine the replacement value, rather than inserting arbitrary numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The feed name is 'solar_gen'. There are exactly 5 corrupted data points with a value of exactly 50,000 W. The corrected values must be between 0 and 4000 W. The data.json API returns millisecond timestamps, while the insert.json API requires timestamps in seconds."
+}

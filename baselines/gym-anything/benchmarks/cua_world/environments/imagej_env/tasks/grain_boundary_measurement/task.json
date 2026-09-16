@@ -1,0 +1,38 @@
+{
+  "id": "grain_boundary_measurement@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Grain Boundary Length Measurement in Metallographic Sample",
+  "description": "You are a materials scientist characterizing an Au-Pb-Sn solder alloy. Using the 'AuPbSn 40' sample in Fiji, select a representative slice and measure the total length of the inter-phase boundaries. Calculate the boundary density as the total boundary length divided by the total image area. Save a CSV file to '~/ImageJ_Data/results/grain_boundary_analysis.csv' containing the image dimensions (width, height), total image area in pixels^2, total boundary length in pixels, and boundary density in pixels^-1. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "tags": [
+    "materials-science",
+    "metallography",
+    "edge-detection",
+    "skeletonize",
+    "morphometry",
+    "quantitative"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/grain_boundary_measurement/setup_task.sh",
+    "post_task": "/workspace/tasks/grain_boundary_measurement/export_result.sh"
+  },
+  "metadata": {
+    "result_file": "/home/ga/ImageJ_Data/results/grain_boundary_analysis.csv",
+    "sample_name": "AuPbSn 40",
+    "expected_min_length_px": 100,
+    "expected_max_density": 1.0,
+    "expected_min_density": 0.01
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_grain_boundary_measurement"
+    }
+  }
+}

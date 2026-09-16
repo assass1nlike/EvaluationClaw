@@ -1,0 +1,47 @@
+{
+  "id": "run_sql_query@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Using DBeaver and the Chinook SQLite database, identify all track names by the artist 'AC/DC'. Export the resulting list of track names to /home/ga/Documents/exports/acdc_tracks.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_sql_query/setup_task.sh",
+    "post_task": "/workspace/tasks/run_sql_query/export_result.sh"
+  },
+  "metadata": {
+    "expected_artist": "AC/DC",
+    "expected_track_count": 18,
+    "expected_output_file": "/home/ga/Documents/exports/acdc_tracks.csv",
+    "known_track_names": [
+      "For Those About To Rock",
+      "Put The Finger On You",
+      "Lets Get It Up",
+      "Inject The Venom",
+      "Snowballed",
+      "Evil Walks",
+      "C.O.D.",
+      "Breaking The Rules",
+      "Night Of The Long Knives",
+      "Spellbound",
+      "Go Down",
+      "Dog Eat Dog",
+      "Let There Be Rock",
+      "Bad Boy Boogie",
+      "Problem Child",
+      "Overdose",
+      "Hell Aint A Bad Place To Be",
+      "Whole Lotta Rosie"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_sql_query"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "heckman_wage_selection@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Estimate a Heckman Maximum Likelihood selection model using the 'mroz.gdt' dataset to analyze the determinants of women's wages. Define 'l_wage' as the natural log of 'wage'. Specify the selection equation with 'lfp' as the dependent variable and 'const', 'age', 'educ', 'kidslt6', 'kidsge6', and 'nwifeinc' as regressors. Specify the regression equation with 'l_wage' as the dependent variable and 'const', 'educ', 'exper', and 'expersq' as regressors. Save the estimation results to /home/ga/Documents/gretl_output/heckman_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/heckman_wage_selection/setup_task.sh",
+    "post_task": "/workspace/tasks/heckman_wage_selection/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "mroz.gdt",
+    "output_path": "/home/ga/Documents/gretl_output/heckman_results.txt",
+    "expected_n_total": 753,
+    "expected_n_censored": 325,
+    "ground_truth": {
+      "coef_educ_outcome": 0.109,
+      "coef_educ_tolerance": 0.02,
+      "exclusion_var": "nwifeinc"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_heckman_wage_selection"
+    }
+  }
+}

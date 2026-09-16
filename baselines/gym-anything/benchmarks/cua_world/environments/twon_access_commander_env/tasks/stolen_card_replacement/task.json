@@ -1,0 +1,36 @@
+{
+  "id": "stolen_card_replacement@1",
+  "version": "1.0",
+  "env_id": "twon_access_commander_env@0.1",
+  "description": "You are the physical security manager at BuildingTech Solutions. RFID cards with serial numbers in the range 0004521820 to 0004521829 (inclusive) have been compromised and must be replaced. In the 2N Access Commander system (https://localhost:9443, admin / 2n), replace these compromised cards for all affected users with new cards starting from serial number 0004522100, assigning them sequentially (0004522100, 0004522101, etc.). All affected users must remain active with their new cards.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stolen_card_replacement/setup_task.sh",
+    "post_task": "/workspace/tasks/stolen_card_replacement/export_result.sh"
+  },
+  "metadata": {
+    "compromised_range": [
+      "0004521820",
+      "0004521829"
+    ],
+    "replacement_range_start": "0004522100",
+    "affected_users": [
+      "Heather Morrison",
+      "Robert Nakamura"
+    ],
+    "injected_cards": {
+      "Heather Morrison": "0004521820",
+      "Robert Nakamura": "0004521821"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stolen_card_replacement"
+    }
+  }
+}

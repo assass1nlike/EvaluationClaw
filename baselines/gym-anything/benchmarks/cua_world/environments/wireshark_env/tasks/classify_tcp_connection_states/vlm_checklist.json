@@ -1,0 +1,47 @@
+{
+  "task_id": "classify_tcp_connection_states@1",
+  "task_completion": [
+    {
+      "id": "wireshark_opened",
+      "description": "Wireshark is opened and the target capture file is loaded.",
+      "points": 20,
+      "visual_evidence": "Wireshark GUI is visible with the file '200722_tcp_anon.pcapng' loaded in the title bar or recent files list."
+    },
+    {
+      "id": "wireshark_analysis_performed",
+      "description": "The agent uses Wireshark features to analyze TCP streams and flags.",
+      "points": 30,
+      "visual_evidence": "Wireshark's 'Conversations' window (TCP tab) is open, or display filters related to TCP flags (e.g., tcp.flags.syn, tcp.flags.reset, tcp.flags.fin) are applied in the filter bar."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The agent creates or edits the required report file.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or terminal command shows the creation or editing of 'tcp_connection_state_report.txt' in the '~/Documents/captures/' directory."
+    },
+    {
+      "id": "report_content_completed",
+      "description": "The report contains the required metrics in the correct format.",
+      "points": 30,
+      "visual_evidence": "The report file contents are visible, showing lines formatted as 'key: value' for the required metrics (total_tcp_streams, syn_packets, streams_with_rst, streams_with_fin, unanswered_syn_streams)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wireshark_gui",
+      "description": "The agent used the Wireshark GUI for analysis as requested, rather than relying solely on command-line tools.",
+      "visual_evidence": "Screenshots must show interaction with the Wireshark graphical interface (applying filters, viewing statistics), not just terminal commands like tshark or tcpdump."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use external scripts to bypass Wireshark analysis.",
+      "visual_evidence": "There should be no evidence of Python scripts (e.g., using scapy or pyshark) being written or executed to extract the metrics."
+    },
+    {
+      "id": "genuine_values_entered",
+      "description": "The agent entered values derived from analysis rather than placeholder text.",
+      "visual_evidence": "The values in the report file should be numbers, indicating the agent actually attempted to count the metrics."
+    }
+  ],
+  "privileged_info_for_vlm": "The target PCAP file is located at /home/ga/Documents/captures/200722_tcp_anon.pcapng and contains Netcat TCP traffic. The output report must be saved to /home/ga/Documents/captures/tcp_connection_state_report.txt. The task description mentions 'exactly these seven metrics' but only lists five specific keys: total_tcp_streams, syn_packets, streams_with_rst, streams_with_fin, and unanswered_syn_streams. The VLM should verify the presence of these five keys."
+}

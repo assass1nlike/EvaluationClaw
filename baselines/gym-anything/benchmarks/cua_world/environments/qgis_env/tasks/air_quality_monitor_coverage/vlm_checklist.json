@@ -1,0 +1,59 @@
+{
+  "task_id": "air_quality_monitor_coverage@1",
+  "task_completion": [
+    {
+      "id": "data_loaded",
+      "description": "The agent loaded the EPA PM2.5 monitors and California counties GeoJSON files.",
+      "points": 10,
+      "visual_evidence": "QGIS layer panel showing `epa_pm25_monitors_ca` and `ca_counties`, or Python code reading these files using a library like geopandas."
+    },
+    {
+      "id": "reprojection_applied",
+      "description": "The agent reprojected the spatial data to EPSG:3310 (California Albers).",
+      "points": 15,
+      "visual_evidence": "QGIS export/reproject tool showing EPSG:3310, project CRS set to EPSG:3310, or Python code containing `.to_crs(3310)` or `.to_crs('EPSG:3310')`."
+    },
+    {
+      "id": "spatial_calculations",
+      "description": "The agent performed spatial operations to count monitors per county and calculate distances from county centroids to the nearest monitor.",
+      "points": 20,
+      "visual_evidence": "QGIS tools like 'Count Points in Polygon', 'Centroids', 'Distance to Nearest Hub', or Python code using `sjoin`, `distance`, `centroid`, or similar spatial functions."
+    },
+    {
+      "id": "fields_computed",
+      "description": "The agent computed the required fields: monitor_count, nearest_monitor_km, coverage_status, and monitoring_density.",
+      "points": 20,
+      "visual_evidence": "QGIS attribute table, Field Calculator, or Python code showing the creation of `monitor_count`, `nearest_monitor_km`, `coverage_status`, and `monitoring_density` with their respective logic (e.g., density = count / area)."
+    },
+    {
+      "id": "geojson_exported",
+      "description": "The agent exported the enriched county data to the specified GeoJSON file.",
+      "points": 20,
+      "visual_evidence": "QGIS 'Save Vector Layer as' dialog, Python code, or terminal command saving the spatial data to `/home/ga/GIS_Data/exports/pm25_coverage_gaps.geojson`."
+    },
+    {
+      "id": "csv_exported",
+      "description": "The agent exported the required fields to the specified CSV report.",
+      "points": 15,
+      "visual_evidence": "QGIS export dialog, Python code, or terminal command saving the tabular data to `/home/ga/GIS_Data/exports/monitoring_coverage_report.csv` with columns like `county_name`, `fips`, `monitor_count`, etc."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "The agent performed actual spatial operations rather than hardcoding the final output.",
+      "visual_evidence": "Evidence of using GIS tools or writing spatial analysis code, without hardcoded arrays of the final results."
+    },
+    {
+      "id": "no_ground_truth_copying",
+      "description": "The agent did not copy or read the ground truth file to bypass the work.",
+      "visual_evidence": "No terminal commands or code reading from or copying `/tmp/gt_aq_coverage.json`."
+    },
+    {
+      "id": "actual_tool_used",
+      "description": "The agent used a genuine GIS tool or Python script to process the data.",
+      "visual_evidence": "Screenshots show QGIS interface, a Jupyter notebook, or a Python script being executed in the terminal, rather than just a text editor creating fake output files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires processing 58 California counties. The input files are `/home/ga/GIS_Data/epa_pm25_monitors_ca.geojson` and `/home/ga/GIS_Data/ca_counties.geojson`. The spatial calculations MUST use the projected CRS EPSG:3310 (California Albers) to ensure accurate area and distance measurements. The output GeoJSON must be saved to `/home/ga/GIS_Data/exports/pm25_coverage_gaps.geojson` and contain the original county fields plus: `monitor_count` (integer), `nearest_monitor_km` (float, 2 decimal places), `coverage_status` ('monitored' or 'gap'), and `monitoring_density` (float, 4 decimal places). The CSV report must be saved to `/home/ga/GIS_Data/exports/monitoring_coverage_report.csv` with columns: `county_name`, `fips`, `monitor_count`, `coverage_status`, `nearest_monitor_km`, `monitoring_density`. A ground truth file exists at `/tmp/gt_aq_coverage.json` which the agent must not use."
+}

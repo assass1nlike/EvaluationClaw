@@ -1,0 +1,53 @@
+{
+  "task_id": "retro_vga_framerange_render@1",
+  "task_completion": [
+    {
+      "id": "open_scene",
+      "description": "Verify that the correct scene file is opened in OpenToonz.",
+      "points": 10,
+      "visual_evidence": "The OpenToonz application window is visible, and 'dwanko_run' is displayed in the title bar, scene browser, or xsheet."
+    },
+    {
+      "id": "set_resolution",
+      "description": "Verify that the camera or output resolution is configured to 640x480.",
+      "points": 20,
+      "visual_evidence": "The Output Settings or Camera Settings dialog is open, showing the Width set to 640 and the Height set to 480."
+    },
+    {
+      "id": "set_frame_range",
+      "description": "Verify that the render frame range is restricted to frames 1 through 12.",
+      "points": 20,
+      "visual_evidence": "In the Output Settings dialog, the 'From' frame field is set to 1 and the 'To' frame field is set to 12."
+    },
+    {
+      "id": "set_output_path_and_format",
+      "description": "Verify that the output directory and file format are correctly set.",
+      "points": 20,
+      "visual_evidence": "In the Output Settings dialog, the 'Save In' path is set to '/home/ga/OpenToonz/output/retro_vga/' (or similar relative path) and the file format is set to 'png'."
+    },
+    {
+      "id": "verify_rendered_output",
+      "description": "Verify that the PNG sequence was successfully rendered to the target directory.",
+      "points": 30,
+      "visual_evidence": "A file manager or terminal window shows multiple PNG files (e.g., ending in .0001.png through .0012.png) inside the '/home/ga/OpenToonz/output/retro_vga/' directory, or a completed OpenToonz render progress window is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_opentoonz_gui",
+      "description": "Ensure the agent used the OpenToonz GUI to perform the task rather than relying solely on terminal image manipulation tools like ImageMagick.",
+      "visual_evidence": "Screenshots should show interaction with the OpenToonz interface, specifically the Output Settings dialog and render windows."
+    },
+    {
+      "id": "genuine_render_execution",
+      "description": "Ensure the agent actually rendered the sequence from OpenToonz.",
+      "visual_evidence": "Look for the OpenToonz render progress bar or the Output Settings window being actively configured, rather than files just being copied from elsewhere."
+    },
+    {
+      "id": "no_script_spoofing",
+      "description": "Ensure the agent did not write a Python or bash script to generate fake blank images to bypass the verifier.",
+      "visual_evidence": "The screen should not show text editors or terminals running scripts to touch or create dummy .png files in the output directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The source scene is '/home/ga/OpenToonz/samples/dwanko_run.tnz'. The output must be exactly 640x480 resolution. The frame range must be exactly 1 to 12 (inclusive). The output directory is '/home/ga/OpenToonz/output/retro_vga' and the format must be PNG. The final output should consist of 12 PNG files (the verifier accepts 10-14 files) totaling at least 100 KB in size."
+}

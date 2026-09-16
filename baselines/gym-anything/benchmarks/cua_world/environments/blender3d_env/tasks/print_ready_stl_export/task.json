@@ -1,0 +1,28 @@
+{
+  "id": "print_ready_stl_export@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Prepare a 3D printable asset of the Suzanne monkey head on a cylindrical base. Configure the scene units to Metric (Millimeters). The Suzanne mesh should have a height of 60mm, and the cylindrical base should have a diameter of 40mm and a height of 5mm. Position Suzanne on top of the base and combine them into a single mesh. Export the final model as an STL file to /home/ga/BlenderProjects/suzanne_print.stl with a scale where 1 unit equals 1 millimeter.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/print_ready_stl_export/setup_task.sh",
+    "post_task": "/workspace/tasks/print_ready_stl_export/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/BlenderProjects/suzanne_print.stl",
+    "expected_z_height": 65.0,
+    "expected_base_diameter": 40.0,
+    "tolerance_mm": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_print_ready_stl"
+    }
+  }
+}

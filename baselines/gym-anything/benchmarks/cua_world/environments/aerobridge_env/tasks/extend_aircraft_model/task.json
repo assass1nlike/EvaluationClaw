@@ -1,0 +1,34 @@
+{
+  "id": "extend_aircraft_model@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "New aviation regulations require tracking the maximum permitted flight altitude for each aircraft. Extend the Aerobridge data model by adding an IntegerField named 'max_altitude_m' to the Aircraft model in /opt/aerobridge/registry/models.py (null=True, blank=True, help_text='Maximum permitted flight altitude in meters'). Update the Aircraft admin configuration in /opt/aerobridge/registry/admin.py to make this field visible in the Django admin panel. Apply the necessary database migrations and populate all existing Aircraft records with a 'max_altitude_m' value of 120. Ensure the Aerobridge server is updated to reflect these changes.\n\nEnvironment details:\n- Aerobridge source: /opt/aerobridge/\n- Python venv: /opt/aerobridge_venv/\n- Database: /opt/aerobridge/aerobridge.sqlite3\n- Server: http://localhost:8000\n- Admin credentials: admin / adminpass123\n- Environment variables: /opt/aerobridge/.env (source this before running management commands)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extend_aircraft_model/setup_task.sh",
+    "post_task": "/workspace/tasks/extend_aircraft_model/export_result.sh"
+  },
+  "metadata": {
+    "field_name": "max_altitude_m",
+    "default_value": 120,
+    "admin_url": "http://localhost:8000/admin/registry/aircraft/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extend_aircraft_model"
+    }
+  },
+  "tags": [
+    "django",
+    "database",
+    "migration",
+    "python",
+    "backend"
+  ]
+}

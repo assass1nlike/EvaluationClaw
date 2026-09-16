@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_constructor_to_builder@1",
+  "task_completion": [
+    {
+      "id": "builder_class_implemented",
+      "description": "Verify that a Builder class is implemented for SmartHomeDevice.",
+      "points": 20,
+      "visual_evidence": "In SmartHomeDevice.java, look for a nested static 'Builder' class (or a separate builder class/Lombok @Builder annotation) containing methods for setting the 7 fields (id, name, ipAddress, macAddress, firmwareVersion, location, isActive) and a 'build()' method."
+    },
+    {
+      "id": "constructor_privatized",
+      "description": "Verify that the original telescoping constructor in SmartHomeDevice is no longer public.",
+      "points": 10,
+      "visual_evidence": "In SmartHomeDevice.java, the public constructor taking 7 arguments should be removed or made private. It should be replaced by a private constructor that takes the Builder as an argument."
+    },
+    {
+      "id": "device_service_refactored",
+      "description": "Verify that DeviceService.java uses the new Builder API.",
+      "points": 20,
+      "visual_evidence": "In DeviceService.java, the methods 'registerDefaultBulb' and 'createThermostat' should instantiate SmartHomeDevice using the builder pattern (e.g., 'SmartHomeDevice.builder().name(...).build()') instead of the 'new SmartHomeDevice(...)' constructor."
+    },
+    {
+      "id": "device_service_test_refactored",
+      "description": "Verify that DeviceServiceTest.java uses the new Builder API.",
+      "points": 20,
+      "visual_evidence": "In DeviceServiceTest.java, the test methods 'testManualCreation' and 'testServiceCreation' should instantiate SmartHomeDevice using the builder pattern instead of the 'new SmartHomeDevice(...)' constructor."
+    },
+    {
+      "id": "tests_pass_successfully",
+      "description": "Verify that the project compiles and all tests pass successfully.",
+      "points": 30,
+      "visual_evidence": "Look for a terminal showing the output of 'mvn test' with 'BUILD SUCCESS' and 'Tests run: 2, Failures: 0', or an IDE test runner window showing green checkmarks for the DeviceServiceTest class."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_editor_usage",
+      "description": "Verify the agent used an actual IDE or text editor to modify the Java files.",
+      "visual_evidence": "Screenshots should show an editor like IntelliJ IDEA, VS Code, vim, or nano open with the Java files, rather than just using 'echo' or 'sed' commands blindly in the terminal."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify the tests were actually run and not just mocked or printed.",
+      "visual_evidence": "The test output should be in a standard Maven or IDE test runner format, showing execution time and standard JUnit output, rather than a manually typed 'BUILD SUCCESS' string."
+    },
+    {
+      "id": "no_hardcoded_test_bypasses",
+      "description": "Verify the tests were not modified to trivially pass by removing assertions.",
+      "visual_evidence": "DeviceServiceTest.java should still contain JUnit assertions (e.g., assertEquals, assertNotNull) checking the properties of the created devices."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/IdeaProjects/iot-device-manager. SmartHomeDevice has 7 fields: id, name, ipAddress, macAddress, firmwareVersion, location, isActive. DeviceService has 2 methods (registerDefaultBulb, createThermostat) that originally used the 7-parameter constructor. DeviceServiceTest has 2 test methods (testManualCreation, testServiceCreation). The project uses Maven and JUnit 5.9.2. The agent may use Lombok (@Builder) if they add the dependency, or manually implement the Builder pattern."
+}

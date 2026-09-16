@@ -1,4 +1,4 @@
-"""Runtime for Builder-defined actors used by OpenClaw agent tasks."""
+"""Runtime for Builder-defined actors accessed through a task contact service."""
 from __future__ import annotations
 
 import json
@@ -34,6 +34,46 @@ from ..types import (
 
 _MCP_SERVER_NAME = "evalclaw-contacts"
 _CONTAINER_RUNTIME_DIR = "/run/evalclaw-contacts"
+CONTACT_COMMAND = f"python3 {_CONTAINER_RUNTIME_DIR}/contacts.py"
+CONTACT_INSTRUCTIONS = (
+    "Contacts are available through the terminal. Run "
+    f"`{CONTACT_COMMAND} list` to list their IDs and descriptions. "
+    f"Run `{CONTACT_COMMAND} send CONTACT_ID 'your message'` to send a message "
+    "and wait for the reply. For long messages, omit the message argument and provide "
+    "the message on standard input. Each contact remembers your earlier messages in this task."
+)
+
+_CONTACT_CLIENT = r'''
+import argparse
+import json
+from pathlib import Path
+import socket
+import sys
+
+parser = argparse.ArgumentParser(description="Contact directory and messaging")
+subcommands = parser.add_subparsers(dest="command", required=True)
+subcommands.add_parser("list")
+send = subcommands.add_parser("send")
+send.add_argument("contact")
+send.add_argument("message", nargs="?")
+args = parser.parse_args()
+config = json.loads(Path(__file__).with_name("connection.json").read_text())
+request = {"token": config["token"], "operation": args.command}
+if args.command == "send":
+    request.update(actor_id=args.contact, message=args.message if args.message is not None else sys.stdin.read())
+try:
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.settimeout(config["timeout"])
+        client.connect(str(Path(__file__).with_name("broker.sock")))
+        client.sendall((json.dumps(request, ensure_ascii=False) + "\n").encode("utf-8"))
+        response = json.loads(client.makefile(encoding="utf-8").readline())
+    if not response.get("ok"):
+        raise RuntimeError(response.get("error", "Contact service failed"))
+    print(json.dumps(response["contacts"], ensure_ascii=False) if args.command == "list" else response["reply"])
+except Exception as exc:
+    print(str(exc), file=sys.stderr)
+    sys.exit(1)
+'''
 ACTOR_RUNTIME_PROMPT = (
     "Runtime protocol: You may use only the tools provided to you. The shared task workspace "
     "is /workspace. Continue using tools as needed. When you return a natural-language message "
@@ -678,8 +718,16 @@ class _ActorRequestHandler(socketserver.StreamRequestHandler):
             session = self.server.session  # type: ignore[attr-defined]
             if not secrets.compare_digest(str(request.get("token") or ""), session.token):
                 raise PermissionError("Invalid contact-service capability.")
-            reply = session.runtime.interact(request.get("actor_id"), request.get("message"))
-            response = {"ok": True, "reply": reply}
+            operation = request.get("operation", "send")
+            if operation == "list":
+                response = {"ok": True, "contacts": [
+                    {"id": actor.id, "description": actor.description} for actor in session.actors
+                ]}
+            elif operation == "send":
+                reply = session.runtime.interact(request.get("actor_id"), request.get("message"))
+                response = {"ok": True, "reply": reply}
+            else:
+                raise ValueError("Unknown contact operation")
         except Exception as exc:
             response = {"ok": False, "error": f"Contact failed: {exc}"}
         self.wfile.write((json.dumps(response, ensure_ascii=False) + "\n").encode("utf-8"))
@@ -713,17 +761,27 @@ class ActorSession:
             artifact_dir=artifact_dir,
         )
         self._tmp = Path(tempfile.mkdtemp(prefix="evalclaw-actors-"))
+        self._tmp.chmod(0o755)
         self.socket_path = self._tmp / "broker.sock"
         self.proxy_path = self._tmp / "mcp-proxy.js"
         self.proxy_path.write_text(_MCP_PROXY + "\n", encoding="utf-8")
+        (self._tmp / "contacts.py").write_text(_CONTACT_CLIENT, encoding="utf-8")
+        (self._tmp / "connection.json").write_text(json.dumps({
+            "token": self.token, "timeout": config.actor_timeout_s + 5,
+        }), encoding="utf-8")
+        for path in self._tmp.iterdir():
+            path.chmod(0o444)
         self._server = _ActorServer(str(self.socket_path), _ActorRequestHandler)
+        # The directory is mounted read-only in one task container. Only that task
+        # receives this socket and capability; actor prompts and provider keys stay outside.
+        self.socket_path.chmod(0o666)
         self._server.session = self  # type: ignore[attr-defined]
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
 
     @property
     def mount(self) -> str:
-        return f"{self._tmp}:{_CONTAINER_RUNTIME_DIR}"
+        return f"{self._tmp}:{_CONTAINER_RUNTIME_DIR}:ro"
 
     @property
     def mcp_config(self) -> str:

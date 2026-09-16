@@ -1,0 +1,53 @@
+{
+  "task_id": "nested_encryption_workflow@1",
+  "task_completion": [
+    {
+      "id": "mount_outer_volume",
+      "description": "The outer volume is mounted to the first slot.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt GUI showing the file '/home/ga/Volumes/outer_vault.hc' mounted at the directory '/home/ga/MountPoints/slot1/'."
+    },
+    {
+      "id": "configure_inner_volume",
+      "description": "The inner volume is created with the correct path, size, and encryption settings.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt Volume Creation Wizard showing the volume location as '/home/ga/MountPoints/slot1/inner_vault.hc', size as 20MB, and Encryption Algorithm set to 'Serpent'."
+    },
+    {
+      "id": "mount_inner_volume",
+      "description": "The newly created inner volume is mounted to the second slot.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI showing the file '/home/ga/MountPoints/slot1/inner_vault.hc' mounted at the directory '/home/ga/MountPoints/slot2/'."
+    },
+    {
+      "id": "copy_sensitive_files",
+      "description": "The sensitive files are copied into the mounted inner volume.",
+      "points": 30,
+      "visual_evidence": "A file manager window or terminal showing 'SF312_Nondisclosure_Agreement.txt' and 'FY2024_Revenue_Budget.csv' present inside the '/home/ga/MountPoints/slot2/' directory."
+    },
+    {
+      "id": "dismount_volumes",
+      "description": "Both volumes are cleanly dismounted at the end of the task.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI showing an empty list of mounted volumes (no entries for slot1 or slot2), or a notification/terminal output confirming successful dismount of all volumes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_veracrypt_gui",
+      "description": "The agent interacted with the VeraCrypt GUI to create and mount the volumes.",
+      "visual_evidence": "Screenshots should show the VeraCrypt application windows, Volume Creation Wizard, and password prompts being actively used, rather than purely terminal-based 'veracrypt' CLI commands."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "The agent copied the actual source files rather than fabricating empty files with the same names.",
+      "visual_evidence": "Screenshots should show a copy-paste operation in a file manager from '/home/ga/Documents/sensitive_files/' or a 'cp' command in the terminal referencing the source directory."
+    },
+    {
+      "id": "no_script_bypass",
+      "description": "The agent did not use a pre-written script to automate the entire process.",
+      "visual_evidence": "Absence of the agent writing and executing a bash or python script that runs all the mounting, creation, and copying steps at once."
+    }
+  ],
+  "privileged_info_for_vlm": "Outer volume path: /home/ga/Volumes/outer_vault.hc. Outer password: OuterVault2024!. Inner volume path: /home/ga/MountPoints/slot1/inner_vault.hc. Inner password: InnerSecret!99. Expected inner encryption algorithm: Serpent. Source files directory: /home/ga/Documents/sensitive_files."
+}

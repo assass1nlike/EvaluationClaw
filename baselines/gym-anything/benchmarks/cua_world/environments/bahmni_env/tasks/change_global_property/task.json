@@ -1,0 +1,33 @@
+{
+  "id": "change_global_property@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "The hospital administration requires the OpenMRS system default locale to be changed to French. Log in as the administrator (Username: 'superman', Password: 'Admin123') and update the 'default_locale' global property from 'en' to 'fr'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_global_property/setup_task.sh",
+    "post_task": "/workspace/tasks/change_global_property/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_property": "default_locale",
+    "initial_value": "en",
+    "expected_value": "fr",
+    "admin_url_suffix": "/openmrs/admin",
+    "credentials": {
+      "username": "superman",
+      "password": "Admin123"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_global_property"
+    }
+  }
+}

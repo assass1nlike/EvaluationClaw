@@ -1,0 +1,50 @@
+{
+  "id": "create_property_set@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Log in to Artifactory at http://localhost:8082 (admin / password). Create a Property Set named 'build-info' and assign it to the 'example-repo-local' repository. The Property Set must contain three properties: 'build.status' (Single Select with predefined values 'passed', 'failed', and 'in-progress'), 'target.env' (Single Select with predefined values 'dev', 'staging', and 'production'), and 'build.number' (Any value/Text).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_property_set/setup_task.sh",
+    "post_task": "/workspace/tasks/create_property_set/export_result.sh"
+  },
+  "metadata": {
+    "property_set_name": "build-info",
+    "repo_key": "example-repo-local",
+    "properties": [
+      {
+        "name": "build.status",
+        "values": [
+          "passed",
+          "failed",
+          "in-progress"
+        ]
+      },
+      {
+        "name": "target.env",
+        "values": [
+          "dev",
+          "staging",
+          "production"
+        ]
+      },
+      {
+        "name": "build.number",
+        "values": []
+      }
+    ],
+    "admin_user": "admin",
+    "admin_pass": "password"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_property_set"
+    }
+  }
+}

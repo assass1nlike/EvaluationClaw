@@ -1,0 +1,29 @@
+{
+  "id": "archive_stale_opportunities@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "You are a sales manager performing end-of-quarter pipeline cleanup in Odoo CRM. Archive the following three stale opportunities to keep the pipeline accurate for forecasting: \"Cloud Migration Assessment - GlobalTech Solutions\", \"POS System Rollout - Bay Area Retailers\", and \"Data Analytics Platform - Meridian Corp\". Ensure these specific opportunities are deactivated (not deleted) and removed from the active pipeline view without modifying any other records.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archive_stale_opportunities/setup_task.sh",
+    "post_task": "/workspace/tasks/archive_stale_opportunities/export_result.sh"
+  },
+  "metadata": {
+    "target_opportunities": [
+      "Cloud Migration Assessment - GlobalTech Solutions",
+      "POS System Rollout - Bay Area Retailers",
+      "Data Analytics Platform - Meridian Corp"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archive_stale_opportunities"
+    }
+  }
+}

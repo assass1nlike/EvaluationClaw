@@ -1,0 +1,59 @@
+{
+  "task_id": "trajectory_jerk_analysis@1",
+  "task_completion": [
+    {
+      "id": "api_connection_script",
+      "description": "Verify the agent created a script to connect to the CoppeliaSim ZMQ Remote API with the correct credentials.",
+      "points": 10,
+      "visual_evidence": "Code editor or terminal showing a script containing connection details for port 23000, username 'ga', and password 'password123'."
+    },
+    {
+      "id": "waypoint_commands",
+      "description": "Verify the script commands the robot arm through at least 5 distinct waypoints.",
+      "points": 15,
+      "visual_evidence": "Code showing an array, list, or loop defining at least 5 different target positions (waypoints) for the robot arm to move through."
+    },
+    {
+      "id": "kinematic_calculations",
+      "description": "Verify the script includes logic to compute velocity, acceleration, and jerk from the position data.",
+      "points": 20,
+      "visual_evidence": "Code showing mathematical differentiation logic (e.g., calculating differences in position, velocity, and acceleration divided by time steps)."
+    },
+    {
+      "id": "csv_export_columns",
+      "description": "Verify 'trajectory_samples.csv' is exported to the correct directory with the required columns.",
+      "points": 20,
+      "visual_evidence": "Terminal or editor showing 'trajectory_samples.csv' in '/home/ga/Documents/CoppeliaSim/exports/' with headers: timestamp_s, x_m, y_m, z_m, velocity_m_s, acceleration_m_s2, jerk_m_s3."
+    },
+    {
+      "id": "csv_row_count",
+      "description": "Verify the exported CSV contains at least 200 rows of data.",
+      "points": 15,
+      "visual_evidence": "Terminal output of a command like 'wc -l trajectory_samples.csv' showing a number >= 200, or a file editor showing the file has 200+ lines."
+    },
+    {
+      "id": "json_export_fields",
+      "description": "Verify 'smoothness_report.json' is exported to the correct directory with all required fields.",
+      "points": 20,
+      "visual_evidence": "Terminal or editor showing 'smoothness_report.json' in '/home/ga/Documents/CoppeliaSim/exports/' containing the keys: total_samples, total_waypoints, duration_s, avg_velocity_m_s, max_acceleration_m_s2, max_jerk_m_s3, rms_jerk_m_s3, smooth_segment_pct."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_execution",
+      "description": "Verify the agent actually executed a Python/robotics script to interact with CoppeliaSim rather than just creating mock output files.",
+      "visual_evidence": "Terminal output showing the script running, connecting to the API, or printing simulation progress, rather than just 'echo' commands or direct text editor creation of the final files."
+    },
+    {
+      "id": "dynamic_data_generation",
+      "description": "Verify the CSV and JSON files contain calculated numerical values, not hardcoded placeholder text.",
+      "visual_evidence": "The contents of 'trajectory_samples.csv' and 'smoothness_report.json' show realistic, varying floating-point numbers for kinematic values."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "Verify the agent computed the JSON report metrics rather than hardcoding a static JSON string.",
+      "visual_evidence": "The script contains logic to calculate metrics like 'rms_jerk_m_s3' and 'smooth_segment_pct' from the collected data before writing to the JSON file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating two files in '/home/ga/Documents/CoppeliaSim/exports/'. 1) 'trajectory_samples.csv' must have at least 200 rows and exactly these columns: timestamp_s, x_m, y_m, z_m, velocity_m_s, acceleration_m_s2, jerk_m_s3. 2) 'smoothness_report.json' must contain exactly these fields: total_samples, total_waypoints, duration_s, avg_velocity_m_s, max_acceleration_m_s2, max_jerk_m_s3, rms_jerk_m_s3, smooth_segment_pct. The script must connect to port 23000 using 'ga'/'password123' and command at least 5 waypoints."
+}

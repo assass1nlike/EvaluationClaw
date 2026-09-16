@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_revenue_correction_audit@1",
+  "task_completion": [
+    {
+      "id": "create_audit_view",
+      "description": "Create the v_audit_underpayments view with the required columns",
+      "points": 20,
+      "visual_evidence": "A SQL client (e.g., DBeaver, MySQL CLI) showing the execution of a 'CREATE VIEW v_audit_underpayments AS...' statement that includes columns for payment_id, rental_id, amount, rental_rate, and difference."
+    },
+    {
+      "id": "export_audit_csv",
+      "description": "Export the view results to the specified CSV file path",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal (e.g., 'ls' command), or database export wizard showing the file 'underpayment_audit.csv' successfully created in the '/home/ga/Documents/exports/' directory."
+    },
+    {
+      "id": "csv_contents_valid",
+      "description": "The exported CSV contains the correct audit data",
+      "points": 10,
+      "visual_evidence": "A text editor, spreadsheet, or terminal output showing the contents of the CSV file, which must include the 5 required columns and rows where the 'amount' is 0.01."
+    },
+    {
+      "id": "execute_update_fix",
+      "description": "Update the payment table to fix the corrupted amounts",
+      "points": 30,
+      "visual_evidence": "A SQL client showing the execution of an 'UPDATE payment...' statement that sets the amount to the rental_rate. Look for a success message indicating rows were updated (should be exactly 40 rows)."
+    },
+    {
+      "id": "verify_empty_view",
+      "description": "Verify the fix by ensuring the view returns no rows",
+      "points": 20,
+      "visual_evidence": "A SQL client showing the execution of 'SELECT * FROM v_audit_underpayments' (or similar query) returning an empty result set (0 rows), proving the underpayments were fixed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_client_used",
+      "description": "The agent interacted with a genuine database client",
+      "visual_evidence": "Screenshots should show a real database tool (like DBeaver, MySQL Workbench, or terminal mysql client) being used to execute queries, not just text written in a generic text editor."
+    },
+    {
+      "id": "targeted_update_query",
+      "description": "The UPDATE query specifically targets only the corrupted records",
+      "visual_evidence": "The UPDATE statement must include a WHERE clause or JOIN condition that restricts the update to records where the amount is less than the rental rate (or specifically 0.01). It should not be a blanket update of all payments."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The CSV export was generated from the database, not manually typed",
+      "visual_evidence": "The CSV creation should be the result of a database export function (e.g., DBeaver export wizard, 'INTO OUTFILE' query, or CLI redirection) rather than the agent manually typing 40 rows into a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database is 'sakila'. The view must be named 'v_audit_underpayments'. The CSV must be saved to '/home/ga/Documents/exports/underpayment_audit.csv'. The corrupted records have an amount of exactly 0.01. There are exactly 40 corrupted records in the database, so the exported CSV should contain exactly 40 data rows, and the UPDATE statement should report exactly 40 rows affected."
+}

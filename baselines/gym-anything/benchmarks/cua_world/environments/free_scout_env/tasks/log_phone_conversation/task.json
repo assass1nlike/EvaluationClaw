@@ -1,0 +1,32 @@
+{
+  "id": "log_phone_conversation@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are a Computer User Support Specialist who just finished a phone call with a customer. Log this phone interaction in FreeScout (http://localhost:8080) using the credentials admin@helpdesk.local / Admin123!. Create a Phone conversation (not an email conversation) in the 'IT Support' mailbox for customer David Chen (david.chen@acmecorp.com).\n\nSubject: Network Printer Not Detected - HP LaserJet Pro M404n\nBody: Customer called regarding HP LaserJet Pro M404n printer not showing up on his Windows 11 workstation. Verified printer is online and reachable at 192.168.1.45. Cleared Windows print spooler and re-added printer via IP. Printer now detected and test page printed successfully. Customer confirmed issue resolved.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/log_phone_conversation/setup_task.sh",
+    "post_task": "/workspace/tasks/log_phone_conversation/export_result.sh"
+  },
+  "metadata": {
+    "expected_mailbox_name": "IT Support",
+    "expected_customer_email": "david.chen@acmecorp.com",
+    "expected_subject": "Network Printer Not Detected - HP LaserJet Pro M404n",
+    "expected_body_keywords": [
+      "HP LaserJet Pro M404n",
+      "192.168.1.45",
+      "print spooler",
+      "Windows 11"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_log_phone_conversation"
+    }
+  }
+}

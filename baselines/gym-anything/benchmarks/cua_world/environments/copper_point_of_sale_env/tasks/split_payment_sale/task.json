@@ -1,0 +1,41 @@
+{
+  "id": "split_payment_sale@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Process a sale for one Bluetooth Speaker BTS-200, one USB-C Charging Cable 6ft, and one Clear Phone Case Universal. If these items are not found in the inventory, create them with prices of $45.99, $12.99, and $24.99 respectively. Complete the transaction using a split payment consisting of $50.00 in cash and the remaining balance via card. Save a screenshot of the transaction receipt to C:\\Users\\Docker\\Documents\\split_payment_receipt.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\split_payment_sale\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\split_payment_sale\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_receipt_path": "C:\\Users\\Docker\\Documents\\split_payment_receipt.png",
+    "items": [
+      {
+        "name": "Bluetooth Speaker BTS-200",
+        "price": 45.99
+      },
+      {
+        "name": "USB-C Charging Cable 6ft",
+        "price": 12.99
+      },
+      {
+        "name": "Clear Phone Case Universal",
+        "price": 24.99
+      }
+    ],
+    "expected_total": 83.97,
+    "split_cash_amount": 50.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_split_payment_sale"
+    }
+  }
+}

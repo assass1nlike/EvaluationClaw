@@ -1,0 +1,37 @@
+{
+  "id": "refactor_to_parameterized_tests@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Refactor the 'PasswordValidatorTest' class in the 'security-utils' project located at ~/IdeaProjects/security-utils. Replace the eight redundant test methods with a single JUnit 5 '@ParameterizedTest' (e.g., using '@CsvSource') that preserves all original test scenarios. Remove the redundant individual test methods while ensuring all eight test cases continue to pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_to_parameterized_tests/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_to_parameterized_tests/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/security-utils",
+    "test_file_path": "src/test/java/com/security/PasswordValidatorTest.java",
+    "expected_test_count": 8,
+    "redundant_methods": [
+      "testValidPassword",
+      "testTooShort",
+      "testNoDigit",
+      "testNoUppercase",
+      "testHasWhitespace",
+      "testEmpty",
+      "testNull",
+      "testVeryLongPassword"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_to_parameterized_tests"
+    }
+  }
+}

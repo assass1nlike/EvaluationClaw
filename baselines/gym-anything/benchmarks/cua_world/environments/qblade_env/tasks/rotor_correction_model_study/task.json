@@ -1,0 +1,29 @@
+{
+  "id": "rotor_correction_model_study@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform a comparative study on the impact of Prandtl Tip Loss correction on a HAWT rotor. Using a NACA 4418 airfoil (360-degree polar, XFoil Re=1M, Ncrit=9, -5 to 20 deg), design a 3-blade rotor (Radius=5m, Hub=0.5m, Linear Chord 0.8m to 0.3m, Linear Twist 15deg to 0deg). Run two BEM simulations at 10m/s wind speed (TSR sweep 1-12, step 0.5) named 'BEM_TipLoss_ON' (Prandtl Tip Loss enabled) and 'BEM_TipLoss_OFF' (Prandtl Tip Loss disabled). Save the project to '~/Documents/projects/tip_loss_study.wpa' and create a report at '~/Documents/tip_loss_report.txt' comparing the Maximum Cp and corresponding CT for both cases, including the percentage increase when tip loss is ignored.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/rotor_correction_model_study/setup_task.sh",
+    "post_task": "/workspace/tasks/rotor_correction_model_study/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/tip_loss_report.txt",
+    "project_path": "/home/ga/Documents/projects/tip_loss_study.wpa",
+    "min_cp": 0.05,
+    "max_cp": 0.593,
+    "min_delta_percent": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rotor_study"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "fitts_throughput_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_fitts_data",
+      "description": "Agent accesses the input dataset.",
+      "points": 10,
+      "visual_evidence": "Code (e.g., pandas.read_csv) or terminal commands showing the agent opening or reading '~/pebl/data/fitts_data.csv'."
+    },
+    {
+      "id": "calculate_fitts_metrics",
+      "description": "Agent calculates Fitts' Law parameters and throughput for each participant.",
+      "points": 20,
+      "visual_evidence": "Code showing calculation of Index of Difficulty (ID), linear regression for intercept/slope/R-squared, and throughput (bits/s), aggregating across amplitude and width conditions."
+    },
+    {
+      "id": "exclude_automated_behavior",
+      "description": "Agent identifies and excludes the participant with automated/non-human behavior.",
+      "points": 20,
+      "visual_evidence": "Code showing filtering logic for unrealistic performance (e.g., extremely low movement time or deviation), or the final JSON showing participant P99 with '\"excluded\": true' and a reason."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Agent calculates group means for the valid participants.",
+      "points": 20,
+      "visual_evidence": "Code showing averaging of the valid participants' throughput, slope, and R-squared, or these specific group mean keys present in the final JSON output."
+    },
+    {
+      "id": "write_json_report",
+      "description": "Agent writes the final structured results to the specified JSON file.",
+      "points": 30,
+      "visual_evidence": "Code showing writing/dumping to '~/pebl/analysis/fitts_report.json' or the file open in an editor displaying the correctly structured JSON with 'participants' list and group means."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_calculation",
+      "description": "The agent calculates the metrics dynamically from the CSV data.",
+      "visual_evidence": "The agent's script contains actual mathematical and statistical operations (e.g., using pandas, numpy, scipy) rather than hardcoding the final JSON values."
+    },
+    {
+      "id": "rule_based_exclusion",
+      "description": "The exclusion of the non-human participant is based on data analysis.",
+      "visual_evidence": "The script uses a logical condition (e.g., checking for impossibly high speed or precision) to filter the participant, rather than hardcoding the exclusion of 'P99'."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "The output is saved to the correct file path.",
+      "visual_evidence": "The file path '~/pebl/analysis/fitts_report.json' is explicitly used in the script's save function or terminal commands, rather than just printing results to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Participant 'P99' is the contaminated auto-clicker that must be excluded. There are exactly 15 valid human participants (P01 to P15). The output JSON must contain these 15 valid participants with their metrics, the excluded P99 with a reason, and the group means."
+}

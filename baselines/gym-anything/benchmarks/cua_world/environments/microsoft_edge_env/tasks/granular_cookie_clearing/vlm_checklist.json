@@ -1,0 +1,59 @@
+{
+  "task_id": "granular_cookie_clearing@1",
+  "task_completion": [
+    {
+      "id": "open_cookie_settings",
+      "description": "Navigate to the specific site data management page in Microsoft Edge.",
+      "points": 10,
+      "visual_evidence": "Microsoft Edge browser is open to 'edge://settings/siteData' or the 'Cookies and site data' settings page, displaying a list of sites with stored data."
+    },
+    {
+      "id": "search_github_cookies",
+      "description": "Search for GitHub cookies in the site data list.",
+      "points": 15,
+      "visual_evidence": "The search box on the site data settings page contains 'github' or 'github.com', filtering the list to show only GitHub-related cookies."
+    },
+    {
+      "id": "delete_github_cookies",
+      "description": "Delete the GitHub cookies.",
+      "points": 15,
+      "visual_evidence": "The agent clicks the trash can icon next to the github.com entry, or clicks 'Remove all shown' while the list is filtered to GitHub."
+    },
+    {
+      "id": "search_stackoverflow_cookies",
+      "description": "Search for Stack Overflow cookies in the site data list.",
+      "points": 15,
+      "visual_evidence": "The search box on the site data settings page contains 'stackoverflow' or 'stackoverflow.com', filtering the list to show Stack Overflow-related cookies."
+    },
+    {
+      "id": "delete_stackoverflow_cookies",
+      "description": "Delete the Stack Overflow cookies.",
+      "points": 15,
+      "visual_evidence": "The agent clicks the trash can icon next to the stackoverflow.com entry, or clicks 'Remove all shown' while the list is filtered to Stack Overflow."
+    },
+    {
+      "id": "preserve_google_cookies",
+      "description": "Ensure Google cookies are preserved by avoiding bulk deletion or explicitly verifying their presence.",
+      "points": 30,
+      "visual_evidence": "The agent explicitly searches for 'google' to verify the cookies are still there, OR the agent successfully completes the targeted deletions without ever using the global 'Clear browsing data' bulk tool."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Microsoft Edge graphical interface to manage cookies.",
+      "visual_evidence": "Screenshots show interaction with the Microsoft Edge settings interface rather than executing sqlite3 database commands in a terminal window."
+    },
+    {
+      "id": "no_bulk_clear",
+      "description": "The agent did not use the global 'Clear browsing data' tool, which would violate the preservation constraint.",
+      "visual_evidence": "The agent is never seen clicking 'Clear now' in the general 'Clear browsing data' popup (edge://settings/clearBrowserData), which would wipe all cookies including Google's."
+    },
+    {
+      "id": "genuine_deletion",
+      "description": "The agent actually performed the deletion actions for the target domains.",
+      "visual_evidence": "Visual confirmation of the trash icon being clicked or the specific domains disappearing from the site data list, rather than just typing the domain names in a text editor or search bar without taking action."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires selective cookie clearing in Microsoft Edge. Target domains to remove: 'github.com' and 'stackoverflow.com'. Target domain to strictly preserve: 'google.com'. The agent must use Edge's specific site data settings (typically found at edge://settings/siteData) to delete individual cookies. Using the global 'Clear browsing data' tool will fail the task as it deletes the preserved Google session."
+}

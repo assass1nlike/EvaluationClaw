@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_pr_webhook@1",
+  "task_completion": [
+    {
+      "id": "navigate_service_hooks",
+      "description": "Navigate to the Service Hooks settings in the TailwindTraders project.",
+      "points": 10,
+      "visual_evidence": "The Azure DevOps web interface is visible, showing the 'TailwindTraders' project, and the 'Service Hooks' settings page is open."
+    },
+    {
+      "id": "select_web_hook",
+      "description": "Select 'Web Hooks' as the service to integrate with.",
+      "points": 10,
+      "visual_evidence": "A 'New Service Hook subscription' wizard or modal is open, and 'Web Hooks' is selected from the list of available services."
+    },
+    {
+      "id": "configure_trigger_event",
+      "description": "Configure the trigger event to 'Pull request created'.",
+      "points": 15,
+      "visual_evidence": "In the 'Trigger' step of the wizard, the event dropdown is set to 'Pull request created'."
+    },
+    {
+      "id": "configure_repository",
+      "description": "Restrict the trigger to the 'TailwindTraders' repository specifically.",
+      "points": 15,
+      "visual_evidence": "In the 'Trigger' step of the wizard, the 'Repository' dropdown is explicitly set to 'TailwindTraders' (it must not be left as '[Any]' or 'All')."
+    },
+    {
+      "id": "configure_target_url",
+      "description": "Set the target URL for the webhook.",
+      "points": 20,
+      "visual_evidence": "In the 'Action' step of the wizard, the URL field contains exactly 'http://localhost:9090/api/compliance-scan'."
+    },
+    {
+      "id": "configure_basic_auth",
+      "description": "Configure Basic Authentication with the correct username and a password.",
+      "points": 15,
+      "visual_evidence": "In the 'Action' step of the wizard, the Basic Authentication section is used, the Username field contains 'compliance_bot', and the Password field is populated (typically shown as dots or asterisks)."
+    },
+    {
+      "id": "save_subscription",
+      "description": "Save the webhook subscription.",
+      "points": 15,
+      "visual_evidence": "The main Service Hooks list is visible again and shows a newly added 'Web Hooks' entry for the 'Pull request created' event, indicating it was successfully saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "The agent used a web browser to interact with the Azure DevOps GUI.",
+      "visual_evidence": "Screenshots show a standard web browser interface (like Chrome, Edge, or Firefox) navigating the Azure DevOps portal, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_wizard_interaction",
+      "description": "The agent progressed through the actual Service Hook creation wizard.",
+      "visual_evidence": "Screenshots show the intermediate steps of the wizard (Service selection, Trigger configuration, Action configuration) being filled out sequentially."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The agent did not use browser developer tools to fake the final state.",
+      "visual_evidence": "Browser developer tools (F12/Inspect) are not open to manipulate the DOM, and the UI elements appear native and properly aligned."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring a Web Hook in Azure DevOps Server for the 'TailwindTraders' project. The event trigger must be 'Pull request created' (git.pullrequest.created). The repository must be explicitly set to 'TailwindTraders'. The target URL must be exactly 'http://localhost:9090/api/compliance-scan'. Basic authentication must be used with the username 'compliance_bot'. The agent must save the hook even if the connection test fails."
+}

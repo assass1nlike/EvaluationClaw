@@ -1,0 +1,94 @@
+{
+  "dataset_id": "9c62dcd5",
+  "name": "Openset Education-Related Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset contains education-related visual question answering samples where a model must answer multiple-choice questions based on a collection of textbook diagrams. It evaluates visual comprehension and knowledge recall from educational images.",
+  "card_text": "This dataset is an openset collection of education-related visual question answering tasks. Each sample includes one or more textbook diagram images and a textual prompt that combines an instruction, a question about the diagrams, and a list of multiple-choice answers. The model must select the correct answer from the provided choices. The diagrams are sourced from educational materials and cover topics such as geology, earth science, and biology. The questions require reading the diagrams and applying domain knowledge. The answer is a short text string matching one of the options. The dataset contains 200 samples, designed to test multimodal reasoning over educational illustrations.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "education",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "A list of one or more textbook diagram image files that serve as the visual reference material for the question. These diagrams contain educational content such as geological timelines, fault types, or biological structures.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "A textual prompt that instructs the model to answer a question using the provided diagrams. It includes placeholders <ImageHere> where the images should be inserted, followed by the question and a multiple-choice list.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A set of multiple-choice options embedded within the prompt text after the phrase 'Choice list:'. The model must choose the correct answer from this list.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer text, which is one of the options provided in the prompt. It is a short string such as a number or a phrase.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of image file references (textbook diagrams), a text prompt that includes an instruction, a question, and a multiple-choice list, and an answer text. The images act as the visual context that the question asks about; the prompt combines the query and the answer options; the answer is the selected option from that list. The model must read the diagrams, understand the question, and pick the correct choice."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Education-RelatedVQA/openset_education-related_vqa.json",
+    "existing_tags": {
+      "task": "Education-Related VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "Education",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Education"
+  }
+}

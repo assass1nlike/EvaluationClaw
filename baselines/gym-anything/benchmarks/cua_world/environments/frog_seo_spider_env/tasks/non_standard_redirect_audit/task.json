@@ -1,0 +1,29 @@
+{
+  "id": "non_standard_redirect_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Crawl https://crawler-test.com/ to identify non-standard redirects, specifically Meta Refresh and JavaScript redirects. Export the identified Meta Refresh redirects to ~/Documents/SEO/exports/meta_refresh_audit.csv and the JavaScript redirects to ~/Documents/SEO/exports/js_redirect_audit.csv. Generate a summary report at ~/Documents/SEO/reports/redirect_remediation_summary.txt listing the counts for each redirect type and providing a technical justification for their remediation, such as conversion to 301 redirects.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/non_standard_redirect_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/non_standard_redirect_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "expected_meta_refresh_file": "meta_refresh_audit.csv",
+    "expected_js_redirect_file": "js_redirect_audit.csv",
+    "report_file": "redirect_remediation_summary.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_non_standard_redirect_audit"
+    }
+  }
+}

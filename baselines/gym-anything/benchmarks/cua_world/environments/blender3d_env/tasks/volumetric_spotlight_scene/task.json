@@ -1,0 +1,33 @@
+{
+  "id": "volumetric_spotlight_scene@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a dramatic volumetric lighting scene ('god rays') in Blender. Position a Spot Light (Z > 4, Power 500W+) aimed at the cube and configure a volumetric fog domain using a Principled Volume shader (Density 0.05-0.2). Ensure the Sun light is disabled, the World Background is near black (RGB < 0.1), and the Cycles render engine is used. Render the final image to /home/ga/BlenderProjects/volumetric_render.png and save the .blend file to /home/ga/BlenderProjects/volumetric_scene.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/volumetric_spotlight_scene/setup_task.sh",
+    "post_task": "/workspace/tasks/volumetric_spotlight_scene/export_result.sh"
+  },
+  "metadata": {
+    "expected_blend": "/home/ga/BlenderProjects/volumetric_scene.blend",
+    "expected_render": "/home/ga/BlenderProjects/volumetric_render.png",
+    "min_spot_energy": 50.0,
+    "volume_density_range": [
+      0.01,
+      1.0
+    ],
+    "max_world_brightness": 0.15,
+    "required_engine": "CYCLES"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_volumetric_scene"
+    }
+  }
+}

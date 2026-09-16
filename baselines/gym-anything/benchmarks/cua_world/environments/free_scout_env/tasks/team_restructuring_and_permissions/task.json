@@ -1,0 +1,39 @@
+{
+  "id": "team_restructuring_and_permissions@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the IT Operations Director at a growing company. The support team is being reorganized to create a dedicated VIP support tier. Log in at http://localhost:8080 with admin@helpdesk.local / Admin123!. Create a new mailbox named 'VIP Support' with email vip@helpdesk.local. Reassign Alex Chen (alex.chen@helpdesk.local) from the 'Billing Support' mailbox to the 'VIP Support' mailbox. Grant Maria Rodriguez (maria.rodriguez@helpdesk.local) access to both 'Technical Support' and 'VIP Support' mailboxes. Create a saved reply named 'VIP Priority Response' with the body: 'Dear valued customer, your case has been flagged as high priority and assigned to our dedicated VIP support team. A senior support specialist will contact you within 1 business hour.' Move all conversations tagged 'vip' from the 'General Support' and 'Technical Support' mailboxes to the 'VIP Support' mailbox, and assign all conversations in the 'VIP Support' mailbox to Alex Chen.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/team_restructuring_and_permissions/setup_task.sh",
+    "post_task": "/workspace/tasks/team_restructuring_and_permissions/export_result.sh"
+  },
+  "metadata": {
+    "new_mailbox_name": "VIP Support",
+    "new_mailbox_email": "vip@helpdesk.local",
+    "agent1_first": "Alex",
+    "agent1_last": "Chen",
+    "agent1_email": "alex.chen@helpdesk.local",
+    "agent2_first": "Maria",
+    "agent2_last": "Rodriguez",
+    "agent2_email": "maria.rodriguez@helpdesk.local",
+    "saved_reply_name": "VIP Priority Response",
+    "vip_tag": "vip",
+    "vip_conv_count": 4,
+    "billing_mailbox_name": "Billing Support",
+    "technical_mailbox_name": "Technical Support",
+    "general_mailbox_name": "General Support",
+    "data_source": "Kaggle Customer Support Ticket Dataset (chiapudding/kaggle-customer-service)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_team_restructuring_and_permissions"
+    }
+  }
+}

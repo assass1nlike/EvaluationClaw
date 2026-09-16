@@ -1,0 +1,35 @@
+{
+  "id": "abnormal_hba1c_management@1",
+  "version": "1.0",
+  "env_id": "gnu_health_env@0.1",
+  "description": "As Dr. Cameron Cordara, update the medical record for Ana Isabel Betz (PUID: GNU777ORG) to reflect a new HbA1c result of 9.4%. The update must include the completed lab test, a documented condition for poor glycemic control using an appropriate ICD-10 E10.x code, an insulin prescription for intensified therapy, and an urgent follow-up appointment scheduled within 7-28 days. Login: admin / gnusolidario.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 840,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/abnormal_hba1c_management/setup_task.sh",
+    "post_task": "/workspace/tasks/abnormal_hba1c_management/export_result.sh"
+  },
+  "metadata": {
+    "target_patient_firstname": "Ana",
+    "target_patient_lastname": "Betz",
+    "target_patient_puid": "GNU777ORG",
+    "lab_type_code": "HBA1C",
+    "expected_result_min": 9.0,
+    "expected_result_max": 9.8,
+    "condition_icd10_family": "E10",
+    "drug_class": "insulin",
+    "followup_min_days": 7,
+    "followup_max_days": 28,
+    "healthprof_name": "Cordara"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_abnormal_hba1c_management"
+    }
+  }
+}

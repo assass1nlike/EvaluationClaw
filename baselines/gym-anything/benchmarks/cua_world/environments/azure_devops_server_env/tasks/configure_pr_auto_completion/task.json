@@ -1,0 +1,29 @@
+{
+  "id": "configure_pr_auto_completion@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Configure Pull Request #1 'Update Payment Gateway SDK' in the 'PaymentGateway' repository to 'Auto-complete' once all requirements are met. Use 'Squash commit' as the merge type and enable 'Delete feature/payment-sdk after merging'. Do not approve the PR yourself or attempt to bypass branch policies.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_pr_auto_completion\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_pr_auto_completion\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "PaymentGateway",
+    "repo_name": "PaymentGateway",
+    "pr_id": 1,
+    "expected_merge_strategy": "squash",
+    "expected_delete_source": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_pr_auto_completion"
+    }
+  }
+}

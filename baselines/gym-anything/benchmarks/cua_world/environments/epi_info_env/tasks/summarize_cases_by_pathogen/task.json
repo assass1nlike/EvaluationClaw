@@ -1,0 +1,37 @@
+{
+  "id": "summarize_cases_by_pathogen@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Using Epi Info 7 Classic Analysis, generate a summary table from the foodborne illness line list at 'C:\\Users\\Docker\\Documents\\EpiData\\CaseReports.csv'. The summary must include only 'Confirmed' cases and show the Count and Average Age by PathogenName and OnsetQuarter. Export the summary table to 'C:\\Users\\Docker\\Documents\\FoodborneOutput\\pathogen_quarterly_summary.csv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\summarize_cases_by_pathogen\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\summarize_cases_by_pathogen\\export_result.ps1"
+  },
+  "metadata": {
+    "input_file": "C:\\Users\\Docker\\Documents\\EpiData\\CaseReports.csv",
+    "output_file": "C:\\Users\\Docker\\Documents\\FoodborneOutput\\pathogen_quarterly_summary.csv",
+    "expected_columns": [
+      "PathogenName",
+      "OnsetQuarter",
+      "CaseCount",
+      "AvgAge"
+    ],
+    "filter_criteria": "CaseStatus = 'Confirmed'",
+    "min_rows": 15,
+    "max_rows": 24,
+    "total_records": 847,
+    "approx_confirmed": 510
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_summarize_cases"
+    }
+  }
+}

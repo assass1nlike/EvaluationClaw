@@ -1,0 +1,59 @@
+{
+  "task_id": "geo_drill_hole_compositing@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for a database client (like DBeaver, SQL Developer, or sqlplus in terminal) showing an active connection for the user 'geo_admin' on 'localhost:1521/XEPDB1'."
+    },
+    {
+      "id": "clean_core_assays",
+      "description": "Clean the CORE_ASSAYS table by correcting overlapping sample intervals.",
+      "points": 20,
+      "visual_evidence": "Look for an executed SQL UPDATE or MERGE statement on the CORE_ASSAYS table that uses window functions (like LAG) to compare 'depth_from' with the preceding row's 'depth_to'."
+    },
+    {
+      "id": "create_hole_summary_vw",
+      "description": "Create HOLE_SUMMARY_VW calculating total_assayed_length and length-weighted averages for gold and silver.",
+      "points": 15,
+      "visual_evidence": "Look for a 'CREATE VIEW HOLE_SUMMARY_VW' SQL statement being executed. The query should contain mathematical formulas calculating length-weighted averages (e.g., SUM(length * au_gpt) / SUM(length))."
+    },
+    {
+      "id": "create_significant_intercepts_vw",
+      "description": "Create SIGNIFICANT_INTERCEPTS_VW using the MATCH_RECOGNIZE clause to identify continuous sequences.",
+      "points": 25,
+      "visual_evidence": "Look for a 'CREATE VIEW SIGNIFICANT_INTERCEPTS_VW' SQL statement. It MUST contain the 'MATCH_RECOGNIZE' keyword, conditions for 'au_gpt >= 0.5', and a check for total length '>= 3.0'."
+    },
+    {
+      "id": "create_intercept_3d_locations_vw",
+      "description": "Create INTERCEPT_3D_LOCATIONS_VW by joining with the COLLARS table to calculate 3D center coordinates.",
+      "points": 20,
+      "visual_evidence": "Look for a 'CREATE VIEW INTERCEPT_3D_LOCATIONS_VW' SQL statement that JOINs with the 'COLLARS' table and includes calculations for center_x, center_y, and center_z (elevation - (intercept_start + (intercept_length / 2)))."
+    },
+    {
+      "id": "export_significant_intercepts_csv",
+      "description": "Export the results of INTERCEPT_3D_LOCATIONS_VW to the specified CSV file path.",
+      "points": 10,
+      "visual_evidence": "Look for a GUI export dialog, a terminal command (e.g., sqlplus spooling or a csv export tool), or a file manager showing 'significant_intercepts.csv' successfully created in '/home/ga/Documents/exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sql_execution",
+      "description": "Verify that the agent actually executed the SQL commands in a database client or terminal, rather than just typing them in a text editor.",
+      "visual_evidence": "Look for execution success messages, query result grids, or 'View created' confirmations in the database client or terminal output."
+    },
+    {
+      "id": "genuine_oracle_features",
+      "description": "Verify that the agent used Oracle's MATCH_RECOGNIZE feature as requested, rather than bypassing it with a Python script or manual data manipulation.",
+      "visual_evidence": "Look for the explicit use of the 'MATCH_RECOGNIZE' clause in the SQL editor or terminal history."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify that the CSV file was generated from the database query results and not manually mocked or copy-pasted.",
+      "visual_evidence": "Look for an export action directly linked to the INTERCEPT_3D_LOCATIONS_VW query results, such as a 'Save as CSV' action in DBeaver or a command-line export utility."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV export path is exactly '/home/ga/Documents/exports/significant_intercepts.csv'. The task strictly requires the use of specific Oracle features: MATCH_RECOGNIZE, Window Functions (LAG), MERGE, and Length-Weighted Averages. Ensure the SQL queries visible in the screenshots utilize these features, particularly MATCH_RECOGNIZE for the SIGNIFICANT_INTERCEPTS_VW."
+}

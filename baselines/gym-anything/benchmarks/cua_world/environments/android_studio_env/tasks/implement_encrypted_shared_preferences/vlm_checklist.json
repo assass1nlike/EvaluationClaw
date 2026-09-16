@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_encrypted_shared_preferences@1",
+  "task_completion": [
+    {
+      "id": "dependency_added",
+      "description": "The security-crypto dependency is added to the app-level build.gradle.kts file.",
+      "points": 15,
+      "visual_evidence": "Look for the app-level build.gradle.kts file open in the editor with a line similar to `implementation(\"androidx.security:security-crypto:1.0.0\")` (or a higher version) in the dependencies block."
+    },
+    {
+      "id": "master_key_initialized",
+      "description": "A MasterKey is initialized in TokenManager.kt using MasterKey.Builder.",
+      "points": 20,
+      "visual_evidence": "Look for TokenManager.kt open in the editor showing code that instantiates a MasterKey using `MasterKey.Builder(context)`."
+    },
+    {
+      "id": "encrypted_prefs_created",
+      "description": "EncryptedSharedPreferences is created with the correct filename.",
+      "points": 20,
+      "visual_evidence": "Look for `EncryptedSharedPreferences.create(...)` in TokenManager.kt. The first parameter (or the fileName parameter) must be the string `\"secure_app_prefs\"`."
+    },
+    {
+      "id": "encryption_schemes_used",
+      "description": "The correct AES encryption schemes are specified for keys and values.",
+      "points": 20,
+      "visual_evidence": "Look for `EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV` and `EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM` passed as arguments to the `EncryptedSharedPreferences.create` method in TokenManager.kt."
+    },
+    {
+      "id": "tests_passed",
+      "description": "The TokenManagerTest unit tests are executed and pass successfully.",
+      "points": 25,
+      "visual_evidence": "Look for the Android Studio Run/Test tool window or a terminal showing the execution of `TokenManagerTest` (or `./gradlew test`) with green checkmarks, 'BUILD SUCCESSFUL', or a message indicating all tests passed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_ide_usage",
+      "description": "The agent used an IDE or proper text editor to modify the files.",
+      "visual_evidence": "Look for Android Studio, IntelliJ, or another code editor interface being used to edit build.gradle.kts and TokenManager.kt, rather than just using terminal commands like `echo` or `sed` to blindly insert code."
+    },
+    {
+      "id": "actual_test_execution",
+      "description": "The test results come from a genuine test execution.",
+      "visual_evidence": "Look for standard Gradle test output in the terminal or the official Android Studio test runner UI. It should not be a simple text file or manually typed output mimicking a test pass."
+    },
+    {
+      "id": "test_file_unmodified",
+      "description": "The agent did not modify the test file to trivially pass.",
+      "visual_evidence": "Ensure there is no evidence of the agent opening and deleting/commenting out the assertions in `TokenManagerTest.kt` just to make the test suite pass."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/AndroidStudioProjects/SecureNotes. Target file: app/src/main/java/com/example/securenotes/data/TokenManager.kt. Required dependency: androidx.security:security-crypto (version >= 1.0.0). Required filename for preferences: 'secure_app_prefs'. Key encryption scheme: AES256_SIV. Value encryption scheme: AES256_GCM. MasterKey generation class: MasterKey.Builder."
+}

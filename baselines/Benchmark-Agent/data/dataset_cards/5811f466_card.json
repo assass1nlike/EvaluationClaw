@@ -1,0 +1,78 @@
+{
+  "dataset_id": "5811f466",
+  "name": "Satellite Image Caption",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 258,
+  "description": "Dataset for satellite/aerial image caption generation. Each sample pairs a remote sensing image with an instruction to generate a caption, and multiple reference captions. It evaluates image captioning in the remote sensing domain.",
+  "card_text": "This dataset contains satellite or aerial images paired with textual captions. Each item includes an image file path and a fixed prompt asking the model to generate a caption. The output is a string-encoded list of multiple candidate captions that describe visible objects, spatial relations, and scene layout. Typical images show outdoor scenes such as playgrounds, bridges, rivers, and trees viewed from above or at an angle. The dataset is used to benchmark image captioning in the remote sensing domain, where models must produce fluent and accurate descriptions of satellite imagery. Captions are stored as a Python-like list inside a single string field, and there are about 258 samples.",
+  "tasks": [
+    "captioning"
+  ],
+  "domain": "satellite imagery",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "Path to a satellite or aerial photograph showing outdoor scenes such as playgrounds, bridges, rivers, and trees. It is the visual input that the model must describe.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction telling the model to generate a caption for the associated image. It acts as the task prompt paired with the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.captions"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "A string encoding a Python list of several candidate captions that describe the image. Captions are short factual descriptions of visible objects, spatial relations, and scene layout, serving as reference outputs.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image_file path to a satellite or aerial image and a prompt instruction, plus an output object with a captions field containing a string-encoded list of candidate captions. The image is the visual context, the prompt is the generation instruction, and the captions are the target descriptions. There are no dialog, options, bounding boxes, or segmentation annotations."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/satellite_image_caption/json/annotation.json",
+    "existing_tags": {
+      "task": "satellite image caption generation",
+      "type": "comprehension",
+      "skill": "Image Caption(Img Cap)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "wpt_probabilistic_learning_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent accesses the WPT dataset.",
+      "points": 10,
+      "visual_evidence": "Terminal or code editor showing the agent opening, reading, or inspecting '~/pebl/data/wpt_data.csv' (e.g., using pandas read_csv, head, or cat commands)."
+    },
+    {
+      "id": "process_blocks_and_scores",
+      "description": "Agent writes logic to calculate optimal response rates per block and learning scores.",
+      "points": 20,
+      "visual_evidence": "Code editor showing logic to group data into 5 blocks of 20 trials, check if 'response' equals 'optimal_choice', and calculate the difference between Block 5 and Block 1."
+    },
+    {
+      "id": "handle_contaminated_participant",
+      "description": "Agent explicitly handles the contaminated participant 'sub-999'.",
+      "points": 20,
+      "visual_evidence": "Code editor showing explicit filtering or conditional logic to exclude 'sub-999' from group mean calculations and to add the '\"excluded\": true' flag for this participant in the output dictionary."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Agent successfully generates the required JSON report.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the creation of '~/pebl/analysis/wpt_report.json', or a printout/cat of the file showing the required structure with 'participants' (containing block_optimal_rates and learning_score) and 'group_learning_curve'."
+    },
+    {
+      "id": "generate_learning_curve_plot",
+      "description": "Agent successfully generates the learning curve line plot.",
+      "points": 25,
+      "visual_evidence": "File explorer, terminal, or image viewer showing the creation of '~/pebl/analysis/wpt_learning_curve.png'. The code or image should indicate a line plot with Blocks 1-5 on the X-axis and Mean Optimal Response Rate on the Y-axis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_based_computation",
+      "description": "Agent used a script to compute the results rather than hardcoding fake values.",
+      "visual_evidence": "Presence of a Python, R, or bash script containing actual data manipulation logic (e.g., pandas groupby, mean) rather than a script that just writes a hardcoded JSON string."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The plot was generated programmatically by the agent.",
+      "visual_evidence": "Code editor showing plotting commands (e.g., matplotlib.pyplot, seaborn) saving to the exact required PNG path, rather than downloading or copying an existing image."
+    },
+    {
+      "id": "correct_output_directories",
+      "description": "Outputs are saved to the correct target directory.",
+      "visual_evidence": "Terminal commands or script paths explicitly showing files being written to '/home/ga/pebl/analysis/' or '~/pebl/analysis/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 100 trials per participant, which must be grouped into 5 blocks of 20 trials. Participant 'sub-999' is contaminated and must be explicitly excluded from group calculations and flagged in the JSON. The outputs must be saved exactly to /home/ga/pebl/analysis/wpt_report.json and /home/ga/pebl/analysis/wpt_learning_curve.png."
+}

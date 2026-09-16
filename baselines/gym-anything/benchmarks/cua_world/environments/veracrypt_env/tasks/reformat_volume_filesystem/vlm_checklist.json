@@ -1,0 +1,59 @@
+{
+  "task_id": "reformat_volume_filesystem@1",
+  "task_completion": [
+    {
+      "id": "mount_volume",
+      "description": "Mount the encrypted VeraCrypt volume.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful 'veracrypt' mount command for '/home/ga/Volumes/data_volume.hc' (using password 'MountMe2024'), or the VeraCrypt GUI showing the volume as mounted."
+    },
+    {
+      "id": "backup_data",
+      "description": "Backup the existing data from the FAT volume.",
+      "points": 15,
+      "visual_evidence": "Terminal commands (like 'cp -r' or 'rsync') or a file manager window showing the files ('SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', 'backup_authorized_keys') being copied from the mounted volume to a temporary directory on the host system."
+    },
+    {
+      "id": "reformat_ext4",
+      "description": "Reformat the volume's internal filesystem to ext4.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a formatting command (e.g., 'mkfs.ext4') executed on the mapped VeraCrypt block device (e.g., '/dev/mapper/veracrypt1'), or a disk utility GUI showing the VeraCrypt volume being formatted to ext4."
+    },
+    {
+      "id": "restore_data",
+      "description": "Restore the original data to the newly formatted ext4 volume.",
+      "points": 20,
+      "visual_evidence": "Terminal commands or a file manager window showing the previously backed-up files being copied back into the mounted VeraCrypt volume's directory."
+    },
+    {
+      "id": "save_verification_report",
+      "description": "Save a verification report listing the new filesystem type and the files inside.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat /home/ga/Volumes/reformat_report.txt') showing the report file contains the text 'ext4' and lists the three preserved files."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Dismount the volume when finished.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful dismount command (e.g., 'veracrypt -d') or the VeraCrypt GUI showing no volumes currently mounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_reformat_command",
+      "description": "Verify the agent actually formatted the block device.",
+      "visual_evidence": "Look for actual execution of a filesystem creation tool (like mkfs.ext4) on the /dev/mapper/veracrypt* device. The agent should not just change a label or fake the output."
+    },
+    {
+      "id": "genuine_backup_process",
+      "description": "Verify the agent genuinely backed up and restored the files.",
+      "visual_evidence": "Look for intermediate steps where files are stored in a host directory (e.g., /tmp or /home/ga/Documents) while the formatting takes place. The files should not just be recreated from scratch or downloaded."
+    },
+    {
+      "id": "report_file_actually_saved",
+      "description": "Verify the verification report is saved to the correct path.",
+      "visual_evidence": "Look for shell redirection ('> /home/ga/Volumes/reformat_report.txt') or a text editor saving to that exact path, rather than just printing the expected text to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The target volume is '/home/ga/Volumes/data_volume.hc' and the password is 'MountMe2024'. The expected filesystem after formatting is 'ext4'. The files that must be preserved and listed in the report are: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'. The final report must be saved exactly at '/home/ga/Volumes/reformat_report.txt'."
+}

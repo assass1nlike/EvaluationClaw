@@ -1,0 +1,53 @@
+{
+  "task_id": "filter_dicom_worklist@1",
+  "task_completion": [
+    {
+      "id": "weasis_running",
+      "description": "Verify that the Weasis application is opened.",
+      "points": 10,
+      "visual_evidence": "The Weasis main application window is visible on the screen."
+    },
+    {
+      "id": "dicom_directory_imported",
+      "description": "Verify that the agent imports the correct DICOM directory.",
+      "points": 20,
+      "visual_evidence": "An import dialog, file browser, or DICOM explorer within Weasis shows the directory '~/DICOM/trauma_transfer/' (or '/home/ga/DICOM/trauma_transfer') being selected or loaded."
+    },
+    {
+      "id": "target_patient_located",
+      "description": "Verify that the target patient 'TRAUMA-007' is located in the worklist.",
+      "points": 20,
+      "visual_evidence": "The Patient ID 'TRAUMA-007' is visible and selected or highlighted in the Weasis patient list, DICOM explorer, or worklist."
+    },
+    {
+      "id": "study_displayed_in_viewer",
+      "description": "Verify that the study for 'TRAUMA-007' is opened and displayed in the viewer.",
+      "points": 30,
+      "visual_evidence": "The main Weasis image viewer actively displays the DICOM image for 'TRAUMA-007', which should visually appear as a bright geometric cross pattern on a darker background."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify that a full viewer screenshot is saved to the expected output path.",
+      "points": 20,
+      "visual_evidence": "A screenshot tool, save dialog, terminal command, or file manager shows a file named 'target_patient.png' being saved to or existing in '~/DICOM/exports/' (or '/home/ga/DICOM/exports/')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_weasis_interaction",
+      "description": "Ensure the agent actually used the Weasis GUI to view the image.",
+      "visual_evidence": "The geometric cross pattern must be visible specifically within the Weasis application interface, not just opened in a generic image viewer or terminal."
+    },
+    {
+      "id": "no_scripting_bypass",
+      "description": "Ensure the agent did not use a python script or CLI tool to generate the final screenshot directly from the DICOM file.",
+      "visual_evidence": "There should be no terminal windows showing python scripts or ImageMagick commands directly converting the DICOM file to a PNG without opening Weasis."
+    },
+    {
+      "id": "full_viewer_screenshot",
+      "description": "Ensure the screenshot captures the Weasis viewer as requested, rather than just cropping the image area.",
+      "visual_evidence": "The process of saving the screenshot (or the final image if visible) should indicate it captures the full viewer/window, not just the raw pixel data of the DICOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The target patient ID is 'TRAUMA-007'. The input directory to import is '/home/ga/DICOM/trauma_transfer'. The expected output is a screenshot saved exactly to '/home/ga/DICOM/exports/target_patient.png'. The specific DICOM file for 'TRAUMA-007' contains a synthetic 'geometric cross' pattern (bright intersecting lines on a darker background), which must be visually confirmed in the Weasis viewer."
+}

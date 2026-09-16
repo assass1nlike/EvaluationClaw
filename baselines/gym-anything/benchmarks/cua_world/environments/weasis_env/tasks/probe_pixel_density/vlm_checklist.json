@@ -1,0 +1,59 @@
+{
+  "task_id": "probe_pixel_density@1",
+  "task_completion": [
+    {
+      "id": "dicom_viewer_opened",
+      "description": "The agent opened the DICOM viewer or medical imaging software and loaded the CT scan.",
+      "points": 10,
+      "visual_evidence": "A graphical application displaying a 256x256 image (a gradient with a central circle) is visible on the screen."
+    },
+    {
+      "id": "probe_coordinate_128_128",
+      "description": "The agent probed the pixel density at coordinate (128, 128).",
+      "points": 20,
+      "visual_evidence": "The mouse cursor or a probe tool is positioned near the center of the image (approx. 128, 128), and the software UI displays a pixel value near 2000 or an HU value near 976."
+    },
+    {
+      "id": "probe_coordinate_64_64",
+      "description": "The agent probed the pixel density at coordinate (64, 64).",
+      "points": 20,
+      "visual_evidence": "The mouse cursor or a probe tool is positioned in the upper-left quadrant of the image (approx. 64, 64), and the software UI displays a pixel value near 1000 or an HU value near -24."
+    },
+    {
+      "id": "probe_coordinate_192_192",
+      "description": "The agent probed the pixel density at coordinate (192, 192).",
+      "points": 20,
+      "visual_evidence": "The mouse cursor or a probe tool is positioned in the lower-right quadrant of the image (approx. 192, 192), and the software UI displays a pixel value near 3000 or an HU value near 1976."
+    },
+    {
+      "id": "format_results_text",
+      "description": "The agent formatted the probed results into the required text structure.",
+      "points": 15,
+      "visual_evidence": "A text editor is open showing the exact header 'Pixel Probe Results' followed by 'Coordinate (128,128): [value]', 'Coordinate (64,64): [value]', and 'Coordinate (192,192): [value]'."
+    },
+    {
+      "id": "save_results_file",
+      "description": "The agent saved the text file to the correct directory with the correct filename.",
+      "points": 15,
+      "visual_evidence": "The text editor's title bar, save dialog, or a terminal window confirms the file is saved as 'pixel_probe_results.txt' inside the '/home/ga/DICOM/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the graphical interface of the imaging software to probe the values rather than extracting them programmatically.",
+      "visual_evidence": "Screenshots show the agent actively moving the mouse over the image in the viewer to read the values from the UI, rather than running a Python/bash script to read the DICOM array."
+    },
+    {
+      "id": "authentic_recorded_values",
+      "description": "The values recorded in the text file match the values actually observed in the viewer.",
+      "visual_evidence": "The numeric values typed into the text editor correspond to the values shown in the viewer's probe tooltips or status bar during the probing steps."
+    },
+    {
+      "id": "no_hallucination_or_cheating",
+      "description": "The agent did not guess the values or copy them from an external source without checking.",
+      "visual_evidence": "The agent actually navigates to the three specific coordinates in the image viewer before writing the values down."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file path: /home/ga/DICOM/exports/pixel_probe_results.txt. Target coordinates and expected values (Raw / HU): (128,128) -> 2000 / 976; (64,64) -> 1000 / -24; (192,192) -> 3000 / 1976. Value tolerance is \u00b1100 units. Coordinate tolerance is \u00b15 pixels. The agent is allowed to record either the Raw pixel value or the HU value."
+}

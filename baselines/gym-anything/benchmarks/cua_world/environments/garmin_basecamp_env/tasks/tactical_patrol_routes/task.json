@@ -1,0 +1,22 @@
+{
+  "id": "tactical_patrol_routes@1",
+  "version": "1.0",
+  "env_id": "garmin_basecamp_env@0.1",
+  "description": "You are a Law Enforcement Officer coordinating a multi-team field training exercise at a regional park reserve. Create a GPS data package in BaseCamp with the following waypoints and routes, then export the data as a GPX file to C:\\Users\\Docker\\Desktop\\TacOp_Exercise_Foxtrot.gpx.\n\nWaypoints:\n- PATROL BASE FOXTROT (42.4450, -71.1120), Symbol: Flag, Blue, Comment: PB FOXTROT. Main staging. Vehicles: 4 patrol + 2 plain. Post-op debrief here.\n- OBJ ALPHA TARGET (42.4540, -71.0980), Symbol: Flag, Red, Comment: PRIMARY",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 110,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\tactical_patrol_routes\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\tactical_patrol_routes\\export_result.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tactical_patrol_routes"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "grease_pencil_line_art_setup@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a technical illustrator creating a vector-style drawing of a car. Generate automatic line art outlines for the BMW model in the scene using Blender's Grease Pencil system. The line art must be generated from the 'BMW' collection and baked into editable strokes. Save the project to /home/ga/BlenderProjects/bmw_line_art.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/grease_pencil_line_art_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/grease_pencil_line_art_setup/export_result.sh"
+  },
+  "metadata": {
+    "source_blend": "/home/ga/BlenderProjects/bmw_source.blend",
+    "expected_output": "/home/ga/BlenderProjects/bmw_line_art.blend",
+    "target_collection_name": "BMW",
+    "min_stroke_count": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_grease_pencil_line_art"
+    }
+  }
+}

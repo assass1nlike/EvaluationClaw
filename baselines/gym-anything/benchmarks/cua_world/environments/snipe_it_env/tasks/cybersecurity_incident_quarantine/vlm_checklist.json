@@ -1,0 +1,59 @@
+{
+  "task_id": "cybersecurity_incident_quarantine@1",
+  "task_completion": [
+    {
+      "id": "status_label_created",
+      "description": "Verify the creation of the 'Quarantined - Forensic Hold' status label with the 'Undeployable' type.",
+      "points": 20,
+      "visual_evidence": "Look at the Status Labels page in Snipe-IT. Ensure a label named 'Quarantined - Forensic Hold' exists and its type is listed as 'Undeployable'."
+    },
+    {
+      "id": "target1_remediated",
+      "description": "Verify asset LPT-MKT-04 is checked in, quarantined, and notes updated.",
+      "points": 15,
+      "visual_evidence": "Look at the asset details or hardware list for LPT-MKT-04. Verify its status is 'Quarantined - Forensic Hold', it is unassigned (checked in), and the Notes field contains 'CS-8841' or 'CrowdStrike Alert CS-8841'."
+    },
+    {
+      "id": "target2_remediated",
+      "description": "Verify asset LPT-SALES-11 is checked in, quarantined, and notes updated.",
+      "points": 15,
+      "visual_evidence": "Look at the asset details or hardware list for LPT-SALES-11. Verify its status is 'Quarantined - Forensic Hold', it is unassigned (checked in), and the Notes field contains 'CS-8841' or 'CrowdStrike Alert CS-8841'."
+    },
+    {
+      "id": "target3_remediated",
+      "description": "Verify asset LPT-HR-02 is checked in, quarantined, and notes updated.",
+      "points": 15,
+      "visual_evidence": "Look at the asset details or hardware list for LPT-HR-02. Verify its status is 'Quarantined - Forensic Hold', it is unassigned (checked in), and the Notes field contains 'CS-8841' or 'CrowdStrike Alert CS-8841'."
+    },
+    {
+      "id": "action_logs_verify_checkin",
+      "description": "Verify the action logs show check-in events for the compromised assets.",
+      "points": 15,
+      "visual_evidence": "Look at the Snipe-IT Dashboard, Recent Activity, or Action Logs. Verify there are 'Checkin' events recorded for LPT-MKT-04, LPT-SALES-11, and LPT-HR-02."
+    },
+    {
+      "id": "control_assets_untouched",
+      "description": "Verify control assets were not modified or checked in.",
+      "points": 20,
+      "visual_evidence": "Look at the hardware list or asset details for control assets like LPT-EXEC-01 and LPT-DEV-09. Verify their status has not been changed to 'Quarantined - Forensic Hold' and they are still assigned to users."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Snipe-IT web interface.",
+      "visual_evidence": "The agent should be navigating the Snipe-IT web application in a browser. Look for genuine clicks on menus, forms, and buttons rather than terminal commands (like curl or mysql) to manipulate the database."
+    },
+    {
+      "id": "genuine_modification",
+      "description": "Verify the agent actually edited the assets and created the status label.",
+      "visual_evidence": "Look for screenshots showing the agent filling out the 'Create Status Label' form and the 'Edit Asset' or 'Checkin' forms, rather than just typing the expected text into a notepad or terminal."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Ensure the agent did not fake the results using browser developer tools.",
+      "visual_evidence": "Check that the browser's developer tools (Inspect Element) are not open and being used to alter the DOM text to falsely display 'Quarantined - Forensic Hold' or 'CS-8841'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Status Label: 'Quarantined - Forensic Hold'. Target Status Type: 'Undeployable'. Compromised Assets to be remediated: LPT-MKT-04, LPT-SALES-11, LPT-HR-02. Control Assets that must remain untouched: LPT-EXEC-01, LPT-DEV-09. The text 'CS-8841' must be appended to the notes of the compromised assets."
+}

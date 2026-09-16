@@ -1,0 +1,29 @@
+{
+  "id": "create_company_hierarchy@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "A sales representative needs to set up the contact structure for a new multinational prospect. Establish a hierarchical contact structure starting with the parent company 'Nexus Global Industries' (Type: Company, Address: 500 Park Avenue, New York, NY 10022, United States, Phone: +1 212-555-0100, Website: https://www.nexusglobal.example.com). This parent company has two subsidiaries: 'Nexus Global - Europe' (Type: Company, Address: 45 Moorgate, London, EC2R 6AN, United Kingdom) and 'Nexus Global - Asia Pacific' (Type: Company, Address: 2-3-1 Nihonbashi, Chuo-ku, Tokyo 103-0027, Japan). Additionally, include individual contacts: 'Elena Rossi' (Job Position: VP of Sales EMEA, Email: elena.rossi@nexusglobal.example.com, Phone: +44 20 7946 0958) associated with the Europe subsidiary, and 'Kenji Tanaka' (Job Position: Regional Director APAC, Email: kenji.tanaka@nexusglobal.example.com, Phone: +81 3-1234-5678) associated with the Asia Pacific subsidiary. Ensure all parent-child relationships are correctly established between the companies and individuals.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_company_hierarchy/setup_task.sh",
+    "post_task": "/workspace/tasks/create_company_hierarchy/export_result.sh"
+  },
+  "metadata": {
+    "parent_name": "Nexus Global Industries",
+    "sub_europe": "Nexus Global - Europe",
+    "sub_apac": "Nexus Global - Asia Pacific",
+    "contact_europe": "Elena Rossi",
+    "contact_apac": "Kenji Tanaka"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_company_hierarchy"
+    }
+  }
+}

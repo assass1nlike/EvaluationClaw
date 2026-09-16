@@ -1,0 +1,53 @@
+{
+  "task_id": "spatial_join_summary_concatenation@1",
+  "task_completion": [
+    {
+      "id": "load_input_layers",
+      "description": "Load the precincts and polling places layers into the GIS software",
+      "points": 10,
+      "visual_evidence": "The Layers panel shows both 'precincts' (polygon) and 'polling_places' (point) layers loaded in the project."
+    },
+    {
+      "id": "open_summary_join_tool",
+      "description": "Open the Join Attributes by Location (Summary) tool",
+      "points": 10,
+      "visual_evidence": "The 'Join Attributes by Location (Summary)' dialog window is open on the screen."
+    },
+    {
+      "id": "configure_summary_join",
+      "description": "Configure the spatial summary join with correct layers and summary statistics",
+      "points": 20,
+      "visual_evidence": "In the tool dialog, the base/target layer is set to 'precincts', the join layer is set to 'polling_places', and the 'Summaries to calculate' field includes options for 'count' and 'concatenate' (or similar string joining functions)."
+    },
+    {
+      "id": "verify_joined_attributes",
+      "description": "Verify the resulting joined layer contains the correct counts and concatenated strings",
+      "points": 30,
+      "visual_evidence": "The attribute table of the newly created joined layer is visible, showing exactly 2 features. One feature must show a count of 2 and a concatenated string containing 'Lincoln Elementary' and 'Central Library'. The other must show a count of 3 and a concatenated string containing 'Westside Community Center', 'Fire Station 4', and 'Veterans Hall'."
+    },
+    {
+      "id": "export_output_file",
+      "description": "Export the resulting layer to the specified GeoJSON file path",
+      "points": 30,
+      "visual_evidence": "A 'Save Vector Layer as...' dialog, export configuration window, or success message showing the output being saved specifically to '/home/ga/GIS_Data/exports/precinct_inventory.geojson'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis_gui",
+      "description": "The agent used the QGIS graphical user interface to perform the task",
+      "visual_evidence": "QGIS application windows, toolbars, and dialogs are visible in the screenshots, rather than just a text editor or terminal."
+    },
+    {
+      "id": "authentic_spatial_join",
+      "description": "The agent used the actual summary join tool rather than manually typing the answers",
+      "visual_evidence": "The attribute table shows auto-generated field names typical of QGIS summary joins (e.g., 'place_name_count', 'place_name_concatenate' or similar prefixes/suffixes) rather than manually created generic fields."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent did not use terminal commands (like ogr2ogr or python scripts) to bypass GUI interaction",
+      "visual_evidence": "The terminal window does not show commands executing the spatial join or creating the output file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data contains exactly 2 precincts. Precinct A should have a polling place count of 2 and a concatenated string containing 'Lincoln Elementary' and 'Central Library'. Precinct B should have a polling place count of 3 and a concatenated string containing 'Westside Community Center', 'Fire Station 4', and 'Veterans Hall'. The final output must be saved to '/home/ga/GIS_Data/exports/precinct_inventory.geojson'."
+}

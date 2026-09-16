@@ -1,0 +1,47 @@
+{
+  "id": "intake_form_validation@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create an activated research participant intake form in LimeSurvey (admin/Admin123!) titled 'CARDIA Follow-Up Study - Participant Intake Form 2024' with strict field-level validation. The survey must include a 'Demographic Information' group with mandatory questions: 'email' (Short free text, email validation), 'age' (Numerical, 18-99), 'zipcode' (Short free text, 5-digit Regex), 'income' (Numerical, 0-10,000,000), and 'children' (Numerical, 0-30). Additionally, include a 'Contact Preferences' group with a mandatory 'contactmethod' (List (Radio) with options: Email, Phone, Text Message, Postal Mail) and an optional 'notes' (Long free text, max 500 characters).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/intake_form_validation/setup_task.sh",
+    "post_task": "/workspace/tasks/intake_form_validation/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "CARDIA",
+    "expected_group_count": 2,
+    "expected_question_count": 7,
+    "validation_rules": {
+      "age": {
+        "min": 18,
+        "max": 99
+      },
+      "zipcode": {
+        "regex_pattern": "\\d{5}"
+      },
+      "income": {
+        "min": 0,
+        "max": 10000000
+      },
+      "children": {
+        "min": 0,
+        "max": 30
+      },
+      "notes": {
+        "max_chars": 500
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_intake_form"
+    }
+  }
+}

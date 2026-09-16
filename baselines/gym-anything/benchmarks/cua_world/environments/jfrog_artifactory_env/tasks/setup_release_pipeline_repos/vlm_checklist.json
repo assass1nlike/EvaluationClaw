@@ -1,0 +1,59 @@
+{
+  "task_id": "setup_release_pipeline_repos@1",
+  "task_completion": [
+    {
+      "id": "create_local_repo",
+      "description": "Create a local Maven repository named 'ms-releases' with the correct description",
+      "points": 20,
+      "visual_evidence": "Look for the Artifactory Administration -> Repositories -> Local screen showing a repository named 'ms-releases' with the Package Type 'Maven' and the description 'Microservice release artifacts - Meridian Payments'."
+    },
+    {
+      "id": "create_remote_repo",
+      "description": "Create a remote Maven repository named 'maven-central-proxy' proxying Maven Central",
+      "points": 20,
+      "visual_evidence": "Look for the Repositories -> Remote screen showing a repository named 'maven-central-proxy' with the Package Type 'Maven' and the URL set to 'https://repo1.maven.org/maven2'."
+    },
+    {
+      "id": "create_virtual_repo",
+      "description": "Create a virtual Maven repository named 'ms-build-virtual'",
+      "points": 15,
+      "visual_evidence": "Look for the Repositories -> Virtual screen showing a repository named 'ms-build-virtual' with the Package Type 'Maven'."
+    },
+    {
+      "id": "configure_virtual_repo_order",
+      "description": "Configure 'ms-build-virtual' to aggregate the local and remote repos in the correct order",
+      "points": 15,
+      "visual_evidence": "Look for the configuration screen of 'ms-build-virtual' showing the 'Selected Repositories' list. Both 'ms-releases' and 'maven-central-proxy' must be in the selected list, and 'ms-releases' must appear above/before 'maven-central-proxy'."
+    },
+    {
+      "id": "create_group",
+      "description": "Create a group named 'build-engineers'",
+      "points": 15,
+      "visual_evidence": "Look for the Identity and Access -> Groups screen showing a newly created group named 'build-engineers'."
+    },
+    {
+      "id": "create_permission",
+      "description": "Create a permission named 'build-access'",
+      "points": 15,
+      "visual_evidence": "Look for the Identity and Access -> Permissions screen showing a newly created permission named 'build-access'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "Agent used the Artifactory web interface rather than terminal API commands",
+      "visual_evidence": "Screenshots should show the JFrog Artifactory web GUI being navigated, rather than a terminal window executing curl commands or scripts."
+    },
+    {
+      "id": "actual_application",
+      "description": "Agent interacted with the actual Artifactory application",
+      "visual_evidence": "The browser URL bar should be visible and show 'localhost:8082' (or the appropriate local IP) with the Artifactory UI loaded."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Agent did not simply type the expected answers into a text editor",
+      "visual_evidence": "The inputs (repository names, descriptions, groups, permissions) must be entered into the actual Artifactory form fields, not a notepad or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring JFrog Artifactory at http://localhost:8082. Verify the creation of: 1) A local Maven repo named 'ms-releases' with description 'Microservice release artifacts - Meridian Payments'. 2) A remote Maven repo named 'maven-central-proxy' proxying 'https://repo1.maven.org/maven2'. 3) A virtual Maven repo named 'ms-build-virtual' that includes both, with 'ms-releases' ordered before 'maven-central-proxy'. 4) A group named 'build-engineers'. 5) A permission named 'build-access'."
+}

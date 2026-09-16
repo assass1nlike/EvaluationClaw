@@ -1,0 +1,39 @@
+{
+  "id": "customize_columns_and_export_csv@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Export a CSV log of HTTP activity from /home/ga/Documents/captures/http.cap to /home/ga/Documents/captures/http_activity_log.csv. The export must include only these columns in order: Time (in UTC Date and Time of Day format), Source, Destination, Host (http.host), Method (http.request.method), and URI (http.request.uri).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customize_columns_and_export_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/customize_columns_and_export_csv/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/captures/http_activity_log.csv",
+    "expected_column_count": 6,
+    "expected_headers": [
+      "Time",
+      "Source",
+      "Destination",
+      "Host",
+      "Method",
+      "URI"
+    ],
+    "check_values": {
+      "host": "www.ethereal.com",
+      "method": "GET",
+      "uri": "/download.html"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_columns"
+    }
+  }
+}

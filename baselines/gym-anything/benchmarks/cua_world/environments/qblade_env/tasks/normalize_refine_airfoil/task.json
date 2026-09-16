@@ -1,0 +1,32 @@
+{
+  "id": "normalize_refine_airfoil@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Import the S1223 airfoil from '~/Documents/airfoils/s1223.dat' and perform geometric pre-processing. The airfoil must be normalized (chord scaled to 1, origin at LE), de-rotated (chord aligned with x-axis), and globally refined to exactly 160 panels. Set the T.E. Gap to 0.4% chord (0.004) with a blend distance of 0.2. Export the processed airfoil to '~/Documents/airfoils/s1223_modified.dat'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/normalize_refine_airfoil/setup_task.sh",
+    "post_task": "/workspace/tasks/normalize_refine_airfoil/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/airfoils/s1223.dat",
+    "output_file": "/home/ga/Documents/airfoils/s1223_modified.dat",
+    "expected_panels": 160,
+    "panel_tolerance": 5,
+    "target_te_gap": 0.004,
+    "te_gap_tolerance": 0.001,
+    "normalization_tolerance": 0.01,
+    "derotation_tolerance": 0.01
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_normalize_refine_airfoil"
+    }
+  }
+}

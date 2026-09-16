@@ -1,0 +1,33 @@
+{
+  "id": "periodized_team_training@1",
+  "version": "1.0",
+  "env_id": "wger_env@0.1",
+  "description": "You are the athletic trainer for the Westbrook University basketball team, logged into wger fitness manager at http://localhost as admin (username: admin, password: adminadmin). Set up the off-season strength and conditioning program by creating three training routines: \"Phase 1 - Anatomical Adaptation\" (Description: \"Weeks 1-4: Movement quality and work capacity foundation\") with training days \"Upper Body Foundations\" (Monday) and \"Lower Body Foundations\" (Thursday); \"Phase 2 - Maximal Strength\" (Description: \"Weeks 5-8: Heavy compound lifts for peak force production\") with training days \"Heavy Upper\" (Tuesday) and \"Heavy Lower\" (Friday); and \"Phase 3 - Power Development\" (Description: \"Weeks 9-12: Explosive movements and sport-specific power\") with training days \"Explosive Upper\" (Monday) and \"Explosive Lower\" (Wednesday). All names, descriptions, and day assignments must be exact.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/periodized_team_training/setup_task.sh",
+    "post_task": "/workspace/tasks/periodized_team_training/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Athletic Trainer",
+    "soc_code": "29-9091.00",
+    "industry": "Healthcare Practitioners and Technical",
+    "features_used": [
+      "routine_creation",
+      "training_day_creation",
+      "day_of_week_assignment",
+      "multi_routine_management"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_periodized_team_training"
+    }
+  }
+}

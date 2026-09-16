@@ -1,0 +1,59 @@
+{
+  "task_id": "dashboard_recode_stratified_means@1",
+  "task_completion": [
+    {
+      "id": "load_project_form",
+      "description": "Load the NhanesExam project and BPStudy form in Epi Info 7 Visual Dashboard",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 Visual Dashboard is open with 'NhanesExam.prj' and 'BPStudy' visible as the active data source."
+    },
+    {
+      "id": "recode_age_variable",
+      "description": "Recode 'RIDAGEYR' into 'AgeGroup' with three specified categories",
+      "points": 20,
+      "visual_evidence": "A 'Defined Variables' or 'Recode' dialog/list showing 'RIDAGEYR' mapped to a new variable 'AgeGroup' with ranges 0-39 ('Young Adult'), 40-59 ('Middle Aged'), and 60-120 ('Older Adult')."
+    },
+    {
+      "id": "generate_means_table",
+      "description": "Produce a Means table for Systolic Blood Pressure ('BPXSY1')",
+      "points": 20,
+      "visual_evidence": "A Means gadget/table is visible on the dashboard canvas with 'BPXSY1' selected as the Means variable."
+    },
+    {
+      "id": "stratify_means_table",
+      "description": "Stratify the Means table by 'RIAGENDR' and 'AgeGroup'",
+      "points": 20,
+      "visual_evidence": "The Means table on the canvas is grouped/stratified by both 'RIAGENDR' (showing values 1 and 2) and 'AgeGroup', displaying at least 6 distinct rows of calculated statistics."
+    },
+    {
+      "id": "export_results_excel",
+      "description": "Export the resulting table to BP_Analysis_Results.xlsx",
+      "points": 15,
+      "visual_evidence": "An export dialog, success message, or file manager window showing the data being saved to '/home/ga/Documents/BP_Analysis_Results.xlsx'."
+    },
+    {
+      "id": "save_dashboard_canvas",
+      "description": "Save the dashboard canvas to BP_Project.canvas7",
+      "points": 15,
+      "visual_evidence": "A 'Save Canvas' dialog or file manager window showing the canvas being saved as '/home/ga/Documents/BP_Project.canvas7'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Agent used the Epi Info 7 GUI to perform the analysis",
+      "visual_evidence": "Screenshots should show interaction with Epi Info 7's visual dashboard menus, gadgets, and dialogs, rather than using terminal commands or Python scripts to process the dataset."
+    },
+    {
+      "id": "genuine_export_check",
+      "description": "Agent used the application's export/save features",
+      "visual_evidence": "The files (BP_Analysis_Results.xlsx and BP_Project.canvas7) should be created via Epi Info's 'Save' or 'Export' buttons, not by using 'touch' or echo commands in the terminal to create empty files."
+    },
+    {
+      "id": "plausible_data_check",
+      "description": "The generated Means table contains plausible calculated data",
+      "visual_evidence": "The Means table should show actual calculated numbers (means, counts, etc.) where the mean BPXSY1 for 'Older Adult' is generally higher than 'Young Adult', indicating real data processing rather than a manually typed mockup."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses real NHANES data. 'RIDAGEYR' is age (0-80), 'RIAGENDR' is gender (1=Male, 2=Female), and 'BPXSY1' is systolic blood pressure. The recoded 'AgeGroup' must have categories 'Young Adult' (0-39), 'Middle Aged' (40-59), and 'Older Adult' (60-120). The final stratified means table must contain at least 6 rows (2 genders x 3 age groups). Biologically and statistically, the mean 'BPXSY1' (systolic BP) should be higher for 'Older Adult' than 'Young Adult'."
+}

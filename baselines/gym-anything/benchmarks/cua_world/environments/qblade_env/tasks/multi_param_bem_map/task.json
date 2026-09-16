@@ -1,0 +1,41 @@
+{
+  "id": "multi_param_bem_map@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Create an aerodynamic performance map for a wind turbine rotor using QBlade's Multi-Parameter BEM simulation. Load a sample project from /home/ga/Documents/sample_projects/ (e.g., 'NREL_5MW.wpa') and perform a Multi-Parameter simulation with a fixed Wind Speed of 10 m/s, Tip Speed Ratio (TSR) from 2 to 14 (step 1), and Pitch Angle from -5 to 20 degrees (step 1). Save the project including the generated simulation results to /home/ga/Documents/projects/performance_map.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multi_param_bem_map/setup_task.sh",
+    "post_task": "/workspace/tasks/multi_param_bem_map/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/projects/performance_map.wpa",
+    "min_file_size_kb": 50,
+    "sample_projects_dir": "/home/ga/Documents/sample_projects",
+    "required_params": {
+      "wind_speed": 10,
+      "tsr_start": 2,
+      "tsr_end": 14,
+      "pitch_start": -5,
+      "pitch_end": 20
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_param_bem_map"
+    }
+  },
+  "tags": [
+    "engineering",
+    "simulation",
+    "qblade",
+    "aerodynamics",
+    "desktop"
+  ]
+}

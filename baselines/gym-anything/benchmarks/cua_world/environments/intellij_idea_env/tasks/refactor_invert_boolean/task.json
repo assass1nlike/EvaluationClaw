@@ -1,0 +1,30 @@
+{
+  "id": "refactor_invert_boolean@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Refactor the `private boolean invalid` field in the `com.example.orders.model.Order` class of the `order-processing-system` project to `valid`. Invert the logic of the field and all its usages across the project, ensuring that the project compiles and all tests pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_invert_boolean/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_invert_boolean/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/order-processing-system",
+    "target_file": "src/main/java/com/example/orders/model/Order.java",
+    "usage_files": [
+      "src/main/java/com/example/orders/service/OrderService.java",
+      "src/main/java/com/example/orders/service/OrderValidator.java"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_invert_boolean"
+    }
+  }
+}

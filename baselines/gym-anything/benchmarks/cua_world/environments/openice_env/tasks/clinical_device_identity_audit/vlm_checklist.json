@@ -1,0 +1,59 @@
+{
+  "task_id": "clinical_device_identity_audit@1",
+  "task_completion": [
+    {
+      "id": "openice_running",
+      "description": "OpenICE application is launched and visible.",
+      "points": 10,
+      "visual_evidence": "The OpenICE GUI is open and visible on the screen."
+    },
+    {
+      "id": "devices_created_in_gui",
+      "description": "The three required simulated devices are created in OpenICE.",
+      "points": 20,
+      "visual_evidence": "Instances of 'Multiparameter Monitor', 'Pulse Oximeter', and 'Infusion Pump' are visible as active or simulated devices within the OpenICE interface."
+    },
+    {
+      "id": "csv_file_opened",
+      "description": "The target CSV file is created and opened.",
+      "points": 10,
+      "visual_evidence": "A file named 'device_identity_map.csv' is open in a text editor or spreadsheet application, with the path indicating it is on the Desktop (/home/ga/Desktop/)."
+    },
+    {
+      "id": "csv_header_present",
+      "description": "The CSV file contains the exact required header.",
+      "points": 20,
+      "visual_evidence": "The first line or row of the CSV file is exactly 'DeviceType,UUID'."
+    },
+    {
+      "id": "csv_devices_listed",
+      "description": "The CSV file contains rows for each of the three required devices.",
+      "points": 20,
+      "visual_evidence": "The CSV file has exactly three data rows below the header, listing 'Multiparameter Monitor', 'Pulse Oximeter', and 'Infusion Pump'."
+    },
+    {
+      "id": "csv_uuids_recorded",
+      "description": "Valid UUIDs are recorded for each device in the CSV.",
+      "points": 20,
+      "visual_evidence": "Next to each device name in the CSV, there is a 36-character UUID following the standard 8-4-4-4-12 hexadecimal format (e.g., 123e4567-e89b-12d3-a456-426614174000)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the OpenICE GUI to obtain the data.",
+      "visual_evidence": "Screenshots show the agent navigating the OpenICE interface to view device details and UUIDs, rather than just using terminal commands to spoof the file."
+    },
+    {
+      "id": "genuine_uuids",
+      "description": "The UUIDs appear to be genuine and not placeholder text.",
+      "visual_evidence": "The UUIDs in the CSV look like randomly generated hexadecimal strings matching the OpenICE device instances, not sequential numbers or obvious placeholders like '1111-2222...'."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "The CSV file is saved in the correct directory.",
+      "visual_evidence": "The file manager, terminal, or text editor title bar confirms the file is located at /home/ga/Desktop/device_identity_map.csv."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating exactly three simulated devices in OpenICE: 'Multiparameter Monitor', 'Pulse Oximeter', and 'Infusion Pump'. The target file must be at /home/ga/Desktop/device_identity_map.csv. The CSV must have the exact header 'DeviceType,UUID'. The UUIDs must follow the standard 36-character v4 format (8-4-4-4-12 hexadecimal digits separated by hyphens)."
+}

@@ -1,0 +1,106 @@
+{
+  "dataset_id": "e8b7a0be",
+  "name": "Openset Textbook Diagram Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Openset Textbook Diagram VQA is a visual question answering dataset built from educational textbook diagrams. Each sample pairs a set of diagram images with a multiple-choice question about their content, and the model must select the correct answer from a provided choice list. It evaluates image-grounded reasoning over scientific and educational illustrations.",
+  "card_text": "The dataset contains 200 samples spanning image and text modalities. Each sample provides a list of textbook diagram images (typically three JPGs) together with a single prompt string that bundles an instruction, a natural-language question, and an explicit multiple-choice list. The images are educational illustrations such as biology and earth-science diagrams, while the questions probe factual and visual details (e.g., which fin a fish uses to change direction, or on which side of the earth sunrise occurs). Supervision is the correct option text. The expected output is short free text that must match one of the listed choices. The dataset assumes that the referenced diagrams contain the visual evidence required to answer, and it targets open-set, knowledge-flavored visual reasoning rather than pure scene description.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "education (textbook science diagrams)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A single formatted prompt string that gives the task instruction, states the natural-language question, and embeds the answer choice list. It is the primary text input the model reads alongside the diagrams.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The embedded query (prefixed by 'Question:') asking about a specific property, label, or relationship visible in the textbook diagrams, e.g. which fin helps a fish change direction.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The candidate answers contained in the 'Choice list' portion of the prompt, a small bracketed list of short phrases from which exactly one correct answer is drawn.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "One or more textbook diagram images (referenced by file name) that supply the visual evidence for answering the question. They are educational schematics/illustrations whose complexity varies across samples.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold answer as short free text, which is one of the options listed in the prompt and corresponds to the correct interpretation of the diagrams.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has three components living in two input fields plus one output field. 'input.image_file' holds a list of textbook diagram image references; 'input.prompt' is a single concatenated text string that carries the instruction, the natural-language question, and a bracketed multiple-choice 'Choice list'; and 'output.text' gives the correct answer, which is one of the listed options. The question and choices are thus not separate fields but embedded inside the prompt, and the answer must be selected from those embedded options based on the accompanying diagrams."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/TextbookDiagramVQA/openset_textbook_diagram_vqa.json",
+    "existing_tags": {
+      "task": "Textbook Diagram VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "Education",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Education"
+  }
+}

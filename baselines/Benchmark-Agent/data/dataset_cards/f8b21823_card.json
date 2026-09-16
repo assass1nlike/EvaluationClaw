@@ -1,0 +1,87 @@
+{
+  "dataset_id": "f8b21823",
+  "name": "Spatial-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 203,
+  "description": "Spatial-Reasoning is a multiple-choice question answering dataset where each item describes a small 2D arrangement of labeled blocks containing colored squares, then asks a spatial or relational question about the objects. It evaluates a model's ability to parse relational language (left/right/above/below, touching edges) and resolve multi-hop spatial queries against a synthetic scene description.",
+  "card_text": "Each sample is a short, self-contained synthetic scene description written in English prose: three blocks (A, B, C) are positioned relative to one another, and each block contains one or more colored squares (e.g. medium blue, medium black, medium yellow) whose positions inside the block are also described relationally. The narrative is followed by a natural-language question that requires chaining several of these spatial constraints, and the model must select one of the provided answer choices. Answers are given as option letters (A/B/C/D). The dataset is purely text-based (no images or coordinates), so the spatial layout must be inferred from language alone. Question types range from simple right-of/left-of checks to comparative queries about all objects of a certain color, and distractors include 'both of them', 'none of them', 'Yes', 'No' and 'Don't Know'.",
+  "tasks": [
+    "multiple_choice_qa",
+    "question_answering"
+  ],
+  "domain": "synthetic spatial reasoning puzzles",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "structured",
+        "semantics": "The main input text: a synthetic prose description of three blocks positioned relative to each other (left/right/above/below) together with an inventory of the colored squares inside each block and their internal vertical relations (touching an edge, below/above another square). It establishes the whole scene that everything else queries.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The trailing interrogative sentence embedded at the end of the same text field, e.g. 'Which object is to the right of a medium black square?' or 'Are all medium black squares to the left of ...?'. It specifies the spatial/relational query the answer must resolve against the scene description that precedes it.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "An ordered list of 3-4 candidate answer strings. Most are noun phrases referencing specific colored squares or blocks, plus aggregate/uncertainty choices such as 'both of them', 'none of them', 'Yes', 'No' or 'Don't Know'. Their order determines the letter used in the answer.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold label: a single option letter (e.g. 'A', 'C') that indexes into the option list, indicating the correct choice for the spatial question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Every sample has one input text field that jointly carries the scene description and the question, a parallel list of candidate options, and one output field holding the letter of the correct option. The scene description enumerates block-to-block placements and the colored squares inside each block, the question asks for a spatial relation or comparison over those objects, and the answer is just the index letter of the matching option string."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Spatial-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "Spatial Reasoning",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

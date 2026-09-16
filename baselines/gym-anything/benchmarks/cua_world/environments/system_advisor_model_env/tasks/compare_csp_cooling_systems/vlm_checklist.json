@@ -1,0 +1,65 @@
+{
+  "task_id": "compare_csp_cooling_systems@1",
+  "task_completion": [
+    {
+      "id": "sam_project_created",
+      "description": "Create a Molten Salt Power Tower project in System Advisor Model (SAM).",
+      "points": 10,
+      "visual_evidence": "Look for the SAM application interface open with 'Molten Salt Power Tower' selected as the technology or visible in the project tree/tabs."
+    },
+    {
+      "id": "location_set_phoenix",
+      "description": "Set the location and weather data to Phoenix, AZ.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Location and Resource' page in SAM showing a weather file for Phoenix, AZ selected."
+    },
+    {
+      "id": "wet_cooling_simulated",
+      "description": "Configure and run the simulation for an Evaporative (Wet) cooling system.",
+      "points": 20,
+      "visual_evidence": "Look for the 'System Design' or 'Power Cycle' page in SAM showing Evaporative/Wet cooling selected, followed by a simulation results screen showing annual energy and water use."
+    },
+    {
+      "id": "dry_cooling_simulated",
+      "description": "Configure and run the simulation for an Air-cooled (Dry) cooling system.",
+      "points": 20,
+      "visual_evidence": "Look for the 'System Design' or 'Power Cycle' page in SAM showing Air-cooled/Dry cooling selected, followed by a simulation results screen showing annual energy and water use."
+    },
+    {
+      "id": "json_file_created",
+      "description": "Create the output file cooling_comparison.json in the specified directory.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or terminal showing the creation or saving of a file named 'cooling_comparison.json' in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "json_keys_present",
+      "description": "Include all exactly required keys in the JSON file.",
+      "points": 10,
+      "visual_evidence": "Look at the contents of the JSON file and verify the presence of 'project_type', 'location', 'wet_cooling_annual_energy_kwh', 'wet_cooling_annual_water_use_m3', 'dry_cooling_annual_energy_kwh', 'dry_cooling_annual_water_use_m3', 'energy_penalty_percent', and 'water_savings_m3'."
+    },
+    {
+      "id": "json_values_valid",
+      "description": "Calculate and record valid thermodynamic bounds and precise math for penalty/savings.",
+      "points": 20,
+      "visual_evidence": "Examine the JSON values: verify wet energy > dry energy, wet water > 5x dry water, and that 'energy_penalty_percent' and 'water_savings_m3' are mathematically correct based on the raw wet and dry values provided in the file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_sam_gui",
+      "description": "Agent used the System Advisor Model (SAM) GUI to run simulations.",
+      "visual_evidence": "Verify the agent actually clicked through and interacted with the SAM application interface to generate the data, rather than just writing a script with guessed values."
+    },
+    {
+      "id": "results_match_gui",
+      "description": "JSON values match the actual SAM simulation outputs.",
+      "visual_evidence": "Check that the raw energy and water use numbers typed into the JSON file correspond to the results displayed on the SAM summary/results screens."
+    },
+    {
+      "id": "no_fabricated_results",
+      "description": "Agent did not fabricate the JSON file without running simulations.",
+      "visual_evidence": "Ensure there is visual proof of both the wet and dry simulations completing in SAM before the JSON file is populated."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected filename: cooling_comparison.json. Expected location: Phoenix, AZ. Thermodynamic bounds for validation: wet cooling energy > dry cooling energy (> 10 GWh), and wet water use is > 5x dry water use. The calculated 'energy_penalty_percent' and 'water_savings_m3' must precisely match the mathematical difference/percentage based on the raw production values provided in the JSON."
+}

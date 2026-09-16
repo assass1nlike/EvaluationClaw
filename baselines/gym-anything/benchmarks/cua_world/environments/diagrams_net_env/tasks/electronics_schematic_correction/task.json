@@ -1,0 +1,36 @@
+{
+  "id": "electronics_schematic_correction@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Teaching Assistant for an electronics lab. You have a draft schematic for a 555 Timer Astable Multivibrator in ~/Diagrams/555_timer_draft.drawio that contains several critical errors. Review the engineering specification in ~/Desktop/lab_circuit_spec.txt and correct the diagram by updating component values, adding missing components, and fixing wiring errors according to the specification. Save the corrections to the .drawio file and export the final schematic as a PDF to ~/Diagrams/exports/555_timer_final.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/electronics_schematic_correction/setup_task.sh",
+    "post_task": "/workspace/tasks/electronics_schematic_correction/export_result.sh"
+  },
+  "metadata": {
+    "draft_file": "/home/ga/Diagrams/555_timer_draft.drawio",
+    "spec_file": "/home/ga/Desktop/lab_circuit_spec.txt",
+    "export_pdf": "/home/ga/Diagrams/exports/555_timer_final.pdf",
+    "required_strings": [
+      "1k",
+      "10k",
+      "10uF",
+      "10nF",
+      "470",
+      "LED"
+    ],
+    "min_edges": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_electronics_schematic_correction"
+    }
+  }
+}

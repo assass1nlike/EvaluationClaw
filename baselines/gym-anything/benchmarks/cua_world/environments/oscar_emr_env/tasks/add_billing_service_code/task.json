@@ -1,0 +1,35 @@
+{
+  "id": "add_billing_service_code@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Add a new provincial billing service code to the OSCAR EMR fee schedule for a 'Telephone Consultation (Mental Health)' released by the Ministry. Log in as 'oscardoc' (Password: 'oscar', PIN: '1117'). Add service code K083 with the description 'Telephone Consultation (Mental Health)', a unit price of 45.00, and an active status.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_billing_service_code/setup_task.sh",
+    "post_task": "/workspace/tasks/add_billing_service_code/export_result.sh"
+  },
+  "metadata": {
+    "target_code": "K083",
+    "target_fee": 45.0,
+    "target_description_keywords": [
+      "Telephone",
+      "Mental"
+    ],
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_billing_service_code"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "recursive_forecast_loop@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a recursive out-of-sample forecasting exercise in Gretl using the usa.gdt dataset to evaluate an AR(1) model for inflation (inf). Write and execute a hansl script that uses an expanding window starting at observation 40 to generate one-step-ahead forecasts for the remainder of the sample. Calculate the Root Mean Squared Forecast Error (RMSFE) from the resulting forecast errors. Save the RMSFE value to /home/ga/Documents/gretl_output/rmsfe_results.txt, the series of forecast errors to /home/ga/Documents/gretl_output/forecast_errors.csv, and the script to /home/ga/Documents/gretl_output/recursive_forecast.inp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/recursive_forecast_loop/setup_task.sh",
+    "post_task": "/workspace/tasks/recursive_forecast_loop/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "target_var": "inf",
+    "start_obs": 40,
+    "expected_rmsfe_min": 0.55,
+    "expected_rmsfe_max": 0.75,
+    "min_forecast_count": 60,
+    "output_script": "/home/ga/Documents/gretl_output/recursive_forecast.inp",
+    "output_result": "/home/ga/Documents/gretl_output/rmsfe_results.txt",
+    "output_csv": "/home/ga/Documents/gretl_output/forecast_errors.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_recursive_forecast"
+    }
+  }
+}

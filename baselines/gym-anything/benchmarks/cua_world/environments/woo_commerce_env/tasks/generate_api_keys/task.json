@@ -1,0 +1,28 @@
+{
+  "id": "generate_api_keys@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Generate a WooCommerce REST API key for a 'ShipStation Integration' assigned to the 'admin' user with 'Read/Write' permissions. Save the Consumer Key and Consumer Secret to /home/ga/api_credentials.txt using the following format:\n\nDescription: ShipStation Integration\nConsumer Key: [Consumer Key]\nConsumer Secret: [Consumer Secret]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_api_keys/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_api_keys/export_result.sh"
+  },
+  "metadata": {
+    "expected_description": "ShipStation Integration",
+    "expected_permissions": "read_write",
+    "expected_file_path": "/home/ga/api_credentials.txt",
+    "api_test_endpoint": "http://localhost/wp-json/wc/v3/system_status"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_api_keys"
+    }
+  }
+}

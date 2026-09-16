@@ -1,0 +1,41 @@
+{
+  "id": "us_legislation_swimlane@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a cross-functional swimlane diagram documenting how a bill becomes a federal law in the United States, using the reference document at ~/Desktop/legislation_reference.txt. The diagram must include four horizontal swimlanes labeled House of Representatives, Senate, Conference Committee, and President. It should contain at least 14 process steps covering introduction, committee referral, hearings, floor debate, and voting in both chambers, as well as conference committee reconciliation and presidential action. Include decision points for vote outcomes, version matching, and presidential actions, and use terminators for start and end states. Add a second page titled 'Veto Override' showing the process for overriding a presidential veto. Save the source file as ~/Desktop/legislation_process.drawio and export Page 1 as a PNG image to ~/Desktop/legislation_process.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/us_legislation_swimlane/setup_task.sh",
+    "post_task": "/workspace/tasks/us_legislation_swimlane/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "legislation_process.drawio",
+    "expected_png": "legislation_process.png",
+    "min_swimlanes": 4,
+    "min_steps": 14,
+    "min_decisions": 3,
+    "min_pages": 2,
+    "required_keywords": [
+      "house",
+      "senate",
+      "president",
+      "conference",
+      "committee",
+      "vote",
+      "veto",
+      "bill",
+      "law"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_us_legislation_swimlane"
+    }
+  }
+}

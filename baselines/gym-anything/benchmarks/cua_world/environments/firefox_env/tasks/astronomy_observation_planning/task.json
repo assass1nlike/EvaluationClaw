@@ -1,0 +1,48 @@
+{
+  "id": "astronomy_observation_planning@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "Plan a stargazing session for the peak of the Geminids meteor shower in Tucson, Arizona on December 13, 2024. Using Firefox, find the local sunset time, astronomical twilight end time, moon illumination percentage, moon set time, Jupiter rise time, and Geminids meteor shower ZHR (Zenith Hourly Rate). Create a Firefox bookmark folder named 'Astronomy Tools' containing at least two bookmarks for the astronomical data sites used. Save the collected data to '~/Documents/stargazing_plan.json' using the keys: 'location', 'date', 'sunset', 'astronomical_twilight_end', 'moon_illumination_percent', 'moon_set_time', 'jupiter_rise_time', and 'geminids_zhr'.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "data-collection",
+    "astronomy",
+    "planning"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/astronomy_observation_planning/setup_task.sh",
+    "post_task": "/workspace/tasks/astronomy_observation_planning/export_result.sh"
+  },
+  "metadata": {
+    "target_location": "Tucson, AZ",
+    "target_date": "2024-12-13",
+    "required_output_file": "/home/ga/Documents/stargazing_plan.json",
+    "ground_truth": {
+      "sunset_start": "17:15",
+      "sunset_end": "17:30",
+      "twilight_end_start": "18:40",
+      "twilight_end_end": "19:00",
+      "moon_illum_min": 90,
+      "moon_illum_max": 99,
+      "moon_set_start": "05:00",
+      "moon_set_end": "06:00",
+      "jupiter_rise_start": "16:20",
+      "jupiter_rise_end": "17:00",
+      "zhr_min": 100,
+      "zhr_max": 160
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_astronomy_observation_planning"
+    }
+  }
+}

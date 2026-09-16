@@ -1,0 +1,44 @@
+{
+  "id": "compare_ppi_safety_erlotinib_vs_osimertinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Compare the safety of co-administering the PPI 'Omeprazole' with the lung cancer drugs 'Erlotinib' and 'Osimertinib' using the Liverpool Cancer iChart app. Save a screenshot of the interaction result table showing both cancer drugs against Omeprazole to /sdcard/ppi_comparison_table.png. Based on the interaction results, create a report at /sdcard/ppi_switch_recommendation.txt using the following format:\n\nInteraction 1: Erlotinib + Omeprazole\nColor: [Color Code]\n\nInteraction 2: Osimertinib + Omeprazole\nColor: [Color Code]\n\nSafer Choice: [Erlotinib OR Osimertinib]\nReason: [Brief reason]\n\nNote: Erlotinib absorption is pH-dependent.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/compare_ppi_safety_erlotinib_vs_osimertinib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/compare_ppi_safety_erlotinib_vs_osimertinib/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "/sdcard/ppi_switch_recommendation.txt",
+      "/sdcard/ppi_comparison_table.png"
+    ],
+    "drugs": {
+      "cancer_drug_1": "Erlotinib",
+      "cancer_drug_2": "Osimertinib",
+      "comedication": "Omeprazole"
+    },
+    "ground_truth": {
+      "erlotinib_color": [
+        "red",
+        "orange"
+      ],
+      "osimertinib_color": [
+        "green",
+        "yellow"
+      ],
+      "safer_choice": "Osimertinib"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ppi_comparison"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_pv_mounting_thermal_derating@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Agent writes a Python script importing PySAM to evaluate the PV systems.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing Python code that imports PySAM (e.g., 'import PySAM.Pvwattsv8') and sets up the simulation."
+    },
+    {
+      "id": "model_configuration",
+      "description": "Agent configures the PySAM Pvwattsv8 model with the specified parameters.",
+      "points": 20,
+      "visual_evidence": "The Python script contains the required parameters: 100.0 kW capacity, 20-degree tilt, 180-degree azimuth, 14.0% losses, 1.2 DC/AC ratio, 96.0% inverter efficiency, and evaluates both array_type 0 (open rack) and array_type 1 (roof mount)."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent executes the Python script successfully.",
+      "points": 20,
+      "visual_evidence": "Terminal window showing the execution of the Python script (e.g., 'python script.py') with no resulting error messages, indicating successful completion."
+    },
+    {
+      "id": "json_file_created",
+      "description": "Agent saves the results to the specified JSON file path.",
+      "points": 20,
+      "visual_evidence": "Terminal or file explorer showing the existence of 'thermal_derating_comparison.json' in the '/home/ga/Documents/SAM_Projects' directory."
+    },
+    {
+      "id": "json_content_valid",
+      "description": "The JSON file contains the correct structure and valid calculated values.",
+      "points": 30,
+      "visual_evidence": "Contents of the JSON file (viewed via 'cat' or an editor) showing the required keys, 'system_capacity_kw' as 100.0, 'mean_cell_temp_c' values between 10.0 and 45.0, and 'thermal_derating_penalty_percent' between 0.5 and 5.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent actually ran a PySAM script to generate the results rather than manually creating the JSON file.",
+      "visual_evidence": "Evidence of Python script execution in the terminal that corresponds to the creation or modification time of the JSON file."
+    },
+    {
+      "id": "realistic_calculated_values",
+      "description": "The JSON output contains realistic, high-precision floating-point numbers for energy and temperature.",
+      "visual_evidence": "The values for 'annual_energy_kwh', 'mean_cell_temp_c', and 'thermal_derating_penalty_percent' are precise floats (e.g., 28.456...) rather than simple integers or hardcoded dummy values."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected penalty or temperature bounds directly into the JSON without calculation.",
+      "visual_evidence": "The Python script shows actual extraction of outputs from the PySAM model (e.g., 'model.Outputs.annual_energy') and mathematical calculation of the penalty percentage."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/Documents/SAM_Projects/thermal_derating_comparison.json'. The JSON must contain 'system_capacity_kw' of 100.0. A valid PySAM simulation for Phoenix will yield a 'thermal_derating_penalty_percent' between 0.5 and 5.0 (typically around 0.88%), and 'mean_cell_temp_c' values between 10.0 and 45.0 (typically around 28-29\u00b0C)."
+}

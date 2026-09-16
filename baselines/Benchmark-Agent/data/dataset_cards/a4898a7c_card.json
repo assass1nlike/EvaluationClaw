@@ -1,0 +1,85 @@
+{
+  "dataset_id": "a4898a7c",
+  "name": "Leather Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 36,
+  "description": "A dataset for industrial anomaly detection on leather surfaces, where each sample pairs a leather image with a text instruction to detect anomaly regions, and provides a corresponding pixel-level segmentation mask as the target.",
+  "card_text": "This dataset contains 36 samples for leather anomaly detection. Each sample consists of an input image of a leather surface and a text prompt: 'Detect the anomaly region of the leather'. The output is a binary segmentation mask (stored as an image file) that highlights the anomalous region on the leather. The data is designed to evaluate a model's ability to perform visual anomaly detection and pixel-level segmentation in an industrial quality inspection context. The images are likely close-up views of leather material, and the masks indicate defects such as scratches, stains, or other irregularities. The task requires both image understanding and precise localization.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short text instruction that asks the model to detect the anomaly region in the provided leather image. It serves as the task query for each sample.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A close-up image of a leather surface, which may contain one or more anomalous regions such as defects or irregularities. It is the visual input to be analyzed.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary segmentation mask image that corresponds pixel-wise to the input leather image, indicating the location and shape of the anomaly region(s). It is the target output for the segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object containing an image file (a leather surface) and a text prompt instructing anomaly detection, and an output object containing a mask file. The prompt is a fixed instruction, the image is the visual context to be analyzed, and the mask is the pixel-level annotation of the anomaly region(s) within that image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/LeatherAnomalyDetection/leather_anomaly_detection.json",
+    "existing_tags": {
+      "task": "leather anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

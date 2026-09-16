@@ -1,0 +1,51 @@
+{
+  "id": "schedule_and_track_visits@1",
+  "version": "1.0",
+  "env_id": "openclinica_env@0.1",
+  "description": "You are the Clinical Research Coordinator for the Phase II Diabetes Trial (DM-TRIAL-2024). In OpenClinica (login: root / Admin123!, active study: Phase II Diabetes Trial), schedule a Baseline Assessment for subject DM-101 (January 15, 2024, at 'Main Clinic') and a Week 4 Follow-up for subject DM-102 (March 1, 2024). Enroll a new subject DM-104 (Male, DOB: May 23, 1978) with today's enrollment date and schedule their Baseline Assessment for January 22, 2024. The study already has the Baseline Assessment and Week 4 Follow-up event definitions configured.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/schedule_and_track_visits/setup_task.sh",
+    "post_task": "/workspace/tasks/schedule_and_track_visits/export_result.sh"
+  },
+  "metadata": {
+    "study_identifier": "DM-TRIAL-2024",
+    "target_subjects": [
+      "DM-101",
+      "DM-102",
+      "DM-104"
+    ],
+    "new_subject": {
+      "label": "DM-104",
+      "gender": "m",
+      "dob": "1978-05-23"
+    },
+    "events": [
+      {
+        "subject": "DM-101",
+        "event": "Baseline Assessment",
+        "date": "2024-01-15"
+      },
+      {
+        "subject": "DM-102",
+        "event": "Week 4 Follow-up",
+        "date": "2024-03-01"
+      },
+      {
+        "subject": "DM-104",
+        "event": "Baseline Assessment",
+        "date": "2024-01-22"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_schedule_and_track_visits"
+    }
+  }
+}

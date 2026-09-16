@@ -1,0 +1,31 @@
+{
+  "id": "migrate_stock_position@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Reorganize your investment portfolio by moving the NVIDIA (NVDA) position from 'My Portfolio' to a new portfolio named 'Semiconductor Fund'. The new transaction in 'Semiconductor Fund' must use the exact historical date, units, and price from the original position. Delete the original NVDA transaction from 'My Portfolio' after the move is complete, ensuring that the AAPL and MSFT positions in 'My Portfolio' remain untouched.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_stock_position/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_stock_position/export_result.sh"
+  },
+  "metadata": {
+    "target_symbol": "NVDA",
+    "target_units": 25.0,
+    "target_price": 615.3,
+    "target_date_str": "Feb 01, 2024",
+    "new_portfolio_name": "Semiconductor Fund",
+    "old_portfolio_name": "My Portfolio",
+    "jstock_data_path": "/home/ga/.jstock/1.0.7/UnitedState"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_stock_position"
+    }
+  }
+}

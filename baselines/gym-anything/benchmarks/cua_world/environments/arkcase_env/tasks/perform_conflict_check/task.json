@@ -1,0 +1,27 @@
+{
+  "id": "perform_conflict_check@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "You are an Ethics Officer investigating a conflict of interest for a new complaint case regarding 'Drake Antiquities'. Management wants to assign investigator 'Elena Fisher' to this case. Determine if 'Elena Fisher' was involved in any historical (closed) cases involving 'Drake Antiquities'. If a conflict is found, add a Note to the new 'Drake Antiquities' case with the exact text: 'Conflict Detected: Elena Fisher involved in prior Case [OLD_CASE_ID]', replacing [OLD_CASE_ID] with the actual ID of the historical case.\n\nCredentials:\n- User: arkcase-admin@dev.arkcase.com\n- Pass: ArkCase1234!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/perform_conflict_check/setup_task.sh",
+    "post_task": "/workspace/tasks/perform_conflict_check/export_result.sh"
+  },
+  "metadata": {
+    "subject": "Drake Antiquities",
+    "investigator": "Elena Fisher",
+    "conflict_note_pattern": "Conflict Detected"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perform_conflict_check"
+    }
+  }
+}

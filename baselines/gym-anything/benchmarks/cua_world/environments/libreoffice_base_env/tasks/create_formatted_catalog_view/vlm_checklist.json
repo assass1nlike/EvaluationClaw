@@ -1,0 +1,53 @@
+{
+  "task_id": "create_formatted_catalog_view@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Access the Chinook database using a database client or CLI",
+      "points": 10,
+      "visual_evidence": "A database management tool (e.g., DBeaver, DB Browser for SQLite, terminal) is open and connected to the Chinook database."
+    },
+    {
+      "id": "create_view_statement",
+      "description": "Write the CREATE VIEW statement with the correct name",
+      "points": 20,
+      "visual_evidence": "The SQL editor or command line shows a statement beginning with 'CREATE VIEW FormattedTrackList AS'."
+    },
+    {
+      "id": "select_and_join_columns",
+      "description": "Select the required Artist, Album, and Track columns",
+      "points": 20,
+      "visual_evidence": "The SQL query selects the artist name, album title, and track name, and includes JOIN clauses connecting the Artist, Album, and Track tables."
+    },
+    {
+      "id": "duration_formatting_logic",
+      "description": "Implement the logic to format Milliseconds into MM:SS",
+      "points": 30,
+      "visual_evidence": "The SQL query contains mathematical operations on the 'Milliseconds' column (e.g., dividing by 60000 for minutes, modulo 60000 and dividing by 1000 for seconds) and string concatenation (e.g., using '||') aliased as 'Duration'."
+    },
+    {
+      "id": "successful_execution_or_result",
+      "description": "Execute the query to create the view and verify the output",
+      "points": 20,
+      "visual_evidence": "A success message indicating the view was created, or a result grid from querying the new view showing the columns 'Artist', 'Album', 'Track', and 'Duration' with values formatted like '5:43'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "The agent used a genuine database client or CLI to execute the task",
+      "visual_evidence": "The interface is a functional database tool (GUI or terminal), not just a basic text editor where the query is typed but never run."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The duration format is calculated dynamically, not hardcoded",
+      "visual_evidence": "The SQL query uses mathematical formulas and column references (e.g., Milliseconds) rather than inserting hardcoded strings like '5:43' into a static table."
+    },
+    {
+      "id": "actual_execution",
+      "description": "The query was actually executed against the database",
+      "visual_evidence": "Presence of execution logs, success notifications, or a populated result grid showing the query was run, rather than just drafted."
+    }
+  ],
+  "privileged_info_for_vlm": "The target view name must be exactly 'FormattedTrackList'. The required columns are 'Artist', 'Album', 'Track', and 'Duration'. The 'Duration' column must be calculated from the 'Milliseconds' column in the tracks table. The expected logic involves dividing by 60000 for minutes, using modulo 60000 and dividing by 1000 for seconds, and concatenating them using the '||' operator. The database used is the Chinook sample database."
+}

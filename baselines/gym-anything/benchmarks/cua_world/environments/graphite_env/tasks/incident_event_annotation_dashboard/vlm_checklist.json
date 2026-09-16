@@ -1,0 +1,53 @@
+{
+  "task_id": "incident_event_annotation_dashboard@1",
+  "task_completion": [
+    {
+      "id": "event_injection",
+      "description": "Verify that the agent injected the event into the Graphite Events API.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window showing an HTTP POST request (e.g., using 'curl') to 'http://localhost/events/' with a JSON payload containing '\"what\": \"Cache Flush\"' and '\"tags\": \"mitigation_applied\"'."
+    },
+    {
+      "id": "dashboard_name",
+      "description": "Verify the creation of the Graphite dashboard with the correct name.",
+      "points": 10,
+      "visual_evidence": "Look at the Graphite web interface and confirm the dashboard title is exactly 'Sev1 Mitigation Review'."
+    },
+    {
+      "id": "database_load_graph",
+      "description": "Verify the 'Database Load' graph is created with the correct metric.",
+      "points": 20,
+      "visual_evidence": "Look for a graph titled 'Database Load' in the dashboard. Its legend or configuration must show the target 'movingAverage(servers.rds_database.cpu.utilization, 10)'."
+    },
+    {
+      "id": "frontend_traffic_graph",
+      "description": "Verify the 'Frontend Traffic' graph is created with the correct metric.",
+      "points": 20,
+      "visual_evidence": "Look for a graph titled 'Frontend Traffic' in the dashboard. Its legend or configuration must show the target 'servers.load_balancer.requests.count'."
+    },
+    {
+      "id": "event_targets_added",
+      "description": "Verify both graphs include the event target and display the event marker.",
+      "points": 30,
+      "visual_evidence": "Look for the target 'events(\"mitigation_applied\")' in the legends or configurations of both graphs. Additionally, an event marker (such as a vertical line or annotation) should be visible on the graphs indicating the injected event."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_graphite_interaction",
+      "description": "Verify the agent interacted with the actual Graphite web interface.",
+      "visual_evidence": "The screenshots should show a real web browser navigating the Graphite UI, not a mockup or a text editor with HTML."
+    },
+    {
+      "id": "genuine_api_request",
+      "description": "Verify the event injection was performed via a real HTTP request.",
+      "visual_evidence": "Look for actual execution of a command like 'curl' or a script in a terminal, rather than just typing the command without running it."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Verify the dashboard was not faked using browser developer tools.",
+      "visual_evidence": "Ensure there are no browser developer tools (Inspect Element) open that are being used to alter the text of the dashboard title or graph legends."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Sev1 Mitigation Review'. The injected event must have the 'what' field set to 'Cache Flush' and the 'tags' field set to 'mitigation_applied'."
+}

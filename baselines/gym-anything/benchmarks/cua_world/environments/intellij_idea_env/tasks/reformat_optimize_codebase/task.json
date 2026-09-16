@@ -1,0 +1,45 @@
+{
+  "id": "reformat_optimize_codebase@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "You have the 'inventory-manager' Maven project open in IntelliJ IDEA (located at ~/IdeaProjects/inventory-manager). The project contains 5 Java source files with messy, inconsistent formatting: mixed tabs and spaces, varying indentation sizes, wildcard imports (e.g., import java.util.*), unused imports, excessive blank lines, and trailing whitespace. The project has a .editorconfig file that specifies the desired formatting rules (4-space indentation, no tabs).\n\nReformat the code and optimize imports for the entire src/main/java directory to comply with the project's formatting standards. Ensure all Java files under src/main/java/com/inventory/ have consistent 4-space indentation, no wildcard imports, no unused imports, and no trailing whitespace. Verify the project builds successfully after these changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reformat_optimize_codebase/setup_task.sh",
+    "post_task": "/workspace/tasks/reformat_optimize_codebase/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/inventory-manager",
+    "source_path": "src/main/java/com/inventory",
+    "expected_indent_size": 4,
+    "forbidden_imports": [
+      "java.util.*",
+      "java.io.*",
+      "java.awt.Color"
+    ],
+    "files_to_check": [
+      "Product.java",
+      "Warehouse.java",
+      "InventoryService.java",
+      "Category.java",
+      "InventoryApp.java"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reformat_optimize_codebase"
+    }
+  },
+  "tags": [
+    "intellij",
+    "refactoring",
+    "code_quality",
+    "java"
+  ]
+}

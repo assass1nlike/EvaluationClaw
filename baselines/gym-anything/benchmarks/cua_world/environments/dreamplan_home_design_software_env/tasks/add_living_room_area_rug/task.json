@@ -1,0 +1,30 @@
+{
+  "id": "add_living_room_area_rug@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Create a custom rectangular area rug in the center of the living room in the sample house. The rug must have a distinct carpet or fabric texture overlaying the existing floor, leaving a visible border of the original flooring around the edges. Save a screenshot of the 3D view to C:\\Users\\Docker\\Documents\\rug_design.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_living_room_area_rug\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_living_room_area_rug\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\rug_design.png",
+    "project_path": "C:\\Users\\Docker\\Documents\\DreamPlan\\Projects",
+    "score_file_exists": 20,
+    "score_rug_visible": 40,
+    "score_is_area_rug": 30,
+    "score_texture_distinct": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_living_room_area_rug"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "blood_bank_inventory_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_raw_inventory",
+      "description": "Open the raw RBC inventory CSV file.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application showing the contents of rbc_inventory_raw.csv with columns like 'Collection_Date' and blood types."
+    },
+    {
+      "id": "calculate_expiration_date",
+      "description": "Create an 'Expiration_Date' column calculating 42 days from the 'Collection_Date'.",
+      "points": 20,
+      "visual_evidence": "A column named 'Expiration_Date' containing dates. The formula bar should ideally show a formula adding 42 to the Collection_Date."
+    },
+    {
+      "id": "calculate_days_remaining",
+      "description": "Create a 'Days_Remaining' column calculating the difference between the Expiration Date and October 24, 2024.",
+      "points": 20,
+      "visual_evidence": "A column named 'Days_Remaining' showing integer values. The formula bar should show a subtraction involving the Expiration Date and the fixed date 2024-10-24."
+    },
+    {
+      "id": "flag_expiring_soon",
+      "description": "Create an 'Expiring_Soon' column flagging units with 5 or fewer days remaining.",
+      "points": 20,
+      "visual_evidence": "A column named 'Expiring_Soon' with boolean values (e.g., TRUE/FALSE) where TRUE corresponds to 'Days_Remaining' <= 5."
+    },
+    {
+      "id": "create_blood_type_summary",
+      "description": "Create a 'Blood Type Summary' sheet aggregating the total unit counts for the 8 major blood groups.",
+      "points": 20,
+      "visual_evidence": "A separate sheet named 'Blood Type Summary' containing a table with blood types and their corresponding counts (e.g., O+ showing 290, A+ showing 271)."
+    },
+    {
+      "id": "save_excel_file",
+      "description": "Save the completed analysis as an Excel file named blood_bank_inventory.xlsx.",
+      "points": 10,
+      "visual_evidence": "The spreadsheet application window title or a save dialog showing the file saved as blood_bank_inventory.xlsx."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent used a spreadsheet application GUI to perform the analysis.",
+      "visual_evidence": "Screenshots show a spreadsheet GUI (like LibreOffice Calc) being actively used, rather than a terminal window executing a Python or bash script."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent used spreadsheet formulas or pivot tables to calculate the values.",
+      "visual_evidence": "The formula bar shows spreadsheet formulas (e.g., involving +42, DATE(2024,10,24), or COUNTIF) or a Pivot Table interface is visible, rather than manually typed static answers."
+    },
+    {
+      "id": "no_hardcoded_summary",
+      "description": "The agent did not simply copy-paste the expected summary counts from an external source.",
+      "visual_evidence": "The summary sheet shows evidence of calculation (like a Pivot Table or COUNTIF formulas in the formula bar) rather than just raw typed numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "Anchor date for calculations is 2024-10-24. Shelf life is exactly 42 days. The expected output file is /home/ga/Documents/Spreadsheets/blood_bank_inventory.xlsx. The ground truth counts for the 'Blood Type Summary' are: O+ (290), A+ (271), B+ (78), O- (62), A- (58), AB+ (27), B- (12), and AB- (2)."
+}

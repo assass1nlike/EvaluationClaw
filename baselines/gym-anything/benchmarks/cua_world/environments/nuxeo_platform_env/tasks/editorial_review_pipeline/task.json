@@ -1,0 +1,32 @@
+{
+  "id": "editorial_review_pipeline@1",
+  "version": "1.0",
+  "env_id": "nuxeo_platform_env@0.1",
+  "description": "You are a digital content manager at a publishing organization preparing documents for the Q4 publication cycle. Following the 'Editorial Standards and Publication Guidelines' note in the Projects workspace, update document metadata (dc:source, dc:rights, and dc:language) to meet publication standards. Apply workflow stage tags ('ready-for-review' or 'needs-revision') to each document based on its readiness and create an editorial assessment Note in the Projects workspace for each reviewed document summarizing its publication readiness. Create a collection named 'Q4 2025 Publications' containing all documents tagged 'ready-for-review'. Login credentials: Administrator / Administrator",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/editorial_review_pipeline/setup_task.sh"
+  },
+  "metadata": {
+    "occupation": "Digital Content Manager",
+    "industry": "Media / Publishing",
+    "features_tested": [
+      "metadata_editing",
+      "tags",
+      "collections",
+      "note_creation"
+    ],
+    "companion_ref_doc": "Editorial Standards and Publication Guidelines"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_editorial_review_pipeline"
+    }
+  }
+}

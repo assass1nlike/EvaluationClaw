@@ -1,0 +1,59 @@
+{
+  "task_id": "davidson_mackinnon_j_test_manual@1",
+  "task_completion": [
+    {
+      "id": "open_dataset",
+      "description": "Open the food.gdt dataset in gretl.",
+      "points": 10,
+      "visual_evidence": "The gretl main window is visible, showing the dataset 'food.gdt' loaded with variables including 'food_exp' and 'income'."
+    },
+    {
+      "id": "generate_fitted_values",
+      "description": "Estimate Model A (linear) and Model B (log) to generate their fitted values.",
+      "points": 10,
+      "visual_evidence": "New variables representing the fitted values from both the linear model and the log model (e.g., yhat, yhat1, yhat2, or custom names) appear in the gretl main window variable list."
+    },
+    {
+      "id": "run_aux_linear",
+      "description": "Run the auxiliary regression to test Model A.",
+      "points": 20,
+      "visual_evidence": "A gretl model output window shows an OLS regression where the dependent variable is 'food_exp' and the independent variables include 'income' and the fitted values from Model B."
+    },
+    {
+      "id": "save_aux_linear",
+      "description": "Save the auxiliary regression output for Model A to the specified file.",
+      "points": 20,
+      "visual_evidence": "A save dialog, terminal command, or file manager shows the output being saved to '/home/ga/Documents/gretl_output/aux_linear.txt'."
+    },
+    {
+      "id": "run_aux_log",
+      "description": "Run the auxiliary regression to test Model B.",
+      "points": 20,
+      "visual_evidence": "A gretl model output window shows an OLS regression where the dependent variable is 'food_exp' and the independent variables include the log of income (e.g., 'l_income' or 'log_income') and the fitted values from Model A."
+    },
+    {
+      "id": "save_aux_log",
+      "description": "Save the auxiliary regression output for Model B to the specified file.",
+      "points": 20,
+      "visual_evidence": "A save dialog, terminal command, or file manager shows the output being saved to '/home/ga/Documents/gretl_output/aux_log.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gretl_usage",
+      "description": "The agent used gretl to perform the regressions rather than faking the output.",
+      "visual_evidence": "Screenshots show genuine gretl GUI windows (main window, model outputs, variable creation) or valid gretl CLI (gretlcli) execution, not just text being typed into an editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected results into a text file.",
+      "visual_evidence": "The output files are generated via gretl's save/export functionality or redirection from a gretl script, rather than the agent manually typing regression tables into a text editor."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent saved the files to the exact requested directory.",
+      "visual_evidence": "The file paths in the save dialogs or terminal commands exactly match '/home/ga/Documents/gretl_output/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset 'food.gdt' contains 40 observations. The correct results for the Davidson-MacKinnon J-test auxiliary regressions are: Auxiliary Linear regression (testing Model A) should have a coefficient of approximately 0.1060 and a t-statistic of 0.1490 for the fitted values. Auxiliary Log regression (testing Model B) should have a coefficient of approximately 0.9028 and a t-statistic of 1.3181 for the fitted values. Tolerances are 0.15 for coefficients and 0.5 for t-statistics. Note that any metadata claiming otherwise is incorrect."
+}

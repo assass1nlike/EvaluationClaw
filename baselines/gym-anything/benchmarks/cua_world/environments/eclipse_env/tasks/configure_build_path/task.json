@@ -1,0 +1,36 @@
+{
+  "id": "configure_build_path@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "The Eclipse project 'DataProcessor' has compilation errors because its library dependencies are not on the build path. The project's lib/ folder contains three JAR files (commons-lang3-3.14.0.jar, gson-2.10.1.jar, slf4j-api-2.0.9.jar) that need to be added to the Java Build Path. Configure the project to include these dependencies and ensure src/main/java is correctly set as a source folder. Resolve all compilation errors in App.java, JsonTransformer.java, and TextAnalyzer.java until the project builds successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_build_path/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_build_path/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "DataProcessor",
+    "project_path": "/home/ga/eclipse-workspace/DataProcessor",
+    "expected_jars": [
+      "commons-lang3-3.14.0.jar",
+      "gson-2.10.1.jar",
+      "slf4j-api-2.0.9.jar"
+    ],
+    "expected_classes": [
+      "App.class",
+      "JsonTransformer.class",
+      "TextAnalyzer.class"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_build_path"
+    }
+  }
+}

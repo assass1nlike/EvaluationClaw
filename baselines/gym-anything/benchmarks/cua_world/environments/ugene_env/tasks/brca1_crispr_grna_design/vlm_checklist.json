@@ -1,0 +1,53 @@
+{
+  "task_id": "brca1_crispr_grna_design@1",
+  "task_completion": [
+    {
+      "id": "open_fasta_file",
+      "description": "Verify the agent opened the BRCA1_exon11.fasta file in the sequence viewer.",
+      "points": 10,
+      "visual_evidence": "UGENE interface showing the sequence view with 'BRCA1_exon11.fasta' visible in the window title, project tree, or sequence name."
+    },
+    {
+      "id": "find_crispr_targets",
+      "description": "Verify the agent configured and ran the CRISPR/Cas9 target identification tool with SpCas9 parameters.",
+      "points": 30,
+      "visual_evidence": "A dialog box for 'Find CRISPR targets' with PAM set to NGG, length set appropriately (20bp target + 3bp PAM = 23bp total), and both strands selected, OR the sequence view showing multiple annotated CRISPR target regions (usually highlighted arrows on the sequence)."
+    },
+    {
+      "id": "export_genbank_file",
+      "description": "Verify the agent exported the annotated sequence to BRCA1_crispr.gb.",
+      "points": 20,
+      "visual_evidence": "An 'Export Sequence' or 'Save a copy' dialog showing the path '~/UGENE_Data/crispr/results/BRCA1_crispr.gb' with GenBank format selected, or a file manager/terminal showing the file was successfully created."
+    },
+    {
+      "id": "export_csv_annotations",
+      "description": "Verify the agent exported the CRISPR target annotations to crispr_targets.csv.",
+      "points": 20,
+      "visual_evidence": "An 'Export Annotations' dialog showing the path '~/UGENE_Data/crispr/results/crispr_targets.csv' with CSV format selected, or a file manager/terminal showing the file was successfully created."
+    },
+    {
+      "id": "record_target_count",
+      "description": "Verify the agent created design_summary.txt containing the total number of identified target sites.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window showing the creation of '~/UGENE_Data/crispr/results/design_summary.txt' with the correct target count (266) written in it."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ugene_gui",
+      "description": "Ensure the agent used the UGENE graphical interface to find the CRISPR targets.",
+      "visual_evidence": "Screenshots showing the UGENE application open and being interacted with (menus, dialogs, sequence views), rather than just running a Python script or CLI tool to bypass the GUI."
+    },
+    {
+      "id": "genuine_target_identification",
+      "description": "Ensure the agent actually ran the target identification tool and didn't manually create fake annotations.",
+      "visual_evidence": "The UGENE sequence view should display the generated annotation tracks for CRISPR targets, or the 'Find CRISPR targets' dialog should be visible."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Ensure the agent didn't just echo the final count into the summary file without actually finding the targets in the software.",
+      "visual_evidence": "The number 266 should be visible somewhere in the UGENE interface (e.g., in the annotations table, object tree, or a summary dialog) before being written to the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected GenBank file path is /home/ga/UGENE_Data/crispr/results/BRCA1_crispr.gb. The expected CSV file path is /home/ga/UGENE_Data/crispr/results/crispr_targets.csv. The expected summary text file path is /home/ga/UGENE_Data/crispr/results/design_summary.txt. The correct total number of valid target sites is exactly 266. The target length with PAM is 23 bp, and the PAM motif is NGG (or CCN for reverse complement)."
+}

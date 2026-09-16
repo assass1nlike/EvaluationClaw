@@ -1,0 +1,30 @@
+{
+  "id": "configure_cash_rounding@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Configure NCH Copper Point of Sale to handle cash rounding for regions without small coin denominations (e.g., Canada, Australia). Enable cash rounding to the nearest 5 cents (0.05) using the 'Round to the nearest value' rule. Verify the configuration by processing a cash sale for a tax-exempt item named 'Washer Test' priced at $0.03 and a tax-exempt item named 'Bolt Test' priced at $1.00. Complete the transaction and leave the final receipt or transaction summary visible on the screen.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_cash_rounding\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_cash_rounding\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_rounding_interval": "0.05",
+    "expected_rounding_type": "Nearest",
+    "test_item_name": "Washer Test",
+    "test_item_price": 0.03,
+    "expected_pre_round_total": 1.03,
+    "expected_final_total": 1.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_cash_rounding"
+    }
+  }
+}

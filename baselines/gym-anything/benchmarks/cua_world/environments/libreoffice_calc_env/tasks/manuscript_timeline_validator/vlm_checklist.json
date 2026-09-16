@@ -1,0 +1,53 @@
+{
+  "task_id": "manuscript_timeline_validator@1",
+  "task_completion": [
+    {
+      "id": "spreadsheet_opened",
+      "description": "The spreadsheet application is open, displaying the manuscript scene breakdown data with the 7 original columns (Scene #, Chapter, Timestamp, POV Character, Location, Characters Present, Scene Type).",
+      "points": 10,
+      "visual_evidence": "A spreadsheet program (e.g., LibreOffice Calc) is visible on screen with the specified headers and data rows."
+    },
+    {
+      "id": "location_conflict_detected",
+      "description": "The agent created a formula or validation rule that successfully detects the character location conflict in Scene 12.",
+      "points": 25,
+      "visual_evidence": "A new validation column or conditional formatting explicitly flags Scene 12 (where Sarah is at both the Airport Terminal and Precinct at 2024-03-15 21:00). Look for text like 'Conflict', 'Error', or highlighted cells in the rows for Scene 12."
+    },
+    {
+      "id": "pov_conflict_detected",
+      "description": "The agent created a formula or validation rule that successfully detects the missing POV character in Scene 23.",
+      "points": 25,
+      "visual_evidence": "A new validation column or conditional formatting explicitly flags Scene 23 (where Marcus is the POV but missing from 'Characters Present'). Look for an error flag or highlight on the row for Scene 23."
+    },
+    {
+      "id": "timeline_conflict_detected",
+      "description": "The agent created a formula or validation rule that successfully detects the timeline contradiction in Scene 31.",
+      "points": 25,
+      "visual_evidence": "A new validation column or conditional formatting explicitly flags Scene 31 (where the 17:30 timestamp incorrectly follows Scene 30's 18:00 timestamp within Chapter 8). Look for an error flag or highlight on the row for Scene 31."
+    },
+    {
+      "id": "file_saved",
+      "description": "The updated file is saved to ~/Documents/scene_breakdown.xlsx.",
+      "points": 15,
+      "visual_evidence": "The application title bar shows 'scene_breakdown.xlsx', or a 'Save As' dialog is visible confirming the save location in the Documents folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the spreadsheet application's graphical interface to build the formulas and format the document.",
+      "visual_evidence": "The spreadsheet application is open and active in the screenshots, with evidence of cell selection, formula bar usage, or formatting menus being accessed."
+    },
+    {
+      "id": "genuine_formulas",
+      "description": "The agent used actual spreadsheet formulas rather than manually typing error flags into the specific cells.",
+      "visual_evidence": "The formula bar shows logical functions (e.g., IF, COUNTIFS, SEARCH, ISERROR) when a validation cell is selected, rather than hardcoded text like 'Location Conflict'."
+    },
+    {
+      "id": "no_terminal_scripting",
+      "description": "The agent did not bypass the GUI by writing a Python/pandas script or bash command to directly modify the Excel file.",
+      "visual_evidence": "Terminal windows should not show Python scripts or command-line tools being used to process the data and output the final .xlsx file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 46 rows (45 unique scenes, Scene 12 is duplicated). There are exactly 3 planted conflicts the agent must detect using formulas: 1) Location conflict: Scene 12 has two rows where Sarah is at both 'Airport Terminal' and 'Precinct' at the exact same time (2024-03-15 21:00). 2) POV conflict: Scene 23 has 'Marcus' as the POV Character, but he is missing from the 'Characters Present' column. 3) Timeline conflict: Scene 31 has a timestamp of 17:30, which occurs chronologically before Scene 30 (18:00) within the same chapter (Chapter 8), and Scene 31 is a 'Normal' scene, not a 'Flashback'. The agent's formulas should flag these specific rows."
+}

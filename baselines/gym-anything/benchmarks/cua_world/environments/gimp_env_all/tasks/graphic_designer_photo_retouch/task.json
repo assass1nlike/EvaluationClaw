@@ -1,0 +1,32 @@
+{
+  "id": "graphic_designer_photo_retouch@1",
+  "version": "1.0",
+  "env_id": "example.gimp_env@0.1",
+  "description": "You are a graphic designer retouching a portrait photograph for a client's annual report. Retouch the portrait photograph (portrait_photo.jpg on your Desktop) to recover full contrast, correct the color cast, and sharpen mid-tones to recover detail lost during scanning. Additionally, add a subtle darkened vignette to draw attention inward. Export the final retouched image as retouched_portrait.png to your Desktop.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/graphic_designer_photo_retouch/setup_task.sh",
+    "post_task": "/workspace/tasks/graphic_designer_photo_retouch/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Graphic Designers",
+    "industry": "Graphic Design / Print Media",
+    "output_file": "retouched_portrait.png",
+    "corrections": [
+      "tonal_range",
+      "color_cast",
+      "sharpening",
+      "vignette"
+    ]
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::check_photo_retouch"
+    }
+  }
+}

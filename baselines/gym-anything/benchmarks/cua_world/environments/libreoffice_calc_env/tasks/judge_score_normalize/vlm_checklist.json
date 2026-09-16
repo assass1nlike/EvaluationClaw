@@ -1,0 +1,59 @@
+{
+  "task_id": "judge_score_normalize@1",
+  "task_completion": [
+    {
+      "id": "view_original_data",
+      "description": "Agent opens and views the original pie competition scores.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent viewing the dataset containing 8 pies and 4 judges' scores in a spreadsheet, text editor, or terminal."
+    },
+    {
+      "id": "calculate_judge_means_stdevs",
+      "description": "Agent calculates the mean and standard deviation for each judge.",
+      "points": 20,
+      "visual_evidence": "Screenshots show spreadsheet formulas (e.g., AVERAGE, STDEV) at the bottom of each judge's column, or script code calculating mean and standard deviation per judge."
+    },
+    {
+      "id": "apply_z_score_normalization",
+      "description": "Agent applies z-score standardization to the scores.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the use of a standardization formula like (score - mean) / stdev, the STANDARDIZE function in a spreadsheet, or equivalent code (like scipy.stats.zscore) applied to the scores."
+    },
+    {
+      "id": "calculate_pie_averages",
+      "description": "Agent calculates the average of the normalized z-scores for each pie.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a new column or variable where the 4 normalized judge scores are averaged for each pie."
+    },
+    {
+      "id": "sort_and_rank_pies",
+      "description": "Agent sorts the pies based on their average z-scores to determine the rankings.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the data being sorted in descending order by the average z-score, or a specific ranking function/code being applied to determine the winners."
+    },
+    {
+      "id": "save_normalized_results",
+      "description": "Agent saves the final normalized rankings to the specified file path.",
+      "points": 15,
+      "visual_evidence": "Screenshots show a 'Save As' dialog, file manager, or terminal command confirming the results are saved to /home/ga/Documents/normalized_rankings.csv."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_z_score_calculation",
+      "description": "Verify the agent actually performed z-score normalization and didn't just use naive averaging.",
+      "visual_evidence": "Look for actual z-score formulas or code. Since naive averaging produces the exact same ranking for this specific dataset, the agent must not skip the z-score step."
+    },
+    {
+      "id": "independent_judge_normalization",
+      "description": "Verify that normalization is calculated independently for each judge.",
+      "visual_evidence": "Check that the mean and standard deviation used in the z-score formula are specific to each judge (column-wise), not a global mean/stdev across all 32 scores."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent didn't just type out the final expected rankings.",
+      "visual_evidence": "Ensure the final CSV is generated through calculation (spreadsheet export or script output) rather than manually typing 'Cherry Bomb, Lemon Meringue, Pumpkin Spice' into a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 8 pies and 4 judges. Judge 2 is harsh (scores 4-6, mean=5.0) and Judge 4 is generous (scores 9-10, mean=9.375). Z-score normalization must be calculated independently for each judge using z = (score - mean) / stdev. The expected top 3 winners after normalization are: (1) Cherry Bomb (avg z=1.248), (2) Lemon Meringue (avg z=1.248), (3) Pumpkin Spice (avg z=0.467). CRITICAL: For this specific dataset, z-score normalization produces identical rankings to naive averaging. The agent MUST explicitly perform z-score normalization to be correct; naive averaging alone is incorrect."
+}

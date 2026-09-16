@@ -1,0 +1,65 @@
+{
+  "task_id": "chinook_duration_statistics@1",
+  "task_completion": [
+    {
+      "id": "dbeaver_chinook_connection",
+      "description": "Verify that a database connection named 'Chinook' is established.",
+      "points": 10,
+      "visual_evidence": "DBeaver or a similar database client is open, and a connection explicitly named 'Chinook' is visible in the database navigator."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "Verify that the SQL queries are saved to the correct script file.",
+      "points": 10,
+      "visual_evidence": "A file named 'duration_stats.sql' is visible in the editor tab or file manager, located in /home/ga/Documents/scripts/."
+    },
+    {
+      "id": "stats_query_results",
+      "description": "Verify the execution of the genre duration statistics query.",
+      "points": 20,
+      "visual_evidence": "A query result grid is visible showing exactly 8 columns: GenreName, TrackCount, MinDurationSec, MaxDurationSec, AvgDurationSec, MedianDurationSec, StdDevDurationSec, and CoeffOfVariation. The results should be sorted by CoeffOfVariation descending."
+    },
+    {
+      "id": "stats_csv_exported",
+      "description": "Verify the export of the genre duration statistics CSV.",
+      "points": 15,
+      "visual_evidence": "A file manager window, terminal `ls` output, or export success dialog showing 'genre_duration_stats.csv' in /home/ga/Documents/exports/."
+    },
+    {
+      "id": "outliers_query_results",
+      "description": "Verify the execution of the duration outliers query.",
+      "points": 20,
+      "visual_evidence": "A query result grid is visible showing exactly 6 columns: TrackName, GenreName, DurationSec, GenreAvgSec, ZScore, and OutlierType. The results should be sorted by absolute ZScore descending."
+    },
+    {
+      "id": "outliers_csv_exported",
+      "description": "Verify the export of the duration outliers CSV.",
+      "points": 15,
+      "visual_evidence": "A file manager window, terminal `ls` output, or export success dialog showing 'duration_outliers.csv' in /home/ga/Documents/exports/."
+    },
+    {
+      "id": "formatting_requirements",
+      "description": "Verify that duration values and ZScores are formatted correctly.",
+      "points": 10,
+      "visual_evidence": "In the visible query results or CSV contents, duration values (like AvgDurationSec or DurationSec) must have exactly 1 decimal place (e.g., 245.3), and ZScore values must have exactly 2 decimal places (e.g., 2.45)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_query_execution",
+      "description": "Ensure the agent actually executed the queries against the database.",
+      "visual_evidence": "The query result grids in DBeaver should show execution statistics (e.g., execution time, row counts) indicating a real query was run, rather than manually typed mock data."
+    },
+    {
+      "id": "no_direct_file_creation",
+      "description": "Ensure the CSV files were generated via export or script, not manually typed.",
+      "visual_evidence": "There should be evidence of an export process (like DBeaver's data transfer wizard or a Python/bash script running) rather than the agent opening a text editor and typing the CSV contents directly."
+    },
+    {
+      "id": "correct_data_source",
+      "description": "Ensure the agent used the provided Chinook database.",
+      "visual_evidence": "The active database connection in the SQL editor should point to the Chinook database, not an external or newly created empty database."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database contains 25 genres, but only 24 have 10+ tracks. The outliers query should find exactly 173 tracks with an absolute Z-score > 2. A known outlier is the track 'Occupation / Precipice' in the 'TV Shows' genre, which has a duration of 5287.0 seconds and a Z-score of 4.44. The stats query must produce exactly 8 columns: GenreName, TrackCount, MinDurationSec, MaxDurationSec, AvgDurationSec, MedianDurationSec, StdDevDurationSec, CoeffOfVariation. The outliers query must produce exactly 6 columns: TrackName, GenreName, DurationSec, GenreAvgSec, ZScore, OutlierType."
+}

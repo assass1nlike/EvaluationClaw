@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_last_login_ip@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Agent accessed the MariaDB database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a MySQL/MariaDB prompt (e.g., 'MariaDB [(none)]>' or 'MariaDB [socioboard]>') after logging in as root."
+    },
+    {
+      "id": "modify_database_schema",
+      "description": "Agent added the 'last_login_ip' column to the 'user_details' table.",
+      "points": 30,
+      "visual_evidence": "SQL query execution showing 'ALTER TABLE user_details ADD COLUMN last_login_ip VARCHAR(45);' (or similar) with a success message, or a 'DESCRIBE user_details;' output showing the new 'last_login_ip' column."
+    },
+    {
+      "id": "open_orm_model",
+      "description": "Agent opened the Sequelize ORM model file for 'user_details'.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output showing the contents of the file at '/opt/socioboard/socioboard-api/library/sequelize-cli/models/user_details.js'."
+    },
+    {
+      "id": "update_orm_model",
+      "description": "Agent added the 'last_login_ip' property to the Sequelize model.",
+      "points": 30,
+      "visual_evidence": "The text editor shows 'last_login_ip: DataTypes.STRING(45)' (or similar valid Sequelize syntax) added to the model definition inside 'user_details.js'."
+    },
+    {
+      "id": "restart_pm2_services",
+      "description": "Agent restarted the backend microservices using pm2.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'pm2 restart' command execution (e.g., 'pm2 restart all' or specific service names) and the PM2 status table showing the services are online."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "verify_db_execution",
+      "description": "The database modification was actually executed on the MariaDB server.",
+      "visual_evidence": "Look for the 'Query OK' confirmation message from MariaDB or the output of a 'DESCRIBE' command showing the column exists, rather than just an unexecuted SQL string typed in a prompt or text editor."
+    },
+    {
+      "id": "verify_file_save",
+      "description": "The ORM model file modification was actually saved.",
+      "visual_evidence": "Look for editor save confirmations (e.g., 'Wrote X lines' in nano) or a subsequent terminal command (like cat or grep) showing the changes exist in the actual file."
+    },
+    {
+      "id": "verify_pm2_restart",
+      "description": "The PM2 restart command was executed and affected the actual services.",
+      "visual_evidence": "The PM2 status table should list actual Socioboard-related services with updated restart counts or uptime, not a mocked output or empty PM2 list."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected target column is 'last_login_ip' with type 'varchar(45)'. The Sequelize ORM model file to be modified is located exactly at '/opt/socioboard/socioboard-api/library/sequelize-cli/models/user_details.js'."
+}

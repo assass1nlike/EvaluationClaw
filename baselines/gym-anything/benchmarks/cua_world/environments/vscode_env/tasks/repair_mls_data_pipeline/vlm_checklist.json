@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_mls_data_pipeline@1",
+  "task_completion": [
+    {
+      "id": "fix_pagination_odata_nextlink",
+      "description": "Update the API client to use @odata.nextLink for pagination.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the API client script within /home/ga/workspace/mls_pipeline/ modified to extract and follow the '@odata.nextLink' URL for subsequent pages instead of using a hardcoded 'skip' loop."
+    },
+    {
+      "id": "fix_timezone_conflict",
+      "description": "Resolve naive vs timezone-aware timestamp conflicts in the datetime utility.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the datetime utility script updated to handle timezone awareness (e.g., adding tzinfo, using pytz, or converting naive datetimes to timezone-aware before comparison)."
+    },
+    {
+      "id": "fix_property_mapper_keyerror",
+      "description": "Fix the property mapper KeyError for 'Condo / Townhouse'.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the property mapper script updated to safely handle the 'Condo / Townhouse' key, either by adding it to the mapping dictionary or using a safe .get() method with a default fallback."
+    },
+    {
+      "id": "fix_spatial_parser_regex",
+      "description": "Correct the spatial parser's regex to capture negative signs for longitude.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the spatial parser script with a modified regular expression that includes an optional minus sign (e.g., '-?') for the longitude coordinate group."
+    },
+    {
+      "id": "fix_analytics_sqft_filter",
+      "description": "Ensure the analytics script filters out listings with missing or zero square footage.",
+      "points": 10,
+      "visual_evidence": "Code editor showing the analytics script updated with a conditional check or filter (e.g., sqft > 0, or checking for None/0) to exclude invalid square footage records."
+    },
+    {
+      "id": "verify_test_suite_passes",
+      "description": "Verify the fixes using the provided test suite.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing the execution of the test suite (e.g., using pytest or python -m unittest) with output indicating that all tests have passed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the agent actually edited the files in the correct workspace directory.",
+      "visual_evidence": "The file paths visible in the code editor or terminal commands must point to /home/ga/workspace/mls_pipeline/."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify the test suite was genuinely executed and not faked.",
+      "visual_evidence": "Terminal output should display standard test framework formatting (e.g., pytest collection, execution times, pass/fail summaries) rather than simple echo statements."
+    },
+    {
+      "id": "no_test_file_tampering",
+      "description": "Verify the agent did not alter the test suite to force a passing result.",
+      "visual_evidence": "The test files themselves should not be modified to remove assertions or hardcode expected outputs; the fixes must be in the source code files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task is entirely synthetic; the Python scripts and JSON data are generated dynamically by setup scripts rather than derived from a real MLS API. The pass threshold for this task is strictly 60 points. Verify that the 5 specific bugs are addressed logically in the code and that the test suite passes."
+}

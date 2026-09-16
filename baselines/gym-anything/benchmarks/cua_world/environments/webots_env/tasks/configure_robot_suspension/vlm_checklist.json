@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_robot_suspension@1",
+  "task_completion": [
+    {
+      "id": "locate_robot_and_joints",
+      "description": "Locate the DELIVERY_ROVER and its four wheel joints in the Webots scene tree.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Webots application open with the Scene Tree panel visible. The 'DELIVERY_ROVER' node should be expanded, revealing the four wheel joints: FL_WHEEL_JOINT, FR_WHEEL_JOINT, RL_WHEEL_JOINT, and RR_WHEEL_JOINT."
+    },
+    {
+      "id": "set_suspension_axis",
+      "description": "Set the suspensionAxis to 0 0 1 for the wheel joints.",
+      "points": 20,
+      "visual_evidence": "In the Webots Field Editor (usually below the Scene Tree) or a text editor, the 'suspensionAxis' property for the wheel joints is set to '0 0 1'. The standard 'axis' property should remain '1 0 0'."
+    },
+    {
+      "id": "set_spring_constant",
+      "description": "Set the suspensionSpringConstant to 10000 for the wheel joints.",
+      "points": 25,
+      "visual_evidence": "In the Webots Field Editor or a text editor, the 'suspensionSpringConstant' property for the wheel joints is modified to '10000'."
+    },
+    {
+      "id": "set_damping_constant",
+      "description": "Set the suspensionDampingConstant to 800 for the wheel joints.",
+      "points": 25,
+      "visual_evidence": "In the Webots Field Editor or a text editor, the 'suspensionDampingConstant' property for the wheel joints is modified to '800'."
+    },
+    {
+      "id": "save_corrected_world",
+      "description": "Save the modified world to /home/ga/Desktop/rover_fixed.wbt.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the 'Save World As...' dialog in Webots saving the file as 'rover_fixed.wbt' to the Desktop directory, or terminal/file manager evidence showing the file successfully created at '/home/ga/Desktop/rover_fixed.wbt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_interaction",
+      "description": "Agent genuinely interacted with the Webots GUI or a text editor to modify the world file.",
+      "visual_evidence": "Screenshots show the agent navigating the Webots Scene Tree, editing fields in the GUI, or manually editing the .wbt file in a text editor like nano/gedit, rather than just running a pre-written script to bypass interaction."
+    },
+    {
+      "id": "modified_all_joints",
+      "description": "Agent modified the parameters for all four specified wheel joints, not just one.",
+      "visual_evidence": "Visual evidence of the agent selecting and modifying FL_WHEEL_JOINT, FR_WHEEL_JOINT, RL_WHEEL_JOINT, and RR_WHEEL_JOINT, or performing a find-and-replace that affects all four joints in a text editor."
+    },
+    {
+      "id": "preserved_original_axis",
+      "description": "Agent did not accidentally overwrite the primary joint 'axis' when changing the 'suspensionAxis'.",
+      "visual_evidence": "The 'axis' field in the Field Editor or text file remains '1 0 0' while 'suspensionAxis' is changed to '0 0 1'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/Desktop/rover_fixed.wbt'. The target robot is 'DELIVERY_ROVER'. Four joints must be modified: FL_WHEEL_JOINT, FR_WHEEL_JOINT, RL_WHEEL_JOINT, RR_WHEEL_JOINT. For each joint, the 'suspensionAxis' must be [0, 0, 1], 'suspensionSpringConstant' must be 10000 (acceptable range: 9500-10500), and 'suspensionDampingConstant' must be 800 (acceptable range: 750-850). The original 'axis' parameter [1, 0, 0] must remain unchanged."
+}

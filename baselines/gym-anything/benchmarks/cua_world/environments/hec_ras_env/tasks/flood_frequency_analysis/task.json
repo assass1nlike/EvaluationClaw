@@ -1,0 +1,27 @@
+{
+  "id": "flood_frequency_analysis@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are a hydraulic engineer at a regional flood control district performing a flood frequency analysis for the White River at Muncie, Indiana for a FEMA flood insurance study update. Using the USGS peak-flow frequency report at ~/Documents/usgs_white_river_frequency.txt, determine the design peak flows for 10, 50, and 100-year return periods. For each return period, adjust the upstream boundary condition hydrograph in Muncie.b04 to match the design peak flow and execute the RasUnsteady simulation. Determine the peak water surface elevation (WSE) in feet for each scenario from the simulation results. Export the results to ~/Documents/hec_ras_results/frequency_results.csv with columns return_period,design_flow_cfs,peak_wse_ft (no spaces around commas, one header row, three data rows in ascending return period order). Record the Base Flood Elevation (BFE), defined as the 100-year peak WSE, to ~/Documents/hec_ras_results/bfe_documentation.txt in the format BFE=<value>.",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flood_frequency_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/flood_frequency_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Civil Engineers",
+    "onetsoc": "17-2051.00",
+    "industry": "Government / Water Resources",
+    "difficulty": "very_hard"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flood_frequency_analysis"
+    }
+  }
+}

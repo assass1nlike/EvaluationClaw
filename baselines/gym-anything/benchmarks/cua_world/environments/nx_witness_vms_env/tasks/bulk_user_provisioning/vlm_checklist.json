@@ -1,0 +1,59 @@
+{
+  "task_id": "bulk_user_provisioning@1",
+  "task_completion": [
+    {
+      "id": "script_reads_csv",
+      "description": "The agent creates a script that reads the specified CSV roster file.",
+      "points": 10,
+      "visual_evidence": "Look at the agent's code (e.g., Python script). It should contain logic to open and read '~/Documents/security_roster.csv' and parse the required fields (Username, FullName, Email, RoleName, Password)."
+    },
+    {
+      "id": "role_mapping_and_cleaning",
+      "description": "The script contains logic to clean whitespace and map role names to system Role IDs.",
+      "points": 10,
+      "visual_evidence": "Look at the agent's code for string manipulation functions (like `.strip()` in Python) applied to the CSV data, and logic that maps the 'RoleName' string to a specific Nx Witness Role ID (either dynamically fetched via API or via a hardcoded dictionary)."
+    },
+    {
+      "id": "b_wayne_provisioned",
+      "description": "User 'b.wayne' is successfully provisioned with the 'Shift Supervisor' role.",
+      "points": 20,
+      "visual_evidence": "Check the Nx Witness web UI/desktop client users list for 'b.wayne' with the 'Shift Supervisor' role, OR check the terminal output of the script for a successful API creation response for 'b.wayne'."
+    },
+    {
+      "id": "d_prince_provisioned",
+      "description": "User 'd.prince' is successfully provisioned with the 'Advanced Viewer' role.",
+      "points": 20,
+      "visual_evidence": "Check the Nx Witness UI for 'd.prince' with the 'Advanced Viewer' role, OR check the script's terminal output for a successful creation message."
+    },
+    {
+      "id": "a_curry_provisioned",
+      "description": "User 'a.curry' is successfully provisioned with the 'Viewer' role, demonstrating whitespace trimming.",
+      "points": 20,
+      "visual_evidence": "Check the Nx Witness UI for 'a.curry' with the exact role 'Viewer' (no extra spaces), OR check the script's terminal output for successful creation. This proves the ' Viewer ' string from the CSV was properly trimmed."
+    },
+    {
+      "id": "c_kent_skipped",
+      "description": "User 'c.kent' is skipped due to already existing, demonstrating idempotency.",
+      "points": 20,
+      "visual_evidence": "Check the Nx Witness UI to ensure 'c.kent' still has their original 'Live Viewer' role and was not overwritten to 'Viewer', OR check the script's terminal output for a message indicating 'c.kent' was skipped because the user already exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "automated_not_manual",
+      "description": "Verify that the agent automated the process using a script or API tool.",
+      "visual_evidence": "The agent must run a script (e.g., Python, Bash) or use an automation tool. Manually clicking through the Nx Witness GUI to add each user violates the 'Automate' requirement."
+    },
+    {
+      "id": "no_hardcoded_users",
+      "description": "Verify that the script dynamically reads the users from the CSV.",
+      "visual_evidence": "The script code should not contain hardcoded user details (like 'b.wayne', 'Diana Prince', etc.). It must extract these values from the CSV file."
+    },
+    {
+      "id": "genuine_api_requests",
+      "description": "Verify that the script makes actual API requests to the Nx Witness system.",
+      "visual_evidence": "Look for HTTP request libraries (e.g., `requests.post`, `requests.get` in Python) targeting `https://localhost:7001` with the provided admin credentials, rather than just printing mock success messages to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The CSV roster contains 4 users: b.wayne (Shift Supervisor), d.prince (Advanced Viewer), a.curry (' Viewer ' - with spaces to be trimmed), and c.kent (Viewer). c.kent is already pre-created in the system with the 'Live Viewer' role. The task requires idempotency, so the script must skip c.kent and NOT overwrite their role to 'Viewer'. The script must also trim the whitespace for a.curry so the role maps correctly to 'Viewer'. The agent must automate this process via a script or tool, not manual GUI entry."
+}

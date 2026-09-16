@@ -1,0 +1,53 @@
+{
+  "task_id": "purge_terminated_employee_records@1",
+  "task_completion": [
+    {
+      "id": "search_target_employee",
+      "description": "Search for the target employee to be purged.",
+      "points": 10,
+      "visual_evidence": "The employee search form is filled with 'David', 'Obsolete', or 'PURGE001', or the employee list is filtered to show the record for 'David Obsolete'."
+    },
+    {
+      "id": "select_target_employee",
+      "description": "Select the specific target employee record for deletion.",
+      "points": 20,
+      "visual_evidence": "The checkbox in the data grid row corresponding to 'David Obsolete' (Employee ID: PURGE001) is checked."
+    },
+    {
+      "id": "confirm_deletion",
+      "description": "Confirm the deletion of the selected employee record.",
+      "points": 20,
+      "visual_evidence": "A confirmation dialog box asking to confirm the deletion is visible and being interacted with, or a 'Successfully Deleted' toast/notification is displayed on the screen."
+    },
+    {
+      "id": "verify_target_purged",
+      "description": "Verify that the target employee has been successfully purged from the system.",
+      "points": 30,
+      "visual_evidence": "A subsequent search or view of the employee list shows 'No Records Found' for 'PURGE001' or 'David Obsolete', or the employee is visibly absent from the list."
+    },
+    {
+      "id": "verify_control_remains",
+      "description": "Verify that the control employee was not accidentally deleted.",
+      "points": 20,
+      "visual_evidence": "The employee 'David Current' (Employee ID: KEEP001) is visible in the employee list, demonstrating that other employees (or other employees named David) were not purged."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the graphical user interface of the HR system to perform the deletion.",
+      "visual_evidence": "Screenshots show interaction with a web browser and the HR application's UI, rather than a terminal window executing SQL queries or scripts."
+    },
+    {
+      "id": "genuine_results",
+      "description": "The agent interacted with the actual application and did not fake the outcome.",
+      "visual_evidence": "The application interface looks authentic with proper styling and layout, and there is no evidence of a text editor or manipulated DOM being used to display fake success messages."
+    },
+    {
+      "id": "no_bulk_deletion",
+      "description": "The agent did not use a 'Select All' shortcut that would delete unintended records.",
+      "visual_evidence": "In the screenshots showing record selection, only the specific checkbox for 'David Obsolete' is checked, and the 'Select All' checkbox in the table header is NOT checked."
+    }
+  ],
+  "privileged_info_for_vlm": "Target employee to be purged: 'David Obsolete' (Employee ID: PURGE001). Control employee that must remain active: 'David Current' (Employee ID: KEEP001)."
+}

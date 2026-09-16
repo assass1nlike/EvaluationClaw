@@ -1,0 +1,74 @@
+{
+  "dataset_id": "8e08e217",
+  "name": "Relation-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for relation extraction from newswire sentences. Given a sentence and a pair of typed entities, the model must predict the correct relation type from a predefined set. It evaluates relation classification capabilities.",
+  "card_text": "This dataset contains 200 text samples for relation extraction. Each sample includes a raw newswire sentence (context), a prompt that asks for the relation between two specified entity mentions and lists all candidate relation types, and a single relation label as the answer. The relations follow a TACRED-style schema with labels such as org:city_of_headquarters, per:stateorprovinces_of_residence, per:title, etc. The task is to classify the semantic relation between the two entities based on the sentence. The data is factual and newswire-style, with short sentences typical of relation extraction benchmarks. No additional annotations like bounding boxes or spans are provided; entity types and mentions appear only within the prompt text.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A sentence or short passage from a newswire article that provides the context for relation extraction; it contains the entity mentions whose relation is to be classified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction that asks for the relation between two specified entities, including their entity types and a list of possible relation types; the raw sentence is referenced via a placeholder.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The predicted relation type label chosen from the predefined set, e.g., 'org:city_of_headquarters' or 'per:stateorprovinces_of_residence'.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a raw sentence (input.raw_text), a natural-language prompt (input.prompt) that asks for the relation between two entity mentions and lists the possible relation types, and a single relation label (output.text). The prompt embeds the entity mentions and their types, and the raw sentence provides the context for determining the relation. No explicit entity, span, or option fields exist outside the prompt text."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Relation-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "relation_extraction",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

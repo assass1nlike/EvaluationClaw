@@ -1,0 +1,27 @@
+{
+  "id": "model_comparison_aic_bic@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "The food.gdt dataset in Gretl contains household survey data with variables 'food_exp' and 'income'. Perform a model comparison analysis by estimating three regression models: a Linear Model (food_exp = β₀ + β₁·income), a Quadratic Model (food_exp = β₀ + β₁·income + β₂·income² using variable income_sq), and a Square Root Model (food_exp = β₀ + β₁·√income using variable sqrt_income). Create a report at ~/Documents/gretl_output/model_comparison.txt containing the labeled AIC and BIC values for all three models, a statement identifying the AIC-preferred model, and a statement identifying the BIC-preferred model.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/model_comparison_aic_bic/setup_task.sh",
+    "post_task": "/workspace/tasks/model_comparison_aic_bic/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "output_path": "/home/ga/Documents/gretl_output/model_comparison.txt",
+    "tolerance": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_model_comparison"
+    }
+  }
+}

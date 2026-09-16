@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_compound_incident_trigger@1",
+  "task_completion": [
+    {
+      "id": "initiate_rule_creation",
+      "description": "Verify the agent initiates the creation of a new event rule.",
+      "points": 10,
+      "visual_evidence": "The 'Event Rules' dialog is open in the Nx Witness Desktop Client, OR a terminal/API client is open preparing to send an API request to the VMS."
+    },
+    {
+      "id": "configure_soft_trigger_event",
+      "description": "Verify the Soft Trigger event is configured with the correct name, source, and user access.",
+      "points": 20,
+      "visual_evidence": "In the GUI: Event type is 'Soft Trigger', Source is 'Entrance Camera', Name is 'Report Incident', and Available to 'All Users'. If using API: The JSON payload shows eventType 'softwareTriggerEvent', the correct camera reference, and triggerName 'Report Incident'."
+    },
+    {
+      "id": "configure_bookmark_action",
+      "description": "Verify the first action is configured to create a bookmark with the correct duration and tag.",
+      "points": 25,
+      "visual_evidence": "In the GUI: Action is set to 'Bookmark', Fixed duration is 1 minute (or 60s), and Tags include 'Manual_Report'. If using API: actionType is 'bookmark' (or 'bookmarkLog'), duration is 60000 (ms), and tags include 'Manual_Report'."
+    },
+    {
+      "id": "configure_recording_action",
+      "description": "Verify the second action is configured to start recording with the correct duration and quality.",
+      "points": 25,
+      "visual_evidence": "In the GUI: A second action (or compound action) is set to 'Camera recording', Duration is 5 minutes (or 300s), and Quality is 'Best' or 'High'. If using API: actionType is 'recording' (or 'cameraRecording') and duration is 300000 (ms)."
+    },
+    {
+      "id": "apply_and_verify_trigger",
+      "description": "Verify the rule is saved and the soft trigger is successfully applied to the camera.",
+      "points": 20,
+      "visual_evidence": "The 'Report Incident' button is visible on the 'Entrance Camera' video overlay in the Nx Witness client, the rule is visible in the saved Event Rules list, OR an API success response (e.g., HTTP 200 OK) is visible in the terminal after sending the payload."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_vms_interaction",
+      "description": "Verify the agent interacted with the actual Nx Witness Client or a genuine API client/terminal.",
+      "visual_evidence": "Screenshots show the actual Nx Witness Desktop Client interface or a real terminal executing curl/python scripts, not a text editor merely typing out the expected answers."
+    },
+    {
+      "id": "actual_camera_selected",
+      "description": "Verify the 'Entrance Camera' was genuinely targeted.",
+      "visual_evidence": "The 'Entrance Camera' is selected from the VMS resource tree or explicitly referenced by its valid ID/name in the API payload, rather than a generic placeholder."
+    },
+    {
+      "id": "no_spoofing",
+      "description": "Verify the results are not spoofed.",
+      "visual_evidence": "There is no evidence of HTML/UI spoofing, image manipulation, or editing local configuration files directly to fake the completion of the task."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Camera: 'Entrance Camera'. Trigger Name: 'Report Incident'. Bookmark Tag: 'Manual_Report'. Bookmark Duration: 1 minute (60 seconds / 60000 ms). Recording Duration: 5 minutes (300 seconds / 300000 ms). Required Actions: Bookmark and Recording. The task can be completed via the Nx Witness Desktop Client GUI or via API."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "configure_time_and_sales@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "A day trader specializing in momentum scalping needs to set up Time & Sales (T&S) windows in NinjaTrader 8 to monitor the order flow tape for SPY and AAPL. Create two Time & Sales windows, one configured for instrument 'SPY' and the other for instrument 'AAPL'. Both windows must be configured to display exactly 100 rows of trade data. Save the workspace to ensure the configuration is persisted.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_time_and_sales\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_time_and_sales\\export_result.ps1"
+  },
+  "metadata": {
+    "instruments": [
+      "SPY",
+      "AAPL"
+    ],
+    "target_rows": 100,
+    "window_type": "TimeAndSales",
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_time_and_sales"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "teacher_salary_schedule@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "Create a professional Certified Staff Compensation Schedule for Maplewood Consolidated School District #18 (2024-2025) using the data from /home/ga/Documents/district_compensation_data.json. The document should feature the District Name, Document Title, and Fiscal Year at the top, an automated Table of Contents, and distinct sections for 'Salary Schedule', 'Extra-Duty Stipends', and 'Benefits'. The Salary Schedule must be a 12-step by 6-lane grid, and the other sections should contain tables for stipends and benefits. Ensure the document uses professional styles, includes page numbers, and is saved as /home/ga/Documents/Maplewood_Salary_Schedule_2024_2025.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/teacher_salary_schedule/setup_task.sh",
+    "post_task": "/workspace/tasks/teacher_salary_schedule/export_result.sh"
+  },
+  "metadata": {
+    "input_data_file": "/home/ga/Documents/district_compensation_data.json",
+    "output_file": "/home/ga/Documents/Maplewood_Salary_Schedule_2024_2025.odt",
+    "required_values": [
+      "42,500",
+      "72,835",
+      "84,750",
+      "6,200",
+      "Maplewood"
+    ],
+    "structural_requirements": {
+      "min_h1": 4,
+      "min_h2": 4,
+      "min_tables": 3,
+      "toc": true,
+      "footer_page_numbers": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_salary_schedule"
+    }
+  }
+}

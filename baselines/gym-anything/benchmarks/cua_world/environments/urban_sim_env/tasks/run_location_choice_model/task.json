@@ -1,0 +1,33 @@
+{
+  "id": "run_location_choice_model@1",
+  "version": "1.0",
+  "env_id": "urban_sim_env@0.1",
+  "difficulty": "hard",
+  "description": "Build a household location choice model using San Francisco UrbanSim data in the Jupyter notebook at /home/ga/urbansim_projects/notebooks/location_choice.ipynb. Estimate a logistic regression model predicting household location choices using at least three building characteristics (such as residential_sales_price, building_sqft, or year_built) from the 'households' and 'buildings' tables in /home/ga/urbansim_projects/data/sanfran_public.h5. The model must use a binary dependent variable representing location quality or choice. Export the coefficients to /home/ga/urbansim_projects/output/location_choice_coefficients.csv (with 'variable' and 'coefficient' columns) and save a bar chart of the coefficient magnitudes to",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_location_choice_model/setup_task.sh",
+    "post_task": "/workspace/tasks/run_location_choice_model/export_result.sh"
+  },
+  "metadata": {
+    "expected_notebook_path": "/home/ga/urbansim_projects/notebooks/location_choice.ipynb",
+    "expected_csv_path": "/home/ga/urbansim_projects/output/location_choice_coefficients.csv",
+    "expected_plot_path": "/home/ga/urbansim_projects/output/location_choice_coefficients.png",
+    "data_path": "/home/ga/urbansim_projects/data/sanfran_public.h5",
+    "expected_csv_columns": [
+      "variable",
+      "coefficient"
+    ],
+    "min_features": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_location_choice_model"
+    }
+  }
+}

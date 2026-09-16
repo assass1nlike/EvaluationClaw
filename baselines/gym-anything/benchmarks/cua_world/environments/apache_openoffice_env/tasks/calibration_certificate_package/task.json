@@ -1,0 +1,45 @@
+{
+  "id": "calibration_certificate_package@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "TruePoint Calibration Labs, LLC (Charlotte, NC) is an ISO/IEC 17025:2017 accredited calibration laboratory (A2LA Certificate #4521). Calibration Technician Marcus Okafor has completed calibration of 4 instruments for client Southeastern Chemical Processing, Inc. and needs to create the formal calibration certificate package. Using the data from /home/ga/Documents/calibration_data.json, create a professional calibration certificate package in Apache OpenOffice Writer for the following instruments: Fluke 87V Digital Multimeter (S/N: 27340089), Omega HH42A Thermocouple Thermometer (S/N: TC-88712), Ashcroft 2089 Pressure Gauge (S/N: PG-445601), and Mettler Toledo ML3002E Precision Balance (S/N: B912004567). The document must include a cover page (Lab name, accreditation #, client name, and package # SCP-2024-0147) and four individual certificates. Each certificate must contain instrument identification, calibration/due dates, environmental conditions, measurement data tables (nominal/as-found/as-left/tolerances/pass-fail), reference standard traceability, and uncertainty statements. Apply Heading 1 style for the cover and certificate titles (minimum 5) and Heading 2 style for subsections (minimum 8). Ensure all 4 instrument serial numbers and numerical readings from the JSON are included in the document. Save the final document as /home/ga/Documents/CalCert_Package_SCP_2024_0147.odt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/calibration_certificate_package/setup_task.sh",
+    "post_task": "/workspace/tasks/calibration_certificate_package/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/CalCert_Package_SCP_2024_0147.odt",
+    "input_file": "/home/ga/Documents/calibration_data.json",
+    "min_file_size_bytes": 8192,
+    "required_h1_min": 5,
+    "required_h2_min": 8,
+    "required_tables_min": 4,
+    "required_serials": [
+      "27340089",
+      "TC-88712",
+      "PG-445601",
+      "B912004567"
+    ],
+    "required_terms": [
+      "traceability",
+      "uncertainty",
+      "tolerance",
+      "as-found",
+      "as-left"
+    ],
+    "lab_name": "TruePoint",
+    "client_name": "Southeastern Chemical"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calibration_certificate_package"
+    }
+  }
+}

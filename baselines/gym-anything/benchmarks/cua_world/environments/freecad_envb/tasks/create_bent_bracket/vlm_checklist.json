@@ -1,0 +1,53 @@
+{
+  "task_id": "create_bent_bracket@1",
+  "task_completion": [
+    {
+      "id": "use_profile_sketch",
+      "description": "Select or use the existing 'ProfileSketch' as the base for the 3D model.",
+      "points": 10,
+      "visual_evidence": "Look for 'ProfileSketch' selected in the FreeCAD Tree View (Combo View) or visible in the 3D viewport as a Z-shaped line."
+    },
+    {
+      "id": "extrude_50mm",
+      "description": "Extrude the ProfileSketch by 50mm.",
+      "points": 20,
+      "visual_evidence": "Look for an Extrude or Pad operation in the Tree View or Task Panel. The length/height parameter should be set to 50mm, and the 3D view should show a 50mm tall Z-shaped surface or body."
+    },
+    {
+      "id": "apply_2mm_thickness",
+      "description": "Apply a 2mm thickness to create a solid body.",
+      "points": 25,
+      "visual_evidence": "Look for a Thickness or 3D Offset operation in the properties/task panel with a value of 2mm. The 3D view must show the Z-shape as a solid body with visible thickness, not just a flat 2D surface."
+    },
+    {
+      "id": "fillet_5mm_corners",
+      "description": "Fillet the four sharp corner edges at the ends of the Z-shape with a 5mm radius.",
+      "points": 25,
+      "visual_evidence": "Look for a Fillet operation in the Tree View or Task Panel with a radius parameter of 5mm. In the 3D view, the short edges at the very ends of the Z-bracket should appear visibly rounded."
+    },
+    {
+      "id": "save_finished_bracket",
+      "description": "Save the result to /home/ga/Documents/FreeCAD/finished_bracket.FCStd.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save' or 'Save As' dialog showing the path '/home/ga/Documents/FreeCAD/' and the filename 'finished_bracket.FCStd', or check the main FreeCAD window title bar for 'finished_bracket'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_freecad_gui",
+      "description": "The agent used the FreeCAD graphical user interface to build the model.",
+      "visual_evidence": "Look for interactions with FreeCAD's toolbars, task panels, and tree view in the screenshots, rather than Python scripts being executed in the terminal to bypass the GUI."
+    },
+    {
+      "id": "genuine_3d_viewport",
+      "description": "The 3D model is rendered in the actual FreeCAD workspace.",
+      "visual_evidence": "Look for standard FreeCAD viewport elements like the navigation cube, coordinate cross, and grid, ensuring the agent isn't just viewing a pre-rendered image."
+    },
+    {
+      "id": "no_terminal_file_copy",
+      "description": "The agent did not cheat by copying a pre-existing file.",
+      "visual_evidence": "Check terminal windows to ensure the agent did not use 'cp' or 'mv' commands to place a pre-made 'finished_bracket.FCStd' into the target directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected filename: finished_bracket.FCStd. Target extrusion height: 50.0 mm. Target thickness: 2.0 mm. Fillet radius: 5.0 mm. Note: The final volume should be approximately 8927 mm\u00b3 (based on a 100mm path length, 50mm extrusion, 2mm thickness, and 5mm fillets)."
+}

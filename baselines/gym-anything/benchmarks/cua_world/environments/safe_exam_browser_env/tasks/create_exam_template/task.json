@@ -1,0 +1,30 @@
+{
+  "id": "create_exam_template@1",
+  "version": "1.0",
+  "env_id": "safe_exam_browser_env@0.1",
+  "name": "Create Exam Template with Monitoring Indicators",
+  "description": "Create an exam template named 'Midterm Proctored Exam Template' with the description 'Standard template for proctored midterm examinations with monitoring indicators' on the SEB Server (http://localhost:8080, credentials: super-admin / admin). Configure the template with a 'Last Ping Time' monitoring indicator named 'Connection Quality' using a warning threshold of 2000 and a danger threshold of 5000.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_exam_template/setup_task.sh",
+    "post_task": "/workspace/tasks/create_exam_template/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_exam_template"
+    }
+  },
+  "tags": [
+    "seb-server",
+    "exam-template",
+    "monitoring",
+    "web-ui",
+    "hard"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "oomkilled_quota_remediation@1",
+  "task_completion": [
+    {
+      "id": "access_rancher_local_cluster",
+      "description": "Log into Rancher and access the 'local' cluster.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Rancher web interface (https://localhost) logged in, with the 'local' cluster selected in the navigation menu or dashboard."
+    },
+    {
+      "id": "locate_resource_quota",
+      "description": "Navigate to the ResourceQuotas section for the 'data-processing' namespace.",
+      "points": 15,
+      "visual_evidence": "Rancher UI displaying the ResourceQuotas list, specifically showing 'processing-quota' within the 'data-processing' namespace."
+    },
+    {
+      "id": "update_quota_memory_limit",
+      "description": "Update the 'processing-quota' ResourceQuota to have a total memory limit of at least 1.5Gi.",
+      "points": 35,
+      "visual_evidence": "The edit screen or YAML view for 'processing-quota' showing the memory limit field set to '1.5Gi' (or higher), followed by a save action or success notification."
+    },
+    {
+      "id": "locate_batch_analyzer_workload",
+      "description": "Navigate to the Workloads/Deployments section and locate the 'batch-analyzer' workload.",
+      "points": 10,
+      "visual_evidence": "Rancher UI displaying the Workloads list or the specific detail/edit page for the 'batch-analyzer' deployment in the 'data-processing' namespace."
+    },
+    {
+      "id": "update_workload_memory_limit",
+      "description": "Update the 'batch-analyzer' workload to have a memory limit of at least 400Mi.",
+      "points": 30,
+      "visual_evidence": "The edit screen or YAML view for the 'batch-analyzer' workload showing the memory limit field set to '400Mi' (or higher), followed by a save action or success notification."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_gui",
+      "description": "The agent used the Rancher web interface to perform the tasks as requested.",
+      "visual_evidence": "Screenshots show interaction with the Rancher GUI in a web browser rather than relying exclusively on terminal kubectl commands."
+    },
+    {
+      "id": "stream_router_unmodified",
+      "description": "The 'stream-router' service was not modified.",
+      "visual_evidence": "No screenshots show the agent editing, saving changes to, or deleting the 'stream-router' workload."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "The agent genuinely interacted with the browser to make the changes.",
+      "visual_evidence": "Visible progression of navigating menus, typing in input fields, and clicking save buttons within the Rancher UI, rather than just showing a final state."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'data-processing'. Target deployments: 'batch-analyzer', 'stream-router'. Target ResourceQuota: 'processing-quota'. The task requires setting the memory limit of 'processing-quota' to >= 1.5Gi and 'batch-analyzer' to >= 400Mi. The 'stream-router' deployment must not be modified."
+}

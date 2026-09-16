@@ -1,0 +1,36 @@
+{
+  "id": "spatial_join_points_to_polygons@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform a spatial join between the point layer (/home/ga/GIS_Data/sample_points.geojson) and the polygon layer (/home/ga/GIS_Data/sample_polygon.geojson) to determine which polygon each point falls within. The output must include the 'name' and 'area_sqkm' attributes from the polygon layer for each point. Export the final joined result as a GeoJSON file to /home/ga/GIS_Data/exports/points_with_polygon_info.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 50
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spatial_join_points_to_polygons/setup_task.sh",
+    "post_task": "/workspace/tasks/spatial_join_points_to_polygons/export_result.sh"
+  },
+  "metadata": {
+    "polygon_source": "/home/ga/GIS_Data/sample_polygon.geojson",
+    "point_source": "/home/ga/GIS_Data/sample_points.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/points_with_polygon_info.geojson",
+    "expected_feature_count": 3,
+    "expected_join_fields": [
+      "name",
+      "area_sqkm"
+    ],
+    "point_polygon_mapping": {
+      "Point A": "Area A",
+      "Point B": "Area A",
+      "Point C": "Area B"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spatial_join_points_to_polygons"
+    }
+  }
+}

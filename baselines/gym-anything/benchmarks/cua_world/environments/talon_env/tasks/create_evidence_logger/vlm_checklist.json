@@ -1,0 +1,59 @@
+{
+  "task_id": "create_evidence_logger@1",
+  "task_completion": [
+    {
+      "id": "files_created_in_target_dir",
+      "description": "Verify the evidence_logger directory and the four required files are created in the correct path.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal, or IDE file tree showing the folder 'evidence_logger' inside 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\' containing 'evidence_logger.talon', 'evidence_actions.talon-list', 'evidence_logger.py', and 'evidence_mode.talon'."
+    },
+    {
+      "id": "evidence_logger_talon_contents",
+      "description": "Verify evidence_logger.talon enables the correct tag and defines the required voice commands.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'evidence_logger.talon' containing 'tag(): user.evidence_logging' and the 9 specific voice commands (e.g., 'evidence new case <user.text>', 'evidence log item <user.text>', 'evidence commit entry', etc.)."
+    },
+    {
+      "id": "evidence_actions_list_contents",
+      "description": "Verify evidence_actions.talon-list defines the correct list and the 10 forensic actions.",
+      "points": 15,
+      "visual_evidence": "A text editor showing 'evidence_actions.talon-list' with the declaration 'list: user.evidence_action' followed by exactly the 10 required actions (received, transferred, stored, retrieved, examined, photographed, returned, disposed, sealed, unsealed)."
+    },
+    {
+      "id": "python_csv_path_and_headers",
+      "description": "Verify evidence_logger.py contains the correct CSV file path and headers.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'evidence_logger.py' with the file path 'C:\\Users\\Docker\\Documents\\chain_of_custody.csv' and the exact headers: CaseID, Timestamp, EvidenceItem, Handler, Action, Location, EntryNumber."
+    },
+    {
+      "id": "python_commit_logic",
+      "description": "Verify evidence_logger.py implements ISO 8601 timestamps and auto-incrementing entry numbers.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'evidence_logger.py' containing Python logic for generating ISO 8601 timestamps (e.g., using datetime.now().isoformat()) and logic to auto-increment the EntryNumber for each new log entry."
+    },
+    {
+      "id": "evidence_mode_talon_contents",
+      "description": "Verify evidence_mode.talon contains the window title condition, tag enablement, and global command.",
+      "points": 15,
+      "visual_evidence": "A text editor showing 'evidence_mode.talon' with a context header matching the window title 'Evidence Logger' (e.g., 'os: windows\\nwin.title: /Evidence Logger/'), enabling 'user.evidence_logging', and defining the global command 'evidence mode on'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent actually created and edited the files in the system.",
+      "visual_evidence": "Screenshots should show the files open in a text editor (like VS Code, Notepad, or Vim) or terminal output confirming the file contents were written to the correct directory, rather than just printing the code to the chat."
+    },
+    {
+      "id": "no_hardcoded_csv_output",
+      "description": "Verify the Python script contains logic to write to the CSV, not just a hardcoded mock CSV output.",
+      "visual_evidence": "The Python file should contain standard file I/O operations (like 'with open(...) as f:' or 'csv.writer') rather than just a hardcoded multi-line string of a finished CSV."
+    },
+    {
+      "id": "correct_talon_syntax",
+      "description": "Verify the Talon files use actual Talon syntax.",
+      "visual_evidence": "The .talon files should show proper command-to-action mapping syntax (e.g., 'command: user.action()') and not just plain text notes or Python code inside the .talon files."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory for files: C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\evidence_logger. CSV log path: C:\\Users\\Docker\\Documents\\chain_of_custody.csv. The agent must create exactly four files: evidence_logger.talon, evidence_actions.talon-list, evidence_logger.py, and evidence_mode.talon with the specified contents."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "meuse_kriging_spatial@1",
+  "task_completion": [
+    {
+      "id": "r_script_written",
+      "description": "The agent wrote the complete R script for the geostatistical analysis.",
+      "points": 20,
+      "visual_evidence": "Look for an R script named 'meuse_kriging_analysis.R' open in an editor. The code should show log-transformation of zinc, comparison of at least two variogram models (e.g., using 'vgm' and 'fit.variogram'), conversion of 'meuse.grid' to a SpatialPixelsDataFrame (or similar), Ordinary Kriging (e.g., using 'krige'), and Leave-One-Out Cross-Validation (e.g., using 'krige.cv')."
+    },
+    {
+      "id": "variogram_csv_saved",
+      "description": "The variogram model results were saved to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for 'meuse_variogram_model.csv' in a file explorer, terminal list, or RStudio files pane. If its contents are visible, it should have columns: model, nugget, partial_sill, range, sse."
+    },
+    {
+      "id": "predictions_csv_saved",
+      "description": "The kriging predictions were saved to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for 'meuse_kriging_predictions.csv' in a file explorer, terminal list, or RStudio files pane. If contents are visible, it should have columns: x, y, zinc_pred, zinc_var."
+    },
+    {
+      "id": "cv_csv_saved",
+      "description": "The cross-validation results were saved to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for 'meuse_cv_results.csv' in a file explorer, terminal list, or RStudio files pane. If contents are visible, it should have columns: observed, predicted, residual, zscore."
+    },
+    {
+      "id": "map_png_generated",
+      "description": "A 4-panel kriging map PNG was generated.",
+      "points": 25,
+      "visual_evidence": "Look for 'meuse_kriging_maps.png' being generated or viewed. The image must contain 4 distinct panels showing: 1) sample locations, 2) kriging predictions, 3) kriging variance, and 4) the variogram fit."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "All deliverables were saved to the correct output directory.",
+      "points": 25,
+      "visual_evidence": "Look for a terminal command (like 'ls /home/ga/RProjects/output/') or a file explorer window showing the folder '/home/ga/RProjects/output/' containing all 5 required files: the 3 CSVs, the PNG, and the R script."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The agent actually executed the R code to perform the analysis.",
+      "visual_evidence": "Look for R console output, script execution logs, or populated RStudio environment variables (like spatial objects or dataframes) indicating the geostatistical functions were actually run."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the CSV outputs.",
+      "visual_evidence": "Ensure the R script contains actual function calls to 'sp' and 'gstat' packages (e.g., variogram(), krige(), krige.cv()) and dynamically writes the results to CSV, rather than just echoing hardcoded text."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The 4-panel plot was generated via R code.",
+      "visual_evidence": "Ensure the R script contains plotting commands (e.g., par(mfrow=c(2,2)), spplot(), plot(), or grid.arrange()) to create the 4-panel image, rather than downloading or copying an existing image."
+    }
+  ],
+  "privileged_info_for_vlm": "Output directory must be exactly: /home/ga/RProjects/output. Required files: meuse_variogram_model.csv, meuse_kriging_predictions.csv (expected ~3103 rows matching meuse.grid), meuse_cv_results.csv (expected ~155 rows matching meuse samples), meuse_kriging_maps.png, and meuse_kriging_analysis.R. A correct variogram fit for log(zinc) typically yields a nugget between 0.0 and 0.2, and a range between 200 and 2000."
+}

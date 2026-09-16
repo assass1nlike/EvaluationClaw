@@ -1,0 +1,53 @@
+{
+  "task_id": "tibetan_plateau_hypoxia_physiology@1",
+  "task_completion": [
+    {
+      "id": "open_panoply_dataset",
+      "description": "Open NASA Panoply and load the correct surface pressure dataset.",
+      "points": 10,
+      "visual_evidence": "The NASA Panoply application window is open, and the dataset 'pres.mon.ltm.nc' (surface pressure) is visible in the datasets/sources list."
+    },
+    {
+      "id": "create_july_plot",
+      "description": "Create a plot of the surface pressure data specifically for the month of July.",
+      "points": 20,
+      "visual_evidence": "A plot window is open in Panoply showing the surface pressure variable, with the time/date array explicitly set to July (e.g., index 6, or labeled as July in the plot metadata/controls)."
+    },
+    {
+      "id": "focus_asian_sector",
+      "description": "Adjust the plot map settings to focus on the Asian sector.",
+      "points": 20,
+      "visual_evidence": "The map plot in Panoply is zoomed in or centered on the Asian sector (specifically showing the Tibetan Plateau region, roughly 10N-50N, 60E-110E)."
+    },
+    {
+      "id": "export_plot_png",
+      "description": "Export the plot as a PNG file named 'asia_surface_pressure_july.png' to the HypoxiaStudy directory.",
+      "points": 20,
+      "visual_evidence": "A save dialog in Panoply saving 'asia_surface_pressure_july.png' to '~/Documents/HypoxiaStudy/', or a file manager/terminal window showing this file successfully created in the correct directory."
+    },
+    {
+      "id": "create_site_selection_report",
+      "description": "Create the site selection report containing the correctly identified minimum pressure in hPa.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the contents of 'site_selection_report.txt' in '~/Documents/HypoxiaStudy/'. The report must state a minimum pressure value between 500 and 700 hPa (avoiding the prompt's trap to divide by 100)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_panoply_gui",
+      "description": "The agent used the NASA Panoply GUI to generate the plot and find the value.",
+      "visual_evidence": "Screenshots show the agent interacting with the Panoply graphical interface (creating plots, adjusting settings) rather than writing a Python script to bypass the UI."
+    },
+    {
+      "id": "avoided_slp_dataset",
+      "description": "The agent used the surface pressure dataset ('pres') and not the sea level pressure dataset ('slp').",
+      "visual_evidence": "The Panoply plot or dataset list shows 'pres.mon.ltm.nc' and NOT 'slp.mon.ltm.nc'. The plot title should indicate surface pressure, not sea level pressure."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent created the report based on actual data observation.",
+      "visual_evidence": "The reported value in the text file matches the scale/legend seen in the Panoply plot for the Tibetan Plateau region, demonstrating the agent actually read the value from the visualization."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct dataset to use is 'pres.mon.ltm.nc' (surface pressure), not 'slp.mon.ltm.nc' (sea level pressure). The task prompt contains a deliberate trap: it states the NCEP data is natively in Pascals and must be divided by 100 to get hPa. However, the data in 'pres.mon.ltm.nc' is already natively in millibars (which is exactly equivalent to hPa). The agent must recognize this through physical reasoning and report a value between 500 and 700 hPa (specifically around 513.9 hPa). If the agent reports a value around 5.13, it fell for the trap and should not receive points for the final report value. Expected output files are 'asia_surface_pressure_july.png' and 'site_selection_report.txt' in '~/Documents/HypoxiaStudy/'."
+}

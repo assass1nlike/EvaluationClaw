@@ -1,0 +1,26 @@
+{
+  "id": "export_network_statistics@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "Change the edge/street coloring in the sumo-gui Bologna Pasubio scenario to display traffic density using the 'by current occupancy (lanewise, brutto)' scheme. Start the simulation and save a screenshot of the visualization to /home/ga/SUMO_Output/occupancy_coloring.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_network_statistics/setup_task.sh",
+    "post_task": "/workspace/tasks/export_network_statistics/export_result.sh"
+  },
+  "metadata": {
+    "scenario": "bologna_pasubio",
+    "expected_screenshot": "/home/ga/SUMO_Output/occupancy_coloring.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_network_statistics"
+    }
+  }
+}

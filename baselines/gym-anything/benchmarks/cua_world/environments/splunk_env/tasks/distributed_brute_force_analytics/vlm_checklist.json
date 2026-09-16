@@ -1,0 +1,53 @@
+{
+  "task_id": "distributed_brute_force_analytics@1",
+  "task_completion": [
+    {
+      "id": "search_security_logs",
+      "description": "Search the security_logs index for failed SSH logins",
+      "points": 10,
+      "visual_evidence": "Splunk search interface is open with a query in the search bar containing 'index=security_logs' (or similar) and keywords related to failed logins (e.g., 'failed', 'failure', 'sshd')."
+    },
+    {
+      "id": "construct_aggregation_query",
+      "description": "Construct SPL query to aggregate by /24 subnet, calculate failures, distinct IPs, percentages, and filter",
+      "points": 20,
+      "visual_evidence": "The Splunk search bar contains advanced SPL commands such as 'stats', 'eventstats', 'eval', and 'where'. Look for logic extracting or grouping by a /24 CIDR, counting distinct IPs (e.g., 'dc(src_ip)'), calculating percentages, and a filter like 'where distinct_ips > 1'."
+    },
+    {
+      "id": "save_analytical_report",
+      "description": "Save the search as a report named 'Subnet_Attack_Aggregation'",
+      "points": 20,
+      "visual_evidence": "A 'Save As Report' dialog box or the Splunk 'Reports' listing page showing the exact report name 'Subnet_Attack_Aggregation'."
+    },
+    {
+      "id": "create_dashboard_table_panel",
+      "description": "Create 'Distributed_Brute_Force_Monitoring' dashboard with a table panel of aggregation results",
+      "points": 25,
+      "visual_evidence": "A Splunk dashboard titled 'Distributed_Brute_Force_Monitoring' is visible, containing a table visualization panel. The table should display columns for subnets, total failures, distinct IP counts, and percentages."
+    },
+    {
+      "id": "create_dashboard_timechart_panel",
+      "description": "Add a timechart panel showing failed logins over time split by subnet",
+      "points": 25,
+      "visual_evidence": "The 'Distributed_Brute_Force_Monitoring' dashboard contains a second panel displaying a timechart (line, area, or column chart with time on the x-axis). The chart's legend or lines should indicate data is split 'by' subnet."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web UI to complete the task",
+      "visual_evidence": "Screenshots show interaction with the Splunk web interface in a browser at localhost:8000, rather than using terminal curl commands or editing Splunk .conf files directly."
+    },
+    {
+      "id": "genuine_data_results",
+      "description": "The report and dashboard display actual log data",
+      "visual_evidence": "The table and timechart panels show populated data (actual IP subnets, numerical counts, and graphed lines) resulting from a real search, not empty states, errors, or static mockups."
+    },
+    {
+      "id": "no_direct_xml_editing",
+      "description": "Agent constructed the dashboard via the UI, not by pasting XML",
+      "visual_evidence": "The agent is seen using the Splunk dashboard editor UI (adding panels, selecting visualizations, typing searches) rather than just opening a text editor and pasting pre-written Simple XML code into the Splunk backend."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected report name is exactly 'Subnet_Attack_Aggregation'. The expected dashboard name is exactly 'Distributed_Brute_Force_Monitoring'. The data must be sourced from the 'security_logs' index. The dashboard must contain at least 2 panels (one table, one timechart). Splunk credentials are admin / SplunkAdmin1!."
+}

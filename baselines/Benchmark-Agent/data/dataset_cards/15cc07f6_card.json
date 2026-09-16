@@ -1,0 +1,74 @@
+{
+  "dataset_id": "15cc07f6",
+  "name": "Nature-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Nature-Question-Answering dataset is a multiple-choice question answering benchmark about environmental science and natural phenomena. Each example asks a question about how events such as sandstorms or tornadoes affect ecosystems, and requires selecting the correct answer from four options.",
+  "card_text": "The dataset consists of 200 text-only multiple-choice questions in the domain of nature and environmental science. Each sample contains a short natural-language question, a list of four answer options (A–D), and the correct option as a single letter. The questions probe knowledge about how natural disasters and weather events affect ecosystems, habitats, and biodiversity. No supporting passage or context is provided, so the task evaluates closed-book science knowledge and reasoning over answer candidates. The writing style is factual and expository, with options ranging from short phrases to single sentences. The data is suitable for evaluating multiple-choice question answering models and their ability to discriminate among plausible but incorrect alternatives.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "environmental science",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question asking about how a natural event (e.g., sandstorms, tornadoes) affects ecosystems, habitats, or biodiversity. It serves as the query to be answered using one of the provided options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of four candidate answer strings, each describing a possible effect or relationship. The model must choose the correct option, labeled by its position (A–D).",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer as a single capital letter (A, B, C, or D) corresponding to the index of the correct option in the options list.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a question field, an options list with four answer choices, and an answer field containing the letter of the correct option. The question and options are provided as input; the answer is the output. There is no supporting passage or context; the task is closed-book multiple-choice question answering."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Nature-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Nature Question Answering",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

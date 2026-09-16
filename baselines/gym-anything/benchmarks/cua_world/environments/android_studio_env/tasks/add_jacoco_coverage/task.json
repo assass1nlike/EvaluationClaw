@@ -1,0 +1,40 @@
+{
+  "id": "add_jacoco_coverage@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "You are working on the WeatherApp Android project. Configure JaCoCo (Java Code Coverage) reporting in app/build.gradle.kts to track test coverage for the WeatherUtils utility class. Apply the 'jacoco' plugin with toolVersion 0.8.12 and register a custom Gradle task named 'jacocoTestReport' of type JacocoReport. This task must depend on 'testDebugUnitTest', enable HTML reports, and include source directories src/main/java and src/main/kotlin. The class directories should be set from the debug compiled output (app/build/tmp/kotlin-classes/debug), excluding generated files (**/R.class, **/R$*.class, **/BuildConfig.*, **/Manifest*.*, **/*Test*.*, **/databinding/**, **/android/**). Set the execution data to app/build/jacoco/testDebugUnitTest.exec. The configuration should allow generating an HTML coverage report at app/build/reports/jacoco/jacocoTestReport/html/index.html via the './gradlew jacocoTestReport' command. Do not modify WeatherUtils.kt or WeatherUtilsTest.kt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_jacoco_coverage/setup_task.sh",
+    "post_task": "/workspace/tasks/add_jacoco_coverage/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/WeatherApp",
+    "build_file": "app/build.gradle.kts",
+    "report_path": "app/build/reports/jacoco/jacocoTestReport/html/index.html",
+    "required_exclusions": [
+      "**/R.class",
+      "**/BuildConfig.*",
+      "**/Manifest*.*"
+    ],
+    "expected_task_name": "jacocoTestReport"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_jacoco_coverage"
+    }
+  },
+  "tags": [
+    "gradle",
+    "jacoco",
+    "android",
+    "testing",
+    "coverage"
+  ]
+}

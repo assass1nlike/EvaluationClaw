@@ -1,0 +1,59 @@
+{
+  "task_id": "manual_endogeneity_test_script@1",
+  "task_completion": [
+    {
+      "id": "restrict_sample_lfp",
+      "description": "Load the mroz.gdt dataset and restrict the sample to working women (lfp=1).",
+      "points": 10,
+      "visual_evidence": "Gretl main window showing 'mroz.gdt' loaded and a sample restriction applied, typically indicated by a sample size of 428 observations at the bottom or top of the main window."
+    },
+    {
+      "id": "first_stage_regression",
+      "description": "Perform the first-stage OLS regression of 'educ' on 'const', 'exper', 'expersq', and 'motheduc'.",
+      "points": 20,
+      "visual_evidence": "A Gretl model window showing an OLS regression output with 'educ' as the dependent variable and 'const', 'exper', 'expersq', and 'motheduc' as the independent variables."
+    },
+    {
+      "id": "save_residuals_v_hat",
+      "description": "Save the residuals from the first-stage regression as 'v_hat'.",
+      "points": 15,
+      "visual_evidence": "The variable 'v_hat' appearing in the main Gretl variable list, or a dialog/menu action showing residuals being saved and named 'v_hat'."
+    },
+    {
+      "id": "second_stage_regression",
+      "description": "Perform the second-stage OLS regression of 'lwg' on 'const', 'educ', 'exper', 'expersq', and 'v_hat'.",
+      "points": 25,
+      "visual_evidence": "A Gretl model window showing an OLS regression output with 'lwg' as the dependent variable and 'const', 'educ', 'exper', 'expersq', and 'v_hat' as the independent variables."
+    },
+    {
+      "id": "verify_v_hat_coefficient",
+      "description": "Verify the coefficient of 'v_hat' in the second-stage regression.",
+      "points": 15,
+      "visual_evidence": "The coefficient for 'v_hat' in the second-stage regression output is approximately 0.0684 (acceptable range is 0.042 to 0.072)."
+    },
+    {
+      "id": "save_results_file",
+      "description": "Save the complete output of the second-stage regression to the specified text file.",
+      "points": 15,
+      "visual_evidence": "A file manager, text editor, or terminal showing the file '/home/ga/Documents/gretl_output/endogeneity_test_results.txt' containing the full second-stage regression output, or a Gretl save dialog confirming this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gretl_gui",
+      "description": "The agent used Gretl to perform the regressions rather than mocking the output.",
+      "visual_evidence": "Screenshots show the Gretl GUI being interacted with, including model specification dialogs and Gretl-formatted output windows."
+    },
+    {
+      "id": "authentic_regression_output",
+      "description": "The regression output contains full, authentic statistical details.",
+      "visual_evidence": "The saved text file or model window includes standard errors, t-ratios, p-values, R-squared, and other standard Gretl OLS output metrics, not just manually typed coefficients."
+    },
+    {
+      "id": "no_hardcoded_text",
+      "description": "The agent did not simply copy-paste expected answers into a text editor.",
+      "visual_evidence": "The agent is seen exporting or saving the output directly from the Gretl model window rather than typing the results manually into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct sample size after restricting to working women (lfp=1) is 428 observations. The first-stage OLS regression must use 'educ' as the dependent variable and 'const', 'exper', 'expersq', 'motheduc' as independent variables. The second-stage OLS regression must use 'lwg' as the dependent variable and 'const', 'educ', 'exper', 'expersq', 'v_hat' as independent variables. The correct coefficient for 'v_hat' in the second stage is approximately 0.0684 (acceptable range: 0.042 to 0.072). The final output must be saved exactly to '/home/ga/Documents/gretl_output/endogeneity_test_results.txt'."
+}

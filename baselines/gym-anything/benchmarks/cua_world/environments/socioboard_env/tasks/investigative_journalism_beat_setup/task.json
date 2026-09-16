@@ -1,0 +1,57 @@
+{
+  "id": "investigative_journalism_beat_setup@1",
+  "version": "1.0",
+  "env_id": "socioboard_env@0.1",
+  "description": "You are Jordan Hayes, Senior News Editor at The Meridian Tribune. Set up the newsroom's beat monitoring system on Socioboard (admin@socioboard.local / Admin2024!) by establishing five teams: Politics & Government, Technology & Innovation, Climate & Environment, Finance & Markets, and Public Health. Assign Emily Chen (emily.chen@socioboard.local) to the Politics & Government and Finance & Markets teams, and Michael Okafor (michael.okafor@socioboard.local) to the Technology & Innovation, Climate & Environment, and Public Health teams. Configure the following RSS feeds for news monitoring: https://feeds.npr.org/1004/rss.xml, https://feeds.wired.com/wired/index, https",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/investigative_journalism_beat_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/investigative_journalism_beat_setup/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "News Analysts, Reporters, and Journalists (27-3023.00)",
+    "beat_teams": [
+      "Politics & Government",
+      "Technology & Innovation",
+      "Climate & Environment",
+      "Finance & Markets",
+      "Public Health"
+    ],
+    "emily_teams": [
+      "Politics & Government",
+      "Finance & Markets"
+    ],
+    "emily_excluded_teams": [
+      "Technology & Innovation",
+      "Climate & Environment",
+      "Public Health"
+    ],
+    "michael_teams": [
+      "Technology & Innovation",
+      "Climate & Environment",
+      "Public Health"
+    ],
+    "michael_excluded_teams": [
+      "Politics & Government",
+      "Finance & Markets"
+    ],
+    "emily_email": "emily.chen@socioboard.local",
+    "michael_email": "michael.okafor@socioboard.local",
+    "expected_rss_count": 5,
+    "contaminator_teams": [
+      "Morning Briefing Archive",
+      "Sports Desk Legacy"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_investigative_journalism_beat_setup"
+    }
+  }
+}

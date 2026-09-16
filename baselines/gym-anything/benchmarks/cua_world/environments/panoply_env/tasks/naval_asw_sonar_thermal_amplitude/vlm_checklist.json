@@ -1,0 +1,53 @@
+{
+  "task_id": "naval_asw_sonar_thermal_amplitude@1",
+  "task_completion": [
+    {
+      "id": "open_mandate",
+      "description": "Open and read the ASW thermal mandate text file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of 'asw_thermal_mandate.txt' from the Desktop."
+    },
+    {
+      "id": "load_sst_data",
+      "description": "Load the SST climatology NetCDF data file.",
+      "points": 15,
+      "visual_evidence": "A data visualization tool (like Panoply) or a programming environment (like Python/Jupyter) showing 'sst.ltm.1991-2020.nc' loaded, with the 'sst' variable selected or referenced."
+    },
+    {
+      "id": "calculate_thermal_amplitude",
+      "description": "Calculate the thermal amplitude (difference) between August and February.",
+      "points": 25,
+      "visual_evidence": "A GUI dialog (e.g., Panoply's combine/difference plot feature) or code snippet showing a subtraction operation between August (typically month/time index 8 or 7) and February (month/time index 2 or 1) for the SST variable."
+    },
+    {
+      "id": "export_difference_map",
+      "description": "Export the calculated difference map as a PNG file.",
+      "points": 25,
+      "visual_evidence": "A file manager, image viewer, or terminal showing the creation of a PNG file (named 'sst_difference.png' or 'sst_amplitude_aug_feb.png') in the Documents or ASWOceanography directory, displaying a map of temperature differences."
+    },
+    {
+      "id": "save_diagnostic_report",
+      "description": "Save a diagnostic report identifying the Northern Hemisphere region with the greatest seasonal thermal shift.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the saved report ('asw_report.txt' or 'thermal_amplitude_report.txt') containing text that identifies a specific Northern Hemisphere region (e.g., Caspian Sea, NW Atlantic, Bohai/Yellow Sea) and its thermal shift value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tool_usage_for_analysis",
+      "description": "Verify the agent used a genuine data analysis or visualization tool to process the NetCDF file.",
+      "visual_evidence": "Screenshots should show interaction with software like Panoply, Python, or CDO to read the .nc file, rather than the agent simply guessing values or creating mock files without opening the dataset."
+    },
+    {
+      "id": "map_authenticity",
+      "description": "Verify the exported map is a genuine plot of the calculated data.",
+      "visual_evidence": "The exported PNG should look like a scientific plot (e.g., a map with a color scale representing temperature differences), not a blank image, a generic stock photo, or a manually drawn image."
+    },
+    {
+      "id": "report_authenticity",
+      "description": "Verify the diagnostic report contains actual findings from the data.",
+      "visual_evidence": "The text in the report should mention specific geographic regions and numerical values derived from the map, rather than just repeating the instructions from the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires analyzing the 'sst' variable from '/home/ga/PanoplyData/sst.ltm.1991-2020.nc'. The expected outputs are a difference map and a diagnostic report. Note on filenames/paths: The prompt asks for '~/Documents/sst_difference.png' and '~/Documents/asw_report.txt', but the environment's backend verifier checks for 'sst_amplitude_aug_feb.png' and 'thermal_amplitude_report.txt' in '/home/ga/Documents/ASWOceanography/'. Accept either set of filenames/paths. Note on data values: The true maximum thermal amplitude in the Northern Hemisphere exceeds 26\u00b0C (e.g., Caspian Sea at 26.36\u00b0C, Bohai/Yellow Sea at 25.12\u00b0C, NW Atlantic at 24.7\u00b0C). However, the automated verifier expects a max amplitude value between 16.0 and 24.0. You should consider the agent correct if it reports the mathematically precise peak (>24.0) OR a value within the verifier's expected range (16.0 - 24.0)."
+}

@@ -1,0 +1,25 @@
+{
+  "id": "follow_tcp_stream@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Reconstruct the full SMTP email conversation from the packet capture located at /home/ga/Documents/captures/smtp.pcap. Save the complete TCP stream content to /home/ga/Documents/captures/smtp_stream.txt.",
+  "init": {
+    "timeout_sec": 150,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/follow_tcp_stream/setup_task.sh",
+    "post_task": "/workspace/tasks/follow_tcp_stream/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "smtp.pcap",
+    "expected_protocol": "SMTP",
+    "output_file": "smtp_stream.txt"
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::verify_follow_tcp_stream"
+    }
+  }
+}

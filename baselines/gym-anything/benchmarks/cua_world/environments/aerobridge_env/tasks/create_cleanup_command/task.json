@@ -1,0 +1,27 @@
+{
+  "id": "create_cleanup_command@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Develop a custom Django management command `close_expired_plans` in the `registry` app at `registry/management/commands/close_expired_plans.py`. The command must identify 'Active' flight plans in the `FlightPlan` model whose end time has passed and update their status to 'Closed', while ensuring that active flight plans with future end times remain unmodified. You will need to determine the correct field names and status values from the model definition. The command should output a summary message (e.g., \"Closed X plans\") to stdout and be executed to clean up the current database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_cleanup_command/setup_task.sh",
+    "post_task": "/workspace/tasks/create_cleanup_command/export_result.sh"
+  },
+  "metadata": {
+    "command_path": "/opt/aerobridge/registry/management/commands/close_expired_plans.py",
+    "app_name": "registry",
+    "model_name": "FlightPlan"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_cleanup_command"
+    }
+  }
+}

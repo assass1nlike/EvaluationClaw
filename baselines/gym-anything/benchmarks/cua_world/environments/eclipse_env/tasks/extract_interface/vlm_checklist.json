@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_interface@1",
+  "task_completion": [
+    {
+      "id": "project_opened_in_eclipse",
+      "description": "The ServiceApp project is opened in the Eclipse IDE.",
+      "points": 10,
+      "visual_evidence": "The Eclipse IDE window is visible, and 'ServiceApp' is listed in the Package Explorer or Project Explorer pane."
+    },
+    {
+      "id": "iuserservice_created",
+      "description": "The IUserService interface is created in the correct package.",
+      "points": 20,
+      "visual_evidence": "A file named 'IUserService.java' is visible in the Package Explorer under 'src/main/java' -> 'com.serviceapp.service', or is open in an editor tab showing 'public interface IUserService'."
+    },
+    {
+      "id": "methods_extracted",
+      "description": "The IUserService interface contains the five required methods.",
+      "points": 20,
+      "visual_evidence": "The editor showing 'IUserService.java' contains the method signatures for 'findById', 'findAll', 'save', 'delete', and 'exists'."
+    },
+    {
+      "id": "userservice_implements",
+      "description": "The UserService class is updated to implement the new IUserService interface.",
+      "points": 20,
+      "visual_evidence": "The editor showing 'UserService.java' displays the class declaration updated to include 'implements IUserService' (e.g., 'public class UserService implements IUserService')."
+    },
+    {
+      "id": "usercontroller_updated",
+      "description": "The UserController class is updated to use the IUserService interface instead of the concrete UserService class.",
+      "points": 20,
+      "visual_evidence": "The editor showing 'UserController.java' shows the dependency type changed to the interface (e.g., 'private IUserService userService;' or constructor parameters updated to 'IUserService')."
+    },
+    {
+      "id": "no_compilation_errors",
+      "description": "The project remains in a compilable state with no syntax errors.",
+      "points": 10,
+      "visual_evidence": "There are no red 'x' error badges on the project folder or Java files in the Eclipse Package Explorer, and no red squiggly lines indicating compilation errors in the visible editor tabs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_eclipse_ide",
+      "description": "The agent used the Eclipse IDE to perform the refactoring rather than bypassing it with terminal commands.",
+      "visual_evidence": "Screenshots show interaction with the Eclipse GUI (e.g., using the 'Extract Interface' refactoring dialog, or editing files within the Eclipse editor) rather than using terminal-based text editors like nano or vim."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "The agent modified the actual project files within the correct directory structure.",
+      "visual_evidence": "The Eclipse Package Explorer shows the correct file hierarchy (com.serviceapp.service, com.serviceapp.controller) and the active editor tabs correspond to these actual project files."
+    },
+    {
+      "id": "no_hardcoded_stubs",
+      "description": "The agent did not simply create isolated text files with the expected answers.",
+      "visual_evidence": "The code modifications are integrated into the existing classes (UserService, UserController) with proper imports, rather than being standalone dummy files."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/eclipse-workspace/ServiceApp. The target interface must be named 'IUserService' in the package 'com.serviceapp.service'. It must contain exactly 5 methods: findById, findAll, save, delete, exists. The 'UserService' class must implement 'IUserService'. The 'UserController' class must be updated to depend on 'IUserService' instead of 'UserService'. The IDE used is Eclipse with Java 17."
+}

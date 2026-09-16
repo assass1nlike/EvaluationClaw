@@ -1,0 +1,35 @@
+{
+  "id": "https_security_protocol_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a comprehensive HTTPS and protocol security audit of https://crawler-test.com/ using Screaming Frog SEO Spider (Login: user=ga). Export the security data to ~/Documents/SEO/exports/security_tab_export.csv and the internal data to ~/Documents/SEO/exports/internal_all_export.csv. Create a security audit report at ~/Documents/SEO/reports/security_audit_report.txt including the total URL count, HTTPS vs HTTP breakdown, assessment of mixed content issues, assessment of HSTS headers, and at least 3 specific remediation recommendations.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/https_security_protocol_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/https_security_protocol_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "security_export_path": "/home/ga/Documents/SEO/exports/security_tab_export.csv",
+    "internal_export_path": "/home/ga/Documents/SEO/exports/internal_all_export.csv",
+    "report_path": "/home/ga/Documents/SEO/reports/security_audit_report.txt",
+    "required_report_keywords": [
+      "https",
+      "mixed content",
+      "hsts",
+      "recommend"
+    ],
+    "min_report_length": 400
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_https_security_audit"
+    }
+  }
+}

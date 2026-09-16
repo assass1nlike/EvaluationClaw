@@ -1,0 +1,35 @@
+{
+  "id": "hr_workforce_analytics@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are an HR analytics manager preparing a workforce quality report for the executive team. Using `employee_performance.csv` at `C:\\Users\\Docker\\Desktop\\PowerBITasks\\employee_performance.csv` (columns: ID, Name, Age, Gender, Department, Salary, Joining Date, Performance Score, Experience, Status, Location, Session), build an HR analytics report in Power BI Desktop. The report must exclude all records with null or blank `Performance Score` values. Include a conditional column named `Performance_Tier` categorized as 'High' (Score > 3), 'Mid' (Score 2-3), and 'Low' (Score < 2). The report must contain a single page named 'Workforce Analysis' featuring: a Stacked Bar Chart of employee count by Department with Performance_Tier as the legend; a Line Chart of average Salary by Experience; and a Slicer for the Status column. Save the completed report to `C:\\Users\\Docker\\Desktop\\HR_Workforce_Analytics.pbix`. Login: user is `Docker`, no password required.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\hr_workforce_analytics\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\hr_workforce_analytics\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\HR_Workforce_Analytics.pbix",
+    "required_page_name": "Workforce Analysis",
+    "required_power_query_steps": [
+      "filter null Performance Score",
+      "conditional column Performance_Tier"
+    ],
+    "required_visuals": [
+      "stackedBarChart",
+      "lineChart",
+      "slicer"
+    ],
+    "source_data": "employee_performance.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hr_workforce_analytics"
+    }
+  }
+}

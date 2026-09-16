@@ -1,0 +1,29 @@
+{
+  "id": "add_patent_reference@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Add a Patent reference to the Jurism library for 'Device, method, and graphical user interface for unlocking a device by performing gestures on an unlock image'. Include the following details: Inventor Freddy A. Anzures, Assignee Apple Inc., Patent Number US 8046721 B2, and Date 2011-10-25. Ensure the item type is set to 'Patent' and the creator role is 'Inventor'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_patent_reference/setup_task.sh",
+    "post_task": "/workspace/tasks/add_patent_reference/export_result.sh"
+  },
+  "metadata": {
+    "target_title_fragment": "unlocking a device",
+    "expected_patent_number": "US 8046721 B2",
+    "expected_assignee": "Apple Inc.",
+    "expected_inventor_last": "Anzures",
+    "expected_date": "2011-10-25"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_patent_reference"
+    }
+  }
+}

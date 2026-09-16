@@ -1,0 +1,33 @@
+{
+  "id": "create_self_join_query@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a query named 'EmployeeHierarchy' in LibreOffice Base that displays the employee reporting hierarchy from the 'Employee' table. The query must include all employees, including those without managers, by performing a self-join. The output must feature four columns: 'EmployeeName' (FirstName and LastName combined), 'EmployeeTitle', 'ManagerName' (manager's FirstName and LastName combined), and 'ManagerTitle'. Sort the results by the employee's ID.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_self_join_query/setup_task.sh",
+    "post_task": "/workspace/tasks/create_self_join_query/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "EmployeeHierarchy",
+    "reference_db_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite",
+    "expected_row_count": 8,
+    "expected_columns": [
+      "EmployeeName",
+      "EmployeeTitle",
+      "ManagerName",
+      "ManagerTitle"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_self_join_query"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "pert_cpm_construction_schedule@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create a PERT/CPM network diagram for a construction project using data from ~/Desktop/construction_wbs.csv. The diagram must include nodes for all 18 activities (A through R) displaying Activity ID, Duration, Early Start (ES), Early Finish (EF), Late Start (LS), Late Finish (LF), and Slack/Float. Connect activities based on the 'Predecessors' column and perform scheduling calculations (Forward and Backward Pass) starting from Day 0. Identify the Critical Path where slack is zero and highlight those nodes and connecting arrows in RED. Save the source file to ~/Diagrams/construction_pert.drawio and export the result to ~/Diagrams/construction_pert.pdf.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pert_cpm_construction_schedule/setup_task.sh",
+    "post_task": "/workspace/tasks/pert_cpm_construction_schedule/export_result.sh"
+  },
+  "metadata": {
+    "output_drawio": "/home/ga/Diagrams/construction_pert.drawio",
+    "output_pdf": "/home/ga/Diagrams/construction_pert.pdf",
+    "csv_path": "/home/ga/Desktop/construction_wbs.csv",
+    "expected_activities": 18,
+    "critical_path_ids": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R"
+    ],
+    "non_critical_ids": [
+      "H",
+      "I",
+      "J",
+      "K"
+    ],
+    "project_duration": 61
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pert_cpm_construction_schedule"
+    }
+  }
+}

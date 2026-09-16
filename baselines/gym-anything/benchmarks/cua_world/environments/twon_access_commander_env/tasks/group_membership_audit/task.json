@@ -1,0 +1,42 @@
+{
+  "id": "group_membership_audit@1",
+  "version": "1.0",
+  "env_id": "twon_access_commander_env@0.1",
+  "description": "You are a security compliance officer at BuildingTech Solutions. Contractor personnel from external vendors must never be members of the 'IT Department' or 'Security Staff' groups, as these grant unauthorized badge access to restricted areas. Audit these groups in the 2N Access Commander system (https://localhost:9443, admin / 2n) and remove any members who are employed by external contractor companies (non-BuildingTech Solutions employees). Do not remove legitimate BuildingTech Solutions employees or disable/delete any user accounts.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/group_membership_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/group_membership_audit/export_result.sh"
+  },
+  "metadata": {
+    "restricted_groups": [
+      "IT Department",
+      "Security Staff"
+    ],
+    "contractor_company": "Meridian Facilities",
+    "injected_violations": [
+      {
+        "user": "Olumide Adeyemi",
+        "group": "IT Department"
+      },
+      {
+        "user": "Tomas Guerrero",
+        "group": "Security Staff"
+      },
+      {
+        "user": "Nadia Ivanova",
+        "group": "Security Staff"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_group_membership_audit"
+    }
+  }
+}

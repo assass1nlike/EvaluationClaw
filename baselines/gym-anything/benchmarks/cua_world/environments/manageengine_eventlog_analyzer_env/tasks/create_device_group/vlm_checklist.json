@@ -1,0 +1,53 @@
+{
+  "task_id": "create_device_group@1",
+  "task_completion": [
+    {
+      "id": "access_eventlog_analyzer",
+      "description": "Verify the agent accessed the ManageEngine EventLog Analyzer web interface.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the ManageEngine EventLog Analyzer interface (usually at localhost:8095)."
+    },
+    {
+      "id": "enter_group_name",
+      "description": "Verify the device group name 'DMZ_Servers' is entered or created.",
+      "points": 20,
+      "visual_evidence": "The text 'DMZ_Servers' visible in a group name input field or listed as a created device group in the EventLog Analyzer interface."
+    },
+    {
+      "id": "enter_group_description",
+      "description": "Verify the correct description is provided for the device group.",
+      "points": 20,
+      "visual_evidence": "The text 'Demilitarized zone servers for perimeter monitoring' visible in the description field for the 'DMZ_Servers' group."
+    },
+    {
+      "id": "assign_device_ip",
+      "description": "Verify the local syslog source (127.0.0.1) is assigned to the group.",
+      "points": 30,
+      "visual_evidence": "The IP address '127.0.0.1' selected, moved to the 'assigned' column, or listed as a member device under the 'DMZ_Servers' group."
+    },
+    {
+      "id": "save_result_screenshot",
+      "description": "Verify a screenshot showing the group and its assigned member is saved to the requested path.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a screenshot command (e.g., scrot, gnome-screenshot, or import) targeting '/tmp/device_group_result.png', or an image viewer displaying the saved image with the file path visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_web_interaction",
+      "description": "Verify the agent interacted with the actual ManageEngine EventLog Analyzer web application.",
+      "visual_evidence": "The browser address bar should show localhost:8095 or the EventLog Analyzer UI should be clearly rendered, not a text editor or a mocked HTML file."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Verify the agent did not use browser developer tools to spoof the group name or assigned devices.",
+      "visual_evidence": "The browser developer tools (Inspect Element) should not be open and used to modify the DOM text to fake the group creation."
+    },
+    {
+      "id": "genuine_screenshot_file",
+      "description": "Verify the screenshot file is genuinely created and not faked.",
+      "visual_evidence": "The agent uses a legitimate screenshot tool or script to capture the screen, rather than renaming a text file or downloading a pre-existing image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected device group name is 'DMZ_Servers'. The expected description is 'Demilitarized zone servers for perimeter monitoring'. The device IP that must be assigned to this group is '127.0.0.1'. The final screenshot must be saved to '/tmp/device_group_result.png'."
+}

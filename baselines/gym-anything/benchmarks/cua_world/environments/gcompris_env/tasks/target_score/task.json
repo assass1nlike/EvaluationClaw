@@ -1,0 +1,27 @@
+{
+  "id": "target_score@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the GCompris 'Target' activity. Complete at least three levels of the dart-throwing math game by calculating and entering the correct sums for the darts thrown. Return to the main menu upon completion.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/target_score/setup_task.sh",
+    "post_task": "/workspace/tasks/target_score/export_result.sh"
+  },
+  "metadata": {
+    "activity_name": "Target",
+    "min_levels": 3,
+    "pass_threshold": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_target_score"
+    }
+  }
+}

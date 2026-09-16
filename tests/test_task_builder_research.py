@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import base64
 import json
+import subprocess
+import sys
 from concurrent.futures import CancelledError
 from pathlib import Path
 from threading import Event
+from types import SimpleNamespace
 
 import pytest
 
@@ -41,6 +44,29 @@ from evalclaw.types import (
 )
 from tests.blueprint_factory import make_blueprint, make_task_design
 from tests.config_helpers import dummy_config_kwargs, save_task_builder_response
+
+
+@pytest.fixture(autouse=True)
+def _trusted_python_runtime(monkeypatch):
+    """Tool-contract tests use trusted snippets; Docker isolation has separate integration tests."""
+    class Runtime:
+        def __init__(self, work_dir, config):
+            self.work_dir = work_dir
+
+        def run(self, code, *, timeout, max_chars):
+            return subprocess.run(
+                [sys.executable, "-I", "-B", "-"], input=code, cwd=self.work_dir,
+                capture_output=True, text=True, timeout=timeout,
+            )
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("evalclaw.construction.research.BuilderRuntime", Runtime)
+    monkeypatch.setattr(
+        "evalclaw.construction.research.DockerResourceGuard",
+        lambda *args: SimpleNamespace(register=lambda *args: None, close=lambda: None),
+    )
 
 
 def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
@@ -2175,7 +2201,9 @@ def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tm
 def test_task_builder_starts_inspection_container(monkeypatch) -> None:
     stopped: list[str] = []
 
-    def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120):
+    def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120, **kwargs):
+        assert kwargs["memory_mb"] == 8192
+        assert kwargs["pids_limit"] == 512
         return DockerInspectResult(
             container="inspect-1", action="start", detail=f"Started from {image}."
         )
@@ -2206,7 +2234,7 @@ def test_task_builder_starts_inspection_container(monkeypatch) -> None:
 def test_task_builder_start_inspect_container_recycles_existing(monkeypatch) -> None:
     stopped: list[str] = []
 
-    def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120):
+    def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120, **kwargs):
         return DockerInspectResult(container="inspect-2", action="start")
 
     def fake_stop(container, *, docker_executable="docker", timeout_s=30):

@@ -1,0 +1,59 @@
+{
+  "task_id": "boolean_subtract_soft_tissue@1",
+  "task_completion": [
+    {
+      "id": "create_wide_mask",
+      "description": "Create a 'Wide' mask with a threshold of -200 to 3071 HU",
+      "points": 15,
+      "visual_evidence": "In the InVesalius GUI (Masks list or threshold panel), a mask is visible with the threshold range set from -200 to 3071. It may be named 'Wide'."
+    },
+    {
+      "id": "create_bone_mask",
+      "description": "Create a 'Bone' mask with a threshold of 226 to 3071 HU",
+      "points": 15,
+      "visual_evidence": "A second mask is visible in the Masks list with the threshold range set from 226 to 3071. It may be named 'Bone'."
+    },
+    {
+      "id": "create_soft_tissue_mask",
+      "description": "Generate a 'Soft Tissue' mask by subtracting the Bone mask from the Wide mask",
+      "points": 20,
+      "visual_evidence": "The Boolean operations panel is used with the 'Subtraction' or 'Difference' operation selected between the Wide and Bone masks, resulting in a third mask (e.g., 'Soft Tissue') appearing in the masks list."
+    },
+    {
+      "id": "create_3d_surface",
+      "description": "Create a 3D surface from the 'Soft Tissue' mask",
+      "points": 20,
+      "visual_evidence": "A 3D surface is generated and visible in the 3D viewer pane or the 'Surfaces' list, showing the soft tissue (skin/muscle/brain) with the skull/bone removed."
+    },
+    {
+      "id": "export_stl_file",
+      "description": "Export the 3D surface as a binary STL file to /home/ga/Documents/soft_tissue_only.stl",
+      "points": 15,
+      "visual_evidence": "An 'Export 3D surface' dialog is visible showing the file path '/home/ga/Documents/soft_tissue_only.stl' with the binary STL format selected, or a file manager shows the successfully created file."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the InVesalius project to /home/ga/Documents/boolean_masks.inv3",
+      "points": 15,
+      "visual_evidence": "A 'Save Project' dialog is visible showing the path '/home/ga/Documents/boolean_masks.inv3', or the InVesalius application title bar updates to show 'boolean_masks.inv3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the InVesalius 3 GUI to perform the tasks.",
+      "visual_evidence": "Screenshots show the agent clicking through the InVesalius 3 interface (thresholding, boolean operations, exporting) rather than just running terminal commands or scripts to bypass the UI."
+    },
+    {
+      "id": "genuine_3d_surface",
+      "description": "The 3D surface generated is a genuine result of the boolean subtraction.",
+      "visual_evidence": "The 3D viewer shows a medically accurate soft tissue structure (head shape without the bright skull bone), proving the boolean subtraction was actually performed."
+    },
+    {
+      "id": "correct_file_saving",
+      "description": "The agent used the application's save/export dialogs to create the output files.",
+      "visual_evidence": "The save dialogs for the STL and INV3 files are visible in the screenshots, ensuring the files weren't just created as empty dummy files via the terminal (e.g., using 'touch')."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using InVesalius 3. The 'Wide' mask must use a minimum threshold of -200 HU. The 'Bone' mask must use a minimum threshold of 226 HU (standard bone threshold). At least 3 masks should be created in total. The final STL must be saved to '/home/ga/Documents/soft_tissue_only.stl' and the project to '/home/ga/Documents/boolean_masks.inv3'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_embedded_address@1",
+  "task_completion": [
+    {
+      "id": "location_class_created",
+      "description": "Verify that a new 'Location' Document class was created.",
+      "points": 10,
+      "visual_evidence": "In the OrientDB Studio 'Schema' tab, there should be a class named 'Location'. It should not extend 'V' or 'E' (its Superclass should be empty or a standard Document class)."
+    },
+    {
+      "id": "location_properties_added",
+      "description": "Verify that the 'Location' class has the required string properties.",
+      "points": 10,
+      "visual_evidence": "In the Schema view for the 'Location' class, there should be three properties: 'Street', 'City', and 'Country', all with the type 'STRING'."
+    },
+    {
+      "id": "hotels_address_property_added",
+      "description": "Verify that an 'Address' property of type EMBEDDED was added to the 'Hotels' class.",
+      "points": 20,
+      "visual_evidence": "In the Schema view for the 'Hotels' class, there should be a new property named 'Address' with the type 'EMBEDDED' (or 'EMBEDDEDRECORD') and its Linked Class should be 'Location'."
+    },
+    {
+      "id": "data_migrated_to_embedded",
+      "description": "Verify that existing hotel address data was successfully migrated into the new embedded 'Address' property.",
+      "points": 40,
+      "visual_evidence": "In the 'Browse' tab, a query result for the 'Hotels' class (e.g., querying for 'Hotel Artemide') should show the 'Address' field populated as an embedded JSON object containing the correct 'Street', 'City', and 'Country' values (e.g., {\"Street\": \"Via Nazionale 22\", \"City\": \"Rome\", \"Country\": \"Italy\"})."
+    },
+    {
+      "id": "old_properties_removed",
+      "description": "Verify that the original flat address properties were removed from the 'Hotels' class.",
+      "points": 20,
+      "visual_evidence": "In the Schema view for the 'Hotels' class, or in the query results for a hotel record, the standalone properties 'Street', 'City', and 'Country' should no longer be present."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "Verify the agent used the OrientDB Studio web interface.",
+      "visual_evidence": "Screenshots must show a web browser navigated to OrientDB Studio (http://localhost:2480/studio/index.html)."
+    },
+    {
+      "id": "actual_database_modification",
+      "description": "Verify the agent interacted with the database rather than just writing queries in a text editor.",
+      "visual_evidence": "Screenshots should show OrientDB Studio's Schema tables, Browse query results, or execution success notifications."
+    },
+    {
+      "id": "no_dummy_data_shortcut",
+      "description": "Verify the agent migrated existing data rather than just creating a single mock record.",
+      "visual_evidence": "Query results or UPDATE command outputs should indicate that multiple existing records in the 'Hotels' class were modified, rather than just a single new record being inserted."
+    }
+  ],
+  "privileged_info_for_vlm": "The task operates on the 'demodb' database. The target class is 'Hotels'. To verify the data migration was successful and accurate, check the record for 'Hotel Artemide'. Its new embedded 'Address' property must contain: Street = 'Via Nazionale 22', City = 'Rome', and Country = 'Italy'."
+}

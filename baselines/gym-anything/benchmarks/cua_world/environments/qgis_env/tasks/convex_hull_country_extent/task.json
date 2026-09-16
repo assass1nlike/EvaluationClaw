@@ -1,0 +1,36 @@
+{
+  "id": "convex_hull_country_extent@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Calculate the convex hull of all populated places in Australia using the 'ne_10m_populated_places_simple' shapefile located at /home/ga/GIS_Data/natural_earth/. Filter the features where the 'SOV0NAME' field is 'Australia' to generate the hull. Export the resulting convex hull polygon as a GeoJSON file to /home/ga/GIS_Data/exports/australia_convex_hull.geojson using WGS84 (EPSG:4326). Calculate the area of this polygon in square kilometers and record the value in a text file at /home/ga/GIS_Data/exports/australia_hull_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convex_hull_country_extent/setup_task.sh",
+    "post_task": "/workspace/tasks/convex_hull_country_extent/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "source_file": "/home/ga/GIS_Data/natural_earth/ne_10m_populated_places_simple.shp",
+    "expected_geojson_output": "/home/ga/GIS_Data/exports/australia_convex_hull.geojson",
+    "expected_report_output": "/home/ga/GIS_Data/exports/australia_hull_report.txt",
+    "min_area_sqkm": 3000000,
+    "max_area_sqkm": 12000000,
+    "expected_bbox": [
+      110,
+      -45,
+      160,
+      -10
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convex_hull_country_extent"
+    }
+  }
+}

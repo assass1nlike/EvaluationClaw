@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_smart_meter_data_pipeline@1",
+  "task_completion": [
+    {
+      "id": "run_failing_tests",
+      "description": "Run the initial test suite to observe the failing pipeline tests.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing the execution of a test runner (like pytest) in the /home/ga/workspace/smart_meter_pipeline/ directory, displaying failing tests (red text, tracebacks, or 'FAILED' indicators)."
+    },
+    {
+      "id": "fix_date_parsing_and_imputation",
+      "description": "Modify the pipeline code to fix data parsing and imputation issues.",
+      "points": 20,
+      "visual_evidence": "Code editor open to the pipeline source code showing modifications to pandas date parsing (e.g., handling European date formats using dayfirst=True or specific format strings) and missing data imputation (e.g., fillna, interpolate)."
+    },
+    {
+      "id": "fix_aggregation_and_tariffs",
+      "description": "Modify the pipeline code to fix time-series aggregation and tariff boundary logic.",
+      "points": 20,
+      "visual_evidence": "Code editor showing updates to pandas time-series aggregation (e.g., resample, groupby) or logic evaluating tariff boundaries to prevent customer overbilling."
+    },
+    {
+      "id": "fix_anomaly_detection",
+      "description": "Modify the pipeline code to fix the adaptive anomaly detection logic.",
+      "points": 20,
+      "visual_evidence": "Code editor showing updates to anomaly detection algorithms, such as adjusting rolling means, standard deviations, or thresholds to account for winter heating drift and reduce false positives."
+    },
+    {
+      "id": "run_passing_tests",
+      "description": "Run the test suite to verify all pipeline issues are resolved.",
+      "points": 30,
+      "visual_evidence": "Terminal window showing the execution of the test runner with all tests passing successfully (green text, 'OK', or '100% passed')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_file_tampering",
+      "description": "Verify the agent did not modify the test files to trivially pass the assertions.",
+      "visual_evidence": "The code editor should not show modifications to the files inside the tests/ directory that comment out assertions or change expected values."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify the agent actually executed the test suite rather than faking the output.",
+      "visual_evidence": "The terminal should display genuine test runner output (e.g., pytest collection, execution times, and summary) rather than a simple printed string or echo command."
+    },
+    {
+      "id": "no_hardcoded_solutions",
+      "description": "Verify the agent implemented generalized pandas logic rather than hardcoding answers.",
+      "visual_evidence": "The pipeline code should contain standard pandas operations (e.g., pd.to_datetime, df.resample) rather than hardcoded arrays, dictionaries, or if-statements designed to bypass specific test cases."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires resolving 5 specific pandas-based pipeline bugs related to: 1) data parsing (handling European date formats), 2) data imputation, 3) time-series aggregation, 4) tariff boundaries, and 5) adaptive anomaly detection (accounting for winter heating drift). The agent must achieve a passing score of at least 60 on the test suite."
+}

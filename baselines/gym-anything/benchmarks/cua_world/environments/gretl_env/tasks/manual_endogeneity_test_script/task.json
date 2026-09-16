@@ -1,0 +1,37 @@
+{
+  "id": "manual_endogeneity_test_script@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a manual endogeneity test (Control Function approach) for education in a wage equation using the 'mroz.gdt' dataset. Restrict the sample to working women (lfp=1). The test requires a first-stage OLS regression of 'educ' on 'const', 'exper', 'expersq', and 'motheduc' to produce residuals named 'v_hat'. These residuals must be included in a second-stage OLS regression of 'lwg' on 'const', 'educ', 'exper', 'expersq', and 'v_hat'. Save the complete output of this second-stage regression to /home/ga/Documents/gretl_output/endogeneity_test_results.txt. The significance of 'v_hat' in the second stage serves as the test for endogeneity.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manual_endogeneity_test_script/setup_task.sh",
+    "post_task": "/workspace/tasks/manual_endogeneity_test_script/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "dataset": "mroz.gdt",
+    "expected_output_path": "/home/ga/Documents/gretl_output/endogeneity_test_results.txt",
+    "expected_sample_size": 428,
+    "expected_variables": [
+      "const",
+      "educ",
+      "exper",
+      "expersq",
+      "v_hat"
+    ],
+    "target_coeff_v_hat": 0.057,
+    "tolerance": 0.015
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manual_endogeneity_test_script"
+    }
+  }
+}

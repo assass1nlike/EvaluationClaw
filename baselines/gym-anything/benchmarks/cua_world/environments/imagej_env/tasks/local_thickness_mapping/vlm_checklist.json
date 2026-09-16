@@ -1,0 +1,59 @@
+{
+  "task_id": "local_thickness_mapping@1",
+  "task_completion": [
+    {
+      "id": "open_blobs_image",
+      "description": "Open the 'Blobs (25K)' sample image",
+      "points": 10,
+      "visual_evidence": "ImageJ window displaying the 'blobs.gif' sample image."
+    },
+    {
+      "id": "create_binary_mask",
+      "description": "Create a binary mask of the objects",
+      "points": 15,
+      "visual_evidence": "The blobs image is thresholded, appearing as a pure black and white binary mask."
+    },
+    {
+      "id": "compute_thickness_map",
+      "description": "Compute a 32-bit local thickness map",
+      "points": 25,
+      "visual_evidence": "A new image window displaying the thickness map, typically a 32-bit grayscale or color-mapped image where thicker regions of the blobs are brighter."
+    },
+    {
+      "id": "save_thickness_map",
+      "description": "Save the thickness map as a TIFF file",
+      "points": 15,
+      "visual_evidence": "A save dialog or file manager showing 'thickness_map.tif' being saved to the '~/ImageJ_Data/results/' directory."
+    },
+    {
+      "id": "analyze_thickness_distribution",
+      "description": "Analyze the thickness distribution to get summary statistics",
+      "points": 20,
+      "visual_evidence": "A 'Results' table or 'Histogram' window in ImageJ showing statistics (Mean, StdDev, Min, Max) calculated specifically from the thickness map."
+    },
+    {
+      "id": "save_csv_statistics",
+      "description": "Save the summary statistics as a CSV file",
+      "points": 15,
+      "visual_evidence": "A save dialog or file manager showing 'thickness_distribution.csv' being saved to the '~/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the ImageJ GUI to perform the analysis",
+      "visual_evidence": "Screenshots show the agent interacting with ImageJ menus (e.g., Image > Adjust > Threshold, Plugins > Local Thickness, Analyze > Measure) rather than just running a terminal script to generate the outputs."
+    },
+    {
+      "id": "genuine_thickness_map",
+      "description": "The thickness map is genuinely derived from the blobs image",
+      "visual_evidence": "The thickness map visually matches the structure of the blobs image, with pixel intensities corresponding to the width of the blobs (thicker parts are brighter)."
+    },
+    {
+      "id": "genuine_statistics",
+      "description": "The statistics are genuinely calculated from the thickness map",
+      "visual_evidence": "The statistics shown in the Results window or saved CSV are consistent with the Blobs image (Mean ~8.4-8.8, Max ~30-34), not arbitrary or manually typed numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'Blobs (25K)' image is a standard ImageJ sample. The expected thickness map is a 32-bit float image where values represent the diameter of the largest fitting sphere. For the Blobs image, the mean thickness should be approximately 8.4-8.8 pixels, and the maximum thickness should be 30-34 pixels. The output files must be saved to ~/ImageJ_Data/results/."
+}

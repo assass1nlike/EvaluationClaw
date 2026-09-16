@@ -1,0 +1,59 @@
+{
+  "task_id": "hr_attrition_analysis@1",
+  "task_completion": [
+    {
+      "id": "sheet_created",
+      "description": "A new sheet named 'Attrition_Summary' is created.",
+      "points": 10,
+      "visual_evidence": "A tab named 'Attrition_Summary' is visible and active at the bottom of the WPS Spreadsheet window."
+    },
+    {
+      "id": "table_1_structure",
+      "description": "Table 1 (Role Analysis) is created starting at A1 with the specified headers and 9 job roles.",
+      "points": 15,
+      "visual_evidence": "Cells A1 to H1 contain headers: Job Role, Total Count, Attrited, Retained, Attrition Rate, Avg Income (Attrited), Avg Income (Retained), and Risk Flag. Cells A2 to A10 contain the 9 specified job roles (Healthcare Representative, Human Resources, etc.)."
+    },
+    {
+      "id": "table_1_formulas_formatting",
+      "description": "Table 1 contains calculations for the metrics and a Risk Flag.",
+      "points": 25,
+      "visual_evidence": "Columns B through H in Table 1 contain zeros, empty cells, or calculation errors (e.g., #DIV/0!) due to the empty source data. The Risk Flag column may show 'Normal' or an error. The formula bar should ideally show functions like COUNTIFS, AVERAGEIFS, or IF when a cell is selected."
+    },
+    {
+      "id": "table_2_structure",
+      "description": "Table 2 (Satisfaction Analysis) is created starting at A13 with the specified headers and satisfaction levels.",
+      "points": 15,
+      "visual_evidence": "Cells A13 to D13 contain headers: Job Satisfaction, Total Count, Attrited, and Attrition Rate. Cells A14 to A17 contain the satisfaction levels 1, 2, 3, and 4."
+    },
+    {
+      "id": "table_2_formulas",
+      "description": "Table 2 contains calculations for the satisfaction metrics.",
+      "points": 15,
+      "visual_evidence": "Columns B through D in Table 2 (rows 14-17) contain zeros, empty cells, or calculation errors due to the empty source data."
+    },
+    {
+      "id": "chart_created",
+      "description": "A Clustered Column Chart visualizing Job Role versus Attrition Rate is present on the sheet.",
+      "points": 20,
+      "visual_evidence": "A column chart is visible on the 'Attrition_Summary' sheet. Its axes or legend should indicate it plots Job Role vs Attrition Rate. The chart plot area will likely be empty or show zero values due to the lack of data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wps_spreadsheet",
+      "description": "The agent used WPS Spreadsheet to perform the task.",
+      "visual_evidence": "The screenshots show the WPS Spreadsheet application interface being used, rather than a terminal or Python script generating the Excel file."
+    },
+    {
+      "id": "genuine_formulas_used",
+      "description": "The agent attempted to use formulas or pivot tables rather than hardcoding fake data.",
+      "visual_evidence": "The tables show 0s or errors consistent with an empty dataset, and the formula bar shows Excel formulas rather than hardcoded non-zero numbers."
+    },
+    {
+      "id": "no_fake_data_generation",
+      "description": "The agent did not generate fake employee data to fill the empty dataset.",
+      "visual_evidence": "The summary tables reflect an empty dataset (showing 0s or errors) rather than being populated with fabricated data."
+    }
+  ],
+  "privileged_info_for_vlm": "The source dataset at '/home/ga/Documents/hr_attrition_data.xlsx' is actually empty (contains only column headers) because the download URL in the setup script is broken. The agent is expected to build the dashboard structure, formulas, and chart regardless. The VLM must accept tables showing 0s, empty cells, or calculation errors (like #DIV/0!) as correct, provided the structure, headers, and formulas/references are properly set up. The chart will likely be empty or flat. Do not penalize the agent for the lack of actual data values or the inability to demonstrate the >15% conditional formatting."
+}

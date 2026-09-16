@@ -1,0 +1,91 @@
+{
+  "dataset_id": "a1e7d662",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 306,
+  "description": "Dataset for generating scene graph triplets from images, extracting (subject, relationship, object) tuples that describe objects and their interactions. It evaluates visual relationship extraction and structured representation of image content.",
+  "card_text": "Annotation Open is an image-to-text dataset of 306 samples built on Visual Genome images. Each sample consists of an image and two instructional prompts asking the model to produce as many scene graph triplets as possible in the format (subject, relationship, object). The target output is a list of such triplets, capturing objects, their attributes, and relationships. Images are everyday scenes with multiple objects and interactions, often containing people, food, furniture, and outdoor elements. The dataset assumes the model can identify visual entities and infer semantic relations from a single image. It is intended for evaluating structured visual relation extraction, scene graph parsing, and open-ended visual reasoning. The instructions emphasize meaningful relationships and interactions, so outputs are expected to be concise, well-formed triplets rather than free-form captions.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "everyday visual scenes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Detailed task instruction that tells the model to analyze the accompanying image and generate scene graph triplets in (subject, relationship, object) format, emphasizing meaningful relationships between objects. It sets the output format and scope.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Concise instruction asking the model to generate as many scene graph triplets as possible for the image in the specified format. It acts as the query that the model must answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "File path to a Visual Genome image. This is the visual input from which objects and their relationships are to be parsed.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of scene graph triplets, each a string in the form (subject, relationship, object). These triplets represent extracted visual relationships, attributes, and interactions from the image.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image path, a detailed prompt and a shorter instruction (both text), and an answer list of scene graph triplets. The image is the visual input; the instruction and prompt specify the task and output format; the answer provides the generated triplets. No bounding boxes, masks, or multiple-choice options are included."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/lmage_Scene_Graph_Parsing/annotation_open.json",
+    "existing_tags": {
+      "task": "lmage_Scene_Graph_Parsing",
+      "type": "comprehension",
+      "skill": "Scene Graph Generation",
+      "domain": "General",
+      "general_capability": "Reasoning Ability",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "process_contra_entry@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "You are an accountant at Northwind Traders. Your supplier 'Exotic Liquids' has started buying products from you, and you have agreed to offset a balance of $200.00. Create a new Customer record for 'Exotic Liquids' and record a Journal Entry dated today to perform the offset. The entry should debit Accounts Payable (Sub-account: Exotic Liquids) for 200.00 and credit Accounts Receivable (Sub-account: Exotic Liquids) for 200.00 with the narration 'Contra entry offset'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/process_contra_entry/setup_task.sh",
+    "post_task": "/workspace/tasks/process_contra_entry/export_result.sh"
+  },
+  "metadata": {
+    "target_entity": "Exotic Liquids",
+    "offset_amount": 200.0,
+    "debit_account": "Accounts Payable",
+    "credit_account": "Accounts Receivable",
+    "manager_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_contra_entry"
+    }
+  }
+}

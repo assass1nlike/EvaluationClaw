@@ -1,0 +1,53 @@
+{
+  "task_id": "dailies_contact_sheet_pipeline@1",
+  "task_completion": [
+    {
+      "id": "frame_extraction_directories",
+      "description": "Verify that frames were extracted into the correct directory structure for each clip.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal showing the directory /home/ga/Videos/dailies_output/frames/ containing subfolders for the 4 clips (e.g., scene12_take3), and inside them, PNG files named like frame_00s.png, frame_10s.png, etc."
+    },
+    {
+      "id": "contact_sheets_generation",
+      "description": "Verify that contact sheet images were generated for each clip.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal showing the directory /home/ga/Videos/dailies_output/sheets/ containing 4 PNG files ending in _sheet.png (e.g., scene12_take3_sheet.png)."
+    },
+    {
+      "id": "contact_sheet_grid_format",
+      "description": "Verify that the contact sheets are formatted as a 3x2 grid of thumbnails.",
+      "points": 20,
+      "visual_evidence": "An image viewer or preview showing one of the _sheet.png files containing exactly 6 video frame thumbnails arranged in a 3x2 grid."
+    },
+    {
+      "id": "frame_index_json",
+      "description": "Verify the creation and schema of the frame index JSON file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of /home/ga/Videos/dailies_output/frame_index.json. It must contain a 'frames' array with objects mapping 'clip', 'timecode_seconds', and 'filename'."
+    },
+    {
+      "id": "production_summary_json",
+      "description": "Verify the creation and schema of the production summary JSON file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of /home/ga/Videos/dailies_output/production_summary.json. It must contain a 'clips' array with duration/resolution/fps/frames_extracted, 'total_frames_extracted' set to 24, and a 'generated_date'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Verify the agent used actual commands or scripts to extract frames and create montages.",
+      "visual_evidence": "Terminal history showing the use of tools like ffmpeg, ImageMagick (montage), or a Python script executing these tasks, rather than just moving/renaming pre-existing mock files."
+    },
+    {
+      "id": "comprehensive_json_data",
+      "description": "Verify the JSON files contain full data for all clips, not just the prompt's schema example.",
+      "visual_evidence": "The JSON files should have entries for all 4 clips and all 24 frames, proving the agent didn't just copy-paste the single example from the task description."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Verify the agent worked in the exact specified output directories.",
+      "visual_evidence": "File paths in the terminal, text editor, or file manager must explicitly show /home/ga/Videos/dailies_output/ and its required subdirectories."
+    }
+  ],
+  "privileged_info_for_vlm": "Clips to process: scene12_take3, scene12_take4, scene15_take1, scene18_take2. Expected frames per clip: 6. Total frames: 24. Expected timecodes: 0, 10, 20, 30, 40, 50. The contact sheets must be 3x2 grids of 480x270 thumbnails."
+}

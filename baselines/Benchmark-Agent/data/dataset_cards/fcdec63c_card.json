@@ -1,0 +1,87 @@
+{
+  "dataset_id": "fcdec63c",
+  "name": "Aspect-Sentiment-Classification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Aspect-Sentiment-Classification is a dataset of 200 review snippets, each with a specified aspect term and a question asking for the sentiment towards that aspect. It evaluates multiclass aspect-based sentiment classification into positive, negative, or neutral categories.",
+  "card_text": "The dataset consists of English text reviews, typically from the restaurant or food domain. Each example has a raw_text (the review snippet), a target aspect term (e.g., 'rolls', 'Indian food'), and a templated prompt that embeds both and asks for the sentiment towards the target, with the options positive, negative, or neutral. The output is a single sentiment label. The task is aspect-based sentiment classification, a multiclass classification problem. The data is relatively short, with review snippets and target terms being brief. It assumes that the aspect term appears in the review and that the sentiment can be inferred from the text.",
+  "tasks": [
+    "classification_multiclass",
+    "multiple_choice_qa"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The raw review text snippet that may contain opinions about various aspects. It serves as the main context for sentiment analysis.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated instruction that asks for the sentiment towards a specific target aspect in the raw_text, explicitly listing the three sentiment options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The sentiment label (positive, negative, or neutral) assigned to the target aspect in the raw_text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "span": {
+        "paths": [
+          "input.target"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The aspect term (e.g., a food item or attribute) extracted from the raw_text; the sentiment classification is performed with respect to this target.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with three text fields: raw_text (the review snippet), target (the aspect term within the review), and prompt (a template instruction that incorporates both raw_text and target and asks for sentiment classification with three options). The output object contains a single category field with the sentiment label. The raw_text serves as the context, the prompt as the question, the target as the extracted span, and the output.category as the answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Sentiment-Classification/annotation.json",
+    "existing_tags": {
+      "task": "aspect_sentiment_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

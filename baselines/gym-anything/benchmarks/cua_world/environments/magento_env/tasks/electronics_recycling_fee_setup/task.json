@@ -1,0 +1,30 @@
+{
+  "id": "electronics_recycling_fee_setup@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Your legal team has notified you that sales of laptops to California addresses are subject to a mandatory $12.50 E-Waste Recycling Fee. Configure the Magento store to charge this fee for customers in California when purchasing the 'Business Laptop Pro'. Enable the Fixed Product Tax (FPT) system and create a new product attribute with the code 'california_ewaste_fee', label 'CA E-Waste Fee', and 'Fixed Product Tax' input type. Assign this attribute to the 'Default Attribute Set' and apply a $12.50 tax rule for California (US) to the 'Business Laptop Pro' product. If not logged in, use credentials: admin / Admin1234!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/electronics_recycling_fee_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/electronics_recycling_fee_setup/export_result.sh"
+  },
+  "metadata": {
+    "target_sku": "LAPTOP-001",
+    "attribute_code": "california_ewaste_fee",
+    "attribute_label": "CA E-Waste Fee",
+    "tax_amount": 12.5,
+    "region_id": 12,
+    "country_id": "US"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_electronics_recycling_fee_setup"
+    }
+  }
+}

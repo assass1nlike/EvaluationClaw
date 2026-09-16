@@ -1,0 +1,36 @@
+{
+  "id": "preventive_maintenance_schedule_setup@1",
+  "version": "1.0",
+  "env_id": "openmaint_env@0.1",
+  "description": "You are a Facilities Planner at a commercial real estate firm. Using OpenMaint (login: admin/admin at http://localhost:8090/cmdbuild/ui/), create a quarterly HVAC preventive maintenance schedule for the three office buildings in the system. For each building, create a preventive maintenance activity card with the code 'PM-HVAC-Q-{BuildingCode}', a frequency of 90 days, and a 'medium' or 'normal' priority. The description must specify quarterly HVAC filter replacement and coil inspection. Each activity must include a task checklist or notes field listing: filter replacement, coil cleaning, refrigerant level check, thermostat calibration, and condensate drain inspection. Refer to the PM requirements specification at /home/ga/Desktop/pm_requirements.txt for additional details. Do not modify or delete any existing maintenance records.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/preventive_maintenance_schedule_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/preventive_maintenance_schedule_setup/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Maintenance and Repair Workers, General",
+    "soc_code": "49-9071.00",
+    "industry": "Commercial Real Estate",
+    "num_pm_activities": 3,
+    "required_task_items": [
+      "filter replacement",
+      "coil cleaning",
+      "refrigerant level",
+      "thermostat calibration",
+      "condensate drain"
+    ],
+    "frequency_days": 90
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_preventive_maintenance_schedule_setup"
+    }
+  }
+}

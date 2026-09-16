@@ -1,0 +1,53 @@
+{
+  "task_id": "inventory_supply_chain_traceability@1",
+  "task_completion": [
+    {
+      "id": "locate_delivery_order",
+      "description": "Navigate to the Delivery Orders in Odoo and locate the shipment for 'Azure Interior' containing the 'Ergonomic Mesh Chair' (WH/OUT/00099 or fallback name).",
+      "points": 10,
+      "visual_evidence": "Odoo interface showing the Delivery Order details for customer 'Azure Interior' with the 'Ergonomic Mesh Chair' listed in the operations or products tab."
+    },
+    {
+      "id": "identify_lot_serial_number",
+      "description": "Identify the specific Lot/Serial Number assigned to the broken 'Ergonomic Mesh Chair' in the delivery.",
+      "points": 20,
+      "visual_evidence": "Odoo interface showing the detailed operations, traceability report, or lot/serial number specifically linked to the 'Ergonomic Mesh Chair' in the target delivery."
+    },
+    {
+      "id": "trace_to_source_po_vendor",
+      "description": "Trace the identified Lot/Serial Number back to its original source to find the Vendor and Purchase Order number.",
+      "points": 30,
+      "visual_evidence": "Odoo interface showing the Traceability report, Purchase Order, or incoming Receipt associated with the specific Lot/Serial Number, clearly displaying the Vendor name and the Source PO number."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create a file named 'investigation_report.txt' on the Desktop.",
+      "points": 10,
+      "visual_evidence": "A file manager window showing the Desktop directory with a file named 'investigation_report.txt', or a text editor open with this file saved to the Desktop."
+    },
+    {
+      "id": "report_content_correctness",
+      "description": "The 'investigation_report.txt' file contains the correct Defective Lot, Vendor, and Source PO.",
+      "points": 30,
+      "visual_evidence": "The contents of 'investigation_report.txt' are visible in a text editor or terminal, explicitly listing the Defective Lot/Serial Number, the Vendor name, and the Source PO number found during the Odoo investigation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "odoo_gui_interaction",
+      "description": "The agent used the Odoo web GUI to trace the supply chain.",
+      "visual_evidence": "Screenshots show the agent navigating through the Odoo web interface in a browser (e.g., Inventory app, Traceability reports) rather than using terminal scripts or direct database queries to extract the information."
+    },
+    {
+      "id": "data_consistency",
+      "description": "The data in the report matches the data found in the Odoo system.",
+      "visual_evidence": "The Lot, Vendor, and PO written in the text file exactly match the values visible in the Odoo screenshots, proving the agent didn't hallucinate or guess the answers."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent genuinely created and saved the report file.",
+      "visual_evidence": "Screenshots show a text editor (like gedit, mousepad, or nano) or terminal commands (like echo/cat) being used to write and save the file to the Desktop, not just a mock-up or isolated text display."
+    }
+  ],
+  "privileged_info_for_vlm": "The report file must be located at /home/ga/Desktop/investigation_report.txt. The target delivery order is typically WH/OUT/00099, but may have a different auto-generated name if the setup script fallback was triggered. The VLM should verify that the Lot/Serial Number, Vendor, and Source PO written in the report match the actual traceability data found in the Odoo interface for the customer 'Azure Interior' and product 'Ergonomic Mesh Chair'."
+}

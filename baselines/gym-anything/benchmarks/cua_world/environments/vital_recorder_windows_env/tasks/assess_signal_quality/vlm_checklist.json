@@ -1,0 +1,59 @@
+{
+  "task_id": "assess_signal_quality@1",
+  "task_completion": [
+    {
+      "id": "load_case_file",
+      "description": "Verify the agent opened the Case 6 vital file in a waveform viewer application.",
+      "points": 10,
+      "visual_evidence": "A waveform viewer application (e.g., VitalRecorder) is open and displays data for Case 6 (0006.vital or vitaldb_case6)."
+    },
+    {
+      "id": "view_target_tracks",
+      "description": "Verify the agent navigated to and displayed the specific target tracks for assessment.",
+      "points": 20,
+      "visual_evidence": "The waveform viewer shows the 'Solar8000/SPO2' and 'Solar8000/ART_MBP' tracks on the screen."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Verify the agent created the required text report file in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., Notepad) is open, and the window title or save dialog confirms the file is named 'signal_quality_report.txt' and is located in 'C:\\Users\\Docker\\Documents\\VitalRecorder\\'."
+    },
+    {
+      "id": "report_header_and_metadata",
+      "description": "Verify the report contains the correct header and case metadata.",
+      "points": 15,
+      "visual_evidence": "The text editor shows 'SIGNAL QUALITY REPORT', 'Case: vitaldb_case6', 'Total Recording Duration: [time]', and 'Parameters Assessed: SPO2, ART_MBP'."
+    },
+    {
+      "id": "report_gaps_section",
+      "description": "Verify the report contains the detailed gaps list formatted correctly.",
+      "points": 20,
+      "visual_evidence": "The text editor shows a 'GAPS FOUND:' section listing specific gaps with Parameter, Start, End, Duration, and Type, OR explicitly states 'No gaps exceeding 30 seconds detected' for the parameters."
+    },
+    {
+      "id": "report_summary_section",
+      "description": "Verify the report contains the final summary statistics.",
+      "points": 15,
+      "visual_evidence": "The text editor shows a 'SUMMARY:' section containing gap counts, total gap durations for both SPO2 and ART_MBP, and an 'Overall data completeness' percentage."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_software_interaction",
+      "description": "Verify the agent used a GUI waveform viewer to inspect the data rather than relying solely on terminal scripts or hallucinating the data.",
+      "visual_evidence": "Screenshots show the agent actively interacting with a graphical waveform viewer application to scroll through or inspect the timeline."
+    },
+    {
+      "id": "authentic_duration_check",
+      "description": "Verify the agent did not blindly copy incorrect metadata for the recording duration.",
+      "visual_evidence": "The 'Total Recording Duration' in the text report should be approximately 01:25:45 (5145 seconds). If it says 10520 seconds, the agent hallucinated or cheated using faulty metadata."
+    },
+    {
+      "id": "manual_report_editing",
+      "description": "Verify the report was generated or pasted into a GUI text editor.",
+      "visual_evidence": "A GUI text editor like Notepad is visible with the report contents, rather than the file being created invisibly via background terminal commands."
+    }
+  ],
+  "privileged_info_for_vlm": "VitalDB Case 6 actual recording duration is exactly 5145 seconds (1 hour, 25 minutes, 45 seconds). The agent's report MUST reflect a Total Recording Duration of approximately 01:25:45. If the agent reports 10520 seconds, it has hallucinated or used incorrect metadata without verifying the actual file. The target parameters are 'Solar8000/SPO2' and 'Solar8000/ART_MBP'. The final report must be saved at 'C:\\Users\\Docker\\Documents\\VitalRecorder\\signal_quality_report.txt'."
+}

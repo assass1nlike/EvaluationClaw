@@ -1,0 +1,38 @@
+{
+  "id": "returns_analysis_dashboard@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a Supply Chain Quality Manager. Using the 'Sample - Superstore.xls' file located at 'C:\\Users\\Docker\\Desktop\\PowerBITasks\\Sample - Superstore.xls', build a Returns Analysis Dashboard in Power BI Desktop to identify return rates by region and product category. The dashboard must include a relationship between the 'Orders' and 'Returns' sheets on 'Order ID', a 'Total_Orders' measure (distinct count of Order IDs), and a 'Return_Rate' measure (returns count divided by total orders). Visualize the 'Return_Rate' by 'Region' and 'Category' in a matrix, and 'Sales' versus 'Return_Rate' by 'Sub-Category' in a scatter chart. Save the final report to 'C:\\Users\\Docker\\Desktop\\Returns_Dashboard.pbix'. Login: user 'Docker', password 'GymAnything123!'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\returns_analysis_dashboard\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\returns_analysis_dashboard\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Returns_Dashboard.pbix",
+    "data_url": "https://github.com/microsoft/powerbi-desktop-samples/raw/main/Sample%20Reports/Sample%20-%20Superstore.xls",
+    "required_tables": [
+      "Orders",
+      "Returns"
+    ],
+    "required_measures": [
+      "Total_Orders",
+      "Return_Rate"
+    ],
+    "required_visuals": [
+      "matrix",
+      "scatterChart"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_returns_analysis_dashboard"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "import_transform_export_tb@1",
+  "task_completion": [
+    {
+      "id": "import_dataset",
+      "description": "Import the WHO Tuberculosis Surveillance CSV dataset into Epi Info 7 Classic Analysis.",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 Classic Analysis window is open, and the command log shows a READ command for 'who_tb_notifications.csv', or the dataset variables are visible in the workspace."
+    },
+    {
+      "id": "calculate_total_cases",
+      "description": "Calculate 'TotalCases' as the sum of 'tb_cases_new' and 'tb_cases_relapse'.",
+      "points": 15,
+      "visual_evidence": "Command log shows DEFINE and ASSIGN commands for 'TotalCases' (e.g., TotalCases = tb_cases_new + tb_cases_relapse), or the variable is visible in the data grid/variable list."
+    },
+    {
+      "id": "calculate_incidence_rate",
+      "description": "Calculate 'IncidenceRate' as ('TotalCases' / 'population') * 100000.",
+      "points": 15,
+      "visual_evidence": "Command log shows DEFINE and ASSIGN commands for 'IncidenceRate' with the correct formula, or the variable is visible in the data grid/variable list."
+    },
+    {
+      "id": "recode_incidence_tier",
+      "description": "Recode 'IncidenceRate' into a new variable 'IncidenceTier' with categories Low, Medium, High, and Very High.",
+      "points": 20,
+      "visual_evidence": "Command log shows a RECODE command mapping 'IncidenceRate' to 'IncidenceTier' with the specified ranges (0-50, 50-150, 150-300, 300+), or the Recode dialog box is visible with these settings."
+    },
+    {
+      "id": "filter_dataset",
+      "description": "Filter the dataset to include only records where 'who_region' is 'AFR' and 'year' is between 2015 and 2020 inclusive.",
+      "points": 20,
+      "visual_evidence": "Command log shows a SELECT command with conditions for who_region='AFR' and year between 2015 and 2020. The record count in the interface should update to show exactly 24 records."
+    },
+    {
+      "id": "export_dataset",
+      "description": "Export the resulting dataset to 'afr_tb_2015_2020.csv'.",
+      "points": 20,
+      "visual_evidence": "Command log shows a WRITE or EXPORT command saving the data to 'C:\\Users\\Docker\\Documents\\TBData\\output\\afr_tb_2015_2020.csv', or the Write/Export dialog is visible with this path and CSV format selected."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info",
+      "description": "The agent used Epi Info 7 Classic Analysis to perform the tasks.",
+      "visual_evidence": "The Epi Info 7 Classic Analysis interface is visible in the screenshots, with commands appearing in its command log."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent did not use terminal commands or scripts (like Python, PowerShell, or awk) to bypass the Epi Info GUI.",
+      "visual_evidence": "No terminal windows or text editors are shown executing scripts to manipulate the CSV file directly."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The export was performed through Epi Info 7.",
+      "visual_evidence": "The WRITE/EXPORT command is visible in the Epi Info command log, rather than the file being created manually or via a separate script."
+    }
+  ],
+  "privileged_info_for_vlm": "The input dataset is synthetic. After applying the correct filters (who_region='AFR' and year 2015-2020), the expected record count in Epi Info should be exactly 24 rows (4 countries x 6 years). The recode ranges for IncidenceTier are half-open intervals: Low [0,50), Medium [50,150), High [150,300), Very High [300+)."
+}

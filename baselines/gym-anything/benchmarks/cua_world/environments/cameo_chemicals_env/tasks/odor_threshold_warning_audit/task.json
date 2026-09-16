@@ -1,0 +1,77 @@
+{
+  "id": "odor_threshold_warning_audit@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Perform an 'Odor Warning Property' safety audit for five hazardous chemicals using CAMEO Chemicals (https://cameochemicals.noaa.gov/) to determine if a worker can smell each before it reaches unsafe levels. Assess Benzene, Hydrogen Sulfide, Toluene, Carbon Monoxide, and Dichloromethane (Methylene Chloride). For each chemical, compare the Odor Threshold (using the lower value if a range is given, or 'NA' if odorless) against the OSHA PEL (TWA or Ceiling). Classify the warning property as 'ADEQUATE' if the Odor Threshold is less than the OSHA PEL, 'INADEQUATE' if the Odor Threshold is greater than or equal to the OSHA PEL, or 'NO_WARNING' if the chemical is odorless. Export the results to a CSV file at /home/ga/Documents/odor_safety_audit.csv with the header: Chemical,Odor_ppm,PEL_ppm,Assessment.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "safety",
+    "audit",
+    "odor-threshold",
+    "osha",
+    "pel"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/odor_threshold_warning_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/odor_threshold_warning_audit/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/odor_safety_audit.csv",
+    "chemicals": [
+      {
+        "name": "Benzene",
+        "odor_range": [
+          0,
+          60
+        ],
+        "pel_value": 1,
+        "expected_assessment": "INADEQUATE"
+      },
+      {
+        "name": "Hydrogen Sulfide",
+        "odor_range": [
+          0,
+          1
+        ],
+        "pel_value": 20,
+        "expected_assessment": "ADEQUATE"
+      },
+      {
+        "name": "Toluene",
+        "odor_range": [
+          0,
+          50
+        ],
+        "pel_value": 200,
+        "expected_assessment": "ADEQUATE"
+      },
+      {
+        "name": "Carbon Monoxide",
+        "odor_type": "odorless",
+        "pel_value": 50,
+        "expected_assessment": "NO_WARNING"
+      },
+      {
+        "name": "Dichloromethane",
+        "odor_range": [
+          100,
+          300
+        ],
+        "pel_value": 25,
+        "expected_assessment": "INADEQUATE"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_odor_audit"
+    }
+  }
+}

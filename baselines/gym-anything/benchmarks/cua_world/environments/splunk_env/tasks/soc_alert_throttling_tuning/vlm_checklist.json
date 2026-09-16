@@ -1,0 +1,53 @@
+{
+  "task_id": "soc_alert_throttling_tuning@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Log in to the Splunk web interface",
+      "points": 10,
+      "visual_evidence": "Browser showing the Splunk web interface at localhost:8000, indicating a successful login (e.g., Splunk dashboard or search app visible)."
+    },
+    {
+      "id": "query_web_logs",
+      "description": "Query the 'web_logs' index for web errors grouped by client IP",
+      "points": 20,
+      "visual_evidence": "Splunk search bar contains a query referencing the 'web_logs' index (e.g., index=\"web_logs\") and a grouping command by an IP field (e.g., 'stats count by clientip')."
+    },
+    {
+      "id": "alert_name",
+      "description": "Create an alert named 'Web_Error_Spike'",
+      "points": 20,
+      "visual_evidence": "The 'Save As Alert' dialog or Alert configuration page shows the Title/Name field set exactly to 'Web_Error_Spike'."
+    },
+    {
+      "id": "alert_schedule",
+      "description": "Schedule the alert to run every 5 minutes",
+      "points": 20,
+      "visual_evidence": "Alert schedule settings showing a cron schedule of '*/5 * * * *' or UI dropdowns configured to run on a schedule of every 5 minutes."
+    },
+    {
+      "id": "alert_throttling",
+      "description": "Implement alert throttling for 1 hour by client IP",
+      "points": 30,
+      "visual_evidence": "The 'Throttle' checkbox is checked, the 'Suppress results containing field value' is set to the client IP field used in the search, and the 'Suppress triggering for' time is set to 1 hour (e.g., '1 hour', '1h', '60m', '3600s')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Agent used the Splunk Web GUI to configure the alert",
+      "visual_evidence": "Screenshots show the agent interacting with the Splunk web interface in a browser, rather than using terminal commands, curl, or API scripts."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Agent interacted with the actual Splunk application",
+      "visual_evidence": "Splunk UI elements (search bar, save dialogs, dropdowns) are visible and actively used, not just a text editor containing the configuration steps."
+    },
+    {
+      "id": "valid_spl_query",
+      "description": "Agent formulated a valid SPL query instead of pasting instructions",
+      "visual_evidence": "The search bar contains actual Splunk Search Processing Language (SPL), not the English text from the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Alert Name must be exactly 'Web_Error_Spike'. The search must query the 'web_logs' index. Valid suppression period inputs for exactly 1 hour include '1h', '60m', '3600s', or '3600'. Splunk credentials are 'admin' / 'SplunkAdmin1!'."
+}

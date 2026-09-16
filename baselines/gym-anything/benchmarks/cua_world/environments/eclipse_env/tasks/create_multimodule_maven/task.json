@@ -1,0 +1,32 @@
+{
+  "id": "create_multimodule_maven@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Create a multi-module Maven project in Eclipse IDE at /home/ga/eclipse-workspace/toolkit-parent. The parent project (Group ID: com.startup.toolkit, Artifact ID: toolkit-parent, Version: 1.0.0-SNAPSHOT, Packaging: pom) must manage two modules: toolkit-core and toolkit-app. The toolkit-core module should include com.startup.toolkit.core.StringUtils with a method 'public static String capitalize(String input)' and com.startup.toolkit.core.MathUtils with a method 'public static long factorial(int n)'. The toolkit-app module should include a dependency on toolkit-core and a com.startup.toolkit.app.Main class that calls StringUtils.capitalize(\"hello\") and MathUtils.factorial(10), printing the results to the console. The project must build successfully using 'mvn package' from the parent directory and the Main class must execute correctly.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_multimodule_maven/setup_task.sh",
+    "post_task": "/workspace/tasks/create_multimodule_maven/export_result.sh"
+  },
+  "metadata": {
+    "project_root": "/home/ga/eclipse-workspace/toolkit-parent",
+    "expected_group_id": "com.startup.toolkit",
+    "expected_version": "1.0.0-SNAPSHOT",
+    "core_artifact": "toolkit-core",
+    "app_artifact": "toolkit-app",
+    "string_utils_class": "com.startup.toolkit.core.StringUtils",
+    "math_utils_class": "com.startup.toolkit.core.MathUtils",
+    "main_class": "com.startup.toolkit.app.Main"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_multimodule_maven"
+    }
+  }
+}

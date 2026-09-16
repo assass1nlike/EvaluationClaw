@@ -1,0 +1,53 @@
+{
+  "task_id": "mount_corrupted_header@1",
+  "task_completion": [
+    {
+      "id": "backup_header_option_used",
+      "description": "Agent uses the backup header option to mount the corrupted volume.",
+      "points": 20,
+      "visual_evidence": "In the VeraCrypt GUI, the 'Use backup header embedded in a volume if available' option is checked in Mount Options, OR in the terminal, the `veracrypt` command is executed with the `--backup-header` flag."
+    },
+    {
+      "id": "volume_mounted_at_slot1",
+      "description": "The volume is successfully mounted at the specified mount point.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the volume mounted at `/home/ga/MountPoints/slot1` (e.g., via `lsblk`, `mount`, or `ls /home/ga/MountPoints/slot1`), or the VeraCrypt GUI showing the volume mounted at that path."
+    },
+    {
+      "id": "checksums_computed",
+      "description": "Agent computes the SHA-256 checksums of the three files.",
+      "points": 20,
+      "visual_evidence": "Terminal showing `sha256sum` commands executed on `project_ssh_config`, `infrastructure_hosts`, and `quarterly_metrics.csv`."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The recovery report is created at the correct path with the required header and footer.",
+      "points": 20,
+      "visual_evidence": "Terminal or text editor showing the creation or editing of `/home/ga/recovery_report.txt` with 'RECOVERY REPORT' on the first line and 'RECOVERY COMPLETE: 3 files verified' on the last line."
+    },
+    {
+      "id": "report_contains_checksums",
+      "description": "The recovery report contains the correct checksum format for the three files.",
+      "points": 20,
+      "visual_evidence": "The contents of `/home/ga/recovery_report.txt` show the checksums with two spaces and the filename (without path) for each of the three files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_checksum_computation",
+      "description": "Agent actually computed the checksums of the files.",
+      "visual_evidence": "Terminal shows the agent running `sha256sum` on the actual files inside the mounted volume, rather than hallucinating or pasting pre-computed hashes."
+    },
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "Agent used VeraCrypt to mount the volume.",
+      "visual_evidence": "Screenshots show interaction with the VeraCrypt GUI or the `veracrypt` CLI tool, rather than attempting to bypass encryption using unauthorized tools."
+    },
+    {
+      "id": "report_saved_to_disk",
+      "description": "The report was actually saved to the filesystem.",
+      "visual_evidence": "Evidence of the file being written to disk, such as a successful save in a text editor (e.g., nano) or a `cat /home/ga/recovery_report.txt` command showing the final contents, rather than just printing the text to stdout."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume path: /home/ga/Volumes/corrupted_volume.hc. Mount point: /home/ga/MountPoints/slot1. Expected files: project_ssh_config, infrastructure_hosts, quarterly_metrics.csv. Report path: /home/ga/recovery_report.txt."
+}

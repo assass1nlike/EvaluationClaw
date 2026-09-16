@@ -1,0 +1,59 @@
+{
+  "task_id": "microrna_structure_folding@1",
+  "task_completion": [
+    {
+      "id": "open_input_file",
+      "description": "Verify that the agent opens the input FASTA file containing the miRNA sequences.",
+      "points": 10,
+      "visual_evidence": "UGENE or similar bioinformatics software window showing 'human_pre_miRNAs.fasta' loaded, with sequence names let-7a-1, miR-155, and miR-21 visible."
+    },
+    {
+      "id": "predict_let7a1",
+      "description": "Verify that the agent predicts the secondary structure for let-7a-1.",
+      "points": 15,
+      "visual_evidence": "RNA secondary structure prediction tool (e.g., ViennaRNA) running or completed for let-7a-1, showing a folded 2D structure, MFE value, or structure annotations."
+    },
+    {
+      "id": "predict_mir155_mir21",
+      "description": "Verify that the agent predicts the secondary structures for miR-155 and miR-21.",
+      "points": 15,
+      "visual_evidence": "RNA secondary structure prediction results, 2D structures, MFE values, or annotations visible for miR-155 and miR-21."
+    },
+    {
+      "id": "export_genbank_file",
+      "description": "Verify that the annotated sequences are exported to a single GenBank file at the correct path.",
+      "points": 20,
+      "visual_evidence": "An export dialog saving the file as 'mirna_structures.gb' in the '~/UGENE_Data/rna/results/' directory, or a terminal/file manager showing this file was successfully created."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Verify that the agent creates the required text report file at the correct path.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal command creating or editing a file named 'mfe_report.txt' in the '~/UGENE_Data/rna/results/' directory."
+    },
+    {
+      "id": "report_content_correct",
+      "description": "Verify that the text report contains the required information for all three miRNAs.",
+      "points": 20,
+      "visual_evidence": "The contents of 'mfe_report.txt' clearly show the names of the three miRNAs, their predicted MFE values (typically negative numbers), and their complete dot-bracket notations (strings of dots and parentheses)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_actual_software",
+      "description": "Verify that the agent interacted with actual bioinformatics software to predict the structures.",
+      "visual_evidence": "Screenshots show the GUI of a tool like UGENE being used for RNA folding, rather than the agent hallucinating the results or using a mock script."
+    },
+    {
+      "id": "no_manual_gb_creation",
+      "description": "Verify that the GenBank file was exported by the software, not manually typed.",
+      "visual_evidence": "The GenBank file creation should result from an 'Export' or 'Save As' action in the bioinformatics software, not from manually typing GenBank format text in a text editor."
+    },
+    {
+      "id": "consistent_report_data",
+      "description": "Verify that the data in the text report matches the software's predictions.",
+      "visual_evidence": "The MFE values and dot-bracket strings typed into the report should match the results displayed in the bioinformatics software's prediction output, without blind copy-pasting from external sources."
+    }
+  ],
+  "privileged_info_for_vlm": "The input FASTA contains three human pre-miRNAs: let-7a-1 (length 80), miR-155 (length 64), and miR-21 (length 72). The expected GenBank output file must be located exactly at ~/UGENE_Data/rna/results/mirna_structures.gb. The expected text report must be located exactly at ~/UGENE_Data/rna/results/mfe_report.txt."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "genealogy_age_validator@1",
+  "task_completion": [
+    {
+      "id": "spreadsheet_visible",
+      "description": "The genealogy records spreadsheet is open in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (like LibreOffice Calc) is visible, displaying genealogy data with columns for Known Birth Year (Column B), Record Date (Column C), and Recorded Age (Column D)."
+    },
+    {
+      "id": "implied_birth_year_populated",
+      "description": "Column E is populated with the Implied Birth Year.",
+      "points": 15,
+      "visual_evidence": "Column E contains numerical year values in the rows corresponding to the genealogy records."
+    },
+    {
+      "id": "implied_birth_year_correct",
+      "description": "The Implied Birth Year in Column E is calculated correctly.",
+      "points": 20,
+      "visual_evidence": "For visible rows, the value in Column E exactly equals the Record Date (Column C) minus the Recorded Age (Column D). For example, if Record Date is 1895 and Age is 40, Column E must be 1855."
+    },
+    {
+      "id": "flags_populated",
+      "description": "Column F is populated with discrepancy flags.",
+      "points": 15,
+      "visual_evidence": "Column F contains the text 'INVESTIGATE' or 'OK' in the rows corresponding to the genealogy records."
+    },
+    {
+      "id": "flags_correct_ok",
+      "description": "Records with an age discrepancy of 2 years or less are correctly marked as 'OK'.",
+      "points": 20,
+      "visual_evidence": "For visible rows where the absolute difference between Known Birth Year (Column B) and Implied Birth Year (Column E) is 0, 1, or 2, the flag in Column F is 'OK'."
+    },
+    {
+      "id": "flags_correct_investigate",
+      "description": "Records with an age discrepancy exceeding 2 years are correctly marked as 'INVESTIGATE'.",
+      "points": 20,
+      "visual_evidence": "For visible rows where the absolute difference between Known Birth Year (Column B) and Implied Birth Year (Column E) is 3 or more, the flag in Column F is 'INVESTIGATE'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the graphical user interface of the spreadsheet application.",
+      "visual_evidence": "The LibreOffice Calc (or similar spreadsheet) window is open and active. The results are visible within the spreadsheet grid, not just printed in a terminal."
+    },
+    {
+      "id": "no_terminal_scripting_bypass",
+      "description": "The agent did not bypass the spreadsheet application by writing a script to modify the file directly in the background.",
+      "visual_evidence": "There are no terminal windows visible showing Python, bash, or other scripts being executed to process the CSV/spreadsheet data outside of the GUI."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "The agent used spreadsheet formulas rather than hardcoding the answers.",
+      "visual_evidence": "If a cell in Column E or F is selected, the formula bar at the top should ideally show a formula (e.g., '=C2-D2' or an '=IF(...)' statement) rather than a static typed value."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 17 records in LibreOffice Calc. Column B = Known Birth Year, Column C = Record Date, Column D = Recorded Age. Column E must be calculated as (Column C - Column D). Column F must be 'INVESTIGATE' if the absolute difference between Column B and Column E is strictly greater than 2, otherwise 'OK'. There are exactly 7 records that should be flagged 'INVESTIGATE' and 10 marked 'OK'. Example verified record: Sarah Johnson (Known Birth 1850, Record Date 1895, Age 40) -> Implied Birth 1855 -> Difference is 5 -> Flag is 'INVESTIGATE'."
+}

@@ -1,0 +1,47 @@
+{
+  "id": "uml_design_pattern_refactoring@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a software architect refactoring an e-commerce system diagram at '~/Diagrams/order_system.drawio' to resolve a 'God Class' anti-pattern. Based on the requirements in '~/Desktop/refactoring_review.txt', apply the Strategy Pattern for payment (PaymentStrategy interface; CreditCardPayment, PayPalPayment, BankTransferPayment classes), the Observer Pattern for notifications (OrderObserver interface; EmailNotifier, InventoryUpdater, AuditLogger classes), and the Factory Method Pattern for shipping (ShippingProvider interface, ShippingProviderFactory abstract class, and FedEx/DHL providers). Ensure all new elements use proper UML stereotypes and relationships, and that extracted logic is removed or delegated from the original OrderProcessor class. Export the refactored diagram as a PNG to '~/Diagrams/exports/order_system_refactored.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/uml_design_pattern_refactoring/setup_task.sh",
+    "post_task": "/workspace/tasks/uml_design_pattern_refactoring/export_result.sh"
+  },
+  "metadata": {
+    "diagram_path": "/home/ga/Diagrams/order_system.drawio",
+    "export_path": "/home/ga/Diagrams/exports/order_system_refactored.png",
+    "requirements_path": "/home/ga/Desktop/refactoring_review.txt",
+    "required_strategies": [
+      "PaymentStrategy",
+      "CreditCardPayment",
+      "PayPalPayment",
+      "BankTransferPayment"
+    ],
+    "required_observers": [
+      "OrderObserver",
+      "EmailNotifier",
+      "InventoryUpdater",
+      "AuditLogger"
+    ],
+    "required_factories": [
+      "ShippingProviderFactory",
+      "ShippingProvider",
+      "DomesticShippingFactory",
+      "InternationalShippingFactory",
+      "FedExProvider",
+      "DHLProvider"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_uml_design_pattern_refactoring"
+    }
+  }
+}

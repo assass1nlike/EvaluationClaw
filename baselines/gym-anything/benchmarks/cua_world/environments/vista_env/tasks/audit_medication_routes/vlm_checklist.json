@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_medication_routes@1",
+  "task_completion": [
+    {
+      "id": "browser_opened",
+      "description": "Verify that a web browser is open.",
+      "points": 10,
+      "visual_evidence": "A web browser window (like Firefox) is visible on the screen."
+    },
+    {
+      "id": "ydbgui_accessible",
+      "description": "Verify that the YDBGui web interface is loaded in the browser.",
+      "points": 10,
+      "visual_evidence": "The YDBGui dashboard or interface is visible in the browser tab, indicating successful connection to the database interface."
+    },
+    {
+      "id": "global_navigated",
+      "description": "Verify navigation to the ^PS(51.2) global.",
+      "points": 30,
+      "visual_evidence": "The string '^PS(51.2)' is visible in the YDBGui global explorer, navigation tree, or query input field, showing the agent has accessed the Medication Routes file."
+    },
+    {
+      "id": "name_visible",
+      "description": "Verify the 'INTRAVENOUS' entry is displayed.",
+      "points": 25,
+      "visual_evidence": "The text 'INTRAVENOUS' is visible in the data view or results area of the YDBGui interface, specifically within the context of the ^PS(51.2) global."
+    },
+    {
+      "id": "abbr_visible",
+      "description": "Verify the abbreviation 'IV' is displayed for the INTRAVENOUS entry.",
+      "points": 25,
+      "visual_evidence": "The text 'IV' is visible in the same record, row, or expanded data node as the 'INTRAVENOUS' entry."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ydbgui_interface",
+      "description": "Ensure the agent used the YDBGui web interface rather than terminal commands.",
+      "visual_evidence": "The data should be displayed within the graphical YDBGui web interface in a browser, not in a terminal emulator or SSH session using raw MUMPS commands."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Ensure the agent did not just type the expected answers into a text editor.",
+      "visual_evidence": "The screen should not show a text editor (like nano, vim, or gedit) containing the words 'INTRAVENOUS' and 'IV'. The text must appear within the actual database interface."
+    },
+    {
+      "id": "genuine_database_query",
+      "description": "Ensure the results appear to come from genuine software interaction.",
+      "visual_evidence": "The layout of the data should match a database explorer view (e.g., tree nodes, tables, or key-value pairs typical of YDBGui), rather than a web search result or manually constructed HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "The target interface is YDBGui, accessed via a web browser (Firefox on port 8089). The VistA MEDICATION ROUTES dictionary corresponds to file 51.2 and is stored in the ^PS(51.2) global. The standard record name to look for is 'INTRAVENOUS', and its corresponding abbreviation in the database is 'IV'."
+}

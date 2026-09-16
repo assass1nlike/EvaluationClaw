@@ -1,0 +1,29 @@
+{
+  "id": "schedule_case_meeting@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Schedule a formal review meeting for the high-priority complaint case 'Internal Data Handling Violation - Case #8821' in ArkCase (Username: arkcase-admin@dev.arkcase.com, Password: ArkCase1234!). Create an event titled 'Oversight Review Board' with the description 'Mandatory review of initial evidence bundle.' The meeting start time is specified in '~/meeting_details.txt' and should be scheduled for a duration of one hour.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/schedule_case_meeting/setup_task.sh",
+    "post_task": "/workspace/tasks/schedule_case_meeting/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "Internal Data Handling Violation - Case #8821",
+    "event_title": "Oversight Review Board",
+    "event_description_snippet": "Mandatory review",
+    "target_time": "10:00:00",
+    "duration_hours": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_schedule_case_meeting"
+    }
+  }
+}

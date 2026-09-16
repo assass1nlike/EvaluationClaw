@@ -1,0 +1,53 @@
+{
+  "task_id": "incident_rerouting_evaluation@1",
+  "task_completion": [
+    {
+      "id": "baseline_metrics_csv",
+      "description": "Generate the baseline performance report",
+      "points": 15,
+      "visual_evidence": "A file named baseline_network_performance.csv in /home/ga/SUMO_Output/ is visible in a file manager, terminal, or text editor, containing metrics for completed trips, average travel time, average time loss, and total vehicle-hours of delay."
+    },
+    {
+      "id": "incident_rerouter_xml",
+      "description": "Create the incident rerouter definition closing at least two edges",
+      "points": 20,
+      "visual_evidence": "A file named incident_rerouters.add.xml in /home/ga/SUMO_Scenarios/bologna_acosta/ is visible, showing XML tags (like <rerouter> and <closingReroute> or <closedLaneReroute>) that specify the closure of at least two edges."
+    },
+    {
+      "id": "incident_sumocfg",
+      "description": "Create the modified SUMO configuration for the incident",
+      "points": 15,
+      "visual_evidence": "A file named run_incident.sumocfg in /home/ga/SUMO_Scenarios/bologna_acosta/ is visible, showing the inclusion of the incident_rerouters.add.xml file in its configuration."
+    },
+    {
+      "id": "incident_metrics_csv",
+      "description": "Generate the incident performance metrics report",
+      "points": 20,
+      "visual_evidence": "A file named incident_network_performance.csv in /home/ga/SUMO_Output/ is visible, containing metrics that reflect the network's performance during the simulated incident."
+    },
+    {
+      "id": "assessment_report",
+      "description": "Document the impact assessment report",
+      "points": 30,
+      "visual_evidence": "A text file named incident_assessment_report.txt in /home/ga/SUMO_Output/ is visible, containing sections or text detailing the incident location, rerouting strategy, performance comparison, percentage degradation, and response recommendations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "Agent actually ran the SUMO simulation to generate metrics",
+      "visual_evidence": "Look for terminal commands executing 'sumo' or 'sumo-gui' with the respective configuration files, rather than the agent manually typing out fabricated CSV files."
+    },
+    {
+      "id": "plausible_degradation",
+      "description": "Incident metrics show genuine network degradation compared to baseline",
+      "visual_evidence": "The values in incident_network_performance.csv should show worse performance (e.g., higher travel times, higher delays, or fewer completed trips) than baseline_network_performance.csv, not identical or randomly improved numbers."
+    },
+    {
+      "id": "genuine_report_content",
+      "description": "The assessment report contains actual analysis based on the simulation",
+      "visual_evidence": "The incident_assessment_report.txt should contain specific numbers and percentages derived from the CSV files, rather than generic placeholder text or copied instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline simulation yields approximately 8,779 completed trips, an average travel time of 276.18 seconds, an average time loss of 154.48 seconds, and 376.71 total vehicle-hours of delay. The agent must close at least 2 edges in incident_rerouters.add.xml. The incident simulation metrics must demonstrate plausible network degradation (e.g., increased travel time/delay or reduced completed trips) compared to the baseline."
+}

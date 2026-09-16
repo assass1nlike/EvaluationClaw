@@ -1,0 +1,42 @@
+{
+  "id": "staircase_plan_view@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a plan-view drawing of a straight-run staircase in LibreCAD using Millimeters. The drawing must include three layers: 'Treads', 'Labels', and 'Dimensions'. On the 'Treads' layer, draw a 10-tread staircase starting at the origin (0,0) with a tread width of 900 mm and a tread depth of 250 mm. On the 'Labels' layer, number the risers '1' through '10' centered on each tread and include the text 'UP' with a direction arrow pointing in the +Y direction. On the 'Dimensions' layer, include linear dimensions for the total run and the stair width. Save the final drawing as /home/ga/Documents/LibreCAD/staircase_plan.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/staircase_plan_view/setup_task.sh",
+    "post_task": "/workspace/tasks/staircase_plan_view/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/LibreCAD/staircase_plan.dxf",
+    "layer_names": [
+      "Treads",
+      "Labels",
+      "Dimensions"
+    ],
+    "geometry": {
+      "tread_count": 10,
+      "line_count": 11,
+      "width": 900,
+      "total_run": 2500,
+      "step_y": 250
+    },
+    "text_requirements": [
+      "1",
+      "10",
+      "UP"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_staircase_plan_view"
+    }
+  }
+}

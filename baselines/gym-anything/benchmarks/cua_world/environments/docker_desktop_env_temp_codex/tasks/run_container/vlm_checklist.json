@@ -1,0 +1,53 @@
+{
+  "task_id": "run_container@1",
+  "task_completion": [
+    {
+      "id": "image_selected",
+      "description": "Select or initiate running the 'nginx:alpine' image",
+      "points": 10,
+      "visual_evidence": "Docker Desktop UI shows the 'nginx:alpine' image being searched for, selected, or the 'Run' dialog for this specific image is open."
+    },
+    {
+      "id": "container_name_configured",
+      "description": "Configure the container name as 'my-nginx-server'",
+      "points": 15,
+      "visual_evidence": "In the container run settings/configuration screen, the 'Container name' field is filled with 'my-nginx-server'."
+    },
+    {
+      "id": "port_mapping_configured",
+      "description": "Map host port 8888 to container port 80",
+      "points": 20,
+      "visual_evidence": "In the container run settings/configuration screen, the port mapping section shows host port '8888' mapped to container port '80'."
+    },
+    {
+      "id": "container_running",
+      "description": "The container is successfully running",
+      "points": 25,
+      "visual_evidence": "The Docker Desktop 'Containers' list shows 'my-nginx-server' with a 'Running' status indicator and the port mapping 8888:80 visible."
+    },
+    {
+      "id": "browser_verification",
+      "description": "Verify the container is serving HTTP traffic on localhost:8888",
+      "points": 30,
+      "visual_evidence": "A web browser is open with 'http://localhost:8888' (or '127.0.0.1:8888') in the address bar, displaying the default 'Welcome to nginx!' webpage."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Docker Desktop GUI rather than terminal commands",
+      "visual_evidence": "Screenshots should show interaction with the Docker Desktop graphical interface to configure and run the container, rather than a terminal window with a 'docker run' command."
+    },
+    {
+      "id": "genuine_browser_request",
+      "description": "Agent accessed the local server via a genuine HTTP request",
+      "visual_evidence": "The web browser's address bar must show 'localhost:8888' or '127.0.0.1:8888', not a local file path (e.g., file://) or a text editor."
+    },
+    {
+      "id": "actual_nginx_response",
+      "description": "The browser displays the genuine Nginx welcome page",
+      "visual_evidence": "The browser content should be the standard formatted 'Welcome to nginx!' HTML page, not manually typed text or a mocked response."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected container name is exactly 'my-nginx-server'. The expected image is 'nginx:alpine'. The expected host port is '8888' and the expected container port is '80'. The task requires verifying the container is running by loading http://localhost:8888 in a browser."
+}

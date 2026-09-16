@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_cardiothoracic_ratio@1",
+  "task_completion": [
+    {
+      "id": "cardiac_measurement_visible",
+      "description": "Measure the maximum transverse Cardiac Diameter in Weasis.",
+      "points": 20,
+      "visual_evidence": "A line measurement annotation is visible across the central 'cardiac' structure in the Weasis image viewer, displaying a length value in mm."
+    },
+    {
+      "id": "thoracic_measurement_visible",
+      "description": "Measure the maximum internal Thoracic Diameter in Weasis.",
+      "points": 20,
+      "visual_evidence": "A second line measurement annotation is visible across the wider 'thoracic' cavity/outer structure in the Weasis image viewer, displaying a length value in mm."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Save a screenshot showing the measurements to the specified path.",
+      "points": 20,
+      "visual_evidence": "A file save dialog, terminal command, or image viewer showing the screenshot being saved to or existing at ~/DICOM/exports/ctr_measurements.png."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Create a text report at the specified path.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window showing the creation or editing of a file at ~/DICOM/exports/ctr_report.txt."
+    },
+    {
+      "id": "report_format_correct",
+      "description": "The text report contains exactly the three required lines with values.",
+      "points": 20,
+      "visual_evidence": "The text report shows exactly three lines: 'Cardiac Diameter: <value> mm', 'Thoracic Diameter: <value> mm', and 'Cardiothoracic Ratio: <value>'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_weasis_usage",
+      "description": "The agent used the Weasis application to perform the measurements.",
+      "visual_evidence": "The Weasis GUI is clearly visible with its measurement tools actively used on the loaded DICOM image, rather than a generic image viewer or mock interface."
+    },
+    {
+      "id": "no_hallucinated_values",
+      "description": "The values in the text report match the measurements taken in Weasis.",
+      "visual_evidence": "The diameter values written in the text report exactly match the lengths shown on the measurement annotations in the Weasis screenshot."
+    },
+    {
+      "id": "ratio_calculation_authentic",
+      "description": "The Cardiothoracic Ratio is mathematically consistent with the measured diameters.",
+      "visual_evidence": "The ratio value in the text report is the result of dividing the Cardiac Diameter by the Thoracic Diameter (within a 0.05 tolerance), not a hardcoded or guessed value."
+    }
+  ],
+  "privileged_info_for_vlm": "The text report must be saved to exactly /home/ga/DICOM/exports/ctr_report.txt and the screenshot to /home/ga/DICOM/exports/ctr_measurements.png. The calculated Cardiothoracic Ratio in the report must be the Cardiac Diameter divided by the Thoracic Diameter, with a math tolerance of 0.05. Note that the loaded image might be an X-Ray Angiography cine loop or a synthetic gradient image with a circle, despite the task mentioning an 'axial CT slice'."
+}

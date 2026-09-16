@@ -1,0 +1,46 @@
+{
+  "id": "configure_product_settings@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "An online merchant expanding to the European market needs to configure their WooCommerce store's product settings. Configure the product general settings to redirect to the cart page after successful addition and disable AJAX add to cart buttons on archives. Set the weight unit to 'kg' and dimensions unit to 'cm'. For product reviews, ensure reviews and star ratings are enabled, show the verified owner label, restrict reviews to verified owners only, and make star ratings required.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_product_settings/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_product_settings/export_result.sh"
+  },
+  "metadata": {
+    "target_settings": {
+      "woocommerce_cart_redirect_after_add": "yes",
+      "woocommerce_enable_ajax_add_to_cart": "no",
+      "woocommerce_weight_unit": "kg",
+      "woocommerce_dimension_unit": "cm",
+      "woocommerce_enable_reviews": "yes",
+      "woocommerce_review_rating_verification_label": "yes",
+      "woocommerce_review_rating_verification_required": "yes",
+      "woocommerce_enable_review_rating": "yes",
+      "woocommerce_review_rating_required": "yes"
+    },
+    "scoring_points": {
+      "woocommerce_cart_redirect_after_add": 12,
+      "woocommerce_enable_ajax_add_to_cart": 12,
+      "woocommerce_weight_unit": 12,
+      "woocommerce_dimension_unit": 12,
+      "woocommerce_enable_reviews": 8,
+      "woocommerce_review_rating_verification_label": 12,
+      "woocommerce_review_rating_verification_required": 12,
+      "woocommerce_enable_review_rating": 8,
+      "woocommerce_review_rating_required": 12
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_product_settings"
+    }
+  }
+}

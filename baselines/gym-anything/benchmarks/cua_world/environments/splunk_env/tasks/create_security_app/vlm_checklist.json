@@ -1,0 +1,53 @@
+{
+  "task_id": "create_security_app@1",
+  "task_completion": [
+    {
+      "id": "app_created",
+      "description": "Verify the Splunk app 'SSH Security Monitor' is created.",
+      "points": 20,
+      "visual_evidence": "The Splunk 'Manage Apps' page or the top-left App dropdown menu displays 'SSH Security Monitor' (with the folder name 'ssh_security_monitor')."
+    },
+    {
+      "id": "search_created_in_namespace",
+      "description": "Verify the saved search 'SSH_Failed_Login_Summary' is created within the correct app namespace.",
+      "points": 20,
+      "visual_evidence": "The 'Searches, reports, and alerts' list shows 'SSH_Failed_Login_Summary'. The 'App' column for this row must say 'ssh_security_monitor' or 'SSH Security Monitor', or the URL must indicate the app context is '/app/ssh_security_monitor/'."
+    },
+    {
+      "id": "search_query_correct",
+      "description": "Verify the saved search uses the exact required query.",
+      "points": 20,
+      "visual_evidence": "The search bar, report viewing page, or edit configuration screen explicitly shows the query string 'index=security_logs fail'."
+    },
+    {
+      "id": "dashboard_created_in_namespace",
+      "description": "Verify the dashboard 'ssh_overview' is created within the correct app namespace.",
+      "points": 20,
+      "visual_evidence": "The 'Dashboards' list shows 'ssh_overview'. The 'App' column for this row must say 'ssh_security_monitor' or 'SSH Security Monitor', or the URL must indicate the app context is '/app/ssh_security_monitor/'."
+    },
+    {
+      "id": "dashboard_panel_data",
+      "description": "Verify the dashboard contains at least one panel visualizing data from the 'security_logs' index.",
+      "points": 20,
+      "visual_evidence": "The 'ssh_overview' dashboard is open and displays at least one rendered visualization panel (e.g., a chart, graph, or populated table) indicating a successful search execution, rather than an empty or error state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Splunk Web UI to create the objects.",
+      "visual_evidence": "Screenshots should show interaction with the Splunk web interface in a browser (http://localhost:8000), rather than terminal commands editing .conf files directly."
+    },
+    {
+      "id": "genuine_data_visualization",
+      "description": "Verify the dashboard panel renders actual Splunk data.",
+      "visual_evidence": "The dashboard panel shows a genuine Splunk visualization component (rendered chart, table with Splunk UI styling), not a static text file or mocked HTML page."
+    },
+    {
+      "id": "authentic_creation_process",
+      "description": "Verify the agent went through the actual creation workflows.",
+      "visual_evidence": "Presence of intermediate Splunk configuration modals or screens, such as 'Save As Report', 'Create New Dashboard', or 'Add New' app screens."
+    }
+  ],
+  "privileged_info_for_vlm": "App Name: 'ssh_security_monitor', App Label: 'SSH Security Monitor', Saved Search Name: 'SSH_Failed_Login_Summary', Dashboard Name: 'ssh_overview', Target Index: 'security_logs', Search Query: 'index=security_logs fail'. All knowledge objects must be saved strictly within the 'ssh_security_monitor' app namespace."
+}

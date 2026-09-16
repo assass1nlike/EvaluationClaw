@@ -1,0 +1,34 @@
+{
+  "id": "chi_square_contingency_titanic@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "A history of science student needs to statistically test whether survival on the RMS Titanic was independent of passenger class using the Titanic dataset (891 records). Perform a Chi-square test of independence with 'Pclass' as the row variable and 'Survived' as the column variable, treating both as nominal data. The analysis must include Phi and Cramér's V, expected counts, and row percentages. Record the chi_square, df, p_value, and cramers_v in /home/ga/Documents/JASP/chi_square_results.txt (using '< .001' for small p-values) and save the JASP project to /home/ga/Documents/JASP/TitanicChiSquare.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chi_square_contingency_titanic/setup_task.sh",
+    "post_task": "/workspace/tasks/chi_square_contingency_titanic/export_result.sh"
+  },
+  "metadata": {
+    "results_path": "/home/ga/Documents/JASP/chi_square_results.txt",
+    "project_path": "/home/ga/Documents/JASP/TitanicChiSquare.jasp",
+    "ground_truth": {
+      "chi_square": 102.889,
+      "chi_square_tol": 1.0,
+      "df": 2,
+      "p_value_threshold": 0.001,
+      "cramers_v": 0.34,
+      "cramers_v_tol": 0.05
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chi_square_titanic"
+    }
+  }
+}

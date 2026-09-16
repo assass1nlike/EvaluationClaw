@@ -1,0 +1,37 @@
+{
+  "id": "configure_custom_error_pages@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "Configure custom HTTP error pages for the 'acmecorp.test' virtual server. Create a 404 error page at /home/acmecorp/public_html/errors/404.html containing the heading 'AcmeCorp - Page Not Found', the text 'The page you requested could not be found', and a link to the homepage (href='/'). Create a 403 error page at /home/acmecorp/public_html/errors/403.html containing the heading 'AcmeCorp - Access Denied' and the text 'You do not have permission to access this resource'. Configure the server to ensure the 'acmecorp.test' website serves these custom files when 404 and 403 errors occur.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_custom_error_pages/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_custom_error_pages/export_result.sh"
+  },
+  "metadata": {
+    "domain": "acmecorp.test",
+    "error_dir": "/home/acmecorp/public_html/errors",
+    "files": {
+      "404": "404.html",
+      "403": "403.html"
+    },
+    "required_content": {
+      "404_heading": "AcmeCorp - Page Not Found",
+      "404_body": "The page you requested could not be found",
+      "404_link": "href=\"/\"",
+      "403_heading": "AcmeCorp - Access Denied",
+      "403_body": "You do not have permission to access this resource"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_custom_error_pages"
+    }
+  }
+}

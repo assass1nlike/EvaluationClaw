@@ -1,0 +1,59 @@
+{
+  "task_id": "constellation_spare_phasing@1",
+  "task_completion": [
+    {
+      "id": "read_spec_document",
+      "description": "Verify the agent reads the phasing maneuver specification document.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., using 'cat' or 'less') or a text editor showing the contents of '~/Desktop/phasing_maneuver_spec.txt'."
+    },
+    {
+      "id": "gmat_script_setup",
+      "description": "Verify the agent configures the two spacecraft and the Point Mass Earth force model in GMAT.",
+      "points": 15,
+      "visual_evidence": "GMAT GUI or script text editor showing the definition of two spacecraft (SPARE and TARGET_SLOT) and a ForceModel configured with Point Mass (Two-Body) gravity."
+    },
+    {
+      "id": "gmat_maneuver_design",
+      "description": "Verify the agent designs a two-impulse Hohmann transfer phasing maneuver.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI mission sequence or script text showing a propagate/wait command for the drift phase, followed by two impulsive burns (transfer and circularization)."
+    },
+    {
+      "id": "run_gmat_simulation",
+      "description": "Verify the agent successfully runs the GMAT mission script.",
+      "points": 10,
+      "visual_evidence": "GMAT GUI showing a successful run message, a 3D orbit view of the transfer trajectory, or terminal output showing successful execution of the GMAT script."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Verify the agent saves the GMAT script to the correct location.",
+      "points": 15,
+      "visual_evidence": "File manager, terminal 'ls' output, or GMAT save dialog showing 'spare_phasing.script' saved in the '~/GMAT_output/' directory."
+    },
+    {
+      "id": "write_summary_report",
+      "description": "Verify the agent creates the summary report with the required fields and reasonable values.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing '~/GMAT_output/phasing_results.txt' containing Wait_Time_Hours (between 40-50), Burn1_DeltaV_ms, Burn2_DeltaV_ms, Total_DeltaV_ms (between 45-55), and Final_Phase_Diff_deg (close to 0)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_usage",
+      "description": "Ensure the agent actually used GMAT to perform the orbital mechanics simulation.",
+      "visual_evidence": "Look for the GMAT application window open, or terminal commands executing the GMAT binary. The agent should not just guess the values or use a generic Python script without GMAT."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "Ensure the summary report values are derived from actual simulation results.",
+      "visual_evidence": "The values in 'phasing_results.txt' should correspond to the outputs seen in the GMAT GUI message window, report file, or script output, rather than being arbitrarily typed."
+    },
+    {
+      "id": "correct_output_directories",
+      "description": "Ensure the agent strictly followed the directory instructions for outputs.",
+      "visual_evidence": "Check that 'spare_phasing.script' and 'phasing_results.txt' are explicitly in '~/GMAT_output/' and not just dumped on the Desktop or home directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The specification document is at ~/Desktop/phasing_maneuver_spec.txt. The GMAT script must be saved to ~/GMAT_output/spare_phasing.script. The summary report must be saved to ~/GMAT_output/phasing_results.txt. Expected Wait Time is 40.0 - 50.0 hours. Expected Total Delta-V is 45.0 - 55.0 m/s. Target SMA is 7571.14 km (tolerance 1.0 km). Final Phase Difference tolerance is 0.5 degrees."
+}

@@ -1,0 +1,93 @@
+{
+  "dataset_id": "ced2ef2c",
+  "name": "Multi-Page News Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 74,
+  "description": "This dataset evaluates multi-page news document visual question answering: models receive several scanned news-document page images together with a natural-language question and must return a short free-text answer grounded in the document content.",
+  "card_text": "The dataset consists of 74 open-set examples of document visual question answering over multi-page news publications. Each sample provides a question string (input.prompt) and a variable-length ordered list of page images (input.image_files, typically 4 JPEG scans per sample) that together form one news document, and expects a short textual answer (output.text) such as a date range, a count, or a named entity. The images are scanned newspaper/magazine pages containing headlines, article body text, columns, captions and photographs, so answering requires joint OCR-style reading and visual layout understanding across pages. Questions range from simple fact lookup ('What date mentioned in news and events') to counting visual elements ('How many photos does the document contain?'). There is no multiple-choice option set and no supporting rationale; answers are short literal strings, sometimes a list, so evaluation is open-ended and exact/semantic matching against the reference text.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "question_answering"
+  ],
+  "domain": "news documents / multi-page document VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "Ordered list of scanned news-document page images that constitute the full document being queried. This is the main evidence source: the answer must be read or counted from the text and layout of these pages, and pages are related to each other as consecutive parts of one publication.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short natural-language question or instruction targeting the accompanying news document pages, e.g. asking for a date, a number of photos, or another fact that must be located in the images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "List containing the reference answer string(s) for the question, such as a date range ('February 14- February 27, 1977') or a count ('11'). It is a short extractive/abstractive response derived from the document pages and corresponds one-to-one with the prompt.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "Individual page-level image references (JPEG scans of newspaper pages) that make up the multi-page document; each file is one page of the same publication and together they provide all visual and textual content needed to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample pairs one short natural-language question (input.prompt) with an ordered list of multi-page news-document scan images (input.image_files), and carries a short reference answer as a list of strings (output.text). The images act jointly as the context/document, the prompt is the query about that document, and the answer is the target text extracted from or computed over the pages; no options, bounding boxes, rationale or dialogue fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageNewsDocumentVisualQuestionAnswering/multi-page_news_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page News Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

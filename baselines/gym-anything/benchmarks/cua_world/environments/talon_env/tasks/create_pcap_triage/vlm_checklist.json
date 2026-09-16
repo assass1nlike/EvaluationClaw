@@ -1,0 +1,59 @@
+{
+  "task_id": "create_pcap_triage@1",
+  "task_completion": [
+    {
+      "id": "create_module_folder",
+      "description": "Create the pcap_triage folder in the Talon user directory",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal, or editor showing the directory C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\pcap_triage has been created."
+    },
+    {
+      "id": "create_talon_list",
+      "description": "Create protocols.talon-list with the correct port mappings",
+      "points": 20,
+      "visual_evidence": "A text editor showing protocols.talon-list containing 'list: user.network_protocol' and mappings for secure shell (22), web (80), secure web (443), remote desktop (3389), domain name (53), and file transfer (21)."
+    },
+    {
+      "id": "create_talon_script",
+      "description": "Create pcap_triage.talon with the voice command",
+      "points": 20,
+      "visual_evidence": "A text editor showing pcap_triage.talon containing the voice command 'block protocol <user.network_protocol>:' followed by the action call 'user.generate_blocklist(...)'. "
+    },
+    {
+      "id": "create_python_action",
+      "description": "Create pcap_triage.py with the generate_blocklist action definition",
+      "points": 20,
+      "visual_evidence": "A text editor showing pcap_triage.py with a Talon Module/Context setup and a function 'def generate_blocklist(port: str):' decorated as a Talon action."
+    },
+    {
+      "id": "implement_csv_logic",
+      "description": "Implement CSV reading and filtering logic in pcap_triage.py",
+      "points": 15,
+      "visual_evidence": "Python code in pcap_triage.py showing it opens C:\\workspace\\data\\network_traffic.csv, reads the headers, filters rows where DestinationPort matches the input port, and extracts unique SourceIPs."
+    },
+    {
+      "id": "implement_append_logic",
+      "description": "Implement file appending logic in pcap_triage.py",
+      "points": 15,
+      "visual_evidence": "Python code in pcap_triage.py showing it opens C:\\workspace\\data\\firewall_rules.txt in append mode ('a' or 'a+') and writes lines in the format 'deny in from <SourceIP> to any'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_creation",
+      "description": "The agent actively wrote the code files using a text editor or standard terminal commands",
+      "visual_evidence": "Screenshots show the agent typing or pasting code into an editor (like VS Code, Notepad, Vim) or using echo/cat commands, rather than the files magically appearing."
+    },
+    {
+      "id": "no_hardcoded_ips",
+      "description": "The Python script dynamically processes the CSV rather than hardcoding the output",
+      "visual_evidence": "The code in pcap_triage.py uses variables and CSV parsing logic (e.g., csv.reader or csv.DictReader) instead of a hardcoded list of IP addresses."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "The agent placed the files in the actual Talon AppData directory",
+      "visual_evidence": "The file paths visible in the editor or terminal explicitly show C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\pcap_triage, not a mock or temporary workspace directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Talon module folder: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\pcap_triage. CSV source path: C:\\workspace\\data\\network_traffic.csv. Rules output path: C:\\workspace\\data\\firewall_rules.txt."
+}

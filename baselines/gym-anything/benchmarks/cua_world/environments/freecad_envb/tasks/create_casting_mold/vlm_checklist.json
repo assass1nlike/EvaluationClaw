@@ -1,0 +1,59 @@
+{
+  "task_id": "create_casting_mold@1",
+  "task_completion": [
+    {
+      "id": "create_stock_box",
+      "description": "Create a rectangular mold stock box that encloses the bracket.",
+      "points": 10,
+      "visual_evidence": "A new Box or Cube object is visible in the FreeCAD Tree View alongside the T8 Housing Bracket."
+    },
+    {
+      "id": "box_dimensions_margin",
+      "description": "Ensure the box has at least a 10mm margin on all sides (X, Y, and Z).",
+      "points": 20,
+      "visual_evidence": "The Property View (Data tab) shows the box's Length, Width, and Height are significantly larger than the bracket (at least 20mm larger in each dimension), or the 3D view visually confirms a thick margin around the entire bracket."
+    },
+    {
+      "id": "box_centered",
+      "description": "Center the box relative to the bracket.",
+      "points": 15,
+      "visual_evidence": "The Property View (Data tab) shows the box's Placement/Position has been adjusted (typically with negative coordinates) to center it, or the 3D view visually shows the bracket positioned exactly in the middle of the box."
+    },
+    {
+      "id": "boolean_subtraction",
+      "description": "Subtract the bracket from the box using a boolean operation to create the cavity.",
+      "points": 25,
+      "visual_evidence": "The Tree View shows a 'Cut' object (Boolean subtraction) containing both the box and the bracket as children. The 3D view should show the resulting mold block, potentially with the cavity visible."
+    },
+    {
+      "id": "set_transparency",
+      "description": "Set the resulting mold object's transparency to 50%.",
+      "points": 15,
+      "visual_evidence": "The Property View (View tab) for the Cut/mold object shows 'Transparency' set to 50 (or within 40-60), and the object appears semi-transparent in the 3D view, revealing the cavity inside."
+    },
+    {
+      "id": "save_file",
+      "description": "Save the file to /home/ga/Documents/FreeCAD/mold_cavity.FCStd.",
+      "points": 15,
+      "visual_evidence": "The FreeCAD window title bar displays 'mold_cavity' or 'mold_cavity.FCStd', or a 'Save As' dialog is visible showing the correct filename and path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the FreeCAD GUI to perform the modeling tasks.",
+      "visual_evidence": "Screenshots show the agent clicking through FreeCAD menus, toolbars, and property panels (e.g., Part workbench, Boolean operation dialogs) rather than executing a pre-written Python script in the terminal."
+    },
+    {
+      "id": "genuine_3d_manipulation",
+      "description": "The agent actively manipulated the 3D objects in the workspace.",
+      "visual_evidence": "The 3D view updates progressively across screenshots (e.g., box appears, changes size, becomes transparent) indicating real interaction with the CAD software."
+    },
+    {
+      "id": "no_file_spoofing",
+      "description": "The agent did not bypass the CAD software to create a dummy file.",
+      "visual_evidence": "The agent did not simply use terminal commands like 'touch mold_cavity.FCStd' or copy an existing file to the target directory without doing the CAD work."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file name is exactly 'mold_cavity.FCStd'. The transparency of the final mold object must be 50% (acceptable tolerance range is 40% to 60%). The mold bounding box must be >18mm larger than the bracket's bounding box in all dimensions (X, Y, Z), which verifies the requirement of at least a 10mm margin on all sides (allowing for a 1mm tolerance per side)."
+}

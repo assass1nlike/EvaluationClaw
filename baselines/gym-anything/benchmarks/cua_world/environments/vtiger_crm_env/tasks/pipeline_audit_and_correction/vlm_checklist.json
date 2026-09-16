@@ -1,0 +1,53 @@
+{
+  "task_id": "pipeline_audit_and_correction@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_deals",
+      "description": "Agent navigates to the Opportunities/Deals pipeline in Vtiger CRM.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent logged into Vtiger CRM (http://localhost:8000) and viewing the Opportunities or Deals list module."
+    },
+    {
+      "id": "fix_nexus_scada_probability",
+      "description": "Agent corrects the probability for the 'Nexus SCADA Security Assessment' deal.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the 'Nexus SCADA Security Assessment' record being edited and saved with its Probability field updated to 100 (since it is 'Closed Won')."
+    },
+    {
+      "id": "fix_greenleaf_iot_probability",
+      "description": "Agent corrects the probability for the 'GreenLeaf IoT Factory Monitoring' deal.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the 'GreenLeaf IoT Factory Monitoring' record being edited and saved with its Probability field updated to a value between 20 and 50 (aligning with 'Needs Analysis')."
+    },
+    {
+      "id": "update_atlas_supply_chain_stale",
+      "description": "Agent updates the stale 'Atlas Supply Chain Analytics' deal.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the 'Atlas Supply Chain Analytics' record being edited to resolve its stale status, either by changing the Expected Close Date to a future date or updating the Sales Stage to 'Closed Won' or 'Closed Lost'."
+    },
+    {
+      "id": "update_catalyst_lims_stale",
+      "description": "Agent updates the stale 'Catalyst LIMS Implementation' deal.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the 'Catalyst LIMS Implementation' record being edited to resolve its stale status, either by changing the Expected Close Date to a future date or updating the Sales Stage to 'Closed Won' or 'Closed Lost'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "Agent interacted with the CRM via the web browser interface.",
+      "visual_evidence": "The agent uses the browser to navigate Vtiger CRM. There should be no terminal windows showing direct SQL database updates or cURL API requests to bypass the UI."
+    },
+    {
+      "id": "actual_form_submission",
+      "description": "Agent genuinely saved the updated records.",
+      "visual_evidence": "Look for the agent clicking 'Edit', modifying the fields, and clicking 'Save', followed by a success confirmation or the updated record view, rather than just using browser developer tools to alter the text."
+    },
+    {
+      "id": "systematic_audit",
+      "description": "Agent performed an audit rather than magically knowing which records to fix.",
+      "visual_evidence": "The agent should be seen scrolling through the deals list, sorting by date/stage, or opening multiple records to check them, rather than navigating directly to the 4 injected error URLs without prior discovery."
+    }
+  ],
+  "privileged_info_for_vlm": "The CRM database was seeded with exactly 4 injected errors that violate the pipeline rules: 1) 'Nexus SCADA Security Assessment' is 'Closed Won' but probability is 65 (must be 100). 2) 'GreenLeaf IoT Factory Monitoring' is 'Needs Analysis' but probability is 88 (must be 20-50). 3) 'Atlas Supply Chain Analytics' has a past closing date (2025-06-30) and is not closed. 4) 'Catalyst LIMS Implementation' has a past closing date (2025-09-15) and is not closed. Note: The backend verifier also checks if 'Horizon 5G Network Planning' amount was updated to 320000, but since this specific amount update is not explicitly requested in the prompt, do not penalize the agent if it is missing from the visual trajectory."
+}

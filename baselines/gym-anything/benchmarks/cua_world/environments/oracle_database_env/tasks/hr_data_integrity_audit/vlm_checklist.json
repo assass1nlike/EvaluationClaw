@@ -1,0 +1,59 @@
+{
+  "task_id": "hr_data_integrity_audit@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Agent connects to the Oracle HR database.",
+      "points": 10,
+      "visual_evidence": "A terminal showing a successful 'sqlplus hr/hr123@localhost:1521/XEPDB1' connection, or a database GUI tool (like DBeaver) connected to the XEPDB1 database as the 'hr' user."
+    },
+    {
+      "id": "remediate_salary_violations",
+      "description": "Agent identifies and remediates salary violations.",
+      "points": 20,
+      "visual_evidence": "SQL 'UPDATE' statements being executed to fix salaries for employee IDs 300, 301, 302, 303, and 304, or queries checking the min_salary/max_salary bounds in the jobs table."
+    },
+    {
+      "id": "remediate_future_dates",
+      "description": "Agent identifies and remediates future hire dates.",
+      "points": 20,
+      "visual_evidence": "SQL 'UPDATE' statements being executed to fix hire_date values for employee IDs 305, 306, 307, and 308."
+    },
+    {
+      "id": "remediate_null_departments",
+      "description": "Agent identifies and remediates NULL department IDs.",
+      "points": 20,
+      "visual_evidence": "SQL 'UPDATE' statements being executed to assign valid department_ids to employee IDs 309, 310, and 311."
+    },
+    {
+      "id": "create_audit_report_file",
+      "description": "Agent creates the audit report at the specified Desktop location.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit, nano, or vim) open with the file path '/home/ga/Desktop/hr_audit_report.txt', or a terminal command creating/writing to this specific file path."
+    },
+    {
+      "id": "audit_report_content",
+      "description": "The audit report documents all three problem categories, the 12 affected IDs, and corrective actions.",
+      "points": 20,
+      "visual_evidence": "The contents of 'hr_audit_report.txt' visible on screen, explicitly listing the three categories (salary bounds, future dates, null departments), the specific affected employee IDs (300-311), and the actions taken to fix them."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent actually queried and updated the database rather than just writing a fabricated report.",
+      "visual_evidence": "Screenshots must show the agent executing 'SELECT' and 'UPDATE' SQL commands in a terminal or DB client, interacting with the Oracle database."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The audit report was genuinely created on the Desktop.",
+      "visual_evidence": "The file 'hr_audit_report.txt' should be visible on the Desktop GUI, or terminal commands like 'cat', 'echo', or a text editor should show the file being saved to the correct absolute path."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent discovered the issues through investigation rather than relying on pre-programmed knowledge of the IDs.",
+      "visual_evidence": "Presence of exploratory 'SELECT' queries (e.g., checking for hire_date > SYSDATE, or department_id IS NULL) before the 'UPDATE' statements or report generation."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains exactly 12 planted integrity violations across 3 categories: 1) Salary violations (out of bounds for job role) for employee IDs 300, 301, 302, 303, and 304. 2) Future hire dates (between 2027 and 2029) for employee IDs 305, 306, 307, and 308. 3) NULL department IDs (despite having a manager) for employee IDs 309, 310, and 311. The agent must find and fix all 12 records and document these specific IDs in the final report."
+}

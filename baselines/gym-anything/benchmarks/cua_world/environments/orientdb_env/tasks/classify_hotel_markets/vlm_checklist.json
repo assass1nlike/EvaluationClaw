@@ -1,0 +1,53 @@
+{
+  "task_id": "classify_hotel_markets@1",
+  "task_completion": [
+    {
+      "id": "database_accessed",
+      "description": "Agent accessed the 'demodb' database",
+      "points": 10,
+      "visual_evidence": "Screenshots show the OrientDB Studio interface with the 'demodb' database active (usually visible in the top header or database selection screen)."
+    },
+    {
+      "id": "property_market_created",
+      "description": "Agent added a String property named 'Market' to the 'Hotels' class",
+      "points": 20,
+      "visual_evidence": "Screenshots show the Schema manager in OrientDB Studio with the 'Hotels' class selected, displaying a newly created property named 'Market' of type 'STRING', or an ALTER CLASS/CREATE PROPERTY SQL command executed in the console."
+    },
+    {
+      "id": "visitor_data_analyzed",
+      "description": "Agent queried the visitor history to compare Profile Nationality with Hotel Country",
+      "points": 20,
+      "visual_evidence": "Screenshots show SQL queries in the OrientDB Studio Query/Browse tab that traverse the 'HasStayed' edges, joining 'Profile' and 'Hotels' classes to retrieve or aggregate 'Nationality' and 'Country' fields."
+    },
+    {
+      "id": "hotels_updated_international",
+      "description": "Agent populated the 'Market' property with 'International' for applicable hotels",
+      "points": 25,
+      "visual_evidence": "Screenshots show UPDATE queries setting Market='International' based on the 50% threshold, or the Browse/Graph view showing Hotel records with the 'Market' field set to 'International'."
+    },
+    {
+      "id": "hotels_updated_domestic",
+      "description": "Agent populated the 'Market' property with 'Domestic' for applicable hotels",
+      "points": 25,
+      "visual_evidence": "Screenshots show UPDATE queries setting Market='Domestic' based on the 50% threshold, or the Browse/Graph view showing Hotel records with the 'Market' field set to 'Domestic'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent interacted with the OrientDB Studio GUI in a web browser",
+      "visual_evidence": "The actions (queries, schema updates) are performed within the OrientDB web interface rather than exclusively through a terminal script."
+    },
+    {
+      "id": "genuine_query_execution",
+      "description": "Agent actually executed queries to determine the classification rather than guessing",
+      "visual_evidence": "The query result panels show actual data being returned from the database before the UPDATE commands are executed."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Agent did not just write the answers into a text file",
+      "visual_evidence": "The updates are applied directly to the database records in OrientDB, not just typed out as a list in a text editor or notes app."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying the 'demodb' database. The target class is 'Hotels'. A new property named 'Market' must be added to this class. The valid values for this property are 'International' and 'Domestic'. The classification logic is: 'International' if 50% or more of the incoming 'HasStayed' edges are from Profiles with a Nationality different from the Hotel's Country; otherwise 'Domestic'."
+}

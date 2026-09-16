@@ -1,0 +1,59 @@
+{
+  "id": "ecommerce_sitemap_restructure@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are an SEO Specialist at a digital agency. Create a visual Sitemap diagram for the 'Luma' e-commerce store's upcoming site restructure using the migration specification file at ~/Desktop/luma_migration_specs.txt. The diagram must represent the future state of the site starting with a 'Home' node and including all hierarchical levels (Level 1, 2, and 3) defined in the specs. Apply visual coding: fill renamed categories with orange (#FF9933), new categories with green (#66FF66), and standard categories with white, while excluding removed categories. Save the diagram to ~/Desktop/luma_sitemap.drawio and export it as a PNG to ~/Desktop/luma_sitemap.png. Login: username=ga, password=password123",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ecommerce_sitemap_restructure/setup_task.sh",
+    "post_task": "/workspace/tasks/ecommerce_sitemap_restructure/export_result.sh"
+  },
+  "metadata": {
+    "specs_file": "/home/ga/Desktop/luma_migration_specs.txt",
+    "output_drawio": "/home/ga/Desktop/luma_sitemap.drawio",
+    "output_png": "/home/ga/Desktop/luma_sitemap.png",
+    "required_nodes": [
+      "Home",
+      "Men",
+      "Women",
+      "Gear",
+      "Collections"
+    ],
+    "color_rules": {
+      "renamed": "orange",
+      "new": "green"
+    },
+    "specific_checks": [
+      {
+        "label": "Outerwear",
+        "type": "renamed",
+        "parent": "Tops"
+      },
+      {
+        "label": "Yoga",
+        "type": "new",
+        "parent": "Gear"
+      },
+      {
+        "label": "Eco-Friendly",
+        "type": "new",
+        "parent": "Collections"
+      },
+      {
+        "label": "Tanks",
+        "type": "removed"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ecommerce_sitemap_restructure"
+    }
+  }
+}

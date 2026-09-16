@@ -1,0 +1,32 @@
+{
+  "id": "text_signage_metallic@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A storefront designer needs a mock-up of a 3D 'OPEN' sign. Clear the scene of the 'BaseCube' and create a 3D text object with the content 'OPEN' positioned at the world origin (0,0,0). The text should have an extrusion of 0.15m, a bevel depth of 0.02m, and a bevel resolution of 3. Apply a metallic gold material with a Metallic value of 1.0, Roughness between 0.2 and 0.4, and a base color of approximately R=0.8, G=0.55, B=0.1. Render the scene to /home/ga/BlenderProjects/sign_render.png and save the project file to /home/ga/BlenderProjects/sign_scene.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/text_signage_metallic/setup_task.sh",
+    "post_task": "/workspace/tasks/text_signage_metallic/export_result.sh"
+  },
+  "metadata": {
+    "expected_text": "OPEN",
+    "expected_extrude_min": 0.05,
+    "expected_extrude_max": 0.5,
+    "expected_bevel_min": 0.001,
+    "material_metallic_min": 0.8,
+    "material_roughness_max": 0.5,
+    "expected_render_path": "/home/ga/BlenderProjects/sign_render.png",
+    "expected_blend_path": "/home/ga/BlenderProjects/sign_scene.blend"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_text_signage"
+    }
+  }
+}

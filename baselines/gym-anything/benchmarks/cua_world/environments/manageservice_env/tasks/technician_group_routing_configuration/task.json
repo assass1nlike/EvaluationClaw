@@ -1,0 +1,39 @@
+{
+  "id": "technician_group_routing_configuration@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "You are the IT Service Desk Manager at a 500-person company. Currently all tickets route to a single person, creating a bottleneck. Your director has approved hiring two specialists and restructuring the team. Create two new Technician Groups named 'Network Operations Team' and 'Hardware Support Team'. Add a new technician named 'Maya Patel' (login: mpatel, email: mpatel@company.local) to the 'Network Operations Team' and a new technician named 'Carlos Rivera' (login: crivera, email: crivera@company.local) to the 'Hardware Support Team'. Assign the open VPN connectivity request regarding 30-minute drops to the 'Network Operations Team' and the open laptop keyboard request to the 'Hardware Support Team'. Log in with username: administrator, password: administrator.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/technician_group_routing_configuration/setup_task.sh",
+    "pre_task_timeout": 3600,
+    "post_task": "/workspace/tasks/technician_group_routing_configuration/export_result.sh"
+  },
+  "metadata": {
+    "group_1": "Network Operations Team",
+    "group_2": "Hardware Support Team",
+    "technician_1_name": "Maya Patel",
+    "technician_1_login": "mpatel",
+    "technician_1_email": "mpatel@company.local",
+    "technician_1_group": "Network Operations Team",
+    "technician_2_name": "Carlos Rivera",
+    "technician_2_login": "crivera",
+    "technician_2_email": "crivera@company.local",
+    "technician_2_group": "Hardware Support Team",
+    "vpn_ticket_id": 1004,
+    "keyboard_ticket_id": 1001,
+    "vpn_ticket_group": "Network Operations Team",
+    "keyboard_ticket_group": "Hardware Support Team"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_technician_group_routing_configuration"
+    }
+  }
+}

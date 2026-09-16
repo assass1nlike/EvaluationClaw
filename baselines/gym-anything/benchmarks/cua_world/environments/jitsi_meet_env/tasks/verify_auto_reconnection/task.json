@@ -1,0 +1,30 @@
+{
+  "id": "verify_auto_reconnection@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Simulate a Jitsi VideoBridge (JVB) restart and document the client's auto-reconnection behavior for a meeting named 'ResilienceTest'. Stop the video bridge ('docker compose stop jvb' in '/home/ga/jitsi') and capture a screenshot of the connection error state in Firefox to '~/reconnecting_state.png'. Restart the bridge ('docker compose start jvb') and capture a screenshot of the automatically restored meeting state to '~/restored_state.png' without manually reloading the page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/verify_auto_reconnection/setup_task.sh",
+    "post_task": "/workspace/tasks/verify_auto_reconnection/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "reconnecting_screenshot": "/home/ga/reconnecting_state.png",
+    "restored_screenshot": "/home/ga/restored_state.png",
+    "meeting_name": "ResilienceTest",
+    "jitsi_dir": "/home/ga/jitsi",
+    "container_name": "jvb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_auto_reconnection"
+    }
+  }
+}

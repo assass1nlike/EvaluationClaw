@@ -1,0 +1,29 @@
+{
+  "id": "magazine_article_typesetting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Transform the article draft at /home/ga/Documents/article_draft.odt into a professional magazine layout. The body text (following the author name) must be formatted into two columns with at least 0.2\" spacing, while the title and author remain in a single column. Apply automatic hyphenation and justified alignment to all body paragraphs. Include a 3-line drop cap on the first paragraph of the body text. Create a centered pull quote with page wrapping containing the text: 'These tiny ecosystems can lower urban temperatures by up to 4 degrees.' Save the final document to /home/ga/Documents/article_layout.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/magazine_article_typesetting/setup_task.sh",
+    "post_task": "/workspace/tasks/magazine_article_typesetting/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/Documents/article_draft.odt",
+    "output_file": "/home/ga/Documents/article_layout.odt",
+    "pull_quote_text": "These tiny ecosystems can lower urban temperatures by up to 4 degrees.",
+    "required_columns": 2,
+    "drop_cap_lines": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_magazine_layout"
+    }
+  }
+}

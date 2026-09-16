@@ -1,0 +1,65 @@
+{
+  "task_id": "selective_measurement_deletion@1",
+  "task_completion": [
+    {
+      "id": "weasis_viewer_active",
+      "description": "Verify that the Weasis application is open and displaying the loaded CT scan.",
+      "points": 10,
+      "visual_evidence": "The Weasis GUI is visible with a medical image loaded in the main viewer."
+    },
+    {
+      "id": "first_measurement_drawn",
+      "description": "Verify that at least one distance measurement has been drawn on the scan.",
+      "points": 10,
+      "visual_evidence": "A distance measurement line with a length value is visible on the anatomical image."
+    },
+    {
+      "id": "three_measurements_drawn",
+      "description": "Verify that exactly three distinct distance measurements are drawn on different anatomical regions.",
+      "points": 20,
+      "visual_evidence": "Three separate distance measurement lines are visible on different parts of the scan."
+    },
+    {
+      "id": "measurement_selected",
+      "description": "Verify that one of the measurements is selected for deletion.",
+      "points": 10,
+      "visual_evidence": "One of the three measurements is highlighted, shows control points/handles, or a context menu with a delete option is open next to it."
+    },
+    {
+      "id": "measurement_deleted",
+      "description": "Verify that exactly one measurement was deleted, leaving two remaining.",
+      "points": 20,
+      "visual_evidence": "The viewer now shows exactly two distance measurements, confirming one of the initial three was removed."
+    },
+    {
+      "id": "export_dialog_opened",
+      "description": "Verify that the agent initiates saving a screenshot of the viewer.",
+      "points": 10,
+      "visual_evidence": "A 'Save As', 'Export', or system screenshot dialog is visible on the screen."
+    },
+    {
+      "id": "file_saved_to_correct_path",
+      "description": "Verify that the screenshot is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "The save dialog or terminal command shows the file being saved to `~/DICOM/exports/selective_deletion.png` (or `/home/ga/DICOM/exports/selective_deletion.png`)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify that the agent used the Weasis GUI to draw and delete measurements.",
+      "visual_evidence": "Mouse cursor movements, tool selections in the Weasis toolbar, and context menus are visible in the screenshots."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "Verify that the measurements are genuine Weasis annotations.",
+      "visual_evidence": "The measurement lines and text overlays match the standard Weasis UI style, and were not added using an external paint tool."
+    },
+    {
+      "id": "correct_image_exported",
+      "description": "Verify that the exported image is a genuine screenshot of the viewer.",
+      "visual_evidence": "The final saved image corresponds to the actual state of the Weasis viewer with exactly two measurements, rather than a pre-existing or externally modified image."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output image path is /home/ga/DICOM/exports/selective_deletion.png. Exactly 3 measurements must be drawn initially, and exactly 2 measurements must remain in the final exported image."
+}

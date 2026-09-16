@@ -1,0 +1,32 @@
+{
+  "id": "single_phase_power_quality_audit@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "You are an electrician investigating a power factor penalty for a commercial building. A 230 V single-phase circuit draws 28 amperes at a power factor of 0.65 lagging. Calculate the circuit's apparent power, real power, and reactive power. Use the power factor calculation feature to confirm the measured reading and determine if the circuit violates the utility's 0.85 threshold. Record all calculated values and the violation status to ~/Documents/power_analysis.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/single_phase_power_quality_audit/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/single_phase_power_quality_audit/export_result.sh"
+  },
+  "metadata": {
+    "voltage": 230,
+    "current": 28,
+    "power_factor": 0.65,
+    "expected_apparent_va": 6440,
+    "expected_real_w": 4186,
+    "expected_reactive_var": 4894,
+    "tolerance_pct": 3,
+    "pf_penalty_threshold": 0.85
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_single_phase_power_quality_audit"
+    }
+  }
+}

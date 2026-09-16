@@ -1,0 +1,39 @@
+{
+  "id": "it_security_audit_report@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "As a Security Consultant for Apex Healthcare Systems, create a formal Security Assessment Report in Apache OpenOffice Writer using the raw vulnerability scan results from '/home/ga/Documents/scan_results.json'. Save the final document to '/home/ga/Documents/Apex_Security_Report_Q1_2025.odt'. The report must include a Title Page, an auto-generated Table of Contents, an 'Executive Summary', and a 'Vulnerability Summary' table with columns for ID, Vulnerability Name, and Severity. Provide a 'Detailed Findings' section with Heading 2 subsections for each of the five vulnerabilities. You must create and apply custom character styles to color-code severity text throughout the document: 'Critical' in Red, 'High' in Orange, 'Medium' in Gold/Yellow, and 'Low' in Green. Ensure the document includes the header 'CONFIDENTIAL - INTERNAL USE ONLY' and page numbers in the footer.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/it_security_audit_report/setup_task.sh",
+    "post_task": "/workspace/tasks/it_security_audit_report/export_result.sh"
+  },
+  "metadata": {
+    "scan_data_path": "/home/ga/Documents/scan_results.json",
+    "output_path": "/home/ga/Documents/Apex_Security_Report_Q1_2025.odt",
+    "expected_vulns": [
+      "VULN-001",
+      "VULN-002",
+      "VULN-003",
+      "VULN-004",
+      "VULN-005"
+    ],
+    "severities": {
+      "Critical": "#ff0000",
+      "High": "#ff",
+      "Medium": "#ff",
+      "Low": "#00"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_security_report"
+    }
+  }
+}

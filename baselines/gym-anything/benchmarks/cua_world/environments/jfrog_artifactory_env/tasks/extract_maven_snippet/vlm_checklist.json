@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_maven_snippet@1",
+  "task_completion": [
+    {
+      "id": "access_target_repository",
+      "description": "Navigate to the 'example-repo-local' repository.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a web browser or repository manager interface (like JFrog Artifactory) with the 'example-repo-local' repository opened."
+    },
+    {
+      "id": "locate_target_artifact",
+      "description": "Locate the specific commons-lang3 artifact within the repository.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the artifact 'commons-lang3-3.14.0.jar' or its tree path 'org/apache/commons/commons-lang3/3.14.0/' selected in the repository interface."
+    },
+    {
+      "id": "extract_maven_snippet",
+      "description": "View or copy the Maven dependency declaration for the artifact.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the Maven dependency XML snippet displayed in the repository UI (often under a 'Dependency Declaration', 'Maven', or 'Snippets' tab)."
+    },
+    {
+      "id": "create_output_file",
+      "description": "Open or create the target output file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a text editor (e.g., nano, gedit, VS Code) or terminal command creating/editing the file exactly at '/home/ga/Desktop/maven_snippet.xml'."
+    },
+    {
+      "id": "verify_xml_content",
+      "description": "Save the correct Maven <dependency> XML block into the file.",
+      "points": 40,
+      "visual_evidence": "Screenshots showing the file '/home/ga/Desktop/maven_snippet.xml' containing the XML block with <groupId>org.apache.commons</groupId>, <artifactId>commons-lang3</artifactId>, and <version>3.14.0</version>."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_repository_interface",
+      "description": "Verify the agent actually retrieved the snippet from the repository interface.",
+      "visual_evidence": "Look for interaction with the repository UI to find the snippet, rather than the agent typing the XML from memory or hallucinating the content without checking the repo."
+    },
+    {
+      "id": "exact_file_path_used",
+      "description": "Verify the output file is saved to the exact requested path.",
+      "visual_evidence": "Check the file path in the text editor or terminal to ensure it is exactly '/home/ga/Desktop/maven_snippet.xml' and not a different directory or filename."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "Verify the saved content is a properly formatted XML block.",
+      "visual_evidence": "Check that the saved text includes the opening <dependency> and closing </dependency> tags, and is not just a plain text list of coordinates."
+    }
+  ],
+  "privileged_info_for_vlm": "The target artifact is 'commons-lang3-3.14.0.jar' located in the 'example-repo-local' repository. The expected output file is exactly '/home/ga/Desktop/maven_snippet.xml'. The correct Maven dependency XML block must contain: groupId 'org.apache.commons', artifactId 'commons-lang3', and version '3.14.0'."
+}

@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -55,3 +56,23 @@ def test_timeout_preserves_bounded_output(monkeypatch) -> None:
 
     assert "[output truncated]" in caught.value.stdout
     assert "[output truncated]" in caught.value.stderr
+
+
+def test_deadline_covers_pipes_inherited_by_detached_child(tmp_path):
+    started = time.monotonic()
+    pid_path = tmp_path / "child.pid"
+    try:
+        with pytest.raises(subprocess.TimeoutExpired) as caught:
+            harness_module._run_bounded(
+                [sys.executable, "-c",
+                 "import subprocess,sys,pathlib; "
+                 "p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)'],start_new_session=True); "
+                 f"pathlib.Path({str(pid_path)!r}).write_text(str(p.pid)); "
+                 "print('parent finished',flush=True)"],
+                timeout=1, env=os.environ.copy(),
+            )
+        assert time.monotonic() - started < 4
+        assert "parent finished" in caught.value.stdout
+    finally:
+        if pid_path.exists():
+            os.kill(int(pid_path.read_text()), 9)

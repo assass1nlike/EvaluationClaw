@@ -1,0 +1,46 @@
+{
+  "id": "add_missing_dois@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A researcher preparing a systematic review manuscript discovers that several key papers in their Zotero library are missing DOI (Digital Object Identifier) values. The target journal requires DOIs for all cited references that have them. Update the library entries for the following papers by adding their specific DOIs (excluding the 'https://doi.org/' prefix):\n\n- 'A Mathematical Theory of Communication' (Shannon, 1948): 10.1002/j.1538-7305.1948.tb01338.x\n- 'Computing Machinery and Intelligence' (Turing, 1950): 10.1093/mind/LIX.236.433\n- 'Molecular Structure of Nucleic Acids' (Watson & Crick, 1953): 10.1038/171737a0\n- 'Deep Residual Learning for Image Recognition' (He et al., 2016): 10.1109/CVPR.2016.90\n- 'ImageNet Classification with Deep Convolutional Neural Networks' (Krizhevsky et al., 2012): 10.1145/3065386",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_missing_dois/setup_task.sh",
+    "post_task": "/workspace/tasks/add_missing_dois/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title_substring": "Mathematical Theory of Communication",
+        "expected_doi": "10.1002/j.1538-7305.1948.tb01338.x"
+      },
+      {
+        "title_substring": "Computing Machinery and Intelligence",
+        "expected_doi": "10.1093/mind/LIX.236.433"
+      },
+      {
+        "title_substring": "Molecular Structure of Nucleic Acids",
+        "expected_doi": "10.1038/171737a0"
+      },
+      {
+        "title_substring": "Deep Residual Learning for Image Recognition",
+        "expected_doi": "10.1109/CVPR.2016.90"
+      },
+      {
+        "title_substring": "ImageNet Classification with Deep Convolutional Neural Networks",
+        "expected_doi": "10.1145/3065386"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_missing_dois"
+    }
+  }
+}

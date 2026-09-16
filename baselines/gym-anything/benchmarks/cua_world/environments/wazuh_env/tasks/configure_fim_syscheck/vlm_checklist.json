@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_fim_syscheck@1",
+  "task_completion": [
+    {
+      "id": "access_container_config",
+      "description": "Access the wazuh-wazuh.manager-1 container and open the configuration file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'docker exec -it wazuh-wazuh.manager-1 bash' or directly editing/viewing '/var/ossec/etc/ossec.conf' using a text editor (nano, vi) or command line tools (sed, cat)."
+    },
+    {
+      "id": "set_general_syscheck_params",
+      "description": "Configure the general syscheck parameters (frequency, alert_new_files, file_limit).",
+      "points": 20,
+      "visual_evidence": "The configuration file is shown containing '<frequency>3600</frequency>', '<alert_new_files>yes</alert_new_files>', and '<file_limit>100000</file_limit>' inside the '<syscheck>' block."
+    },
+    {
+      "id": "set_directory_monitoring",
+      "description": "Configure directory monitoring for /etc, /usr/bin, and /usr/sbin with realtime attributes.",
+      "points": 20,
+      "visual_evidence": "The configuration file contains '<directories realtime=\"yes\" check_all=\"yes\">/etc</directories>', '<directories realtime=\"yes\">/usr/bin</directories>', and '<directories realtime=\"yes\">/usr/sbin</directories>'."
+    },
+    {
+      "id": "set_special_directory_monitoring",
+      "description": "Configure directory monitoring for /var/www and /boot with specific attributes.",
+      "points": 20,
+      "visual_evidence": "The configuration file contains '<directories whodata=\"yes\">/var/www</directories>' and '<directories check_sha256sum=\"yes\">/boot</directories>'."
+    },
+    {
+      "id": "set_ignore_entries",
+      "description": "Configure ignore entries for specific files.",
+      "points": 20,
+      "visual_evidence": "The configuration file contains '<ignore>/etc/mtab</ignore>', '<ignore>/etc/hosts.deny</ignore>', and '<ignore>/etc/mail/statistics</ignore>'."
+    },
+    {
+      "id": "restart_wazuh_manager",
+      "description": "Restart the Wazuh manager to apply the new configuration.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command to restart the Wazuh manager, such as 'docker restart wazuh-wazuh.manager-1' on the host or '/var/ossec/bin/wazuh-control restart' inside the container, along with its successful execution output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "real_container_used",
+      "description": "Verify that the agent interacted with the actual Docker container.",
+      "visual_evidence": "Commands should target 'wazuh-wazuh.manager-1' via docker exec or docker restart, rather than the agent just editing a local file on the host system named ossec.conf."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "Verify that the edits maintain valid XML syntax.",
+      "visual_evidence": "The added configuration lines must be properly formatted as XML tags without syntax errors (e.g., properly closed tags, correct attribute formatting) and placed within the correct <syscheck> section."
+    },
+    {
+      "id": "genuine_restart",
+      "description": "Verify that the restart command was actually executed.",
+      "visual_evidence": "The terminal should show the output of the restart command (e.g., 'Restarting Wazuh...' or docker restart output), not just the typed command without pressing enter."
+    }
+  ],
+  "privileged_info_for_vlm": "Container name: wazuh-wazuh.manager-1. Config path: /var/ossec/etc/ossec.conf. Expected settings inside <syscheck> block: frequency=3600, alert_new_files=yes, file_limit=100000. Directories: /etc (realtime=yes, check_all=yes), /usr/bin (realtime=yes), /usr/sbin (realtime=yes), /var/www (whodata=yes), /boot (check_sha256sum=yes). Ignores: /etc/mtab, /etc/hosts.deny, /etc/mail/statistics."
+}

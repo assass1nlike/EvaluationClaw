@@ -1,0 +1,45 @@
+{
+  "id": "configure_multi_group_instrument_linking@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Create a NinjaTrader 8 workspace to monitor the market and a specific stock simultaneously. Configure a Market Group using the Red instrument link containing a Chart and a SuperDOM for 'SPY'. Configure a Stock Group using the Blue instrument link containing a Chart and a Time & Sales window for 'AAPL'. Ensure no other windows are open besides the Control Center and save the workspace.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_multi_group_instrument_linking\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_multi_group_instrument_linking\\export_result.ps1"
+  },
+  "metadata": {
+    "groups": [
+      {
+        "name": "Market",
+        "instrument": "SPY",
+        "link_color": "Red",
+        "windows": [
+          "Chart",
+          "SuperDom"
+        ]
+      },
+      {
+        "name": "Stock",
+        "instrument": "AAPL",
+        "link_color": "Blue",
+        "windows": [
+          "Chart",
+          "TimeAndSales"
+        ]
+      }
+    ],
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_multi_group_instrument_linking"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "ground_floor_retail_conversion@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the 4StoreyBuilding project in eQUEST",
+      "points": 10,
+      "visual_evidence": "The eQUEST application window is open, displaying the 4StoreyBuilding project (visible in the title bar or project tree)."
+    },
+    {
+      "id": "set_area_per_person",
+      "description": "Set AREA/PERSON to 40 for all ground floor spaces",
+      "points": 25,
+      "visual_evidence": "In the Space Properties dialog or spreadsheet view, the 'Area/Person' (or similar occupancy density) field is set to 40 for the ground floor spaces (names starting with 'G.', such as G.S11, G.E12, G.N13, G.W14, G.C15)."
+    },
+    {
+      "id": "set_min_outside_air",
+      "description": "Set MIN-OUTSIDE-AIR to 750 CFM for all ground floor HVAC systems",
+      "points": 25,
+      "visual_evidence": "In the Air-Side HVAC System Parameters dialog or spreadsheet view, the 'Min Outside Air' or 'Min OA' field is set to 750 for the ground floor systems (associated with the 'G.' spaces)."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run a full annual DOE-2.2 simulation",
+      "points": 30,
+      "visual_evidence": "A simulation progress window ('DOE-2 Simulation') is visible, or a post-simulation results dialog/viewer appears, indicating the simulation was successfully executed."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the project",
+      "points": 10,
+      "visual_evidence": "The 'File' menu is open with 'Save' highlighted, a save confirmation dialog is visible, or the save icon is clicked."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_equest_gui",
+      "description": "Agent used the eQUEST graphical user interface to make modifications",
+      "visual_evidence": "Modifications to spaces and systems are made within the eQUEST application windows, dialogs, or spreadsheets."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Agent did not bypass the GUI by editing the .inp file directly in a text editor",
+      "visual_evidence": "There should be no screenshots showing the agent opening '4StoreyBuilding.inp' in Notepad, VS Code, or using terminal commands (like sed/awk) to perform the text replacements."
+    },
+    {
+      "id": "actual_simulation_run",
+      "description": "Agent genuinely triggered the simulation within the software",
+      "visual_evidence": "The simulation progress bar or eQUEST native simulation dialog must be visible, rather than just skipping to a pre-computed results screen or faking a terminal output."
+    }
+  ],
+  "privileged_info_for_vlm": "The target project is '4StoreyBuilding.inp'. There are exactly 5 ground floor spaces that must be modified: G.S11, G.E12, G.N13, G.W14, and G.C15. Their 'Area/Person' value must be set to 40. There are exactly 5 corresponding ground floor HVAC systems (e.g., Sys1 (PSZ) for the G.* spaces). Their 'Min Outside Air' (CFM) must be set to 750. The agent must use the eQUEST GUI to perform these actions, run the DOE-2 simulation, and save."
+}

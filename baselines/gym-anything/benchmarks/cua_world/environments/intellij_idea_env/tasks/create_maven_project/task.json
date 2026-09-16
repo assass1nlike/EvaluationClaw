@@ -1,0 +1,28 @@
+{
+  "id": "create_maven_project@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Create a Java Maven project named 'gs-maven' at ~/IdeaProjects/gs-maven/ using groupId 'org.springframework' and artifactId 'gs-maven'. The project should include a 'hello' package with a Greeter class providing a greeting message and a HelloWorld main class that utilizes the joda-time library to display the current time. The project must compile successfully.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_maven_project/setup_task.sh",
+    "post_task": "/workspace/tasks/create_maven_project/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/gs-maven",
+    "expected_groupId": "org.springframework",
+    "expected_artifactId": "gs-maven",
+    "source_repo": "https://github.com/spring-attic/gs-maven"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_maven_project"
+    }
+  }
+}

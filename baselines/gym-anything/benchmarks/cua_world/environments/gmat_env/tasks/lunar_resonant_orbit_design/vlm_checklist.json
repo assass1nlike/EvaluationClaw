@@ -1,0 +1,59 @@
+{
+  "task_id": "lunar_resonant_orbit_design@1",
+  "task_completion": [
+    {
+      "id": "read_requirements",
+      "description": "Open and read the orbit requirements text file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/skysurvey_orbit_requirements.txt."
+    },
+    {
+      "id": "configure_gravity_model",
+      "description": "Configure the GMAT force model to include Earth, Moon (Luna), and Sun gravity.",
+      "points": 15,
+      "visual_evidence": "GMAT GUI showing a Force Model configuration window with Earth, Luna, and Sun selected in the Point Masses or Gravity Field sections."
+    },
+    {
+      "id": "configure_orbit_state",
+      "description": "Set the initial spacecraft orbit parameters for a 2:1 lunar resonance.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing the Spacecraft properties window with Keplerian elements configured (e.g., SMA between 238,000-248,000 km, Eccentricity 0.3-0.75, or Orbital Period ~13.66 days)."
+    },
+    {
+      "id": "configure_propagation",
+      "description": "Set the propagator to run for at least 120 days.",
+      "points": 15,
+      "visual_evidence": "GMAT GUI showing the Propagate command configuration with the stopping condition set to ElapsedDays >= 120 (or at least 90)."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Save the GMAT mission script to the specified output directory.",
+      "points": 15,
+      "visual_evidence": "File manager, terminal, or GMAT save dialog showing 'lunar_resonant_orbit.script' located in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "save_stability_report",
+      "description": "Create and save the resonance stability report with the required format.",
+      "points": 25,
+      "visual_evidence": "A text editor showing 'resonance_stability_report.txt' in ~/GMAT_output/ containing the required keys (initial_SMA_km, initial_period_days, final_SMA_km, final_period_days, perigee_altitude_km, eccentricity, moon_gravity_included, stability_assessment) filled with actual values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution_visible",
+      "description": "Verify that the agent actually ran the GMAT simulation to verify dynamic stability.",
+      "visual_evidence": "GMAT application window shows an active or completed run, such as a 3D orbit plot (DefaultOrbitView) or messages in the message window indicating successful propagation."
+    },
+    {
+      "id": "authentic_report_values",
+      "description": "Verify that the stability report contains actual numerical results rather than copied template placeholders.",
+      "visual_evidence": "The resonance_stability_report.txt file shows real numbers for SMA, period, altitude, and eccentricity, and explicit 'YES'/'NO' or 'STABLE'/'UNSTABLE' text, rather than '<value>' placeholders."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "Verify the agent did not just write a text file from memory without using GMAT.",
+      "visual_evidence": "The presence of GMAT GUI interaction or terminal execution of the GMAT script prior to the creation of the stability report."
+    }
+  ],
+  "privileged_info_for_vlm": "Target orbital period is 13.66 days (\u00b15%). Semi-Major Axis (SMA) must be between 238,000 and 248,000 km. Eccentricity must be between 0.3 and 0.75 to maintain the required perigee altitude. The verifier will accept a minimum propagation of 90 days, though the prompt asks for 120 days. The script must be exactly at ~/GMAT_output/lunar_resonant_orbit.script and the report at ~/GMAT_output/resonance_stability_report.txt."
+}

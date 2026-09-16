@@ -1,0 +1,66 @@
+{
+  "id": "flammability_range_assessment@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are an industrial hygienist preparing a confined space entry permit. Research flammability properties for Acetone (CAS 67-64-1), Toluene (CAS 108-88-3), Methanol (CAS 67-56-1), Ethylene Oxide (CAS 75-21-8), and Carbon Disulfide (CAS 75-15-0) using the CAMEO Chemicals website (https://cameochemicals.noaa.gov/). \n\nFor each chemical, document the Lower Explosive Limit (LEL) in %, Upper Explosive Limit (UEL) in %, Flash Point, and Autoignition Temperature. Save the assessment report to /home/ga/Documents/flammability_assessment.txt using this format for each chemical:\n\nChemical: [Name]\nCAS: [number]\nLEL (%): [value]\nUEL (%): [value]\nFlash Point: [value with units]\nAutoignition Temperature: [value with units]\nFlammable Range (%): [UEL minus LEL]\n\nInclude an ANALYSIS section at the end of the file identifying the chemical with the widest flammable range and the chemical with the lowest autoignition temperature:\n\nANALYSIS\n========\nWidest Flammable Range: [Chemical Name] ([range]%)\nLowest Autoignition Temperature: [Chemical Name] ([temperature with units])",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flammability_range_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/flammability_range_assessment/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/flammability_assessment.txt",
+    "chemicals": [
+      {
+        "name": "Acetone",
+        "lel_min": 2.0,
+        "lel_max": 3.0,
+        "uel_min": 11.0,
+        "uel_max": 14.0
+      },
+      {
+        "name": "Toluene",
+        "lel_min": 1.0,
+        "lel_max": 1.5,
+        "uel_min": 6.0,
+        "uel_max": 8.0
+      },
+      {
+        "name": "Methanol",
+        "lel_min": 5.0,
+        "lel_max": 7.5,
+        "uel_min": 30.0,
+        "uel_max": 40.0
+      },
+      {
+        "name": "Ethylene Oxide",
+        "lel_min": 2.0,
+        "lel_max": 4.0,
+        "uel_min": 90.0,
+        "uel_max": 100.0
+      },
+      {
+        "name": "Carbon Disulfide",
+        "lel_min": 1.0,
+        "lel_max": 2.0,
+        "uel_min": 40.0,
+        "uel_max": 60.0,
+        "autoign_max_c": 110,
+        "autoign_max_f": 230
+      }
+    ],
+    "correct_widest_range": "Ethylene Oxide",
+    "correct_lowest_autoignition": "Carbon Disulfide"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flammability_assessment"
+    }
+  }
+}

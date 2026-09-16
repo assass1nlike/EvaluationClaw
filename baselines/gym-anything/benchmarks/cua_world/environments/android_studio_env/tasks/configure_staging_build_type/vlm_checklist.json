@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_staging_build_type@1",
+  "task_completion": [
+    {
+      "id": "open_build_file",
+      "description": "Open the app-level build.gradle file",
+      "points": 10,
+      "visual_evidence": "An editor (like Android Studio, VS Code, nano, or vim) is open showing the contents of the 'app/build.gradle' file."
+    },
+    {
+      "id": "create_staging_block",
+      "description": "Create a staging build type that inherits from debug",
+      "points": 15,
+      "visual_evidence": "The text 'staging {' is visible inside the 'buildTypes' block, and it contains 'initWith debug' (or similar Groovy syntax) to inherit from the debug build type."
+    },
+    {
+      "id": "configure_app_id_suffix",
+      "description": "Add the required applicationIdSuffix",
+      "points": 15,
+      "visual_evidence": "The text 'applicationIdSuffix \".staging\"' (or with single quotes) is visible inside the staging build type block."
+    },
+    {
+      "id": "configure_version_suffix",
+      "description": "Add the required versionNameSuffix",
+      "points": 15,
+      "visual_evidence": "The text 'versionNameSuffix \"-STAGING\"' (or with single quotes) is visible inside the staging build type block."
+    },
+    {
+      "id": "configure_base_url",
+      "description": "Add the BASE_URL buildConfigField",
+      "points": 20,
+      "visual_evidence": "The text 'buildConfigField \"String\", \"BASE_URL\", \"\\\"https://staging.api.unscramble.com\\\"\"' (or equivalent Groovy syntax with properly escaped quotes) is visible inside the staging build type block."
+    },
+    {
+      "id": "build_staging_variant",
+      "description": "Successfully build the staging variant",
+      "points": 25,
+      "visual_evidence": "A 'BUILD SUCCESSFUL' message is visible in the terminal or IDE build console after executing a build command specifically for the staging variant (e.g., running './gradlew assembleStaging' or selecting the staging build variant in Android Studio and building)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "Verify the agent used a real text editor or IDE to modify the file",
+      "visual_evidence": "Screenshots show an IDE (like Android Studio) or a terminal text editor (like nano/vim) being used to edit the file, rather than just echo commands or text manipulation scripts."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "Verify the build was actually executed by Gradle",
+      "visual_evidence": "Screenshots show genuine Gradle build output with execution times, task lists, daemon status, or IDE progress indicators, not just a manually printed success message."
+    },
+    {
+      "id": "correct_project_context",
+      "description": "Verify the edits were made to the actual Unscramble project",
+      "visual_evidence": "File paths in the editor, IDE project tree, or terminal prompt show the Unscramble project directory structure, ensuring a dummy file wasn't created elsewhere."
+    }
+  ],
+  "privileged_info_for_vlm": "The Unscramble app uses a Groovy-format build.gradle file, not Kotlin DSL (build.gradle.kts). The expected applicationIdSuffix is '.staging' and the expected versionNameSuffix is '-STAGING'."
+}

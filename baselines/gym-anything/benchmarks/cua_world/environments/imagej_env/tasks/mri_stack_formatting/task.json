@@ -1,0 +1,41 @@
+{
+  "id": "mri_stack_formatting@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "MRI Stack Compression and Formatting",
+  "description": "You need to create a lightweight 'web preview' version of a large MRI scan for email sharing. Open the 'T1 Head' sample image and process it by converting it to 8-bit grayscale, scaling the spatial dimensions to 75% of the original size, and subsampling the stack to keep only every 3rd slice. Save the resulting processed stack as a TIFF file to ~/ImageJ_Data/processed/mri_preview.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "mri",
+    "stack-manipulation",
+    "image-processing",
+    "8-bit",
+    "resizing",
+    "subsampling"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mri_stack_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/mri_stack_formatting/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/processed/mri_preview.tif",
+    "original_width": 256,
+    "original_height": 256,
+    "original_depth": 129,
+    "target_scale": 0.75,
+    "target_step": 3,
+    "tolerance_dim": 5,
+    "tolerance_depth": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mri_stack_formatting"
+    }
+  }
+}

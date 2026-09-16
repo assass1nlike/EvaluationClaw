@@ -1,0 +1,38 @@
+{
+  "id": "shipping_config@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure the store's shipping settings for a new launch based in Portland, Oregon. Set the shipping origin to 450 SW Morrison St, Portland, OR 97201, USA. Enable Flat Rate shipping titled 'Ground Shipping' (Method Name: 'Standard Delivery') at a price of 7.49 per order with a sort order of 10. Additionally, enable Free Shipping for orders of at least 75 with a sort order of 5. Ensure all changes are saved. If prompted, log in with admin / Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/shipping_config/setup_task.sh",
+    "post_task": "/workspace/tasks/shipping_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_origin_country": "US",
+    "expected_origin_region_id": "49",
+    "expected_origin_postcode": "97201",
+    "expected_origin_city": "Portland",
+    "expected_origin_street": "450 SW Morrison St",
+    "expected_flatrate_active": "1",
+    "expected_flatrate_title": "Ground Shipping",
+    "expected_flatrate_name": "Standard Delivery",
+    "expected_flatrate_price": "7.49",
+    "expected_flatrate_type": "O",
+    "expected_flatrate_sort": "10",
+    "expected_freeshipping_active": "1",
+    "expected_freeshipping_threshold": "75",
+    "expected_freeshipping_sort": "5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shipping_config"
+    }
+  }
+}

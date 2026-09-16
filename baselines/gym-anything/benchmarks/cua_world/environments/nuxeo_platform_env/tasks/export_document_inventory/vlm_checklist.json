@@ -1,0 +1,53 @@
+{
+  "task_id": "export_document_inventory@1",
+  "task_completion": [
+    {
+      "id": "api_interaction",
+      "description": "Interact with the Nuxeo REST API using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a script, terminal command (e.g., curl), or API client targeting 'http://localhost:8080/nuxeo/api/v1' and using 'Administrator' for both username and password."
+    },
+    {
+      "id": "query_workspace",
+      "description": "Query documents located in the 'Projects' workspace.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the API request specifically targeting the path '/default-domain/workspaces/Projects' or querying for its children."
+    },
+    {
+      "id": "filter_document_types",
+      "description": "Filter the documents to include only 'File' and 'Note' types.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing API query parameters (e.g., NXQL) or script logic filtering the results to only include 'File' and 'Note' document types."
+    },
+    {
+      "id": "extract_required_fields",
+      "description": "Extract the required metadata fields for each document.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code, jq commands, or logic extracting the specific fields: 'dc:title' (title), 'type', 'path', 'dc:creator' (creator), and 'dc:created' (created)."
+    },
+    {
+      "id": "save_json_output",
+      "description": "Save the resulting JSON array to the specified output path.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the final JSON array being written or saved to '/home/ga/Documents/project_inventory.json' (e.g., script output redirection, file save dialog, or viewing the created file)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_call",
+      "description": "The agent actually executes the API request rather than guessing the content.",
+      "visual_evidence": "Screenshots should show terminal output, script execution logs, or API client responses confirming that a real request was made to the Nuxeo server."
+    },
+    {
+      "id": "no_hardcoded_data",
+      "description": "The agent does not manually type or hardcode the document inventory.",
+      "visual_evidence": "The JSON file should be generated programmatically via a script or command output, not manually typed into a text editor."
+    },
+    {
+      "id": "valid_json_generation",
+      "description": "The output is formatted as a proper JSON array.",
+      "visual_evidence": "The script or command should construct a valid JSON array structure (e.g., using jq or json libraries) rather than just concatenating plain text."
+    }
+  ],
+  "privileged_info_for_vlm": "The Nuxeo REST API base URL is http://localhost:8080/nuxeo/api/v1. The expected output file must be saved to /home/ga/Documents/project_inventory.json. The final JSON array must contain objects with exactly these keys: 'title', 'type', 'path', 'creator', and 'created'."
+}

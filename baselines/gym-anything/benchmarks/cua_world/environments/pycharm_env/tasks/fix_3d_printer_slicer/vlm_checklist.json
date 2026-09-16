@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_3d_printer_slicer@1",
+  "task_completion": [
+    {
+      "id": "open_engine_file",
+      "description": "Open the engine.py file for editing.",
+      "points": 10,
+      "visual_evidence": "An IDE (like PyCharm) or text editor is open showing the contents of '/home/ga/PycharmProjects/py_slicer/engine.py'."
+    },
+    {
+      "id": "fix_horizontal_edges",
+      "description": "Modify the computational geometry logic to correctly handle flat horizontal surfaces.",
+      "points": 20,
+      "visual_evidence": "Visible code edits in engine.py addressing horizontal edges, such as adding checks to prevent division by zero when Z-coordinates are equal (e.g., z1 == z2) or safely skipping/handling flat triangles."
+    },
+    {
+      "id": "fix_top_layers",
+      "description": "Modify the slicing logic to ensure top layers are included.",
+      "points": 20,
+      "visual_evidence": "Visible code edits in engine.py adjusting the Z-height loop bounds or layer generation limits (e.g., changing a strict inequality '<' to '<=' for the maximum Z height or layer count)."
+    },
+    {
+      "id": "fix_polygon_loops",
+      "description": "Modify the path generation logic to close all polygon loops.",
+      "points": 20,
+      "visual_evidence": "Visible code edits in engine.py ensuring paths are closed, such as appending the starting point of a polygon/line segment list to its end."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Execute the test suite to verify the fixes.",
+      "points": 10,
+      "visual_evidence": "A terminal or IDE test runner executing a test command (e.g., pytest or python -m unittest) targeting 'tests/test_slicing.py'."
+    },
+    {
+      "id": "tests_pass",
+      "description": "All tests in the test suite pass successfully.",
+      "points": 20,
+      "visual_evidence": "Terminal or test runner output clearly showing that exactly 3 tests have passed without any failures or errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tests_unmodified",
+      "description": "Ensure the test file was not modified to bypass the requirements.",
+      "visual_evidence": "The file 'tests/test_slicing.py' should not be edited, overwritten, or modified to remove assertions or force a passing state."
+    },
+    {
+      "id": "stl_readers_unmodified",
+      "description": "Ensure the STL data readers were not modified.",
+      "visual_evidence": "No edits should be visible on any file responsible for reading STL data; all modifications must be restricted to 'engine.py'."
+    },
+    {
+      "id": "authentic_test_output",
+      "description": "Ensure the test results are from a genuine execution.",
+      "visual_evidence": "The test output should display standard testing framework formatting (e.g., pytest's green dots, execution time, summary line) and not be a manually typed 'echo' command or a simple printed string."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is located at /home/ga/PycharmProjects/py_slicer. The test suite contains exactly 3 tests (ignore any metadata claiming 8 tests). A score of 70 is the threshold to pass the task."
+}

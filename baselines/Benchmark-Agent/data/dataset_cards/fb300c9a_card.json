@@ -1,0 +1,94 @@
+{
+  "dataset_id": "fb300c9a",
+  "name": "Openset Comic Dialogue Completion",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Openset Comic Dialogue Completion is a multimodal multiple-choice benchmark in which a model reads a sequence of comic panels whose final speech bubble is masked and must pick the most appropriate dialogue line from four candidates. It evaluates visual narrative understanding and dialogue-level inference across consecutive comic panels.",
+  "card_text": "Each sample consists of an ordered sequence of comic-book panel images (typically five JPEGs, the last of which has its dialogue box masked) together with a single English prompt. The prompt mixes a natural-language instruction, five inline '<ImageHere>' placeholders that mark where the panels are injected, an inline 'Choice list' of four candidate dialogue lines, and a short answer cue. The model must reason over the visual story arc, character actions and the partially masked panel to select the one utterance that best continues the narrative. Targets are the plain-text dialogue lines extracted from the original comics, so the language is colloquial, character-driven and sometimes ungrammatical or noisy due to OCR-style transcription. The dataset is small (200 samples), open-set in content, and covers a variety of vintage comic genres and characters.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "comic books / sequential visual narrative",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "illustration",
+        "semantics": "An ordered list of comic-panel image files forming the story so far; the last panel has its dialogue box masked, so these images are the visual context the model must read to infer what the missing line should be.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "A single English prompt that instructs the model to choose the most appropriate dialogue for the masked panel, embeds the panels via '<ImageHere>' placeholders, inlines the four candidates as a 'Choice list', and ends with an answer cue such as 'Your answer is:'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Four candidate dialogue lines inlined inside the prompt as a bracketed, comma-separated 'Choice list'; exactly one of them matches the masked speech bubble of the final panel and is copied verbatim into the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "dialog",
+        "semantics": "The ground-truth dialogue line that belongs in the masked panel, reproduced verbatim from the corresponding entry in the choice list (lowercased, OCR-style spacing and punctuation preserved).",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Every sample is a multimodal multiple-choice item: 'input.image_file' holds an ordered sequence of comic-panel images (the last panel's speech bubble masked) that serve as the visual context, while 'input.prompt' carries a single instruction that interleaves five '<ImageHere>' placeholders with an inlined four-item 'Choice list' of candidate dialogue lines and a closing answer cue. The supervised target lives in 'output.text' and is exactly one of those four candidates, so the model must align the visual story across panels with the linguistic candidates and emit the chosen utterance as plain text. There are no separate option, bbox, or dialog-turn fields; options and instruction share the same prompt string."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ComicDialogueCompletion/openset_comic_dialogue_completion.json",
+    "existing_tags": {
+      "task": "Comic Dialogue Completion",
+      "type": "image comprehension",
+      "skill": "Multimodal Dialogue",
+      "domain": "Art",
+      "general_capability": [
+        "Interactive Capability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Art"
+  }
+}

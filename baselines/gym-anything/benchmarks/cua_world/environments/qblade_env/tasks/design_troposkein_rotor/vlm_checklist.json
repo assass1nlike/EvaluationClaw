@@ -1,0 +1,53 @@
+{
+  "task_id": "design_troposkein_rotor@1",
+  "task_completion": [
+    {
+      "id": "generate_naca_0018",
+      "description": "Generate a NACA 0018 airfoil",
+      "points": 10,
+      "visual_evidence": "Look for 'NACA 0018' in the QBlade Airfoil Design module, object explorer, or airfoil list."
+    },
+    {
+      "id": "generate_extrapolate_polar",
+      "description": "Generate polar at Re=1,000,000 and extrapolate to 360 degrees",
+      "points": 20,
+      "visual_evidence": "Look for polar analysis settings or results showing Re=1,000,000 (or 1e6) and evidence of 360-degree extrapolation (e.g., 360 Polar Extrapolation module, Viterna/Montgomery methods, or a polar graph spanning -180 to 180 degrees)."
+    },
+    {
+      "id": "design_troposkein_blade",
+      "description": "Design a Troposkein VAWT blade with specified dimensions (40m height, 20m radius, 1.0m chord, >=20 elements)",
+      "points": 30,
+      "visual_evidence": "Look for the VAWT Blade Design module showing a curved (skipping rope) blade shape. The UI or generation dialog should show Height ~40m, Radius ~20m, Chord = 1.0m, and the blade geometry table should have at least 20 rows (elements)."
+    },
+    {
+      "id": "create_2_blade_rotor",
+      "description": "Create a VAWT rotor with 2 blades",
+      "points": 20,
+      "visual_evidence": "Look for the VAWT Rotor Design module or 3D view showing exactly 2 curved Troposkein blades attached to the central axis."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the project as troposkein_rotor.wpa in the specified directory",
+      "points": 20,
+      "visual_evidence": "Look for a save dialog navigating to /home/ga/Documents/projects/ with the filename 'troposkein_rotor.wpa', or the QBlade window title bar displaying this filename, or a terminal/file manager confirming the file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qblade_gui",
+      "description": "The agent interacted with the QBlade graphical user interface to perform the design tasks.",
+      "visual_evidence": "Screenshots should show the QBlade application open with various modules (Airfoil Design, XFOIL Direct Analysis, VAWT Blade Design) being actively used, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_3d_generation",
+      "description": "The rotor and blade geometries were actually generated in the software.",
+      "visual_evidence": "Look for genuine 2D graphs (polars) and 3D renderings of the blade/rotor in the QBlade viewport, not just text entry or empty projects."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not bypass the software by simply creating an empty or fake .wpa file via terminal.",
+      "visual_evidence": "The file save action should occur within QBlade's 'Save Project' dialog after the design steps are completed."
+    }
+  ],
+  "privileged_info_for_vlm": "QBlade is an open-source wind turbine calculation software. The task requires designing a Vertical Axis Wind Turbine (VAWT). The Troposkein shape is a specific curved 'skipping rope' geometry used for VAWTs. Target dimensions are Height = 40.0m and Radius = 20.0m (allow a 5% tolerance for both). The chord length must be 1.0m. The blade must be divided into at least 20 elements (rows in the blade table). The airfoil must be NACA 0018, and its polar must be generated at a Reynolds number of 1,000,000 and extrapolated to 360 degrees. The final rotor must have exactly 2 blades. The project must be saved as 'troposkein_rotor.wpa'."
+}

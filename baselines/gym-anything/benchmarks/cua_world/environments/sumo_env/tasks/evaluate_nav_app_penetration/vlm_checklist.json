@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_nav_app_penetration@1",
+  "task_completion": [
+    {
+      "id": "run_0_percent_scenario",
+      "description": "Run the 0% penetration scenario and save the tripinfo output.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of the `sumo` command with the configuration file `/home/ga/SUMO_Scenarios/bologna_pasubio/run.sumocfg` and the output flag `--tripinfo-output /home/ga/SUMO_Output/tripinfo_0.xml`."
+    },
+    {
+      "id": "run_25_percent_scenario",
+      "description": "Run the 25% penetration scenario with the correct rerouting parameters and save the tripinfo output.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the `sumo` command with `--device.rerouting.probability 0.25`, `--device.rerouting.period 30`, and `--tripinfo-output /home/ga/SUMO_Output/tripinfo_25.xml`."
+    },
+    {
+      "id": "run_75_percent_scenario",
+      "description": "Run the 75% penetration scenario with the correct rerouting parameters and save the tripinfo output.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the `sumo` command with `--device.rerouting.probability 0.75`, `--device.rerouting.period 30`, and `--tripinfo-output /home/ga/SUMO_Output/tripinfo_75.xml`."
+    },
+    {
+      "id": "create_csv_report_headers",
+      "description": "Create the summary report CSV file with the correct headers.",
+      "points": 15,
+      "visual_evidence": "Terminal output (e.g., `cat`, `echo`, or a script) or a text editor showing the creation of `/home/ga/SUMO_Output/penetration_report.csv` with the exact headers `Penetration,AvgDuration`."
+    },
+    {
+      "id": "csv_report_values",
+      "description": "Populate the CSV report with the calculated average trip durations for each scenario.",
+      "points": 30,
+      "visual_evidence": "Terminal output or text editor showing the contents of the CSV file containing the correct average durations rounded to two decimal places (approximately 329.19 for 0%, 304.05 for 25%, and 297.93 for 75%)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "sumo_executed_in_terminal",
+      "description": "Ensure the agent actually ran the SUMO simulations.",
+      "visual_evidence": "Look for genuine SUMO simulation output logs in the terminal (e.g., step logs, summary statistics, or 'Success' messages from SUMO) rather than just the creation of empty or mocked XML files."
+    },
+    {
+      "id": "script_used_for_calculation",
+      "description": "Ensure the agent calculated the averages from the XML files rather than hallucinating or guessing them.",
+      "visual_evidence": "Look for a Python script, shell pipeline (e.g., using `grep`, `awk`), or other code written and executed by the agent to parse the generated `tripinfo_*.xml` files and compute the average `duration` values."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not hardcode the final average values.",
+      "visual_evidence": "Check the calculation script or commands to verify that the agent extracts the values directly from the XML files and performs a mathematical average, rather than just printing hardcoded numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The true average trip durations for the scenarios are: 0% penetration = 329.19, 25% penetration = 304.05, and 75% penetration = 297.93. The agent's CSV should contain these values (rounded to two decimal places, with an absolute tolerance of 0.05). The expected output files are /home/ga/SUMO_Output/tripinfo_0.xml, /home/ga/SUMO_Output/tripinfo_25.xml, /home/ga/SUMO_Output/tripinfo_75.xml, and /home/ga/SUMO_Output/penetration_report.csv."
+}

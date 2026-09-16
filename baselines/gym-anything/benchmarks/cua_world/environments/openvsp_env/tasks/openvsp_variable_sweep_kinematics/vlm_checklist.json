@@ -1,0 +1,53 @@
+{
+  "task_id": "openvsp_variable_sweep_kinematics@1",
+  "task_completion": [
+    {
+      "id": "read_spec_doc",
+      "description": "Read the specification document to find the target sweep angle.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Desktop/swing_wing_spec.txt'."
+    },
+    {
+      "id": "open_baseline_model",
+      "description": "Open the baseline model in OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application window is open, displaying a 3D wing model, with the window title or file context indicating 'fx_unswept.vsp3'."
+    },
+    {
+      "id": "update_sweep_angle",
+      "description": "Update the Wing component's Leading Edge Sweep to the target value.",
+      "points": 30,
+      "visual_evidence": "The OpenVSP geometry parameter window (likely under the 'Plan' tab for the Wing) shows the Sweep angle parameter set to approximately 68.0 degrees."
+    },
+    {
+      "id": "update_span",
+      "description": "Update the Wing component's Total Span to the calculated value.",
+      "points": 30,
+      "visual_evidence": "The OpenVSP geometry parameter window shows the Span parameter set to approximately 7.973."
+    },
+    {
+      "id": "save_modified_model",
+      "description": "Save the modified model with the new filename.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog in OpenVSP or the main OpenVSP window title showing the file has been saved as 'fx_swept.vsp3' in '/home/ga/Documents/OpenVSP/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openvsp_gui",
+      "description": "The agent used the OpenVSP GUI to modify the model parameters.",
+      "visual_evidence": "Screenshots should show the agent interacting with the OpenVSP parameter windows and sliders/text boxes, rather than just running a script."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "The agent did not bypass the GUI by directly editing the .vsp3 XML file in a text editor.",
+      "visual_evidence": "No text editor (like nano, vim, gedit) should be seen editing the raw XML contents of 'fx_unswept.vsp3' or 'fx_swept.vsp3'."
+    },
+    {
+      "id": "calculation_performed",
+      "description": "The agent performed the trigonometric calculation to find the new span.",
+      "visual_evidence": "A calculator app, Python interactive shell, or terminal script showing the calculation (e.g., involving cos(20) and cos(68)) resulting in approximately 7.973."
+    }
+  ],
+  "privileged_info_for_vlm": "Baseline parameters: Span = 20.0m, Sweep = 20.0 degrees. Target Sweep = 68.0 degrees. Calculated Target Span = 7.973m. The VLM should accept span values between 7.773 and 8.173 (tolerance 0.2) and sweep values between 67.5 and 68.5 (tolerance 0.5). The final file must be saved as 'fx_swept.vsp3'."
+}

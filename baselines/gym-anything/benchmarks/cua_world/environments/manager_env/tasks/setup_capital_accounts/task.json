@@ -1,0 +1,36 @@
+{
+  "id": "setup_capital_accounts@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Configure the equity tracking for the Northwind Traders partnership. Enable the Capital Accounts module and create accounts for partners Maria Chen and David Chen. Record their initial capital contributions of $50,000.00 and $75,000.00 respectively as receipts into the Cash on Hand bank account, ensuring the transactions are properly allocated to their respective Capital Accounts.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_capital_accounts/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_capital_accounts/export_result.sh"
+  },
+  "metadata": {
+    "expected_partners": [
+      {
+        "name": "Maria Chen",
+        "contribution": 50000.0
+      },
+      {
+        "name": "David Chen",
+        "contribution": 75000.0
+      }
+    ],
+    "bank_account": "Cash on Hand",
+    "module_name": "Capital Accounts"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_capital_accounts"
+    }
+  }
+}

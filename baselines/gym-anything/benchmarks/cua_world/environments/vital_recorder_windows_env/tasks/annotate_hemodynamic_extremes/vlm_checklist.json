@@ -1,0 +1,53 @@
+{
+  "task_id": "annotate_hemodynamic_extremes@1",
+  "task_completion": [
+    {
+      "id": "vital_recorder_active",
+      "description": "Vital Recorder is open and displaying the surgical case data.",
+      "points": 10,
+      "visual_evidence": "The Vital Recorder application window is visible on the screen, showing physiological data tracks such as HR (Heart Rate) and MAP/ART_MBP (Mean Arterial Pressure)."
+    },
+    {
+      "id": "max_hr_marker_placed",
+      "description": "An event marker for the maximum heart rate is created at the correct time.",
+      "points": 30,
+      "visual_evidence": "An event marker explicitly labeled 'Max HR' is visible on the timeline or in an events list at approximately 10721 seconds (2h 58m 41s), corresponding to a peak HR value of 139 bpm."
+    },
+    {
+      "id": "min_map_marker_placed",
+      "description": "An event marker for the minimum physiological mean arterial pressure is created at the correct time.",
+      "points": 30,
+      "visual_evidence": "An event marker explicitly labeled 'Min MAP' is visible on the timeline or in an events list at approximately 4615 seconds (1h 16m 55s), corresponding to a MAP value of 53 mmHg."
+    },
+    {
+      "id": "save_dialog_opened",
+      "description": "The agent initiates the process to save the annotated recording.",
+      "points": 10,
+      "visual_evidence": "A 'Save As' or similar file saving dialog box is open within the Vital Recorder application."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "The annotated recording is saved with the correct filename and location.",
+      "points": 20,
+      "visual_evidence": "The save dialog shows the filename 'case_annotated.vital' and the directory path 'C:\\Users\\Docker\\Documents', or a file explorer window confirms the file exists in this exact location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_vital_recorder_gui",
+      "description": "The agent used the Vital Recorder graphical interface to perform the task.",
+      "visual_evidence": "Screenshots show interactions within the Vital Recorder application (e.g., navigating the timeline, opening menus), rather than using terminal commands to process the file."
+    },
+    {
+      "id": "manual_event_creation",
+      "description": "Event markers were created using the application's built-in tools.",
+      "visual_evidence": "The event creation dialog or context menu in Vital Recorder is visible in the screenshots, showing the agent typing the labels 'Max HR' and 'Min MAP'."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use Python scripts or command-line tools to bypass the GUI.",
+      "visual_evidence": "No terminal windows or code editors are used to write scripts that directly modify or generate the .vital file."
+    }
+  ],
+  "privileged_info_for_vlm": "Ground truth values: Maximum Heart Rate is 139.0 bpm at 10721.0 seconds (approx 2h 58m 41s). Minimum physiological Mean Arterial Pressure (>30 mmHg threshold to ignore artifacts) is 53.0 mmHg at 4615.0 seconds (approx 1h 16m 55s). Event markers labeled exactly 'Max HR' and 'Min MAP' must be placed at these respective times (tolerance: 30 seconds). The annotated file must be saved to C:\\Users\\Docker\\Documents\\case_annotated.vital."
+}

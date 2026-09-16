@@ -1,0 +1,33 @@
+{
+  "id": "create_crm_email_template@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Create a new email template in Odoo CRM named 'Opportunity Follow-Up' for the Lead/Opportunity (crm.lead) model. The template subject must be 'Following up: {{ object.name }}'. The email body must include a greeting using the partner's name ({{ object.partner_id.name }}), a reference to the opportunity name ({{ object.name }}), the phrase 'Thank you for your interest', and the closing 'Best regards'. Save the template once configured.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_crm_email_template/setup_task.sh",
+    "post_task": "/workspace/tasks/create_crm_email_template/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Opportunity Follow-Up",
+    "expected_model": "crm.lead",
+    "required_subject_placeholder": "{{ object.name }}",
+    "required_body_strings": [
+      "{{ object.partner_id.name }}",
+      "{{ object.name }}",
+      "Thank you for your interest",
+      "Best regards"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_crm_email_template"
+    }
+  }
+}

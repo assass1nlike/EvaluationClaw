@@ -1,0 +1,82 @@
+{
+  "dataset_id": "1f5dfceb",
+  "name": "Openset Animated Story Completion",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Animated Story Completion dataset evaluates multimodal story understanding and generation: given three sequential frames from an animated story and a textual prompt with captions for the first two frames, the model must generate a plausible concluding sentence using the final frame.",
+  "card_text": "This dataset contains 200 multimodal samples, each pairing a sequence of three image files with a text prompt and a target story conclusion. The prompt includes an instruction to finish the story, along with captions describing the first two images and placeholders for each image. The images are sequential frames from animated everyday-life narratives, and the output is a single-sentence ending that follows logically from the visual and textual context. The dataset tests visual narrative comprehension, temporal reasoning across frames, and open-ended text generation. All samples are in English and focus on common family or social situations, making it a benchmark for visual storytelling and multimodal story completion.",
+  "tasks": [
+    "open_ended_qa",
+    "visual_question_answering"
+  ],
+  "domain": "visual storytelling",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "The text prompt includes an instruction to conclude a story, two captions describing the first two images, and <ImageHere> placeholders indicating where each image should be considered. It provides the narrative setup and the task instruction, combining narrative and instructional language.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "illustration",
+        "semantics": "A list of three image filenames representing sequential frames of an animated story. The first two frames correspond to the captions in the prompt, and the third frame is the final scene to be used for concluding the story.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "A single-sentence narrative conclusion for the story. It describes what happens after the events shown in the first two images, based on the final image, and completes the story arc.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a multimodal input and a text output. The input includes a list of three image file paths ('input.image_file') that are sequential story frames, and a text prompt ('input.prompt') that contains an instruction to complete the story, captions for the first two images, and image placeholders. The output ('output.text') is the generated story conclusion. There is no separate question or caption field; the prompt itself carries both the narrative context and the completion instruction."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/AnimatedStoryCompletion/openset_animated_story_completion.json",
+    "existing_tags": {
+      "task": "Animated Story Completion",
+      "type": "image comprehension",
+      "skill": "Visual Storytelling Generation",
+      "domain": "General",
+      "general_capability": [
+        "Commense Understanding"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

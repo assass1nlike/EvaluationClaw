@@ -1,0 +1,53 @@
+{
+  "task_id": "private_registry_auth_migration@1",
+  "task_completion": [
+    {
+      "id": "read_credentials",
+      "description": "Read the registry credentials from the provided text file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit or nano) or a terminal window displaying the contents of /home/ga/Desktop/registry_credentials.txt."
+    },
+    {
+      "id": "rancher_login",
+      "description": "Log in to the Rancher web interface.",
+      "points": 10,
+      "visual_evidence": "The web browser showing the Rancher dashboard after successfully logging in at https://localhost."
+    },
+    {
+      "id": "create_registry_secret",
+      "description": "Create a docker-registry secret in the target namespace.",
+      "points": 25,
+      "visual_evidence": "The Rancher UI showing the creation or existence of a Docker registry secret (e.g., 'corp-registry-auth') within the 'production-apps' namespace."
+    },
+    {
+      "id": "link_service_account",
+      "description": "Link the new registry secret to the default ServiceAccount.",
+      "points": 25,
+      "visual_evidence": "The Rancher UI showing the 'default' ServiceAccount in the 'production-apps' namespace being edited or configured to include the newly created registry secret as an Image Pull Secret."
+    },
+    {
+      "id": "update_deployments",
+      "description": "Update all three deployments to pull from the new registry.",
+      "points": 30,
+      "visual_evidence": "The Rancher UI showing the deployments ('frontend', 'backend', 'cache') in the 'production-apps' namespace with their container image paths updated to point to the new private registry."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "rancher_ui_used",
+      "description": "The agent used the Rancher GUI to perform the migration.",
+      "visual_evidence": "Screenshots should show interaction with the Rancher web interface in a browser, rather than the agent exclusively using 'kubectl' commands in the terminal."
+    },
+    {
+      "id": "genuine_credential_usage",
+      "description": "The agent used the credentials from the file rather than hallucinating them.",
+      "visual_evidence": "The agent should be seen copying or referencing the credentials from the text file when creating the registry secret in Rancher."
+    },
+    {
+      "id": "actual_deployments_modified",
+      "description": "The agent applied the changes to the actual running deployments.",
+      "visual_evidence": "Screenshots should show the deployments being saved and updating/redeploying in the Rancher UI, not just text being edited in a form without saving."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace is 'production-apps'. The pass threshold for this task is 75 points."
+}

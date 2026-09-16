@@ -1,0 +1,35 @@
+{
+  "id": "create_master_detail_form@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a Master-Detail form named 'ArtistDiscography' in the Chinook database. The main form must display the ArtistId and Name from the 'Artist' table, and the subform must display the Title from the 'Album' table in a datasheet format. Link the subform to the main form using the ArtistId field. Save the form as 'ArtistDiscography' and save the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_master_detail_form/setup_task.sh",
+    "post_task": "/workspace/tasks/create_master_detail_form/export_result.sh"
+  },
+  "metadata": {
+    "target_odb_path": "/home/ga/chinook.odb",
+    "form_name": "ArtistDiscography",
+    "master_table": "Artist",
+    "detail_table": "Album",
+    "scoring": {
+      "form_exists": 20,
+      "master_correct": 20,
+      "detail_correct": 20,
+      "hierarchy_exists": 30,
+      "file_saved": 10
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_master_detail_form"
+    }
+  }
+}

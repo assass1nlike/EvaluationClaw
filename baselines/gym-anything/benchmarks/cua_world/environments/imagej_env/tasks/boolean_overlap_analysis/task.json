@@ -1,0 +1,38 @@
+{
+  "id": "boolean_overlap_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Boolean Overlap Analysis of Fluorescent Markers",
+  "description": "Perform an object-based colocalization analysis on the 'Fluorescent Cells' sample image to isolate regions where both red and green signals are present. Create binary masks for the red and green channels using automatic thresholding. Save the red mask to ~/ImageJ_Data/results/mask_red.tif and the green mask to ~/ImageJ_Data/results/mask_green.tif. Generate an intersection mask showing pixels where both masks overlap and save it to ~/ImageJ_Data/results/mask_overlap.tif. Count the discrete objects in the intersection mask and save the results to ~/ImageJ_Data/results/overlap_counts.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "imagej",
+    "logic",
+    "segmentation",
+    "colocalization",
+    "boolean-operations"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/boolean_overlap_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/boolean_overlap_analysis/export_result.sh"
+  },
+  "metadata": {
+    "red_mask_path": "/home/ga/ImageJ_Data/results/mask_red.tif",
+    "green_mask_path": "/home/ga/ImageJ_Data/results/mask_green.tif",
+    "overlap_mask_path": "/home/ga/ImageJ_Data/results/mask_overlap.tif",
+    "counts_path": "/home/ga/ImageJ_Data/results/overlap_counts.csv",
+    "min_expected_objects": 3,
+    "max_expected_objects": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_boolean_overlap"
+    }
+  }
+}

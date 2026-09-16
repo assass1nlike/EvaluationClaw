@@ -1,0 +1,34 @@
+{
+  "id": "particle_fur_system_setup@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A creature artist needs to prototype fur for a stylized animal character. In the provided Blender scene, place a Suzanne (Monkey) mesh at (0, 0, 1.5) and ensure the BaseCube is not obstructing the view. Apply a Hair particle system to Suzanne with at least 5,000 emission particles, a hair length of approximately 0.15 units, and Simple children with a render amount of at least 50. Create and assign a warm brown/orange material using a Principled BSDF (constraints: R > G > B, R >= 0.4, B <= 0.2). Save the rendered image to /home/ga/BlenderProjects/fur_render.png and the project file to /home/ga/BlenderProjects/fur_setup.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/particle_fur_system_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/particle_fur_system_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_blend": "/home/ga/BlenderProjects/fur_setup.blend",
+    "expected_render": "/home/ga/BlenderProjects/fur_render.png",
+    "min_hair_count": 5000,
+    "min_children_render": 50,
+    "hair_length_range": [
+      0.05,
+      0.3
+    ],
+    "target_color_desc": "Warm Brown (R > G > B, R >= 0.4)",
+    "min_render_size_kb": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_particle_fur_system_setup"
+    }
+  }
+}

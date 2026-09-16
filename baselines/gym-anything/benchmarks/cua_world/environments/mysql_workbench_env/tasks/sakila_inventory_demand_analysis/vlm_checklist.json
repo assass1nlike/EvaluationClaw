@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_inventory_demand_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Connect to the MySQL server and select the sakila database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a MySQL prompt with 'USE sakila;' executed, or a database GUI (like DBeaver) connected to the 'sakila' database."
+    },
+    {
+      "id": "write_calculation_logic",
+      "description": "Formulate the SQL query with the correct calculations for theoretical capacity and utilization percentage.",
+      "points": 20,
+      "visual_evidence": "SQL code visible in an editor or terminal showing calculations like 'inventory_count * 31 * 24' and '(total_rented_hours / theoretical_capacity_hours) * 100' with a ROUND function to 2 decimal places."
+    },
+    {
+      "id": "write_cleaning_logic",
+      "description": "Implement data cleaning rules to exclude invalid records and handle NULL return dates.",
+      "points": 20,
+      "visual_evidence": "SQL code showing a WHERE clause filtering out negative durations (e.g., 'return_date >= rental_date') and logic handling open rentals (e.g., IFNULL, COALESCE, or CASE statements assigning 24 hours when return_date IS NULL)."
+    },
+    {
+      "id": "create_view",
+      "description": "Create the view named v_july_2005_utilization.",
+      "points": 20,
+      "visual_evidence": "Execution of a 'CREATE VIEW v_july_2005_utilization AS...' statement, followed by a success message (e.g., 'Query OK') in the terminal or database client."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the top 30 films with the highest utilization percentage to the specified CSV file.",
+      "points": 30,
+      "visual_evidence": "A query selecting from the view with 'ORDER BY utilization_pct DESC LIMIT 30' being exported, or a terminal command (like INTO OUTFILE or a Python/bash script) saving the output to '/home/ga/Documents/exports/high_utilization_films.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_connection",
+      "description": "The agent interacts with a real MySQL client or writes a script to connect to the database.",
+      "visual_evidence": "Presence of a MySQL CLI prompt, a database GUI, or a script executing database connection commands, rather than just typing SQL into a plain text file without running it."
+    },
+    {
+      "id": "actual_query_execution",
+      "description": "The view creation and export queries are actually executed.",
+      "visual_evidence": "System output showing query execution results, such as 'Query OK, X rows affected' or a visible data grid of the results before export."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The CSV file is generated programmatically or via built-in export tools.",
+      "visual_evidence": "The file is created via SQL 'INTO OUTFILE', a command-line redirection (e.g., 'mysql ... > file.csv'), or a GUI export wizard, not by manually copy-pasting data into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'sakila'. The view must be named 'v_july_2005_utilization' and analyze data specifically for July 2005 ('2005-07'). The final output must be exported to '/home/ga/Documents/exports/high_utilization_films.csv' and contain exactly the top 30 films."
+}

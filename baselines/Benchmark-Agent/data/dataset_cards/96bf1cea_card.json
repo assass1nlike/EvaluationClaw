@@ -1,0 +1,84 @@
+{
+  "dataset_id": "96bf1cea",
+  "name": "Helmet-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 305,
+  "description": "Helmet-Detection is an object detection dataset where the goal is to localize all helmet regions in an image. Each sample provides an image and a short instruction, and the target is a set of bounding boxes for helmets.",
+  "card_text": "The Helmet-Detection dataset consists of images paired with textual prompts instructing the model to detect all helmet regions. The images are likely from outdoor scenes involving bicycles and riders, with varying numbers of helmets. The output is provided as a dictionary of bounding boxes, each given as [x, y, width, height] coordinates. There are no explicit category labels beyond the implicit helmet class. The dataset is used to evaluate object detection and localization capabilities, specifically for safety equipment recognition. The prompts are short and imperative, and the visual scenes vary in complexity, typically containing one or more helmet instances. No textual context or additional annotations are provided.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "traffic safety",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "The input image showing scenes that may contain people wearing helmets; it is the visual context for the helmet detection task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short imperative instruction asking the model to detect all helmet regions in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category: bbox"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A dictionary mapping integer indices to bounding boxes [x, y, width, height] for each detected helmet in the image. The number of boxes varies per sample.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image (context) and a short textual instruction (question). The expected output is a set of bounding boxes (bbox) for helmet regions, serialized as a dictionary mapping integer indices to [x, y, width, height] coordinates. There are no explicit category labels or textual answers beyond the bounding boxes."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/helmet-detection/json/annotation.json",
+    "existing_tags": {
+      "task": "helmet detection",
+      "type": "comprehension",
+      "skill": "Safety Detection",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

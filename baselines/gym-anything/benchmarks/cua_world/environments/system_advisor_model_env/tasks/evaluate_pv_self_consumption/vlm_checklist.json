@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_pv_self_consumption@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "The agent creates a Python script to model the PV system using the PySAM library.",
+      "points": 20,
+      "visual_evidence": "A text editor or IDE showing Python code that imports PySAM (e.g., 'import PySAM.Pvwattsv8' or 'import PySAM')."
+    },
+    {
+      "id": "configure_system_parameters",
+      "description": "The agent configures the Pvwattsv8 model with the specified system parameters.",
+      "points": 20,
+      "visual_evidence": "Python code setting the system parameters: capacity to 100 (or 100000 W), module type to 0, array type to 1, tilt to 10, azimuth to 180, losses to 14, DC-to-AC ratio to 1.15, and inverter efficiency to 96."
+    },
+    {
+      "id": "load_weather_and_load_data",
+      "description": "The agent loads the specified weather data and commercial load profile.",
+      "points": 15,
+      "visual_evidence": "Python code referencing the exact file paths: '/home/ga/SAM_Weather_Data/phoenix_az_tmy.csv' for weather and '/home/ga/Documents/SAM_Projects/commercial_load_8760.csv' for the load profile."
+    },
+    {
+      "id": "calculate_energy_metrics",
+      "description": "The agent calculates the hourly energy balance, self-consumption ratio, and solar fraction.",
+      "points": 15,
+      "visual_evidence": "Python code showing array operations or loops (e.g., using pandas, numpy, or standard lists) that compare the hourly AC generation from PySAM against the hourly commercial load to compute imported/exported energy, self-consumption, and solar fraction."
+    },
+    {
+      "id": "save_json_results",
+      "description": "The agent saves the calculated metrics to the specified JSON file with the required keys.",
+      "points": 30,
+      "visual_evidence": "A terminal showing successful script execution, or a view of the generated '/home/ga/Documents/SAM_Projects/self_consumption_results.json' file containing the keys: 'annual_energy_kwh', 'annual_load_kwh', 'annual_energy_exported_kwh', 'annual_energy_imported_kwh', 'self_consumption_ratio_pct', and 'solar_fraction_pct'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pysam_execution",
+      "description": "The agent actually executed a Python script to generate the results rather than manually creating the JSON file.",
+      "visual_evidence": "A terminal window showing the execution of the Python script (e.g., 'python script.py') without errors."
+    },
+    {
+      "id": "calculated_not_hardcoded",
+      "description": "The agent calculated the final metrics programmatically rather than hardcoding guessed values into the JSON output.",
+      "visual_evidence": "The Python script passes variables derived from the PySAM simulation and load data into the JSON dictionary, rather than static numerical values."
+    },
+    {
+      "id": "no_sam_gui_shortcut",
+      "description": "The agent used the PySAM Python library as requested, rather than using the SAM desktop GUI application.",
+      "visual_evidence": "Absence of the System Advisor Model (SAM) graphical user interface being used to run the simulation."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/Documents/SAM_Projects/self_consumption_results.json'. It must contain the exact keys: 'annual_energy_kwh', 'annual_load_kwh', 'annual_energy_exported_kwh', 'annual_energy_imported_kwh', 'self_consumption_ratio_pct', and 'solar_fraction_pct'. The 'annual_energy_kwh' value must fall between 150,000 and 190,000 kWh (expected ~167,563 kWh)."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "hot_climate_building_orientation@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a green building consultant. The Energy3D project 'building-orientation.ng3' is open. This model has its long axis facing South, which may not be ideal for a hot desert climate. Your task: 1. Change the project's geographical location to Phoenix, AZ. 2. Select the building (or its foundation) and change its azimuth (rotation) by approximately 90 degrees to face East/West. 3. Run an 'Annual Energy Analysis' to calculate the new heating and cooling loads (ensure the graph appears). 4. Save the modified project as 'phoenix_rotated.ng3' in the ~/Documents/Energy3D/ directory.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hot_climate_building_orientation/setup_task.sh",
+    "post_task": "/workspace/tasks/hot_climate_building_orientation/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Green Building Consultant",
+    "industry": "Architecture / Environmental Engineering",
+    "starter_file": "building-orientation.ng3",
+    "expected_output_path": "/home/ga/Documents/Energy3D/phoenix_rotated.ng3",
+    "min_file_size_bytes": 1024
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hot_climate_building_orientation"
+    }
+  }
+}

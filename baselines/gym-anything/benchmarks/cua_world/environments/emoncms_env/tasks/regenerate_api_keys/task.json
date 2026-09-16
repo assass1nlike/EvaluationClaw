@@ -1,0 +1,32 @@
+{
+  "id": "regenerate_api_keys@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Regenerate both the Read and Write API keys for the Emoncms admin account. Save the new keys to /home/ga/new_apikeys.txt using the following format:\nWRITE_KEY=<new_write_key>\nREAD_KEY=<new_read_key>\nEnsure the old keys (provided in /tmp/old_apikeys.txt for reference) are no longer valid.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/regenerate_api_keys/setup_task.sh",
+    "post_task": "/workspace/tasks/regenerate_api_keys/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/new_apikeys.txt",
+    "reference_file": "/tmp/old_apikeys.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regenerate_api_keys"
+    }
+  },
+  "tags": [
+    "security",
+    "account-management",
+    "api",
+    "web-ui"
+  ]
+}

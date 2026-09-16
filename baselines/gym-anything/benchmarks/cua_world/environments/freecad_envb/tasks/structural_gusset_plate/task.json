@@ -1,0 +1,33 @@
+{
+  "id": "structural_gusset_plate@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "You are an Architectural Drafter at a structural steel fabrication company. Design a steel gusset plate connection bracket in FreeCAD for connecting a diagonal HSS brace to a W8x31 wide-flange column. The gusset plate must be 250mm wide x 200mm tall x 12mm thick. Include a brace bolt group of four 22mm clearance holes arranged in a 2-row x 2-column pattern (70mm gauge width, 75mm row pitch) positioned in the upper-left quadrant of the plate. Include a column bolt group of four 22mm clearance holes in a 2x2 pattern (70mm gauge, 75mm pitch) positioned along the left edge for column flange attachment. Apply a 45-degree chamfer with a 6mm depth along the top edge for weld preparation. Create a spreadsheet within the model listing the plate width, height, thickness, bolt diameter, and gauge as named parameters to serve as a Bill of Materials. Log in as ga / password123. Export the finished plate to /home/ga/Documents/FreeCAD/gusset_plate.step and save the FreeCAD model to /home/ga/Documents/FreeCAD/gusset_plate.FCStd.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/structural_gusset_plate/setup_task.sh",
+    "post_task": "/workspace/tasks/structural_gusset_plate/export_result.sh"
+  },
+  "metadata": {
+    "output_fcstd": "/home/ga/Documents/FreeCAD/gusset_plate.FCStd",
+    "output_step": "/home/ga/Documents/FreeCAD/gusset_plate.step",
+    "result_json": "/tmp/structural_gusset_plate_result.json",
+    "plate_width_mm": 250,
+    "plate_height_mm": 200,
+    "plate_thickness_mm": 12,
+    "bolt_clearance_dia_mm": 22,
+    "total_bolt_holes": 8,
+    "required_chamfer_or_fillet": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_structural_gusset_plate"
+    }
+  }
+}

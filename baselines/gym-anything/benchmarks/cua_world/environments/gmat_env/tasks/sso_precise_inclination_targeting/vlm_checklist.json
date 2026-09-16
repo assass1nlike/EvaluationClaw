@@ -1,0 +1,59 @@
+{
+  "task_id": "sso_precise_inclination_targeting@1",
+  "task_completion": [
+    {
+      "id": "script_modified_target_sequence",
+      "description": "The agent modifies the GMAT script to include a targeting sequence to adjust the inclination.",
+      "points": 20,
+      "visual_evidence": "A text editor or GMAT GUI showing the script sso_baseline.script with a Target sequence added, including a Vary command for inclination, a Propagate command, and an Achieve command for RAAN."
+    },
+    {
+      "id": "vary_command_parameters",
+      "description": "The Vary command is configured with the correct initial guess, perturbation, and max step.",
+      "points": 15,
+      "visual_evidence": "The script or GMAT GUI shows the Vary command for inclination with an initial guess of 97.787, a perturbation of 0.001, and a max step of 0.05."
+    },
+    {
+      "id": "achieve_command_parameters",
+      "description": "The Achieve command is configured to target the correct RAAN with the specified tolerance.",
+      "points": 15,
+      "visual_evidence": "The script or GMAT GUI shows the Achieve command targeting RAAN (e.g., Sat.EarthMJ2000Eq.RAAN) to exactly 9.8565 with a tolerance of 0.0001."
+    },
+    {
+      "id": "gmat_execution_convergence",
+      "description": "The agent runs the modified script in GMAT and it successfully converges.",
+      "points": 20,
+      "visual_evidence": "The GMAT GUI, message window, or terminal output shows that the script was executed and the Targeter converged successfully."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The agent creates the required report file with the correct format.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the contents of ~/GMAT_output/precise_sso_report.txt containing exactly the lines 'converged_inclination_deg: <value>' and 'final_raan_deg: <value>'."
+    },
+    {
+      "id": "report_values_correct",
+      "description": "The values in the report file match the expected converged inclination and target RAAN.",
+      "points": 20,
+      "visual_evidence": "The report file shows a converged_inclination_deg between 97.79 and 97.83, and a final_raan_deg of approximately 9.8565."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gmat_execution",
+      "description": "The agent actually ran the script using GMAT to find the converged values.",
+      "visual_evidence": "Screenshots showing the GMAT GUI open with the script loaded and run, or terminal output showing GMAT execution logs, rather than just guessing the values."
+    },
+    {
+      "id": "no_hardcoded_report",
+      "description": "The agent derived the report values from the GMAT output.",
+      "visual_evidence": "The values in the report match the output seen in the GMAT execution or message window."
+    },
+    {
+      "id": "correct_script_path",
+      "description": "The agent modified the correct baseline script.",
+      "visual_evidence": "The file being edited or loaded into GMAT is ~/Documents/missions/sso_baseline.script."
+    }
+  ],
+  "privileged_info_for_vlm": "The target RAAN is exactly 9.8565 degrees. The Achieve command tolerance must be set to 0.0001 in the script. The expected converged inclination should be between 97.79 and 97.83 degrees. The report must be saved at /home/ga/GMAT_output/precise_sso_report.txt with exactly two lines: 'converged_inclination_deg: <value>' and 'final_raan_deg: <value>'."
+}

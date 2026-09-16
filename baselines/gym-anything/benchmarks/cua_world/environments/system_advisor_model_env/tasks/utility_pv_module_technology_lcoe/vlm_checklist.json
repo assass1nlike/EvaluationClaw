@@ -1,0 +1,53 @@
+{
+  "task_id": "utility_pv_module_technology_lcoe@1",
+  "task_completion": [
+    {
+      "id": "location_setup",
+      "description": "Verify the location is set to Daggett, CA or the specific coordinates.",
+      "points": 15,
+      "visual_evidence": "In SAM GUI's 'Location and Resource' page, Daggett, CA is selected or coordinates (34.867, -116.783) are entered. If using PySAM, look for these coordinates or the Daggett weather file in the script."
+    },
+    {
+      "id": "system_design_setup",
+      "description": "Verify the system design parameters are configured correctly.",
+      "points": 15,
+      "visual_evidence": "In SAM GUI's 'System Design' page (or PySAM script), the system size is set to 50,000 kW DC (or 50 MW), tracking is set to single-axis, and Ground Coverage Ratio (GCR) is 0.4."
+    },
+    {
+      "id": "module_setup",
+      "description": "Verify the three specific module technologies are configured with their electrical parameters.",
+      "points": 25,
+      "visual_evidence": "In SAM GUI's 'Module' page (or PySAM script), custom parameters are entered for Tech A (440W, 20.4% eff), Tech B (490W, 22.8% eff), and Tech C (440W, 19.1% eff), including their specific Vmp, Imp, Voc, Isc, and temperature coefficients. This may be visible across multiple cases/tabs or in a script."
+    },
+    {
+      "id": "financial_setup",
+      "description": "Verify the financial and cost assumptions are entered.",
+      "points": 20,
+      "visual_evidence": "In SAM GUI's 'System Costs', 'Financial Parameters', and 'Incentives' pages (or PySAM script), values like $0.45/W DC BOS, $14/kW-yr O&M, 30% federal ITC, 6% discount rate, 60% debt fraction at 5.5%, and $35/MWh PPA price are visible."
+    },
+    {
+      "id": "simulation_results",
+      "description": "Verify the simulation is run and results are generated for the technologies.",
+      "points": 25,
+      "visual_evidence": "A results screen, summary table, or script output showing Year 1 annual energy, capacity factor, total installed cost, and real LCOE for the evaluated technologies. The results should be compared to determine the lowest LCOE."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_interaction",
+      "description": "Ensure the agent actually used SAM or PySAM to generate the results.",
+      "visual_evidence": "Screenshots should show the SAM application interface being actively used, or a terminal/IDE where a PySAM script is executed. The results should not just be typed into a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not hardcode the expected results.",
+      "visual_evidence": "The results must clearly stem from the SAM simulation output (e.g., SAM results tables, graphs, or printed output from a PySAM script) rather than being manually typed out without running a simulation."
+    },
+    {
+      "id": "multiple_technologies_evaluated",
+      "description": "Ensure the agent evaluated all three technologies.",
+      "visual_evidence": "Evidence of at least three distinct simulation runs, cases, or parametric variations corresponding to Tech A, Tech B, and Tech C."
+    }
+  ],
+  "privileged_info_for_vlm": "The simulation must use the pvsamv1 model. The site coordinates are exactly Latitude: 34.867, Longitude: -116.783. The PPA price is $35/MWh. Expected valid simulation results should fall within these ranges: Capacity Factor between 22.0% and 35.0%, Real LCOE between $20.0/MWh and $80.0/MWh, and Year 1 Annual Energy Production (AEP) between 90,000 MWh and 160,000 MWh. The agent must evaluate exactly 3 technologies."
+}

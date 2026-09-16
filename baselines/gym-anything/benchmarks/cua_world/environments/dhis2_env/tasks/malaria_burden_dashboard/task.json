@@ -1,0 +1,30 @@
+{
+  "id": "malaria_burden_dashboard@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "You are the District Health Information Officer for Bo District, Sierra Leone, preparing a malaria burden analysis for a quarterly review. Using DHIS2 at http://localhost:8080 (login: admin / district), create a dashboard named 'Bo District Malaria Burden 2023' containing three visualizations: a bar or column chart named 'Bo Malaria Monthly Cases 2023' showing monthly confirmed malaria cases (RDT positive or confirmed) for Bo district in 2023; a pivot table named 'Bo Malaria Positivity Quarterly 2023' showing malaria-related indicator data (tested and/or positive counts) by quarter for Bo district in 2023; and a thematic map named 'Bo Malaria Facility Map 2023' showing malaria case",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/malaria_burden_dashboard/setup_task.sh",
+    "post_task": "/workspace/tasks/malaria_burden_dashboard/export_result.sh"
+  },
+  "metadata": {
+    "dashboard_name": "Bo District Malaria Burden 2023",
+    "required_visualization_count": 3,
+    "required_map_count": 1,
+    "target_org_unit": "Bo district",
+    "target_period": "2023",
+    "task_focus": "malaria analytics dashboard"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_malaria_burden_dashboard"
+    }
+  }
+}

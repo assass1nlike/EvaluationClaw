@@ -1,0 +1,33 @@
+{
+  "id": "glcm_texture_phase_discrimination@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a materials scientist analyzing a eutectic alloy microstructure image (~/Fiji_Data/raw/alloy/AuPbSn40.jpg) to quantitatively discriminate between Phase A (brighter, finer-textured) and Phase B (darker, coarser-textured) using texture features. Define at least three square ROIs (~80-120 pixels per side) for each phase, naming them PhaseA_1, PhaseA_2, PhaseA_3 and PhaseB_1, PhaseB_2, PhaseB_3 respectively. Save the ROI set to ~/Fiji_Data/results/texture/rois.zip. Compute texture features (such as ASM, Contrast, Correlation, IDM, and Entropy via GLCM, or statistical measures from variance-filtered images) for each ROI. Save these measurements to ~/Fiji_Data/results/texture/glcm_measurements.csv, ensuring the file includes a header row and at least six rows of data. Generate an annotated overlay image showing the ROI locations on the microstructure and save it to ~/Fiji_Data/results/texture/annotated_microstructure.png. Write a summary report to ~/Fiji_Data/results/texture/texture_report.txt containing the Mean ± StdDev of each texture feature for both phases, an identification of the feature that best discriminates between them, and a conclusion on whether texture analysis successfully distinguishes the two phases.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/glcm_texture_phase_discrimination/setup_task.sh",
+    "post_task": "/workspace/tasks/glcm_texture_phase_discrimination/export_result.sh"
+  },
+  "metadata": {
+    "image_path": "~/Fiji_Data/raw/alloy/AuPbSn40.jpg",
+    "output_dir": "~/Fiji_Data/results/texture/",
+    "min_rois": 6,
+    "required_files": [
+      "rois.zip",
+      "glcm_measurements.csv",
+      "annotated_microstructure.png",
+      "texture_report.txt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_glcm_texture_phase_discrimination"
+    }
+  }
+}

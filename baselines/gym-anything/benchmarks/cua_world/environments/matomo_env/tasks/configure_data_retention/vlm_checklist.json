@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_data_retention@1",
+  "task_completion": [
+    {
+      "id": "enable_log_deletion",
+      "description": "Enable automatic deletion of raw visitor logs",
+      "points": 12,
+      "visual_evidence": "In the Matomo Privacy settings (usually under 'Anonymize data'), the checkbox or radio button to regularly delete old raw data/visitor logs is selected or enabled."
+    },
+    {
+      "id": "set_log_retention_days",
+      "description": "Set the retention period for raw visitor logs to 180 days",
+      "points": 15,
+      "visual_evidence": "The input field for 'Delete logs older than' (or similar wording for raw data) contains the value '180'."
+    },
+    {
+      "id": "enable_report_deletion",
+      "description": "Enable automatic deletion of old aggregated report data",
+      "points": 12,
+      "visual_evidence": "The checkbox or radio button to regularly delete old reports (aggregated data) is selected or enabled."
+    },
+    {
+      "id": "set_report_retention_days",
+      "description": "Set the retention period for aggregated reports to 365 days",
+      "points": 15,
+      "visual_evidence": "The input field for 'Delete reports older than' contains the value '365'."
+    },
+    {
+      "id": "configure_kept_reports",
+      "description": "Configure report data preservation to keep basic metrics, monthly, yearly, and segment reports",
+      "points": 30,
+      "visual_evidence": "Under the section specifying which reports to keep, the checkboxes for 'Basic metrics', 'Monthly reports', 'Yearly reports', and 'Segment reports' are all checked."
+    },
+    {
+      "id": "configure_deleted_reports",
+      "description": "Ensure daily and weekly reports are not kept",
+      "points": 16,
+      "visual_evidence": "Under the section specifying which reports to keep, the checkboxes for 'Daily reports' and 'Weekly reports' are explicitly unchecked."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "Agent used the Matomo web interface to configure settings",
+      "visual_evidence": "Screenshots show the agent navigating the Matomo web UI in a browser, rather than executing SQL queries or terminal commands to modify the database directly."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Agent interacted with the actual Matomo application",
+      "visual_evidence": "The browser shows a live Matomo instance with standard navigation menus, not a static HTML mock or text editor."
+    },
+    {
+      "id": "settings_saved",
+      "description": "Agent saved the configured settings",
+      "visual_evidence": "A 'Save' button was clicked at the bottom of the settings page, or a success message (e.g., 'Settings saved') is visible in the final screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring Matomo's PrivacyManager plugin, typically found under Administration > Privacy > Anonymize data. Verified settings to look for: 1) Raw visitor logs deletion is enabled with a value of 180 days. 2) Aggregated reports deletion is enabled with a value of 365 days. 3) Under report preservation ('Keep data for'), the following must be CHECKED: Basic metrics, Monthly reports, Yearly reports, and Segment reports. The following must be UNCHECKED: Daily reports and Weekly reports."
+}

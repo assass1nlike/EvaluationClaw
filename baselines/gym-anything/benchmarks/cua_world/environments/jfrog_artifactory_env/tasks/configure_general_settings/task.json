@@ -1,0 +1,29 @@
+{
+  "id": "configure_general_settings@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Configure the global system settings for JFrog Artifactory at http://localhost:8082 (Username: 'admin', Password: 'password'). Set the 'Custom Base URL' to 'https://artifacts.acme-corp.io' and the 'File Upload Max Size' to '500' MB. Ensure the changes are persisted.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_general_settings/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_general_settings/export_result.sh"
+  },
+  "metadata": {
+    "expected_url_base": "https://artifacts.acme-corp.io",
+    "expected_upload_max_mb": 500,
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_general_settings"
+    }
+  }
+}

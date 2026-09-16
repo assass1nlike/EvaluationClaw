@@ -1,0 +1,59 @@
+{
+  "id": "configure_change_risk@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Log in to ManageEngine ServiceDesk Plus as 'administrator' (password: 'administrator') and configure the Change Management Risk Assessment logic by adding the following weighted questions:\n\nQuestion 1:\n- Name: 'Deployment Complexity'\n- Description: 'Is the deployment process automated or manual?'\n- Choices: 'Fully Automated' (Score: 1), 'Partially Automated' (Score: 3), 'Manual / Complex' (Score: 5)\n\nQuestion 2:\n- Name: 'Service Redundancy'\n- Description: 'Does the affected service have failover capability?'\n- Choices: 'High Availability Cluster' (Score: 1), 'Single Point of Failure' (Score: 5)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_change_risk/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_change_risk/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "required_questions": [
+      {
+        "text": "Deployment Complexity",
+        "description": "Is the deployment process automated or manual?",
+        "choices": [
+          {
+            "text": "Fully Automated",
+            "score": 1
+          },
+          {
+            "text": "Partially Automated",
+            "score": 3
+          },
+          {
+            "text": "Manual / Complex",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Service Redundancy",
+        "description": "Does the affected service have failover capability?",
+        "choices": [
+          {
+            "text": "High Availability Cluster",
+            "score": 1
+          },
+          {
+            "text": "Single Point of Failure",
+            "score": 5
+          }
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_change_risk"
+    }
+  }
+}

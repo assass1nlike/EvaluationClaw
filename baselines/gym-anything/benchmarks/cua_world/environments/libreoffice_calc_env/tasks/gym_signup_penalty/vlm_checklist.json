@@ -1,0 +1,53 @@
+{
+  "task_id": "gym_signup_penalty@1",
+  "task_completion": [
+    {
+      "id": "open_booking_data",
+      "description": "Agent opens or loads the gym booking and member data",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening the data file in a spreadsheet program (like LibreOffice Calc) or loading it in a Python script/Jupyter notebook. Look for columns like 'member_id', 'class_date', 'class_time', 'attended', or member demographics."
+    },
+    {
+      "id": "calculate_penalties",
+      "description": "Agent calculates no-show and late cancellation penalties",
+      "points": 25,
+      "visual_evidence": "Screenshots show formulas in a spreadsheet or code in a script calculating penalties. Look for logic checking the 2-hour grace period (comparing cancellation time to class time) or counting strikes within a 30-day rolling window."
+    },
+    {
+      "id": "assign_member_status",
+      "description": "Agent assigns WARNING or RESTRICTED statuses based on strikes",
+      "points": 25,
+      "visual_evidence": "Screenshots show logic or results assigning statuses to members. Look for conditions checking if strikes equal 2 (WARNING) or 3+ (RESTRICTED)."
+    },
+    {
+      "id": "audit_fairness",
+      "description": "Agent audits system fairness across demographics",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent analyzing penalties or statuses grouped by demographic data. Look for pivot tables, pandas groupby operations in code, or summary tables that include 'age_group' or 'membership_type' alongside penalty/status metrics."
+    },
+    {
+      "id": "save_outputs",
+      "description": "Agent saves the processed data and fairness report",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent saving the final files. Look for a 'Save As' dialog, terminal commands executing a script that writes files, or a file explorer showing the newly created processed data and fairness report files in the designated path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "Agent performs actual data manipulation rather than faking the process",
+      "visual_evidence": "Look for active use of spreadsheet formulas, pivot tables, or writing/executing data analysis code (e.g., Python/pandas). The agent should not just type out a final report from memory."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent derives the fairness report and member statuses from the source data",
+      "visual_evidence": "Ensure the agent does not paste a pre-computed string or file content for the fairness report or processed data without evidence of calculating it."
+    },
+    {
+      "id": "actual_file_saving",
+      "description": "Agent actually saves the files to the disk",
+      "visual_evidence": "Look for visual confirmation of file creation, such as a file manager view, terminal 'ls' commands showing the new files, or successful save dialogs, rather than just displaying the output on screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 208 booking rows (including 8 intentional duplicates) and 50 member profiles. Rules to enforce: 2-hour grace period for cancellations, 2 strikes for WARNING status, 3 strikes for RESTRICTED status, and a 30-day rolling window for strike counting. Data spans 90 days from 2024-01-01. Demographics include 5 age groups ('18-25', '26-35', '36-45', '46-55', '56+') and 4 membership types ('Basic', 'Premium', 'Student', 'Senior'). The agent must handle data quality issues including duplicates, name formatting inconsistencies, and empty cancellation timestamps."
+}

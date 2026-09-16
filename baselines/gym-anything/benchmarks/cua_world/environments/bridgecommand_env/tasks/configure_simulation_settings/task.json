@@ -1,0 +1,27 @@
+{
+  "id": "configure_simulation_settings@1",
+  "version": "1.0",
+  "env_id": "bridgecommand_env@0.1",
+  "description": "Update the 'view_angle' configuration in the Bridge Command launcher settings to 60 and save the changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_simulation_settings/setup_task.sh"
+  },
+  "metadata": {
+    "setting_to_change": "view_angle",
+    "original_value": "90",
+    "target_value": "60",
+    "expected_state": "settings_modified"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_simulation_settings"
+    }
+  }
+}

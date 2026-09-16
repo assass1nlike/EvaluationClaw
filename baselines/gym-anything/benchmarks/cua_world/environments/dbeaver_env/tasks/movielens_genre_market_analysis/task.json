@@ -1,0 +1,29 @@
+{
+  "id": "movielens_genre_market_analysis@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Market Research Analyst. A MovieLens database containing real user rating data from GroupLens Research (University of Minnesota) is located at /home/ga/Documents/databases/movielens.db with the following schema:\n- movies (movieId INTEGER, title TEXT, genres TEXT) — genres is a pipe-separated list\n- ratings (userId INTEGER, movieId INTEGER, rating REAL, timestamp INTEGER)\n- tags (userId INTEGER, movieId INTEGER, tag TEXT, timestamp INTEGER)\n\nUsing DBeaver with a connection named exactly 'MovieLens' (SQLite driver), identify the top 5 genres by average user rating, including only genres with at least 500 individual ratings. Each movie's rating applies to all its listed genres. Additionally, identify the top 10 'hidden gems' (average rating >= 4.0 and total rating count < 50) sorted by average rating descending, using movieId as a tie-breaker. Export the genre analysis to /home/ga/Documents/exports/genre_analysis.csv (columns: genre, avg_rating, rating_count) and the hidden gems analysis to /home/ga/Documents/exports/hidden_gems.csv (columns: movieId, title, avg_rating, rating_count). Save all SQL queries used in this analysis to /home/ga/Documents/scripts/market_analysis.sql. Login: ga / password123.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/movielens_genre_market_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/movielens_genre_market_analysis/export_result.sh"
+  },
+  "metadata": {
+    "target_db": "/home/ga/Documents/databases/movielens.db",
+    "connection_name": "MovieLens",
+    "output_genre_csv": "/home/ga/Documents/exports/genre_analysis.csv",
+    "output_gems_csv": "/home/ga/Documents/exports/hidden_gems.csv",
+    "output_sql": "/home/ga/Documents/scripts/market_analysis.sql",
+    "movielens_source": "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_movielens_genre_market_analysis"
+    }
+  }
+}

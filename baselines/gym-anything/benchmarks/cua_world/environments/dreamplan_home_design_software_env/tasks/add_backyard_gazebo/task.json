@@ -1,0 +1,27 @@
+{
+  "id": "add_backyard_gazebo@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "DreamPlan Home Design Software is open on the Windows desktop. Add a freestanding Gazebo to the backyard area of the current project. Ensure the gazebo is placed on the grass or open ground and does not overlap with the house or other objects. Save the project after placement. If the application prompts to download content or libraries, allow it.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_backyard_gazebo\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_backyard_gazebo\\export_result.ps1"
+  },
+  "metadata": {
+    "target_object": "Gazebo",
+    "target_location": "Backyard",
+    "project_dir": "Documents\\DreamPlan Projects"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_backyard_gazebo"
+    }
+  }
+}

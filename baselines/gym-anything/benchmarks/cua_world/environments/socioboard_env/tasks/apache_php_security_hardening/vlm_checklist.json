@@ -1,0 +1,59 @@
+{
+  "task_id": "apache_php_security_hardening@1",
+  "task_completion": [
+    {
+      "id": "apache_server_tokens_configured",
+      "description": "Configure Apache to hide OS and version details in the Server header.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor (like nano or vim) or a terminal command (like sed or echo) modifying an Apache configuration file (e.g., /etc/apache2/conf-available/security.conf or apache2.conf) to set 'ServerTokens Prod'."
+    },
+    {
+      "id": "apache_server_signature_configured",
+      "description": "Configure Apache to disable the server signature on server-generated pages.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal command modifying an Apache configuration file to set 'ServerSignature Off'."
+    },
+    {
+      "id": "php_expose_configured",
+      "description": "Configure PHP to remove the PHP version header.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal command modifying a php.ini file (e.g., /etc/php/7.4/apache2/php.ini) to set 'expose_php = Off'."
+    },
+    {
+      "id": "directory_browsing_disabled",
+      "description": "Configure Apache to disable directory browsing.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal command modifying an Apache configuration file (e.g., apache2.conf or a site-specific config) to remove 'Indexes' from the 'Options' directive, or explicitly setting 'Options -Indexes'."
+    },
+    {
+      "id": "apache_service_restarted",
+      "description": "Apply the configuration changes to the Apache service.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command executing 'systemctl restart apache2', 'systemctl reload apache2', or 'service apache2 restart' to apply the changes."
+    },
+    {
+      "id": "verification_test_successful",
+      "description": "Verify that the headers are hidden and directory browsing is forbidden.",
+      "points": 20,
+      "visual_evidence": "Look for a 'curl -I' command or browser network tab showing the 'Server: Apache' header (with no version/OS), the absence of the 'X-Powered-By: PHP' header, and a 'curl' or browser request to '/test_indexes/' returning a '403 Forbidden' error."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_configuration_edited",
+      "description": "Ensure the agent actually edited the configuration files rather than just printing the required text.",
+      "visual_evidence": "Check that the agent used a legitimate text editor (nano, vim) or valid shell commands (sed, echo >>) targeting the actual configuration files in /etc/apache2/ or /etc/php/."
+    },
+    {
+      "id": "service_actually_restarted",
+      "description": "Ensure the agent executed the restart command.",
+      "visual_evidence": "Check that the restart command was actually submitted in the terminal (e.g., a new prompt line appears after the command), not just typed without pressing Enter."
+    },
+    {
+      "id": "genuine_test_results",
+      "description": "Ensure the verification tests are genuine.",
+      "visual_evidence": "If the agent tested the configuration, verify that the curl outputs or browser screens look like genuine HTTP responses and not mocked text output via 'echo'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected 'Server' HTTP header must be exactly 'Apache' (no version or OS details). The vulnerable directory to test for a 403 Forbidden error is exactly '/test_indexes/'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "sar_coordination_exercise@1",
+  "task_completion": [
+    {
+      "id": "environment_ini_configured",
+      "description": "Create environment.ini with specified Solent settings",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a text editor or terminal output of environment.ini containing Setting='Solent', StartTime=05.5, VisibilityRange=1.5, and Sea State/Weather=3.0."
+    },
+    {
+      "id": "ownship_ini_configured",
+      "description": "Create ownship.ini with the RNLI Severn Class vessel and correct initial state",
+      "points": 15,
+      "visual_evidence": "Screenshots showing ownship.ini containing the vessel 'RNLI Severn Class 17-35' positioned at Lat 50.765, Long -1.295, with Heading 045 and Speed 6.0."
+    },
+    {
+      "id": "othership_ini_vessels",
+      "description": "Define the four required vessels in othership.ini with correct speeds and casualty location",
+      "points": 20,
+      "visual_evidence": "Screenshots of othership.ini showing definitions for 'Coastguard Whiskey Bravo' (Speed 8.0), 'ILB Atlantic 85 Bravo-770' (Speed 5.0), 'MV Sea Guardian' (Speed 6.0), and 'SY Dorado Star' (Speed 0.0, located near Lat 50.768, Long -1.288)."
+    },
+    {
+      "id": "othership_ini_waypoints",
+      "description": "Configure Expanding Square Search waypoints for the three search vessels",
+      "points": 25,
+      "visual_evidence": "Screenshots of othership.ini showing waypoint lists for the Coastguard, ILB, and MV vessels. The waypoints must have more than 6 legs (entries) per vessel and show coordinate changes indicative of an expanding square (e.g., alternating latitude/longitude changes with increasing step sizes)."
+    },
+    {
+      "id": "bc5_ini_configured",
+      "description": "Configure Bridge Command bc5.ini for SAR radar operations",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the file /home/ga/.config/Bridge Command/bc5.ini being edited to include arpa_on=1, full_radar=1, radar_range_resolution=256, and max_radar_range=48."
+    },
+    {
+      "id": "sitrep_created",
+      "description": "Document the scenario in a SITREP text file",
+      "points": 15,
+      "visual_evidence": "Screenshots showing sar_sitrep.txt in /home/ga/Documents/ containing the datum coordinates (50.765, -1.295), the list of assets, the search pattern type (Expanding Square), and VHF channels."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_ini_formatting",
+      "description": "Ensure the agent used proper INI file formatting rather than just pasting the prompt text",
+      "visual_evidence": "The configuration files should look like standard INI files (e.g., using key=value pairs and bracketed section headers if applicable) rather than raw conversational text."
+    },
+    {
+      "id": "calculated_waypoints",
+      "description": "Ensure the agent actually calculated waypoints for the search pattern",
+      "visual_evidence": "The waypoints in othership.ini should be actual numerical latitude/longitude coordinates that form a pattern, not placeholder text like 'insert expanding square here'."
+    },
+    {
+      "id": "files_actually_saved",
+      "description": "Ensure the files were saved to the correct directories",
+      "visual_evidence": "Look for terminal commands like 'ls', 'cat', or file manager views confirming the files exist in /opt/bridgecommand/Scenarios/s) Solent SAR Exercise/ and /home/ga/Documents/."
+    }
+  ],
+  "privileged_info_for_vlm": "The target scenario directory is '/opt/bridgecommand/Scenarios/s) Solent SAR Exercise'. The datum is 50.765\u00b0N, -1.295\u00b0W. An 'Expanding Square Search' is a standard IAMSAR pattern consisting of concentric square spirals with 90-degree turns. To have 'more than 6 legs', the waypoint list for each searcher must contain at least 7 distinct coordinate points that spiral outward from the starting point (e.g., distances increasing every two legs: 1, 1, 2, 2, 3, 3, 4)."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "money_activity@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the Money activity in GCompris and complete 3 rounds of counting. Document the process by saving screenshots to ~/Documents/money_evidence/. Save a screenshot of the opened activity as activity_opened.png, a screenshot after completing 3 rounds as rounds_completed.png, and a final screenshot after returning to the main menu as main_menu_return.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/money_activity/setup_task.sh",
+    "post_task": "/workspace/tasks/money_activity/export_result.sh"
+  },
+  "metadata": {
+    "evidence_dir": "/home/ga/Documents/money_evidence",
+    "files": [
+      "activity_opened.png",
+      "rounds_completed.png",
+      "main_menu_return.png"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_money_activity"
+    }
+  }
+}

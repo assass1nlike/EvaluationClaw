@@ -1,0 +1,29 @@
+{
+  "id": "configure_shared_library@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Configure a Global Shared Pipeline Library named 'jenkins-shared-lib' with the default version 'master' using Modern SCM and the Git repository 'https://github.com/jenkins-infra/pipeline-library.git'. Create a Pipeline job named 'shared-lib-test' using a script that imports the library (@Library('jenkins-shared-lib') _) and runs a pipeline with a 'Verify' stage that echoes 'Library loaded'. Login credentials: Username: admin, Password: Admin123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_shared_library/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_shared_library/export_result.sh"
+  },
+  "metadata": {
+    "expected_lib_name": "jenkins-shared-lib",
+    "expected_repo": "https://github.com/jenkins-infra/pipeline-library.git",
+    "expected_version": "master",
+    "expected_job_name": "shared-lib-test",
+    "expected_annotation": "@Library('jenkins-shared-lib')"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_shared_library"
+    }
+  }
+}

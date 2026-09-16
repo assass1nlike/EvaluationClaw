@@ -1,0 +1,35 @@
+{
+  "id": "configure_spam_filtering@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "Configure SpamAssassin for the 'greenfield.test' virtual server in Virtualmin to address complaints about incorrect spam filtering. The greenfield.test nonprofit organization reports that emails from a trusted partner (trustedpartner.org) and their alerting system (important-alerts.net) are being incorrectly flagged, while known bulk senders are bypassing filters. Enable SpamAssassin for the domain with a spam classification score threshold of 4 and an auto-deletion threshold of 10. Ensure identified spam is delivered to each user's spam/junk mail folder. Whitelist *@trustedpartner.org and admin@important-alerts.net, and blacklist *@known-spammer.example and marketing@bulkmail.example. Save and apply all settings to the greenfield.test domain.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_spam_filtering/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_spam_filtering/export_result.sh"
+  },
+  "metadata": {
+    "target_domain": "greenfield.test",
+    "required_score": 4,
+    "delete_score": 10,
+    "whitelist": [
+      "*@trustedpartner.org",
+      "admin@important-alerts.net"
+    ],
+    "blacklist": [
+      "*@known-spammer.example",
+      "marketing@bulkmail.example"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_spam_filtering"
+    }
+  }
+}

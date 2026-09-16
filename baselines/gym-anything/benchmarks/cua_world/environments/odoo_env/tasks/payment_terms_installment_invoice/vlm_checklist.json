@@ -1,0 +1,53 @@
+{
+  "task_id": "payment_terms_installment_invoice@1",
+  "task_completion": [
+    {
+      "id": "payment_term_name",
+      "description": "Verify the creation of the custom payment term with the correct name.",
+      "points": 10,
+      "visual_evidence": "Look for a payment term configuration screen or list showing the name '3-Installment (30/40/30)'."
+    },
+    {
+      "id": "payment_term_schedule",
+      "description": "Verify the payment term is configured with the correct 3-installment schedule.",
+      "points": 30,
+      "visual_evidence": "Look at the payment term rules/lines. It should show three lines: 30% due immediately (0 days), 40% due in 30 days, and 30% (or 'Balance') due in 60 days."
+    },
+    {
+      "id": "invoice_customer_and_lines",
+      "description": "Verify the invoice is created for the correct customer with the correct products and total.",
+      "points": 20,
+      "visual_evidence": "Look for an invoice form where the Customer is 'Pinnacle Industries'. The invoice lines must show 10 'Industrial Control Panel' units at $750.00 each and 10 'Sensor Array Module' units at $500.00 each. The total amount should be $12,500.00."
+    },
+    {
+      "id": "invoice_payment_term_applied",
+      "description": "Verify the newly created payment term is applied to the invoice.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Payment Terms' field on the invoice form. It must be set to '3-Installment (30/40/30)'."
+    },
+    {
+      "id": "invoice_posted",
+      "description": "Verify the invoice has been posted.",
+      "points": 20,
+      "visual_evidence": "Look for the invoice status indicator. It should show 'Posted' (often indicated by a status bar or a 'Posted' ribbon), rather than 'Draft'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Odoo web interface.",
+      "visual_evidence": "Screenshots should show the Odoo web application in a browser, not terminal commands or API scripts interacting with the backend."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Verify the agent actually entered the data into the Odoo forms.",
+      "visual_evidence": "Screenshots should show the agent navigating menus, filling out form fields, and clicking save/confirm buttons, rather than just displaying a text file with the expected answers."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Verify the UI was not faked using browser developer tools.",
+      "visual_evidence": "The browser developer console/elements panel should not be open and actively modifying the DOM to fake the invoice or payment term names."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a payment term named '3-Installment (30/40/30)' in Odoo. The schedule must be exactly: 30% due immediately (0 days), 40% due in 30 days, and 30% (or balance) due in 60 days. The invoice must be for 'Pinnacle Industries' and include 10 'Industrial Control Panel' units ($750 each) and 10 'Sensor Array Module' units ($500 each), totaling exactly $12,500.00. The invoice must have the new payment term applied and be in a 'Posted' state."
+}

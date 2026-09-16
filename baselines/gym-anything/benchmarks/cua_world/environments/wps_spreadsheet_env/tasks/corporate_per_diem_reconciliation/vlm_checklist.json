@@ -1,0 +1,59 @@
+{
+  "task_id": "corporate_per_diem_reconciliation@1",
+  "task_completion": [
+    {
+      "id": "populate_gsa_rates",
+      "description": "Populate GSA_Lodging_Rate (G) and GSA_MIE_Rate (H) columns using lookup formulas.",
+      "points": 20,
+      "visual_evidence": "Columns G and H in the Expense_Claims sheet are filled with numerical rates. The formula bar should show a lookup function (e.g., VLOOKUP, XLOOKUP, INDEX) referencing the GSA_Rates sheet based on the State_City column."
+    },
+    {
+      "id": "calculate_approved_amounts",
+      "description": "Calculate Approved_Lodging (I) and Approved_MIE (J) by capping claimed amounts at the maximum allowable limits.",
+      "points": 20,
+      "visual_evidence": "Columns I and J are populated with calculated values. The formula bar should show a capping function (e.g., MIN, IF) that compares the claimed amount against the daily rate multiplied by the number of travel days."
+    },
+    {
+      "id": "calculate_totals_and_overages",
+      "description": "Determine Total_Reimbursement (K) and Overage (L).",
+      "points": 15,
+      "visual_evidence": "Columns K and L are populated. The formula bar should show arithmetic operations (e.g., adding approved amounts for column K, and subtracting approved from claimed for column L)."
+    },
+    {
+      "id": "format_currency",
+      "description": "Format columns E through L as Currency ($).",
+      "points": 10,
+      "visual_evidence": "Values in columns E through L display the '$' currency symbol and standard two-decimal formatting."
+    },
+    {
+      "id": "apply_conditional_formatting",
+      "description": "Apply conditional formatting to highlight overages greater than 0 in column L.",
+      "points": 15,
+      "visual_evidence": "In column L, cells containing values greater than 0 have distinct visual formatting (e.g., red background or text color) to highlight them, while cells with 0 or less do not."
+    },
+    {
+      "id": "create_summary_sheet",
+      "description": "Create a Summary sheet displaying 'Total Company Reimbursement' and 'Total Unreimbursed Overages'.",
+      "points": 20,
+      "visual_evidence": "A new sheet tab named 'Summary' is visible and active. It contains the text labels 'Total Company Reimbursement' and 'Total Unreimbursed Overages' alongside their respective aggregated total values (likely using SUM formulas)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used a spreadsheet GUI application to complete the task.",
+      "visual_evidence": "Screenshots show a spreadsheet application (e.g., LibreOffice Calc, Excel) open and being interacted with, rather than terminal commands executing a script to modify the file."
+    },
+    {
+      "id": "formula_usage",
+      "description": "Verify the agent used actual formulas rather than hardcoding the calculated answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar shows an actual formula (e.g., VLOOKUP, MIN, SUM) rather than a static, manually typed number."
+    },
+    {
+      "id": "correct_file_edited",
+      "description": "Verify the correct file is being edited.",
+      "visual_evidence": "The application window title or active document name clearly shows 'travel_reconciliation.xlsx'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses official US GSA FY2024 Per Diem Rates (e.g., San Francisco M&IE is $79). The agent MUST use specific formula types to pass: lookup functions (VLOOKUP/XLOOKUP/INDEX/MATCH) for rates, capping functions (MIN/IF) for approved amounts, and arithmetic/summation (+/-/SUM) for totals and overages. Verify these formulas are visible in the formula bar."
+}

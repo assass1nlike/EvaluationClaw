@@ -1,0 +1,53 @@
+{
+  "task_id": "diagnose_station_anomaly_scrttv@1",
+  "task_completion": [
+    {
+      "id": "inspect_waveforms_scrttv",
+      "description": "Agent opens the scrttv application to inspect the seismic waveforms and identify the anomaly.",
+      "points": 10,
+      "visual_evidence": "The scrttv GUI window is open, displaying multiple waveform traces for the GE network stations (TOLI, GSI, KWP, SANI, BKB)."
+    },
+    {
+      "id": "open_scconfig_bindings",
+      "description": "Agent opens the scconfig application and navigates to the Bindings configuration section.",
+      "points": 10,
+      "visual_evidence": "The scconfig GUI window is open, and the 'Bindings' tab or section is actively selected in the interface."
+    },
+    {
+      "id": "disable_kwp_bindings",
+      "description": "Agent disables or removes the processing module bindings for the anomalous station (GE.KWP).",
+      "points": 40,
+      "visual_evidence": "In the scconfig GUI under the Bindings tab, the station 'KWP' (under the 'GE' network) is selected, and its module bindings are shown as removed, deleted, or unchecked (the binding list for KWP should be empty or disabled compared to normal stations)."
+    },
+    {
+      "id": "report_identifies_kwp_and_symptoms",
+      "description": "Agent documents the identified anomalous station and its symptoms in the operator log.",
+      "points": 20,
+      "visual_evidence": "A text editor is open showing the file '/home/ga/Desktop/station_anomaly_report.txt'. The text explicitly names 'GE.KWP' (or 'KWP') as the anomalous station and describes symptoms such as 'data gaps', 'missing data', 'noise', or 'spikes'."
+    },
+    {
+      "id": "report_documents_actions",
+      "description": "Agent documents the corrective actions taken in the operator log.",
+      "points": 20,
+      "visual_evidence": "The text editor for '/home/ga/Desktop/station_anomaly_report.txt' contains text stating that the station's bindings were 'disabled', 'removed', or that it was 'taken out of the automatic detection pipeline'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_scrttv_gui",
+      "description": "Agent actually used the scrttv GUI to inspect the waveforms rather than guessing the anomalous station.",
+      "visual_evidence": "There should be at least one screenshot showing the scrttv application open with waveforms visible, demonstrating visual inspection."
+    },
+    {
+      "id": "used_scconfig_gui",
+      "description": "Agent used the scconfig GUI to modify bindings rather than bypassing it with terminal commands.",
+      "visual_evidence": "There should be screenshots showing interaction with the scconfig graphical interface, specifically in the Bindings section."
+    },
+    {
+      "id": "manual_report_creation",
+      "description": "Agent manually created and edited the report file in a text editor.",
+      "visual_evidence": "A text editor (GUI like gedit/mousepad or terminal like nano/vim) is visible with the report content being drafted, rather than just a single 'echo' command in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The anomalous station is GE.KWP. The injected anomaly consists of 'data gaps' (zeroed out data) and 'noise spikes'. The agent must use the 'scrttv' GUI to visualize the waveforms and the 'scconfig' GUI to disable the processing module bindings for GE.KWP. The final operator log must be saved at /home/ga/Desktop/station_anomaly_report.txt and correctly identify GE.KWP, its symptoms (gaps/spikes), and the corrective action taken (disabling bindings)."
+}

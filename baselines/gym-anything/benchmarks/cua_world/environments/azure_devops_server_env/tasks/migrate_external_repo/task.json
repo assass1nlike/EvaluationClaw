@@ -1,0 +1,29 @@
+{
+  "id": "migrate_external_repo@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Import the external Git repository https://github.com/octocat/Hello-World.git into the TailwindTraders project in Azure DevOps as a new repository named 'LegacyPrototype'. Standardize the branching by creating a 'main' branch from the existing 'master' branch and setting 'main' as the default branch for the repository.\n\nLogin credentials (if prompted):\nUsername: Docker\nPassword: GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\migrate_external_repo\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\migrate_external_repo\\export_result.ps1"
+  },
+  "metadata": {
+    "target_repo_name": "LegacyPrototype",
+    "source_url": "https://github.com/octocat/Hello-World.git",
+    "expected_default_branch": "refs/heads/main",
+    "project_name": "TailwindTraders",
+    "api_base_url": "http://localhost/DefaultCollection"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_external_repo"
+    }
+  }
+}

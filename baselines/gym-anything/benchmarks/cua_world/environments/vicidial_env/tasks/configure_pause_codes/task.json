@@ -1,0 +1,58 @@
+{
+  "id": "configure_pause_codes@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure workforce management pause codes for the 'Sales Q1 2025' campaign in the Vicidial admin panel (User: 6666, Pass: andromeda) for Campaign 'SALESQ1'. The required codes are: BREAK (Scheduled Break, Billable: NO), LUNCH (Lunch Break, Billable: NO), TRAIN (Skills Training, Billable: YES), COACH (Supervisor Coaching, Billable: YES), TECH (Technical Issue, Billable: HALF), and ADMIN (Administrative Work, Billable: HALF).",
+  "difficulty": "medium",
+  "category": "workforce_management",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_pause_codes/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_pause_codes/export_result.sh"
+  },
+  "metadata": {
+    "campaign_id": "SALESQ1",
+    "expected_codes": [
+      {
+        "code": "BREAK",
+        "name": "Scheduled Break",
+        "billable": "NO"
+      },
+      {
+        "code": "LUNCH",
+        "name": "Lunch Break",
+        "billable": "NO"
+      },
+      {
+        "code": "TRAIN",
+        "name": "Skills Training",
+        "billable": "YES"
+      },
+      {
+        "code": "COACH",
+        "name": "Supervisor Coaching",
+        "billable": "YES"
+      },
+      {
+        "code": "TECH",
+        "name": "Technical Issue",
+        "billable": "HALF"
+      },
+      {
+        "code": "ADMIN",
+        "name": "Administrative Work",
+        "billable": "HALF"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_pause_codes"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "redact_inventory_metadata_scml@1",
+  "task_completion": [
+    {
+      "id": "extract_inventory",
+      "description": "Extract the SeisComP network inventory from the MySQL database.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command connecting to the database (e.g., mysql://sysop:sysop@localhost/seiscomp) or using a tool like scxmldump to export the inventory to an XML/SCML file."
+    },
+    {
+      "id": "redact_sani",
+      "description": "Redact the latitude, longitude, and elevation for station SANI to 0.0.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing the SCML XML content where <station code=\"SANI\"> and its child <sensorLocation> elements have <latitude>, <longitude>, and <elevation> values explicitly set to 0.0."
+    },
+    {
+      "id": "redact_bkb",
+      "description": "Redact the latitude, longitude, and elevation for station BKB to 0.0.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing the SCML XML content where <station code=\"BKB\"> and its child <sensorLocation> elements have <latitude>, <longitude>, and <elevation> values explicitly set to 0.0."
+    },
+    {
+      "id": "preserve_other_stations",
+      "description": "Ensure coordinates for other stations (TOLI, GSI, KWP) remain unchanged.",
+      "points": 15,
+      "visual_evidence": "XML content visible in an editor or terminal showing <station> elements for TOLI, GSI, or KWP with their original, non-zero <latitude>, <longitude>, and <elevation> values intact."
+    },
+    {
+      "id": "save_redacted_file",
+      "description": "Save the resulting SCML XML file to ~/exports/redacted_inventory.scml.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the file saved at /home/ga/exports/redacted_inventory.scml (e.g., via an 'ls' command, a script writing to this path, or the file path visible in a text editor's title bar/status bar)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_extraction",
+      "description": "The agent extracted the data from the actual database rather than hallucinating or manually typing a mock XML file.",
+      "visual_evidence": "Look for terminal commands executing a database dump (like scxmldump or a python script connecting to mysql) rather than the agent opening a blank file and pasting a pre-written XML structure."
+    },
+    {
+      "id": "full_inventory_present",
+      "description": "The agent processed the full inventory rather than just creating a file with only the two redacted stations.",
+      "visual_evidence": "The text editor or terminal output should show a large XML file with standard SCML headers and multiple other stations (like TOLI, GSI, KWP), not just a tiny snippet."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually saved the file to the disk.",
+      "visual_evidence": "Look for a successful save confirmation in the text editor or a terminal command confirming the file exists at ~/exports/redacted_inventory.scml, rather than just printing the XML to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/exports/redacted_inventory.scml. Stations to redact: SANI and BKB (latitude, longitude, and elevation must be exactly 0.0 in both the parent <station> and child <sensorLocation> elements). Stations to keep unchanged: TOLI, GSI, and KWP (must have non-zero coordinates)."
+}

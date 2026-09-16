@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_telnet_credentials@1",
+  "task_completion": [
+    {
+      "id": "open_wireshark_pcap",
+      "description": "Open the target PCAP file in Wireshark",
+      "points": 15,
+      "visual_evidence": "Wireshark GUI is open and the title bar or main window indicates that 'telnet-cooked.pcap' is loaded."
+    },
+    {
+      "id": "view_telnet_stream",
+      "description": "Locate and view the telnet stream containing the credentials",
+      "points": 25,
+      "visual_evidence": "The 'Follow TCP Stream' window or packet details pane in Wireshark is visible, showing the cleartext telnet conversation including the 'login:' and 'Password:' prompts."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Open the required output text file",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal editor is open, showing the file path '/home/ga/Documents/telnet_report.txt'."
+    },
+    {
+      "id": "format_username",
+      "description": "Write the extracted username in the exact specified format",
+      "points": 25,
+      "visual_evidence": "The text editor contains the exact string 'username: fake' on its own line, with a lowercase label, single space after the colon, and no quotes."
+    },
+    {
+      "id": "format_password",
+      "description": "Write the extracted password in the exact specified format",
+      "points": 25,
+      "visual_evidence": "The text editor contains the exact string 'password: user' on its own line, with a lowercase label, single space after the colon, and no quotes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wireshark_gui",
+      "description": "The agent used the Wireshark GUI as requested, rather than terminal utilities.",
+      "visual_evidence": "Screenshots should show the Wireshark graphical interface being used to analyze the PCAP, not terminal commands like 'tshark', 'tcpdump', or 'strings'."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not cheat by reading the hidden ground truth file.",
+      "visual_evidence": "The agent's terminal or file explorer should not show any access to '/var/lib/wireshark_ground_truth/credentials.txt'."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "The agent extracted the credentials from the PCAP file rather than hallucinating them.",
+      "visual_evidence": "There should be a clear sequence showing the agent opening the PCAP in Wireshark and viewing the stream before typing the credentials into the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target PCAP file is located at /home/ga/Documents/captures/telnet-cooked.pcap. The correct extracted username is 'fake' and the correct extracted password is 'user'. The output must be saved to /home/ga/Documents/telnet_report.txt exactly as 'username: fake' and 'password: user' on separate lines with no quotes or trailing whitespace."
+}

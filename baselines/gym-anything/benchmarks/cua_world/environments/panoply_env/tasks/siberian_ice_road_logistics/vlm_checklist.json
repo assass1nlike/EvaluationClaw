@@ -1,0 +1,59 @@
+{
+  "task_id": "siberian_ice_road_logistics@1",
+  "task_completion": [
+    {
+      "id": "open_dataset_panoply",
+      "description": "Verify the agent opened the air.mon.ltm.nc dataset in NASA Panoply.",
+      "points": 10,
+      "visual_evidence": "Look for the Panoply 'Sources' or 'Datasets' window displaying 'air.mon.ltm.nc' loaded into the application."
+    },
+    {
+      "id": "create_2d_map_january",
+      "description": "Verify a 2D geographic map of the 'air' variable is created for January.",
+      "points": 20,
+      "visual_evidence": "Look for a Panoply plot window showing a color-coded map of the world or region, with the variable 'air' selected and the time/date array index set to 0 (or explicitly showing January)."
+    },
+    {
+      "id": "export_map_siberia",
+      "description": "Verify the 2D map is zoomed in on Eastern Siberia and saved as yakutia_jan_map.png.",
+      "points": 15,
+      "visual_evidence": "Look for the map view focused on Eastern Russia/Siberia. Also look for a save dialog, export window, or file manager showing 'yakutia_jan_map.png' being saved to ~/Documents/IceRoads/."
+    },
+    {
+      "id": "create_1d_plot_yakutsk",
+      "description": "Verify a 1D line plot of the 'air' variable is created for Yakutsk.",
+      "points": 20,
+      "visual_evidence": "Look for a Panoply 1D line plot window showing a temperature curve over 12 months. The plot settings must show coordinates explicitly set to Latitude 62.5 and Longitude 130.0."
+    },
+    {
+      "id": "export_1d_plot",
+      "description": "Verify the 1D line plot is saved as yakutsk_annual_profile.png.",
+      "points": 15,
+      "visual_evidence": "Look for a save dialog, export window, or file manager showing 'yakutsk_annual_profile.png' being saved to ~/Documents/IceRoads/."
+    },
+    {
+      "id": "create_safe_transit_report",
+      "description": "Verify the safe transit report is created and identifies the correct safe months.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor open showing 'safe_transit_report.txt' in ~/Documents/IceRoads/. The text must identify November, December, January, and February as the months falling below the -20\u00b0C (253.15 K) threshold."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage_panoply",
+      "description": "Verify the agent used the Panoply GUI to create the plots rather than writing a script.",
+      "visual_evidence": "Screenshots should show the actual NASA Panoply application interface with plot windows and menus, not terminal windows running Python/R scripts to generate the images."
+    },
+    {
+      "id": "genuine_plot_data",
+      "description": "Verify the plots reflect the actual dataset and requested parameters.",
+      "visual_evidence": "The Panoply plot windows should clearly display the 'air' variable from the 'air.mon.ltm.nc' dataset in the title or metadata margins, ensuring the images are not mockups or downloaded from the internet."
+    },
+    {
+      "id": "report_manually_created",
+      "description": "Verify the report text is written by the agent in the correct directory.",
+      "visual_evidence": "A text editor (like nano, gedit, or VS Code) should be visible editing 'safe_transit_report.txt' in the ~/Documents/IceRoads/ directory, rather than just echoing text blindly to a file without verifying the plot."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset 'air.mon.ltm.nc' natively stores the 'air' variable in 'degC', despite the prompt suggesting it is in Kelvin. The target coordinates for Yakutsk are exactly Lat 62.5, Lon 130.0. At these coordinates, the temperature drops below the -20\u00b0C (253.15 K) safety threshold during exactly four months: November, December, January, and February. The safe_transit_report.txt must identify these specific months to be correct."
+}

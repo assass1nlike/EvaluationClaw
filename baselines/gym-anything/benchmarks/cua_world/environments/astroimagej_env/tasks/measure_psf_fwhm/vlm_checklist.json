@@ -1,0 +1,53 @@
+{
+  "task_id": "measure_psf_fwhm@1",
+  "task_completion": [
+    {
+      "id": "measure_five_stars",
+      "description": "Measure the FWHM of at least 5 isolated stars using AstroImageJ.",
+      "points": 30,
+      "visual_evidence": "Look for the AstroImageJ interface showing active measurements, such as a 'Measurements' table with at least 5 rows of star data, or multiple 'Seeing Profile' windows displaying FWHM values for different stars."
+    },
+    {
+      "id": "calculate_mean_fwhm",
+      "description": "Calculate the mean FWHM in pixels from the measured stars.",
+      "points": 15,
+      "visual_evidence": "Look for a calculator app, a terminal running a math tool (like python or bc), or a scratchpad text file where the agent adds the measured FWHM values and divides by the number of stars to find the average."
+    },
+    {
+      "id": "convert_to_arcsec",
+      "description": "Convert the mean FWHM from pixels to arcseconds using the plate scale.",
+      "points": 15,
+      "visual_evidence": "Look for a calculation step (in a calculator, terminal, or text editor) where the mean FWHM in pixels is multiplied by 0.25."
+    },
+    {
+      "id": "calculate_aperture_radius",
+      "description": "Determine the recommended photometry aperture radius.",
+      "points": 15,
+      "visual_evidence": "Look for a calculation step where the mean FWHM in pixels is multiplied by 2.5."
+    },
+    {
+      "id": "save_results_file",
+      "description": "Save the final results to the specified text file.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal output showing the final calculated values (mean FWHM in pixels, mean FWHM in arcsec, and aperture radius) being saved to /home/ga/AstroImages/psf_analysis/fwhm_results.txt."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_astroimagej_gui",
+      "description": "The agent must use the AstroImageJ GUI to measure the stars, rather than guessing or using an external script to bypass the application.",
+      "visual_evidence": "Look for screenshots showing interaction with the AstroImageJ image window, such as clicking on stars, opening seeing profiles, or generating a measurement table."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent should perform actual calculations for the mean, arcsecond conversion, and aperture radius.",
+      "visual_evidence": "Look for evidence of the math being done in a calculator, terminal, or script, rather than the final numbers magically appearing in the text file without prior computation."
+    },
+    {
+      "id": "consistent_results",
+      "description": "The final saved results must logically follow from the measurements taken.",
+      "visual_evidence": "Check that the numbers saved in fwhm_results.txt match the outputs of the calculations and the initial measurements seen in AstroImageJ."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be exactly located at /home/ga/AstroImages/psf_analysis/fwhm_results.txt. The plate scale to be used for the arcsecond conversion is verified to be 0.25 arcsec/pixel."
+}

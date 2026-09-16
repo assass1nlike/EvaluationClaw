@@ -1,0 +1,54 @@
+{
+  "task_id": "generate_customer_usernames@1",
+  "task_completion": [
+    {
+      "id": "database_opened",
+      "description": "LibreOffice Base is opened with the chinook database",
+      "points": 10,
+      "visual_evidence": "The LibreOffice Base main window is visible with 'chinook' or 'chinook.odb' in the title bar or database pane."
+    },
+    {
+      "id": "table_opened",
+      "description": "The Customer table is opened",
+      "points": 10,
+      "visual_evidence": "A window or tab displaying the 'Customer' table is visible, either in Design View or Data View."
+    },
+    {
+      "id": "column_created",
+      "description": "A new column named 'Username' is created",
+      "points": 20,
+      "visual_evidence": "A column header 'Username' is visible in the Data View, or a field named 'Username' of type VARCHAR/Text is visible in the Design View."
+    },
+    {
+      "id": "usernames_populated",
+      "description": "The Username column is populated with text extracted from the Email column",
+      "points": 20,
+      "visual_evidence": "In the Data View, the 'Username' column contains the prefix of the corresponding 'Email' column (the part before the '@' symbol) for the visible records."
+    },
+    {
+      "id": "usernames_lowercase",
+      "description": "The populated usernames are converted to lowercase",
+      "points": 20,
+      "visual_evidence": "The text in the 'Username' column is entirely in lowercase letters, even if the original email prefix had uppercase letters (e.g., 'bjorn.hansen' instead of 'Bjorn.Hansen')."
+    },
+    {
+      "id": "changes_saved",
+      "description": "The changes are saved to the database",
+      "points": 20,
+      "visual_evidence": "The Save icon in the toolbar is greyed out/inactive, or there is no unsaved changes indicator (like an asterisk) in the window title, or a save action is explicitly visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_libreoffice_base",
+      "description": "The agent used LibreOffice Base to perform the task",
+      "visual_evidence": "All database modifications and views are done within the LibreOffice Base GUI (including its built-in SQL tool), rather than using an external terminal, sqlite3 CLI, or Python script."
+    },
+    {
+      "id": "genuine_data",
+      "description": "The agent interacted with the genuine Chinook database records",
+      "visual_evidence": "The visible records in the Customer table match the expected Chinook data (e.g., emails containing '@' and realistic names), rather than dummy data."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at '/home/ga/chinook.odb'. The 'Customer' table contains exactly 59 records. The 'Email' column is at index 11. The new column must be named 'Username'. The usernames must be exactly the lowercase string before the '@' in the Email column."
+}

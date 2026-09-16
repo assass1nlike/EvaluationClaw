@@ -1,0 +1,59 @@
+{
+  "task_id": "leaf_vein_skeleton_analysis@1",
+  "task_completion": [
+    {
+      "id": "image_calibrated",
+      "description": "Verify the image spatial calibration is set to 5.0 microns/pixel.",
+      "points": 10,
+      "visual_evidence": "Look for the Fiji/ImageJ 'Set Scale' dialog showing 'Distance in pixels' as 1, 'Known distance' as 5.0, and 'Unit of length' as 'um', OR the image window title bar displaying dimensions in microns (um) instead of pixels."
+    },
+    {
+      "id": "binary_skeleton_saved",
+      "description": "Verify the creation and saving of the binary skeleton image.",
+      "points": 20,
+      "visual_evidence": "Look for an image named 'leaf_skeleton.png' showing a black-and-white, 1-pixel wide skeletonized vein network."
+    },
+    {
+      "id": "skeleton_overlay_saved",
+      "description": "Verify the creation and saving of the skeleton overlay or labeled map.",
+      "points": 20,
+      "visual_evidence": "Look for an image named 'skeleton_overlay.png' showing either the skeleton superimposed on the original leaf image OR a color-coded skeleton map (e.g., branches and junctions in different colors from Fiji's Analyze Skeleton)."
+    },
+    {
+      "id": "network_topology_csv_saved",
+      "description": "Verify the network topology CSV file is created with the required columns.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'network_topology.csv' open in a spreadsheet viewer, text editor, or terminal. It must contain columns for '# Branches', '# Junctions', and 'Maximum Branch Length'."
+    },
+    {
+      "id": "analysis_report_txt_saved",
+      "description": "Verify the analysis report text file is created with the required summary statistics.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'analysis_report.txt' open in a text editor or terminal. The text must explicitly state the total number of branches, total number of junctions, and the mean branch length in microns."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Verify all four result files are saved in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look at a file manager, terminal window (e.g., 'ls' command), or 'Save As' dialogs confirming that leaf_skeleton.png, skeleton_overlay.png, network_topology.csv, and analysis_report.txt are located in '~/Fiji_Data/results/skeleton/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fiji_gui_used",
+      "description": "Verify the agent actually used the Fiji/ImageJ GUI to process the image.",
+      "visual_evidence": "The Fiji/ImageJ application window, toolbar, and image windows should be visible in the screenshots during the processing steps."
+    },
+    {
+      "id": "genuine_skeleton_results",
+      "description": "Verify the analysis results are derived from the actual leaf image and not fabricated.",
+      "visual_evidence": "The numbers in the CSV and TXT files should reflect a complex network (e.g., >1000 branches, >200 junctions). They should not be small arbitrary numbers like 10 or 5."
+    },
+    {
+      "id": "correct_input_image",
+      "description": "Verify the agent processed the correct input image.",
+      "visual_evidence": "The image loaded in Fiji should be a grayscale leaf with visible veins, matching the expected input from '~/Fiji_Data/raw/leaf/leaf_grayscale.tif'."
+    }
+  ],
+  "privileged_info_for_vlm": "The input image is a grayscale leaf. The spatial calibration must be 5.0 um/pixel. The expected output directory is ~/Fiji_Data/results/skeleton/. A genuine skeleton analysis of this specific image yields approximately 2382 branches, 558 junctions, and a maximum branch length of around 1300.0 um. Accept reasonable variations depending on the exact thresholding and skeletonization method used, but the reported values in the CSV and TXT files must be in this general magnitude (e.g., hundreds/thousands of branches) and not small placeholder numbers."
+}

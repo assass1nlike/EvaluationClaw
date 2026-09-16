@@ -1,0 +1,30 @@
+{
+  "id": "record_corporate_merger_action@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Update the JStock portfolio to reflect the corporate merger where Xilinx (XLNX) was acquired by AMD. You currently hold 100 shares of Xilinx purchased on Jan 1, 2021. On the merger completion date of Feb 14, 2022, close the Xilinx position by recording a sell transaction for 100 units at $194.00. Open the new AMD position based on the exchange ratio of 1.7234 AMD shares for every 1 XLNX share, recording a buy transaction at $112.57. Add the comment 'Merger acquisition' to the AMD transaction and save the portfolio.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_corporate_merger_action/setup_task.sh",
+    "post_task": "/workspace/tasks/record_corporate_merger_action/export_result.sh"
+  },
+  "metadata": {
+    "merger_date": "Feb 14, 2022",
+    "xlnx_sell_price": 194.0,
+    "amd_buy_price": 112.57,
+    "exchange_ratio": 1.7234,
+    "original_xlnx_units": 100.0,
+    "expected_amd_units": 172.34
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_corporate_merger_action"
+    }
+  }
+}

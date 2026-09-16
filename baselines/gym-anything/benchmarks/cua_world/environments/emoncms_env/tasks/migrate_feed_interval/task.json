@@ -1,0 +1,30 @@
+{
+  "id": "migrate_feed_interval@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "The 'attic_temp' feed is currently configured with a 10-second logging interval, which is using too much disk space. Migrate this feed to a 10-minute (600s) interval using the PHPFina engine. Export the existing feed data to ~/attic_temp_backup.csv before replacing the feed. Ensure the 'attic:temp' input is updated to log to the new 'attic_temp' feed and that the configuration is active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_feed_interval/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_feed_interval/export_result.sh"
+  },
+  "metadata": {
+    "backup_path": "/home/ga/attic_temp_backup.csv",
+    "feed_name": "attic_temp",
+    "input_name": "temp",
+    "input_node": "attic",
+    "target_interval": 600,
+    "original_interval": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_feed_interval"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "configure_global_platform_settings@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Configure NinjaTrader 8's global platform options to match the firm's standard trading environment. Set the global time zone to '(UTC-05:00) Eastern Time (US & Canada)', enable 'Show Tabs', enable 'Global simulation order fill processing', and change the platform skin to 'Slate Gray'. Save the workspace to persist these changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_global_platform_settings\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_global_platform_settings\\export_result.ps1"
+  },
+  "metadata": {
+    "config_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\config",
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces",
+    "expected_skin": "Slate Gray",
+    "expected_timezone": "Eastern Standard Time",
+    "expected_sim_fill": "true"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_global_platform_settings"
+    }
+  }
+}

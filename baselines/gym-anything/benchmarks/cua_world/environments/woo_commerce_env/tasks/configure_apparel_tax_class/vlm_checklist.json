@@ -1,0 +1,47 @@
+{
+  "task_id": "configure_apparel_tax_class@1",
+  "task_completion": [
+    {
+      "id": "verify_apparel_tax_class_created",
+      "description": "Verify that the 'Apparel' tax class has been created without removing existing tax classes.",
+      "points": 20,
+      "visual_evidence": "In the WooCommerce Settings > Tax tab, 'Apparel rates' should be visible as a link/sub-tab at the top of the settings area alongside 'Standard rates' and any other default rates."
+    },
+    {
+      "id": "verify_tax_rate_configuration",
+      "description": "Verify the tax rate is configured for New York at 4.0% with the correct name.",
+      "points": 30,
+      "visual_evidence": "In the 'Apparel rates' table, there should be a row with Country Code 'US' (or blank if applied to all US), State Code 'NY', Rate % '4.0000' (or '4.0'/'4'), and Tax Name 'NY Apparel Tax'."
+    },
+    {
+      "id": "verify_shipping_included",
+      "description": "Verify that the tax rate includes shipping.",
+      "points": 20,
+      "visual_evidence": "In the 'Apparel rates' table, the 'Shipping' checkbox for the 'NY Apparel Tax' row must be checked."
+    },
+    {
+      "id": "verify_product_tax_class_assignment",
+      "description": "Verify that the 'Organic Cotton T-Shirt' product is assigned to the 'Apparel' tax class.",
+      "points": 30,
+      "visual_evidence": "On the Edit Product page for 'Organic Cotton T-Shirt', under the 'Product data' section (General tab), the 'Tax class' dropdown menu must be set to 'Apparel'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Verify the agent used the WordPress/WooCommerce graphical user interface to make changes.",
+      "visual_evidence": "Screenshots should show the WordPress admin dashboard (wp-admin). There should be no terminal windows, database clients (like phpMyAdmin), or WP-CLI commands used to complete the task."
+    },
+    {
+      "id": "genuine_navigation_check",
+      "description": "Verify the agent navigated through the actual application menus.",
+      "visual_evidence": "Screenshots should show the agent interacting with WooCommerce Settings, the Tax tab, and the Products list/edit pages, rather than just displaying a text editor or a single final state."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Verify the agent did not use browser developer tools to fake the visual output.",
+      "visual_evidence": "The browser developer tools (Inspect Element) should not be open and actively modifying the DOM text to display 'Apparel' or 'NY Apparel Tax'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target product: 'Organic Cotton T-Shirt'. Expected tax class name: 'Apparel' (slug: 'apparel'). Expected tax rate: 4.0000 (4%). Expected state code: 'NY'. Expected country code: 'US'. Expected tax name: 'NY Apparel Tax'. The tax rate must have the shipping option enabled."
+}

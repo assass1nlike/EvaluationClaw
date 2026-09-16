@@ -1,0 +1,53 @@
+{
+  "task_id": "distance_to_coast_south_america@1",
+  "task_completion": [
+    {
+      "id": "load_layers",
+      "description": "Load the populated places and coastline layers",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel (or a Python script) shows the 'ne_10m_populated_places_simple' and 'ne_10m_coastline' layers loaded."
+    },
+    {
+      "id": "filter_south_america",
+      "description": "Filter the populated places to include only South American cities",
+      "points": 20,
+      "visual_evidence": "A filter is applied to the populated places layer (e.g., a funnel icon in the QGIS Layers panel, a Query Builder dialog showing a filter like \"CONTINENT\" = 'South America'), or the map/attribute table visibly shows only cities in South America."
+    },
+    {
+      "id": "reproject_layers",
+      "description": "Use the South America Albers Equal Area Conic projection (102033)",
+      "points": 20,
+      "visual_evidence": "The project CRS is set to 102033 (visible in the bottom right corner of QGIS), or the 'Reproject Layer' tool is used to create new layers in the South America Albers Equal Area Conic projection (ESRI:102033)."
+    },
+    {
+      "id": "calculate_distance",
+      "description": "Calculate the distance from the cities to the nearest coastline in kilometers",
+      "points": 30,
+      "visual_evidence": "A distance calculation tool is used (e.g., 'Distance to nearest hub', 'Join attributes by nearest', or Field Calculator), or an attribute table is open showing a newly calculated distance field."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the results to a CSV file with 'name' and 'dist_km' fields",
+      "points": 20,
+      "visual_evidence": "A save dialog, file manager, or terminal shows the creation of 'sa_cities_coast_dist.csv' in '/home/ga/GIS_Data/exports/', or the CSV is shown open with the required 'name' and 'dist_km' columns."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gis_operations",
+      "description": "The agent used GIS software or scripts to perform the task",
+      "visual_evidence": "Screenshots should show interaction with QGIS tools, attribute tables, or a Python/Geopandas script, rather than a text editor manually creating the output CSV."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "Distances are calculated, not manually typed",
+      "visual_evidence": "The output distances should appear as the result of a programmatic calculation (e.g., containing realistic decimal precision) rather than manually typed integers or fake values."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent used the specified input and output paths",
+      "visual_evidence": "File dialogs, layer properties, or terminal commands should reference the exact '/home/ga/GIS_Data/...' paths provided in the instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "The target CRS is South America Albers Equal Area Conic, which is officially ESRI:102033 (the prompt's EPSG:102033 is a misnomer but refers to the same projection). The expected output is a CSV at '/home/ga/GIS_Data/exports/sa_cities_coast_dist.csv'. Valid distances in kilometers for benchmark cities: Lima (~6.3km), Brasilia (~889.3km), Bogota (~353.3km), Santiago (~87.7km), La Paz (~312.0km)."
+}

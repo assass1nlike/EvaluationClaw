@@ -1,0 +1,34 @@
+{
+  "id": "feature_ranking_survey@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create a market research survey in LimeSurvey titled 'Smart Home Hub Feature Prioritization Study' using the credentials admin / Admin123!. Configure the survey with a 'Group by group' format and include three question groups: 'Product Concept Overview', 'Feature Prioritization', and 'Price Sensitivity'. \n\nThe 'Product Concept Overview' group must contain a Text Display question (Code: 'concept') with the text: 'Please review the following product concept: The SmartHome Hub Pro is a next-generation smart home controller that integrates with all major smart home ecosystems.' \n\nThe 'Feature Prioritization' group must contain a mandatory Ranking question (Code: 'featurerank') with the text: 'Please rank the following smart home hub features from most important (1) to least important (8):'. The question must include exactly 8 items: 'Voice control', 'Energy monitoring', 'Security integration', 'Lighting control', 'Climate scheduling', 'Remote access', 'Ecosystem compatibility', and 'Privacy controls'. \n\nThe 'Price Sensitivity' group must contain a mandatory Numerical Input question (Code: 'maxprice') with the text: 'What is the maximum price you would be willing to pay?'. \n\nActivate the survey upon completion.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/feature_ranking_survey/setup_task.sh",
+    "post_task": "/workspace/tasks/feature_ranking_survey/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "Smart Home",
+    "expected_format": "G",
+    "expected_question_types": [
+      "X",
+      "R",
+      "N"
+    ],
+    "ranking_item_count": 8,
+    "occupation_context": "Market Research Analyst",
+    "real_world_goal": "Product concept testing and feature prioritization"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_feature_ranking_survey"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "create_stock_indicator@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Create a custom stock indicator named 'HighMomentum' to filter for high momentum stocks. The indicator must use AND logic to require that the 'Last Price' is greater than 100.0 and the 'Volume' is greater than 1,000,000. Install the completed indicator.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_stock_indicator/setup_task.sh",
+    "post_task": "/workspace/tasks/create_stock_indicator/export_result.sh"
+  },
+  "metadata": {
+    "indicator_name": "HighMomentum",
+    "price_threshold": "100",
+    "volume_threshold": "1000000",
+    "logic_operator": "AND"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_stock_indicator"
+    }
+  }
+}

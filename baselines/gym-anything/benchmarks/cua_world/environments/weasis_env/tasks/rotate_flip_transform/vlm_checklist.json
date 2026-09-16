@@ -1,0 +1,59 @@
+{
+  "task_id": "rotate_flip_transform@1",
+  "task_completion": [
+    {
+      "id": "weasis_active_with_image",
+      "description": "Verify that Weasis is open and displaying the initial digital radiograph.",
+      "points": 10,
+      "visual_evidence": "Look for the Weasis application window actively displaying an X-Ray/radiograph image."
+    },
+    {
+      "id": "image_rotated_90_cw",
+      "description": "Verify that a 90-degree clockwise rotation has been applied to the image.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot where the radiograph's orientation has changed by 90 degrees to the right (clockwise) compared to the initial state. The Weasis rotation tool, toolbar button, or menu option may be highlighted or recently clicked."
+    },
+    {
+      "id": "image_flipped_horizontally",
+      "description": "Verify that a horizontal flip has been applied to the image.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot where the radiograph has been mirrored left-to-right (horizontal flip). The Weasis flip/mirror tool, toolbar button, or menu option may be highlighted or recently clicked."
+    },
+    {
+      "id": "export_dialog_opened",
+      "description": "Verify that the export or save dialog has been opened in Weasis.",
+      "points": 10,
+      "visual_evidence": "Look for an 'Export', 'Save', or 'Export View' dialog box open over the Weasis main window."
+    },
+    {
+      "id": "export_format_jpeg",
+      "description": "Verify that the export format is set to JPEG.",
+      "points": 10,
+      "visual_evidence": "Look for 'JPEG' selected in a format dropdown menu, or the '.jpg' extension explicitly visible in the filename field within the export dialog."
+    },
+    {
+      "id": "export_path_correct",
+      "description": "Verify that the image is being exported to the correct target path.",
+      "points": 30,
+      "visual_evidence": "Look for the exact path '/home/ga/DICOM/exports/transformed_view.jpg' or '~/DICOM/exports/transformed_view.jpg' entered in the directory/filename fields of the export dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_weasis_gui",
+      "description": "Verify that the agent used the Weasis GUI to perform the transformations and export.",
+      "visual_evidence": "Look for interactions with Weasis menus, toolbars, and dialogs. The agent should not be using terminal commands (like ImageMagick's 'convert') to rotate, flip, or export the image."
+    },
+    {
+      "id": "actual_application_used",
+      "description": "Verify interaction with the genuine Weasis application.",
+      "visual_evidence": "The screenshots must show the actual Weasis DICOM viewer interface being manipulated, rather than a text editor writing a script to bypass the UI."
+    },
+    {
+      "id": "no_terminal_file_copying",
+      "description": "Verify the agent did not simply copy or move a pre-existing file to the target destination.",
+      "visual_evidence": "Check terminal windows to ensure the agent did not use 'cp', 'mv', or 'wget' to place a file directly into ~/DICOM/exports/ without exporting it from Weasis."
+    }
+  ],
+  "privileged_info_for_vlm": "The exact required export path is verified to be '/home/ga/DICOM/exports/transformed_view.jpg' (or '~/DICOM/exports/transformed_view.jpg'). The VLM should strictly check that this exact path and filename are used in the Weasis export dialog."
+}

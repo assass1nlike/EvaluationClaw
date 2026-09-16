@@ -1,0 +1,59 @@
+{
+  "task_id": "enable_folder_download@1",
+  "task_completion": [
+    {
+      "id": "open_artifactory_settings",
+      "description": "Navigate to the Artifactory Administration settings",
+      "points": 10,
+      "visual_evidence": "The JFrog Artifactory Administration page (specifically General -> Settings or similar configuration page) is visible in the web browser."
+    },
+    {
+      "id": "enable_folder_download",
+      "description": "Enable the Folder Download feature",
+      "points": 20,
+      "visual_evidence": "The 'Enable Folder Download' checkbox is checked in the Artifactory settings."
+    },
+    {
+      "id": "set_max_size",
+      "description": "Set the Max Folder Download Size to 500 MB",
+      "points": 20,
+      "visual_evidence": "The 'Max Folder Download Size (MB)' input field contains the value '500'."
+    },
+    {
+      "id": "locate_artifact_folder",
+      "description": "Navigate to the target folder in the Artifacts repository",
+      "points": 10,
+      "visual_evidence": "The Artifacts tree in the Application module is expanded to show 'example-repo-local/org/apache/commons/commons-io/2.15.1'."
+    },
+    {
+      "id": "download_folder",
+      "description": "Trigger the download for the target folder",
+      "points": 20,
+      "visual_evidence": "The download action is initiated on the '2.15.1' folder (e.g., clicking 'Download' in the right-click context menu or the top action bar)."
+    },
+    {
+      "id": "verify_zip_on_desktop",
+      "description": "Verify the ZIP archive is saved to the correct Desktop path",
+      "points": 20,
+      "visual_evidence": "A file named 'commons-io-package.zip' is visible in the '/home/ga/Desktop/' directory, shown via a file manager, terminal output, or a browser 'Save As' / download completion dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "The agent used the JFrog Artifactory web UI to configure settings and download the file.",
+      "visual_evidence": "Screenshots show interaction with a web browser displaying the Artifactory interface, rather than just terminal API commands (like curl) being executed."
+    },
+    {
+      "id": "actual_download_performed",
+      "description": "The ZIP file was genuinely downloaded from Artifactory.",
+      "visual_evidence": "A browser download manager, 'Save As' dialog, or download progress indicator is visible, proving the file was downloaded rather than manually created locally using terminal commands like 'zip' or 'touch'."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not simply type the expected outcomes into a text editor.",
+      "visual_evidence": "There are no text editors open containing the task description or expected file paths used to fake completion."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Max Folder Download Size must be exactly 500. The expected download path is /home/ga/Desktop/commons-io-package.zip. The downloaded ZIP must contain commons-io-2.15.1.jar. The admin credentials are admin:password."
+}

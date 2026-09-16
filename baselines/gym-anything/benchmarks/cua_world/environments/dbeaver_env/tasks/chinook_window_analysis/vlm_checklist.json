@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_window_analysis@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Chinook database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQLiteStudio, VS Code extension) or terminal is open showing a connection to '/home/ga/Documents/databases/chinook.db', ideally named 'Chinook'."
+    },
+    {
+      "id": "sql_query_logic",
+      "description": "Write the SQL query with required window functions and rounding",
+      "points": 25,
+      "visual_evidence": "An SQL editor showing a query that selects the required columns and uses window functions like LAG(), SUM() OVER(), AVG() OVER(), and RANK() OVER(). The query should also show ROUND(..., 2) for decimal values and ORDER BY YearMonth ASC."
+    },
+    {
+      "id": "query_results_visible",
+      "description": "Execute the query and display the correct columns",
+      "points": 25,
+      "visual_evidence": "A results grid or terminal output showing the executed query results with exactly these columns: YearMonth, MonthlyRevenue, CumulativeRevenue, PrevMonthRevenue, MoMGrowthPct, MovingAvg3M, and YearRank. The first row should be 2009-01."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "Save the SQL query script to the specified path",
+      "points": 20,
+      "visual_evidence": "A file editor tab, save dialog, or file explorer showing the file 'monthly_revenue_analysis.sql' saved in the '/home/ga/Documents/scripts/' directory."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the query results to a CSV file",
+      "points": 20,
+      "visual_evidence": "An export dialog, success message, terminal command, or file explorer showing 'monthly_revenue_trends.csv' created in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "The agent actually queried the database rather than fabricating the output",
+      "visual_evidence": "The SQL query is executed within a database client or via a valid CLI command (like sqlite3), showing a real execution result grid or output, not just text typed into a generic document."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent used SQL logic to compute the metrics instead of hardcoding the answers",
+      "visual_evidence": "The SQL script contains actual analytical window functions (LAG, SUM, AVG, RANK) and mathematical operations, rather than a series of SELECT statements with hardcoded numbers."
+    },
+    {
+      "id": "actual_file_saving",
+      "description": "The agent genuinely saved the files to the filesystem",
+      "visual_evidence": "The VLM should see evidence of the files being saved (e.g., a 'File saved' notification, the file appearing in a file explorer, or a successful terminal export command) rather than just an unsaved text buffer."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database contains 60 months of invoice data from January 2009 to December 2013. The correct query must use window functions (LAG, SUM OVER, AVG OVER, RANK OVER) and produce exactly 60 rows. All decimal values must be rounded to 2 decimal places. A sample correct calculation for 2009-02 is: MonthlyRevenue=37.62, PrevMonthRevenue=35.64, MoMGrowthPct=5.56."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "convert_to_maven_project@1",
+  "task_completion": [
+    {
+      "id": "convert_to_maven",
+      "description": "Convert the plain Java project to a Maven project.",
+      "points": 15,
+      "visual_evidence": "In the Eclipse Package Explorer, the 'DateUtilsLegacy' project folder should have a small 'M' icon overlay indicating it is a Maven project, and a 'pom.xml' file should be visible in the project root."
+    },
+    {
+      "id": "maven_coordinates",
+      "description": "Set the correct Maven Group ID, Artifact ID, and Version.",
+      "points": 20,
+      "visual_evidence": "The 'pom.xml' file open in the editor should display the tags <groupId>com.legacy.dateutils</groupId>, <artifactId>DateUtilsLegacy</artifactId>, and <version>1.0.0</version>."
+    },
+    {
+      "id": "remove_manual_jar",
+      "description": "Remove the manual Joda-Time JAR from the project build path.",
+      "points": 20,
+      "visual_evidence": "In the Package Explorer, the 'Referenced Libraries' node should no longer contain 'joda-time-2.12.5.jar', or the 'lib' folder should not show the JAR with a build path indicator (like a small cylinder/jar icon with a shortcut arrow)."
+    },
+    {
+      "id": "add_maven_dependency",
+      "description": "Add the Maven dependency for Joda-Time.",
+      "points": 25,
+      "visual_evidence": "The 'pom.xml' file should contain a <dependency> block with <groupId>joda-time</groupId>, <artifactId>joda-time</artifactId>, and <version>2.12.5</version>. Alternatively, a 'Maven Dependencies' library node in the Package Explorer should list 'joda-time-2.12.5.jar'."
+    },
+    {
+      "id": "successful_compilation",
+      "description": "Ensure the project compiles successfully after conversion.",
+      "points": 20,
+      "visual_evidence": "There should be no red 'X' error badges on the 'DateUtilsLegacy' project folder, or on the source files (DateFormatter.java, DateCalculator.java, App.java) in the Package Explorer. The 'Problems' view at the bottom should show 0 errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "eclipse_gui_used",
+      "description": "Verify the agent used the Eclipse IDE GUI to perform the conversion and edits.",
+      "visual_evidence": "Screenshots should show interaction with the Eclipse IDE (e.g., right-clicking the project, using 'Configure -> Convert to Maven Project', editing pom.xml in the Eclipse editor) rather than using terminal commands to generate the pom.xml."
+    },
+    {
+      "id": "genuine_workspace_modification",
+      "description": "Verify the agent modified the actual project in the workspace.",
+      "visual_evidence": "The Eclipse Package Explorer should clearly show the 'DateUtilsLegacy' project being manipulated, not a dummy project or a separate text editor outside the IDE."
+    },
+    {
+      "id": "real_compilation_status",
+      "description": "Verify the compilation status is shown genuinely in Eclipse.",
+      "visual_evidence": "The absence of errors must be visible in the Eclipse 'Problems' view or Package Explorer decorators, not just a terminal output or text file claiming success."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is named 'DateUtilsLegacy' located in '/home/ga/eclipse-workspace/DateUtilsLegacy'. The expected Maven coordinates are Group ID: 'com.legacy.dateutils', Artifact ID: 'DateUtilsLegacy', and Version: '1.0.0'. The expected Maven dependency is joda-time:joda-time:2.12.5, which replaces the manual JAR."
+}

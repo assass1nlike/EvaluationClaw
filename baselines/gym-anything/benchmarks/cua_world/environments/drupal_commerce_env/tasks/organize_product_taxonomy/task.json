@@ -1,0 +1,36 @@
+{
+  "id": "organize_product_taxonomy@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a product categorization system for the store. Establish a 'Product Categories' taxonomy vocabulary (machine name: product_categories) including terms for Audio & Headphones, Computer Peripherals, Smart Home, and Cameras & Photography. Add an 'Entity Reference' field labeled 'Category' (machine name: field_category) to the 'Default' Product type (not the Product Variation type) referencing the 'Product Categories' vocabulary. Categorize the 'Sony WH-1000XM5 Wireless Headphones' as 'Audio & Headphones' and the 'Logitech MX Master 3S Wireless Mouse' as 'Computer Peripherals'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_product_taxonomy/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_product_taxonomy/export_result.sh"
+  },
+  "metadata": {
+    "vocab_machine_name": "product_categories",
+    "field_machine_name": "field_category",
+    "expected_terms": [
+      "Audio & Headphones",
+      "Computer Peripherals",
+      "Smart Home",
+      "Cameras & Photography"
+    ],
+    "assignments": {
+      "Sony WH-1000XM5 Wireless Headphones": "Audio & Headphones",
+      "Logitech MX Master 3S Wireless Mouse": "Computer Peripherals"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_product_taxonomy"
+    }
+  }
+}

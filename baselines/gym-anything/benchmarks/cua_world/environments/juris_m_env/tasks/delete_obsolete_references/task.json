@@ -1,0 +1,31 @@
+{
+  "id": "delete_obsolete_references@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "You are a comparative law researcher cleaning up your Jurism library after completing a project on First Amendment jurisprudence. Move the following three references to the Jurism Trash: \"Obergefell v. Hodges\", \"Gideon v. Wainwright\", and \"The Due Process Clause and the Substantive Law of Torts\" by Ronald D. Poe. Ensure the other 7 references remain in the active library and do not empty the trash.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/delete_obsolete_references/setup_task.sh",
+    "post_task": "/workspace/tasks/delete_obsolete_references/export_result.sh"
+  },
+  "metadata": {
+    "target_items": [
+      "Obergefell v. Hodges",
+      "Gideon v. Wainwright",
+      "The Due Process Clause and the Substantive Law of Torts"
+    ],
+    "expected_trash_count": 3,
+    "expected_active_count": 7
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_delete_obsolete_references"
+    }
+  }
+}

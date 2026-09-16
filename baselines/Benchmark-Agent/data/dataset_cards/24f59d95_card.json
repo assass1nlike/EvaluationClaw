@@ -1,0 +1,106 @@
+{
+  "dataset_id": "24f59d95",
+  "name": "Openset Multimodal Document Fine-Grained Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multimodal document question-answering dataset where models answer multiple-choice questions based on one or more document images and a combined prompt containing instructions, a question, and answer options.",
+  "card_text": "The Openset Multimodal Document Fine-Grained Reasoning dataset contains 200 samples that pair one or more document images with a textual prompt. Each prompt combines task instructions, image placeholders, a natural-language question, and a multiple-choice list. The model must read the document images, locate fine-grained information such as dates or expense amounts, and select the correct answer from the provided options. Outputs are short text strings. The data is designed to evaluate visual question answering and document understanding, especially reasoning over receipts, forms, or similar documents where answers depend on small textual or numeric details.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "document image QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The full prompt string that combines task instructions, image placeholders, a natural-language question, and a multiple-choice list. It is the primary textual input the model reads and directs the model to answer using the accompanying document images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The specific question embedded in the prompt after the marker 'Question:'. It asks for a fine-grained fact (e.g., a date or expense amount) that must be found in the document images, and its answer must be chosen from the provided options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The multiple-choice answer candidates embedded in the prompt as a Python-like list after 'Choice list:'. Exactly one option is correct, and the correct option matches the output text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The short gold answer string, typically a date, number, or brief phrase, selected from the provided choices. It is the target output the model must produce.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of one or more document image filenames that provide the visual context. The images contain fine-grained information (e.g., dates, expense amounts) needed to answer the question. The number of images varies across samples, and each image is referenced by its filename.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object and an output object. The input object contains image_file, a list of one or more document image filenames, and prompt, a text string that embeds the task instruction, <ImageHere> placeholders for the images, a natural-language question, and a multiple-choice list. The output object contains text, a short answer string that corresponds to one of the choices. The model must read the images and the combined prompt, then select the correct choice as the answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/MultimodalDocumentFine-grainedReasoning/openset_multimodal_document_fine-grained_reasoning.json",
+    "existing_tags": {
+      "task": "Multimodal Document Fine-grained Reasoning",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

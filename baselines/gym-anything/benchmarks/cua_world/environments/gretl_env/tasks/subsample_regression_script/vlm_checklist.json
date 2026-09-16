@@ -1,0 +1,59 @@
+{
+  "task_id": "subsample_regression_script@1",
+  "task_completion": [
+    {
+      "id": "hansl_script_setup",
+      "description": "Agent opens a text editor or gretl script window to write the hansl script.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) or the gretl GUI script editor is visible on screen."
+    },
+    {
+      "id": "load_dataset",
+      "description": "Script includes a command to load the food.gdt dataset.",
+      "points": 10,
+      "visual_evidence": "The script contains a command like 'open food.gdt' to load the required dataset."
+    },
+    {
+      "id": "low_income_regression",
+      "description": "Script contains commands to restrict the sample to low-income households and run the OLS regression.",
+      "points": 20,
+      "visual_evidence": "The script shows commands to filter the dataset (e.g., 'smpl income < 15 --restrict') followed by an OLS regression command (e.g., 'ols food_exp const income')."
+    },
+    {
+      "id": "high_income_regression",
+      "description": "Script contains commands to restrict the sample to high-income households and run the OLS regression.",
+      "points": 20,
+      "visual_evidence": "The script shows commands to filter the dataset for the second group (e.g., 'smpl income >= 15 --restrict' or '--replace') followed by the OLS regression command."
+    },
+    {
+      "id": "output_formatting",
+      "description": "Script contains commands to output the required statistics to the specified text file.",
+      "points": 20,
+      "visual_evidence": "The script includes an 'outfile /home/ga/Documents/gretl_output/subsample_results.txt' command (or similar redirection) and commands to print the slope, standard error, R-squared, and N (e.g., using 'printf' and gretl accessors like $coeff, $stderr, $rsq, $nobs)."
+    },
+    {
+      "id": "script_execution_and_results",
+      "description": "Agent executes the script and the output file is generated with the correct results.",
+      "points": 20,
+      "visual_evidence": "Terminal shows the script being run (e.g., via 'gretlcli') OR the contents of the output file are displayed showing N=23 with slope ~14.59 for the low-income group, and N=17 with slope ~9.26 for the high-income group."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_script_execution",
+      "description": "The agent actually runs the hansl script using gretl or gretlcli.",
+      "visual_evidence": "Terminal or GUI shows gretl processing the script, rather than the agent just echoing text directly into the output file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The script dynamically extracts the regression statistics rather than hardcoding the expected answers.",
+      "visual_evidence": "The script uses gretl internal variables/accessors (like $coeff, $nobs) instead of typing the raw numbers (23, 17, 14.59, 9.26) into print statements."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The results are saved to the exact requested path.",
+      "visual_evidence": "The file path '/home/ga/Documents/gretl_output/subsample_results.txt' is explicitly visible in the script's outfile command or terminal commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file '/home/ga/Documents/gretl_output/subsample_results.txt' should contain results for two regressions. For the low-income group (income < 15), N=23 and the slope coefficient is approximately 14.59 (acceptable range 8.0-22.0). For the high-income group (income >= 15), N=17 and the slope coefficient is approximately 9.26 (acceptable range 4.0-18.0). The script must dynamically compute these values using gretl."
+}

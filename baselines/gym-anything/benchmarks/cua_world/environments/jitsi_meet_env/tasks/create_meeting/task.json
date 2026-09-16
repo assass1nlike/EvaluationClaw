@@ -1,0 +1,26 @@
+{
+  "id": "create_meeting@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Jitsi Meet is open in Firefox at http://localhost:8080. Create and join a new meeting room named \"TeamStandup\".",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_meeting/setup_task.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "room_name": "TeamStandup",
+    "jitsi_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_meeting"
+    }
+  }
+}

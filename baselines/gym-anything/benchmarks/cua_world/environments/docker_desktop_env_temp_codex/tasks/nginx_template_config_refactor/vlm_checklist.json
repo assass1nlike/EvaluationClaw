@@ -1,0 +1,53 @@
+{
+  "task_id": "nginx_template_config_refactor@1",
+  "task_completion": [
+    {
+      "id": "nginx_config_updated",
+      "description": "The Nginx configuration file is updated to use the ${BACKEND_URL} environment variable.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the Nginx config file (e.g., default.conf.template) containing `proxy_pass ${BACKEND_URL};` or similar usage of the variable."
+    },
+    {
+      "id": "docker_compose_template_mount",
+      "description": "The docker-compose.yml file is updated to mount the Nginx configuration template to the correct directory.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing docker-compose.yml with a volume mount mapping a local template file to `/etc/nginx/templates/` (or a file within it) inside the proxy container."
+    },
+    {
+      "id": "docker_compose_env_var",
+      "description": "The docker-compose.yml file passes the BACKEND_URL environment variable to the proxy service.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing docker-compose.yml with `BACKEND_URL=http://backend:8080` under the `environment` section of the proxy service."
+    },
+    {
+      "id": "docker_compose_up",
+      "description": "The Docker containers are successfully started with the new configuration.",
+      "points": 15,
+      "visual_evidence": "Terminal showing `docker compose up` or `docker-compose up` running without errors, or `docker ps` showing the proxy container running."
+    },
+    {
+      "id": "curl_localhost_success",
+      "description": "A curl request to localhost successfully returns the backend response.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the command `curl http://localhost` and a successful HTTP response body from the backend."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "The agent actually modified the files in the project directory rather than just echoing text.",
+      "visual_evidence": "Use of a text editor (like nano, vim, VS Code) or standard file modification commands on the files in /home/ga/proxy-refactor/."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "The agent genuinely ran Docker commands to test the setup.",
+      "visual_evidence": "Terminal output showing actual Docker compose up processes, container creation, or logs, not just simulated text."
+    },
+    {
+      "id": "genuine_curl_response",
+      "description": "The curl response comes from the actual running proxy container.",
+      "visual_evidence": "The curl command is executed in the terminal and the output matches a typical web server response, without signs of being manually typed or mocked."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/proxy-refactor. The expected environment variable to be used in the Nginx template and docker-compose.yml is BACKEND_URL. The agent should configure the proxy to use http://backend:8080 as the backend URL during its testing."
+}

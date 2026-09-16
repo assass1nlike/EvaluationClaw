@@ -1,0 +1,32 @@
+{
+  "id": "chinook_json_hybrid_analysis@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Integrate a CSV file containing JSON audio features into the Chinook database at /home/ga/Documents/databases/chinook.db. Create a table named TrackFeatures with columns TrackId (INTEGER, Primary Key) and Features (TEXT), then import the data from /home/ga/Documents/imports/track_features.csv (pipe-delimited, no quoting). Create a view named v_TrackExtended that joins the tracks table with TrackFeatures to expose TrackId, Name, Composer, and the JSON-extracted fields BPM, Key, and Danceability. Export a CSV report to /home/ga/Documents/exports/high_energy_tracks.csv containing tracks where BPM > 130 and Danceability > 0.7, including the columns Name, BPM, and Danceability. Save all SQL scripts to /home/ga/Documents/scripts/json_analysis.sql.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_json_hybrid_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_json_hybrid_analysis/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/Documents/databases/chinook.db",
+    "import_file": "/home/ga/Documents/imports/track_features.csv",
+    "export_file": "/home/ga/Documents/exports/high_energy_tracks.csv",
+    "sql_file": "/home/ga/Documents/scripts/json_analysis.sql",
+    "required_view": "v_TrackExtended",
+    "required_table": "TrackFeatures",
+    "filter_bpm": 130,
+    "filter_danceability": 0.7
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_json_hybrid_analysis"
+    }
+  }
+}

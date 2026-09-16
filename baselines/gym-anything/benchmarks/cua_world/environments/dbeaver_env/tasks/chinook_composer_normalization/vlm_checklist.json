@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_composer_normalization@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the database with the specified connection name",
+      "points": 10,
+      "visual_evidence": "A database management tool (e.g., DBeaver) is open and shows a connection named 'ChinookNormalize' in its database navigator or connection list."
+    },
+    {
+      "id": "sql_script_saved",
+      "description": "Save the complete SQL script to the specified path",
+      "points": 20,
+      "visual_evidence": "An editor or IDE shows a SQL script containing CREATE TABLE, INSERT, and CREATE VIEW statements, with the file path indicating it is saved as 'normalize_composers.sql' in '/home/ga/Documents/scripts/'."
+    },
+    {
+      "id": "tables_and_view_created",
+      "description": "Create the required tables and view in the database",
+      "points": 20,
+      "visual_evidence": "The database navigator/explorer shows the newly created tables 'composers' and 'track_composers', as well as the view 'v_track_composers' under the ChinookNormalize connection."
+    },
+    {
+      "id": "data_populated",
+      "description": "Populate the tables with normalized composer data",
+      "points": 25,
+      "visual_evidence": "A query result or data grid showing the 'composers' table populated with individual, trimmed composer names (e.g., 'Steve Harris', 'Angus Young' - no commas), or the 'v_track_composers' view displaying TrackId, TrackName, and ComposerName."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the Top 20 composers to a CSV file",
+      "points": 25,
+      "visual_evidence": "A file manager, text editor, or spreadsheet application shows the file 'top_composers.csv' in '/home/ga/Documents/exports/' containing columns 'ComposerName' and 'TrackCount' with exactly 20 rows of data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_tool_used",
+      "description": "The agent used a genuine database management tool or CLI to interact with the database.",
+      "visual_evidence": "Screenshots show a real database tool (like DBeaver, SQLiteStudio, or sqlite3 terminal) being used to execute queries, rather than a mock interface or just a text editor."
+    },
+    {
+      "id": "script_contains_parsing_logic",
+      "description": "The SQL script contains actual logic to parse and split the comma-separated strings.",
+      "visual_evidence": "The SQL script shows string manipulation logic (such as a recursive CTE using SUBSTR/INSTR in SQLite) to split the 'tracks.Composer' column, rather than hardcoded inserts."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The CSV export was generated from the database query results.",
+      "visual_evidence": "The CSV file contains accurate data (e.g., 'Steve Harris' with a count of 80) and appears to be exported via the database tool's export function or a script, not manually typed."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is SQLite. The top composer by track count is 'Steve Harris' with exactly 80 appearances. The 'composers' table should contain individual names without commas (e.g., 'Angus Young', not 'Angus Young, Malcolm Young'). The CSV export should have exactly 20 rows of composers plus the header."
+}

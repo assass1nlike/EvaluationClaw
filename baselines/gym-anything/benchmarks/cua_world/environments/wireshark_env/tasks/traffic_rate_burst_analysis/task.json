@@ -1,0 +1,27 @@
+{
+  "id": "traffic_rate_burst_analysis@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Analyze the traffic patterns in the capture file '/home/ga/Documents/captures/200722_tcp_anon.pcapng' to identify bursts and idle periods. Save a text report to '/home/ga/Documents/traffic_rate_report.txt' containing the following fields (one per line, 'LABEL: value' format): CAPTURE_DURATION_SECS (floor of last_timestamp - first_timestamp), TOTAL_PACKETS, AVERAGE_PPS (total_packets / duration, rounded to 2 decimal places), PEAK_PPS (maximum packets in any single one-second interval), PEAK_SECOND (0-indexed offset of the peak; use earliest if tied), IDLE_SECONDS (count of one-second intervals with zero packets",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/traffic_rate_burst_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/traffic_rate_burst_analysis/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "/home/ga/Documents/captures/200722_tcp_anon.pcapng",
+    "expected_output": "/home/ga/Documents/traffic_rate_report.txt",
+    "ground_truth_path": "/var/lib/wireshark/ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_traffic_rate_burst_analysis"
+    }
+  }
+}

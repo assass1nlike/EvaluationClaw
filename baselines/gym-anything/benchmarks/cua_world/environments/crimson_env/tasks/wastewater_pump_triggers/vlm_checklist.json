@@ -1,0 +1,53 @@
+{
+  "task_id": "wastewater_pump_triggers@1",
+  "task_completion": [
+    {
+      "id": "tags_created",
+      "description": "Verify that exactly four data tags are created for Lift Station A (LS-A).",
+      "points": 15,
+      "visual_evidence": "The Crimson 3.0 Navigation Pane on the left shows exactly four tags under 'Data Tags' (e.g., LSA_Level, Lead Pump, Lag Pump, High Alarm). There should be no tags for Lift Station B."
+    },
+    {
+      "id": "analog_scaling_configured",
+      "description": "Verify that Analog Scaling is configured for the LSA_Level tag to map raw PLC values to elevations in feet.",
+      "points": 20,
+      "visual_evidence": "With the LSA_Level tag selected, the main properties window shows the 'Data' or 'Format' tab with scaling parameters filled in (mapping Raw/Data values to Engineering/Scale values)."
+    },
+    {
+      "id": "actuation_triggers_configured",
+      "description": "Verify that event triggers are configured on the LSA_Level tag to actuate the Lead Pump, Lag Pump, and High Alarm flags.",
+      "points": 25,
+      "visual_evidence": "With the LSA_Level tag selected, the 'Triggers' tab shows at least three active triggers (e.g., Trigger Type set to Absolute High or Data > Value) where the Action is configured to set the Lead Pump, Lag Pump, and High Alarm tags to 1 (or ON)."
+    },
+    {
+      "id": "reset_triggers_configured",
+      "description": "Verify that event triggers are configured on the LSA_Level tag to reset the pump command flags at the Pumps Off elevation.",
+      "points": 25,
+      "visual_evidence": "In the 'Triggers' tab for the LSA_Level tag, there are triggers configured (e.g., Trigger Type set to Absolute Low or Data < Value) where the Action is configured to set the Lead Pump and Lag Pump tags to 0 (or OFF)."
+    },
+    {
+      "id": "project_saved",
+      "description": "Verify the project is saved as 'wastewater_lift_station.c3' in the specified directory.",
+      "points": 15,
+      "visual_evidence": "The Crimson 3.0 window title bar displays 'wastewater_lift_station' or a File Explorer/Save dialog window shows 'wastewater_lift_station.c3' inside 'C:\\Users\\Docker\\Documents\\CrimsonProjects'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Crimson 3.0 GUI to configure the tags and triggers.",
+      "visual_evidence": "Screenshots show active interaction with the Crimson 3.0 application windows, dialogs, and tabs, rather than a terminal or text editor modifying the .c3 file directly."
+    },
+    {
+      "id": "reference_docs_opened",
+      "description": "Verify the agent opened the reference documents to find the correct elevations and tags.",
+      "visual_evidence": "Screenshots show the 'CrimsonTasks' folder open, or the IO tag register / Ten States engineering elevations documents being viewed on the screen."
+    },
+    {
+      "id": "no_lsb_tags",
+      "description": "Verify that the agent followed the negative constraint to not configure tags for Lift Station B.",
+      "visual_evidence": "The Data Tags list in the Crimson 3.0 Navigation Pane does not contain any tags named with 'LSB' or 'Lift Station B'."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

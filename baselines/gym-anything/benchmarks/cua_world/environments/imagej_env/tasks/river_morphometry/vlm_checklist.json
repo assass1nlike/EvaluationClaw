@@ -1,0 +1,53 @@
+{
+  "task_id": "river_morphometry@1",
+  "task_completion": [
+    {
+      "id": "open_nile_bend_image",
+      "description": "Verify that the 'Nile Bend' sample image is opened in an image analysis application.",
+      "points": 10,
+      "visual_evidence": "The 'Nile Bend' image (showing a winding river) is visible within the workspace of an image analysis tool (such as ImageJ)."
+    },
+    {
+      "id": "measure_water_area",
+      "description": "Verify that the total water surface area has been measured.",
+      "points": 20,
+      "visual_evidence": "A selection/segmentation highlighting the water body in the image, or a results table displaying an 'Area' measurement."
+    },
+    {
+      "id": "measure_channel_widths",
+      "description": "Verify that the river channel width has been measured at three distinct cross-sections (upstream, bend apex, and downstream).",
+      "points": 20,
+      "visual_evidence": "Line selections drawn across the river at three different locations, or a results table showing at least three distinct length/distance measurements."
+    },
+    {
+      "id": "measure_sinuosity",
+      "description": "Verify that measurements required for sinuosity (channel length and straight-line distance) have been taken.",
+      "points": 20,
+      "visual_evidence": "A segmented line tracing the curve of the river AND a straight line connecting the start and end points of that curve, or a results table/calculator showing these two lengths and their ratio."
+    },
+    {
+      "id": "save_results_csv",
+      "description": "Verify that all required measurements are saved to a CSV file at ~/ImageJ_Data/results/river_morphometry.csv.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog showing the filename 'river_morphometry.csv' in the '~/ImageJ_Data/results/' directory, or a file explorer/text editor showing the created CSV file containing the area, three widths, and sinuosity index."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_for_measurements",
+      "description": "Ensure the agent used the image analysis software's GUI to perform actual measurements.",
+      "visual_evidence": "Screenshots should show active use of selection/measurement tools (like line or polygon tools) and results windows in the image analysis software, rather than just a script or text editor with hardcoded values."
+    },
+    {
+      "id": "consistent_measurement_values",
+      "description": "Check that the saved values in the CSV match the measurements taken in the software.",
+      "visual_evidence": "The final values written to the CSV file should correspond to the values displayed in the image analysis software's results table."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Ensure the agent did not hallucinate or copy-paste expected ranges instead of measuring.",
+      "visual_evidence": "The CSV should contain specific, precise numerical values derived from the image, not exact bounds like '10000' or '500000' or generic placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "The target image is 'Nile Bend' (NileBend.jpg). Realistic measurement bounds for this image are: Water area between 10,000 and 500,000 pixels; Channel widths between 20 and 600 pixels; Sinuosity index between 1.0 and 5.0. The final CSV must contain the area, three distinct widths, and the calculated sinuosity index."
+}

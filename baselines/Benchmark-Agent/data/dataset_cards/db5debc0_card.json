@@ -1,0 +1,107 @@
+{
+  "dataset_id": "db5debc0",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates classification of visual spatial relationships between pairs of objects in images. Given an image, a question naming two objects with their bounding box coordinates, and a prompt listing nine possible relations, the model must output the correct spatial relation label.",
+  "card_text": "This dataset consists of 200 image-question-answer triplets focused on visual spatial relationship understanding. Each sample provides an image file, a question that refers to two objects by name and bounding box coordinates (e.g., bird [x1, y1, x2, y2] and bench [x1, y1, x2, y2]), and a prompt that enumerates the nine allowed relationship labels: 'on', 'in', 'next', 'under', 'above', 'behind', 'in front of', 'left', and 'right'. The expected output is a single label indicating the spatial relationship between the two objects. The images are natural scenes from everyday contexts. The task requires visual perception, object grounding from coordinates, and relational reasoning. The dataset is open-set in the sense that the label set is provided, but the answer is one of the predefined relations.",
+  "tasks": [
+    "classification_multiclass",
+    "visual_question_answering"
+  ],
+  "domain": "visual spatial relationship reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "The image provides the visual scene containing the two objects whose spatial relationship is to be determined; it is the main visual input the model must interpret.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A textual instruction that names two objects and includes their bounding box coordinates; it asks the model to extract and output the spatial relationship between them. The bounding boxes are embedded as bracketed coordinate lists after each object name.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt defines the closed set of nine spatial relationship labels from which the answer must be chosen, constraining the output space.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The chosen spatial relationship label (e.g., 'under', 'in front of') that correctly describes the spatial relation between the two objects mentioned in the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "File path to the image containing the visual scene to be analyzed; the image is the visual context for the spatial relation question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image file, a textual question that identifies two objects with their bounding box coordinates, a prompt listing the nine allowed relationship labels, and a single answer label. The image serves as the visual context; the question and prompt together specify the task and the label space; the answer is the predicted relation."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Classification_of_Visual_Spatial_Relationship/annotation_open.json",
+    "existing_tags": {
+      "task": "Classification_of_Visual_Spatial_Relationship",
+      "type": "comprehension",
+      "skill": "Relation Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition",
+        "Spatial Perception"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

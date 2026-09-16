@@ -1,0 +1,59 @@
+{
+  "task_id": "restore_volume_header@1",
+  "task_completion": [
+    {
+      "id": "restore_header",
+      "description": "Use VeraCrypt to restore the volume header from the backup file",
+      "points": 20,
+      "visual_evidence": "VeraCrypt GUI showing the 'Volume Tools' -> 'Restore Volume Header' dialog, or a success message indicating the header for '/home/ga/Volumes/critical_data.hc' was restored using the external backup file."
+    },
+    {
+      "id": "mount_volume",
+      "description": "Mount the restored volume to the specified mount point",
+      "points": 20,
+      "visual_evidence": "VeraCrypt main window showing '/home/ga/Volumes/critical_data.hc' successfully mounted at the directory '/home/ga/MountPoints/slot1'."
+    },
+    {
+      "id": "locate_verification_file",
+      "description": "Locate the RECOVERY_VERIFICATION.txt file inside the mounted volume",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window showing the contents of '/home/ga/MountPoints/slot1', including the file 'RECOVERY_VERIFICATION.txt'."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the recovery report file in the Documents directory",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing a file named 'recovery_report.txt' being created or edited in '/home/ga/Documents/'."
+    },
+    {
+      "id": "report_verification_code",
+      "description": "Write the verification code as the first line of the report",
+      "points": 20,
+      "visual_evidence": "The text editor showing 'recovery_report.txt' with its first line exactly matching the recovery code: 'VERIFIED-DR-7F3A9B2E-OK'."
+    },
+    {
+      "id": "report_file_list",
+      "description": "List all filenames found in the root of the mounted volume in the subsequent lines of the report",
+      "points": 20,
+      "visual_evidence": "The text editor showing 'recovery_report.txt' containing the filenames 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', 'backup_authorized_keys', and 'RECOVERY_VERIFICATION.txt' on the lines following the verification code."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_gui_used",
+      "description": "The agent interacted with the VeraCrypt GUI to perform the restoration and mounting",
+      "visual_evidence": "Screenshots must show the VeraCrypt application window open and being actively interacted with (e.g., selecting volume tools, entering the password in the mount dialog)."
+    },
+    {
+      "id": "actual_file_opened",
+      "description": "The agent actually opened the verification file to read the code",
+      "visual_evidence": "A screenshot showing 'RECOVERY_VERIFICATION.txt' open in a text editor or terminal viewer (like cat or less) displaying the code before it is written to the report."
+    },
+    {
+      "id": "genuine_report_editing",
+      "description": "The report file was created using a text editor or terminal commands",
+      "visual_evidence": "A text editor (like gedit, nano, vim) or terminal window showing the active editing or creation of the report, rather than the file appearing without any visible creation process."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume path: /home/ga/Volumes/critical_data.hc. Backup path: /home/ga/Volumes/header_backup_critical.dat. Mount point: /home/ga/MountPoints/slot1. Password: DR-Restore#2024!. Report path: /home/ga/Documents/recovery_report.txt. Recovery code (must be line 1 of report): VERIFIED-DR-7F3A9B2E-OK. Expected files in root (must be listed in report): SF312_Nondisclosure_Agreement.txt, FY2024_Revenue_Budget.csv, backup_authorized_keys, RECOVERY_VERIFICATION.txt."
+}

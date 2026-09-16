@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_source_correlation@1",
+  "task_completion": [
+    {
+      "id": "autopsy_case_created",
+      "description": "Verify that an Autopsy case named 'Cross_Device_Analysis_2024' with Case Number 'INV-COR-005' was created.",
+      "points": 10,
+      "visual_evidence": "Look for the Autopsy main window title bar, case properties dialog, or dashboard displaying the case name 'Cross_Device_Analysis_2024' and case number 'INV-COR-005'."
+    },
+    {
+      "id": "data_sources_added",
+      "description": "Verify that both disk images (ntfs_undel.dd and jpeg_search.dd) were added as data sources to the Autopsy case.",
+      "points": 20,
+      "visual_evidence": "Look at the Data Explorer/Tree view on the left side of the Autopsy interface. Both 'ntfs_undel.dd' and 'jpeg_search.dd' should be listed under the 'Data Sources' node."
+    },
+    {
+      "id": "md5_hashes_calculated",
+      "description": "Verify that the agent calculated or viewed MD5 hashes for the files in the data sources.",
+      "points": 20,
+      "visual_evidence": "Look for the Autopsy file listing table showing populated 'MD5 Hash' columns, or screenshots showing the 'Ingest Modules' configuration with hash calculation enabled."
+    },
+    {
+      "id": "correlation_report_content",
+      "description": "Verify the creation and correct content of /home/ga/Reports/correlation_report.txt.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal output showing the file '/home/ga/Reports/correlation_report.txt'. It must show SOURCE_1_FILES=9, SOURCE_2_FILES=16, and indicate 0 CROSS_DEVICE_MATCHES (or no MATCH lines)."
+    },
+    {
+      "id": "correlation_summary_content",
+      "description": "Verify the creation and correct content of /home/ga/Reports/correlation_summary.txt.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal output showing the file '/home/ga/Reports/correlation_summary.txt'. It must show SHARED_FILES=0 and contain a conclusion stating there is no evidence of file copying, refuting the intelligence."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_autopsy_gui",
+      "description": "Verify the agent actually used the Autopsy GUI to perform the forensic analysis.",
+      "visual_evidence": "Look for screenshots of the Autopsy application interface being actively used (e.g., navigating menus, viewing data sources), rather than just terminal commands or scripts bypassing the tool."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the report files were genuinely created in the correct directory.",
+      "visual_evidence": "Look for terminal commands like 'nano /home/ga/Reports/correlation_report.txt', 'echo', or a GUI text editor saving to the exact requested paths."
+    },
+    {
+      "id": "no_ground_truth_cheating",
+      "description": "Verify the agent did not cheat by reading the ground truth file.",
+      "visual_evidence": "Ensure there are no terminal commands reading '/tmp/multi_source_gt.json' or '/tmp/multi_source_result.json' to artificially obtain the file counts or match results."
+    }
+  ],
+  "privileged_info_for_vlm": "The ground truth for this task is: Source 1 (ntfs_undel.dd) contains exactly 9 regular files. Source 2 (jpeg_search.dd) contains exactly 16 regular files. There are exactly 0 cross-device duplicate matches based on MD5 hashes. A correct investigation conclusion in the summary file must explicitly report 0 shared files and refute the intelligence suggesting the suspect copied files."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "sec_edgar_xml_shredding@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database",
+      "points": 10,
+      "visual_evidence": "A SQL client (e.g., DBeaver, SQL Developer, or terminal sqlplus) open and showing a connection to the Oracle database (XEPDB1) as the edgar_admin user."
+    },
+    {
+      "id": "create_extracted_holdings",
+      "description": "Create the EXTRACTED_HOLDINGS table by parsing XML",
+      "points": 20,
+      "visual_evidence": "SQL code executing 'CREATE TABLE EXTRACTED_HOLDINGS' that includes XML parsing logic (e.g., XMLTABLE) and explicitly references the namespace 'http://www.sec.gov/edgar/document/thirteenf/informationtable', along with a success message or the resulting table schema."
+    },
+    {
+      "id": "create_vw_holdings_corrected",
+      "description": "Create the VW_HOLDINGS_CORRECTED view with anomaly detection logic",
+      "points": 25,
+      "visual_evidence": "SQL code executing 'CREATE VIEW VW_HOLDINGS_CORRECTED' that joins the extracted data with QUARTERLY_PRICES. It must include the anomaly logic checking if '((reported_value * 1000) / shares) > 50 * closing_price' and CASE statements to generate 'anomaly_flag' and 'corrected_value'."
+    },
+    {
+      "id": "query_target_cusip",
+      "description": "Query the view for Apple Inc. (CUSIP 037833100) ordered by corrected_value",
+      "points": 20,
+      "visual_evidence": "A SELECT statement querying VW_HOLDINGS_CORRECTED with a WHERE clause filtering for cusip = '037833100' and an ORDER BY corrected_value DESC clause, showing the result grid."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the query results to the specified CSV file path",
+      "points": 25,
+      "visual_evidence": "A file manager window, terminal output (e.g., ls command), or export dialog confirming the creation of 'aapl_top_holders.csv' in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "Verify that SQL commands were actually executed in a database client",
+      "visual_evidence": "Look for execution success messages (e.g., 'Table created', 'View created', or populated result grids) in a database tool, rather than just SQL code written in a text editor without execution."
+    },
+    {
+      "id": "dynamic_anomaly_logic",
+      "description": "Verify that the anomaly detection is calculated dynamically",
+      "visual_evidence": "Check the SQL code to ensure the anomaly flag is calculated using the mathematical formula (> 50 * closing_price) and not by hardcoding specific accession numbers or rows."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the CSV file was generated from the database query",
+      "visual_evidence": "Look for evidence of an export action from the SQL client (e.g., 'Export Data' wizard or spool command) rather than a manually typed or mocked CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target CSV Path: /home/ga/Documents/exports/aapl_top_holders.csv. Target CUSIP for Apple Inc. is '037833100'. The anomaly threshold multiplier is strictly > 50. The view must contain columns: accession_number, issuer_name, cusip, shares, closing_price, reported_value, anomaly_flag, and corrected_value."
+}

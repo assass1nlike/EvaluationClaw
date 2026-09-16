@@ -1,0 +1,65 @@
+{
+  "task_id": "waste_treatment_linkage_setup@1",
+  "task_completion": [
+    {
+      "id": "create_waste_flow",
+      "description": "Create a waste flow named 'Hazardous Sludge' with correct properties.",
+      "points": 15,
+      "visual_evidence": "Look for a Flow editor tab named 'Hazardous Sludge'. In its General information section, 'Flow type' must be set to 'Waste' and 'Reference flow property' must be set to 'Mass'."
+    },
+    {
+      "id": "create_generator_process",
+      "description": "Create a generator process named 'Chemical Plant Operation'.",
+      "points": 10,
+      "visual_evidence": "Look for a Process editor tab named 'Chemical Plant Operation' or its presence in the Navigation panel under Processes."
+    },
+    {
+      "id": "generator_outputs_waste",
+      "description": "Set the generator process to output the hazardous waste.",
+      "points": 15,
+      "visual_evidence": "In the Inputs/Outputs tab of the 'Chemical Plant Operation' process, 'Hazardous Sludge' must be listed in the Outputs table."
+    },
+    {
+      "id": "create_treatment_process",
+      "description": "Create a treatment process named 'Sludge Incineration Service'.",
+      "points": 10,
+      "visual_evidence": "Look for a Process editor tab named 'Sludge Incineration Service' or its presence in the Navigation panel under Processes."
+    },
+    {
+      "id": "treatment_inputs_waste_as_qr",
+      "description": "Set the treatment process to input the waste and mark it as the Quantitative Reference.",
+      "points": 20,
+      "visual_evidence": "In the Inputs/Outputs tab of the 'Sludge Incineration Service' process, 'Hazardous Sludge' must be listed in the Inputs table. Additionally, the Quantitative Reference indicator (usually a green checkmark or selected radio button in the QR column) must be set for this specific input."
+    },
+    {
+      "id": "create_product_system",
+      "description": "Create a product system named 'Plant_Waste_System'.",
+      "points": 10,
+      "visual_evidence": "Look for a Product System editor tab named 'Plant_Waste_System' or its presence in the Navigation panel under Product systems."
+    },
+    {
+      "id": "link_processes_in_system",
+      "description": "Link the generator to the treatment service within the product system.",
+      "points": 20,
+      "visual_evidence": "In the 'Plant_Waste_System' editor (e.g., the Model Graph tab), look for a visual connection (an arrow) linking 'Chemical Plant Operation' and 'Sludge Incineration Service', representing the flow of 'Hazardous Sludge' between them."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_openlca_usage",
+      "description": "Verify the agent used the actual openLCA graphical user interface.",
+      "visual_evidence": "Screenshots must show the standard openLCA application window (Eclipse RCP-based interface with Navigation, Editor, and Outline views), not a text editor or mock-up."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "Verify the agent interacted with GUI elements rather than bypassing the UI with scripts.",
+      "visual_evidence": "Look for evidence of form filling, tab switching, and clicking within the openLCA interface, rather than a terminal window executing a script to create the database entries."
+    },
+    {
+      "id": "consistent_entity_creation",
+      "description": "Verify the created entities actually exist in the active database.",
+      "visual_evidence": "The created flows, processes, and product systems should be visible in the Navigation tree on the left side of the openLCA window."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified names to check: Flow = 'Hazardous Sludge', Generator Process = 'Chemical Plant Operation', Treatment Process = 'Sludge Incineration Service', Product System = 'Plant_Waste_System'. The flow must be of type 'Waste' with reference property 'Mass'. The treatment process must have the waste flow as an input AND set as its Quantitative Reference. The product system must link the generator to the treatment service."
+}

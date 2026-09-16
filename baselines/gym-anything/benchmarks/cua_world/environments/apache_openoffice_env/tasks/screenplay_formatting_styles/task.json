@@ -1,0 +1,43 @@
+{
+  "id": "screenplay_formatting_styles@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Script Coordinator for the sci-fi series 'Nebula Frontier'. Format the raw text draft of Scene 3 from /home/ga/Documents/scene_draft.txt into standard Hollywood screenplay format. Following the specifications in the style guide at /home/ga/Documents/style_guide.txt, use custom Paragraph Styles for 'Scene Heading', 'Action', 'Character', 'Dialogue', and 'Parenthetical' to ensure correct indentation without manual spacing or tabs. Save the final formatted document as /home/ga/Documents/Nebula_Frontier_Sc3.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/screenplay_formatting_styles/setup_task.sh",
+    "post_task": "/workspace/tasks/screenplay_formatting_styles/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/Nebula_Frontier_Sc3.odt",
+    "required_styles": [
+      "Scene Heading",
+      "Action",
+      "Character",
+      "Dialogue",
+      "Parenthetical"
+    ],
+    "character_names": [
+      "CMDR. CHEN",
+      "LT. SPARKS",
+      "SHIP COMPUTER (V.O.)"
+    ],
+    "dialogue_snippets": [
+      "Report!",
+      "Shields are down",
+      "Reroute auxiliary power"
+    ],
+    "scene_heading_text": "INT. BRIDGE - DAY"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_screenplay_formatting"
+    }
+  }
+}

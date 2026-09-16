@@ -1,0 +1,59 @@
+{
+  "task_id": "workload_scheduling_constraints@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Verify the agent successfully logged into the Rancher UI.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show the Rancher dashboard or cluster management interface indicating a successful login with the provided credentials."
+    },
+    {
+      "id": "node_labels_applied",
+      "description": "Verify the required labels were applied to the cluster node.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Rancher Node details page or 'kubectl get nodes --show-labels' output showing the labels: 'workload-type=general-purpose', 'environment=production', and 'disk-type=ssd'."
+    },
+    {
+      "id": "node_taints_applied",
+      "description": "Verify the required taint was applied to the cluster node.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Rancher Node configuration/taints section or 'kubectl describe node' output showing the taint 'dedicated=platform:NoSchedule'."
+    },
+    {
+      "id": "priority_classes_created",
+      "description": "Verify the specified PriorityClasses were created.",
+      "points": 10,
+      "visual_evidence": "Screenshots of the Rancher PriorityClasses page (under Cluster -> Core -> PriorityClasses) or 'kubectl get priorityclasses' showing newly created custom priority classes."
+    },
+    {
+      "id": "daemonset_deployed",
+      "description": "Verify the 'log-collector' DaemonSet is deployed in the 'monitoring' namespace.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Rancher Workloads page filtered by the 'monitoring' namespace showing a DaemonSet named 'log-collector' as active or provisioning."
+    },
+    {
+      "id": "daemonset_constraints_configured",
+      "description": "Verify the DaemonSet is configured with the correct nodeSelector, toleration, and priorityClassName.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the 'log-collector' DaemonSet configuration, YAML view, or Pod scheduling details showing a nodeSelector matching the applied labels, a toleration for 'dedicated=platform:NoSchedule', and a custom priorityClassName."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_rancher_interaction",
+      "description": "Verify the agent actually interacted with the Rancher UI or used genuine kubectl commands.",
+      "visual_evidence": "Screenshots should show navigation through the Rancher interface or valid terminal command execution, rather than just viewing the specification YAML file."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Verify the final state is shown in the actual application interface.",
+      "visual_evidence": "The Rancher UI should look standard without signs of DOM manipulation (e.g., browser developer tools open and modifying text)."
+    },
+    {
+      "id": "actual_deployment_status",
+      "description": "Verify the DaemonSet and node configurations were actually applied to the cluster.",
+      "visual_evidence": "Screenshots should show the Rancher UI reflecting the applied state (e.g., Active/Updating status badges, actual node label tags in the UI) rather than just a draft YAML file in an editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'monitoring'. Expected node labels: 'workload-type': 'general-purpose', 'environment': 'production', 'disk-type': 'ssd'. Expected node taint: 'dedicated=platform:NoSchedule'. The agent must deploy a DaemonSet named 'log-collector' that utilizes these specific constraints."
+}

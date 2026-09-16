@@ -1,0 +1,47 @@
+{
+  "id": "esi_triage_decision_tree@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a multi-page clinical decision tree diagram for the ESI (Emergency Severity Index) v4 triage algorithm in draw.io, using the specification in ~/Desktop/esi_v4_algorithm.txt. The diagram must accurately reflect the algorithm logic, including the resource counting and vital signs check branches. Page 1 must contain the flowchart using diamond shapes for decision points and rounded rectangles for the five ESI Level outcomes, connected by labeled branching conditions. Color-code the outcome nodes: Level 1 (Red), Level 2 (Orange), Level 3 (Yellow), Level 4 (Green), and Level 5 (Blue). Page 2 must provide a legend with text definitions for the five levels. Save the editable diagram to ~/Desktop/esi_triage_tree.drawio and export the Page 1 flowchart to ~/Desktop/esi_triage_tree.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/esi_triage_decision_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/esi_triage_decision_tree/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/esi_triage_tree.drawio",
+    "expected_png": "/home/ga/Desktop/esi_triage_tree.png",
+    "algorithm_file": "/home/ga/Desktop/esi_v4_algorithm.txt",
+    "min_pages": 2,
+    "min_shapes": 9,
+    "min_colors": 3,
+    "required_keywords": [
+      "lifesaving",
+      "immediate",
+      "intervention",
+      "high risk",
+      "confused",
+      "lethargic",
+      "distress",
+      "resources",
+      "danger zone",
+      "vitals",
+      "esi level 1",
+      "esi level 2",
+      "esi level 3",
+      "esi level 4",
+      "esi level 5"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_esi_triage_decision_tree"
+    }
+  }
+}

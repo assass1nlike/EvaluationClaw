@@ -1,0 +1,36 @@
+{
+  "id": "create_map_layout@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Create a professional map layout of the world countries using the 'countries_base' project and the 'Vista' view. The layout must include a view frame displaying the 'Vista' view, a title text element reading \"World Countries Map\", a legend, a scale bar, and a north arrow. Arrange these elements into a clean composition and export the map layout as a PNG image to /home/ga/gvsig_data/exports/world_map_layout.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_map_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/create_map_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/world_map_layout.png",
+    "required_elements": [
+      "title",
+      "legend",
+      "scale_bar",
+      "north_arrow",
+      "map_view"
+    ],
+    "expected_title_text": "World Countries Map",
+    "min_file_size_kb": 50,
+    "min_width": 800,
+    "min_height": 600
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_map_layout"
+    }
+  }
+}

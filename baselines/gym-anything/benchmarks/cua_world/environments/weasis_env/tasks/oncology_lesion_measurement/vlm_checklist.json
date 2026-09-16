@@ -1,0 +1,59 @@
+{
+  "task_id": "oncology_lesion_measurement@1",
+  "task_completion": [
+    {
+      "id": "load_dicom_study",
+      "description": "Open the DICOM viewer and load the oncology CT study.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application (e.g., Weasis) is open and displaying a medical image from the /home/ga/DICOM/studies/oncology_ct/ directory."
+    },
+    {
+      "id": "apply_windowing",
+      "description": "Apply the specified soft tissue windowing settings.",
+      "points": 10,
+      "visual_evidence": "The DICOM viewer UI shows windowing settings explicitly set to Window Width (WW) 400 and Window Level (WL) 50."
+    },
+    {
+      "id": "measure_lesion_1",
+      "description": "Identify and measure the first target lesion.",
+      "points": 15,
+      "visual_evidence": "A line measurement tool is drawn across a structure on the medical image, displaying a length measurement in millimeters (mm)."
+    },
+    {
+      "id": "measure_lesion_2",
+      "description": "Identify and measure a second distinct target lesion.",
+      "points": 15,
+      "visual_evidence": "A second line measurement tool is drawn across a different structure or on a different image slice, displaying a length measurement in millimeters (mm)."
+    },
+    {
+      "id": "export_measurement_images",
+      "description": "Export the CT slices showing the measurements as PNG files.",
+      "points": 20,
+      "visual_evidence": "A save dialog, file explorer, or terminal showing the creation or existence of 'recist_lesion1.png' and 'recist_lesion2.png' in the /home/ga/DICOM/exports/ directory."
+    },
+    {
+      "id": "write_recist_report",
+      "description": "Write the RECIST assessment report with all required details.",
+      "points": 30,
+      "visual_evidence": "A text editor is open showing 'recist_report.txt' containing anatomical locations, individual diameters in mm, the Sum of Longest Diameters (SLD), and a baseline assessment statement."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_viewer_used",
+      "description": "Verify the agent used a graphical DICOM viewer to view and measure the images.",
+      "visual_evidence": "Screenshots must show a genuine DICOM viewer GUI (like Weasis) being interacted with, rather than just terminal commands or scripts processing the DICOM files blindly."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "Verify the measurements in the report match the visual measurements taken in the viewer.",
+      "visual_evidence": "The millimeter values written in 'recist_report.txt' should correspond to the numbers visible on the measurement lines drawn in the DICOM viewer."
+    },
+    {
+      "id": "manual_export_evidence",
+      "description": "Verify the exported images contain the measurement annotations.",
+      "visual_evidence": "The exported PNG files or the viewer's export preview should clearly show the drawn measurement lines, proving they are screenshots/exports of the measured state, not just raw extracted DICOM frames."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must act as a Radiologist applying RECIST 1.1. The study is located in oncology_ct (using an XA sample proxy). The agent must explicitly set the viewer to Window Width 400 and Window Level 50. At least 2 distinct lesions must be measured. The final report must include anatomical locations, individual diameters in mm, the Sum of Longest Diameters (SLD), and a baseline assessment statement."
+}

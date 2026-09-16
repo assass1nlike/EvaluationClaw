@@ -1,0 +1,28 @@
+{
+  "id": "refactor_constructor_to_builder@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "The `SmartHomeDevice` class in the `iot-device-manager` project (~/IdeaProjects/iot-device-manager) suffers from the 'telescoping constructor' anti-pattern, making client code hard to read and error-prone. Refactor `SmartHomeDevice` to implement the Builder Pattern and update all instantiations in `DeviceService.java` and `DeviceServiceTest.java` to use the new Builder API. Ensure the project remains functional and all tests pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_constructor_to_builder/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_constructor_to_builder/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/iot-device-manager",
+    "main_class_path": "src/main/java/com/iot/manager/model/SmartHomeDevice.java",
+    "service_class_path": "src/main/java/com/iot/manager/service/DeviceService.java",
+    "test_class_path": "src/test/java/com/iot/manager/service/DeviceServiceTest.java"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_constructor_to_builder"
+    }
+  }
+}

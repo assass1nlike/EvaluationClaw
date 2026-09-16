@@ -1,0 +1,30 @@
+{
+  "id": "survey_boundary_overlay@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "You are a licensed land surveyor preparing a boundary survey drawing for a residential property sale. Using the building footprint in '/home/ga/Documents/LibreCAD/floorplan.dxf', overlay a complete boundary survey including lot property boundary lines forming a closed polygon with labeled bearings (e.g., 'N 45°30 E') and distances. Include front (20 ft), rear (20 ft), and side (5 ft) yard setbacks for R-1 residential zoning, scaled to the drawing units. Add at least one utility easement with dashed lines and annotation, a survey legend or notes block, and a north arrow indicator. Organize all survey elements on dedicated layers following professional drafting conventions. Save the completed drawing to '/home/ga/Documents/LibreCAD/floorplan_survey.dxf'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/survey_boundary_overlay/setup_task.sh",
+    "post_task": "/workspace/tasks/survey_boundary_overlay/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "baseline_entity_count": 967,
+    "output_file": "/home/ga/Documents/LibreCAD/floorplan_survey.dxf",
+    "source_file": "/home/ga/Documents/LibreCAD/floorplan.dxf",
+    "min_boundary_entities": 4,
+    "min_bearing_text": 2,
+    "occupation_context": "Licensed Land Surveyor / Civil Engineer"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_survey_boundary_overlay"
+    }
+  }
+}

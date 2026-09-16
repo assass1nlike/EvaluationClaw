@@ -1,0 +1,54 @@
+{
+  "id": "import_customers_csv@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Import the customer leads from C:\\Users\\Docker\\Desktop\\new_leads.csv into NCH Copper Point of Sale. Map the CSV columns to the corresponding fields: 'GivenName' to 'First Name', 'FamilyName' to 'Last Name', 'Mobile' to 'Phone', 'EmailAddress' to 'Email', and 'Street' to 'Address'. Once the customers are imported, process a cash sale for 'Sarah Connor' including any available item.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_customers_csv\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_customers_csv\\export_result.ps1"
+  },
+  "metadata": {
+    "csv_path": "C:\\Users\\Docker\\Desktop\\new_leads.csv",
+    "expected_customers": [
+      {
+        "first": "Sarah",
+        "last": "Connor",
+        "phone": "555-0199"
+      },
+      {
+        "first": "Kyle",
+        "last": "Reese",
+        "phone": "555-0200"
+      },
+      {
+        "first": "John",
+        "last": "Matrix",
+        "phone": "555-0123"
+      },
+      {
+        "first": "Ellen",
+        "last": "Ripley",
+        "phone": "555-0999"
+      },
+      {
+        "first": "Dutch",
+        "last": "Schaefer",
+        "phone": "555-0101"
+      }
+    ],
+    "target_customer": "Sarah Connor",
+    "database_path": "C:\\ProgramData\\NCH Software\\Copper\\Shared\\copper.db"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_customers"
+    }
+  }
+}

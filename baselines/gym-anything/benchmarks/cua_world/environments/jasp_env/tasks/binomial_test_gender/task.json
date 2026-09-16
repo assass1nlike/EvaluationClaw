@@ -1,0 +1,33 @@
+{
+  "id": "binomial_test_gender@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Binomial Test on the 'Gender' variable in the 'ExamAnxiety.csv' dataset to test if the proportion differs from 0.5. Include the Vovk-Sellke Maximum p-ratio and descriptive plots in the analysis. Save the results to /home/ga/Documents/JASP/BinomialTestGender.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/binomial_test_gender/setup_task.sh",
+    "post_task": "/workspace/tasks/binomial_test_gender/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/BinomialTestGender.jasp",
+    "dataset_path": "/home/ga/Documents/JASP/ExamAnxiety.csv",
+    "analysis_type": "BinomialTest",
+    "target_variable": "Gender",
+    "test_value": 0.5,
+    "required_options": [
+      "VovkSellkeMPR",
+      "descriptivePlots"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_binomial_test_gender"
+    }
+  }
+}

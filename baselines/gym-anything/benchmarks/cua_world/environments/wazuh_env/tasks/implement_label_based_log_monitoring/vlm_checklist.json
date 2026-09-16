@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_label_based_log_monitoring@1",
+  "task_completion": [
+    {
+      "id": "configure_agent_label",
+      "description": "Verify the global agent label is configured with the correct key and value.",
+      "points": 20,
+      "visual_evidence": "Look for the Wazuh manager configuration file (typically ossec.conf) being edited or viewed. It should contain a <labels> section with <label key=\"compliance\">pci_dss</label>."
+    },
+    {
+      "id": "configure_log_monitoring",
+      "description": "Verify the Wazuh manager is configured to monitor the specified application log file.",
+      "points": 20,
+      "visual_evidence": "Look for a <localfile> block in the configuration file containing <location>/var/log/payment_app.log</location> and <log_format>syslog</log_format>."
+    },
+    {
+      "id": "create_rule_id_level",
+      "description": "Verify the custom detection rule is created with the correct ID and alert level.",
+      "points": 20,
+      "visual_evidence": "Look for local_rules.xml being edited or viewed. It should contain a new rule definition starting with <rule id=\"100250\" level=\"12\">."
+    },
+    {
+      "id": "configure_rule_match",
+      "description": "Verify the custom rule triggers on the correct phrase.",
+      "points": 20,
+      "visual_evidence": "Look within the rule 100250 definition in local_rules.xml for the match condition: <match>Transaction: VOID</match>."
+    },
+    {
+      "id": "configure_rule_label_condition",
+      "description": "Verify the custom rule only triggers if the agent has the 'compliance' label set to 'pci_dss'.",
+      "points": 20,
+      "visual_evidence": "Look within the rule 100250 definition in local_rules.xml for a field condition checking the label, such as <field name=\"labels.compliance\">pci_dss</field> or similar Wazuh syntax."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Ensure the agent actually edited the configuration files rather than just printing text.",
+      "visual_evidence": "Look for a text editor interface (like nano, vim) or proper file modification commands (like sed, or echo appending to a file) targeting the actual Wazuh configuration paths (e.g., /var/ossec/etc/ossec.conf and /var/ossec/etc/rules/local_rules.xml)."
+    },
+    {
+      "id": "correct_container_execution",
+      "description": "Ensure the agent is working within the correct Wazuh manager container.",
+      "visual_evidence": "Look for terminal prompts or docker commands indicating the agent is executing commands inside the 'wazuh-wazuh.manager-1' container."
+    },
+    {
+      "id": "no_simulated_output",
+      "description": "Ensure the agent didn't just print a fake success message or output the expected XML to the console without saving.",
+      "visual_evidence": "The terminal should show standard command execution, file editing, and saving processes, not just an 'echo' of the final expected XML block to the standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The Wazuh manager configuration must include a label with key 'compliance' and value 'pci_dss'. The monitored log file must be '/var/log/payment_app.log' with format 'syslog'. The custom rule in local_rules.xml must have ID '100250', level '12', match the string 'Transaction: VOID', and include a condition to check for the 'compliance' label value 'pci_dss'. The target container is 'wazuh-wazuh.manager-1'."
+}

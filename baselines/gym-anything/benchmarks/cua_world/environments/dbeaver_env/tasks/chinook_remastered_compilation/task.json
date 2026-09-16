@@ -1,0 +1,32 @@
+{
+  "id": "chinook_remastered_compilation@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Create a 'Greatest Hits' re-release for the artist 'Iron Maiden' (ArtistId 90) in the Chinook database (/home/ga/Documents/databases/chinook.db). Identify the top 10 best-selling tracks for Iron Maiden based on total quantity in invoice_items and create a new album titled 'Iron Maiden: Remastered Classics'. For each of these top 10 tracks, create a new track record linked to the new album with the name suffixed by ' (Remastered)', a UnitPrice of 1.29, and all other fields (Composer, Milliseconds, Bytes, GenreId, MediaTypeId) matching the original track. Export a CSV manifest of the new tracks including TrackId, Name, and UnitPrice to /home/ga/Documents/exports/new_release_manifest.csv and save the SQL script to /home/ga/Documents/scripts/remaster_release.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_remastered_compilation/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_remastered_compilation/export_result.sh"
+  },
+  "metadata": {
+    "target_artist_id": 90,
+    "target_album_title": "Iron Maiden: Remastered Classics",
+    "target_price": 1.29,
+    "name_suffix": " (Remastered)",
+    "expected_track_count": 10,
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "csv_path": "/home/ga/Documents/exports/new_release_manifest.csv",
+    "sql_path": "/home/ga/Documents/scripts/remaster_release.sql"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_remastered_compilation"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "dataset_id": "cb61e914",
+  "name": "Medical-Device-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Medical-Device-Detection dataset contains images of medical devices annotated with bounding boxes. It evaluates object detection models on their ability to localize and classify medical devices given a generic prompt.",
+  "card_text": "The Medical-Device-Detection dataset comprises 200 samples pairing images with bounding box annotations. Images depict various medical devices in clinical or hospital settings. Each sample includes a generic prompt instructing the model to detect objects. Annotations specify a class label (e.g., 'Scale', 'Infusion Pole') and four coordinates defining the bounding box. The dataset targets object detection in the medical domain, assuming models can interpret visual scenes and output structured bounding boxes. Image complexity varies, and the detection is open-set as class labels are not predefined. The prompt is identical across samples, serving as a constant instruction.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "medical device detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "The image file contains a photograph of a medical device or equipment in a clinical setting. It serves as the visual input for detection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic prompt instructing the model to detect objects in the image. It is identical across all samples.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of dictionaries, each containing a class label (e.g., 'Scale', 'Infusion Pole') and four coordinates [x_min, y_min, x_max, y_max] defining the bounding box for a detected medical device. This is the target output for the detection task.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image file path and a short prompt, and an output object with a list of bounding boxes. Each bounding box is a dictionary mapping a class label to a list of four coordinates. The image and prompt are inputs to the model, while the bounding boxes are the expected output for detection."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/medical-device-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "medical-device-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "Medicine",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Medicine"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "custom_extraction_product_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are a Senior E-commerce SEO Analyst retained by an online bookstore (books.toscrape.com) to audit their product catalog's SEO health. Crawl https://books.toscrape.com/ using Screaming Frog SEO Spider to extract product prices (CSS selector: .price_color) and star ratings (CSS selector: .star-rating, class attribute). Export the custom extraction results containing the page URL, price, and rating to ~/Documents/SEO/exports/ as a CSV file. Additionally, export the full internal HTML pages report to ~/Documents/SEO/exports/ as a separate CSV file. Login: user=ga.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/custom_extraction_product_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/custom_extraction_product_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "target_domain": "books.toscrape.com",
+    "css_selector_price": ".price_color",
+    "css_selector_rating": ".star-rating",
+    "expected_min_rows": 20,
+    "required_exports": [
+      "custom_extraction",
+      "internal_html"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_custom_extraction_product_audit"
+    }
+  }
+}

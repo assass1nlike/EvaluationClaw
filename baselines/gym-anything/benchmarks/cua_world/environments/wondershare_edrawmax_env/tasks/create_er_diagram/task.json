@@ -1,0 +1,36 @@
+{
+  "id": "create_er_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create an Entity-Relationship (ER) diagram in Wondershare EdrawMax modeling a subset of the Chinook database schema as specified in ~/Diagrams/chinook_schema_spec.txt. The diagram must include the five entities (Artist, Album, Track, Genre, and Invoice) showing all names, attributes, primary keys (PK), and foreign keys (FK) defined in the specification. Model the relationships between these entities using appropriate connectors. Save the editable diagram to /home/ga/Diagrams/chinook_er_diagram.eddx and export the final diagram as an image to /home/ga/Diagrams/chinook_er_diagram.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_er_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_er_diagram/export_result.sh"
+  },
+  "metadata": {
+    "schema_file": "/home/ga/Diagrams/chinook_schema_spec.txt",
+    "expected_eddx_path": "/home/ga/Diagrams/chinook_er_diagram.eddx",
+    "expected_png_path": "/home/ga/Diagrams/chinook_er_diagram.png",
+    "required_entities": [
+      "Artist",
+      "Album",
+      "Track",
+      "Genre",
+      "Invoice"
+    ],
+    "min_eddx_size_bytes": 5000,
+    "min_png_size_bytes": 10000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_er_diagram"
+    }
+  }
+}

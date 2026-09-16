@@ -1,0 +1,59 @@
+{
+  "task_id": "nyc_restaurant_inspection_audit@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the nyc_inspections_audit.xlsx file in WPS Spreadsheet.",
+      "points": 10,
+      "visual_evidence": "WPS Spreadsheet application is open with 'nyc_inspections_audit.xlsx' visible in the window title or tab."
+    },
+    {
+      "id": "populate_base_fine",
+      "description": "Populate 'Base Fine' (Col G) on the 'Violations_Log' sheet using a VLOOKUP formula.",
+      "points": 15,
+      "visual_evidence": "On the 'Violations_Log' sheet, Column G contains numeric fine values. When a cell in Column G is selected, the formula bar shows a VLOOKUP function referencing the 'Fine_Master' sheet."
+    },
+    {
+      "id": "calculate_adjusted_fine",
+      "description": "Calculate 'Adjusted Fine' (Col H) on the 'Violations_Log' sheet with a 1.5x multiplier for critical violations.",
+      "points": 15,
+      "visual_evidence": "On the 'Violations_Log' sheet, Column H contains numeric values. When a cell in Column H is selected, the formula bar shows an IF function checking the CriticalFlag column and multiplying the Base Fine by 1.5 if true."
+    },
+    {
+      "id": "calculate_total_points_and_fines",
+      "description": "Calculate 'Total Points' (Col D) and 'Total Fines' (Col E) on the 'Inspection_Rollup' sheet, formatting fines as Currency.",
+      "points": 20,
+      "visual_evidence": "On the 'Inspection_Rollup' sheet, Column D shows summed points and Column E shows summed fines formatted as Currency (e.g., with a '$' sign). Row 2 should specifically show 14 for Points and $900.00 for Fines. The formula bar should show a SUMIFS or similar summing function when these cells are selected."
+    },
+    {
+      "id": "determine_projected_grade",
+      "description": "Determine 'Projected Grade' (Col F) on the 'Inspection_Rollup' sheet based on Total Points.",
+      "points": 20,
+      "visual_evidence": "On the 'Inspection_Rollup' sheet, Column F is populated with 'A', 'B', or 'C'. Row 2 should specifically display 'B'. The formula bar should show nested IF statements evaluating the points."
+    },
+    {
+      "id": "assign_audit_action",
+      "description": "Assign 'Audit Action' (Col G) on the 'Inspection_Rollup' sheet based on Grade and Total Fines.",
+      "points": 20,
+      "visual_evidence": "On the 'Inspection_Rollup' sheet, Column G is populated with 'Urgent Review' or 'Routine'. Row 2 should specifically display 'Urgent Review' (case-insensitive). The formula bar should show an IF statement with an OR condition checking the Grade and Total Fines."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the WPS Spreadsheet GUI to complete the task.",
+      "visual_evidence": "Screenshots show the WPS Spreadsheet interface being actively used (e.g., navigating tabs, typing in the formula bar, formatting cells) rather than terminal commands executing a Python script to modify the Excel file."
+    },
+    {
+      "id": "formula_usage_not_hardcoded",
+      "description": "The agent used formulas to calculate values rather than manually typing the expected results.",
+      "visual_evidence": "When cells in calculated columns (Base Fine, Adjusted Fine, Total Points, Total Fines, Projected Grade, Audit Action) are selected, the formula bar displays spreadsheet functions (VLOOKUP, IF, SUMIFS) instead of static text or numbers."
+    },
+    {
+      "id": "genuine_progression",
+      "description": "The screenshots demonstrate a logical progression of completing the spreadsheet.",
+      "visual_evidence": "Screenshots show step-by-step population of the columns across the two different sheets, rather than a single screenshot of a fully completed file appearing instantly."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected file is /home/ga/Documents/nyc_inspections_audit.xlsx. On the 'Inspection_Rollup' sheet, row 2 (CAMIS 40356018) must evaluate exactly to: Total Points = 14, Total Fines = $900 (formatted as currency), Projected Grade = 'B', and Audit Action = 'Urgent Review' (or 'URGENT REVIEW'). The agent must use spreadsheet formulas (VLOOKUP, SUMIFS, IF) rather than hardcoding the values."
+}

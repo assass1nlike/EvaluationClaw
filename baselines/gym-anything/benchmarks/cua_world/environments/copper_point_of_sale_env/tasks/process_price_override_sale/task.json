@@ -1,0 +1,29 @@
+{
+  "id": "process_price_override_sale@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Handle a price override scenario in Copper Point of Sale for a 'Vintage Table Lamp' (Item Code: V-LAMP, Standard Price: $150.00, Tax: Exempt). Due to a cosmetic scratch, override the price to $120.00 for this transaction only, ensuring the master inventory price remains unchanged. Add the note 'Damaged cosmetic scratch' to the transaction and process a Cash payment for $120.00.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\process_price_override_sale\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\process_price_override_sale\\export_result.ps1"
+  },
+  "metadata": {
+    "item_code": "V-LAMP",
+    "item_desc": "Vintage Table Lamp",
+    "master_price": "150.00",
+    "sale_price": "120.00",
+    "note_text": "Damaged cosmetic scratch"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_process_price_override_sale"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "loc_catalog_research@1",
+  "task_completion": [
+    {
+      "id": "loc_catalog_accessed",
+      "description": "The agent navigated to the Library of Congress Online Catalog.",
+      "points": 10,
+      "visual_evidence": "A web browser is open with 'catalog.loc.gov' in the address bar or the Library of Congress catalog homepage is visible."
+    },
+    {
+      "id": "searched_book_1",
+      "description": "The agent searched for the first book (ISBN 9780465050659).",
+      "points": 10,
+      "visual_evidence": "The browser shows the Library of Congress catalog record or search results for 'The Design of Everyday Things' or ISBN 9780465050659."
+    },
+    {
+      "id": "searched_book_2",
+      "description": "The agent searched for the second book (ISBN 9780374275631).",
+      "points": 10,
+      "visual_evidence": "The browser shows the Library of Congress catalog record or search results for 'Thinking, Fast and Slow' or ISBN 9780374275631."
+    },
+    {
+      "id": "searched_book_3",
+      "description": "The agent searched for the third book (ISBN 9780618249060).",
+      "points": 10,
+      "visual_evidence": "The browser shows the Library of Congress catalog record or search results for 'Silent Spring' or ISBN 9780618249060."
+    },
+    {
+      "id": "created_shelf_list_file",
+      "description": "The agent created the shelf_list.txt file on the Desktop.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal is open showing a file named 'shelf_list.txt' being edited or saved in the '/home/ga/Desktop/' directory."
+    },
+    {
+      "id": "correct_shelf_list_content",
+      "description": "The shelf_list.txt file contains the correct information for all three books in the specified format.",
+      "points": 40,
+      "visual_evidence": "The text file contains three lines, each formatted as 'ISBN | Title | LC Classification | LCCN'. The values must match the verified information provided in the privileged info (e.g., Book 3 must have LCCN 2002726803)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_catalog_used",
+      "description": "The agent retrieved the information from catalog.loc.gov.",
+      "visual_evidence": "The browser history or visible tabs show interaction with catalog.loc.gov, rather than just searching Google, Amazon, or Wikipedia for the call numbers."
+    },
+    {
+      "id": "file_actually_created",
+      "description": "The agent created the output file in the environment.",
+      "visual_evidence": "The agent used a text editor (like nano, vim, gedit) or bash commands (like echo, cat) to write the file, rather than just typing the answer in the chat interface."
+    },
+    {
+      "id": "no_hallucination",
+      "description": "The agent did not guess the LCCNs or Call Numbers.",
+      "visual_evidence": "The agent actually opened the catalog records for the books to read the LC Classification and LCCN before writing them to the file."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified data for the shelf_list.txt file:\nBook 1: ISBN 9780465050659 | Title: The Design of Everyday Things | LC Classification: TS171.4 .N67 2013 | LCCN: 2013024417\nBook 2: ISBN 9780374275631 | Title: Thinking, Fast and Slow | LC Classification: BF441.K238 2011 | LCCN: 2011027143\nBook 3: ISBN 9780618249060 | Title: Silent Spring | LC Classification: QH545.P4 C38 2002 (or SB959.C3) | LCCN: 2002726803 (Note: 2002073994 is incorrect for this edition).\nFormat required: ISBN | Title | LC Classification | LCCN. Spacing around the pipes (|) and minor variations in the title or call number spacing are acceptable."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "create_flight_plan@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are using Aerobridge, an open-source drone/UAV fleet management system. Create a new flight plan in the system at http://localhost:8000/admin/ (Username: 'admin', Password: 'adminpass123'). The flight plan must be named 'Mumbai Coastal Survey' with the Plan file json set to {\"name\": \"Mumbai Coastal Survey\"} and the Geo json set to {\"type\": \"Point\", \"coordinates\": [72.8777, 19.0760]}. Ensure you remain logged in after the flight plan is created.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_flight_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_flight_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Mumbai Coastal Survey",
+    "admin_username": "admin",
+    "admin_password": "adminpass123",
+    "admin_url": "http://localhost:8000/admin/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_flight_plan"
+    }
+  }
+}

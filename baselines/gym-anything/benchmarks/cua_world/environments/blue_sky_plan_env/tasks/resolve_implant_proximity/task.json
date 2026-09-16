@@ -1,0 +1,29 @@
+{
+  "id": "resolve_implant_proximity@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Fix a safety violation in the dental implant plan 'implant_collision_case.bsp' where implants at Site #30 and #31 are placed too close to each other. Adjust the distal implant (Site #31) to achieve a safety gap of at least 3.0 mm from Site #30, ensuring the implant remains within the bone and maintains proper vertical depth. Save the corrected project to 'C:\\Users\\Docker\\Documents\\resolved_case.bsp' and leave the final gap measurement visible on screen.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\resolve_implant_proximity\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\resolve_implant_proximity\\export_result.ps1"
+  },
+  "metadata": {
+    "initial_file_path": "C:\\Users\\Docker\\Documents\\implant_collision_case.bsp",
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\resolved_case.bsp",
+    "min_separation_mm": 3.0,
+    "target_implant_site": 31,
+    "anchor_implant_site": 30
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_resolve_implant_proximity"
+    }
+  }
+}

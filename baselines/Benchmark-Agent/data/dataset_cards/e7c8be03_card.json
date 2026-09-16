@@ -1,0 +1,91 @@
+{
+  "dataset_id": "e7c8be03",
+  "name": "Person Keypoint Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 240,
+  "description": "Person Keypoint Detection is a vision-language dataset that evaluates a model's ability to detect and localize human body keypoints in images. Each sample pairs an image with an instruction to perform person keypoint detection and expects structured keypoint coordinates for 17 predefined body parts.",
+  "card_text": "The dataset contains 240 image–text samples for person keypoint detection. Each sample includes a JPEG image and a fixed prompt: 'Perform person keypoint detection for the image'. The expected output consists of a format list naming 17 human body keypoints (nose, left_eye, right_eye, left_ear, right_ear, left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, left_hip, right_hip, left_knee, right_knee, left_ankle, right_ankle) and a keypoint field intended to store the detected keypoint coordinates. In the provided samples, the keypoint list is empty, indicating that some samples may lack annotations or serve as placeholders. The images are natural photographs of people in various poses and contexts. The task evaluates localization of body parts in visual scenes and the ability to produce structured point annotations.",
+  "tasks": [
+    "localization",
+    "detection"
+  ],
+  "domain": "human pose estimation",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Path to the input image containing one or more people. The image is the visual context for which keypoints must be detected; it is paired with a text instruction and the resulting keypoint annotations.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction telling the model to perform person keypoint detection on the accompanying image. It specifies the task but does not contain additional context or constraints.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "point": {
+        "paths": [
+          "output.keypoint"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Target keypoint annotations for the person(s) in the image, presumably represented as a list of coordinate tuples or keypoint objects. In the sampled items this list is empty, indicating no keypoints are provided for those examples. This field is the primary output to be generated.",
+        "path_types": [
+          "list"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "output.format"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A fixed ordered list of 17 human body keypoint names that defines the expected vocabulary and ordering for the keypoint output. It serves as a schema for interpreting or generating the contents of output.keypoint.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference and a text prompt in the input, and a structured output containing a format list and a keypoint list. The prompt asks for person keypoint detection on the image, the format list specifies the 17 body keypoint names and their canonical order, and the keypoint list is intended to hold the detected point annotations for the person(s) in the image. In the provided samples, the keypoint list is empty."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/person_keypoint_detection/json/annotation.json",
+    "existing_tags": {
+      "task": "person keypoint detection",
+      "type": "comprehension",
+      "skill": "Keypoint Detection(Keypoint Det)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

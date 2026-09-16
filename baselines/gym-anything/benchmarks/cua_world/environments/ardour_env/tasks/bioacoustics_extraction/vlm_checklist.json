@@ -1,0 +1,59 @@
+{
+  "task_id": "bioacoustics_extraction@1",
+  "task_completion": [
+    {
+      "id": "source_track_loaded",
+      "description": "Open the audio editor and load the source track.",
+      "points": 10,
+      "visual_evidence": "Look for an audio editing application (e.g., Audacity) open on the screen displaying a track named 'Raw Canopy'."
+    },
+    {
+      "id": "target_track_created",
+      "description": "Create a new track named 'Target Species'.",
+      "points": 15,
+      "visual_evidence": "Look for a second track in the audio editor specifically named 'Target Species' below or alongside the original track."
+    },
+    {
+      "id": "audio_segments_extracted",
+      "description": "Extract the three specified timestamp ranges into the new track.",
+      "points": 30,
+      "visual_evidence": "Look at the waveform in the 'Target Species' track. There should be three distinct audio clips placed along the timeline starting at approximately the 5.0s, 14.0s, and 22.0s marks."
+    },
+    {
+      "id": "source_track_muted",
+      "description": "Mute the 'Raw Canopy' track.",
+      "points": 15,
+      "visual_evidence": "Look at the track control panel for 'Raw Canopy'. The 'Mute' button should be visually toggled, pressed, or highlighted."
+    },
+    {
+      "id": "target_track_gain_boosted",
+      "description": "Boost the 'Target Species' track volume by +6 dB.",
+      "points": 15,
+      "visual_evidence": "Look at the gain/volume slider in the track control panel for 'Target Species'. It should be adjusted to show a boost of approximately +6 dB (anything between +4 dB and +10 dB is acceptable)."
+    },
+    {
+      "id": "audio_exported",
+      "description": "Export the isolated calls to the specified path.",
+      "points": 15,
+      "visual_evidence": "Look for an 'Export Audio' dialog box showing the file being saved as 'isolated_calls.wav' in the '/home/ga/Audio/bioacoustics_export/' directory, or a file manager/terminal window verifying the file's creation at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_audio_editor_used",
+      "description": "The agent used a graphical audio editor to perform the manipulations rather than bypassing the UI with terminal commands like ffmpeg or sox.",
+      "visual_evidence": "Screenshots should show an actual GUI audio editor (like Audacity) being interacted with, rather than just terminal windows executing command-line audio tools."
+    },
+    {
+      "id": "genuine_waveforms_present",
+      "description": "The agent actually copied audio data, not just created empty tracks.",
+      "visual_evidence": "The 'Target Species' track must contain visible audio waveforms in the clips, not just flat lines indicating silence."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "The agent exported the file properly rather than creating a dummy file.",
+      "visual_evidence": "Look for evidence of the audio editor's export process or dialog, ensuring the file wasn't just created using a 'touch' command in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The source track is named 'Raw Canopy' and the new track must be named 'Target Species'. The agent must extract three audio segments starting at exactly 5.0s, 14.0s, and 22.0s (with a \u00b10.5s tolerance). The 'Raw Canopy' track must be muted. The 'Target Species' track gain must be boosted to between +4.0 dB and +10.0 dB (target is +6 dB). The final export path must be exactly /home/ga/Audio/bioacoustics_export/isolated_calls.wav."
+}

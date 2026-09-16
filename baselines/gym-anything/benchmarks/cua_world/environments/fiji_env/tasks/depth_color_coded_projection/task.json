@@ -1,0 +1,32 @@
+{
+  "id": "depth_color_coded_projection@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Create a depth color-coded Z-projection of the 'FluorescentCells.tif' confocal microscopy stack to visualize 3D structure. Process the extracted Channel 2 (Green/Cytoskeleton) using background subtraction (rolling ball radius: 30 pixels) and contrast enhancement (0.3% saturated, normalized). Generate a standard Maximum Intensity Projection (MIP) saved to ~/Fiji_Data/results/depth_projection/standard_mip.png. Produce a depth color-coded RGB projection using the 'Spectrum' LUT with an added calibration bar, saving the result to ~/Fiji_Data/results/depth_projection/depth_coded_projection.png. Finally, save a text report to ~/Fiji_Data/results/depth_projection/stack_report.txt listing the original number of channels, number of Z-slices, and the LUT name used.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/depth_color_coded_projection/setup_task.sh",
+    "post_task": "/workspace/tasks/depth_color_coded_projection/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "FluorescentCells.tif",
+    "target_channel": 2,
+    "output_mip": "~/Fiji_Data/results/depth_projection/standard_mip.png",
+    "output_coded": "~/Fiji_Data/results/depth_projection/depth_coded_projection.png",
+    "output_report": "~/Fiji_Data/results/depth_projection/stack_report.txt",
+    "expected_channels": 3,
+    "expected_slices": 51,
+    "min_color_variance": 0.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_depth_color_coded_projection"
+    }
+  }
+}

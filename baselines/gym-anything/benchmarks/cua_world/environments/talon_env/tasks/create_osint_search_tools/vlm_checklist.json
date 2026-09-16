@@ -1,0 +1,59 @@
+{
+  "task_id": "create_osint_search_tools@1",
+  "task_completion": [
+    {
+      "id": "target_directory_created",
+      "description": "Verify the osint_tools directory was created in the correct Talon user folder.",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer window, terminal, or code editor showing the path 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\osint_tools'."
+    },
+    {
+      "id": "talon_list_created",
+      "description": "Verify osint.talon-list exists and contains the user.osint_category list with the required mappings.",
+      "points": 15,
+      "visual_evidence": "Look for 'osint.talon-list' open in a text editor. It should declare 'list: user.osint_category' and contain mappings for 'map', 'scholar', 'flight', and 'network'."
+    },
+    {
+      "id": "talon_script_created",
+      "description": "Verify osint.talon exists and contains the investigate voice command.",
+      "points": 15,
+      "visual_evidence": "Look for 'osint.talon' open in a text editor. It should contain the voice command syntax: 'investigate {user.osint_category} <user.text>'."
+    },
+    {
+      "id": "python_action_defined",
+      "description": "Verify osint.py exists and defines the user.osint_search action.",
+      "points": 20,
+      "visual_evidence": "Look for 'osint.py' open in a text editor. It should contain a Python function definition like 'def osint_search(category: str, query: str):' decorated with Talon's action class."
+    },
+    {
+      "id": "python_url_formatting",
+      "description": "Verify osint.py contains URL formatting logic for the four OSINT services and opens the browser.",
+      "points": 20,
+      "visual_evidence": "Look at 'osint.py' for conditional logic (if/elif) handling OpenStreetMap, Google Scholar, FlightAware (uppercase/no spaces), and BGPView (no spaces), along with a command to open the URL (e.g., webbrowser.open)."
+    },
+    {
+      "id": "python_audit_logging",
+      "description": "Verify osint.py appends an audit entry to the correct log file with the specified format.",
+      "points": 20,
+      "visual_evidence": "Look at 'osint.py' for file writing logic (e.g., open(..., 'a')) targeting 'C:\\Users\\Docker\\Documents\\osint_audit_log.txt'. The written string should include a timestamp, category, and final URL."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Ensure the files are actually created and saved in the file system.",
+      "visual_evidence": "Check that the files appear in a file explorer pane or IDE sidebar (like VS Code), rather than just being typed into a terminal without saving."
+    },
+    {
+      "id": "actual_code_logic",
+      "description": "Ensure the Python script contains actual logic and not just hardcoded mock outputs.",
+      "visual_evidence": "Verify that osint.py uses variables (category, query) and conditional statements to build the URLs dynamically, rather than hardcoding a single specific search."
+    },
+    {
+      "id": "no_manual_log_faking",
+      "description": "Ensure the agent wrote the code to generate the log, rather than manually creating a fake log file.",
+      "visual_evidence": "The screenshots should show the Python code responsible for writing to osint_audit_log.txt. If the log file is shown but the Python code lacks the writing logic, it is a violation."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory for Talon module: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\osint_tools. Audit log file path: C:\\Users\\Docker\\Documents\\osint_audit_log.txt."
+}

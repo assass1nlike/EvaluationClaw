@@ -1,0 +1,53 @@
+{
+  "task_id": "emoncms_data_audit_remediation@1",
+  "task_completion": [
+    {
+      "id": "power1_input_fixed",
+      "description": "The 'power1' input processlist is corrected to reference a valid feed.",
+      "points": 20,
+      "visual_evidence": "Look at the Emoncms Inputs page, process list UI, or terminal database queries. Verify that the 'power1' input is now configured to log to a valid feed instead of the broken non-existent ID 99991."
+    },
+    {
+      "id": "solar_input_fixed",
+      "description": "The 'solar' input processlist is corrected to reference a valid feed.",
+      "points": 20,
+      "visual_evidence": "Look at the Emoncms Inputs page, process list UI, or terminal database queries. Verify that the 'solar' input is now configured to log to a valid feed instead of the broken non-existent ID 99992."
+    },
+    {
+      "id": "house_power_feed_fixed",
+      "description": "The 'House Power' feed interval is corrected to a valid value.",
+      "points": 20,
+      "visual_evidence": "Look at the Emoncms Feeds page or terminal database queries. Verify that the 'House Power' feed has a valid interval (e.g., 10s) instead of 0 or blank."
+    },
+    {
+      "id": "house_temperature_feed_fixed",
+      "description": "The 'House Temperature' feed engine is corrected to a valid storage engine.",
+      "points": 20,
+      "visual_evidence": "Look at the Emoncms Feeds page or terminal database queries. Verify that the 'House Temperature' feed has a valid engine (e.g., PHPFina) instead of 0 or blank."
+    },
+    {
+      "id": "solar_pv_feed_fixed",
+      "description": "The 'Solar PV' feed tag is corrected to not be empty.",
+      "points": 20,
+      "visual_evidence": "Look at the Emoncms Feeds page or terminal database queries. Verify that the 'Solar PV' feed has a valid text tag (e.g., 'Node 1') and is no longer empty."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_application_used",
+      "description": "Agent interacted with the actual Emoncms application or its database.",
+      "visual_evidence": "Screenshots should show the agent using the Emoncms web interface (http://localhost) or executing valid SQL/Redis commands in the terminal to modify the database, rather than just editing text files."
+    },
+    {
+      "id": "no_new_feeds_created",
+      "description": "Agent did not create new feeds to bypass fixing the existing ones.",
+      "visual_evidence": "Check the Feeds page or database queries to ensure the agent modified the existing feeds ('House Power', 'House Temperature', 'Solar PV') rather than creating new ones with correct configurations."
+    },
+    {
+      "id": "no_hardcoded_responses",
+      "description": "Agent did not simply echo the expected state.",
+      "visual_evidence": "Screenshots should show genuine interaction, such as clicking through the UI, filling out forms, or typing commands, rather than just printing a success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing exactly 5 deliberate configuration errors in Emoncms: 1) Input 'power1' processlist references non-existent feed ID 99991. 2) Input 'solar' processlist references non-existent feed ID 99992. 3) Feed 'House Power' has an invalid interval of 0. 4) Feed 'House Temperature' has an invalid engine of 0. 5) Feed 'Solar PV' has an empty tag. The agent must correct these existing entries (via Web UI or Database) without creating new inputs or feeds."
+}

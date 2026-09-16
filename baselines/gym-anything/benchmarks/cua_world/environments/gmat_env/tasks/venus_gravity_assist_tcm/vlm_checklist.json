@@ -1,0 +1,59 @@
+{
+  "task_id": "venus_gravity_assist_tcm@1",
+  "task_completion": [
+    {
+      "id": "open_baseline_script",
+      "description": "Open the baseline GMAT script",
+      "points": 10,
+      "visual_evidence": "Look for the GMAT application or a text editor open with the file `venus_tcm_baseline.script` loaded from `~/Documents/missions/`."
+    },
+    {
+      "id": "configure_tcm_variables",
+      "description": "Configure the TCM to vary Prograde and Normal velocity components",
+      "points": 20,
+      "visual_evidence": "Look for GMAT GUI windows (e.g., 'Vary' commands) or script text where a maneuver's Element1 (Prograde) and Element2 (Normal) are set as variables for the Targeter."
+    },
+    {
+      "id": "configure_target_goals",
+      "description": "Configure the target goals for Venus periapsis radius and inclination",
+      "points": 20,
+      "visual_evidence": "Look for GMAT GUI windows (e.g., 'Achieve' commands) or script text setting goals for Venus RadPer to 6351.8 and Venus_J2000.INC to 105.0."
+    },
+    {
+      "id": "achieve_convergence",
+      "description": "Run the mission and achieve targeter convergence",
+      "points": 20,
+      "visual_evidence": "Look for the GMAT message window, output console, or terminal output showing 'Targeter converged' or similar success messages indicating the maneuver was successfully calculated."
+    },
+    {
+      "id": "save_targeted_script",
+      "description": "Save the converged script to the targeted filename",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer, terminal command (`ls`), or text editor showing `venus_tcm_targeted.script` has been saved in the `~/Documents/missions/` directory."
+    },
+    {
+      "id": "write_output_report",
+      "description": "Write the final text report with the required labels and values",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal (`cat`) displaying the contents of `tcm_report.txt` in `~/GMAT_output/`. It must contain the exact labels: Achieved_RadPer_km, Achieved_INC_deg, TCM_V_mps, and TCM_N_mps, alongside their corresponding numerical values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gmat_usage",
+      "description": "Verify that the agent actually used GMAT to compute the maneuver",
+      "visual_evidence": "Check that the agent opened the GMAT GUI or ran the GMAT executable via terminal to calculate the physics, rather than just guessing or hallucinating the maneuver values."
+    },
+    {
+      "id": "authentic_report_values",
+      "description": "Verify that the report values are derived from actual simulation results",
+      "visual_evidence": "Check that the values in `tcm_report.txt` match the converged output seen in the GMAT run, and are not just the target values blindly copied or completely made up."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Verify that the agent used the exact specified directories",
+      "visual_evidence": "Check that files were saved strictly to `~/Documents/missions/` and `~/GMAT_output/` as requested, without taking shortcuts like saving to the Desktop or the home directory root."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Venus periapsis radius (RadPer) is exactly 6351.8 km (acceptable tolerance: 1.0 km). Target Venus-centered inclination (INC) is exactly 105.0 degrees (acceptable tolerance: 0.5 deg). Baseline script path: /home/ga/Documents/missions/venus_tcm_baseline.script. Expected report path: /home/ga/GMAT_output/tcm_report.txt."
+}

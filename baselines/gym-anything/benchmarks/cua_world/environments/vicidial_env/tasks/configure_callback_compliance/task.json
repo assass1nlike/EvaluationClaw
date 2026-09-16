@@ -1,0 +1,33 @@
+{
+  "id": "configure_callback_compliance@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Create a new Vicidial Campaign with ID 'CB_SAFE' and name 'Callback Compliance Force' to implement strict scheduled callback policies and prevent lead hoarding. \n\nLogin credentials:\n- User: 6666\n- Password: andromeda\n\nConfigure the campaign with the following settings:\n- Active: Y\n- User Group: ADMIN\n- Enable Scheduled Callbacks: Y\n- Scheduled Callbacks Alert: BLINK\n- Scheduled Callbacks Count: LIVE\n- Scheduled Callbacks Days Limit: 14\n- Max Scheduled Callbacks: 50\n- Agent Only Callbacks Limitation: Y",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_callback_compliance/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_callback_compliance/export_result.sh"
+  },
+  "metadata": {
+    "expected_id": "CB_SAFE",
+    "expected_name": "Callback Compliance Force",
+    "expected_active": "Y",
+    "expected_scheduled_callbacks": "Y",
+    "expected_alert": "BLINK",
+    "expected_count": "LIVE",
+    "expected_days_limit": 14,
+    "expected_max_callbacks": 50,
+    "expected_agent_limitation": "Y"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_callback_compliance"
+    }
+  }
+}

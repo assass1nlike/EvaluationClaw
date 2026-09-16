@@ -1,0 +1,59 @@
+{
+  "task_id": "blade_modal_analysis@1",
+  "task_completion": [
+    {
+      "id": "airfoil_generation",
+      "description": "Generate a NACA 0012 airfoil with 100 panels.",
+      "points": 10,
+      "visual_evidence": "QBlade's Airfoil Design module showing a NACA 0012 airfoil with 100 panels specified."
+    },
+    {
+      "id": "xfoil_and_polar",
+      "description": "Perform XFoil analysis and 360-degree polar extrapolation.",
+      "points": 15,
+      "visual_evidence": "XFoil Direct Analysis module showing Re=1,000,000 and Ncrit=9, along with evidence of a 360-degree polar extrapolation (e.g., graphs extending to +/- 180 degrees or 360 polar generation dialog)."
+    },
+    {
+      "id": "blade_geometry",
+      "description": "Create a 10m blade with constant 1.0m chord, 0 twist, and at least 5 sections.",
+      "points": 20,
+      "visual_evidence": "Blade Design table showing at least 5 rows (sections) reaching a maximum radius/length of 10m, with the chord column consistently at 1.0 and twist at 0."
+    },
+    {
+      "id": "structural_properties",
+      "description": "Define Simple Shell structural properties.",
+      "points": 20,
+      "visual_evidence": "Structural Design / QFem tab showing 'Simple Shell' selected, with material density set to 2000 kg/m^3, Young's Modulus to 20 GPa (or 2e10 Pa), and wall thickness to 0.02 m."
+    },
+    {
+      "id": "modal_analysis",
+      "description": "Run Modal Analysis to calculate eigenfrequency and mass.",
+      "points": 20,
+      "visual_evidence": "Modal Analysis or QFem results window displaying the calculated first eigenfrequency (Hz) and the total blade mass (kg)."
+    },
+    {
+      "id": "save_and_export",
+      "description": "Save the project and export results to JSON.",
+      "points": 15,
+      "visual_evidence": "QBlade window title or save dialog showing 'beam_modal.wpa', and a text editor or terminal showing the creation of 'modal_results.json' containing 'first_eigenfrequency_hz' and 'blade_mass_kg'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qblade_gui_used",
+      "description": "The agent interacted with the QBlade graphical user interface to perform the analysis.",
+      "visual_evidence": "Screenshots show the QBlade application open and being actively used (menus, dialogs, buttons clicked)."
+    },
+    {
+      "id": "results_match_gui",
+      "description": "The exported JSON results match the values calculated by QBlade.",
+      "visual_evidence": "The values for mass and eigenfrequency in modal_results.json correspond to the numbers displayed in the QBlade analysis results window."
+    },
+    {
+      "id": "project_saved_from_gui",
+      "description": "The project file was saved using the application's save functionality.",
+      "visual_evidence": "A 'Save As' dialog from QBlade or a confirmation message showing the .wpa file being saved to the correct path."
+    }
+  ],
+  "privileged_info_for_vlm": "The blade must be 10m long, 1.0m constant chord, 0 twist, with at least 5 sections using NACA 0012. Structural properties: Simple Shell, 2000 kg/m\u00b3 density, 20 GPa Young's Modulus, 0.02m wall thickness. XFoil analysis at Re=1,000,000, Ncrit=9, with 360\u00b0 polar. Expected physics targets: blade mass \u2248808 kg (acceptable range 687-929 kg) and first natural frequency between 0.5-3.0 Hz. The JSON file must contain keys 'first_eigenfrequency_hz' and 'blade_mass_kg'."
+}

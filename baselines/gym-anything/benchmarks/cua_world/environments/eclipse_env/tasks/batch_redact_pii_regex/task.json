@@ -1,0 +1,31 @@
+{
+  "id": "batch_redact_pii_regex@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Redact Personally Identifiable Information (PII) from the 'PatientConnector' legacy project to prepare it for open-source release. Scrub all Social Security Numbers (XXX-XX-XXXX) by replacing them with the string 'XXX-XX-XXXX' and all Medical Record Numbers (MRN-XXXXXX) by replacing them with 'MRN-000000'. This redaction must be applied comprehensively across all Java source files, XML files, properties files, and logs within the project.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/batch_redact_pii_regex/setup_task.sh",
+    "post_task": "/workspace/tasks/batch_redact_pii_regex/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/PatientConnector",
+    "ssn_regex": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+    "mrn_regex": "MRN-\\d{6}",
+    "replacement_ssn": "XXX-XX-XXXX",
+    "replacement_mrn": "MRN-000000",
+    "expected_ssn_count": 15,
+    "expected_mrn_count": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_batch_redact_pii_regex"
+    }
+  }
+}

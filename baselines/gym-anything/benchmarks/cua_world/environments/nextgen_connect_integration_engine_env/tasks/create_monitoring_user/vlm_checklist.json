@@ -1,0 +1,59 @@
+{
+  "task_id": "create_monitoring_user@1",
+  "task_completion": [
+    {
+      "id": "access_and_authenticate",
+      "description": "Access the NextGen Connect server and authenticate as admin.",
+      "points": 10,
+      "visual_evidence": "Look for the NextGen Connect login screen, dashboard, or an API client/script targeting https://localhost:8443 with credentials 'admin' and 'admin'."
+    },
+    {
+      "id": "enter_basic_details",
+      "description": "Input the required basic user details.",
+      "points": 20,
+      "visual_evidence": "Look for a user creation form or API payload containing Username: 'monitor_analyst', First Name: 'Sarah', and Last Name: 'Chen'."
+    },
+    {
+      "id": "enter_org_details",
+      "description": "Input the required contact and organizational details.",
+      "points": 20,
+      "visual_evidence": "Look for a user creation form or API payload containing Email: 'sarah.chen@mercygeneral.org', Organization: 'Mercy General Hospital', and Description: 'Integration monitoring analyst'."
+    },
+    {
+      "id": "enter_password",
+      "description": "Input the required password.",
+      "points": 20,
+      "visual_evidence": "Look for the password 'M0nitor2024!Secure' being entered into the password/confirmation fields or included in the API payload (may be URL-encoded as %21 for the '!')."
+    },
+    {
+      "id": "api_header_check",
+      "description": "Include the required OpenAPI header if using the REST API.",
+      "points": 10,
+      "visual_evidence": "If the agent uses the GUI, award these points automatically. If the agent uses the REST API (e.g., curl, Postman, Python), look for the header 'X-Requested-With: OpenAPI' in the request."
+    },
+    {
+      "id": "save_user_account",
+      "description": "Successfully save or submit the new user account.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Save' button being clicked, the new user 'monitor_analyst' appearing in the Users list in the GUI, or a successful HTTP response (e.g., 200/201 OK) from the API submission."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_interaction",
+      "description": "Verify the agent interacted with the actual application or a genuine API client.",
+      "visual_evidence": "Ensure the screenshots show the NextGen Connect interface, a terminal running curl/scripts, or an API tool like Postman, rather than just typing the expected values into a text editor."
+    },
+    {
+      "id": "correct_target_server",
+      "description": "Verify the agent targeted the correct server address.",
+      "visual_evidence": "Check the browser address bar or API request URL to ensure it is exactly https://localhost:8443."
+    },
+    {
+      "id": "genuine_submission_response",
+      "description": "Verify that a real submission occurred and wasn't faked.",
+      "visual_evidence": "Look for genuine system feedback after submission, such as the UI updating to show the new user in the list, or a real JSON response from the server, rather than just a printed string in a terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a user on NextGen Connect (https://localhost:8443). Expected values: Username: 'monitor_analyst', First Name: 'Sarah', Last Name: 'Chen', Email: 'sarah.chen@mercygeneral.org', Organization: 'Mercy General Hospital', Password: 'M0nitor2024!Secure'. If the REST API is used (e.g., POST /api/users), the header 'X-Requested-With: OpenAPI' must be present. The password contains a special character ('!') which might be URL-encoded as '%21' in some API scripts."
+}

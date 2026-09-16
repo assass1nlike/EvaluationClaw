@@ -1,0 +1,47 @@
+{
+  "task_id": "mental_rotation_slope_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_dataset",
+      "description": "Agent accesses the mental rotation dataset.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening, viewing, or writing code to read the file at ~/pebl/data/mental_rotation_data.csv."
+    },
+    {
+      "id": "implement_filtering_and_regression",
+      "description": "Agent implements logic to filter data and compute linear regression.",
+      "points": 30,
+      "visual_evidence": "Code (e.g., Python/pandas) or spreadsheet formulas showing filtering for correct 'same' trials and setting up a linear regression of mean reaction times against the angles (0, 45, 90, 135, 180)."
+    },
+    {
+      "id": "implement_accuracy_and_exclusion",
+      "description": "Agent implements logic to calculate overall accuracy and exclude participant s99.",
+      "points": 30,
+      "visual_evidence": "Code or analysis steps showing accuracy calculation across all trial types, and explicit logic to exclude participant 's99' from the group-level statistics."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Agent generates the final JSON report with the required structure.",
+      "points": 30,
+      "visual_evidence": "The final JSON file visible in an editor or terminal, saved to ~/pebl/analysis/mental_rotation_report.json, containing individual metrics (slope, intercept, r-squared, mean_accuracy), the exclusion of s99 with a reason, and group-level metrics."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Agent performs actual data analysis rather than hallucinating the results.",
+      "visual_evidence": "Screenshots show the agent executing a script (e.g., Python) or using a data analysis tool to process the CSV, rather than just typing out a hardcoded JSON file."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent does not cheat by accessing the hidden ground truth file.",
+      "visual_evidence": "The agent's terminal or file explorer never shows access to /var/lib/pebl_ground_truth/mental_rotation_gt.json."
+    },
+    {
+      "id": "correct_output_format",
+      "description": "Agent outputs the results to the requested file path.",
+      "visual_evidence": "The output is explicitly saved to ~/pebl/analysis/mental_rotation_report.json, not just printed to the console or saved as a CSV/TXT."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output must be saved exactly at /home/ga/pebl/analysis/mental_rotation_report.json. The dataset is synthetically generated. Participant 's99' is explicitly seeded with a flat RT distribution and must be marked as excluded in the final report. The agent must not access the ground truth file at /var/lib/pebl_ground_truth/mental_rotation_gt.json."
+}

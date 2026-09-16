@@ -1,0 +1,31 @@
+{
+  "id": "bicycle_geometry_trail_calculator@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are a bicycle frame builder verifying the geometry of a new Enduro mountain bike design. Construct the front-end geometry in GeoGebra and measure the 'Ground Trail' based on a 29-inch wheel (Radius = 370 mm), a 67-degree head tube angle (from horizontal ground), and a 44 mm fork rake (offset). The bike should be oriented facing LEFT with the wheel ahead of the steering axis. The construction must include the ground line, the wheel tangent to the ground, and the steering axis. Measure the distance between the wheel's contact point and the steering axis intercept on the ground. Add a text annotation displaying the result (e.g., 'Trail = [value] mm') and save the project as 'bicycle_trail.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bicycle_geometry_trail_calculator/setup_task.sh",
+    "post_task": "/workspace/tasks/bicycle_geometry_trail_calculator/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "bicycle_trail.ggb",
+    "wheel_radius": 370,
+    "head_angle_deg": 67,
+    "fork_offset": 44,
+    "expected_trail": 109.2,
+    "tolerance_mm": 2.0,
+    "tolerance_deg": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bicycle_geometry_trail_calculator"
+    }
+  }
+}

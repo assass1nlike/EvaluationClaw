@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_db_connection_perms@1",
+  "task_completion": [
+    {
+      "id": "locate_target_file",
+      "description": "Locate the db_config.php file for the acmecorp.test virtual server.",
+      "points": 15,
+      "visual_evidence": "File manager, text editor, or terminal showing the path /home/acmecorp/public_html/includes/db_config.php or public_html/includes/db_config.php."
+    },
+    {
+      "id": "set_file_permissions",
+      "description": "Set the permissions of db_config.php to 644.",
+      "points": 25,
+      "visual_evidence": "A terminal command (e.g., chmod 644), file properties dialog, or file manager view showing the permissions of db_config.php changed to 644 or rw-r--r--."
+    },
+    {
+      "id": "update_database_password",
+      "description": "Update the database password in db_config.php to GymAnything123!.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing the contents of db_config.php with the password field explicitly set to 'GymAnything123!'."
+    },
+    {
+      "id": "navigate_to_status_page",
+      "description": "Navigate to the System Status page.",
+      "points": 10,
+      "visual_evidence": "A web browser with the address bar showing http://acmecorp.test/status.php."
+    },
+    {
+      "id": "verify_system_operational",
+      "description": "Verify the status page displays 'System Operational'.",
+      "points": 25,
+      "visual_evidence": "The web browser displaying the text 'System Operational' on the loaded status page."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the agent modified the actual configuration file on the system.",
+      "visual_evidence": "Look for genuine interaction with a terminal (e.g., nano, vim, chmod) or a legitimate file manager/editor, rather than a mock text file or unrelated notepad."
+    },
+    {
+      "id": "genuine_browser_navigation",
+      "description": "Verify the agent tested the actual URL in a real web browser.",
+      "visual_evidence": "The browser address bar must show http://acmecorp.test/status.php, not a local file path (file://) or a different domain."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Verify the success message was not spoofed using browser developer tools.",
+      "visual_evidence": "Ensure the browser's Developer Tools (Inspect Element) are not open and actively modifying the DOM to display 'System Operational'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target File: /home/acmecorp/public_html/includes/db_config.php. Expected Permissions: 644 (rw-r--r--). Expected Password: GymAnything123!. Target URL: http://acmecorp.test/status.php. Success String: 'System Operational'."
+}

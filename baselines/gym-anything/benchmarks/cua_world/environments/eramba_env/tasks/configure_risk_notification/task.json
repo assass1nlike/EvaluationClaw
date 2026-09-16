@@ -1,0 +1,27 @@
+{
+  "id": "configure_risk_notification@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "Configure an automated email notification in Eramba to alert stakeholders when a Risk Review is approaching. Create a notification named 'Risk Review Upcoming Warning' for the Risk Management module that triggers 7 days before a Risk's 'Next Review' date. You only need to configure the trigger rule, not the email template body.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_risk_notification/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_risk_notification/export_result.sh"
+  },
+  "metadata": {
+    "target_module": "Risk",
+    "target_days": 7,
+    "target_direction": "before"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_risk_notification"
+    }
+  }
+}

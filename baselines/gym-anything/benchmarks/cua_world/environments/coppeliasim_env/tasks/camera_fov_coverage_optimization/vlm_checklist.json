@@ -1,0 +1,53 @@
+{
+  "task_id": "camera_fov_coverage_optimization@1",
+  "task_completion": [
+    {
+      "id": "script_logic_implemented",
+      "description": "Python script coverage_script.py is written using the ZMQ Remote API to sweep camera Z position and pitch angle.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal showing the script contents with loops for Z (at least 4 heights between 1.0m and 4.0m) and pitch (at least 4 angles between 0 and 45 degrees), ZMQ API calls, and logic to count visible targets."
+    },
+    {
+      "id": "scene_setup_visible",
+      "description": "CoppeliaSim scene is configured with a 3x3 grid of target spheres and an overhead vision sensor.",
+      "points": 20,
+      "visual_evidence": "CoppeliaSim GUI visible showing a 3x3 grid of spheres on the floor and a vision sensor, or script code that programmatically creates this specific setup."
+    },
+    {
+      "id": "csv_exported",
+      "description": "camera_coverage_sweep.csv is saved in the exports directory with the correct columns and at least 16 rows of data.",
+      "points": 20,
+      "visual_evidence": "Terminal or file manager showing the CSV file in /home/ga/Documents/CoppeliaSim/exports/, and its contents showing columns 'pose_id, z_m, pitch_deg, visible_count' with 16 or more data rows."
+    },
+    {
+      "id": "json_exported",
+      "description": "optimal_camera_placement.json is saved in the exports directory with the required fields.",
+      "points": 20,
+      "visual_evidence": "Terminal or file manager showing the JSON file in /home/ga/Documents/CoppeliaSim/exports/, and its contents showing the fields 'total_poses_tested', 'max_visible_count', 'optimal_z_m', and 'optimal_pitch_deg'."
+    },
+    {
+      "id": "files_saved_in_exports",
+      "description": "The Python script and the CoppeliaSim scene are saved in the correct exports directory.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., ls) or a file manager window showing coverage_script.py and optimized_scene.ttt present in /home/ga/Documents/CoppeliaSim/exports/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_evidence",
+      "description": "The agent executed the Python script to perform the simulation and generate the outputs.",
+      "visual_evidence": "Terminal showing the command to run the script (e.g., python coverage_script.py) or logs indicating the script is executing and interacting with CoppeliaSim."
+    },
+    {
+      "id": "genuine_file_generation",
+      "description": "The CSV and JSON files were generated programmatically by the script, not manually created by the agent.",
+      "visual_evidence": "The Python script contains code to write the CSV and JSON files. There is no evidence of the agent manually typing the contents of these files in a text editor."
+    },
+    {
+      "id": "coppeliasim_interaction",
+      "description": "The agent interacted with CoppeliaSim to perform the actual visibility checks.",
+      "visual_evidence": "CoppeliaSim is running, or ZMQ connection messages are visible in the terminal. The script is not just mocking the visibility counts with hardcoded values."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected minimum total poses tested is 16, composed of at least 4 unique Z levels and 4 unique pitch angles. The expected output directory is strictly /home/ga/Documents/CoppeliaSim/exports/."
+}

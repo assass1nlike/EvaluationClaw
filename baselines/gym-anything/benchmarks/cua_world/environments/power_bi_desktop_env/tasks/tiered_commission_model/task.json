@@ -1,0 +1,35 @@
+{
+  "id": "tiered_commission_model@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a Sales Operations Manager calculating end-of-quarter commissions. Build a commission payout model in Power BI Desktop using the transaction file C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv and the quota target file C:\\Users\\Docker\\Desktop\\PowerBITasks\\quota_targets.csv. The model must relate the tables on Sales_Rep and include DAX measures for Total_Sales (sum of Sales_Amount), Attainment_Pct (Total_Sales divided by Quota), and Commission_Payout. The payout logic requires $0 commission for attainment below 80%, 5% of Total_Sales for attainment between 80% and 110%, and 8% of Total_Sales for attainment above 110%. Create a Matrix visual showing Sales_Rep, Total_Sales, Quota, Attainment_Pct, and Commission_Payout, and a Scatter Chart with Attainment_Pct on the X-axis and Commission_Payout on the Y-axis. Export the Matrix data to C:\\Users\\Docker\\Desktop\\commission_report.csv and save the report as C:\\Users\\Docker\\Desktop\\Commission_Model.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tiered_commission_model/setup_task.sh",
+    "post_task": "/workspace/tasks/tiered_commission_model/export_result.sh"
+  },
+  "metadata": {
+    "output_pbix": "C:\\Users\\Docker\\Desktop\\Commission_Model.pbix",
+    "output_csv": "C:\\Users\\Docker\\Desktop\\commission_report.csv",
+    "required_measures": [
+      "Total_Sales",
+      "Attainment_Pct",
+      "Commission_Payout"
+    ],
+    "required_visuals": [
+      "matrix",
+      "scatterChart"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tiered_commission_model"
+    }
+  }
+}

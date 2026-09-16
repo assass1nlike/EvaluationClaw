@@ -1,0 +1,40 @@
+{
+  "id": "migrate_version_catalog@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Migrate the 'WeatherTracker' Android project to use a Gradle Version Catalog. Replace the hardcoded dependency versions in 'app/build.gradle.kts' and 'data/build.gradle.kts' with references from a new 'gradle/libs.versions.toml' file. All project dependencies, including AndroidX Core, Retrofit, Room, Coroutines, and Navigation components, must be migrated to the catalog while maintaining a successful build.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_version_catalog/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_version_catalog/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/WeatherTracker",
+    "toml_path": "gradle/libs.versions.toml",
+    "required_libraries": [
+      "androidx-core-ktx",
+      "retrofit",
+      "room-runtime",
+      "kotlinx-coroutines-core",
+      "material"
+    ],
+    "hardcoded_versions": {
+      "androidx.core:core-ktx": "1.12.0",
+      "com.squareup.retrofit2:retrofit": "2.9.0",
+      "androidx.room:room-runtime": "2.6.1",
+      "org.jetbrains.kotlinx:kotlinx-coroutines-core": "1.7.3",
+      "com.google.android.material:material": "1.11.0"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_version_catalog"
+    }
+  }
+}

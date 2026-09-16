@@ -1,0 +1,39 @@
+{
+  "id": "calculate_tax_projections@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a financial projection query in LibreOffice Base named 'NorthAmericaTaxImpact' that joins the 'Invoice' and 'Customer' tables for customers in 'USA' or 'Canada'. The query must include 'InvoiceId', 'CustomerName' (FirstName and LastName concatenated), 'OriginalTotal' (Invoice Total), 'ProjectedTax' (Total * 0.065, rounded to 2 decimal places), and 'ProjectedGrandTotal' (Total + Tax, rounded to 2 decimal places). Sort results by InvoiceId ascending and save the query and the database file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/calculate_tax_projections/setup_task.sh",
+    "post_task": "/workspace/tasks/calculate_tax_projections/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "NorthAmericaTaxImpact",
+    "expected_row_count": 147,
+    "tax_rate": 0.065,
+    "target_countries": [
+      "USA",
+      "Canada"
+    ],
+    "required_columns": [
+      "InvoiceId",
+      "CustomerName",
+      "OriginalTotal",
+      "ProjectedTax",
+      "ProjectedGrandTotal"
+    ],
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calculate_tax_projections"
+    }
+  }
+}

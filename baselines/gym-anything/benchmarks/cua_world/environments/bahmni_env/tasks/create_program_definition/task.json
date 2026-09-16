@@ -1,0 +1,30 @@
+{
+  "id": "create_program_definition@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Create a medical program definition in the OpenMRS administration interface (https://localhost/openmrs/admin) using username 'superman' and password 'Admin123'. Create a Concept named 'Nutrition Support Program' (Class: 'Program' or 'Misc', Datatype: 'N/A') and a Program named 'Nutrition Support' linked to that concept. The program must include the description: 'Outpatient nutrition rehabilitation and monitoring'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_program_definition/setup_task.sh",
+    "post_task": "/workspace/tasks/create_program_definition/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_program_name": "Nutrition Support",
+    "target_program_description": "nutrition rehabilitation",
+    "target_concept_name": "Nutrition Support Program",
+    "target_concept_class": "Program",
+    "target_concept_datatype": "N/A"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_program_definition"
+    }
+  }
+}

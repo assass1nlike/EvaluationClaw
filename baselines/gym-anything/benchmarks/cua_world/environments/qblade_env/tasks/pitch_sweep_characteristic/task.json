@@ -1,0 +1,30 @@
+{
+  "id": "pitch_sweep_characteristic@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform a blade pitch angle sweep simulation to find the optimal pitch setting for the loaded rotor project. Configure the simulation for a pitch angle range of -2 to 15 degrees with a 1-degree step size, a fixed Tip Speed Ratio (TSR) of 7, and a wind speed of 10 m/s. Save the project with the simulation results to /home/ga/Documents/projects/pitch_sweep_result.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pitch_sweep_characteristic/setup_task.sh",
+    "post_task": "/workspace/tasks/pitch_sweep_characteristic/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/projects/pitch_sweep_result.wpa",
+    "min_file_size_kb": 20,
+    "param_sweep_start": -2,
+    "param_sweep_end": 15,
+    "param_sweep_step": 1,
+    "fixed_tsr": 7
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pitch_sweep_characteristic"
+    }
+  }
+}

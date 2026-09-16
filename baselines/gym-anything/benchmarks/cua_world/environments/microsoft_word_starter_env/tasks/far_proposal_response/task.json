@@ -1,0 +1,28 @@
+{
+  "id": "far_proposal_response@1",
+  "version": "1.0",
+  "env_id": "microsoft_word_starter_env@0.1",
+  "description": "As a Proposal Manager at Booz Allen Hamilton, prepare a proposal response using the unformatted plain text in 'solicitation_raw.docx' for the Managed Security Operations Center (MSOC) Services solicitation (CIRA-2025-MSOC-0047). Format the document by applying 'Heading 1' style to at least four top-level section headers and 'Heading 2' style to at least six sub-section headers. Create a compliance matrix table with at least 10 data rows mapping FAR clauses from Section B (including FAR 52.212-series) to compliance responses. Include the solicitation number 'CIRA-2025-MSOC-0047' in the document header. Save the final document as 'mssoc_proposal_response.docx' in the Desktop\\WordTasks folder.",
+  "difficulty": "very_hard",
+  "metadata": {
+    "occupation": "Management Analyst",
+    "industry": "Professional Scientific and Technical Services",
+    "onet_soc": "13-1111.00",
+    "company": "Booz Allen Hamilton"
+  },
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 90,
+    "reward_type": "partial"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\far_proposal_response\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\far_proposal_response\\export_result.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_far_proposal_response"
+    }
+  }
+}

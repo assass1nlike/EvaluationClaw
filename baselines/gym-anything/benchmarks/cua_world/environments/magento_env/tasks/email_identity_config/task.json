@@ -1,0 +1,33 @@
+{
+  "id": "email_identity_config@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure the store's transactional email infrastructure. Update the Store Email Addresses for Sales Representative (Name: 'NestWell Sales', Email: 'sales@nestwell.local') and Customer Support (Name: 'NestWell Help Team', Email: 'support@nestwell.local'). Configure Sales Emails so the New Order Confirmation Email Sender is 'Customer Support', 'manager@nestwell.local' is added to 'Send Order Email Copy To', and the Invoice Email Sender is 'Sales Representative'. Additionally, update Contacts settings to send emails to 'support@nestwell.local' using the 'Customer Support' email sender. Save all changes. If not logged in, use admin/Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/email_identity_config/setup_task.sh",
+    "post_task": "/workspace/tasks/email_identity_config/export_result.sh"
+  },
+  "metadata": {
+    "sales_name": "NestWell Sales",
+    "sales_email": "sales@nestwell.local",
+    "support_name": "NestWell Help Team",
+    "support_email": "support@nestwell.local",
+    "manager_email": "manager@nestwell.local",
+    "order_identity": "support",
+    "invoice_identity": "sales",
+    "contact_recipient": "support@nestwell.local",
+    "contact_sender": "support"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_email_identity_config"
+    }
+  }
+}

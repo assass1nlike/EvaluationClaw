@@ -1,0 +1,36 @@
+{
+  "id": "chinook_viral_track_analysis@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "As an analyst for the Chinook music label, identify 'Viral Tracks'—songs where total revenue is strictly greater than 3.0 times the average revenue of all tracks on its album. Using the database at /home/ga/Documents/databases/chinook_viral.db (Connection Name: 'ChinookViral', Login: ga / password123), calculate the album average revenue including all tracks, even those with zero sales. Export the list of viral tracks to /home/ga/Documents/exports/viral_tracks.csv, sorted by RevenueMultiplier descending, with headers: AlbumTitle, TrackName, TrackRevenue, AlbumAvgRevenue, RevenueMultiplier. Save the SQL analysis script to /home/ga/Documents/scripts/viral_analysis.sql.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_viral_track_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_viral_track_analysis/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/Documents/databases/chinook_viral.db",
+    "expected_csv_path": "/home/ga/Documents/exports/viral_tracks.csv",
+    "expected_sql_path": "/home/ga/Documents/scripts/viral_analysis.sql",
+    "required_columns": [
+      "AlbumTitle",
+      "TrackName",
+      "TrackRevenue",
+      "AlbumAvgRevenue",
+      "RevenueMultiplier"
+    ],
+    "target_track_partial_name": "For Those About To Rock",
+    "multiplier_threshold": 3.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_viral_track_analysis"
+    }
+  }
+}

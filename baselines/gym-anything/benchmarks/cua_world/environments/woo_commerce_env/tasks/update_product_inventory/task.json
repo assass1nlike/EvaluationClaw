@@ -1,0 +1,40 @@
+{
+  "id": "update_product_inventory@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are an order clerk at WooCommerce Store. A shipment has just arrived at the warehouse and you need to update the inventory in WooCommerce to reflect the new stock. Update the Wireless Bluetooth Headphones (SKU: WBH-001) with a stock quantity of 275 and a low stock threshold of 25. Update the USB-C Laptop Charger 65W (SKU: USBC-065) with a stock quantity of 450. Update the Slim Fit Denim Jeans (SKU: SFDJ-BLU-32) with a stock quantity of 350 and set backorders to 'Allow'. Ensure all products remain published.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_product_inventory/setup_task.sh",
+    "post_task": "/workspace/tasks/update_product_inventory/export_result.sh"
+  },
+  "metadata": {
+    "products": {
+      "headphones": {
+        "sku": "WBH-001",
+        "expected_stock": 275,
+        "expected_low_stock": 25
+      },
+      "charger": {
+        "sku": "USBC-065",
+        "expected_stock": 450
+      },
+      "jeans": {
+        "sku": "SFDJ-BLU-32",
+        "expected_stock": 350,
+        "expected_backorders": "yes"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_product_inventory"
+    }
+  }
+}

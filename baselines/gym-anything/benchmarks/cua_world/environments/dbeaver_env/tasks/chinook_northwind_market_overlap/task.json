@@ -1,0 +1,36 @@
+{
+  "id": "chinook_northwind_market_overlap@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Perform a cross-database geographic market analysis using DBeaver by analyzing data from the Chinook database (/home/ga/Documents/databases/chinook.db) and the Northwind database (/home/ga/Documents/databases/northwind.db). Create a new SQLite database named market_analysis.db at /home/ga/Documents/databases/ containing three tables: chinook_country_stats (Country, CustomerCount, InvoiceCount, TotalRevenue), northwind_country_stats (Country, CustomerCount, OrderCount, TotalRevenue), and market_overlap (Country, ChinookCustomers, ChinookRevenue, NorthwindCustomers, NorthwindRevenue, CombinedCustomers, CombinedRevenue). The market_overlap table must only contain countries present in both databases, sorted by CombinedRevenue in descending order. Ensure 'UK' and 'United Kingdom' are normalized to match as an overlapping market. Export the market_overlap table to /home/ga/Documents/exports/market_overlap_report.csv (including headers) and save the SQL analysis scripts to /home/ga/Documents/scripts/market_analysis.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_northwind_market_overlap/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_northwind_market_overlap/export_result.sh"
+  },
+  "metadata": {
+    "chinook_path": "/home/ga/Documents/databases/chinook.db",
+    "northwind_path": "/home/ga/Documents/databases/northwind.db",
+    "analysis_db_path": "/home/ga/Documents/databases/market_analysis.db",
+    "csv_path": "/home/ga/Documents/exports/market_overlap_report.csv",
+    "sql_path": "/home/ga/Documents/scripts/market_analysis.sql",
+    "expected_tables": [
+      "chinook_country_stats",
+      "northwind_country_stats",
+      "market_overlap"
+    ],
+    "min_overlap_rows": 15,
+    "max_overlap_rows": 22
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_market_overlap"
+    }
+  }
+}

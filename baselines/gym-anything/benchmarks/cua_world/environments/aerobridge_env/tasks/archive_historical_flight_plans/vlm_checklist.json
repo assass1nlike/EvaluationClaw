@@ -1,0 +1,53 @@
+{
+  "task_id": "archive_historical_flight_plans@1",
+  "task_completion": [
+    {
+      "id": "locate_flightplan_model",
+      "description": "Agent accesses the Aerobridge system to locate the FlightPlan model.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the Aerobridge Django admin interface, or a terminal/editor showing Aerobridge source code (e.g., models.py) or database schema."
+    },
+    {
+      "id": "identify_historical_records",
+      "description": "Agent identifies or filters the specific flight plans with start times strictly before January 1, 2024.",
+      "points": 20,
+      "visual_evidence": "A list of flight plans being filtered by date in the GUI, or a database query/script selecting records with a start time before '2024-01-01'."
+    },
+    {
+      "id": "archive_records_to_json",
+      "description": "Agent serializes the historical records and saves them to /home/ga/archive_pre2024.json.",
+      "points": 30,
+      "visual_evidence": "A terminal command (e.g., python manage.py dumpdata), a Python script writing to the file, or a file manager/editor showing the creation and content of '/home/ga/archive_pre2024.json'."
+    },
+    {
+      "id": "delete_historical_records",
+      "description": "Agent deletes the historical flight plans (pre-2024) from the database.",
+      "points": 20,
+      "visual_evidence": "A deletion confirmation in the GUI (e.g., Django admin 'Are you sure you want to delete'), a SQL DELETE command, or a script calling `.delete()` on the filtered queryset."
+    },
+    {
+      "id": "verify_remaining_records",
+      "description": "Agent ensures that flight plans starting on or after January 1, 2024, remain intact.",
+      "points": 20,
+      "visual_evidence": "A view of the remaining flight plans in the GUI, or a database query/script output showing that records with dates >= 2024-01-01 are still present in the system."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_extraction",
+      "description": "Verifies that the agent extracted real data from the system instead of fabricating the JSON file.",
+      "visual_evidence": "The agent uses database queries, Django ORM, or export tools rather than typing out hardcoded JSON data."
+    },
+    {
+      "id": "exact_archive_path",
+      "description": "Verifies the archive was saved to the exact requested location.",
+      "visual_evidence": "The file path '/home/ga/archive_pre2024.json' is visible in the script, terminal command, or file explorer."
+    },
+    {
+      "id": "selective_deletion_applied",
+      "description": "Verifies that the agent did not just delete all records or bypass the date filter.",
+      "visual_evidence": "The deletion action (GUI or code) explicitly includes a condition or selection for records before 2024-01-01."
+    }
+  ],
+  "privileged_info_for_vlm": "The cutoff date for archiving is January 1, 2024. Records strictly before this date must be archived to '/home/ga/archive_pre2024.json' and deleted from the database. Records from January 1, 2024 onwards must remain intact. The Aerobridge admin credentials are 'admin' / 'adminpass123'."
+}

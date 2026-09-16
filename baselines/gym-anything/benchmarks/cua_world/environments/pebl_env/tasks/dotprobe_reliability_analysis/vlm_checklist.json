@@ -1,0 +1,59 @@
+{
+  "task_id": "dotprobe_reliability_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent loads the dotprobe CSV dataset.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing code (e.g., pandas read_csv) or a data analysis tool opening ~/pebl/data/dotprobe_data.csv."
+    },
+    {
+      "id": "filter_participants",
+      "description": "Agent implements logic to exclude specific participants based on task rules.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code or formulas explicitly excluding 'sub-99' and calculating overall accuracy to exclude participants with strictly less than 80% accuracy."
+    },
+    {
+      "id": "filter_trials",
+      "description": "Agent implements logic to filter out invalid trials for the remaining valid participants.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code or filters removing filler trials, incorrect trials (correct != 1), and response times (rt_ms) outside the 200-1000ms range."
+    },
+    {
+      "id": "calculate_ab_scores",
+      "description": "Agent calculates Attentional Bias (AB) scores for total, odd, and even trials.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the mathematical operation (Mean RT Incongruent - Mean RT Congruent) applied to the total valid trials, as well as split by odd and even trial numbers."
+    },
+    {
+      "id": "calculate_reliability_metrics",
+      "description": "Agent calculates the required group-level metrics.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing code calculating the mean of total AB scores, the Pearson correlation between odd and even AB scores, and the Spearman-Brown reliability using the formula 2r / (1 + r)."
+    },
+    {
+      "id": "save_json_output",
+      "description": "Agent saves the final results to the specified JSON file.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing code writing the structured output to ~/pebl/analysis/dotprobe_reliability.json, or a terminal verifying the file's creation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Agent actually computes the metrics rather than hallucinating or hardcoding the final JSON.",
+      "visual_evidence": "Look for a script (e.g., Python/R) or spreadsheet containing the actual data manipulation and mathematical formulas, rather than just a text editor typing out a mock JSON file."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Agent uses the exact file paths specified in the prompt.",
+      "visual_evidence": "Check that the input is exactly ~/pebl/data/dotprobe_data.csv and the output is exactly ~/pebl/analysis/dotprobe_reliability.json without deviations."
+    },
+    {
+      "id": "processed_actual_data",
+      "description": "Agent processed the provided dataset rather than generating a fake one.",
+      "visual_evidence": "Ensure there is no script generating a mock dotprobe_data.csv file to bypass the real analysis."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data is located at /home/ga/pebl/data/dotprobe_data.csv. The output must be saved to /home/ga/pebl/analysis/dotprobe_reliability.json. Participant 'sub-99' is a known contaminated subject simulating random clicks with ~50% accuracy and must be excluded as per the instructions."
+}

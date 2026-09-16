@@ -1,0 +1,48 @@
+{
+  "id": "simson_line_construction@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are a geometry professor preparing an interactive GeoGebra applet demonstrating the Simson Line theorem. Construct a triangle with vertices A(0, 0), B(6, 0), and C(2, 5), its circumcircle, and a moveable point P constrained to that circumcircle. Create the Simson Line by finding the perpendicular projections from P onto the triangle's sides and constructing the line through those foot points. Include a text annotation mentioning 'Simson Line' and save the construction to ~/Documents/GeoGebra/projects/simson_line.ggb",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/simson_line_construction/setup_task.sh",
+    "post_task": "/workspace/tasks/simson_line_construction/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "simson_line.ggb",
+    "vertices": [
+      {
+        "label": "A",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "label": "B",
+        "x": 6,
+        "y": 0
+      },
+      {
+        "label": "C",
+        "x": 2,
+        "y": 5
+      }
+    ],
+    "coord_tolerance": 0.25,
+    "required_commands": [
+      "Circle",
+      "PerpendicularLine",
+      "Line"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_simson_line_construction"
+    }
+  }
+}

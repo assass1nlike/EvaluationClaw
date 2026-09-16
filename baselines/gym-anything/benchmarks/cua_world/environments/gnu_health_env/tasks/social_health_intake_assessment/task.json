@@ -1,0 +1,32 @@
+{
+  "id": "social_health_intake_assessment@1",
+  "version": "1.0",
+  "env_id": "gnu_health_env@0.1",
+  "description": "Patient Matt Zenon Betz requires a comprehensive social determinants of health (SDOH) intake assessment. Update his GNU Health profile to reflect a University level education, an Engineer occupation, a physically active lifestyle, and non-smoker status. Add a family history entry for a first-degree relative with Cardiovascular/Coronary Artery Disease (ICD-10 I25.x or I21.x), include a mobile phone contact, and schedule a preventive care appointment with Dr. Cordara between 150 and 200 days from today. Login: admin / gnusolidario.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/social_health_intake_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/social_health_intake_assessment/export_result.sh"
+  },
+  "metadata": {
+    "target_patient_firstname": "Matt",
+    "target_patient_lastname": "Betz",
+    "expected_education": "University",
+    "expected_occupation": "Engineer",
+    "family_disease_icd_family": "I2",
+    "followup_min_days": 150,
+    "followup_max_days": 200,
+    "healthprof_name": "Cordara"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_social_health_intake_assessment"
+    }
+  }
+}

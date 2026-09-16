@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_fiscal_year_numbering@1",
+  "task_completion": [
+    {
+      "id": "configure_quotes_sequence",
+      "description": "Verify that the Quotes sequence prefix is set to 'QUO-2026-' and the starting sequence is '10000'.",
+      "points": 20,
+      "visual_evidence": "Look for a CRM settings or sequence configuration page showing the Quotes module with the prefix field containing 'QUO-2026-' and the sequence/start number field containing '10000'."
+    },
+    {
+      "id": "configure_invoice_sequence",
+      "description": "Verify that the Invoice sequence prefix is set to 'INV-2026-' and the starting sequence is '5000'.",
+      "points": 20,
+      "visual_evidence": "Look for a CRM settings or sequence configuration page showing the Invoice module with the prefix field containing 'INV-2026-' and the sequence/start number field containing '5000'."
+    },
+    {
+      "id": "configure_po_sequence",
+      "description": "Verify that the Purchase Order sequence prefix is set to 'PO-2026-' and the starting sequence is '8000'.",
+      "points": 20,
+      "visual_evidence": "Look for a CRM settings or sequence configuration page showing the Purchase Order module with the prefix field containing 'PO-2026-' and the sequence/start number field containing '8000'."
+    },
+    {
+      "id": "create_test_quote",
+      "description": "Verify that a test Quote is created with the subject 'FY2026 Numbering Test' for an existing organization.",
+      "points": 20,
+      "visual_evidence": "Look for a Quote creation form or a saved Quote details page where the Subject field is exactly 'FY2026 Numbering Test' and an Organization Name (like Chemex Labs) is selected."
+    },
+    {
+      "id": "verify_test_quote_number",
+      "description": "Verify that the newly created test Quote automatically received the correct sequence ID.",
+      "points": 20,
+      "visual_evidence": "Look for the saved Quote details page or list view showing the test Quote ('FY2026 Numbering Test') with its assigned Quote Number clearly visible as 'QUO-2026-10000'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_configuration_used",
+      "description": "Ensure the agent used the CRM's graphical user interface to configure the sequences.",
+      "visual_evidence": "The screenshots should show the agent navigating the CRM's admin/settings menus and filling out web forms, rather than using a terminal, API client, or database management tool."
+    },
+    {
+      "id": "genuine_quote_creation",
+      "description": "Ensure the test Quote was created through the CRM application.",
+      "visual_evidence": "The Quote creation and details should be visible within the standard CRM web interface, not mocked up in a text editor, local HTML file, or injected via terminal scripts."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Ensure the agent did not bypass the UI by directly updating the database.",
+      "visual_evidence": "There should be no terminal windows open showing SQL UPDATE commands or python scripts modifying the sequence numbers or creating the quote."
+    }
+  ],
+  "privileged_info_for_vlm": "The required configuration values are: Quotes prefix 'QUO-2026-' with start sequence 10000; Invoice prefix 'INV-2026-' with start sequence 5000; Purchase Order prefix 'PO-2026-' with start sequence 8000. The test Quote must have the subject 'FY2026 Numbering Test' and its automatically generated quote number must be exactly 'QUO-2026-10000'."
+}

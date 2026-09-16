@@ -1,0 +1,36 @@
+{
+  "id": "refactor_introduce_parameter_object@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Refactor the 'processTransaction' method in 'PaymentProcessor.java' to use a Parameter Object pattern. Create a new class named 'TransactionRequest' to encapsulate the seven existing arguments (merchantId, amount, currency, cardNum, cvv, expiry, note). Update 'PaymentProcessor.processTransaction' to accept a single 'TransactionRequest' instance and refactor all callers in 'App.java' and 'PaymentServiceTest.java' to use the new object. Ensure the project compiles and all tests pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_introduce_parameter_object/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_introduce_parameter_object/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/legacy-payment-module",
+    "target_class": "src/main/java/com/example/payments/PaymentProcessor.java",
+    "expected_new_class": "TransactionRequest",
+    "expected_fields": [
+      "merchantId",
+      "amount",
+      "currency",
+      "cardNum",
+      "cvv",
+      "expiry",
+      "note"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_parameter_object"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "package_executable_jar@1",
+  "task_completion": [
+    {
+      "id": "pom_xml_configured",
+      "description": "Configure pom.xml to bundle dependencies and set the Main-Class.",
+      "points": 20,
+      "visual_evidence": "Screenshot of an editor showing pom.xml with a plugin (like maven-shade-plugin or maven-assembly-plugin) configured to include dependencies and specifying '<mainClass>com.csvstats.App</mainClass>'."
+    },
+    {
+      "id": "maven_build_executed",
+      "description": "Execute the Maven build to package the project.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a Maven command like 'mvn package' or 'mvn clean install' being run in the ~/IdeaProjects/csv-stats directory, resulting in a 'BUILD SUCCESS' message."
+    },
+    {
+      "id": "jar_file_created",
+      "description": "Verify the executable JAR was created and bundles the required dependencies.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the existence of 'target/csv-stats-1.0.jar'. A file size check (e.g., via 'ls -lh') should show the JAR is larger than 50KB, indicating the Apache Commons CSV dependency is bundled."
+    },
+    {
+      "id": "jar_execution_command",
+      "description": "Run the packaged JAR file against the sample data.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the exact command 'java -jar target/csv-stats-1.0.jar src/main/resources/sample_data.csv' being executed."
+    },
+    {
+      "id": "jar_execution_success",
+      "description": "Verify the JAR executes successfully and outputs the correct statistics.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the output of the JAR execution without any ClassNotFoundException or NoClassDefFoundError. The output must display parsed CSV statistics, such as population numbers (e.g., 39538223 for California or 21538187 for Florida)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_maven_build",
+      "description": "The JAR was genuinely built by Maven.",
+      "visual_evidence": "Look for actual Maven build logs in the terminal. The JAR should not be downloaded from an external source or manually renamed from a non-executable JAR."
+    },
+    {
+      "id": "genuine_jar_execution",
+      "description": "The output is from running the packaged JAR, not from running unpacked classes.",
+      "visual_evidence": "Ensure the execution command is strictly 'java -jar target/csv-stats-1.0.jar ...' and not 'java -cp ... com.csvstats.App' or a script that fakes the output."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "The pom.xml was genuinely edited.",
+      "visual_evidence": "Look for evidence of the file being edited in a real text editor or IDE (like IntelliJ, nano, vim, or VS Code) rather than just echoing text directly into the file to bypass proper configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/IdeaProjects/csv-stats. The target JAR must be at target/csv-stats-1.0.jar. The Main-Class is com.csvstats.App. The bundled dependency is Apache Commons CSV (org/apache/commons/csv/), which is ~54KB, so the final executable JAR must be >50KB. The sample data at src/main/resources/sample_data.csv contains real US Census 2020 population data (e.g., California: 39538223, Florida: 21538187). Successful execution should display statistics related to these numbers."
+}

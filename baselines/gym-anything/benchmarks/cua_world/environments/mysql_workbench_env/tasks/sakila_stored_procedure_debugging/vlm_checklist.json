@@ -1,0 +1,65 @@
+{
+  "task_id": "sakila_stored_procedure_debugging@1",
+  "task_completion": [
+    {
+      "id": "fix_sales_procedure",
+      "description": "Fix the 'sp_report_sales_by_category' stored procedure to resolve the ONLY_FULL_GROUP_BY error.",
+      "points": 15,
+      "visual_evidence": "Look for a database client (like MySQL Workbench, DBeaver, or terminal) showing the SQL code for 'sp_report_sales_by_category' being altered to fix the GROUP BY clause, or a successful execution message for this procedure."
+    },
+    {
+      "id": "export_sales_csv",
+      "description": "Export the results of the sales by category report to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal (e.g., ls command), or text editor showing the existence or contents of 'sales_by_category.csv' in the '/home/ga/Documents/exports/' directory."
+    },
+    {
+      "id": "fix_dead_inventory_procedure",
+      "description": "Correct the logic in the 'sp_identify_dead_inventory' stored procedure.",
+      "points": 20,
+      "visual_evidence": "Look for a database client showing the SQL code for 'sp_identify_dead_inventory' being altered (e.g., changing an INNER JOIN to a LEFT JOIN or using NOT EXISTS) or a successful execution message for this procedure."
+    },
+    {
+      "id": "export_dead_inventory_csv",
+      "description": "Export the results of the dead inventory report to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the existence or contents of 'dead_inventory.csv' in the '/home/ga/Documents/exports/' directory."
+    },
+    {
+      "id": "alter_customer_table",
+      "description": "Add the missing 'credit_score' INT column to the 'customer' table.",
+      "points": 15,
+      "visual_evidence": "Look for a database client or terminal showing an ALTER TABLE command adding 'credit_score' to the 'customer' table, or a view of the table schema showing this new column."
+    },
+    {
+      "id": "fix_credit_procedure",
+      "description": "Fix and execute the 'sp_calculate_customer_credit' stored procedure.",
+      "points": 20,
+      "visual_evidence": "Look for a database client showing the successful execution or modification of the 'sp_calculate_customer_credit' procedure after the table was altered."
+    },
+    {
+      "id": "export_top_credit_csv",
+      "description": "Export the top 20 customers by credit score to a CSV file.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the existence or contents of 'top_credit_customers.csv' in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Verify the agent interacted with the actual MySQL database.",
+      "visual_evidence": "Look for evidence of actual database queries being executed in a SQL client (like MySQL Workbench) or terminal (mysql CLI), rather than just text manipulation or guessing."
+    },
+    {
+      "id": "authentic_csv_content",
+      "description": "Verify the exported CSV files contain genuine query results.",
+      "visual_evidence": "If the contents of the CSV files are visible, verify they look like genuine database query results (multiple rows, appropriate columns) and not manually typed placeholder text."
+    },
+    {
+      "id": "no_direct_file_mocking",
+      "description": "Ensure the agent did not bypass the database to create the output files.",
+      "visual_evidence": "Ensure the agent did not simply use 'echo' or a basic script to create the CSV files with hardcoded data without actually querying the Sakila database."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing three stored procedures in the 'sakila' database: 'sp_report_sales_by_category', 'sp_identify_dead_inventory', and 'sp_calculate_customer_credit'. The expected outputs are three CSV files located in '/home/ga/Documents/exports/': 'sales_by_category.csv', 'dead_inventory.csv', and 'top_credit_customers.csv'."
+}

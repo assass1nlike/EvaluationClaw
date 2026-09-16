@@ -1,0 +1,42 @@
+{
+  "id": "distinguish_toxicity_vs_efficacy_ribociclib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Analyze the drug interactions between Ribociclib and the co-medications Clarithromycin and Rifampicin using the Liverpool Cancer iChart app. Identify which drug is associated with 'Increased Toxicity' (or increased exposure) and which is associated with 'Decreased Efficacy' (or decreased exposure). Create a report at /sdcard/ribociclib_risk_analysis.txt following this format:\n\nDrug: Clarithromycin\nRisk: [Type]\nDrug: Rifampicin\nRisk: [Type]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/distinguish_toxicity_vs_efficacy_ribociclib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/distinguish_toxicity_vs_efficacy_ribociclib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Ribociclib",
+    "drug_1": "Clarithromycin",
+    "drug_2": "Rifampicin",
+    "expected_mechanism_1": [
+      "increased",
+      "toxicity",
+      "exposure",
+      "raise",
+      "high"
+    ],
+    "expected_mechanism_2": [
+      "decreased",
+      "efficacy",
+      "failure",
+      "reduce",
+      "low"
+    ],
+    "output_file": "/sdcard/ribociclib_risk_analysis.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ribociclib_risk_analysis"
+    }
+  }
+}

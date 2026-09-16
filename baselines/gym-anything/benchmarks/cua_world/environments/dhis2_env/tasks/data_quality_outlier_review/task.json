@@ -1,0 +1,29 @@
+{
+  "id": "data_quality_outlier_review@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "Perform a data quality review for Kailahun District. Run an outlier detection analysis for Kailahun District and its sub-units for the period January 2022 to December 2023 using the Z-score algorithm with a 3.0 threshold on health data sets such as Child Health, Mortality, or Malaria. Flag at least three suspicious values for follow-up. Export the outlier results list to /home/ga/Downloads/ and create a summary report at /home/ga/Desktop/kailahun_data_quality_report.txt describing 2-3 specific outliers found (including facility, data element, and value) along with your recommendations.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/data_quality_outlier_review/setup_task.sh",
+    "post_task": "/workspace/tasks/data_quality_outlier_review/export_result.sh"
+  },
+  "metadata": {
+    "target_org_unit": "Kailahun",
+    "target_start_date": "2022-01-01",
+    "target_end_date": "2023-12-31",
+    "min_followups_required": 3,
+    "report_path": "/home/ga/Desktop/kailahun_data_quality_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_data_quality_outlier_review"
+    }
+  }
+}

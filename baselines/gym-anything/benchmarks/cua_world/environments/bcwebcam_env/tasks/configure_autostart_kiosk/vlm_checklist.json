@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_autostart_kiosk@1",
+  "task_completion": [
+    {
+      "id": "open_configuration_tool",
+      "description": "Agent opens the necessary tool to configure the autostart entry.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of the Windows Run dialog (e.g., typing 'shell:startup' or 'regedit'), File Explorer, or Registry Editor being opened."
+    },
+    {
+      "id": "navigate_to_autostart_location",
+      "description": "Agent navigates to one of the two valid autostart locations.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of File Explorer showing the Startup folder path (ending in 'Start Menu\\Programs\\Startup') OR Registry Editor showing the path 'Computer\\HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'."
+    },
+    {
+      "id": "initiate_entry_creation",
+      "description": "Agent begins creating the autostart entry.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of the 'Create Shortcut' wizard in File Explorer OR a new String Value being added in the Registry Editor (e.g., right-click context menu -> New -> String Value)."
+    },
+    {
+      "id": "name_autostart_entry",
+      "description": "Agent names the newly created shortcut or registry value.",
+      "points": 10,
+      "visual_evidence": "Visual evidence of the shortcut file or registry string value being given a relevant name, such as 'bcWebCam'."
+    },
+    {
+      "id": "configure_correct_target_path",
+      "description": "Agent sets the target path to the correct 64-bit executable location, avoiding the incorrect path from the prompt.",
+      "points": 30,
+      "visual_evidence": "Visual evidence in the Shortcut Properties 'Target' field OR the Registry 'Edit String' dialog 'Value data' field showing exactly 'C:\\Program Files\\bcWebCam\\bcWebCam.exe'. It must NOT include '(x86)'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used GUI tools to complete the task rather than exclusively relying on hidden terminal commands.",
+      "visual_evidence": "Screenshots show interaction with File Explorer, Shortcut Wizard, or Registry Editor, rather than just a PowerShell or CMD window executing commands."
+    },
+    {
+      "id": "avoided_prompt_trap",
+      "description": "Agent verified the actual executable path instead of blindly copying the incorrect path provided in the task description.",
+      "visual_evidence": "The final configured path is 'C:\\Program Files\\bcWebCam\\bcWebCam.exe' and not the '(x86)' variant. There may also be evidence of the agent browsing the C: drive to verify the path."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Agent made the changes in the actual system configuration areas.",
+      "visual_evidence": "The shortcut or registry key is seen in the actual Windows File Explorer or Registry Editor, not just typed into a text editor, search bar, or notes application."
+    }
+  ],
+  "privileged_info_for_vlm": "The task description intentionally provides an incorrect 32-bit path ('C:\\Program Files (x86)\\bcWebCam\\bcWebCam.exe'). The actual installed application is 64-bit and is located at 'C:\\Program Files\\bcWebCam\\bcWebCam.exe'. The agent must discover and use this correct path. Valid autostart locations are the user's Startup folder ('%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup') OR the Registry Run key ('HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run')."
+}

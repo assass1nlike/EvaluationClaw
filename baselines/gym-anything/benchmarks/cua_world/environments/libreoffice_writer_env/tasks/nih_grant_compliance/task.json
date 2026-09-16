@@ -1,0 +1,45 @@
+{
+  "id": "nih_grant_compliance@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are the grants administrator for the Department of Oncology at a research university. Format Dr. Sarah Chen's NIH R01 grant application draft (/home/ga/Documents/r01_draft.docx) to comply with PA-23-093 and departmental requirements. The document must use an approved typeface (Arial, Helvetica, Georgia, or Palatino Linotype) at 11 points or larger, with 0.5-inch margins on all sides and no more than 6 lines of text per vertical inch. Include a left-aligned header on every page reading 'Chen, S. — R01CA298471 — Tumor Microenvironment Immunotherapy'. Apply a 0.5-inch hanging indent to all entries in the References section. Ensure the six major section headings (Abstract, Specific Aims, Research Strategy, Innovation, Approach, and References) use the 'Heading 1' style. Save the reformatted document as /home/ga/Documents/r01_formatted.docx without modifying the original file.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nih_grant_compliance/setup_task.sh",
+    "post_task": "/workspace/tasks/nih_grant_compliance/export_result.sh"
+  },
+  "metadata": {
+    "source_doc": "/home/ga/Documents/r01_draft.docx",
+    "output_doc": "/home/ga/Documents/r01_formatted.docx",
+    "approved_fonts": [
+      "Arial",
+      "Helvetica",
+      "Georgia",
+      "Palatino Linotype",
+      "Liberation Sans"
+    ],
+    "required_font_size_pt": 11,
+    "required_margin_inches": 0.5,
+    "section_headings": [
+      "Abstract",
+      "Specific Aims",
+      "Research Strategy",
+      "Innovation",
+      "Approach",
+      "References"
+    ],
+    "header_fragment": "Chen, S.",
+    "grant_id": "R01CA298471"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nih_grant_compliance"
+    }
+  }
+}

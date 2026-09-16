@@ -1,0 +1,30 @@
+{
+  "id": "compute_stream_power@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are an environmental restoration planner assessing erosion potential along the White River in Muncie, Indiana. Using the Muncie HEC-RAS unsteady simulation output (Muncie.p04.hdf) located in ~/Documents/hec_ras_projects/Muncie, write and execute a Python script named compute_stream_power.py in ~/Documents/hec_ras_results/ to compute the stream power profile at the time of peak discharge. \n\nThe analysis must identify the time step where peak flow occurs at the most downstream cross-section (the smallest river station value). At this peak time, calculate the Water Surface Slope (S) between consecutive cross-sections ($S_i = |WSE_{i+1} - WSE_i| / |Station_{i+1} - Station_i|$) and the Stream Power per unit length ($\\Omega = \\gamma \\cdot Q \\cdot S$, where $\\gamma = 62.4$ lb/ft³). Export the profile data to ~/Documents/hec_ras_results/stream_power_profile.csv with columns: Station, Flow_cfs, WSE_ft, WS_Slope, and StreamPower. Additionally, generate a summary file at ~/Documents/hec_ras_results/stream_power_summary.txt containing the Max_StreamPower_Station, Max_StreamPower_Value, and Peak_Flow_cfs.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_stream_power/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_stream_power/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "script_name": "compute_stream_power.py",
+    "csv_name": "stream_power_profile.csv",
+    "summary_name": "stream_power_summary.txt",
+    "gamma": 62.4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_stream_power"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "size_rotor_for_5kw_output@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform an iterative design sizing exercise to determine the specific rotor radius required to produce 5000 W (+/- 50 W) of mechanical power. The design must utilize a 3-bladed rotor with a constant chord of 0.25 m, zero twist, and a NACA 4412 airfoil (analyzed at Re=1e6, NCrit=9 with 360-degree extrapolation). Evaluate the rotor performance at a rated wind speed of 10 m/s and a Tip Speed Ratio (TSR) of 6. Save the final project to /home/ga/Documents/projects/sized_rotor_5kw.wpa, export the successful BEM simulation result data to /home/ga/Documents/projects/final_simulation.txt, and create a text file at /home/ga/Documents/projects/sizing_result.txt containing the determined radius in the format: 'Final Radius: X.XX m'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/size_rotor_for_5kw_output/setup_task.sh",
+    "post_task": "/workspace/tasks/size_rotor_for_5kw_output/export_result.sh"
+  },
+  "metadata": {
+    "target_power_watts": 5000,
+    "tolerance_watts": 50,
+    "target_tsr": 6,
+    "target_wind_speed": 10,
+    "min_plausible_radius": 2.2,
+    "max_plausible_radius": 3.2,
+    "project_path": "/home/ga/Documents/projects/sized_rotor_5kw.wpa",
+    "simulation_path": "/home/ga/Documents/projects/final_simulation.txt",
+    "result_text_path": "/home/ga/Documents/projects/sizing_result.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_size_rotor_for_5kw_output"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "clinical_variant_annotation@1",
+  "version": "1.0",
+  "env_id": "ugene_env@0.1",
+  "description": "You are a clinical molecular geneticist reviewing a patient's BRCA1 gene sequence data. Using the GenBank file at ~/UGENE_Data/clinical/patient_BRCA1_region.gb, identify and fix annotation errors in the file, specifically within the CDS and source feature annotations. Locate and annotate the two clinically significant variants present in the sequence. Perform an ORF analysis with a minimum length of 300bp and save the results as annotations. Save the corrected GenBank file to ~/UGENE_Data/clinical/results/patient_BRCA1_corrected.gb and document all identified errors, corrections, and variant classifications in a clinical report at ~/UGENE_Data/clinical/results/clinical_report.txt.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clinical_variant_annotation/setup_task.sh",
+    "post_task": "/workspace/tasks/clinical_variant_annotation/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Real NCBI NM_007294.4 BRCA1 mRNA (7088bp) with deliberate annotation errors injected into a 2500bp sub-region",
+    "occupation": "Clinical Molecular Geneticist",
+    "industry": "Healthcare / Clinical Genetics",
+    "difficulty": "very_hard",
+    "injected_errors": [
+      "CDS start shifted 15bp upstream",
+      "Missing C>T missense variant annotation near pos 1200",
+      "Missing AGT frameshift deletion annotation near pos 1860",
+      "Gene qualifier says BRCA2 instead of BRCA1"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clinical_variant_annotation"
+    }
+  }
+}

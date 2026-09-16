@@ -1,0 +1,34 @@
+{
+  "id": "theater_beam_section@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a theatrical lighting section view drawing in LibreCAD (units: mm). The drawing must include a stage floor line from (0,0) to (15000,0) on layer 'ARCHITECTURE' and a lighting pipe represented by a 24mm radius circle centered at (2000, 5500) on layer 'RIGGING'. On layer 'BEAM', document a lighting beam originating from the pipe center and extending to the floor (y=0) with a center line angled 45 degrees down (315 degrees) and a total beam angle of 36 degrees (18 degrees on each side of the center line). Include a dimension on layer 'DIMENSIONS' measuring the width of the light pool between the two points where the beam edges hit the floor. Save the drawing to /home/ga/Documents/LibreCAD/beam_study.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/theater_beam_section/setup_task.sh",
+    "post_task": "/workspace/tasks/theater_beam_section/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "beam_study.dxf",
+    "pipe_x": 2000,
+    "pipe_y": 5500,
+    "center_angle": 315,
+    "beam_angle_total": 36,
+    "upper_ray_angle": 333,
+    "lower_ray_angle": 297,
+    "expected_pool_width": 7992,
+    "tolerance_mm": 50,
+    "tolerance_deg": 1.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_theater_beam_section"
+    }
+  }
+}

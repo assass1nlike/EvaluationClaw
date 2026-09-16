@@ -1,0 +1,59 @@
+{
+  "task_id": "chinook_regional_market_mapping@1",
+  "task_completion": [
+    {
+      "id": "create_region_mapping_table",
+      "description": "Create the 'region_mapping' table with the required columns.",
+      "points": 10,
+      "visual_evidence": "Look for a SQL script, database client schema (like DBeaver), or terminal output showing the creation of 'region_mapping' with columns 'Country' (Primary Key), 'RegionCode', and 'RegionName'."
+    },
+    {
+      "id": "populate_region_mapping",
+      "description": "Populate the 'region_mapping' table with the correct country-to-region mappings.",
+      "points": 20,
+      "visual_evidence": "Look for SQL INSERT statements or a data grid showing countries mapped to NA, LATAM, APAC, and EMEA according to the task rules (e.g., USA/Canada to NA, Brazil/Chile/Argentina to LATAM)."
+    },
+    {
+      "id": "create_regional_sales_view",
+      "description": "Create the 'v_regional_sales' view joining invoices and region_mapping with required aggregations.",
+      "points": 25,
+      "visual_evidence": "Look for a CREATE VIEW statement or database schema showing 'v_regional_sales' that calculates RegionName, InvoiceCount (using COUNT), TotalRevenue (using SUM), and AvgOrderValue (using AVG)."
+    },
+    {
+      "id": "verify_view_results_ordered",
+      "description": "Query the view results ordered by TotalRevenue descending.",
+      "points": 20,
+      "visual_evidence": "Look for a query result grid or terminal output showing 4 rows ordered by TotalRevenue descending: EMEA (top, ~1114), NA, LATAM, APAC (bottom, ~112)."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the view results to the specified CSV path.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal command (like ls or cat), or export dialog showing 'regional_sales_summary.csv' successfully saved in /home/ga/Documents/exports/."
+    },
+    {
+      "id": "save_sql_script",
+      "description": "Save the SQL DDL/DML script to the specified path.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor, IDE, or terminal showing the SQL commands saved to a file named 'create_regions.sql' in /home/ga/Documents/scripts/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent actually executed the SQL commands against the Chinook database.",
+      "visual_evidence": "Look for a database client (like DBeaver, sqlite3 CLI, or a Python script) showing successful execution of the queries, rather than just typing text into a file without running it."
+    },
+    {
+      "id": "authentic_data_aggregation",
+      "description": "The aggregated results come from actual database calculations.",
+      "visual_evidence": "The CSV or query results should display precise calculated values (e.g., EMEA TotalRevenue: 1114.36, NA: 827.02) rather than placeholder text or manually typed estimates."
+    },
+    {
+      "id": "correct_file_locations",
+      "description": "Files were saved to the exact requested directories.",
+      "visual_evidence": "Check file paths in editors, terminals, or file managers to ensure they are exactly '/home/ga/Documents/exports/' and '/home/ga/Documents/scripts/' and not just generic or temporary folders."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database contains 412 invoices across 24 distinct billing countries. All 24 countries map explicitly to the 4 regions (NA, LATAM, APAC, EMEA) with no 'Other' countries needed. The expected aggregated results in the view/CSV, ordered by TotalRevenue descending, are: 1. EMEA (196 invoices, TotalRevenue: 1114.36), 2. NA (147 invoices, TotalRevenue: 827.02), 3. LATAM (49 invoices, TotalRevenue: 274.34), 4. APAC (20 invoices, TotalRevenue: 112.88). The total revenue across all regions is 2328.60. The CSV must be at /home/ga/Documents/exports/regional_sales_summary.csv and the SQL script at /home/ga/Documents/scripts/create_regions.sql."
+}

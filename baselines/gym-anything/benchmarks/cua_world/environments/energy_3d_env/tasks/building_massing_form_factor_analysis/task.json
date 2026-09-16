@@ -1,0 +1,28 @@
+{
+  "id": "building_massing_form_factor_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an Architectural Designer evaluating early-stage massing options for a commercial facility. Energy3D is launched. Open the sample project located at ~/Documents/Energy3D/building-shape.ng3. This file contains a compact building and an elongated building of similar volume. \n\nPerform the following energy analysis workflow:\n1. Change the environmental Location to Chicago, IL to simulate a heating-dominated climate.\n2. Standardize the envelope by changing the Wall U-value for all buildings in the scene to 0.3 W/(m\u00b2\u00b7K).\n3. Run the 'Annual Energy Analysis' (Analysis > Buildings > Annual Energy Analysis) specifically for the compact building and note its Total Annual Energy (in kWh).\n4. Run the 'Annual Energy Analysis' specifically for the elongated building and note its Total Annual Energy (in kWh).\n5. Create a text file at ~/Documents/Energy3D/massing_report.txt containing:\n   - The location used (Chicago)\n   - The wall U-value applied (0.3)\n   - The approximate Total Annual Energy for the compact building\n   - The approximate Total Annual Energy for the elongated building\n   - A clear conclusion stating which building is more energy efficient (Compact or Elongated)\n\nSave your work in the text file before finishing.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/building_massing_form_factor_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/building_massing_form_factor_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/Documents/Energy3D/massing_report.txt",
+    "expected_location": "Chicago",
+    "expected_u_value": "0.3",
+    "expected_winner": "compact"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_massing_analysis"
+    }
+  }
+}

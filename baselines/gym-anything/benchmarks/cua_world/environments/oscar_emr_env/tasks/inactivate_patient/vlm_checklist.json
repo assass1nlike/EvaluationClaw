@@ -1,0 +1,53 @@
+{
+  "task_id": "inactivate_patient@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify the agent successfully logged into Oscar EMR.",
+      "points": 10,
+      "visual_evidence": "The Oscar EMR main dashboard, schedule screen, or search interface is visible, indicating a successful login."
+    },
+    {
+      "id": "search_patient",
+      "description": "Verify the agent searched for the correct patient.",
+      "points": 20,
+      "visual_evidence": "The search bar or patient lookup interface shows 'Maria Santos', 'Santos, Maria', or DOB '1978-06-22' entered, or the search results display this patient."
+    },
+    {
+      "id": "open_patient_record",
+      "description": "Verify the agent opened the demographic record for Maria Santos.",
+      "points": 20,
+      "visual_evidence": "The Master Demographic record or patient profile screen is open, clearly displaying the name 'Maria Santos' and DOB '1978-06-22'."
+    },
+    {
+      "id": "change_status_inactive",
+      "description": "Verify the agent changed the patient status to Inactive.",
+      "points": 30,
+      "visual_evidence": "In the edit demographic screen, the patient status dropdown or field is visibly changed from 'Active' (or 'AC') to 'Inactive' (or 'IN')."
+    },
+    {
+      "id": "save_changes",
+      "description": "Verify the agent saved the updated status.",
+      "points": 20,
+      "visual_evidence": "The agent clicks 'Update', 'Save', or similar, and a subsequent screen (like the updated Master Demographic record) shows the patient's current status is now 'Inactive' or 'IN'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Oscar EMR web interface rather than terminal commands or direct database queries.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the Oscar EMR GUI. There should be no terminal windows executing curl, mysql, or python scripts to bypass the UI."
+    },
+    {
+      "id": "correct_patient_modified",
+      "description": "Verify the agent modified the correct patient and did not just create a new dummy patient.",
+      "visual_evidence": "The record being modified must clearly belong to 'Maria Santos' with DOB '1978-06-22' (and demographic_no=10050 if visible), rather than a newly created record."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Verify the agent did not use browser developer tools to fake the status change.",
+      "visual_evidence": "Browser developer tools (Inspect Element) should not be open and used to edit the HTML text of the status field."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient Name: Maria Santos. DOB: 1978-06-22. Initial Status: 'AC' (Active). Target Status: 'IN' (Inactive). Credentials: oscardoc / oscar / PIN 1117. The agent must locate this specific patient in the Oscar EMR web interface and update their demographic status to Inactive."
+}

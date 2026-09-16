@@ -1,0 +1,59 @@
+{
+  "task_id": "redundant_nullspace_exploration@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_interaction",
+      "description": "Agent interacts with CoppeliaSim or runs a script to interface with the CoppeliaSim API.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the CoppeliaSim GUI open, or a terminal window executing a Python/C++ script that connects to the CoppeliaSim API (e.g., PyRep, ZeroMQ Remote API) to calculate kinematics."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The nullspace_configs.csv file is created in the specified exports directory.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'ls /home/ga/Documents/CoppeliaSim/exports/' or a file explorer window displaying the 'nullspace_configs.csv' file."
+    },
+    {
+      "id": "csv_columns_correct",
+      "description": "The CSV file contains the exact required column headers.",
+      "points": 20,
+      "visual_evidence": "The CSV file opened in a text editor or displayed in the terminal (via 'cat' or 'head') showing the header row: config_id, j1, j2, j3, j4, j5, j6, j7, tcp_x, tcp_y, tcp_z, elbow_x, elbow_y, elbow_z."
+    },
+    {
+      "id": "csv_row_count",
+      "description": "The CSV file contains at least 30 distinct configuration rows.",
+      "points": 25,
+      "visual_evidence": "Terminal output of 'wc -l nullspace_configs.csv' showing 31 or more lines (1 header + 30 data rows), or the file open in an editor showing at least 30 rows of data."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The nullspace_report.json file is created in the specified exports directory.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'ls /home/ga/Documents/CoppeliaSim/exports/' or a file explorer window displaying the 'nullspace_report.json' file."
+    },
+    {
+      "id": "json_content_correct",
+      "description": "The JSON report contains the required fields and indicates at least 30 distinct configurations.",
+      "points": 25,
+      "visual_evidence": "The JSON file opened in an editor or terminal showing the fields 'robot_model', 'total_distinct_configs', 'tcp_variance_m', and 'max_elbow_displacement_m', with 'total_distinct_configs' having a value of 30 or greater."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_interaction",
+      "description": "The agent used a script or simulation tool to generate the kinematic data rather than fabricating it.",
+      "visual_evidence": "Look for a script containing inverse kinematics, Jacobian pseudo-inverse, or null-space projection logic. The agent should not just be writing a script that prints hardcoded random numbers."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "The agent did not manually type out the CSV or JSON files with dummy data.",
+      "visual_evidence": "The files should be generated programmatically. Look for evidence of script execution rather than the agent manually typing 30 rows of floats into a text editor."
+    },
+    {
+      "id": "distinct_configurations",
+      "description": "The generated configurations in the CSV are actually distinct and not just the same row copied 30 times.",
+      "visual_evidence": "When the CSV is visible, the values for j1-j7 and elbow_x/y/z should vary across the rows, while tcp_x/y/z should remain relatively constant."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating a minimum of 30 distinct joint configurations. The output CSV must be exactly at /home/ga/Documents/CoppeliaSim/exports/nullspace_configs.csv. The output JSON must be exactly at /home/ga/Documents/CoppeliaSim/exports/nullspace_report.json."
+}

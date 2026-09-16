@@ -1,0 +1,31 @@
+{
+  "id": "hearing_schedule_conflict_resolution@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "You are an Administrative Law Judge conducting your weekly docket review in the ArkCase Complaints module. Identify all pending administrative hearing dockets where the 'Hearing Date' is before December 30, 2025. For these overdue dockets, update the Priority to 'High', change the Status to 'In Progress', and add a case note stating: 'CONTINUANCE REQUIRED: Hearing date exceeded 60-day regulatory deadline. Docket rescheduling mandatory per ALJ-Admin Rule 4.2.' Do not modify dockets that are within their deadline. Login: arkcase-admin@dev.arkcase.com / ArkCase1234!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hearing_schedule_conflict_resolution/setup_task.sh",
+    "post_task": "/workspace/tasks/hearing_schedule_conflict_resolution/export_result.sh"
+  },
+  "metadata": {
+    "overdue_count": 3,
+    "current_count": 2,
+    "total_cases": 5,
+    "overdue_deadline": "2025-12-30",
+    "required_note_text": "CONTINUANCE REQUIRED: Hearing date exceeded 60-day regulatory deadline. Docket rescheduling mandatory per ALJ-Admin Rule 4.2.",
+    "required_priority": "High",
+    "required_status": "In Progress"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hearing_schedule_conflict_resolution"
+    }
+  }
+}

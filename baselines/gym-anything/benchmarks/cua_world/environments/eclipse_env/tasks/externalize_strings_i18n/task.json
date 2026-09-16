@@ -1,0 +1,29 @@
+{
+  "id": "externalize_strings_i18n@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Internationalize the 'LibraryApp' Java project located at `~/eclipse-workspace/LibraryApp` by externalizing hardcoded strings. Externalize all user-facing strings, such as menu options, prompts, and success/error messages, from `src/main/java/com/library/app/LibraryApp.java` into a resource bundle. Use the bundle name `messages.properties` and accessor class `Messages.java` within the `com.library.app` package. Technical strings like switch case constants \"1\" and \"2\" should be marked as 'Never Externalize'. Ensure the project compiles without errors and all modified files are saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/externalize_strings_i18n/setup_task.sh",
+    "post_task": "/workspace/tasks/externalize_strings_i18n/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/LibraryApp",
+    "target_file": "src/main/java/com/library/app/LibraryApp.java",
+    "expected_properties": "src/main/java/com/library/app/messages.properties",
+    "expected_accessor": "src/main/java/com/library/app/Messages.java",
+    "min_externalized_count": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_externalize_strings"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "dataset_id": "18a05c0b",
+  "name": "Person-Recognition",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for extracting person names from short news-like sentences. Given raw text and an instruction prompt, the model must identify all person names and output them as 'name => PER' entries.",
+  "card_text": "This text-only dataset contains 200 samples designed for person name recognition. Each sample consists of a raw_text field containing a short news sentence, a prompt instructing the model to extract all person names, and an output text field with the extracted names formatted as 'name => PER' and separated by commas. The raw sentences cover topics such as sports and politics, providing factual contexts for named entity extraction. The dataset evaluates a model's ability to locate and list person mentions, including multi-word names and single-word references. No visual or auditory signals are present; the task is purely text-based and relies on understanding the instruction and the input sentence.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw news sentence from which person names must be extracted. It is the main input and provides the textual context for the extraction task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An explicit instruction that asks the model to extract all person names from the raw_text and format each as 'name => PER', with multiple names separated by commas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A comma-separated list of extracted person names, each annotated with the tag '=> PER'. It is the target output for the extraction task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with raw_text (a short news sentence) and prompt (an extraction instruction), and an output object with text (the formatted list of person names). The prompt tells the model to find all person names in raw_text and return them as 'name => PER' entries. No other fields carry semantic content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Person-Recognition/annotation.json",
+    "existing_tags": {
+      "task": "person_recognition",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

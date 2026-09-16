@@ -1,0 +1,28 @@
+{
+  "id": "extract_connection_stats@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "You are a General Operations Manager investigating video call quality issues. Join the Jitsi Meet conference room 'QualityAuditRoom2024' using the display name 'NetworkAuditor'. Extract the connection statistics from APP.conference.getStats() and the conference info (containing roomName, myUserId, and isP2P status) using the browser developer console. Save the data to /home/ga/jitsi_connection_stats.json as a single JSON object with the top-level keys \"connectionStats\", \"conferenceInfo\", and \"timestamp\" (ISO 8601 string).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_connection_stats/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_connection_stats/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/jitsi_connection_stats.json",
+    "target_room": "QualityAuditRoom2024",
+    "target_display_name": "NetworkAuditor",
+    "min_file_size_bytes": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_connection_stats"
+    }
+  }
+}

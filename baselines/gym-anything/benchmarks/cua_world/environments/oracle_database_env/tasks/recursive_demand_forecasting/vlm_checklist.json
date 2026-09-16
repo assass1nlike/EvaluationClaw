@@ -1,0 +1,53 @@
+{
+  "task_id": "recursive_demand_forecasting@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Terminal or database client showing a successful connection to localhost:1521/XEPDB1 using the 'hr' user."
+    },
+    {
+      "id": "write_recursive_logic",
+      "description": "Formulate the recursive 3-week weighted moving average calculation.",
+      "points": 30,
+      "visual_evidence": "SQL script, PL/SQL block, or Python script visible in an editor or terminal containing the specific formula: weights 0.5, 0.3, 0.2 applied to previous weeks, wrapped in a ROUND(..., 2) function."
+    },
+    {
+      "id": "create_demand_forecast_table",
+      "description": "Create the DEMAND_FORECAST table with the required schema.",
+      "points": 20,
+      "visual_evidence": "A CREATE TABLE statement for 'DEMAND_FORECAST' specifying the columns: PRODUCT_NAME (VARCHAR2), WEEK_NUM (NUMBER), QTY (NUMBER), and DATA_TYPE (VARCHAR2)."
+    },
+    {
+      "id": "execute_data_population",
+      "description": "Execute the script or query to populate the table with exactly 75 rows.",
+      "points": 20,
+      "visual_evidence": "Console output or database client message confirming the successful creation of the table and/or insertion of data (e.g., 'Table created', 'PL/SQL procedure successfully completed', or '75 rows inserted')."
+    },
+    {
+      "id": "verify_forecast_results",
+      "description": "Verify the contents of the newly created DEMAND_FORECAST table.",
+      "points": 20,
+      "visual_evidence": "A SELECT query executed on DEMAND_FORECAST showing the results, specifically displaying rows where DATA_TYPE is 'ACTUAL' (weeks 1-10) and 'FORECAST' (weeks 11-15)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with the database using a genuine client or script.",
+      "visual_evidence": "Commands are executed in a real database tool (like SQL*Plus, SQLcl, DBeaver) or via a script (e.g., Python cx_Oracle/oracledb), rather than just typing text into a generic text editor without execution."
+    },
+    {
+      "id": "calculated_not_hardcoded",
+      "description": "The forecast values were calculated programmatically, not hardcoded.",
+      "visual_evidence": "The SQL or script uses logic (like recursive CTEs, PL/SQL loops, or Python loops) to compute weeks 11-15. There should be no manual INSERT statements containing hardcoded forecast quantities for weeks 11-15."
+    },
+    {
+      "id": "no_mocked_results",
+      "description": "The agent did not mock the final output table.",
+      "visual_evidence": "The DEMAND_FORECAST table is populated by querying the WEEKLY_SALES table and applying the math, rather than importing a pre-computed CSV or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "Source table: WEEKLY_SALES. Target table: DEMAND_FORECAST. Products: 'Ceramic_Bearing_50mm', 'Hydraulic_Seal_X2', 'Linear_Actuator_v1', 'Stepper_Motor_NEMA23', 'Timing_Belt_GT2'. History data covers weeks 1-10. Forecast must cover weeks 11-15. Formula weights: 0.5 (t-1), 0.3 (t-2), 0.2 (t-3). Total expected rows in DEMAND_FORECAST: 75."
+}

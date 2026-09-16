@@ -1,0 +1,43 @@
+{
+  "id": "organize_cases_by_court_hierarchy@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Organize the case library into a jurisdictional hierarchy. Create a top-level collection named 'Case Law' containing sub-collections for 'Federal Courts' (with 'Supreme Court' and 'Courts of Appeals') and 'State Courts' (with 'New York'). Sort the following cases into their correct lowest-level jurisdictional collections: Brown v. Board of Education, Miranda v. Arizona, Gideon v. Wainwright, United States v. Aluminum Co. of America, and Palsgraf v. Long Island Railroad Co.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_cases_by_court_hierarchy/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_cases_by_court_hierarchy/export_result.sh"
+  },
+  "metadata": {
+    "target_hierarchy": {
+      "Case Law": {
+        "Federal Courts": {
+          "Supreme Court": [
+            "Brown",
+            "Miranda",
+            "Gideon"
+          ],
+          "Courts of Appeals": [
+            "Aluminum Co."
+          ]
+        },
+        "State Courts": {
+          "New York": [
+            "Palsgraf"
+          ]
+        }
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_cases_by_court_hierarchy"
+    }
+  }
+}

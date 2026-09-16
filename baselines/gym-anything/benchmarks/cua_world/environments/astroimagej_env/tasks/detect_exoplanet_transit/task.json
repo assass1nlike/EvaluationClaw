@@ -1,0 +1,54 @@
+{
+  "id": "detect_exoplanet_transit@1",
+  "name": "Detect Exoplanet Transit in WASP-12 Observations",
+  "description": "Analyze the WASP-12 (RA: 06:30:32.79, Dec: +29:40:20.4) astronomical image sequence from January 5-6, 2016, to identify evidence of a planetary transit. If a transit is detected, determine the transit depth, mid-transit time (BJD_TDB or JD), and transit duration in hours. Using a host star radius of 1.599 solar radii, estimate the planet's radius in Jupiter radii. Save your findings and uncertainties to ~/Documents/transit_analysis.txt.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "target_star": "WASP-12",
+    "planet": "WASP-12b",
+    "target_ra": "06:30:32.79",
+    "target_dec": "+29:40:20.4",
+    "host_star_radius_rsun": 1.599,
+    "expected_transit_depth_percent": 1.4,
+    "expected_transit_depth_tolerance_percent": 0.3,
+    "expected_duration_hours": 2.7,
+    "expected_duration_tolerance_hours": 0.5,
+    "expected_planet_radius_rjup": 1.79,
+    "expected_planet_radius_tolerance_rjup": 0.2,
+    "orbital_period_days": 1.0914222,
+    "data_source": "University of Louisville AstroImageJ Examples",
+    "data_url": "https://www.astro.louisville.edu/software/astroimagej/examples/WASP-12b_example_calibrated_images.tar.gz",
+    "num_images": 186,
+    "image_size": [
+      4096,
+      4096
+    ],
+    "filter": "r-band",
+    "exposure_sec": 100,
+    "telescope": "MORC24",
+    "minimum_comparison_stars": 2
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/detect_exoplanet_transit/setup_task.sh",
+    "post_task": "/workspace/tasks/detect_exoplanet_transit/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_exoplanet_transit"
+    }
+  },
+  "difficulty": "hard",
+  "tags": [
+    "astronomy",
+    "photometry",
+    "exoplanet",
+    "transit",
+    "time-series",
+    "real-data"
+  ]
+}

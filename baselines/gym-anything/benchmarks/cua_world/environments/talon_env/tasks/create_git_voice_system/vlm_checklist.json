@@ -1,0 +1,53 @@
+{
+  "task_id": "create_git_voice_system@1",
+  "task_completion": [
+    {
+      "id": "git_voice_dir_created",
+      "description": "Create the git_voice directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the directory 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\git_voice' has been created in the file explorer or terminal."
+    },
+    {
+      "id": "git_py_created",
+      "description": "Create the git.py file in the git_voice directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots show 'git.py' exists within the 'git_voice' directory."
+    },
+    {
+      "id": "git_py_logic",
+      "description": "Implement the required logic in git.py for branch retrieval and formatting.",
+      "points": 30,
+      "visual_evidence": "Screenshots of 'git.py' contents show the declaration of a 'user.git_branch' list and a 'user.update_git_branches()' action. The action must execute 'git branch --format=\"%(refname:short)\"' (targeting the 'test_repo' path) and include string replacement logic to convert slashes, dashes, and underscores into spaces."
+    },
+    {
+      "id": "git_talon_created",
+      "description": "Create the git.talon file in the git_voice directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots show 'git.talon' exists within the 'git_voice' directory."
+    },
+    {
+      "id": "git_talon_commands",
+      "description": "Implement the required voice commands in git.talon.",
+      "points": 40,
+      "visual_evidence": "Screenshots of 'git.talon' contents show the exact voice commands: 'git update branches', 'git checkout {user.git_branch}', 'git status', 'git add all', and 'git commit <user.text>'. Each command must be mapped to execute the corresponding Git operation in the terminal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Verify that the Python and Talon files are saved to the disk.",
+      "visual_evidence": "The text editor does not show an 'unsaved' indicator (like a dot or asterisk on the tab) for git.py and git.talon, or terminal commands like 'cat' or 'ls' confirm the files are written to the disk."
+    },
+    {
+      "id": "dynamic_branch_retrieval",
+      "description": "Verify that branches are retrieved dynamically rather than hardcoded.",
+      "visual_evidence": "The git.py script uses a subprocess or similar execution method to call the git branch command, rather than containing a hardcoded Python list of branch names."
+    },
+    {
+      "id": "correct_repo_targeted",
+      "description": "Verify that the Python script targets the correct repository path.",
+      "visual_evidence": "The Python script explicitly references 'C:\\Users\\Docker\\Documents\\test_repo' when executing the git branch command, ensuring it doesn't run in an arbitrary or incorrect directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Talon module directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\git_voice. Git repository path: C:\\Users\\Docker\\Documents\\test_repo."
+}

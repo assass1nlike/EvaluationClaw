@@ -1,0 +1,37 @@
+{
+  "id": "create_booking_system@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Create a booking system in the 'demodb' database using OrientDB Sequences and Graph connections. The system requires two ordered sequences: 'booking_seq' (starting at 1000, increment 1) and 'invoice_seq' (starting at 5000, increment 1). Define a vertex class 'Bookings' (extending V) with properties BookingRef (INTEGER), InvoiceNum (INTEGER), CheckIn (DATE), CheckOut (DATE), Status (STRING), and TotalPrice (DOUBLE), as well as edge classes 'HasBooking' and 'BookedAt' (extending E). Record five bookings using the sequences for IDs: John Smith (john.smith@example.com) at 'Hotel Artemide' (2025-06-15 to 2025-06-20, Confirmed, 1250.00); Maria Garcia (maria.garcia@example.com) at 'Hotel Adlon Kempinski' (2025-07-01 to 2025-07-05, Confirmed, 1800.00); David Jones (david.jones@example.com) at 'The Savoy' (2025-07-10 to 2025-07-14, Pending, 2200.00); Sophie Martin (sophie.martin@example.com) at 'Hotel de Crillon' (2025-08-01 to 2025-08-07, Confirmed, 3500.00); and Luca Rossi (luca.rossi@example.com) at 'The Plaza Hotel' (2025-09-15 to 2025-09-18, Cancelled, 1650.00). Connect these records with 'HasBooking' edges from Profile to Booking and 'BookedAt' edges from Booking to Hotel. Export the booking details (BookingRef, InvoiceNum, CheckIn, CheckOut, Status, TotalPrice) ordered by BookingRef to '~/bookings_report.json'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_booking_system/setup_task.sh",
+    "post_task": "/workspace/tasks/create_booking_system/export_result.sh"
+  },
+  "metadata": {
+    "expected_booking_count": 5,
+    "expected_file": "/home/ga/bookings_report.json",
+    "booking_seq_start": 1000,
+    "invoice_seq_start": 5000,
+    "required_classes": [
+      "Bookings",
+      "HasBooking",
+      "BookedAt"
+    ],
+    "required_sequences": [
+      "booking_seq",
+      "invoice_seq"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_booking_system"
+    }
+  }
+}

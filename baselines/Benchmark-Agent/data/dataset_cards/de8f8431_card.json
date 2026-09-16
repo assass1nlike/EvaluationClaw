@@ -1,0 +1,78 @@
+{
+  "dataset_id": "de8f8431",
+  "name": "Mammal Recognition",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 198,
+  "description": "This dataset contains 198 images of mammals paired with a fixed instruction to recognize the mammal. The task is to classify the mammal species shown in each image, outputting a single word label.",
+  "card_text": "The Mammal Recognition dataset is a small image-text benchmark for multiclass animal classification. Each sample includes an image of a mammal (e.g., tiger, horse, elephant) stored as a JPEG file, a constant text prompt 'recognize mammals in the image', and a single-word target label naming the species. The images are natural photographs of animals in various settings, and the task evaluates a model's ability to identify the mammal from visual cues. The dataset is open-set in the sense that the label space is not provided upfront, but the outputs are constrained to mammal names. It is suitable for evaluating visual recognition models and vision-language models on fine-grained mammal classification.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "animal recognition",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A photograph of a mammal species to be recognized. The image is the primary visual input for the classification task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed textual instruction asking the model to recognize the mammal in the provided image. It is constant across all samples and directs the model's attention to the task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.prediction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The predicted label naming the mammal species shown in the image, such as 'tiger' or 'horse'. It is a single word that serves as the classification target.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image (input.image_file) of a mammal, a textual instruction (input.prompt) to recognize the mammal, and a textual answer (output.prediction) giving the mammal species label. The prompt is constant across samples, and the answer is a single word."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/mammal_recognition/json/annotation.json",
+    "existing_tags": {
+      "task": "Mammal Recognition",
+      "type": "comprehension",
+      "skill": "Object Recognition(Object Recog)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

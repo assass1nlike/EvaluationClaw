@@ -1,0 +1,53 @@
+{
+  "task_id": "calibration_library_production@1",
+  "task_completion": [
+    {
+      "id": "read_specification",
+      "description": "Agent opens and reads the calibration specification.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Documents/cal_requirements.txt."
+    },
+    {
+      "id": "use_kstars_ekos_capture",
+      "description": "Agent uses the KStars Ekos Capture module to set up the calibration frames.",
+      "points": 20,
+      "visual_evidence": "The KStars Ekos Capture module is visible, with settings configured for capturing Bias, Dark, or Flat frames."
+    },
+    {
+      "id": "verify_bias_and_darks_created",
+      "description": "Agent successfully generates the required Bias and Dark frames.",
+      "points": 25,
+      "visual_evidence": "File manager, terminal, or Ekos interface showing newly created FITS files for Bias and Dark (300s and 600s) frames in /home/ga/Calibration."
+    },
+    {
+      "id": "verify_flats_created",
+      "description": "Agent successfully generates the required Flat frames for V, R, and B bands.",
+      "points": 25,
+      "visual_evidence": "File manager, terminal, or Ekos interface showing newly created FITS files for Flat frames (V, R, B filters) in /home/ga/Calibration."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Agent creates a summary report confirming all calibration frames are in place.",
+      "points": 20,
+      "visual_evidence": "A text editor showing the content of calibration_summary.txt being written or saved in /home/ga/Calibration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_for_capture",
+      "description": "Agent used the KStars GUI to capture the frames rather than mocking them with terminal commands.",
+      "visual_evidence": "Screenshots should show interaction with the KStars/Ekos interface to capture frames, not terminal commands like 'touch' or 'cp' to create fake FITS files."
+    },
+    {
+      "id": "genuine_summary_creation",
+      "description": "Agent manually created the summary report based on the generated files.",
+      "visual_evidence": "The summary report is seen being typed or edited in a text editor, rather than just copied from a pre-existing file without verification."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Agent worked in the correct directories as specified.",
+      "visual_evidence": "File paths in the file manager, terminal, or text editor should clearly show /home/ga/Calibration for the library and summary report."
+    }
+  ],
+  "privileged_info_for_vlm": "The calibration root directory is /home/ga/Calibration. The specification requires exactly: 10 bias frames, 10 300s darks, 10 600s darks, and 5 flat frames each for the V, R, and B bands. Three stale bias frames might be present but should be ignored. The final summary report must be located at /home/ga/Calibration/calibration_summary.txt."
+}

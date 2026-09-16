@@ -1,0 +1,27 @@
+{
+  "id": "setup_custom_fields_sales_invoice@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Configure Northwind Traders' Manager.io instance to include two new custom fields on Sales Invoices: 'Customer PO Number' and 'Vehicle Registration'. Both fields should be configured as single-line text. Ensure the fields are active and appear on the 'New Sales Invoice' form.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_custom_fields_sales_invoice/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_custom_fields_sales_invoice/export_result.sh"
+  },
+  "metadata": {
+    "field_1_name": "Customer PO Number",
+    "field_2_name": "Vehicle Registration",
+    "target_form": "Sales Invoice"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_custom_fields"
+    }
+  }
+}

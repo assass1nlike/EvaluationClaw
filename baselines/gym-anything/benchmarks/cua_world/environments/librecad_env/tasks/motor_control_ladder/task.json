@@ -1,0 +1,43 @@
+{
+  "id": "motor_control_ladder@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a 3-rung electrical motor control ladder diagram for a Start/Stop motor circuit in LibreCAD. The drawing must include four layers: 'POWER' (Red), 'RUNGS' (Yellow), 'SYMBOLS' (Green), and 'TEXT' (White/Black). On the 'POWER' layer, draw vertical power rails from (10, 10) to (10, 250) and (210, 10) to (210, 250). On the 'RUNGS' layer, draw horizontal rungs connecting the rails at Y=200 (Motor Control), Y=140 (Pilot Light), and Y=80 (Overload Alarm). On the 'SYMBOLS' layer, represent components using circles or arcs: Rung 1 must contain a Stop button (NC), Start button (NO), and Motor Coil (M1); Rung 2 must contain an Aux Contact (NO) and Pilot Light (PL1); Rung 3 must contain an Overload Contact (NC) and Alarm Indicator (AL1). On the 'TEXT' layer, label the rails 'L1' and 'L2', label the components 'STOP', 'START', 'M1', 'PL1', 'OL', and 'AL1', and include the title 'MOTOR CONTROL - CONVEYOR M1'. Save the completed schematic to /home/ga/Documents/LibreCAD/motor_control_ladder.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/motor_control_ladder/setup_task.sh",
+    "post_task": "/workspace/tasks/motor_control_ladder/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/motor_control_ladder.dxf",
+    "required_layers": {
+      "POWER": 1,
+      "RUNGS": 2,
+      "SYMBOLS": 3,
+      "TEXT": 7
+    },
+    "required_text": [
+      "L1",
+      "L2",
+      "STOP",
+      "START",
+      "M1",
+      "PL1",
+      "OL",
+      "AL1",
+      "MOTOR CONTROL"
+    ],
+    "min_entity_count": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_motor_control_ladder"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "copy_artifact_to_release_repo@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_source_repo",
+      "description": "Navigate to the 'staging-libs-local' repository in the Artifactory UI.",
+      "points": 10,
+      "visual_evidence": "The Artifactory web interface is open in a browser, and 'staging-libs-local' is visible or selected in the Artifacts tree view."
+    },
+    {
+      "id": "locate_artifacts",
+      "description": "Locate the specific artifacts in the source repository.",
+      "points": 10,
+      "visual_evidence": "The folder path 'org/apache/commons/commons-lang3/3.14.0/' is expanded within 'staging-libs-local', and both 'commons-lang3-3.14.0.jar' and 'commons-lang3-3.14.0.pom' are visible."
+    },
+    {
+      "id": "initiate_copy_action",
+      "description": "Initiate a copy operation for the artifacts or their parent folder.",
+      "points": 20,
+      "visual_evidence": "A context menu or dialog box is open showing a 'Copy' action (specifically 'Copy', not 'Move') being selected for the artifacts or the '3.14.0' folder."
+    },
+    {
+      "id": "select_target_repo",
+      "description": "Select 'release-libs-local' as the destination repository.",
+      "points": 20,
+      "visual_evidence": "A copy dialog or configuration screen showing 'release-libs-local' selected as the Target Repository for the copy operation."
+    },
+    {
+      "id": "verify_artifacts_in_target",
+      "description": "Verify the artifacts were successfully copied to the destination repository.",
+      "points": 20,
+      "visual_evidence": "The repository tree shows 'release-libs-local' expanded with the identical path 'org/apache/commons/commons-lang3/3.14.0/' containing both the .jar and .pom files."
+    },
+    {
+      "id": "verify_originals_preserved",
+      "description": "Verify the original artifacts were preserved in the source repository.",
+      "points": 20,
+      "visual_evidence": "Screenshots taken after the copy operation show that 'staging-libs-local' still contains the artifacts at 'org/apache/commons/commons-lang3/3.14.0/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Artifactory web UI to perform the task.",
+      "visual_evidence": "Screenshots show interaction with the Artifactory web interface in a browser, rather than terminal commands (like 'cp' or 'curl') being used to move files."
+    },
+    {
+      "id": "correct_url",
+      "description": "Verify the agent interacted with the correct Artifactory instance.",
+      "visual_evidence": "The browser address bar shows 'http://localhost:8082' or a sub-path of it."
+    },
+    {
+      "id": "logical_sequence",
+      "description": "Verify the sequence of actions represents genuine interaction.",
+      "visual_evidence": "The screenshots show a logical progression of opening folders, opening dialogs, and confirming actions, rather than just jumping to a final state that might indicate DOM manipulation."
+    }
+  ],
+  "privileged_info_for_vlm": "Source repository: 'staging-libs-local'. Target repository: 'release-libs-local'. Artifact path: 'org/apache/commons/commons-lang3/3.14.0'. Artifacts to copy: 'commons-lang3-3.14.0.jar' and 'commons-lang3-3.14.0.pom'. Artifactory URL: 'http://localhost:8082'. The task explicitly requires copying (not moving) to ensure the original files are preserved in the staging repository."
+}

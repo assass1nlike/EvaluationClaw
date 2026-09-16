@@ -1,0 +1,32 @@
+{
+  "id": "survey_copy_adaptation@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "You are a meeting and event planner preparing a feedback survey for an upcoming healthcare event. Adapt the 'Annual Tech Conference 2024 Feedback' survey template into a new, activated survey named 'Healthcare Innovation Summit 2025 Feedback'. The survey must include the description 'Post-event feedback survey for the Healthcare Innovation Summit held in Boston, MA. Your responses help us improve future healthcare conferences and continuing education events.' and the welcome message 'Thank you for attending the Healthcare Innovation Summit 2025! Please take 5 minutes to share your feedback on the sessions, speakers, and overall event experience. Your input directly shapes our future programming.' Set the survey expiration date to December 31, 2025. Add a question group titled 'Clinical Innovation Track' (description: 'Feedback on clinical innovation sessions and demonstrations') with a List (Radio) question (code: 'ClinicalRelevance', text: 'How relevant were the clinical innovation sessions to your current practice?') using the options: Not at all relevant, Slightly relevant, Moderately relevant, Very relevant, Extremely relevant. Login credentials: admin / Admin123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/survey_copy_adaptation/setup_task.sh",
+    "post_task": "/workspace/tasks/survey_copy_adaptation/export_result.sh"
+  },
+  "metadata": {
+    "source_survey_title": "Annual Tech Conference 2024 Feedback",
+    "target_survey_title": "Healthcare Innovation Summit 2025 Feedback",
+    "target_description_keyword": "Boston",
+    "target_welcome_keyword": "future programming",
+    "target_expiration": "2025-12-31",
+    "new_group_title": "Clinical Innovation Track",
+    "new_question_code": "ClinicalRelevance",
+    "new_question_type": "L"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_survey_copy_adaptation"
+    }
+  }
+}

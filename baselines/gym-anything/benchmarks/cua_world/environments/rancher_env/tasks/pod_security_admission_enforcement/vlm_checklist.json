@@ -1,0 +1,59 @@
+{
+  "task_id": "pod_security_admission_enforcement@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent logged into the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "The Rancher web interface is visible in the browser, indicating successful login."
+    },
+    {
+      "id": "api_server_compliant",
+      "description": "The api-server deployment is compliant and its pods are running",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI, the 'api-server' deployment in the 'secure-apps' namespace shows a green/active status with running pods (e.g., 1/1), indicating the security context was fixed."
+    },
+    {
+      "id": "worker_compliant",
+      "description": "The worker deployment is compliant and its pods are running",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI, the 'worker' deployment in the 'secure-apps' namespace shows a green/active status with running pods."
+    },
+    {
+      "id": "frontend_compliant",
+      "description": "The frontend deployment is compliant and its pods are running",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI, the 'frontend' deployment in the 'secure-apps' namespace shows a green/active status with running pods."
+    },
+    {
+      "id": "logger_compliant",
+      "description": "The logger deployment is compliant and its pods are running",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI, the 'logger' deployment in the 'secure-apps' namespace shows a green/active status with running pods."
+    },
+    {
+      "id": "namespace_label_intact",
+      "description": "The namespace enforcement label was not removed",
+      "points": 10,
+      "visual_evidence": "The 'secure-apps' namespace configuration or labels in Rancher still show 'pod-security.kubernetes.io/enforce: restricted'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Rancher GUI to modify the deployments",
+      "visual_evidence": "Screenshots should show the agent interacting with the Rancher web interface (e.g., using the 'Edit YAML' or form views in Rancher) rather than exclusively using a terminal."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Agent did not use terminal commands to bypass the GUI",
+      "visual_evidence": "There should be no evidence of the agent using 'kubectl edit' or 'kubectl apply' in a terminal window to fix the deployments."
+    },
+    {
+      "id": "genuine_security_fixes",
+      "description": "Agent actually modified the securityContext of the deployments",
+      "visual_evidence": "Screenshots of the deployment YAML or configuration should show actual additions of securityContext fields (like runAsNonRoot, allowPrivilegeEscalation: false, etc.) rather than just deleting and recreating pods without fixes."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace is 'secure-apps'. The four deployments that must be fixed are 'api-server', 'worker', 'frontend', and 'logger'. A reference file for compliance is located at '/home/ga/Desktop/psa_compliance_reference.md'."
+}

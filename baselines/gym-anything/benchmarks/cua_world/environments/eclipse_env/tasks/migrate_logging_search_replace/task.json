@@ -1,0 +1,29 @@
+{
+  "id": "migrate_logging_search_replace@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Migrate the 'DataPipeline' project in the Eclipse workspace from using System.out.println and System.err.println to java.util.logging.Logger. Refactor all classes to use a private static final Logger named LOGGER (initialized with the class name), replacing System.out.println with LOGGER.info and System.err.println with LOGGER.severe. Do not convert the final System.out.println in src/main/java/com/datapipeline/main/Main.java that prints the pipeline result summary. Verify the migration by ensuring the project compiles and runs. Create a text file at /home/ga/eclipse-workspace/DataPipeline/migration_report.txt listing the number of files modified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_logging_search_replace/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_logging_search_replace/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/DataPipeline",
+    "report_path": "/home/ga/eclipse-workspace/DataPipeline/migration_report.txt",
+    "whitelisted_println_file": "Main.java",
+    "expected_files_with_logger": 10,
+    "min_logger_calls": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_logging"
+    }
+  }
+}

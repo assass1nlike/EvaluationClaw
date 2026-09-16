@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_waveform_availability_report@1",
+  "task_completion": [
+    {
+      "id": "access_sds_archive",
+      "description": "Navigate to or reference the local SDS archive directory.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., 'ls /home/ga/seiscomp/var/lib/archive') or script contents (e.g., Python 'os.walk') explicitly referencing the '/home/ga/seiscomp/var/lib/archive' path."
+    },
+    {
+      "id": "extract_miniseed_metadata",
+      "description": "Extract Stream ID, Start Time, End Time, and Sample Rate from the miniSEED files.",
+      "points": 20,
+      "visual_evidence": "A script (e.g., Python using 'obspy.read') or terminal utility commands designed to parse miniSEED files and extract network/station/location/channel codes, timestamps, and sampling rates."
+    },
+    {
+      "id": "format_timestamps",
+      "description": "Format the extracted start and end times into an ISO-like format.",
+      "points": 15,
+      "visual_evidence": "Code showing datetime formatting (e.g., '.strftime(\"%Y-%m-%d %H:%M:%S\")') or the final CSV output displaying timestamps in a YYYY-MM-DD HH:MM:SS format."
+    },
+    {
+      "id": "write_csv_headers",
+      "description": "Include the exact required headers in the CSV report.",
+      "points": 20,
+      "visual_evidence": "A script writing the header row 'StreamID,StartTime,EndTime,SampleRate' or the final CSV file opened in an editor/terminal showing these exact headers."
+    },
+    {
+      "id": "save_csv_report",
+      "description": "Save the final CSV report to the correct destination path.",
+      "points": 35,
+      "visual_evidence": "A script saving the file to '/home/ga/reports/waveform_manifest.csv', or terminal commands (like 'ls ~/reports/' or 'cat /home/ga/reports/waveform_manifest.csv') confirming the file's creation at the exact requested path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_data_extraction",
+      "description": "The agent must programmatically read and process the miniSEED files rather than guessing or mocking the data.",
+      "visual_evidence": "Presence of a script or command that iterates through the archive directory and reads the files, rather than a script that just prints a static string."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent should not hardcode the final CSV contents.",
+      "visual_evidence": "Absence of a large, manually typed block of CSV data in the terminal or text editor. The output should be generated dynamically from the files."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The CSV file should be created by a script or command output, not manually typed in a text editor.",
+      "visual_evidence": "Execution of a Python/Bash script or command-line tool that redirects output to the CSV file, rather than the agent manually typing the data into Nano, Vim, or a GUI text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The SDS archive is located at '/home/ga/seiscomp/var/lib/archive'. The output CSV must be saved exactly to '/home/ga/reports/waveform_manifest.csv'. The required CSV headers are exactly 'StreamID', 'StartTime', 'EndTime', and 'SampleRate'."
+}

@@ -1,0 +1,21 @@
+{
+  "id": "configure_track_display@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Vital Recorder 1.16.6 is open with the file '0003.vital' from the VitalDB open dataset loaded in Track mode, showing waveform traces from a noncardiac surgery at Seoul National University Hospital. Navigate to the 'Surgery started' event marker and adjust the timeline zoom to display approximately 10-30 minutes of waveform detail around that event. The final view should clearly show individual waveform patterns, including heartbeats in the ECG and arterial pressure pulsations.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_track_display\\setup_task.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_track_display"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "dataset_id": "dd8eaf78",
+  "name": "Openset Fashion Concept Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A fashion-domain visual question answering dataset with 200 samples. Each sample contains four clothing images and a prompt asking whether the items share the same hue, requiring a True/False answer from an embedded choice list.",
+  "card_text": "This dataset evaluates multimodal reasoning on fashion concept understanding through visual question answering. Each of the 200 samples presents four separate images of clothing items, referenced by filenames, and a natural-language prompt that asks whether the clothes across the images have the same hue. The prompt includes four <ImageHere> placeholders, an instruction to choose from a binary choice list, and the options ['True', 'False']. The expected output is a single token, either 'True' or 'False'. The images are product-style photographs of fashion items, and the task assumes the model can compare color properties across multiple images. The data is openset in the sense that it covers diverse fashion concepts, but the question format is consistently binary hue comparison.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "fashion",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A list of four JPEG filenames (e.g., 0016_0.jpg, 0016_1.jpg, 0016_2.jpg, 0016_3.jpg) showing fashion clothing items. These images are the visual context for the hue comparison question, and the model must inspect their colors to answer.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is a natural-language question asking whether the clothes in the four images have the same hue. It includes four <ImageHere> placeholders for the images, an instruction to choose from the provided choice list, and ends with 'Your answer is:'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The prompt text embeds the multiple-choice options in a choice list: ['True', 'False']. No separate options field exists; the binary choices are part of the prompt string.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold output is a single categorical token, either 'True' or 'False', indicating whether the clothing items across the four images share the same hue.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of four image filenames (input.image_file), a single textual prompt (input.prompt) that poses a binary hue-comparison question with an embedded choice list ['True', 'False'] and four <ImageHere> placeholders, and a textual answer (output.text) that is either 'True' or 'False'. The images supply the visual fashion content, the prompt supplies the question and options, and the answer is the binary judgment about hue consistency."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/FashionConceptVisualQuestionAnswering/openset_fashion_concept_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Fashion Concept Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "Fashion",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Fashion"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "configure_proguard_r8@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Enable R8 code shrinking and resource shrinking for the release build of the WeatherNow project. The project uses Gson for JSON parsing and Retrofit for network calls. Configure the release build type to enable minification and resource shrinking, and ensure that ProGuard rules preserve all classes in the com.example.weathernow.data.model package, all fields annotated with @SerializedName, and the Retrofit service interface com.example.weathernow.data.api.WeatherApiService. Verify the project builds successfully using ./gradlew assembleRelease. A signing config using the debug keystore has already been pre-configured for the release build type.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_proguard_r8/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_proguard_r8/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/WeatherNow",
+    "app_package": "com.example.weathernow",
+    "required_strings_gradle": [
+      "minifyEnabled true",
+      "shrinkResources true"
+    ],
+    "required_strings_proguard": [
+      "com.example.weathernow.data.model",
+      "SerializedName",
+      "WeatherApiService"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_proguard"
+    }
+  }
+}

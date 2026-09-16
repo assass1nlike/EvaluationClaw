@@ -1,0 +1,59 @@
+{
+  "task_id": "ext_table_cost_analysis@1",
+  "task_completion": [
+    {
+      "id": "connect_to_database",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer, or sqlplus in terminal) is open and shows an active connection to localhost:1521/XEPDB1 as the 'hr' user."
+    },
+    {
+      "id": "create_ext_country_costs",
+      "description": "Create the EXT_COUNTRY_COSTS external table.",
+      "points": 15,
+      "visual_evidence": "SQL editor or terminal showing the successful execution of a 'CREATE TABLE EXT_COUNTRY_COSTS ORGANIZATION EXTERNAL' statement referencing 'EXT_DATA_DIR' and 'country_cost_indices.csv', or the table appearing in the database schema browser."
+    },
+    {
+      "id": "create_ext_market_salaries",
+      "description": "Create the EXT_MARKET_SALARIES external table.",
+      "points": 15,
+      "visual_evidence": "SQL editor or terminal showing the successful execution of a 'CREATE TABLE EXT_MARKET_SALARIES ORGANIZATION EXTERNAL' statement referencing 'EXT_DATA_DIR' and 'market_salary_benchmarks.csv', or the table appearing in the database schema browser."
+    },
+    {
+      "id": "create_employee_cost_analysis_view",
+      "description": "Create the EMPLOYEE_COST_ANALYSIS view with required joins and calculations.",
+      "points": 25,
+      "visual_evidence": "SQL statement showing 'CREATE VIEW EMPLOYEE_COST_ANALYSIS AS...' that joins EMPLOYEES with the two new external tables and includes mathematical calculations for 'SALARY_VS_MARKET_PCT' and 'COST_ADJUSTED_SALARY'."
+    },
+    {
+      "id": "query_employee_cost_analysis_view",
+      "description": "Query the newly created view to verify it returns data.",
+      "points": 10,
+      "visual_evidence": "A data grid or terminal output showing the results of a SELECT query on EMPLOYEE_COST_ANALYSIS, displaying rows of employee data alongside the newly calculated percentage and adjusted salary columns."
+    },
+    {
+      "id": "export_cost_analysis_report",
+      "description": "Export the view's data to the specified text file.",
+      "points": 25,
+      "visual_evidence": "A file manager, terminal (e.g., using 'cat' or 'head'), or text editor showing the contents of '/home/ga/Desktop/cost_analysis_report.txt' populated with the tabular data from the view."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent executed SQL commands in a real database client or terminal.",
+      "visual_evidence": "SQL commands should be seen executed in a tool like DBeaver, SQL Developer, or sqlplus, showing success messages or result grids, rather than just being typed into a plain text editor without execution."
+    },
+    {
+      "id": "genuine_export_file",
+      "description": "Verify the exported report contains actual database results.",
+      "visual_evidence": "The file '/home/ga/Desktop/cost_analysis_report.txt' should contain formatted tabular data matching the view's schema, not just a mock file, empty file, or manually typed dummy data."
+    },
+    {
+      "id": "no_hardcoded_view_data",
+      "description": "Verify the view is dynamically querying the tables.",
+      "visual_evidence": "The CREATE VIEW statement must contain actual JOIN clauses and mathematical operators (e.g., salary/market_median * 100), rather than hardcoded static values."
+    }
+  ],
+  "privileged_info_for_vlm": "The database connection is localhost:1521/XEPDB1, user: hr. The external tables must be named EXT_COUNTRY_COSTS and EXT_MARKET_SALARIES, using the directory object EXT_DATA_DIR and files country_cost_indices.csv and market_salary_benchmarks.csv. The view must be named EMPLOYEE_COST_ANALYSIS and should return at least 80 rows. The final output must be exported to /home/ga/Desktop/cost_analysis_report.txt."
+}

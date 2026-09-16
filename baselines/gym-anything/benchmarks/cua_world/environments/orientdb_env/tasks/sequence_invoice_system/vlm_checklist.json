@@ -1,0 +1,59 @@
+{
+  "task_id": "sequence_invoice_system@1",
+  "task_completion": [
+    {
+      "id": "connect_demodb",
+      "description": "Connect to the 'demodb' database",
+      "points": 10,
+      "visual_evidence": "Look for 'demodb' in the top navigation bar, connection status, or database selector of the OrientDB Studio interface."
+    },
+    {
+      "id": "create_sequences",
+      "description": "Create 'invoiceIdSeq' and 'receiptSeq' sequences",
+      "points": 15,
+      "visual_evidence": "Look for query execution success messages or schema views showing 'invoiceIdSeq' (ORDERED) and 'receiptSeq' (CACHED) were created."
+    },
+    {
+      "id": "create_invoices_class",
+      "description": "Create 'Invoices' vertex class",
+      "points": 10,
+      "visual_evidence": "Look for 'Invoices' in the Schema/Classes list, explicitly showing it extends the base vertex class 'V'."
+    },
+    {
+      "id": "define_properties",
+      "description": "Define the 7 required properties for the Invoices class",
+      "points": 15,
+      "visual_evidence": "Look for the properties list under the 'Invoices' class schema showing: InvoiceId (INTEGER), CustomerEmail (STRING), Amount (DOUBLE), Currency (STRING), IssuedDate (DATE), Description (STRING), and Status (STRING)."
+    },
+    {
+      "id": "create_unique_index",
+      "description": "Create a UNIQUE index on Invoices.InvoiceId",
+      "points": 10,
+      "visual_evidence": "Look for the Indexes tab in the schema or a query success message showing a UNIQUE index applied to the 'InvoiceId' property of the 'Invoices' class."
+    },
+    {
+      "id": "insert_invoice_records",
+      "description": "Insert 5 invoice records with sequence-generated IDs",
+      "points": 40,
+      "visual_evidence": "Look for a query result table (e.g., in the Browse tab) showing 5 records in the 'Invoices' class. The CustomerEmail column should show the 5 specified emails, and the InvoiceId column must show exactly 1000, 1001, 1002, 1003, and 1004."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interface",
+      "description": "Agent interacted with a genuine database interface",
+      "visual_evidence": "Screenshots must show OrientDB Studio, a database CLI, or a legitimate database client, not just a text editor with typed answers."
+    },
+    {
+      "id": "executed_queries",
+      "description": "Agent actually executed the commands",
+      "visual_evidence": "Look for execution success notifications, query result tables, or updated schema views rather than just unexecuted text in a query input box."
+    },
+    {
+      "id": "no_hardcoded_mockups",
+      "description": "Results are not mocked or manually typed as a static table",
+      "visual_evidence": "The data should appear within the structural UI of the database tool (e.g., OrientDB Studio's grid view with Record IDs like #XX:YY), proving it was genuinely queried from the database."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an ORDERED sequence 'invoiceIdSeq' starting at 1000. Exactly 5 records must be inserted into the 'Invoices' class. The 'Invoices' class must have 7 properties: InvoiceId, CustomerEmail, Amount, Currency, IssuedDate, Description, and Status. The resulting InvoiceId values for the 5 records must be exactly 1000, 1001, 1002, 1003, and 1004."
+}

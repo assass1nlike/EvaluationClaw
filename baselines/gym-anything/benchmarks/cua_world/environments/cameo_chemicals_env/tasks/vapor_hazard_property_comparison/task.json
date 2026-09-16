@@ -1,0 +1,87 @@
+{
+  "id": "vapor_hazard_property_comparison@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Navigate to the CAMEO Chemicals website (https://cameochemicals.noaa.gov/) to research the physical properties of four industrial solvents: Acetone (CAS 67-64-1), Toluene (CAS 108-88-3), Methanol (CAS 67-56-1), and Ethyl Acetate (CAS 141-78-6). Create a report at /home/ga/Documents/vapor_hazard_report.txt listing the Vapor Pressure and Boiling Point (with units) for each chemical. Identify and state which of the four chemicals has the highest vapor pressure and poses the greatest inhalation hazard in the report.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "chemicals",
+    "vapor-pressure",
+    "hazard-ranking",
+    "data-extraction"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vapor_hazard_property_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/vapor_hazard_property_comparison/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/vapor_hazard_report.txt",
+    "chemicals": [
+      "Acetone",
+      "Toluene",
+      "Methanol",
+      "Ethyl Acetate"
+    ],
+    "target_highest_vapor_pressure": "Acetone",
+    "ranking_order": [
+      "Acetone",
+      "Methanol",
+      "Ethyl Acetate",
+      "Toluene"
+    ],
+    "property_ranges": {
+      "Acetone": {
+        "vp_mmhg": [
+          180,
+          280
+        ],
+        "bp_c": [
+          54,
+          58
+        ]
+      },
+      "Toluene": {
+        "vp_mmhg": [
+          20,
+          45
+        ],
+        "bp_c": [
+          108,
+          113
+        ]
+      },
+      "Methanol": {
+        "vp_mmhg": [
+          90,
+          150
+        ],
+        "bp_c": [
+          63,
+          67
+        ]
+      },
+      "Ethyl Acetate": {
+        "vp_mmhg": [
+          70,
+          110
+        ],
+        "bp_c": [
+          75,
+          79
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vapor_hazard_report"
+    }
+  }
+}

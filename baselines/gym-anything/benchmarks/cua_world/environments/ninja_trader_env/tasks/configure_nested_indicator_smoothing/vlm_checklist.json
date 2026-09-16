@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_nested_indicator_smoothing@1",
+  "task_completion": [
+    {
+      "id": "create_spy_daily_chart",
+      "description": "Verify a new chart window is open for the SPY instrument with Daily bars.",
+      "points": 15,
+      "visual_evidence": "A chart window is visible with 'SPY' and 'Daily' (or 'D') displayed in the chart's top-left corner, tab, or title bar."
+    },
+    {
+      "id": "add_rsi_indicator",
+      "description": "Verify the RSI indicator with a period of 14 is added to the chart.",
+      "points": 15,
+      "visual_evidence": "The text 'RSI (14)' or similar is visible in the indicator label on the chart sub-panel or within the Indicators configuration window."
+    },
+    {
+      "id": "add_sma_indicator",
+      "description": "Verify the SMA indicator with a period of 10 is added to the chart.",
+      "points": 15,
+      "visual_evidence": "The text 'SMA (10)' or similar is visible in the indicator label on the chart or within the Indicators configuration window."
+    },
+    {
+      "id": "configure_nested_sma_input",
+      "description": "Verify the SMA indicator is configured to use the RSI as its input series.",
+      "points": 25,
+      "visual_evidence": "In the Indicators configuration window, the SMA's 'Input series' property is set to 'RSI' (instead of default price data like Close), OR visually on the chart, the SMA line is plotted directly over the RSI line scaling (0-100) rather than the price candles."
+    },
+    {
+      "id": "indicators_in_same_subpanel",
+      "description": "Verify both the RSI and SMA are displayed in the same sub-panel below the price chart.",
+      "points": 15,
+      "visual_evidence": "A single sub-panel exists below the main price chart containing both the RSI line and the SMA line. They should not be separated into two different panels."
+    },
+    {
+      "id": "save_workspace",
+      "description": "Verify the workspace was saved to persist the changes.",
+      "points": 15,
+      "visual_evidence": "The 'Save Workspace' dialog is shown being used, or the Workspaces menu is opened and the current workspace is saved (often indicated by the removal of an asterisk next to the workspace name)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_ninjatrader",
+      "description": "The agent interacted with the NinjaTrader 8 GUI to configure the chart and indicators.",
+      "visual_evidence": "Screenshots show the actual NinjaTrader 8 interface, menus, and dialog boxes (like the Data Series and Indicators windows) being actively used, rather than terminal commands."
+    },
+    {
+      "id": "genuine_chart_rendering",
+      "description": "The chart displays actual OHLCV data for SPY.",
+      "visual_evidence": "Candlesticks or bars are visible on the main price chart, matching standard financial charting behavior, rather than a blank window or static mocked image."
+    },
+    {
+      "id": "no_text_editor_bypass",
+      "description": "The agent did not bypass the GUI by editing XML/configuration files in a text editor.",
+      "visual_evidence": "The trajectory shows the manual setup of the nested indicators via the NinjaTrader Indicators GUI window, not a text editor like Notepad or VSCode."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring a SPY chart with Daily bars. The RSI indicator must have a period of 14. The SMA indicator must have a period of 10. Crucially, the SMA must use the RSI as its input series (nested configuration), and both indicators must be rendered in the exact same sub-panel below the main price chart."
+}

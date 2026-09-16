@@ -1,0 +1,26 @@
+{
+  "id": "run_simulation@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "Change vehicle coloring in sumo-gui to display speed information using the Bologna Acosta scenario. The sumo-gui application is already open with the Bologna Acosta real-world road network loaded. Configure the visualization settings to color vehicles by speed, run the simulation, and save a screenshot of the visualization to /home/ga/SUMO_Output/speed_coloring.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/run_simulation/export_result.sh"
+  },
+  "metadata": {
+    "scenario": "bologna_acosta",
+    "expected_screenshot": "/home/ga/SUMO_Output/speed_coloring.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_simulation"
+    }
+  }
+}

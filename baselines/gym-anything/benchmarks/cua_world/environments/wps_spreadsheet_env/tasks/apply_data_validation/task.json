@@ -1,0 +1,31 @@
+{
+  "id": "apply_data_validation@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "Apply data validation rules to the project tracker spreadsheet at /home/ga/Documents/project_tracker.xlsx. Configure the following validation rules: add a dropdown list for the Status column (E) allowing only 'Not Started', 'In Progress', 'On Hold', 'Completed', and 'Cancelled'; add a dropdown list for the Priority column (F) allowing only 'Low', 'Medium', and 'High'; add a whole number validation to the Budget column (D) requiring values between 1000 and 50000; and add a date validation to the Start Date column (B) requiring dates after 01/01/2015. Apply these validations to all data rows (row 2 onwards). Save the changes to the file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/apply_data_validation/setup_task.sh",
+    "post_task": "/workspace/tasks/apply_data_validation/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Realistic project tracker data from Kaggle Superstore dataset",
+    "expected_validations": [
+      "list_status",
+      "list_priority",
+      "whole_number_budget",
+      "date_start_date"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_data_validation"
+    }
+  }
+}

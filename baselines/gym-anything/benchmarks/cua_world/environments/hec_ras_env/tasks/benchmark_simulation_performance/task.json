@@ -1,0 +1,38 @@
+{
+  "id": "benchmark_simulation_performance@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Run the HEC-RAS unsteady flow simulation for the Muncie project using plan file Muncie.p04.tmp.hdf and run ID x04 in ~/Documents/hec_ras_projects/Muncie. Capture all simulation output (stdout and stderr) to ~/Documents/hec_ras_results/simulation.log. Generate a performance benchmark report at ~/Documents/hec_ras_results/benchmark_report.csv with the following columns: WallClockSeconds (total execution time in seconds), SimulatedHours (duration of the modeled event in hours), PerformanceRatio_HrPerSec (calculated as SimulatedHours / WallClockSeconds), ConvergenceWarnings (count of log lines containing 'Maximum Iterations', 'extrapolated', or 'not converged'), and LogFileSize_Bytes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/benchmark_simulation_performance/setup_task.sh",
+    "post_task": "/workspace/tasks/benchmark_simulation_performance/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "plan_hdf": "Muncie.p04.tmp.hdf",
+    "run_id": "x04",
+    "log_path": "/home/ga/Documents/hec_ras_results/simulation.log",
+    "report_path": "/home/ga/Documents/hec_ras_results/benchmark_report.csv",
+    "min_simulated_hours": 10.0,
+    "max_simulated_hours": 100.0,
+    "expected_headers": [
+      "WallClockSeconds",
+      "SimulatedHours",
+      "PerformanceRatio_HrPerSec",
+      "ConvergenceWarnings",
+      "LogFileSize_Bytes"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_benchmark_simulation_performance"
+    }
+  }
+}

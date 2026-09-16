@@ -1,0 +1,39 @@
+{
+  "id": "model_clevis_rod_end@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a 3D solid model of a Clevis Rod End (Fork Joint) in FreeCAD based on the DIN 71752 standard. The model consists of a cylindrical shank (Diameter 18mm, Length 20mm) aligned along the negative X-axis from X=-20 to X=0, and a fork head block (20mm X, 30mm Y, 30mm Z) extending from X=0 to X=20. The fork head must have a 12mm wide slot centered on the Y-axis (removing material between Y=-6 and Y=6) and a 10mm diameter through-hole with its axis parallel to the Y-axis located at X=10, Z=0. Save the resulting single solid object to /home/ga/Documents/FreeCAD/clevis_rod_end.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/model_clevis_rod_end/setup_task.sh",
+    "post_task": "/workspace/tasks/model_clevis_rod_end/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "clevis_rod_end.FCStd",
+    "expected_volume_mm3": 14475,
+    "volume_tolerance_percent": 10,
+    "bbox_min": [
+      -20,
+      -15,
+      -15
+    ],
+    "bbox_max": [
+      20,
+      15,
+      15
+    ],
+    "hole_diameter": 10,
+    "slot_width": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_model_clevis_rod_end"
+    }
+  }
+}

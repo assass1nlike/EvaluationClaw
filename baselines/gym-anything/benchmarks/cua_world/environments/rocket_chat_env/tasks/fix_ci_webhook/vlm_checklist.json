@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_ci_webhook@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verifies the agent successfully logged into Rocket.Chat.",
+      "points": 10,
+      "visual_evidence": "Look for the main Rocket.Chat workspace interface (channels, sidebar, etc.), indicating the agent has bypassed the login screen."
+    },
+    {
+      "id": "open_webhook_settings",
+      "description": "Verifies the agent navigated to the 'CI Notification Bot' webhook settings.",
+      "points": 10,
+      "visual_evidence": "Look for the Administration -> Workspace -> Integrations panel in Rocket.Chat, specifically showing the configuration page for the 'CI Notification Bot' incoming webhook."
+    },
+    {
+      "id": "update_target_channel",
+      "description": "Verifies the target channel was updated to #build-alerts.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Post to Channel' or equivalent field in the webhook settings containing the exact value '#build-alerts'."
+    },
+    {
+      "id": "update_post_as_user",
+      "description": "Verifies the 'Post as' user was updated to build-bot.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Post as' field in the webhook settings containing the exact value 'build-bot'."
+    },
+    {
+      "id": "send_test_payload",
+      "description": "Verifies a test JSON payload was sent to the webhook URL.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window executing a 'curl' command or an API client (like Postman) sending a POST request with a JSON payload to the Rocket.Chat webhook URL."
+    },
+    {
+      "id": "verify_message_in_channel",
+      "description": "Verifies the test message appears in the #build-alerts channel.",
+      "points": 20,
+      "visual_evidence": "Look for the '#build-alerts' channel open in the Rocket.Chat interface, displaying the test message sent by the 'build-bot' user."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verifies the webhook configuration was done via the Rocket.Chat web interface.",
+      "visual_evidence": "Look for interaction with the web browser running Rocket.Chat for the configuration steps, rather than terminal scripts modifying the database directly."
+    },
+    {
+      "id": "genuine_webhook_message",
+      "description": "Verifies the test message was actually sent via the webhook and not manually typed.",
+      "visual_evidence": "Look for the 'BOT' badge or app indicator next to the sender's name ('build-bot') in the chat, ensuring the logged-in admin didn't just manually type the message into the channel."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Verifies the agent didn't use browser developer tools to fake the settings or messages.",
+      "visual_evidence": "Ensure the browser's developer tools (Elements/Inspector tab) are not open and being used to alter the text of the channel name or username on the screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The target channel must be exactly '#build-alerts'. The target username ('Post as' user) must be exactly 'build-bot'. The webhook being edited must be the 'CI Notification Bot'."
+}

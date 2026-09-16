@@ -1,0 +1,27 @@
+{
+  "id": "schedule_appointment@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to Bahmni (Username: superman, Password: Admin123) and schedule an appointment for Maria Gonzalez (identifier: BAH000002) for tomorrow at 10:00 AM using any available service type.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/schedule_appointment/setup_task.sh",
+    "pre_task_timeout": 900
+  },
+  "metadata": {
+    "target_patient_name": "Maria Gonzalez",
+    "target_patient_identifier": "BAH000002",
+    "target_appointment_time": "10:00 AM"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_schedule_appointment"
+    }
+  }
+}

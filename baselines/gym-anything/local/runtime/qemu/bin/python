@@ -1,0 +1,19 @@
+#!/data1/zangyihe/EvaluationClaw/baselines/gym-anything/.venv/bin/python
+"""Run model-issued Python commands with local VM permissions and short paths."""
+import os
+from pathlib import Path
+import shlex
+import sys
+
+root = Path(__file__).resolve().parents[4]
+python = str(root / ".venv/bin/python")
+if os.environ.get("GYM_ANYTHING_RUNNER") == "qemu":
+    work = Path(os.environ["GYM_ANYTHING_QEMU_WORK_DIR"])
+    short_root = root / "local/q"
+    if not work.is_relative_to(short_root):
+        names = ["erpnext_env", "moodle_env", "redmine_env", "nuxeo_platform_env", "wordpress_env", "rancher_env"]
+        work = short_root / str(names.index(work.parent.name) + 1)
+        work.mkdir(parents=True, exist_ok=True)
+        os.environ["GYM_ANYTHING_QEMU_WORK_DIR"] = str(work)
+    os.execv("/usr/bin/sg", ["sg", "kvm", "-c", shlex.join([python, *sys.argv[1:]])])
+os.execv(python, [python, *sys.argv[1:]])

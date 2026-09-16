@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import shlex
+import threading
 from pathlib import Path
 
 import pytest
@@ -10,15 +11,29 @@ from evalclaw.runners import harness as harness_module
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
+    EvalDimension,
     ReferenceTrajectoryStep,
     TargetModelConfig,
     TaskAsset,
+    TaskBlueprint,
+    TaskDefinition,
     TaskType,
 )
 
 
 @pytest.fixture(autouse=True)
 def _mockable_bounded_runner(monkeypatch):
+    class Guard:
+        def __init__(self, *args):
+            pass
+
+        def register(self, *args):
+            pass
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(harness_module, "DockerResourceGuard", Guard)
     def run(command, **kwargs):
         kwargs.pop("failure_markers", None)
         return harness_module.subprocess.run(
@@ -43,6 +58,56 @@ def _item() -> BenchmarkItem:
 
 def _target() -> TargetModelConfig:
     return TargetModelConfig(provider="openai", model="gpt-5", api_key="k")
+
+
+@pytest.mark.parametrize("phase", ["construction", "execution"])
+@pytest.mark.parametrize("fail_last", [False, True])
+def test_pipeline_preflights_every_selected_harness(monkeypatch, tmp_path, phase, fail_last):
+    from evalclaw.construction import suite
+    from evalclaw.execution import environment_claw
+
+    names = ["openclaw", "openhands", "codex", "claude-code"]
+    config = BenchmarkConfig(targets=[
+        TargetModelConfig(provider="openai", model="test", harness=name) for name in names
+    ])
+    calls = []
+
+    class Runner:
+        def preflight(self, item, target, config, *, artifact_dir):
+            calls.append((item.id, target.harness, artifact_dir))
+            if fail_last and target.harness == names[-1]:
+                raise RuntimeError("incompatible runtime")
+            return {"harness": target.harness, "status": "passed", "baseline_score": 0}
+
+    def unexpected_native(*args):
+        raise AssertionError("external targets must use their actual harness preflight")
+
+    monkeypatch.setattr(harness_module, "get_harness", lambda name: Runner())
+    monkeypatch.setattr(suite, "build_agent_environment", unexpected_native)
+    monkeypatch.setattr(environment_claw, "build_agent_environment", unexpected_native)
+    if phase == "construction":
+        task = TaskDefinition(
+            id="task_1", dimension_id="d1", task_type=TaskType.agent,
+            title="Task", prompt="Do the task.", environment={"type": "docker_workspace"},
+        )
+        issues, failed_ids = suite._preflight_builder_environments(
+            [task], dimension=EvalDimension(id="d1", name="d1", description="d", approach="a"),
+            blueprint=TaskBlueprint(id="b1", title="Task"), resources=[],
+            config=config, trace_dir=tmp_path,
+        )
+    else:
+        report = environment_claw.EnvironmentClawReport(enabled=True)
+        environment_claw._preflight_executable_items(
+            report, [_item()], config, trace_dir=tmp_path,
+        )
+        issues, failed_ids = report.blocking_errors, set(report.blocked_item_ids)
+        if not fail_last:
+            assert [probe.data["harness"] for probe in report.probes] == names
+
+    assert [name for _, name, _ in calls] == names
+    assert len({path for _, _, path in calls}) == len(names)
+    assert bool(issues) == fail_last
+    assert failed_ids == ({"task_1"} if fail_last else set())
 
 
 def test_harness_prompt_does_not_expose_reference_trajectory() -> None:
@@ -166,6 +231,59 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
     ]
 
 
+def test_task_preflight_uses_one_prepared_container_without_target_inference(monkeypatch, tmp_path):
+    commands = []
+
+    def run(command, **kwargs):
+        commands.append(command)
+        return type("Proc", (), {"returncode": 0, "stdout": "ready", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module, "prepare_docker_task", lambda *args: ("img", tmp_path))
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(harness_module, "_run_bounded", run)
+    monkeypatch.setattr(harness_module.subprocess, "run", run)
+
+    def score(item, config, image, workdir, *, evidence, container_name):
+        create = next(command for command in commands if command[1] == "create")
+        assert container_name == create[create.index("--name") + 1]
+        assert evidence["termination"]["status"] == "preflight"
+        assert evidence["target_execution"]["raw_output"] == ""
+        return 0, "No answer yet"
+
+    monkeypatch.setattr(harness_module, "score_docker_task", score)
+    item = _item()
+    item.metadata["agent_env"]["setup_commands"] = ["prepare-fixture"]
+    runner = harness_module.ManifestHarnessRunner(harness_module.ManifestHarness(
+        name="test", run="must-not-execute", model_env={}, preflight=("check-harness",),
+    ))
+    assert runner.preflight(item, _target(), BenchmarkConfig())["baseline_score"] == 0
+    assert sum(command[1] == "create" for command in commands) == 1
+    setup = next(i for i, command in enumerate(commands) if "prepare-fixture" in command[-1])
+    check = next(i for i, command in enumerate(commands) if command[-1] == "check-harness")
+    assert setup < check
+    assert commands[check][commands[check].index("--user") + 1] == harness_module._target_container_user()
+    assert not any("must-not-execute" in command[-1] for command in commands)
+
+
+@pytest.mark.parametrize("returncode,output", [(0, "not JSON"), (1, "Traceback"), (2, '{"score":0}')])
+def test_structured_evaluator_failure_is_not_a_model_score(monkeypatch, tmp_path, returncode, output):
+    item = _item()
+    item.metadata["agent_env"].update({
+        "test_command": "evaluate-task", "evaluation": {"result_format": "json_on_stdout"},
+    })
+
+    def run(command, **kwargs):
+        grading = "evaluate-task" in command[-1]
+        return type("Proc", (), {
+            "returncode": returncode if grading else 0, "stdout": output if grading else "", "stderr": "",
+        })()
+
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(harness_module, "_run_bounded", run)
+    with pytest.raises(RuntimeError, match="valid result"):
+        harness_module.score_docker_task(item, BenchmarkConfig(), "img", tmp_path, container_name="fixture")
+
+
 def test_manifest_formats_model_environment_value(monkeypatch) -> None:
     calls: dict = {}
 
@@ -203,7 +321,7 @@ def test_gateway_keeps_upstream_key_out_of_docker_argv(monkeypatch) -> None:
     monkeypatch.setattr(harness_module, "_docker", fake_docker)
     monkeypatch.setattr(harness_module.time, "sleep", lambda _: None)
 
-    harness_module._start_model_gateway(
+    network, gateway, _ = harness_module._start_model_gateway(
         "docker",
         "https://api.example.test",
         api_key="secret-key",
@@ -216,6 +334,10 @@ def test_gateway_keeps_upstream_key_out_of_docker_argv(monkeypatch) -> None:
     assert launch_kwargs["extra_env"]["EVALCLAW_UPSTREAM_API_KEY"] == "secret-key"
     assert launch_args[launch_args.index("--provider") + 1] == "anthropic"
     assert launch_args[launch_args.index("--model") + 1] == "claude-test"
+    assert ["network", "connect", network + "-egress", gateway] in [args for args, _ in calls]
+    assert not any(args[:3] == ["network", "connect", "bridge"] for args, _ in calls)
+    harness_module._stop_model_gateway("docker", network, gateway)
+    assert ["network", "rm", network + "-egress"] in [args for args, _ in calls]
 
 
 def test_manifest_rejects_credential_without_gateway() -> None:
@@ -318,6 +440,10 @@ def test_failed_output_is_saved_and_redacted(monkeypatch, tmp_path, error) -> No
 
     assert (artifact_dir / "x-output.txt").read_text() == "partial [REDACTED]"
     assert (artifact_dir / "x-stderr.txt").read_text() == "warning [REDACTED]"
+    evidence = harness_module.json.loads((artifact_dir / "execution-failure.json").read_text())
+    assert evidence["target_execution"]["raw_output"] == "partial [REDACTED]"
+    assert evidence["target_execution"]["tool_call_count"] is None
+    assert evidence["failure"]["stderr"] == "warning [REDACTED]"
 
 
 def test_manifest_failure_redacts_credentials(monkeypatch) -> None:
@@ -564,7 +690,8 @@ def test_manifest_launch_mounts_harness_image(monkeypatch) -> None:
     assert "export PATH=/opt/harness/usr/local/bin:$PATH;" in target_exec[-1]
 
 
-def test_openclaw_launch_mounts_and_configures_actor_service(monkeypatch) -> None:
+@pytest.mark.parametrize("name", ["openclaw", "codex", "claude-code", "openhands"])
+def test_harness_launch_mounts_and_checks_actor_service(monkeypatch, name) -> None:
     calls: dict = {}
 
     def fake_run(command, **kwargs):
@@ -572,20 +699,21 @@ def test_openclaw_launch_mounts_and_configures_actor_service(monkeypatch) -> Non
         return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
 
     class FakeActorSession:
-        mount = "/tmp/actors:/run/evalclaw-contacts"
-        setup_command = "openclaw mcp set evalclaw-contacts '{}'"
+        mount = "/tmp/actors:/run/evalclaw-contacts:ro"
 
     monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
     monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
     manifest = harness_module.ManifestHarness(
-        name="openclaw",
-        run="openclaw agent exec {task}",
+        name=name,
+        run="my-agent {task}",
         model_env={},
         harness_image="evalclaw-openclaw:latest",
     )
 
+    item = _item()
+    item.metadata["agent_env"]["actors"] = [{"id": "alice", "system_prompt": "PRIVATE ROLE"}]
     harness_module.ManifestHarnessRunner(manifest)._launch(
-        _item(),
+        item,
         _target(),
         BenchmarkConfig(),
         "img",
@@ -596,14 +724,16 @@ def test_openclaw_launch_mounts_and_configures_actor_service(monkeypatch) -> Non
     create = next(command for command in calls["commands"] if command[1] == "create")
     target_exec = next(
         command for command in calls["commands"]
-        if command[1] == "exec" and "openclaw agent exec" in command[-1]
+        if command[1] == "exec" and "my-agent" in command[-1]
     )
-    assert "/tmp/actors:/run/evalclaw-contacts" in create
-    assert "openclaw mcp set evalclaw-contacts" in target_exec[-1]
+    assert "/tmp/actors:/run/evalclaw-contacts:ro" in create
+    from evalclaw.runners.environment_actors import CONTACT_COMMAND
+    assert any(command[-1].endswith(f"{CONTACT_COMMAND} list") for command in calls["commands"])
+    assert "PRIVATE ROLE" not in target_exec[-1]
 
 
 def test_manifest_intervention_uses_runner_side_docker_exec(monkeypatch) -> None:
-    action_finished = harness_module.threading.Event()
+    action_finished = threading.Event()
     exec_commands: list[list[str]] = []
     capture: dict = {}
 

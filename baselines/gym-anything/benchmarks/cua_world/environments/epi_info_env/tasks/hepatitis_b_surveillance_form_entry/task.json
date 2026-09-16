@@ -1,0 +1,50 @@
+{
+  "id": "hepatitis_b_surveillance_form_entry@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are a disease surveillance coordinator tasked with documenting Hepatitis B cases using Epi Info 7. Create an Epi Info project named 'HepBSurveillance' at C:\\Users\\Docker\\Documents\\HepBSurveillance.prj containing a 'CaseReport' form with the following fields: CaseID (Text, 10), ReportDate (Date), County (Text, 30), Sex (Text, 10), AgeAtDiagnosis (Number, integer), HBsAg_Positive (Yes/No), Anti_HBc_Positive (Yes/No), HBeAg_Status (Text, 10), SourceOfInfection (Text, 50), VaccinationStatus (Text, 20), and ClinicalStatus (Text, 20). Populate the form with 8 realistic case records, varying the data across cases. Conduct an analysis of the data to calculate frequencies for Sex, County, SourceOfInfection, VaccinationStatus, and ClinicalStatus, and the mean for AgeAtDiagnosis. Export the final analysis report to C:\\Users\\Docker\\hepb_analysis.html.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 120
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\hepatitis_b_surveillance_form_entry\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\hepatitis_b_surveillance_form_entry\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\HepBSurveillance.prj",
+    "project_mdb": "C:\\Users\\Docker\\Documents\\HepBSurveillance.mdb",
+    "form_name": "CaseReport",
+    "required_fields": [
+      "CaseID",
+      "ReportDate",
+      "County",
+      "Sex",
+      "AgeAtDiagnosis",
+      "HBsAg_Positive",
+      "Anti_HBc_Positive",
+      "HBeAg_Status",
+      "SourceOfInfection",
+      "VaccinationStatus",
+      "ClinicalStatus"
+    ],
+    "required_record_count": 8,
+    "required_outputs": [
+      "C:\\Users\\Docker\\Documents\\HepBSurveillance.prj",
+      "C:\\Users\\Docker\\hepb_analysis.html"
+    ],
+    "analysis_modules": [
+      "MakeView",
+      "Enter",
+      "Classic Analysis"
+    ],
+    "workflow": "3-step: MakeView (create form) → Enter (enter 8 records) → Analysis (FREQ + MEANS + ROUTEOUT)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hepatitis_b_surveillance_form_entry"
+    }
+  }
+}

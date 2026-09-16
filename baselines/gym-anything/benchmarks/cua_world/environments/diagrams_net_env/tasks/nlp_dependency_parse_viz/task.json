@@ -1,0 +1,87 @@
+{
+  "id": "nlp_dependency_parse_viz@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create a linguistic Dependency Parse Diagram in Diagrams.net (draw.io) for the sentence: 'The autonomous rover navigated the crater despite severe dust storms' using the linguistic data provided in '~/Desktop/parse_data.txt'. The diagram should feature words arranged in a single horizontal line with Part-of-Speech tags positioned below each word. Dependency relations must be represented by curved arrows arching above the text from the Head word to the Dependent word, with each arrow labeled with its specific relation. Highlight the words 'dust storms' with red text. Save the source file as '~/Diagrams/dependency_parse.drawio' and export a PDF to '~/Diagrams/dependency_parse.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nlp_dependency_parse_viz/setup_task.sh",
+    "post_task": "/workspace/tasks/nlp_dependency_parse_viz/export_result.sh"
+  },
+  "metadata": {
+    "sentence_words": [
+      "The",
+      "autonomous",
+      "rover",
+      "navigated",
+      "the",
+      "crater",
+      "despite",
+      "severe",
+      "dust",
+      "storms"
+    ],
+    "relations": [
+      {
+        "head": "rover",
+        "dep": "The",
+        "label": "det"
+      },
+      {
+        "head": "rover",
+        "dep": "autonomous",
+        "label": "amod"
+      },
+      {
+        "head": "navigated",
+        "dep": "rover",
+        "label": "nsubj"
+      },
+      {
+        "head": "crater",
+        "dep": "the",
+        "label": "det"
+      },
+      {
+        "head": "navigated",
+        "dep": "crater",
+        "label": "dobj"
+      },
+      {
+        "head": "storms",
+        "dep": "despite",
+        "label": "case"
+      },
+      {
+        "head": "storms",
+        "dep": "severe",
+        "label": "amod"
+      },
+      {
+        "head": "storms",
+        "dep": "dust",
+        "label": "compound"
+      },
+      {
+        "head": "navigated",
+        "dep": "storms",
+        "label": "obl"
+      }
+    ],
+    "expected_files": [
+      "/home/ga/Diagrams/dependency_parse.drawio",
+      "/home/ga/Diagrams/dependency_parse.pdf"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nlp_dependency_parse_viz"
+    }
+  }
+}

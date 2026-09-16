@@ -1,0 +1,54 @@
+{
+  "id": "jewelry_attribute_set@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create three product attributes and organize them into a 'Jewelry' attribute set. The attributes to create are: 'jewelry_material' (Dropdown with options Gold, Silver, Bronze, Platinum; Filterable and Visible on Frontend), 'gemstone_type' (Dropdown with options Diamond, Ruby, Emerald, Sapphire, None; Filterable and Visible on Frontend), and 'chain_length_inches' (Text Field; Visible on Frontend). Create a new Attribute Set named 'Jewelry' based on the Default set, including a new group 'Jewelry Specifications' with these three attributes assigned to it. If not logged in, use admin/Admin1234!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/jewelry_attribute_set/setup_task.sh",
+    "post_task": "/workspace/tasks/jewelry_attribute_set/export_result.sh"
+  },
+  "metadata": {
+    "attributes": [
+      {
+        "code": "jewelry_material",
+        "input": "select",
+        "options": [
+          "Gold",
+          "Silver",
+          "Bronze",
+          "Platinum"
+        ]
+      },
+      {
+        "code": "gemstone_type",
+        "input": "select",
+        "options": [
+          "Diamond",
+          "Ruby",
+          "Emerald",
+          "Sapphire",
+          "None"
+        ]
+      },
+      {
+        "code": "chain_length_inches",
+        "input": "text",
+        "options": []
+      }
+    ],
+    "set_name": "Jewelry",
+    "group_name": "Jewelry Specifications"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_jewelry_attribute_set"
+    }
+  }
+}

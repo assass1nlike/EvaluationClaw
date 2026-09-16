@@ -1,0 +1,53 @@
+{
+  "task_id": "merge_duplicate_records@1",
+  "task_completion": [
+    {
+      "id": "login_librehealth",
+      "description": "Log into the LibreHealth EHR system using the provided admin credentials.",
+      "points": 10,
+      "visual_evidence": "The LibreHealth EHR dashboard is visible, indicating a successful login as the 'admin' user."
+    },
+    {
+      "id": "read_merge_info",
+      "description": "Read the contents of /tmp/merge_info.txt to obtain the specific PID details.",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor window is open displaying the contents of /tmp/merge_info.txt, showing the PIDs for 'Cameron Fry'."
+    },
+    {
+      "id": "navigate_merge_tool",
+      "description": "Navigate to the administrative tool for merging patients in LibreHealth EHR.",
+      "points": 20,
+      "visual_evidence": "The 'Merge Patients' (or similarly named) administrative interface is open within the LibreHealth EHR web application."
+    },
+    {
+      "id": "input_pids_correctly",
+      "description": "Enter the higher PID as the record to be merged/eliminated, and the lower PID as the principal record to be preserved.",
+      "points": 30,
+      "visual_evidence": "The Merge Patients form is filled out with the higher PID in the 'Merge From' (duplicate) field and the lower PID in the 'Merge To' (primary/preserve) field."
+    },
+    {
+      "id": "execute_and_verify_merge",
+      "description": "Execute the merge operation to create a single Golden Record.",
+      "points": 30,
+      "visual_evidence": "A success message indicating the patients have been merged, OR a subsequent patient search for 'Cameron Fry' showing exactly one remaining patient record with the lower PID."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the LibreHealth EHR web GUI to perform the merge.",
+      "visual_evidence": "The merge operation is performed through the web browser interface, not via direct SQL commands or terminal scripts."
+    },
+    {
+      "id": "used_official_merge_tool",
+      "description": "The agent used the built-in Merge Patients tool rather than manually deleting a record.",
+      "visual_evidence": "Screenshots show interaction with the specific 'Merge Patients' administrative tool, rather than the 'Delete Patient' functionality."
+    },
+    {
+      "id": "authentic_patient_data",
+      "description": "The patient data shown in the EHR corresponds to the expected synthetic identity.",
+      "visual_evidence": "The patient being manipulated is explicitly named 'Cameron Fry' (potentially with middle name 'Alan') and has realistic NHANES medical data attached."
+    }
+  ],
+  "privileged_info_for_vlm": "The patient's full name is 'Cameron Alan Fry'. The duplicate record was created with a higher PID than the original record. The correct merge direction is from the higher PID (duplicate) into the lower PID (original master record). The system uses real NHANES survey data, so the patient will have realistic medical records attached to their profile. Success requires exactly one record remaining for Cameron Fry, which must be the lower PID."
+}

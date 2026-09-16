@@ -1,0 +1,40 @@
+{
+  "id": "audit_polypharmacy_for_venetoclax_start@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Perform a medication safety audit for a patient starting Venetoclax by checking its interaction status against Clarithromycin, Verapamil, Metformin, and Lisinopril using the Liverpool Cancer iChart app. Create a CSV file at /sdcard/venetoclax_audit.csv with the header Medication,Color containing the interaction color (Red, Orange, Yellow, Green, or Grey) for each of the four medications.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/audit_polypharmacy_for_venetoclax_start/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/audit_polypharmacy_for_venetoclax_start/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/sdcard/venetoclax_audit.csv",
+    "cancer_drug": "Venetoclax",
+    "interactions": {
+      "clarithromycin": "red",
+      "verapamil": "orange",
+      "metformin": "green",
+      "lisinopril": "green"
+    },
+    "scoring": {
+      "file_structure": 20,
+      "clarithromycin_correct": 25,
+      "verapamil_correct": 15,
+      "metformin_correct": 10,
+      "lisinopril_correct": 10,
+      "vlm_process": 20
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_venetoclax_audit"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "middle_floor_dcv_implementation@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "Configure the five middle floor packaged single-zone HVAC systems (M.S16, M.E17, M.N18, M.W19, M.C20) in the 4StoreyBuilding eQUEST model to use Demand-Controlled Ventilation (DCV) with return-air CO2 sensing. Each system requires the Minimum Outside Air Method set to 'DCV-RETURN-SENSOR' and an Indoor CO2 Concentration Limit of 1000 ppm. Save the project after completing a full annual DOE-2.2 simulation.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\middle_floor_dcv_implementation\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\middle_floor_dcv_implementation\\export_result.ps1"
+  },
+  "metadata": {
+    "building_model": "4StoreyBuilding",
+    "target_systems": [
+      "M.S16",
+      "M.E17",
+      "M.N18",
+      "M.W19",
+      "M.C20"
+    ],
+    "target_oa_method": "DCV-RETURN-SENSOR",
+    "target_co2_ppm": 1000,
+    "result_path": "C:\\Users\\Docker\\middle_floor_dcv_result.json",
+    "project_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_middle_floor_dcv"
+    }
+  }
+}

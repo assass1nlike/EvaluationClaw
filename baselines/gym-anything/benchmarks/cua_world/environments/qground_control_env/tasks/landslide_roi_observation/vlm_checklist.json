@@ -1,0 +1,65 @@
+{
+  "task_id": "landslide_roi_observation@1",
+  "task_completion": [
+    {
+      "id": "read_ops_brief",
+      "description": "Verify the agent opened and read the operations brief.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit or nano) or terminal window displaying the contents of '/home/ga/Documents/QGC/recon_brief.txt'."
+    },
+    {
+      "id": "open_qgroundcontrol",
+      "description": "Verify the agent launched the QGroundControl application.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl (QGC) application window is visible on the screen, typically showing a map interface."
+    },
+    {
+      "id": "add_takeoff_and_waypoints",
+      "description": "Verify the mission includes a takeoff command and transit waypoints.",
+      "points": 15,
+      "visual_evidence": "In the QGC mission planner panel (usually on the right), there is a 'Takeoff' item followed by one or more 'Waypoint' items."
+    },
+    {
+      "id": "add_roi_command",
+      "description": "Verify the mission includes a Region of Interest (ROI) command targeting the landslide.",
+      "points": 20,
+      "visual_evidence": "In the QGC mission planner panel, there is a 'Region of Interest' or 'ROI' command. On the map, an ROI indicator should be visible."
+    },
+    {
+      "id": "add_loiter_turns",
+      "description": "Verify the mission includes loiter positions with exactly 2 turns.",
+      "points": 20,
+      "visual_evidence": "In the QGC mission planner panel, there is a 'Loiter (Turns)' or similar loiter command, and its parameter for the number of turns is explicitly set to '2'."
+    },
+    {
+      "id": "add_rtl_command",
+      "description": "Verify the mission ends with a Return To Launch (RTL) command.",
+      "points": 10,
+      "visual_evidence": "In the QGC mission planner panel, the final item in the mission list is 'Return To Launch' or 'RTL'."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Verify the mission plan is saved to the correct file path.",
+      "points": 15,
+      "visual_evidence": "A 'Save' or 'File' dialog in QGC showing the file being saved as 'landslide_recon.plan' in the '/home/ga/Documents/QGC/' directory, or a file manager/terminal showing the file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_qgc",
+      "description": "Verify the agent used the QGroundControl GUI to create the mission.",
+      "visual_evidence": "Screenshots should show the agent clicking on the map, adding waypoints via the QGC interface, and modifying parameters in the QGC side panel, rather than just writing a JSON file in a text editor."
+    },
+    {
+      "id": "map_visual_confirmation",
+      "description": "Verify the mission is actually plotted on the map.",
+      "visual_evidence": "The QGC map should display a visual flight path connecting the waypoints, loiter circles, and an ROI marker, confirming genuine spatial planning."
+    },
+    {
+      "id": "no_direct_file_generation",
+      "description": "Verify the agent did not bypass the application by using a script to generate the .plan file.",
+      "visual_evidence": "Absence of terminal commands like 'echo { ... } > landslide_recon.plan' or python scripts that directly output the QGC plan JSON format."
+    }
+  ],
+  "privileged_info_for_vlm": "The operations brief is located at /home/ga/Documents/QGC/recon_brief.txt. The target ROI coordinates for the landslide center are 47.3990 N, 8.5475 E. The mission must include Loiter commands with exactly 2 turns. The final mission plan must be saved as /home/ga/Documents/QGC/landslide_recon.plan."
+}

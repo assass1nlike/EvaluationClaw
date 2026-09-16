@@ -1,0 +1,33 @@
+{
+  "id": "chinook_regional_promo_rollout@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "A Marketing Manager is launching a 'Spring 2025' promo campaign. Using DBeaver, modify the SQLite database at /home/ga/Documents/databases/chinook.db (connection name 'ChinookOps') by adding a 'campaign_tag' (TEXT) column to the 'invoices' table, ensuring existing records are marked as 'organic'. Bulk-insert new invoices for every customer in the USA ($10.00), Canada ($15.00), and France ($20.00) with 'InvoiceDate' set to '2025-04-01 00:00:00', 'campaign_tag' set to 'spring_promo_2025', and billing details copied exactly from the 'customers' table. Export a CSV report to /home/ga/Documents/exports/promo_impact_analysis.csv showing the cost breakdown with columns 'BillingCountry', 'PromoInvoicesIssued' (count), and 'TotalPromoCost' (sum) for this campaign, sorted by cost descending.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_regional_promo_rollout/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_regional_promo_rollout/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "report_path": "/home/ga/Documents/exports/promo_impact_analysis.csv",
+    "expected_usa_count": 13,
+    "expected_canada_count": 8,
+    "expected_france_count": 5,
+    "expected_usa_total": 130,
+    "expected_canada_total": 120,
+    "expected_france_total": 100,
+    "campaign_tag": "spring_promo_2025"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_regional_promo_rollout"
+    }
+  }
+}

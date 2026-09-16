@@ -1,0 +1,108 @@
+{
+  "dataset_id": "62d6e1df",
+  "name": "Openset Dual-Image Causal-And-Effect Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multimodal benchmark of 200 dual-image samples in which a model must decide whether two image-question-answer groups exhibit the same category of 'Question-Answer Difference' (e.g., ambiguity, synonymy, granularity). It evaluates fine-grained causal/consistency reasoning over noisy VQA answer distributions rather than plain visual recognition.",
+  "card_text": "Each sample pairs two images with two embedded VQA items, each consisting of a question and a list of ten human answers. A long instruction prompt first defines a taxonomy of ten possible answer-difference explanations (Low Quality Image, Answer Not Present, Invalid, Difficult, Ambiguous, Subjective, Synonyms, Granular, Spam, Other), then asks the model to judge whether the two groups share the same difference type, choosing from a fixed True/False choice list. The images are everyday, open-domain photographs (objects, scenes, people) of naturally varying complexity, and the answers are short free-text strings with heavy paraphrase, misspelling, and redundancy. The dataset is 'openset' in that the visual content and questions are unrestricted; the required skill is cross-sample comparison of answer distributions guided by an explicit rubric, making it a consistency/classification task rather than standard VQA.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa",
+    "classification_binary",
+    "consistency_judgment"
+  ],
+  "domain": "open-domain everyday images with VQA answer-difference analysis",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "The full natural-language instruction: it defines ten categories of VQA 'Question-Answer Differences', then presents two image-question-answer groups (Question1/Answer1 and Question2/Answer2) plus a True/False choice list, and asks the model to decide whether both groups share the same difference category. It is the main context carrying the rubric, the questions under comparison, and the answer lists.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of two image file references per sample, one for each of the two VQA groups being compared. They are open-domain everyday photographs of varying scene complexity, and their content (objects, scenes, people) is what the embedded questions and answer lists refer to.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The comparison query is embedded in the prompt ('To check if they share the same Question-Answer Differences...') and is interleaved with the two short visual questions being analyzed (e.g., 'What kind of fish is that?' and 'Color of shirt.'). The question is not a separate JSON field but is expressed inside the instruction text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The candidate answer set is given verbatim at the end of the prompt as \"Choice list:['True', 'False']\", constraining the output to a binary verdict about whether the two question-answer groups share the same difference category.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold verdict label, a single token 'True' or 'False', indicating whether the two image-question-answer groups exhibit the same type of Question-Answer Difference according to the taxonomy in the prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Every sample is a single prompt-and-verdict pair: the text field input.prompt holds a long instruction that embeds the ten-category difference taxonomy, the two short visual questions, the two ten-item answer lists, and the True/False choice list; input.image_file supplies the two corresponding images as a two-element list; and output.text holds the binary True/False verdict. The images are the visual referents of the embedded questions, and the model must compare the two question-answer groups against the taxonomy to produce the label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Dual-ImageCausal-and-EffectReasoning/openset_dual-image_causal-and-effect_reasoning.json",
+    "existing_tags": {
+      "task": "Dual-Image Causal-and-Effect Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

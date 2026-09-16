@@ -1,0 +1,41 @@
+{
+  "id": "brfss_cati_survey_config@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and configure a BRFSS-style telephone interview survey in LimeSurvey (admin/Admin123!) titled 'BRFSS Health Interview Survey 2024'. Configure the survey for CATI protocol with 'Group by group' format, progress bar enabled, date stamp enabled, and backward navigation disabled. The welcome message must include a standard introduction stating you are calling from the 'State Department of Health', the number was chosen 'randomly', and the survey is 'voluntary'. The end message must include a 'thank you' and mention 'health' or 'community'. The survey must contain at least 3 question groups representing BRFSS core sections (e.g., 'Health Status', 'Health Care Access', 'Health Behaviors') and at least 5 BRFSS-style questions across these groups, such as general health rating, health insurance coverage, and exercise habits.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/brfss_cati_survey_config/setup_task.sh",
+    "post_task": "/workspace/tasks/brfss_cati_survey_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "BRFSS",
+    "expected_format": "G",
+    "expected_allowprev": "N",
+    "expected_showprogress": "Y",
+    "expected_datestamp": "Y",
+    "min_groups": 3,
+    "min_questions": 5,
+    "welcome_keywords": [
+      "health",
+      "department",
+      "random",
+      "voluntary"
+    ],
+    "end_keywords": [
+      "thank",
+      "health"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_brfss_cati_survey_config"
+    }
+  }
+}

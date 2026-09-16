@@ -1,0 +1,53 @@
+{
+  "id": "add_security_systems_phase@1",
+  "version": "1.0",
+  "env_id": "project_libre_env@0.1",
+  "description": "A Commercial Construction project for a three-story office building is open in ProjectLibre. Incorporate a change order by adding a 'Security Systems' summary group after the Electrical section. This group must include four sequential tasks assigned to the 'Electric Contractor' resource: 'Install security conduit and backboxes' (10 days, dependent on task 122), 'Pull security and low-voltage cable' (5 days), 'Install security panels, cameras, and card readers' (8 days), and 'Test and commission security system' (3 days, dependent on both the previous task and task 123). Save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_security_systems_phase/setup_task.sh"
+  },
+  "metadata": {
+    "project_file": "/home/ga/Projects/current_task.xml",
+    "new_tasks": [
+      {
+        "name": "Install security conduit and backboxes",
+        "duration_days": 10,
+        "predecessor_uids": [
+          122
+        ]
+      },
+      {
+        "name": "Pull security and low-voltage cable",
+        "duration_days": 5,
+        "predecessor": "conduit task"
+      },
+      {
+        "name": "Install security panels, cameras, and card readers",
+        "duration_days": 8,
+        "predecessor": "cable task"
+      },
+      {
+        "name": "Test and commission security system",
+        "duration_days": 3,
+        "predecessor_uids": [
+          "panel task",
+          123
+        ]
+      }
+    ],
+    "resource_name": "Electric Contractor",
+    "resource_uid": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_security_systems_phase"
+    }
+  }
+}

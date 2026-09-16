@@ -1,0 +1,60 @@
+{
+  "task_id": "medication_timing_optimizer@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "The medication schedule spreadsheet is opened in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "LibreOffice Calc is visible with 'medication_schedule.ods' open, showing the 'Current_Schedule' sheet."
+    },
+    {
+      "id": "food_requirement_formulas",
+      "description": "Formulas are created to validate food requirements.",
+      "points": 20,
+      "visual_evidence": "The 'Food_OK' column (or similar) is populated with evaluated results (e.g., TRUE/FALSE), or a relevant formula is visible in the formula bar for this column."
+    },
+    {
+      "id": "drug_interaction_formulas",
+      "description": "Formulas are created to validate drug interactions.",
+      "points": 20,
+      "visual_evidence": "The 'Interaction_OK' column (or similar) is populated with evaluated results, or a relevant formula is visible in the formula bar for this column."
+    },
+    {
+      "id": "timing_constraint_formulas",
+      "description": "Formulas are created to validate timing constraints between doses.",
+      "points": 20,
+      "visual_evidence": "The 'Interval_OK' column (or similar) is populated with evaluated results, or a relevant formula is visible in the formula bar for this column."
+    },
+    {
+      "id": "identify_food_conflict",
+      "description": "The food requirement conflict for Med_A at 10:00 AM is identified.",
+      "points": 10,
+      "visual_evidence": "The row for Med_A at 10:00 AM shows a negative result (e.g., FALSE) in the food validation column, or is explicitly highlighted/noted as a conflict."
+    },
+    {
+      "id": "identify_interaction_conflict",
+      "description": "The drug interaction conflict for Med_C and Med_D at 12:00 PM is identified.",
+      "points": 10,
+      "visual_evidence": "The rows for Med_C and/or Med_D at 12:00 PM show a negative result in the interaction validation column, or are explicitly highlighted/noted as a conflict."
+    },
+    {
+      "id": "identify_timing_conflict",
+      "description": "The timing constraint conflict for Med_E at 14:00 (2:00 PM) is identified.",
+      "points": 10,
+      "visual_evidence": "The row for Med_E at 14:00 shows a negative result in the interval validation column, or is explicitly highlighted/noted as a conflict."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_app",
+      "description": "The agent used a spreadsheet application to solve the task.",
+      "visual_evidence": "Screenshots show LibreOffice Calc being used to edit the file, rather than terminal commands or Python scripts modifying the file in the background."
+    },
+    {
+      "id": "actual_formulas_used",
+      "description": "The agent used formulas to evaluate the schedule rather than hardcoding the answers.",
+      "visual_evidence": "At least one screenshot shows a formula in the formula bar (starting with '=') for the validation columns, rather than plain text like 'FALSE' typed directly into the cells."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 6 medications and 8 scheduled doses. Meal times are 7:00 AM, 12:00 PM, and 6:00 PM. 'With food' means within 30 mins of a meal. 'Empty stomach' means at least 1 hour before or 2 hours after a meal. There are exactly 3 planted conflicts to identify: 1) Food requirement violation: Med_A at 10:00 AM requires food but is outside meal windows. 2) Drug interaction: Med_C and Med_D are both scheduled at 12:00 PM and interact with each other. 3) Timing constraint (insufficient interval): Med_E doses are scheduled at 8:00 AM and 14:00 (2:00 PM), which is a 6-hour gap, but Med_E requires a minimum of 8 hours between doses."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "denormalize_latest_review@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Optimize the 'Hotels' class for read performance by denormalizing review data. Add a property named 'LatestReview' of type EMBEDDED to the 'Hotels' class and populate it for all hotels with the most recent review data (sorted by Date descending) from the 'Reviews' class connected via 'HasReview' edges. The embedded object must contain the 'stars', 'text', and 'date' fields from the source review.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/denormalize_latest_review/setup_task.sh",
+    "post_task": "/workspace/tasks/denormalize_latest_review/export_result.sh"
+  },
+  "metadata": {
+    "target_class": "Hotels",
+    "target_property": "LatestReview",
+    "required_fields": [
+      "stars",
+      "text",
+      "date"
+    ],
+    "test_hotel_name": "Hotel Artemide"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_denormalize_latest_review"
+    }
+  }
+}

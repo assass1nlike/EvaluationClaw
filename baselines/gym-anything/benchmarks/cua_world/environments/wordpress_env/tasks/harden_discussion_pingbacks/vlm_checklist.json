@@ -1,0 +1,59 @@
+{
+  "task_id": "harden_discussion_pingbacks@1",
+  "task_completion": [
+    {
+      "id": "disable_new_pingbacks",
+      "description": "Disable pingbacks and trackbacks on new posts in Discussion Settings.",
+      "points": 15,
+      "visual_evidence": "In the WordPress 'Discussion Settings' page, the checkbox for 'Allow link notifications from other blogs (pingbacks and trackbacks) on new posts' should be unchecked."
+    },
+    {
+      "id": "close_old_comments",
+      "description": "Automatically close comments on posts older than 30 days.",
+      "points": 15,
+      "visual_evidence": "In the WordPress 'Discussion Settings' page, the checkbox for 'Automatically close comments on posts older than' must be checked, and the text input field next to it must contain the value '30'."
+    },
+    {
+      "id": "hold_comments_with_links",
+      "description": "Hold comments in the queue if they contain 1 or more links.",
+      "points": 15,
+      "visual_evidence": "In the WordPress 'Discussion Settings' page, the input field for 'Hold a comment in the queue if it contains [X] or more links' must be set to '1'."
+    },
+    {
+      "id": "retroactive_disable_pings",
+      "description": "Retroactively update all published posts to disallow pings.",
+      "points": 25,
+      "visual_evidence": "In the 'Posts' -> 'All Posts' page, evidence of bulk editing or quick editing posts to disable pings. Look for the Bulk Edit menu showing 'Pings' set to 'Do not allow' followed by an 'X posts updated' confirmation message, or Quick Edit panels showing 'Allow Pings' unchecked for older posts."
+    },
+    {
+      "id": "remove_pingback_spam",
+      "description": "Clean the moderation queue by removing all pending pingback spam.",
+      "points": 15,
+      "visual_evidence": "In the 'Comments' page, the list of comments should no longer contain any items labeled as 'Pingback' in the pending or approved queues (they should be moved to Trash)."
+    },
+    {
+      "id": "retain_jane_doe_comment",
+      "description": "Ensure the legitimate comment from 'Jane Doe' remains intact.",
+      "points": 15,
+      "visual_evidence": "In the 'Comments' page, a comment authored by 'Jane Doe' must still be visible in the active comments list (not in the Trash)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "The agent used the Firefox browser to navigate the WordPress dashboard.",
+      "visual_evidence": "Screenshots should show the Firefox browser interface being used to interact with the WordPress admin dashboard, rather than terminal commands or scripts."
+    },
+    {
+      "id": "settings_actually_saved",
+      "description": "The agent saved the changes made in the Discussion Settings.",
+      "visual_evidence": "Look for the 'Settings saved.' confirmation banner at the top of the Discussion Settings page after the values were modified."
+    },
+    {
+      "id": "no_wp_cli_or_db_bypass",
+      "description": "The agent did not use terminal commands (like WP-CLI or MySQL) to bypass the WordPress UI.",
+      "visual_evidence": "No terminal windows or command-line interfaces should be visible executing database updates or wp-cli commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The target discussion settings are verified as: 'default_ping_status' must be closed (unchecked in UI), 'close_comments_for_old_posts' must be enabled (checked) with 'close_comments_days_old' set to 30, and 'comment_max_links' set to 1. The moderation queue must be cleared of pingbacks, but the comment from 'Jane Doe' must remain intact."
+}

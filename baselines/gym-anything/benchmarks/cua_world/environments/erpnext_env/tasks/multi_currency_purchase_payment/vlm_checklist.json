@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_currency_purchase_payment@1",
+  "task_completion": [
+    {
+      "id": "create_purchase_invoice",
+      "description": "Create a Purchase Invoice for the correct supplier.",
+      "points": 10,
+      "visual_evidence": "Look for a Purchase Invoice form in ERPNext with 'Schmidt Industrietechnik GmbH' selected in the Supplier field."
+    },
+    {
+      "id": "add_invoice_items",
+      "description": "Add the specified item, quantity, and rate to the Purchase Invoice.",
+      "points": 20,
+      "visual_evidence": "Look at the Items table in the Purchase Invoice. It should contain 'Precision Bearing' with a Quantity of 25, a Rate of 40.00, and an Amount/Total of 1,000.00."
+    },
+    {
+      "id": "submit_purchase_invoice",
+      "description": "Submit the Purchase Invoice and verify the currency and exchange rate.",
+      "points": 20,
+      "visual_evidence": "Look for the Purchase Invoice in a 'Submitted' or 'Unpaid' state (usually indicated by a status badge). The Currency field should be 'EUR' and the Exchange Rate field should be '1.10'."
+    },
+    {
+      "id": "create_payment_entry_rate",
+      "description": "Create a Payment Entry and change the exchange rate to 1.08.",
+      "points": 20,
+      "visual_evidence": "Look for a Payment Entry screen linked to the Purchase Invoice. The Exchange Rate field (often under Currency and Exchange Rate section) must be explicitly set to '1.08'."
+    },
+    {
+      "id": "allocate_exchange_difference_submit",
+      "description": "Allocate the difference to the Exchange Gain/Loss account and submit the Payment Entry.",
+      "points": 30,
+      "visual_evidence": "Look for the Deductions or Write Off section in the Payment Entry showing the difference amount allocated to an 'Exchange Gain/Loss' account. The Payment Entry must show a 'Submitted' status badge."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the ERPNext graphical user interface to complete the task.",
+      "visual_evidence": "Screenshots should show the agent clicking through the ERPNext web interface in a browser, rather than using terminal commands or API scripts to create the records."
+    },
+    {
+      "id": "genuine_submission",
+      "description": "Agent actually submitted the forms in the application.",
+      "visual_evidence": "The 'Submitted', 'Unpaid', or 'Paid' status badges should appear naturally within the ERPNext UI, without signs of HTML manipulation or text editor mockups."
+    },
+    {
+      "id": "workflow_adherence",
+      "description": "Agent followed the correct workflow to create the Payment Entry.",
+      "visual_evidence": "Screenshots should ideally show the agent using the 'Create > Payment Entry' button from the submitted Purchase Invoice, rather than manually creating a disconnected payment entry."
+    }
+  ],
+  "privileged_info_for_vlm": "Supplier must be exactly 'Schmidt Industrietechnik GmbH'. Item must be 'Precision Bearing' with Qty 25 and Rate 40.0 (Total 1000 EUR). The Purchase Invoice exchange rate must be 1.10. The Payment Entry exchange rate must be 1.08. The difference must be allocated to an Exchange Gain/Loss account."
+}

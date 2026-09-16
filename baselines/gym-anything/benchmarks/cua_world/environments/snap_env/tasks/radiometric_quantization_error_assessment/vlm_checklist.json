@@ -1,0 +1,65 @@
+{
+  "task_id": "radiometric_quantization_error_assessment@1",
+  "task_completion": [
+    {
+      "id": "load_input_geotiff",
+      "description": "Load the input Landsat GeoTIFF into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The Product Explorer or main application window shows 'landsat_multispectral.tif' loaded as a product."
+    },
+    {
+      "id": "create_ndvi_float",
+      "description": "Generate the 'NDVI_float' band using the specified formula.",
+      "points": 15,
+      "visual_evidence": "A Band Maths dialog or product tree showing a new band named 'NDVI_float' with the expression '(band_2 - band_3) / (band_2 + band_3)'."
+    },
+    {
+      "id": "create_ndvi_uint8",
+      "description": "Generate the 'NDVI_uint8' band using the specified formula.",
+      "points": 15,
+      "visual_evidence": "A Band Maths dialog or product tree showing a new band named 'NDVI_uint8' with the expression '(NDVI_float + 1.0) * 127.5'."
+    },
+    {
+      "id": "create_ndvi_recon",
+      "description": "Generate the 'NDVI_recon' band using the specified formula.",
+      "points": 15,
+      "visual_evidence": "A Band Maths dialog or product tree showing a new band named 'NDVI_recon' with the expression '(NDVI_uint8 / 127.5) - 1.0'."
+    },
+    {
+      "id": "create_quantization_error",
+      "description": "Generate the 'Quantization_Error' band using the specified formula.",
+      "points": 15,
+      "visual_evidence": "A Band Maths dialog or product tree showing a new band named 'Quantization_Error' with the expression 'abs(NDVI_float - NDVI_recon)'."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the complete product in BEAM-DIMAP format.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' dialog or file manager showing the file 'quantization_study.dim' being saved to '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the product as a GeoTIFF.",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog or file manager showing the file 'quantization_error.tif' being saved to '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GIS software's graphical user interface to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with SNAP or a similar GIS application's menus, dialogs, and Band Maths interface, rather than terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_band_maths",
+      "description": "The agent genuinely entered the formulas into the application.",
+      "visual_evidence": "The mathematical expressions are visible inside the actual Band Maths expression editor of the GIS software, not just typed into a text editor."
+    },
+    {
+      "id": "actual_file_export",
+      "description": "The agent actually exported the files using the software.",
+      "visual_evidence": "Progress bars, success messages, or the exported files appearing in the file manager confirm the software generated the outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output BEAM-DIMAP file must be saved to /home/ga/snap_exports/quantization_study.dim. The GeoTIFF export must be saved to /home/ga/snap_exports/quantization_error.tif. The required bands to be created with Band Maths are strictly named 'NDVI_float', 'NDVI_uint8', 'NDVI_recon', and 'Quantization_Error'."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "configure_silent_join@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Modify the Jitsi Meet server configuration to enforce a 'silent join' policy where all users join with audio and video muted by default and the pre-join screen is disabled. Apply these changes to the custom web configuration file at /home/ga/.jitsi-meet-cfg/web/custom-config.js and restart the Jitsi Meet services in /home/ga/jitsi. Verify the policy by joining a test meeting named 'silent-join-test' and create a verification file at /home/ga/silent_join_result.txt stating that the policy is active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_silent_join/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_silent_join/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/custom-config.js",
+    "result_path": "/home/ga/silent_join_result.txt",
+    "expected_settings": [
+      "startWithAudioMuted",
+      "startWithVideoMuted",
+      "prejoinConfig"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_silent_join"
+    }
+  }
+}

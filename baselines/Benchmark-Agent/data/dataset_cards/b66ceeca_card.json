@@ -1,0 +1,82 @@
+{
+  "dataset_id": "b66ceeca",
+  "name": "Tree-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Tree-Detection is a visual object-detection dataset built from overhead/aerial imagery in which each sample pairs an image with a user prompt and a list of axis-aligned bounding boxes marking individual tree crowns. It evaluates a model's ability to localize trees in remote-sensing scenes at the level of individual objects.",
+  "card_text": "The dataset contains 200 image-text samples for tree detection. Each item provides an input consisting of an image file reference (aerial/remote-sensing photograph of vegetation) plus a short natural-language prompt that acts as the user instruction for the detection task. The expected output is a structured list of bounding boxes: every detected tree is represented as a dictionary keyed by the class name 'tree', whose value is a four-number coordinate tuple (x, y, width, height) in pixel space. Samples typically contain several trees, ranging from roughly six to eight boxes in the visible examples, with box sizes around 100-120 pixels. The imagery is top-down, so trees appear as roughly circular canopies against ground or forest background. The dataset therefore tests fine-grained visual grounding and dense object localization rather than classification or captioning, and assumes the model can both interpret the instruction and emit coordinates in raw pixel units.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "remote sensing / forestry (tree detection in aerial imagery)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The textual prompt supplied together with the image, acting as the user's task instruction for the detection request. It is short and generic, telling the model what to do with the accompanying image and framing the detection goal.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "Path to the overhead/aerial photograph that the model must inspect. The scene is a natural outdoor landscape, typically vegetation viewed from above, and it is the visual ground on which the tree bounding boxes are defined.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of detected object annotations; each element is a dictionary whose single key is the class name 'tree' and whose value is a four-number coordinate tuple (x, y, width, height) locating one tree crown inside the corresponding image. Together these boxes constitute the target output for the detection instruction.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample combines three components: an image reference (input.image_file) giving the overhead scene to be analyzed, a short instruction prompt (input.prompt) that states the detection task, and a structured answer (output.bbox) consisting of a list of per-object dictionaries keyed by the class label 'tree', each holding a four-value pixel-space bounding box (x, y, width, height). The prompt and the image jointly form the model input, and the list of boxes is the grounded output that localizes every annotated tree crown within that image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/tree-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "tree-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "Geography",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Geography"
+  }
+}

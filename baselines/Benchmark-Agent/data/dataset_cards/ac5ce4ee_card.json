@@ -1,0 +1,75 @@
+{
+  "dataset_id": "ac5ce4ee",
+  "name": "Aspect-Sentiment-Quad-Prediction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for aspect-category-sentiment-opinion quadruplet extraction from restaurant reviews. Given a review, the model must identify all aspect terms, their categories, sentiment polarities, and opinion terms.",
+  "card_text": "This dataset evaluates fine-grained aspect-based sentiment analysis on restaurant reviews. Each sample contains a short raw review text, an instruction prompt asking for extraction of all aspect-category-sentiment-opinion quadruplets, and the gold output string with quadruplets formatted as 'aspect => category => sentiment => opinion'. The aspect categories come from a fixed set covering food, drinks, service, ambience, location, and restaurant general aspects. Aspect terms may be NULL when not explicitly mentioned. The task requires jointly extracting aspect and opinion spans, assigning a category to each aspect, and determining the sentiment polarity, making it a structured multi-part extraction problem.",
+  "tasks": [
+    "attribute_extraction",
+    "relation_extraction"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short restaurant review sentence or two containing user opinions about food, service, ambience, and related aspects. It is the raw text to be analyzed for aspect sentiment quadruplets.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract all aspect-category-sentiment-opinion quadruplets from the review. It includes the allowed aspect categories, notes about NULL aspects, and the required output format, with a placeholder for the review text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output string listing one or more quadruplets in the format 'aspect => category => sentiment => opinion', separated by commas. It encodes both the extracted aspect/opinion spans and their relations to category and sentiment labels.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw restaurant review text (input.raw_text), an extraction instruction prompt (input.prompt) that embeds the review via a placeholder, and a target output string (output.text) containing one or more aspect-category-sentiment-opinion quadruplets. The prompt defines the category set and output format; the answer provides the gold quadruplets, with aspect and opinion as text spans and category and sentiment as labels."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Sentiment-Quad-Prediction/annotation.json",
+    "existing_tags": {
+      "task": "aspect_sentiment_quad_prediction",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

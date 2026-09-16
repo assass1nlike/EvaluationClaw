@@ -1,0 +1,36 @@
+{
+  "id": "intersect_rivers_countries@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Perform a spatial intersection between the countries layer (/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp) and the rivers layer (/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp) in gvSIG Desktop. The resulting layer must contain river segments split by country boundaries, incorporating attribute fields from both input layers (e.g., river name and country name). Save the output shapefile to /home/ga/gvsig_data/exports/rivers_by_country.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "weighted"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/intersect_rivers_countries/setup_task.sh",
+    "post_task": "/workspace/tasks/intersect_rivers_countries/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/rivers_by_country.shp",
+    "countries_fields": [
+      "NAME",
+      "ADMIN",
+      "CONTINENT",
+      "POP_EST"
+    ],
+    "rivers_fields": [
+      "name",
+      "scalerank",
+      "featurecla"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_intersect_rivers_countries"
+    }
+  }
+}

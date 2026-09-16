@@ -1,0 +1,53 @@
+{
+  "task_id": "export_mask_nifti@1",
+  "task_completion": [
+    {
+      "id": "select_bone_preset",
+      "description": "Select the 'Bone' threshold preset for segmentation",
+      "points": 15,
+      "visual_evidence": "In the InVesalius thresholding panel, the preset dropdown should show 'Bone' selected, or the custom threshold range should be explicitly set to 226 Min and 3071 Max."
+    },
+    {
+      "id": "create_segmentation_mask",
+      "description": "Create the volumetric mask based on the selected threshold",
+      "points": 15,
+      "visual_evidence": "A new mask (e.g., 'Mask 1') should appear in the Masks list/panel, and the segmented bone regions should be highlighted on the 2D slice views."
+    },
+    {
+      "id": "initiate_mask_export",
+      "description": "Open the export dialog specifically for the mask volume",
+      "points": 20,
+      "visual_evidence": "An export dialog titled 'Export mask to file' (or similar) should be open. It must be a mask/volume export dialog, not a 3D surface/mesh export dialog."
+    },
+    {
+      "id": "configure_nifti_export",
+      "description": "Set the correct export path and compressed NIfTI format",
+      "points": 25,
+      "visual_evidence": "The save dialog should show the target directory as '/home/ga/Documents/' and the filename as 'bone_mask.nii.gz'. The file type/format dropdown should be set to NIfTI compressed (*.nii.gz)."
+    },
+    {
+      "id": "confirm_file_export",
+      "description": "Complete the export and verify the file exists",
+      "points": 25,
+      "visual_evidence": "The save dialog is confirmed (closed), and there is evidence of the exported file, such as a terminal window running 'ls' showing 'bone_mask.nii.gz' in the Documents folder, or a file manager displaying the created file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_invesalius_gui",
+      "description": "The agent used the InVesalius 3 GUI to perform the segmentation and export",
+      "visual_evidence": "Screenshots should show active interaction with the InVesalius 3 interface (clicking menus, adjusting thresholds) rather than running a Python script or CLI tool (like fslmaths or c3d) in a terminal to generate the mask."
+    },
+    {
+      "id": "exported_volume_not_mesh",
+      "description": "The agent exported a volumetric mask, not a 3D surface mesh",
+      "visual_evidence": "The agent must not be seen using the 'Create 3D surface' button or the 'Export 3D surface' dialog (which typically exports STL or OBJ files). The export must clearly be for the mask volume."
+    },
+    {
+      "id": "genuine_export_action",
+      "description": "The file was genuinely exported from the application",
+      "visual_evidence": "The file 'bone_mask.nii.gz' should be created as a result of clicking 'Save' in the InVesalius export dialog, not by using a 'touch' command or a dummy script in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct output path is exactly /home/ga/Documents/bone_mask.nii.gz. The expected dimensions of the exported NIfTI mask are 512x512x108. The DICOM series used is ct_cranium/0051. The 'Bone' threshold preset in InVesalius corresponds to the Hounsfield Unit (HU) range of 226 to 3071."
+}

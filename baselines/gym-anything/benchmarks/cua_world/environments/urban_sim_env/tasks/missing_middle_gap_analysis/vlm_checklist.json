@@ -1,0 +1,59 @@
+{
+  "task_id": "missing_middle_gap_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_jupyter_notebook",
+      "description": "Open or create the specified Jupyter notebook and load the data.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook or JupyterLab interface open with the file path '/home/ga/urbansim_projects/notebooks/missing_middle.ipynb'. The notebook should contain code reading from '/home/ga/urbansim_projects/data/sanfran_public.h5'."
+    },
+    {
+      "id": "categorize_and_filter_units",
+      "description": "Categorize residential units and filter zones with at least 100 units.",
+      "points": 15,
+      "visual_evidence": "Code cells showing logic to group/categorize units into 'Single-Family' (== 1), 'Missing Middle' (2-19), and 'High-Density' (>= 20), along with a filter ensuring total residential units per zone >= 100."
+    },
+    {
+      "id": "calculate_percentages_and_flag",
+      "description": "Calculate percentages and flag opportunity zones based on criteria.",
+      "points": 15,
+      "visual_evidence": "Code cells calculating the percentage of each housing category and creating an 'is_opportunity_zone' flag where pct_single_family > 50.0 and pct_missing_middle < 15.0."
+    },
+    {
+      "id": "export_csv_results",
+      "description": "Export the zone-level results to the specified CSV file with correct columns.",
+      "points": 20,
+      "visual_evidence": "Code showing a pandas DataFrame being saved to '/home/ga/urbansim_projects/output/missing_middle_zones.csv' with columns: zone_id, total_units, pct_single_family, pct_missing_middle, pct_high_density, and is_opportunity_zone. Alternatively, a file explorer or terminal showing this file exists."
+    },
+    {
+      "id": "generate_stacked_bar_chart",
+      "description": "Generate a stacked bar chart for the top 20 opportunity zones.",
+      "points": 20,
+      "visual_evidence": "Code filtering for opportunity zones, sorting by 'total_units' descending, taking the top 20 (e.g., `.head(20)`), and plotting a stacked bar chart of the housing breakdown."
+    },
+    {
+      "id": "save_chart_output",
+      "description": "Save the generated chart to the specified PNG path.",
+      "points": 20,
+      "visual_evidence": "Code showing the plot being saved to '/home/ga/urbansim_projects/output/opportunity_zones_chart.png', or the image file visible in the file explorer/image viewer. The chart itself may also be visible in the notebook output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_notebook_execution",
+      "description": "Verify the notebook cells were actually executed.",
+      "visual_evidence": "Jupyter notebook cells should have execution numbers (e.g., 'In [1]:', 'In [2]:') and display standard pandas/matplotlib outputs, rather than just being unexecuted text."
+    },
+    {
+      "id": "actual_data_processing",
+      "description": "Verify the agent processed the actual HDF5 dataset.",
+      "visual_evidence": "The code must show pandas/HDFStore functions reading 'sanfran_public.h5'. There should be no hardcoded arrays or manual creation of the 29 opportunity zones."
+    },
+    {
+      "id": "programmatic_file_creation",
+      "description": "Verify the CSV and PNG files were created programmatically.",
+      "visual_evidence": "The notebook should contain the `to_csv()` and `savefig()` (or equivalent) commands pointing to the exact required output paths, rather than the agent manually creating files in a text editor or downloading them."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/missing_middle.ipynb. The expected CSV output path is /home/ga/urbansim_projects/output/missing_middle_zones.csv with exact columns: ['zone_id', 'total_units', 'pct_single_family', 'pct_missing_middle', 'pct_high_density', 'is_opportunity_zone']. The expected plot path is /home/ga/urbansim_projects/output/opportunity_zones_chart.png. If the data was processed correctly, there are exactly 29 Opportunity Zones out of 187 eligible zones (zones with >= 100 total residential units) that satisfy the criteria."
+}

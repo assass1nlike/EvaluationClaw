@@ -1,0 +1,53 @@
+{
+  "task_id": "public_health_zone_mapping@1",
+  "task_completion": [
+    {
+      "id": "read_criteria",
+      "description": "Agent opens or reads the designation criteria file.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal command (e.g., cat, less), or script showing the contents of /home/ga/GIS_Data/designation_criteria.txt."
+    },
+    {
+      "id": "access_census_data",
+      "description": "Agent accesses the census tracts dataset.",
+      "points": 10,
+      "visual_evidence": "A GIS application (like QGIS), text editor, or terminal showing the loading or reading of /home/ga/GIS_Data/census_tracts.geojson."
+    },
+    {
+      "id": "apply_filter_criteria",
+      "description": "Agent applies the specific high-risk criteria to filter the dataset.",
+      "points": 30,
+      "visual_evidence": "A filter dialog in a GIS app, a command-line tool (like jq or ogr2ogr), or a script (e.g., Python) explicitly showing the conditions being applied: AQI > 75 AND pop_density > 3500 AND dist_hospital_km > 7.5."
+    },
+    {
+      "id": "identify_qualifying_tracts",
+      "description": "Agent correctly identifies the 7 qualifying census tracts.",
+      "points": 25,
+      "visual_evidence": "An attribute table, terminal output, or script output showing exactly the qualifying tracts: CT-003, CT-007, CT-011, CT-014, CT-016, CT-018, and CT-020."
+    },
+    {
+      "id": "export_results",
+      "description": "Agent exports the filtered tracts to the specified output file.",
+      "points": 25,
+      "visual_evidence": "A 'Save As'/'Export' dialog, or a terminal command/script writing the final output to /home/ga/GIS_Data/exports/high_risk_zones.geojson."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_filtering_process",
+      "description": "The agent actually filtered the data rather than manually typing the final output.",
+      "visual_evidence": "Screenshots should show the use of a tool (GIS software, Python, jq, etc.) applying the logic to the input file, not just a text editor where the agent manually typed the final GeoJSON."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not hardcode the tract IDs without reading the data.",
+      "visual_evidence": "The agent's commands or scripts should dynamically evaluate the conditions against the dataset rather than containing a hardcoded list of the 7 qualifying tracts."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The output file was saved to the exact requested path.",
+      "visual_evidence": "The file path /home/ga/GIS_Data/exports/high_risk_zones.geojson must be visible in the export dialog, terminal command, or script."
+    }
+  ],
+  "privileged_info_for_vlm": "The designation criteria require AQI > 75, population density > 3500, and distance to hospital > 7.5 km. Exactly 7 tracts qualify: CT-003, CT-007, CT-011, CT-014, CT-016, CT-018, and CT-020. The final output must be saved to /home/ga/GIS_Data/exports/high_risk_zones.geojson."
+}

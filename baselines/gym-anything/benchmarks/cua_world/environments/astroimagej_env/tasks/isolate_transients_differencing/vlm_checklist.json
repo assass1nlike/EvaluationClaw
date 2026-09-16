@@ -1,0 +1,53 @@
+{
+  "task_id": "isolate_transients_differencing@1",
+  "task_completion": [
+    {
+      "id": "load_image_sequence",
+      "description": "Load the 20 FITS files into an image processing application",
+      "points": 10,
+      "visual_evidence": "An image processing application (like AstroImageJ or ImageJ) is open, showing an image sequence loaded from ~/AstroImages/transient_search/frames/. A slider or window title indicating 20 frames/slices should be visible."
+    },
+    {
+      "id": "save_median_projection",
+      "description": "Generate and save a Median projection",
+      "points": 20,
+      "visual_evidence": "A 'Z Project' or similar dialog with 'Median' selected is visible, and/or a save dialog or file manager shows 'median_stack.fits' being saved to the output directory."
+    },
+    {
+      "id": "save_max_projection",
+      "description": "Generate and save a Maximum Intensity projection",
+      "points": 20,
+      "visual_evidence": "A 'Z Project' or similar dialog with 'Max Intensity' selected is visible, and/or a save dialog or file manager shows 'max_stack.fits' being saved to the output directory."
+    },
+    {
+      "id": "subtract_projections",
+      "description": "Subtract the Median projection from the Maximum projection with a 32-bit float result",
+      "points": 30,
+      "visual_evidence": "An 'Image Calculator' or math dialog is visible showing the subtraction of the median image from the max image, with a '32-bit (float) result' option checked. A save dialog or file manager shows 'transients_only.fits' being saved."
+    },
+    {
+      "id": "record_max_value",
+      "description": "Measure and record the maximum pixel value of the subtracted image",
+      "points": 20,
+      "visual_evidence": "A text editor is open showing the file 'transient_stats.txt' with the text 'Max_Transient_Value: 64367.5' (or a value very close to it based on the measurement)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_image_software",
+      "description": "The agent used a GUI image processing application (like AstroImageJ) to perform the operations",
+      "visual_evidence": "Screenshots should show interaction with a graphical image processing tool, not just terminal commands or a Python script generating the outputs."
+    },
+    {
+      "id": "measured_value_in_software",
+      "description": "The agent actually measured the maximum value in the software",
+      "visual_evidence": "The agent should be seen using the software's measurement, statistics, or histogram tools on the transients_only.fits image to find the maximum value, rather than just typing the final answer directly."
+    },
+    {
+      "id": "actual_subtraction_performed",
+      "description": "The agent genuinely performed the image subtraction",
+      "visual_evidence": "The image calculator or math operation dialog should be visible and correctly configured to subtract the median from the max projection, ensuring the output is not a dummy or copied file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset consists of exactly 20 FITS frames from WASP-12b observations. The expected maximum transient value to be recorded in transient_stats.txt is mathematically calculated as 64367.5. The expected output directory is /home/ga/AstroImages/transient_search/output."
+}

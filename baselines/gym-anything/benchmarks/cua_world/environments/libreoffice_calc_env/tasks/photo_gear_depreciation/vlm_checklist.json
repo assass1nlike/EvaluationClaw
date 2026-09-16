@@ -1,0 +1,53 @@
+{
+  "task_id": "photo_gear_depreciation@1",
+  "task_completion": [
+    {
+      "id": "open_equipment_data",
+      "description": "Open the provided photography equipment data",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the photography equipment data, including columns for Equipment Type, Purchase Date, Purchase Price, and Market Value."
+    },
+    {
+      "id": "calculate_asset_age",
+      "description": "Determine the asset age for each item",
+      "points": 20,
+      "visual_evidence": "A column is visible showing the calculated age of each asset. The VLM should look for standardized age values derived from the originally mixed-format purchase dates."
+    },
+    {
+      "id": "calculate_depreciation",
+      "description": "Calculate depreciation based on equipment type",
+      "points": 25,
+      "visual_evidence": "A column displays the calculated depreciation for each item. The values should reflect different useful life rules based on the equipment type (Cameras, Lenses, Accessories, Computers)."
+    },
+    {
+      "id": "calculate_book_value",
+      "description": "Determine the current book value for each item",
+      "points": 25,
+      "visual_evidence": "A column displays the current book value for each item, representing the Purchase Price minus the accumulated Depreciation."
+    },
+    {
+      "id": "identify_sell_candidates",
+      "description": "Identify assets where market value exceeds book value",
+      "points": 20,
+      "visual_evidence": "A clear indication (such as a 'Sell' column with Yes/No, conditional formatting, or a filtered list) identifying specific items where the Market Value is strictly greater than the calculated Book Value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "spreadsheet_gui_usage",
+      "description": "Agent used a spreadsheet application to perform the task",
+      "visual_evidence": "The screenshots show interaction with a spreadsheet GUI (like LibreOffice Calc) rather than a terminal window executing a pre-written Python script to bypass GUI interaction."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "Agent used formulas for calculations rather than hardcoding answers",
+      "visual_evidence": "The formula bar in the spreadsheet shows actual formulas (e.g., subtraction for book value, IF statements, or date functions) when cells are selected, rather than manually typed final numbers."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Agent did not just type the final answers into a text editor",
+      "visual_evidence": "The final results are presented in a structured spreadsheet format with the original data, not just typed out as plain text in a basic text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 12 items of real photography equipment. Date formats are mixed (e.g., '2021-03-15', 'March 2022', 'Jan 2020', '01/15/2022') and must be handled correctly to calculate age. The 'Godox AD600 Pro' is intentionally missing its purchase price in the raw data and must be filled/estimated to complete its calculations. Depreciation useful life rules to verify: Cameras = 5 years, Lenses = 7 years, Accessories = 3 years, Computers = 3 years. Sell candidates are strictly those where Market Value > Book Value."
+}

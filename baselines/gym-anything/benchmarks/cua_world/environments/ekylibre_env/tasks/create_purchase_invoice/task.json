@@ -1,0 +1,30 @@
+{
+  "id": "create_purchase_invoice@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Create a purchase invoice in Ekylibre for supplier 'Coopérative Agricole du Poitou' (create if it doesn't exist) with reference number 'INV-2024-0587' dated March 15, 2024. The invoice must include two line items: 500 units of a Seed/Grain product at €0.35 per unit and 2000 units of a Fertilizer product at €0.42 per unit.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_purchase_invoice/setup_task.sh",
+    "post_task": "/workspace/tasks/create_purchase_invoice/export_result.sh"
+  },
+  "metadata": {
+    "expected_reference": "INV-2024-0587",
+    "expected_supplier_partial": "Poitou",
+    "expected_date": "2024-03-15",
+    "expected_item_count": 2,
+    "min_amount": 900.0,
+    "max_amount": 1150.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_purchase_invoice"
+    }
+  }
+}

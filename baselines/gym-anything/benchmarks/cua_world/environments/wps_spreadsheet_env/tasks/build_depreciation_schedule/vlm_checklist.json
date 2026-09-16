@@ -1,0 +1,59 @@
+{
+  "task_id": "build_depreciation_schedule@1",
+  "task_completion": [
+    {
+      "id": "open_wps_spreadsheet",
+      "description": "The agent opens the initial asset register file in WPS Spreadsheet.",
+      "points": 10,
+      "visual_evidence": "WPS Spreadsheet application is open, showing the initial data with sheet tabs like 'Asset_Register' and 'MACRS_Tables'."
+    },
+    {
+      "id": "sl_depreciation_sheet",
+      "description": "The agent creates the SL_Depreciation sheet with straight-line depreciation calculations.",
+      "points": 25,
+      "visual_evidence": "A sheet named 'SL_Depreciation' is visible, containing asset details (Asset_ID, Description, Category, Cost, Salvage Value, Useful Life) and calculated annual depreciation for years 2021-2030, including a row for yearly totals."
+    },
+    {
+      "id": "macrs_depreciation_sheet",
+      "description": "The agent creates the MACRS_Depreciation sheet with MACRS calculations.",
+      "points": 25,
+      "visual_evidence": "A sheet named 'MACRS_Depreciation' is visible, containing asset details and calculated annual depreciation for years 2021-2030 using MACRS rates, including a row for yearly totals."
+    },
+    {
+      "id": "summary_comparison_table",
+      "description": "The agent creates the Annual Depreciation Comparison table in the Summary sheet.",
+      "points": 15,
+      "visual_evidence": "A sheet named 'Summary' is visible, containing a table that compares yearly totals for Straight-Line and MACRS methods, including the calculated difference for each year from 2021 to 2030."
+    },
+    {
+      "id": "summary_category_table",
+      "description": "The agent creates the Annual SL Depreciation by Category table in the Summary sheet.",
+      "points": 15,
+      "visual_evidence": "The 'Summary' sheet contains a table summarizing total cost and annual straight-line depreciation for the five categories: Machinery, Vehicles, IT Equipment, Office Furniture, and Building Improvements."
+    },
+    {
+      "id": "save_completed_file",
+      "description": "The agent saves the completed workbook as depreciation_schedule.xlsx.",
+      "points": 10,
+      "visual_evidence": "A 'Save As' dialog or the WPS Spreadsheet window title shows the file being saved as 'depreciation_schedule.xlsx' in the Documents directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the task.",
+      "visual_evidence": "Screenshots show the agent clicking through the WPS Spreadsheet interface, selecting cells, and entering data, rather than using terminal commands to generate the Excel file."
+    },
+    {
+      "id": "formula_usage",
+      "description": "The agent used spreadsheet formulas for calculations.",
+      "visual_evidence": "The formula bar in WPS Spreadsheet shows actual formulas (e.g., using cell references, arithmetic operations, or functions) being entered or edited, rather than hardcoded numbers being pasted."
+    },
+    {
+      "id": "no_scripting",
+      "description": "The agent did not use Python or other scripting languages to bypass the GUI.",
+      "visual_evidence": "There are no terminal windows showing the execution of Python scripts (e.g., using pandas or openpyxl) to create the depreciation schedule."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/depreciation_schedule.xlsx. The final workbook must contain exactly these 5 sheets: Asset_Register, MACRS_Tables, SL_Depreciation, MACRS_Depreciation, and Summary."
+}

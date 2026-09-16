@@ -1,0 +1,30 @@
+{
+  "id": "setup_playback_replay_session@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running on the Windows desktop. You need to set up a Market Replay (Playback) session to practice trading on historical data. Connect to the Playback Connection and set the session date to January 16, 2024. Open a Daily chart for 'SPY' and add an Exponential Moving Average (EMA) indicator with a period of 20. Save the workspace to persist the setup. You do not need to start the playback.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_playback_replay_session\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_playback_replay_session\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "indicator": "EMA",
+    "indicator_period": 20,
+    "replay_date": "2024-01-16",
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces",
+    "result_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\setup_playback_replay_session_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_playback_replay_session"
+    }
+  }
+}

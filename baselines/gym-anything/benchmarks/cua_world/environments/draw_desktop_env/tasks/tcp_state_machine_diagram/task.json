@@ -1,0 +1,51 @@
+{
+  "id": "tcp_state_machine_diagram@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a formal TCP State Machine Diagram in draw.io Desktop based on the RFC 793 reference found at '~/Desktop/tcp_states_rfc793.txt'. The diagram must be saved as '~/Desktop/tcp_state_machine.drawio' and contain two pages. Page 1, named 'Complete State Machine', must include all 11 standard TCP states (CLOSED, LISTEN, SYN_SENT, SYN_RECEIVED, ESTABLISHED, FIN_WAIT_1, FIN_WAIT_2, CLOSE_WAIT, CLOSING, LAST_ACK, TIME_WAIT) with labeled directional arrows for transitions as described in the reference. Use green for Connection Establishment transitions, red or orange for Teardown transitions, and include a legend explaining the color coding. Page 2, named 'Happy Path', should show a simplified diagram of the normal lifecycle (Establishment, Data Transfer, and Normal Close). Export Page 1 as a PNG image to '~/Desktop/tcp_state_machine.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tcp_state_machine_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/tcp_state_machine_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "tcp_state_machine.drawio",
+    "expected_export": "tcp_state_machine.png",
+    "required_states": [
+      "CLOSED",
+      "LISTEN",
+      "SYN_SENT",
+      "SYN_RECEIVED",
+      "ESTABLISHED",
+      "FIN_WAIT_1",
+      "FIN_WAIT_2",
+      "CLOSE_WAIT",
+      "CLOSING",
+      "LAST_ACK",
+      "TIME_WAIT"
+    ],
+    "transition_keywords": [
+      "SYN",
+      "ACK",
+      "FIN",
+      "RST",
+      "close",
+      "open",
+      "timeout"
+    ],
+    "min_states": 9,
+    "min_transitions": 14,
+    "min_pages": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tcp_state_machine"
+    }
+  }
+}

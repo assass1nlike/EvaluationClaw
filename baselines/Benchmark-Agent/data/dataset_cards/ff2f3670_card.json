@@ -1,0 +1,92 @@
+{
+  "dataset_id": "ff2f3670",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 268,
+  "description": "The dataset contains radar images paired with instructions to detect and localize ships. The model must analyze each image and output bounding box coordinates for each detected ship. It evaluates object detection and localization capabilities in maritime radar imagery.",
+  "card_text": "This dataset is a benchmark for ship detection and localization in radar imagery. Each sample consists of a single radar image along with a natural language prompt instructing the model to detect ships and provide bounding box coordinates. The output is a list of bounding boxes, each specified as [x, y, width, height]. The images are maritime radar scenes, which may contain one or more ships. The dataset is designed to evaluate a model's ability to recognize and localize objects in a challenging visual modality. It is an open-set detection task where the number of ships varies. The language instruction is concise and task-oriented.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "maritime radar",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Radar image serving as the primary input for ship detection; the model must analyze this image to identify and localize ships.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Natural language instruction asking the model to analyze the radar image, detect ships, and provide bounding box coordinates for each.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A concise directive summarizing the detection and localization task, reinforcing the prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "List of bounding boxes, each as [x, y, width, height], localizing detected ships in the radar image.",
+        "path_types": [
+          "list<list>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with an image file path, a prompt, and an instruction, and an output object with an answer. The image is the primary context. The prompt and instruction are textual directives asking to detect ships. The answer is a list of bounding boxes, each with four coordinates, representing ship locations."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Radar_Ship_Detection/annotation_open.json",
+    "existing_tags": {
+      "task": "Radar_Ship_Detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

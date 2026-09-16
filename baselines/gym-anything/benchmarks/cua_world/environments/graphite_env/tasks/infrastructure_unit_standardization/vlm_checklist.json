@@ -1,0 +1,54 @@
+{
+  "task_id": "infrastructure_unit_standardization@1",
+  "task_completion": [
+    {
+      "id": "dashboard_name",
+      "description": "Dashboard is named exactly 'GOC Standard Units'",
+      "points": 10,
+      "visual_evidence": "The dashboard title at the top of the screen or in the dashboard list is 'GOC Standard Units'."
+    },
+    {
+      "id": "temp_graph",
+      "description": "Graph 'Datacenter Temp (Fahrenheit)' is created with alias 'Temp F' and C to F conversion",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Datacenter Temp (Fahrenheit)' is visible. The legend shows the alias 'Temp F'. If the target definition is visible, it should show a scale(1.8) and offset(32) conversion applied to the machine_temperature metric."
+    },
+    {
+      "id": "network_graph",
+      "description": "Graph 'Network Ingress (MB)' is created with alias 'Ingress MB' and Bytes to MB conversion",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Network Ingress (MB)' is visible. The legend shows the alias 'Ingress MB'. If visible, the target definition should show a scale function (e.g., scale by 0.000001 or 1/1048576) applied to the bytes_in metric."
+    },
+    {
+      "id": "lb_graph",
+      "description": "Graph 'LB Request Rate' is created with alias 'Requests/Interval' and rate conversion",
+      "points": 20,
+      "visual_evidence": "A graph titled 'LB Request Rate' is visible. The legend shows the alias 'Requests/Interval'. If visible, the target definition should show a derivative or nonNegativeDerivative function applied to the requests.count metric."
+    },
+    {
+      "id": "speed_ratio_graph",
+      "description": "Graph 'Web Speed Ratio' is created with alias 'Speed Ratio' and ratio calculation",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Web Speed Ratio' is visible. The legend shows the alias 'Speed Ratio'. If visible, the target definition should show a divideSeries function calculating the ratio of speed_sensor_1 to speed_sensor_2."
+    },
+    {
+      "id": "four_graphs_saved",
+      "description": "The dashboard contains exactly the four required graphs",
+      "points": 10,
+      "visual_evidence": "The final dashboard view displays exactly four graphs with the specified titles."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "Screenshots show interaction with the Graphite web UI (e.g., Dashboard or Composer views), not just terminal commands or text editors."
+    },
+    {
+      "id": "actual_data_rendered",
+      "description": "Graphs display actual time-series data",
+      "visual_evidence": "The graphs show plotted lines representing data over time, not empty graphs or static images."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is 'GOC Standard Units'. The four expected graph titles are 'Datacenter Temp (Fahrenheit)', 'Network Ingress (MB)', 'LB Request Rate', and 'Web Speed Ratio'. Note: Even though the raw machine temperature data is already in Fahrenheit, the task explicitly requires applying a Celsius to Fahrenheit conversion (scale by 1.8 and offset by 32), which must be visually evident in the graph's target definition or resulting values. The verifier strictly enforces these exact titles and conversions."
+}

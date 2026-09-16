@@ -1,0 +1,40 @@
+{
+  "id": "matrix_ols_manual@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Write a Gretl hansl script to manually compute OLS regression results using matrix algebra for the 'food.gdt' dataset, using 'food_exp' as the dependent variable and 'income' as the independent variable. The script must calculate the coefficients, residuals, sigma^2, variance-covariance matrix, standard errors, t-statistics, and R-squared using matrix operations instead of the built-in 'ols' or 'estimate' commands. Save the script to '/home/ga/Documents/gretl_output/matrix_ols_script.inp' and export the results to '/home/ga/Documents/gretl_output/matrix_ols_results.txt'.\n\nThe output file must follow this format:\nintercept: [value]\nslope: [value]\nse_intercept: [value]\nse_slope: [value]\nt_intercept: [value]\nt_slope: [value]\nr_squared: [value]\nsigma_squared: [value]\nnobs: 40",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/matrix_ols_manual/setup_task.sh",
+    "post_task": "/workspace/tasks/matrix_ols_manual/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "ground_truth": {
+      "intercept": 83.416,
+      "slope": 10.2096,
+      "se_intercept": 43.41,
+      "se_slope": 2.093,
+      "r_squared": 0.385,
+      "nobs": 40
+    },
+    "tolerance": {
+      "coef": 1.0,
+      "se": 0.5,
+      "r2": 0.02
+    },
+    "output_file": "/home/ga/Documents/gretl_output/matrix_ols_results.txt",
+    "script_file": "/home/ga/Documents/gretl_output/matrix_ols_script.inp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_matrix_ols_manual"
+    }
+  }
+}

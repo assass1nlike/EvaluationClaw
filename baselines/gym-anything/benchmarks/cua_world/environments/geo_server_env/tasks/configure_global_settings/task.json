@@ -1,0 +1,32 @@
+{
+  "id": "configure_global_settings@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Configure GeoServer (http://localhost:8080/geoserver/web/, Username: admin, Password: Admin123!) for a production deployment. Update the global settings to use 'https://maps.cityplanning.example.com/geoserver' as the Proxy Base URL, 6 decimals, enabled verbose exception reporting, and UTF-8 character set. In the contact information, set the organization to 'City Planning Department' and the contact person to 'GIS Administrator'. Change the logging profile to 'PRODUCTION_LOGGING'. Verify the configuration by ensuring the WMS GetCapabilities document reflects the new Proxy Base URL. Create a verification report at /home/ga/global_settings_report.txt containing the proxy base URL, the number of decimals, the logging profile, and 'VERIFIED' on separate lines.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_global_settings/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_global_settings/export_result.sh"
+  },
+  "metadata": {
+    "expected_proxy_url": "https://maps.cityplanning.example.com/geoserver",
+    "expected_decimals": 6,
+    "expected_verbose": true,
+    "expected_charset": "UTF-8",
+    "expected_logging_profile": "PRODUCTION_LOGGING",
+    "expected_org": "City Planning Department",
+    "expected_person": "GIS Administrator",
+    "report_path": "/home/ga/global_settings_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_global_settings"
+    }
+  }
+}

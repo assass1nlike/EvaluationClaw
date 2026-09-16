@@ -1,0 +1,71 @@
+{
+  "task_id": "viral_marketing_analysis@1",
+  "task_completion": [
+    {
+      "id": "schema_network_value_added",
+      "description": "Verify that the 'NetworkValue' column was added to the Profiles table.",
+      "points": 10,
+      "visual_evidence": "Look for a SQL query result, table schema view, or DESCRIBE output showing that the 'Profiles' table now contains a column named 'NetworkValue' (expected type Double/Float/Decimal)."
+    },
+    {
+      "id": "schema_is_viral_hub_added",
+      "description": "Verify that the 'IsViralHub' column was added to the Profiles table.",
+      "points": 10,
+      "visual_evidence": "Look for a SQL query result, table schema view, or DESCRIBE output showing that the 'Profiles' table now contains a column named 'IsViralHub' (expected type Boolean/TinyInt)."
+    },
+    {
+      "id": "liam_network_value",
+      "description": "Verify the calculated NetworkValue for Liam.",
+      "points": 15,
+      "visual_evidence": "Look at the data rows for the 'Profiles' table (e.g., a SELECT * result). Find the row for Liam (liam.hub@test.com) and verify that the 'NetworkValue' column displays 1750 (or 1750.0)."
+    },
+    {
+      "id": "liam_is_viral_hub",
+      "description": "Verify the IsViralHub status for Liam.",
+      "points": 15,
+      "visual_evidence": "Look at the data rows for the 'Profiles' table. Find the row for Liam (liam.hub@test.com) and verify that the 'IsViralHub' column displays true (or 1), as he meets both the 3+ friends and >1500 value criteria."
+    },
+    {
+      "id": "damon_network_value",
+      "description": "Verify the calculated NetworkValue for Damon.",
+      "points": 15,
+      "visual_evidence": "Look at the data rows for the 'Profiles' table. Find the row for Damon (damon.pop@test.com) and verify that the 'NetworkValue' column displays 50 (or 50.0)."
+    },
+    {
+      "id": "damon_is_viral_hub",
+      "description": "Verify the IsViralHub status for Damon.",
+      "points": 10,
+      "visual_evidence": "Look at the data rows for the 'Profiles' table. Find the row for Damon (damon.pop@test.com) and verify that the 'IsViralHub' column displays false (or 0), as his network value is not > 1500."
+    },
+    {
+      "id": "graham_network_value",
+      "description": "Verify the calculated NetworkValue for Graham.",
+      "points": 15,
+      "visual_evidence": "Look at the data rows for the 'Profiles' table. Find the row for Graham (graham.solo@test.com) and verify that the 'NetworkValue' column displays 0 (or 0.0, or NULL)."
+    },
+    {
+      "id": "graham_is_viral_hub",
+      "description": "Verify the IsViralHub status for Graham.",
+      "points": 10,
+      "visual_evidence": "Look at the data rows for the 'Profiles' table. Find the row for Graham (graham.solo@test.com) and verify that the 'IsViralHub' column displays false (or 0), as he has 0 friends."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_tool_used",
+      "description": "Verify that the agent interacted with a genuine database client or terminal shell.",
+      "visual_evidence": "Look for a standard database GUI (like DBeaver, MySQL Workbench, DataGrip) or a terminal window running a SQL shell (like mysql or psql) rather than a plain text editor."
+    },
+    {
+      "id": "no_hardcoded_text_files",
+      "description": "Ensure the results are genuine database outputs.",
+      "visual_evidence": "The final table view should be a formatted query result grid or standard CLI table output, not manually typed text in a markdown or text file."
+    },
+    {
+      "id": "query_execution_visible",
+      "description": "Check for evidence of actual SQL query execution.",
+      "visual_evidence": "Look for SQL statements (ALTER TABLE, UPDATE, SELECT) in the editor pane or command history, along with success messages, execution times, or rows affected counts."
+    }
+  ],
+  "privileged_info_for_vlm": "Liam (liam.hub@test.com) has 3 friends with a total spending of 1750.0. He qualifies as a Viral Hub (IsViralHub = true, NetworkValue = 1750.0). Damon (damon.pop@test.com) has 5 friends but only 50.0 total spending. He does not qualify (IsViralHub = false, NetworkValue = 50.0). Graham (graham.solo@test.com) has 0 friends and 0.0 spending. He does not qualify (IsViralHub = false, NetworkValue = 0.0)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_road_closure@1",
+  "task_completion": [
+    {
+      "id": "read_target_file",
+      "description": "Identify the road segment to be closed from the target file.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the agent reading the contents of /home/ga/SUMO_Scenarios/bologna_acosta/closure_target.txt (e.g., using cat, less, or opening it in an editor)."
+    },
+    {
+      "id": "create_rerouter_file",
+      "description": "Create a SUMO rerouter additional file to implement the closure.",
+      "points": 20,
+      "visual_evidence": "Editor or terminal showing the creation of /home/ga/SUMO_Scenarios/bologna_acosta/road_closure.add.xml containing <rerouter> tags, the closed edge, and a time interval of 0 to 86400s."
+    },
+    {
+      "id": "modify_sumocfg_file",
+      "description": "Modify or create the SUMO configuration file to include the rerouter, ignore route errors, and output tripinfo.",
+      "points": 20,
+      "visual_evidence": "Editor or terminal showing /home/ga/SUMO_Scenarios/bologna_acosta/closure_run.sumocfg being configured with the additional file (road_closure.add.xml), an option to ignore route errors (e.g., <ignore-route-errors value=\"true\"/>), and tripinfo output set to closure_tripinfo.xml."
+    },
+    {
+      "id": "run_headless_simulation",
+      "description": "Execute the headless SUMO simulation.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the 'sumo' command (not sumo-gui) using the closure_run.sumocfg file, along with the simulation progress or completion output."
+    },
+    {
+      "id": "generate_summary_report",
+      "description": "Generate a summary report comparing baseline and closure simulation results.",
+      "points": 30,
+      "visual_evidence": "Terminal or editor showing the creation and content of /home/ga/SUMO_Output/closure_report.txt, containing colon-separated key-value pairs for closed_edge, baseline_trips, closure_trips, baseline_avg_duration, closure_avg_duration, duration_change_seconds, and duration_change_percent."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Ensure the agent actually ran the SUMO simulation to generate the tripinfo.",
+      "visual_evidence": "Look for terminal output of the SUMO simulation running and completing, rather than the agent just creating a fake closure_tripinfo.xml file."
+    },
+    {
+      "id": "calculated_metrics",
+      "description": "Ensure the agent calculated the metrics from the XML files rather than hallucinating them.",
+      "visual_evidence": "Look for a python script, shell script, or terminal commands (like grep, awk, or python -c) used to parse baseline_tripinfo.xml and closure_tripinfo.xml to compute trip counts and average durations."
+    },
+    {
+      "id": "no_gui_used",
+      "description": "Ensure the agent ran SUMO in headless mode as requested.",
+      "visual_evidence": "The command used should be 'sumo', not 'sumo-gui'. No SUMO graphical interface windows should be visible in the screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /home/ga/SUMO_Scenarios/bologna_acosta/closure_target.txt\nRerouter file: /home/ga/SUMO_Scenarios/bologna_acosta/road_closure.add.xml\nSUMO config file: /home/ga/SUMO_Scenarios/bologna_acosta/closure_run.sumocfg\nReport file: /home/ga/SUMO_Output/closure_report.txt"
+}

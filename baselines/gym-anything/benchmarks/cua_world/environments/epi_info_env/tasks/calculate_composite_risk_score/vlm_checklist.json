@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_composite_risk_score@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Load the cleveland_heart_clean.csv dataset into Epi Info 7.",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 is open (either Classic Analysis or Visual Dashboard) and the dataset 'cleveland_heart_clean.csv' is successfully loaded, often indicated by a 'READ' command in the log or a record count of 303."
+    },
+    {
+      "id": "initialize_risk_score",
+      "description": "Create and initialize the 'RiskScore' variable to 0.",
+      "points": 15,
+      "visual_evidence": "A 'DEFINE' command for 'RiskScore' and an 'ASSIGN RiskScore = 0' command (or equivalent variable creation dialog/script) is visible in the Epi Info interface."
+    },
+    {
+      "id": "apply_age_logic",
+      "description": "Implement the risk score logic for Age (add 2 if >= 60, else add 1 if >= 45).",
+      "points": 20,
+      "visual_evidence": "IF statements or ASSIGN commands modifying 'RiskScore' based on the 'Age' variable (e.g., IF Age >= 60 THEN ASSIGN RiskScore = RiskScore + 2) are visible in the command log or script editor."
+    },
+    {
+      "id": "apply_other_factors_logic",
+      "description": "Implement the risk score logic for Sex, Cholesterol, and SysBP.",
+      "points": 25,
+      "visual_evidence": "IF statements or ASSIGN commands modifying 'RiskScore' based on 'Sex = 1', 'Cholesterol >= 240', and 'SysBP >= 140' (adding 1 point for each) are visible in the command log or script editor."
+    },
+    {
+      "id": "export_results",
+      "description": "Export the resulting table with PatientID and RiskScore to patient_risk_scores.csv.",
+      "points": 30,
+      "visual_evidence": "A 'WRITE' or export command targeting 'C:\\Users\\Docker\\Documents\\TaskData\\patient_risk_scores.csv' is visible in Epi Info, or an export dialog shows the correct file path and selected variables (PatientID, RiskScore)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info",
+      "description": "The agent used Epi Info 7 to perform the data manipulation and calculations.",
+      "visual_evidence": "The screenshots show interaction with the Epi Info 7 GUI (Classic Analysis or Visual Dashboard), not a Python script, Excel, or terminal commands."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not manually create or edit the output CSV file using a text editor.",
+      "visual_evidence": "There are no text editors (like Notepad) open with the contents of patient_risk_scores.csv."
+    },
+    {
+      "id": "genuine_logic_execution",
+      "description": "The agent actually executed the logic commands in Epi Info rather than just typing them without running.",
+      "visual_evidence": "The command log shows the commands were executed successfully without syntax errors, and the output file was generated as a result of the Epi Info export process."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 303 patient records. The calculated RiskScore should range from 0 to 5 points. Age ranges from 29-77, Cholesterol from 126-564, and SysBP from 94-200. If the VLM sees a record count after loading or exporting, it should be exactly 303."
+}

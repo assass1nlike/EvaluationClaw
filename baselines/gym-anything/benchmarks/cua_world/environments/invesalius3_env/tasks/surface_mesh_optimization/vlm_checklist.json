@@ -1,0 +1,59 @@
+{
+  "task_id": "surface_mesh_optimization@1",
+  "task_completion": [
+    {
+      "id": "create_bone_segmentation",
+      "description": "Verify that a bone segmentation mask is created from the CT slices.",
+      "points": 10,
+      "visual_evidence": "InVesalius 3 GUI showing the 2D slice views with a colored mask (e.g., green) highlighting the bone areas, typically with a 'Bone' threshold preset selected in the segmentation panel."
+    },
+    {
+      "id": "generate_3d_mesh",
+      "description": "Verify that a 3D surface mesh of the skull is generated.",
+      "points": 10,
+      "visual_evidence": "A 3D model of a skull is clearly visible in the 3D viewer pane (usually the bottom-right quadrant) of the InVesalius 3 interface."
+    },
+    {
+      "id": "apply_smoothing",
+      "description": "Verify that smoothing is applied to the mesh with at least 15 iterations.",
+      "points": 20,
+      "visual_evidence": "A dialog or panel in InVesalius 3 (such as 'Surface properties', 'Advanced options', or 'Create surface') showing the smoothing iterations parameter explicitly set to 15 or higher."
+    },
+    {
+      "id": "decimate_mesh",
+      "description": "Verify that the mesh is decimated to fewer than 500,000 triangles.",
+      "points": 20,
+      "visual_evidence": "A decimation, simplification, or surface properties dialog showing the target number of triangles/polygons set to a value less than 500,000, or a mesh properties window confirming the current triangle count is below 500,000."
+    },
+    {
+      "id": "export_meshes",
+      "description": "Verify that the optimized mesh is exported as both PLY and Binary STL files.",
+      "points": 20,
+      "visual_evidence": "'Export 3D surface' dialogs in InVesalius 3 showing the files being saved as 'skull_optimized.ply' and 'skull_optimized.stl' to the /home/ga/Documents/ directory, or a file manager window displaying these newly created files."
+    },
+    {
+      "id": "save_project",
+      "description": "Verify that the InVesalius project is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "A 'Save Project' dialog showing 'mesh_optimization.inv3' being saved to /home/ga/Documents/, or the main InVesalius window title bar updating to display 'mesh_optimization.inv3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_processing",
+      "description": "Verify the agent used the InVesalius 3 GUI for the workflow rather than terminal shortcuts.",
+      "visual_evidence": "Screenshots should show active interaction with the InVesalius 3 application menus, buttons, and dialogs for segmentation, meshing, and exporting, rather than terminal commands executing scripts."
+    },
+    {
+      "id": "genuine_dicom_processing",
+      "description": "Verify the 3D mesh is genuinely generated from the loaded DICOM series.",
+      "visual_evidence": "The 3D skull mesh should match the anatomy seen in the 2D CT slices in the InVesalius viewer, indicating it was generated from the data and not imported as an external pre-made 3D model."
+    },
+    {
+      "id": "valid_file_creation",
+      "description": "Verify that output files were exported properly from the software and not faked.",
+      "visual_evidence": "Files must be created via InVesalius 'Export' and 'Save' dialogs. There should be no evidence of the agent using terminal commands like 'touch' or text editors to create fake empty files named .ply, .stl, or .inv3."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses a real CT Cranium DICOM dataset (108 slices). The target output files must be saved exactly as: /home/ga/Documents/skull_optimized.ply, /home/ga/Documents/skull_optimized.stl, and /home/ga/Documents/mesh_optimization.inv3. The final mesh must be decimated to have fewer than 500,000 triangles (but more than 1,000 to ensure it is not empty). Smoothing must be applied with at least 15 iterations."
+}

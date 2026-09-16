@@ -1,0 +1,35 @@
+{
+  "id": "hazmat_emergency_response@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "A tanker truck carrying Chlorine (UN 1017) has been involved in a highway collision with a visible gas leak. Using the incident details in ~/Desktop/hazmat_incident_report.txt and the CAMEO Chemicals database (https://cameochemicals.noaa.gov/), document the Emergency Response Guide (ERG) information for Chlorine, including the guide number, initial isolation distances for a LARGE spill, protective action distances, firefighting procedures, required PPE, and first aid measures. Save the findings to ~/Documents/chlorine_emergency_response.txt.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "emergency-response",
+    "erg",
+    "chlorine",
+    "hazmat",
+    "isolation-distance"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hazmat_emergency_response/setup_task.sh"
+  },
+  "metadata": {
+    "chemical": "Chlorine",
+    "un_number": "1017",
+    "expected_erg_guide": "124",
+    "output_file": "/home/ga/Documents/chlorine_emergency_response.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hazmat_emergency_response"
+    }
+  }
+}

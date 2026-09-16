@@ -1,0 +1,35 @@
+{
+  "id": "web_channel_performance@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a search marketing strategist analyzing online channel performance for a client. Using the data in C:\\Users\\Docker\\Desktop\\PowerBITasks\\website_analytics.csv, create a channel performance report. Ensure the Revenue, Sessions, and Bounce Rate columns are correctly formatted as numeric values. The report must include a DAX measure named Revenue_Per_Session (Total Revenue divided by Total Sessions) and four visuals: a Line Chart showing Revenue by Month of the year with Year as the legend; a Table showing Source / Medium sorted by Revenue descending; a Card displaying the Revenue_Per_Session measure; and a Slicer for the Year column. Save the finished report to C:\\Users\\Docker\\Desktop\\Channel_Performance.pbix. Login: Docker.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\web_channel_performance\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\web_channel_performance\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Channel_Performance.pbix",
+    "required_measures": [
+      "Revenue_Per_Session"
+    ],
+    "required_visuals": [
+      "lineChart",
+      "tableEx",
+      "card",
+      "slicer"
+    ],
+    "source_data": "website_analytics.csv",
+    "data_challenge": "comma-formatted numbers and percentage strings requiring Power Query type conversion"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_web_channel_performance"
+    }
+  }
+}

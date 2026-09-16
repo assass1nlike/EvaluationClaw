@@ -1,0 +1,33 @@
+{
+  "id": "create_fixed_asset@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Create a fixed asset record for a 'John Deere 6120M' tractor purchase with a gross amount of 78,500.00 EUR. Use the Linear (Straight-line) depreciation method starting 2025-01-15 for a duration of 7 years (84 months). Assign the following accounts: Asset (2154xx - Material/Tooling), Allocation (28154xx - Depreciation of material), and Expenses (68112xx - Depreciation charges).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_fixed_asset/setup_task.sh",
+    "post_task": "/workspace/tasks/create_fixed_asset/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "John Deere 6120M",
+    "expected_amount": 78500.0,
+    "expected_method": "linear",
+    "expected_start_date": "2025-01-15",
+    "expected_duration_years": 7,
+    "expected_duration_months": 84,
+    "target_asset_account_prefix": "2154",
+    "target_allocation_account_prefix": "28154",
+    "target_expense_account_prefix": "68112"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_fixed_asset"
+    }
+  }
+}

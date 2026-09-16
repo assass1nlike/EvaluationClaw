@@ -1,0 +1,65 @@
+{
+  "task_id": "content_classification_audit@1",
+  "task_completion": [
+    {
+      "id": "folders_created",
+      "description": "Verify that the required classification folders have been created.",
+      "points": 10,
+      "visual_evidence": "Look at the folder pane (usually on the left side) of the email client. There should be folders explicitly named 'Security-Review' and 'General-Cleared'."
+    },
+    {
+      "id": "inbox_cleared",
+      "description": "Verify that the inbox has been substantially cleared of the initial 50 emails.",
+      "points": 10,
+      "visual_evidence": "Look at the Inbox folder. The message list should be mostly empty, showing fewer than 10 emails remaining."
+    },
+    {
+      "id": "security_folder_populated",
+      "description": "Verify that security-related emails were moved to the 'Security-Review' folder.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Security-Review' folder contents. It should contain multiple emails (ideally 8 or more). The subjects of these emails should relate to spam, security, filters, vulnerabilities, etc."
+    },
+    {
+      "id": "general_folder_populated",
+      "description": "Verify that non-security emails were moved to the 'General-Cleared' folder.",
+      "points": 20,
+      "visual_evidence": "Look at the 'General-Cleared' folder contents. It should contain a large number of emails (ideally 12 or more) that do not appear to be security-related."
+    },
+    {
+      "id": "report_metadata",
+      "description": "Verify the report email is addressed to the correct recipient with the correct subject.",
+      "points": 10,
+      "visual_evidence": "Look for an email compose window or an email in the Sent folder. The 'To' field must be 'ciso@company.org' and the 'Subject' must be exactly 'Inbox Classification Audit Report'."
+    },
+    {
+      "id": "report_counts",
+      "description": "Verify the report email body contains the counts of emails in each category.",
+      "points": 15,
+      "visual_evidence": "Read the body of the report email. It must contain at least two distinct numerical values representing the number of emails placed into the 'Security-Review' and 'General-Cleared' folders."
+    },
+    {
+      "id": "report_summary",
+      "description": "Verify the report email body contains a brief summary of the identified security topics.",
+      "points": 15,
+      "visual_evidence": "Read the body of the report email. It must contain a summary that mentions at least two distinct security keywords (e.g., spam, filter, vulnerability, exploit, phishing, blocklist)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_client_used",
+      "description": "Verify the agent used a graphical email client rather than terminal commands to complete the task.",
+      "visual_evidence": "Screenshots should show a GUI email application (like Thunderbird or Evolution) being used to move emails and compose the report, not a terminal window executing commands like 'mv' or 'mail'."
+    },
+    {
+      "id": "genuine_email_interaction",
+      "description": "Verify the emails moved are the actual emails from the inbox.",
+      "visual_evidence": "The emails in the 'Security-Review' and 'General-Cleared' folders should have realistic senders, dates, and subjects, indicating they were moved from the original inbox rather than being newly created dummy files."
+    },
+    {
+      "id": "manual_report_composition",
+      "description": "Verify the report was composed in the email client.",
+      "visual_evidence": "The report should be visible in the email client's compose window or Sent folder, not just as a text file generated in a text editor or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must create exactly two folders: 'Security-Review' and 'General-Cleared'. For full credit, 'Security-Review' must contain at least 8 emails, and 'General-Cleared' must contain at least 12 emails. The inbox must have fewer than 10 emails remaining. The report must be sent to 'ciso@company.org' with the subject 'Inbox Classification Audit Report'. The report body must contain at least two distinct numerical values (representing the counts) and at least two distinct security keywords from this list: security, spam, filter, vulnerability, exploit, phishing, bayesian, blocklist, classification, audit, compliance, virus, malware, firewall."
+}

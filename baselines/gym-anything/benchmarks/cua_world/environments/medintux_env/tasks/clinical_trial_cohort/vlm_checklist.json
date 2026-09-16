@@ -1,0 +1,59 @@
+{
+  "task_id": "clinical_trial_cohort@1",
+  "task_completion": [
+    {
+      "id": "csv_file_created",
+      "description": "The CSV file for the cohort is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A file named 'cohort_dm2_oral_2024.csv' is visible in the /home/ga/Documents/ directory via a file manager or terminal list command."
+    },
+    {
+      "id": "csv_required_columns",
+      "description": "The CSV file contains all the required columns.",
+      "points": 15,
+      "visual_evidence": "The CSV file is open in a text editor or spreadsheet viewer, and the header row exactly matches: 'patient_guid', 'nom', 'prenom', 'date_naissance', 'age', 'sexe', 'eligibility', and 'exclusion_reason'."
+    },
+    {
+      "id": "csv_eligibility_content",
+      "description": "The CSV file contains patient data with correctly evaluated eligibility based on age.",
+      "points": 20,
+      "visual_evidence": "The CSV contents show patient rows where the 'age' column is calculated, 'eligibility' is indicated (e.g., true/false or yes/no), and 'exclusion_reason' is provided for patients outside the 30-75 age range or missing required data."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "The summary report text file is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A file named 'cohort_summary_dm2_oral_2024.txt' is visible in the /home/ga/Documents/ directory."
+    },
+    {
+      "id": "summary_protocol_and_counts",
+      "description": "The summary report includes the protocol ID and the required patient counts.",
+      "points": 20,
+      "visual_evidence": "The summary text file is open and displays the protocol ID 'DM2-ORAL-2024' along with numerical counts for 'total', 'eligible', and 'excluded' patients."
+    },
+    {
+      "id": "summary_database_info",
+      "description": "The summary report includes the list of tables from DrTuxTest and diabetes codes from CIM10Test.",
+      "points": 25,
+      "visual_evidence": "The summary text file shows a list of database tables (extracted from DrTuxTest) and a list of CIM10 codes starting with E10, E11, E12, E13, or E14 (extracted from CIM10Test)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent actually queried the MedinTux databases to extract the information.",
+      "visual_evidence": "Screenshots show the agent using a database client (e.g., DBeaver, MySQL CLI) or running a script (e.g., Python) containing SQL queries targeting the 'DrTuxTest' and 'CIM10Test' databases."
+    },
+    {
+      "id": "no_hardcoded_data_generation",
+      "description": "The agent did not simply hardcode the final output files without performing the extraction.",
+      "visual_evidence": "The terminal or script history does not show massive 'echo' or 'cat' commands that directly write the final patient data or table lists into the files from a pre-computed string."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "The output files are saved in the correct directory, not just printed to the screen or saved in a temporary folder.",
+      "visual_evidence": "The file paths explicitly show '/home/ga/Documents/' when the files are being saved, viewed, or listed."
+    }
+  ],
+  "privileged_info_for_vlm": "Protocol ID: DM2-ORAL-2024. CSV Path: /home/ga/Documents/cohort_dm2_oral_2024.csv. Summary Path: /home/ga/Documents/cohort_summary_dm2_oral_2024.txt. Required CSV columns: patient_guid, nom, prenom, date_naissance, age, sexe, eligibility, exclusion_reason. Eligibility criteria: Age 30 to 75 inclusive. Summary must contain protocol ID, counts (total, eligible, excluded), DrTuxTest tables, and CIM10Test diabetes codes (E10-E14)."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "create_shift_schedule@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Create a new shift schedule in the Vicidial Admin interface (Username: 6666, Password: andromeda) to enforce agent working hours. The shift must be active with the ID 'WKDAY9TO5', name 'Weekday Daytime 9-5', start time '0900', length '8.00', and apply only to Monday through Friday.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_shift_schedule/setup_task.sh",
+    "post_task": "/workspace/tasks/create_shift_schedule/export_result.sh"
+  },
+  "metadata": {
+    "target_shift_id": "WKDAY9TO5",
+    "expected_name": "Weekday Daytime 9-5",
+    "expected_start": "0900",
+    "expected_length": "8.00",
+    "expected_weekdays_count": 5,
+    "forbidden_weekdays": [
+      "0",
+      "6"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_shift_schedule"
+    }
+  }
+}

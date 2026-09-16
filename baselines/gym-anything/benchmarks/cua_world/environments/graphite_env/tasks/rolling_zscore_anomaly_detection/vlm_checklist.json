@@ -1,0 +1,59 @@
+{
+  "task_id": "rolling_zscore_anomaly_detection@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created_and_named",
+      "description": "Verify the creation of a dashboard named 'Statistical Traffic Z-Score'",
+      "points": 10,
+      "visual_evidence": "The Graphite web interface should display a dashboard with the title 'Statistical Traffic Z-Score' at the top."
+    },
+    {
+      "id": "traffic_baseline_raw_metric",
+      "description": "Verify the 'Traffic Baseline' graph includes the raw metric",
+      "points": 10,
+      "visual_evidence": "A graph titled 'Traffic Baseline' is visible, and its legend or target list includes the raw metric 'servers.web_traffic.speed_sensor_1'."
+    },
+    {
+      "id": "traffic_baseline_moving_average",
+      "description": "Verify the 'Traffic Baseline' graph includes the 1-hour moving average",
+      "points": 15,
+      "visual_evidence": "The 'Traffic Baseline' graph's legend or target list includes the function 'movingAverage(servers.web_traffic.speed_sensor_1, '1h')'."
+    },
+    {
+      "id": "traffic_volatility_graph",
+      "description": "Verify the 'Traffic Volatility' graph displays the 1-hour rolling standard deviation",
+      "points": 15,
+      "visual_evidence": "A graph titled 'Traffic Volatility' is visible, and its legend or target list shows the function 'movingStdDev(servers.web_traffic.speed_sensor_1, '1h')'."
+    },
+    {
+      "id": "live_zscore_computation",
+      "description": "Verify the 'Live Z-Score' graph computes the Z-score using Graphite functions",
+      "points": 30,
+      "visual_evidence": "A graph titled 'Live Z-Score' is visible. Its target list or legend shows a nested function computing (X - \u03bc) / \u03c3, which typically looks like 'divide(diffSeries(servers.web_traffic.speed_sensor_1, movingAverage(...)), movingStdDev(...))'."
+    },
+    {
+      "id": "live_zscore_thresholds",
+      "description": "Verify the 'Live Z-Score' graph includes +3 and -3 Sigma reference lines",
+      "points": 20,
+      "visual_evidence": "The 'Live Z-Score' graph displays horizontal reference lines at the y-axis values of 3 and -3. The legend should show these were created using the threshold() function, labeled '+3 Sigma' and '-3 Sigma'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Graphite web GUI to create the dashboard",
+      "visual_evidence": "Screenshots should show the Graphite web interface (browser) being actively used to add graphs and configure targets, rather than a terminal or text editor modifying JSON files directly."
+    },
+    {
+      "id": "genuine_data_rendering",
+      "description": "Verify the graphs are actually rendering data",
+      "visual_evidence": "The graphs should display actual plotted lines/curves corresponding to the traffic data, indicating a genuine connection to the metric feed, not just empty graph canvases."
+    },
+    {
+      "id": "no_text_spoofing",
+      "description": "Verify the agent did not just type the expected answers into a text file",
+      "visual_evidence": "The outputs must be within the Graphite dashboard UI. There should be no text editors open just displaying the task requirements or expected function strings as a shortcut."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Statistical Traffic Z-Score'. The exact metric to be used across all graphs is 'servers.web_traffic.speed_sensor_1'. The Z-score computation in Graphite requires combining functions to achieve (X - \u03bc) / \u03c3, typically using divide(), diffSeries(), movingAverage(), and movingStdDev()."
+}

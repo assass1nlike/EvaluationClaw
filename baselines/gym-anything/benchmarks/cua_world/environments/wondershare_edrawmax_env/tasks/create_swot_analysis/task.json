@@ -1,0 +1,55 @@
+{
+  "id": "create_swot_analysis@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a SWOT analysis diagram in EdrawMax for a 'Cloud Database Migration' project. The diagram must be titled 'Cloud Database Migration SWOT Analysis' and feature a 2x2 matrix with quadrants for STRENGTHS, WEAKNESSES, OPPORTUNITIES, and THREATS, using different background colors for each. Include the following content in the respective quadrants: STRENGTHS (70% cost reduction, Improved scalability, Open-source community, AWS integration); WEAKNESSES (Lack of PostgreSQL expertise, 18-month timeline, Data loss risk, Limited vendor support); OPPORTUNITIES (Leverage AWS Aurora, Modernize stored procedures, Multi-region deployment, Reduce vendor lock-in); and THREATS (Compliance gaps, App compatibility issues, Competitor advantage, Staff attrition). Save the editable diagram to /home/ga/Documents/swot_cloud_migration.eddx and export it as a PDF to /home/ga/Documents/swot_cloud_migration.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_swot_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/create_swot_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/swot_cloud_migration.eddx",
+    "expected_pdf_path": "/home/ga/Documents/swot_cloud_migration.pdf",
+    "required_content": {
+      "title": [
+        "Cloud Database Migration"
+      ],
+      "strengths": [
+        "cost",
+        "scalability",
+        "community",
+        "integration"
+      ],
+      "weaknesses": [
+        "expertise",
+        "timeline",
+        "loss",
+        "support"
+      ],
+      "opportunities": [
+        "Aurora",
+        "modernize",
+        "region",
+        "lock-in"
+      ],
+      "threats": [
+        "compliance",
+        "compatibility",
+        "competitor",
+        "attrition"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_swot_analysis"
+    }
+  }
+}

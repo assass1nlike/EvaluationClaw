@@ -1,0 +1,33 @@
+{
+  "id": "motor_cable_sizing_calculation@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "You are an electrician sizing the supply cable for a new 240 V single-phase pump motor on a water treatment site. Determine the motor's line current draw and the minimum cable size for a 35-metre run with a maximum 5% voltage drop, based on the motor's nameplate specifications (3.7 kW rated output, 88% efficiency, 0.85 power factor). Record the motor current and the recommended cable size.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/motor_cable_sizing_calculation/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/motor_cable_sizing_calculation/export_result.sh"
+  },
+  "metadata": {
+    "voltage": 240,
+    "motor_output_kw": 3.7,
+    "efficiency": 0.88,
+    "power_factor": 0.85,
+    "cable_length_m": 35,
+    "voltage_drop_pct": 5,
+    "expected_input_power_w": 4204.5,
+    "expected_current_a": 20.61,
+    "tolerance_pct_current": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_motor_cable_sizing_calculation"
+    }
+  }
+}

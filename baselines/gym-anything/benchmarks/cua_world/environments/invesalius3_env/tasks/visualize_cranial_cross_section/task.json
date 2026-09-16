@@ -1,0 +1,27 @@
+{
+  "id": "visualize_cranial_cross_section@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "The CT Cranium DICOM dataset is already loaded in InVesalius. Visualize the internal bone structure of the skull (cranial diploë and sinuses) by generating a 3D surface and applying a sagittal cut to reveal the cross-section. Export a screenshot of the visualization to /home/ga/Documents/skull_cross_section.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/visualize_cranial_cross_section/setup_task.sh",
+    "post_task": "/workspace/tasks/visualize_cranial_cross_section/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/skull_cross_section.png",
+    "min_file_size_kb": 50,
+    "dicom_series": "ct_cranium"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_visualize_cranial_cross_section"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "sample_return_eei_targeting@1",
+  "task_completion": [
+    {
+      "id": "read_input_spec",
+      "description": "Read the initial Cartesian state and mass properties from the specification file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'cat ~/Desktop/stardust2_tcm_spec.txt' or a text editor open displaying the contents of the stardust2_tcm_spec.txt file."
+    },
+    {
+      "id": "create_gmat_script",
+      "description": "Create a GMAT script incorporating a DifferentialCorrector and ImpulsiveBurn.",
+      "points": 20,
+      "visual_evidence": "A text editor or GMAT GUI showing the creation of a script that defines a 'DifferentialCorrector' and an 'ImpulsiveBurn' to vary burn components."
+    },
+    {
+      "id": "configure_targeting_goals",
+      "description": "Configure the script to propagate to 120 km altitude and target the specified radius of periapsis and inclination.",
+      "points": 20,
+      "visual_evidence": "Script contents showing a 'Propagate' command stopping at an Altitude of 120 (or 120.0), and 'Achieve' commands targeting RadPer = 6418.14 and INC = 45.0."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Save the GMAT script to the required path.",
+      "points": 10,
+      "visual_evidence": "Terminal command, file manager, or editor save dialog showing the script saved exactly as '~/Documents/missions/tcm4_targeting.script'."
+    },
+    {
+      "id": "execute_gmat_script",
+      "description": "Run the GMAT script to compute the targeting maneuver.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the GMAT script via command line (e.g., 'GMAT ... tcm4_targeting.script') or the GMAT GUI actively running the mission and showing convergence/output."
+    },
+    {
+      "id": "create_results_file",
+      "description": "Write the achieved results and required DeltaV to the specified output file.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'cat ~/GMAT_output/tcm4_targeting_results.txt' or an editor showing the file containing exactly the lines 'Achieved_RadPer_km: <value>', 'Achieved_INC_deg: <value>', and 'Total_Required_DeltaV_mps: <value>' with numerical values filled in."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gmat_usage",
+      "description": "Verify the agent actually used GMAT to compute the trajectory.",
+      "visual_evidence": "Screenshots should show GMAT GUI open or GMAT CLI being executed. The agent should not use a Python script to fake the physics simulation or bypass GMAT entirely."
+    },
+    {
+      "id": "no_hardcoded_fake_values",
+      "description": "Verify the agent did not just copy the placeholder text from the prompt.",
+      "visual_evidence": "The final results file must contain actual numerical values for DeltaV, RadPer, and INC, rather than the literal string '<value>'."
+    },
+    {
+      "id": "exact_output_format",
+      "description": "Verify the output file strictly follows the requested format.",
+      "visual_evidence": "The results file should only contain the three requested lines, not a raw, unformatted dump of a GMAT report file."
+    }
+  ],
+  "privileged_info_for_vlm": "The input specification file is located at /home/ga/Desktop/stardust2_tcm_spec.txt. The GMAT script must be saved to /home/ga/Documents/missions/tcm4_targeting.script. The results must be saved to /home/ga/GMAT_output/tcm4_targeting_results.txt. The script must propagate to a stopping altitude of 120.0 km, and target a radius of periapsis of 6418.14 km and an inclination of 45.0 deg."
+}

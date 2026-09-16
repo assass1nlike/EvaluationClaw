@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_container_lifecycle_issues@1",
+  "task_completion": [
+    {
+      "id": "open_infrastructure_files",
+      "description": "Open the Dockerfile or docker-compose.yml file in a text editor.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., VS Code, nano, vim) is open showing the contents of either 'Dockerfile' or 'docker-compose.yml' from the /home/ga/Documents/docker-projects/order-processor directory."
+    },
+    {
+      "id": "implement_log_streaming_fix",
+      "description": "Modify the infrastructure files to fix the log buffering issue.",
+      "points": 20,
+      "visual_evidence": "The editor shows an environment variable like 'PYTHONUNBUFFERED=1' added to the docker-compose.yml or Dockerfile, or the python command modified to include the '-u' flag (e.g., 'python -u processor.py')."
+    },
+    {
+      "id": "implement_graceful_shutdown_fix",
+      "description": "Modify the infrastructure files to fix the container shutdown hang.",
+      "points": 30,
+      "visual_evidence": "The editor shows 'init: true' added to the service in docker-compose.yml, OR 'STOPSIGNAL SIGINT' added to the Dockerfile, OR the CMD instruction in the Dockerfile changed to the exec form (e.g., CMD [\"python\", \"processor.py\"])."
+    },
+    {
+      "id": "apply_container_changes",
+      "description": "Rebuild and restart the container to apply the infrastructure changes.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the execution of 'docker compose up -d --build', 'docker compose up --force-recreate', or similar commands, with output indicating the order-processor container is being recreated or rebuilt."
+    },
+    {
+      "id": "verify_fast_shutdown",
+      "description": "Verify that the container stops gracefully in under 3 seconds.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the execution of 'docker compose down' or 'docker stop order-processor'. The command output should ideally show a completion time of less than 3.0s (e.g., 'Stopped ... 0.4s' or similar fast execution indicators), proving the hang is resolved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_python_script_modification",
+      "description": "Ensure the legacy Python script was not modified to fix the issues.",
+      "visual_evidence": "The agent must not add signal handling (e.g., 'import signal') or manual log flushing (e.g., 'sys.stdout.flush()') to 'processor.py'. All fixes must be visible in the Dockerfile or docker-compose.yml."
+    },
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Ensure the agent actually interacted with Docker to test the changes.",
+      "visual_evidence": "The screenshots should show real terminal output from the Docker daemon or the Docker Desktop GUI reflecting the container's state, rather than just editing text files without applying them."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Ensure the changes to the infrastructure files were saved.",
+      "visual_evidence": "The text editor should not show an 'unsaved changes' indicator (like a dot on the tab in VS Code) when the agent proceeds to rebuild the container."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/Documents/docker-projects/order-processor. Container name: order-processor. Target shutdown time: < 3.0 seconds (a shutdown taking > 9.0s is considered a timeout/failure). The task strictly requires infrastructure-level fixes (modifying docker-compose.yml or Dockerfile) and forbids modifying the legacy Python script (processor.py)."
+}

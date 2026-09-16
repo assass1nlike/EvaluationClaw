@@ -1,0 +1,41 @@
+{
+  "id": "student_grade_portfolio@1",
+  "version": "1.0",
+  "env_id": "example.opensis_env@0.1",
+  "description": "You are a school counselor preparing an academic portfolio for an 11th-grade student, Brandon Lee (DOB: September 30, 2006), who is applying to college. In OpenSIS (Username: admin, Password: Admin@123), create four courses for the 11th grade: AP Statistics (STAT101, Math, 1.0 Credits), Creative Writing (WRIT101, English, 1.0 Credits), Civics (CIVIC101, Social Studies, 0.5 Credits), and Photography (PHOTO101, Arts, 0.5 Credits). For each course, record a 'Semester Final Grade' for Brandon Lee with the following scores: AP Statistics (85), Creative Writing (92), Civics (78), and Photography (96).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/student_grade_portfolio/setup_task.sh",
+    "post_task": "/workspace/tasks/student_grade_portfolio/export_result.sh"
+  },
+  "metadata": {
+    "target_student_first": "Brandon",
+    "target_student_last": "Lee",
+    "target_dob": "2006-09-30",
+    "courses": [
+      "STAT101",
+      "WRIT101",
+      "CIVIC101",
+      "PHOTO101"
+    ],
+    "assignment_name": "Semester Final Grade",
+    "expected_grades": {
+      "STAT101": 85,
+      "WRIT101": 92,
+      "CIVIC101": 78,
+      "PHOTO101": 96
+    },
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_student_grade_portfolio"
+    }
+  }
+}

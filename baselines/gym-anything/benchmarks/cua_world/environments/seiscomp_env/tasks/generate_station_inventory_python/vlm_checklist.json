@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_station_inventory_python@1",
+  "task_completion": [
+    {
+      "id": "python_script_imports",
+      "description": "Agent creates a Python script and imports the required SeisComP APIs.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE is open showing a Python script with import statements for 'seiscomp.datamodel' and 'seiscomp.io'."
+    },
+    {
+      "id": "script_network_station_data",
+      "description": "Python script includes the correct Network, Station, and coordinate data.",
+      "points": 15,
+      "visual_evidence": "The Python code contains the strings 'TR' (Network) and 'RAPID' (Station), along with the float values 37.5 (Latitude), 137.2 (Longitude), and 100.0 (Elevation)."
+    },
+    {
+      "id": "script_stream_data",
+      "description": "Python script includes the correct SensorLocation, Stream, and sample rate data.",
+      "points": 15,
+      "visual_evidence": "The Python code contains the strings '00' (SensorLocation) and 'BHZ' (Stream), along with the value 20.0 (Sample Rate) and the start time '2024-01-01T00:00:00Z'."
+    },
+    {
+      "id": "script_db_connection",
+      "description": "Python script includes the database connection string for importing.",
+      "points": 15,
+      "visual_evidence": "The Python code contains the exact database URI string: 'mysql://sysop:sysop@localhost/seiscomp'."
+    },
+    {
+      "id": "scml_file_generated",
+      "description": "The SCML file is successfully generated at the correct path.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing the execution of the Python script and evidence that '/home/ga/rapid_station.scml' was created (e.g., via 'ls', 'cat', or file explorer)."
+    },
+    {
+      "id": "db_import_success",
+      "description": "The Python script executes successfully to import the inventory into the database.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the Python script running without throwing database connection or API errors, or a subsequent database/SeisComP query verifying the 'RAPID' station exists in the system."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_used_for_xml",
+      "description": "Verify the SCML file was generated programmatically via Python, not written manually.",
+      "visual_evidence": "The agent should not be seen manually typing XML tags (<seiscomp>, <network>, <station>) into a text editor. The file must be the output of the Python script."
+    },
+    {
+      "id": "script_used_for_db",
+      "description": "Verify the database import was handled by the Python script using SeisComP APIs.",
+      "visual_evidence": "The agent should not be seen opening the MySQL CLI and manually typing SQL 'INSERT' commands to add the station data."
+    },
+    {
+      "id": "actual_execution",
+      "description": "Verify the Python script was actually executed.",
+      "visual_evidence": "The terminal must show the command used to run the script (e.g., 'python3 script.py') and its completion, rather than just having the code open in an editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file path is /home/ga/rapid_station.scml. The inventory must contain Network 'TR', Station 'RAPID', Latitude 37.5, Longitude 137.2, Stream 'BHZ', and Sample Rate 20. The script must connect to mysql://sysop:sysop@localhost/seiscomp."
+}

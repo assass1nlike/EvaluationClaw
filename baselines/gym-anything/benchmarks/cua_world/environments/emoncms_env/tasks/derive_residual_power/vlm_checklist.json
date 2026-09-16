@@ -1,0 +1,53 @@
+{
+  "task_id": "derive_residual_power@1",
+  "task_completion": [
+    {
+      "id": "main_power_input_selected",
+      "description": "The agent accessed the input processing configuration for the 'main_power' input.",
+      "points": 10,
+      "visual_evidence": "The Emoncms Input configuration screen is open, showing the process list specifically for the 'main_power' input."
+    },
+    {
+      "id": "existing_log_to_feed_preserved",
+      "description": "The existing 'Log to feed' process for the main grid power is preserved at the top of the process list.",
+      "points": 20,
+      "visual_evidence": "The first item (Process 1) in the input processing list is 'Log to feed' pointing to the 'main_power' feed."
+    },
+    {
+      "id": "subtract_ev_charger",
+      "description": "A process is added to subtract the EV charger power.",
+      "points": 20,
+      "visual_evidence": "A process in the list (e.g., '- input') is configured to subtract the 'ev_charger' input."
+    },
+    {
+      "id": "subtract_heat_pump",
+      "description": "A process is added to subtract the heat pump power.",
+      "points": 20,
+      "visual_evidence": "A process in the list (e.g., '- input') is configured to subtract the 'heat_pump' input."
+    },
+    {
+      "id": "log_residual_power",
+      "description": "The final calculated residual power is logged to a new feed named 'residual_power'.",
+      "points": 30,
+      "visual_evidence": "The final process in the list is 'Log to feed' pointing to a feed named 'residual_power'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Emoncms web interface to configure the inputs.",
+      "visual_evidence": "Screenshots show the Emoncms web UI in a browser, not terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_process_configuration",
+      "description": "The input processes were configured using the actual Emoncms dropdowns and input fields.",
+      "visual_evidence": "The process list appears as standard Emoncms UI elements (tables with process names, arguments, and actions) rather than text pasted into a document."
+    },
+    {
+      "id": "no_html_tampering",
+      "description": "The results appear to be from genuine software interaction without inspecting/modifying HTML.",
+      "visual_evidence": "No browser developer tools are open to manually edit the DOM to fake the process list."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring the input processing for the 'main_power' input in Emoncms. The correct sequence of processes should be: 1. 'Log to feed' to 'main_power' (this must be preserved as the first step), 2. '- input' (subtract input) for 'ev_charger', 3. '- input' (subtract input) for 'heat_pump', 4. 'Log to feed' to a new feed named 'residual_power'. The input names are exactly 'main_power', 'ev_charger', and 'heat_pump'."
+}

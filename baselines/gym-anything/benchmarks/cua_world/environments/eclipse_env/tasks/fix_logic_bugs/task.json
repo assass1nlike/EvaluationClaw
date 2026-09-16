@@ -1,0 +1,31 @@
+{
+  "id": "fix_logic_bugs@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Fix three distinct logic errors in the 'EcommerceBackend' project located at ~/eclipse-workspace/EcommerceBackend/ to ensure all unit tests in OrderServiceTest.java pass. The OrderService class requires the following corrections: ensure orders over $500 receive a 5% discount, orders of exactly $100.00 receive free shipping, and tax for 'NJ' (New Jersey) is calculated correctly. Do not modify the test file OrderServiceTest.java; all fixes must be implemented within the service class.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_logic_bugs/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_logic_bugs/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/EcommerceBackend",
+    "hidden_tests_dir": "/var/lib/task_hidden/tests",
+    "bug_types": [
+      "integer_division",
+      "boundary_condition",
+      "switch_fallthrough"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_logic_bugs"
+    }
+  }
+}

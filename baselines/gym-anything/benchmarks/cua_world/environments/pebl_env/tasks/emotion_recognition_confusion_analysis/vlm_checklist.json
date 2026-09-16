@@ -1,0 +1,53 @@
+{
+  "task_id": "emotion_recognition_confusion_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Read the emotion recognition CSV data.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a script (e.g., Python/pandas) or spreadsheet application opening '~/pebl/data/emotion_recognition_data.csv'."
+    },
+    {
+      "id": "calculate_accuracies",
+      "description": "Calculate individual overall and emotion-specific accuracies.",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet formulas computing the overall accuracy (correct responses / total trials) and emotion-specific accuracy for each participant."
+    },
+    {
+      "id": "apply_exclusion_rules",
+      "description": "Apply clinical exclusion criteria to identify invalid participants.",
+      "points": 20,
+      "visual_evidence": "Logic in the script or spreadsheet explicitly checking for overall accuracy < 0.25 OR (Fear accuracy < 0.10 AND non-Fear accuracy > 0.70)."
+    },
+    {
+      "id": "compute_confusion_matrix",
+      "description": "Compute a normalized group confusion matrix for valid participants only.",
+      "points": 20,
+      "visual_evidence": "Code calculating a cross-tabulation of 'true_emotion' vs 'response_emotion', filtering out the excluded participants, and normalizing the rows so probabilities sum to 1.0."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the results to the specified JSON file with the correct structure.",
+      "points": 30,
+      "visual_evidence": "A script writing to or a file explorer/editor showing '~/pebl/analysis/emotion_report.json'. The file must contain a 'participants' list (with 'excluded' and 'reason' keys for excluded ones) and a 'group_confusion_matrix' object."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_exclusions",
+      "description": "The agent must dynamically apply the exclusion rules rather than hardcoding the known anomaly participant IDs.",
+      "visual_evidence": "The script or formulas should use mathematical conditions (< 0.25, < 0.10, > 0.70) to filter participants. Look for hardcoded strings like 'sub-BOT' or 'sub-AMY' which indicate cheating."
+    },
+    {
+      "id": "genuine_computation",
+      "description": "The agent must compute the confusion matrix and accuracies using a script or data analysis tool.",
+      "visual_evidence": "Look for a Python script, R script, or spreadsheet performing actual aggregations (e.g., groupby, crosstab). The agent should not manually type out a fabricated JSON file."
+    },
+    {
+      "id": "programmatic_json_generation",
+      "description": "The JSON file should be generated programmatically to ensure exact structural compliance.",
+      "visual_evidence": "Look for JSON serialization commands (e.g., json.dump in Python) rather than manual text editing of the output file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 25 valid participants and 2 anomalies. The anomalies that must be excluded by the rules are 'sub-BOT' (Random Responder) and 'sub-AMY' (Amygdala Deficit). The final output must be saved exactly to '/home/ga/pebl/analysis/emotion_report.json'."
+}

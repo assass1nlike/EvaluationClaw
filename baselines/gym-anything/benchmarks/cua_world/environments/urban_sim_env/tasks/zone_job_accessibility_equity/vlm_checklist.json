@@ -1,0 +1,53 @@
+{
+  "task_id": "zone_job_accessibility_equity@1",
+  "task_completion": [
+    {
+      "id": "create_notebook",
+      "description": "Create a Jupyter notebook at the specified path.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook or JupyterLab interface is open with the file path '/home/ga/urbansim_projects/notebooks/job_accessibility_equity.ipynb' visible in the tab, file explorer, or URL."
+    },
+    {
+      "id": "compute_threshold",
+      "description": "Load the sanfran_public.h5 dataset and calculate the 30th percentile household income.",
+      "points": 15,
+      "visual_evidence": "Code cells showing pandas or h5py reading 'sanfran_public.h5' and calculating the 30th percentile (e.g., using .quantile(0.3)) of household income."
+    },
+    {
+      "id": "compute_zone_metrics",
+      "description": "Link jobs to zones via buildings and parcels, and compute the required zone-level metrics including the equity gap score.",
+      "points": 25,
+      "visual_evidence": "Code cells showing merges/joins between jobs, buildings, parcels, and zones, followed by aggregations for total jobs/households, and the specific equity gap score formula: (1 - low_income_share) * jobs_per_household."
+    },
+    {
+      "id": "save_csv_output",
+      "description": "Save the computed metrics to zone_accessibility.csv with the required columns.",
+      "points": 25,
+      "visual_evidence": "Code cell executing .to_csv('/home/ga/urbansim_projects/output/zone_accessibility.csv') or a file explorer/terminal showing the file exists. The dataframe being saved should show columns like zone_id, total_jobs, total_households, low_income_share, and equity_gap_score."
+    },
+    {
+      "id": "generate_save_chart",
+      "description": "Create a scatter plot of low_income_share vs equity_gap_score and save it to equity_gap_chart.png.",
+      "points": 25,
+      "visual_evidence": "Code cell showing matplotlib/seaborn scatter plot creation and .savefig('/home/ga/urbansim_projects/output/equity_gap_chart.png'), or the actual chart image visible in the notebook output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "The agent actually computed the metrics using Python code rather than hardcoding expected answers.",
+      "visual_evidence": "Presence of execution outputs in the Jupyter notebook showing intermediate dataframes, row counts, or the calculated threshold (34500.0) rather than just printing a pre-written string."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent used the exact file paths requested for the notebook, CSV, and PNG files.",
+      "visual_evidence": "The exact paths '/home/ga/urbansim_projects/notebooks/job_accessibility_equity.ipynb', '/home/ga/urbansim_projects/output/zone_accessibility.csv', and '/home/ga/urbansim_projects/output/equity_gap_chart.png' are explicitly visible in the code or file explorer."
+    },
+    {
+      "id": "no_mock_data",
+      "description": "The agent processed the actual HDF5 dataset rather than creating a small mock dataframe to bypass the data processing steps.",
+      "visual_evidence": "Code reads from 'sanfran_public.h5' and does not contain pd.DataFrame({...}) with hardcoded mock data for the final output."
+    }
+  ],
+  "privileged_info_for_vlm": "The target low-income threshold (30th percentile of SF household income) exactly evaluates to $34,500.0. The database contains 345,588 households and 225,439 jobs across exactly 189 valid zones. The final CSV must contain at least 30 zones and include columns: zone_id, total_jobs, total_households, low_income_share, equity_gap_score."
+}

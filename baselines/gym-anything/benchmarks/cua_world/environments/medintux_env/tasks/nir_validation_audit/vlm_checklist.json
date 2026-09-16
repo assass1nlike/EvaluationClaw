@@ -1,0 +1,53 @@
+{
+  "task_id": "nir_validation_audit@1",
+  "task_completion": [
+    {
+      "id": "database_query",
+      "description": "The agent accessed the MySQL database and queried the patient table.",
+      "points": 10,
+      "visual_evidence": "Terminal or database client showing a MySQL connection to 'DrTuxTest' and a query selecting data from the 'fchpat' table (specifically looking at 'FchPat_NumSS')."
+    },
+    {
+      "id": "report_header_and_summary",
+      "description": "The agent created the report file with the correct header and summary counts.",
+      "points": 30,
+      "visual_evidence": "A text file at '/home/ga/nir_audit_report.txt' containing 'NIR VALIDATION AUDIT REPORT', 'Total patients audited: 8', and a SUMMARY section showing exactly VALID: 3, INVALID_FORMAT: 2, INVALID_KEY: 2, MISSING: 1."
+    },
+    {
+      "id": "valid_patients_categorized",
+      "description": "The report correctly categorizes the VALID patients in the detailed findings.",
+      "points": 20,
+      "visual_evidence": "The DETAILED FINDINGS section of the report lists AUBERT, BEAUMONT, and CHEVALIER with the 'VALID' category."
+    },
+    {
+      "id": "invalid_patients_categorized",
+      "description": "The report correctly categorizes the INVALID_FORMAT and INVALID_KEY patients.",
+      "points": 20,
+      "visual_evidence": "The DETAILED FINDINGS section lists DUFOUR and FABRE as 'INVALID_FORMAT', and GARNIER and HUBERT as 'INVALID_KEY'."
+    },
+    {
+      "id": "missing_patient_and_sorting",
+      "description": "The report correctly categorizes the MISSING patient and is sorted alphabetically by Last Name.",
+      "points": 20,
+      "visual_evidence": "The DETAILED FINDINGS section lists JOUBERT as 'MISSING', and the entire list of patients is strictly ordered alphabetically by their Last Name (Aubert, Beaumont, Chevalier, Dufour, Fabre, Garnier, Hubert, Joubert)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent extracted the data from the actual MySQL database rather than hallucinating the names.",
+      "visual_evidence": "Screenshots show the execution of SQL queries (e.g., SELECT * FROM fchpat) or a script connecting to MySQL, returning the raw patient data."
+    },
+    {
+      "id": "algorithmic_validation",
+      "description": "The agent computed the Modulo 97 validation rather than guessing or hardcoding the answers.",
+      "visual_evidence": "Presence of a script (Python, Bash, etc.) or SQL query containing the Modulo 97 calculation logic (e.g., 97 - (value % 97)) to verify the control keys."
+    },
+    {
+      "id": "no_hardcoded_report",
+      "description": "The agent did not simply echo a pre-written, hardcoded string to bypass the task.",
+      "visual_evidence": "The report generation should be the output of a data-processing script or manual transcription of computed results, not a single massive 'echo' command containing the final text without any prior computation steps."
+    }
+  ],
+  "privileged_info_for_vlm": "Report path: /home/ga/nir_audit_report.txt. Summary counts: Total patients audited: 8, VALID: 3, INVALID_FORMAT: 2, INVALID_KEY: 2, MISSING: 1. Patient categories: AUBERT (VALID), BEAUMONT (VALID), CHEVALIER (VALID), DUFOUR (INVALID_FORMAT), FABRE (INVALID_FORMAT), GARNIER (INVALID_KEY), HUBERT (INVALID_KEY), JOUBERT (MISSING). The detailed findings must be sorted alphabetically by Last Name."
+}

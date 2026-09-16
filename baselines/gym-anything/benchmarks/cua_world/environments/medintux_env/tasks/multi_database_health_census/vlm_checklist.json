@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_database_health_census@1",
+  "task_completion": [
+    {
+      "id": "db_table_and_row_counts",
+      "description": "Verify the agent queries the MySQL database for table counts and row counts across the four required databases.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent executing SQL queries (e.g., using information_schema.tables or SHOW TABLES and SELECT COUNT) to find the number of tables and rows for DrTuxTest, MedicaTuxTest, CIM10Test, and CCAMTest."
+    },
+    {
+      "id": "fchpat_schema",
+      "description": "Verify the agent queries the schema of the 'fchpat' table in the DrTuxTest database.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a query like 'DESCRIBE DrTuxTest.fchpat;' or 'SHOW COLUMNS FROM fchpat;' and the resulting output displaying column names and types."
+    },
+    {
+      "id": "unique_patients_count",
+      "description": "Verify the agent queries the total number of unique patients in the DrTuxTest database.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SQL query counting patients (e.g., 'SELECT COUNT(*) FROM DrTuxTest.fchpat;' or counting distinct patient IDs) and the resulting number."
+    },
+    {
+      "id": "largest_tables_and_codes",
+      "description": "Verify the agent queries for the 5 largest tables by row count across the system, and the total counts of CIM-10 and CCAM codes.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SQL queries sorting tables by row count with a limit of 5 (e.g., querying information_schema.tables ORDER BY table_rows DESC LIMIT 5), as well as queries counting rows/codes in the CIM10Test and CCAMTest databases."
+    },
+    {
+      "id": "save_report_file",
+      "description": "Verify the agent saves the structured report to the correct file path.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing a text editor (like nano, gedit, or vim) or terminal redirection commands saving the compiled census data to '/home/ga/Documents/medintux_data_census.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "The agent must execute actual SQL queries against the MySQL server to retrieve the data.",
+      "visual_evidence": "Look for the MySQL command-line interface or a database GUI client actively running queries and returning tabular results. The agent should not hallucinate the numbers or write a script without running it."
+    },
+    {
+      "id": "consistent_report_data",
+      "description": "The data entered into the final report must match the output of the SQL queries executed in earlier steps.",
+      "visual_evidence": "Compare the numbers and schema details visible in the final report file with the query results shown in the terminal/DB client. They should be identical."
+    },
+    {
+      "id": "file_saved_not_just_displayed",
+      "description": "The agent must actually save the file to the specified path.",
+      "visual_evidence": "Look for confirmation that the file was saved (e.g., 'Wrote X lines' in nano, a save confirmation in a GUI editor, or a successful 'cat'/'echo' redirection to /home/ga/Documents/medintux_data_census.txt)."
+    }
+  ],
+  "privileged_info_for_vlm": "The target report path is exactly /home/ga/Documents/medintux_data_census.txt. The four required databases are DrTuxTest, MedicaTuxTest, CIM10Test, and CCAMTest. The primary patient table is 'fchpat' located in DrTuxTest, which has been pre-loaded with exactly 20 test patients. The final report must be a structured text file containing at least 50 characters of content."
+}

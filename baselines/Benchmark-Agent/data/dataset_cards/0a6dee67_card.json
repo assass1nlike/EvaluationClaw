@@ -1,0 +1,74 @@
+{
+  "dataset_id": "0a6dee67",
+  "name": "Topic-Classification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for multiclass topic classification of news articles into World, Sports, Business, or Sci/Tech categories. Each sample consists of a news article snippet and an instruction to classify it, with the target category provided.",
+  "card_text": "This dataset contains 200 text samples for topic classification of news articles. Each sample includes a news article snippet (title and description) as the input context, and a prompt instructing the model to classify the article into one of four categories: World, Sports, Business, or Sci/Tech. The output is a single category label. The data is in English, sourced from news headlines and short descriptions. The task evaluates a model's ability to categorize short news texts into predefined topics based on their content. Assumptions: the dataset is balanced or at least representative of the four classes, and the classification is single-label.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "The raw_text field contains a news article snippet, typically consisting of a title and a brief description. It serves as the main input to be classified into a topic category.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt field provides explicit instructions to classify the news article into one of four categories: World, Sports, Business, or Sci/Tech. It asks for only the category name as output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.topic"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The topic field contains the ground-truth category label for the news article, such as 'Business' or 'Sci/Tech'. It is the target output the model should produce.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a news article snippet (raw_text) as context and a classification instruction prompt (prompt) as question. The target output is a single topic category (topic) from a predefined set of four classes. The context and question are combined in the input, and the answer is stored separately in the output."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Topic-Classification/annotation.json",
+    "existing_tags": {
+      "task": "topic_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

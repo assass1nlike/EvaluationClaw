@@ -1,0 +1,29 @@
+{
+  "id": "add_data_source@1",
+  "version": "1.0",
+  "env_id": "splunk_env@0.1",
+  "description": "Log in to the Splunk Enterprise web interface at http://localhost:8000 using username 'admin' and password 'SplunkAdmin1!'. Configure a new data input to monitor the file /var/log/kern.log. Set the source type to 'syslog' and use the 'system_logs' index as the target index.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_data_source/setup_task.sh",
+    "post_task": "/workspace/tasks/add_data_source/export_result.sh"
+  },
+  "metadata": {
+    "monitor_path": "/var/log/kern.log",
+    "expected_index": "system_logs",
+    "expected_sourcetype": "syslog",
+    "splunk_user": "admin",
+    "splunk_pass": "SplunkAdmin1!"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_data_source"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "create_uml_state_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a UML state machine diagram in EdrawMax modeling an e-commerce order lifecycle. The diagram must include an initial pseudo-state (filled circle), a final pseudo-state (bullseye), and the states: 'New Order', 'Pending Payment', 'Payment Confirmed', 'Processing', 'Shipped', 'In Transit', 'Delivered', 'Cancelled', and 'Refunded'. Map the transitions with the following labels: 'checkout initiated' (New Order to Pending Payment), 'payment received [amount valid]' (Pending Payment to Payment Confirmed), 'timeout [> 30 min]' (Pending Payment to Cancelled), 'inventory reserved' (Payment Confirmed to Processing), 'inventory check failed' (Payment Confirmed to Cancelled), 'package dispatched' (Processing to Shipped), 'carrier scan received' (Shipped to In Transit), 'delivery confirmed' (In Transit to Delivered), 'return approved' (Delivered to Refunded), and 'refund initiated' (Cancelled to Refunded). Ensure the initial state leads to 'New Order' and the final state is reached from 'Delivered' and 'Refunded'. Save the file as /home/ga/Diagrams/order_state_machine.eddx and export the image to /home/ga/Diagrams/order_state_machine.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_uml_state_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_uml_state_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx": "/home/ga/Diagrams/order_state_machine.eddx",
+    "expected_png": "/home/ga/Diagrams/order_state_machine.png",
+    "required_states": [
+      "New Order",
+      "Pending Payment",
+      "Payment Confirmed",
+      "Processing",
+      "Shipped",
+      "In Transit",
+      "Delivered",
+      "Cancelled",
+      "Refunded"
+    ],
+    "required_transition_keywords": [
+      "checkout",
+      "payment received",
+      "timeout",
+      "inventory",
+      "dispatched",
+      "carrier",
+      "delivery confirmed",
+      "return approved",
+      "refund initiated"
+    ],
+    "min_shapes": 11,
+    "min_connectors": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_uml_state_diagram"
+    }
+  }
+}

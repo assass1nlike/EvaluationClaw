@@ -1,0 +1,59 @@
+{
+  "task_id": "sort_and_mount_archives_by_content@1",
+  "task_completion": [
+    {
+      "id": "veracrypt_opened",
+      "description": "VeraCrypt application is opened",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt GUI window is visible on the screen, or `veracrypt` commands are being executed in the terminal."
+    },
+    {
+      "id": "financial_volume_identified",
+      "description": "The volume containing financial records is identified",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent inspecting the contents of a mounted volume (via file manager or terminal) and finding 'financial_records.csv'. The VLM should note which archive (archive_A.hc, archive_B.hc, or archive_C.hc) this file belongs to."
+    },
+    {
+      "id": "legal_volume_identified",
+      "description": "The volume containing the legal contract is identified",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent inspecting the contents of a mounted volume and finding 'legal_contract.txt'. The VLM should note which archive (archive_A.hc, archive_B.hc, or archive_C.hc) this file belongs to."
+    },
+    {
+      "id": "financial_volume_mounted_slot_11",
+      "description": "The financial records volume is mounted to Slot 11",
+      "points": 20,
+      "visual_evidence": "The VeraCrypt GUI shows the specific archive identified as containing financial records mounted at Slot 11 (Mount Directory: /media/veracrypt11). Alternatively, a file manager or terminal shows 'financial_records.csv' located directly inside '/media/veracrypt11'."
+    },
+    {
+      "id": "legal_volume_mounted_slot_22",
+      "description": "The legal contract volume is mounted to Slot 22",
+      "points": 20,
+      "visual_evidence": "The VeraCrypt GUI shows the specific archive identified as containing the legal contract mounted at Slot 22 (Mount Directory: /media/veracrypt22). Alternatively, a file manager or terminal shows 'legal_contract.txt' located directly inside '/media/veracrypt22'."
+    },
+    {
+      "id": "third_volume_unmounted",
+      "description": "The third volume is left unmounted",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt GUI shows exactly two volumes mounted (at Slot 11 and Slot 22). No other slots are mounted, confirming the third volume was successfully dismounted or left unmounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "The agent used the actual VeraCrypt software to mount volumes",
+      "visual_evidence": "The agent interacts with the genuine VeraCrypt GUI or uses legitimate `veracrypt` CLI commands. It does not mock the UI or command outputs in a text editor."
+    },
+    {
+      "id": "no_fake_directories",
+      "description": "The agent did not fake the mount points by creating standard directories",
+      "visual_evidence": "The agent actually mounts the volumes using VeraCrypt rather than just creating standard folders named '/media/veracrypt11' and '/media/veracrypt22' and copying files into them."
+    },
+    {
+      "id": "no_file_tampering",
+      "description": "The agent did not alter the contents of the archives",
+      "visual_evidence": "The agent does not move, copy, or rename 'financial_records.csv' or 'legal_contract.txt' between volumes or directories to fake the final state."
+    }
+  ],
+  "privileged_info_for_vlm": "The password for all volumes is 'SortMe2024'. The financial records file is 'financial_records.csv' and its containing volume must be mounted to Slot 11. The legal contract file is 'legal_contract.txt' and its containing volume must be mounted to Slot 22. The third volume contains obsolete notes and must remain unmounted. The assignment of files to archives A, B, and C is random, so the agent must inspect them to find the correct mapping."
+}

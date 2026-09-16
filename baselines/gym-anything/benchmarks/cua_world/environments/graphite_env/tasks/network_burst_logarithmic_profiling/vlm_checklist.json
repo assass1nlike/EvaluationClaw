@@ -1,0 +1,53 @@
+{
+  "task_id": "network_burst_logarithmic_profiling@1",
+  "task_completion": [
+    {
+      "id": "graph_linear_baseline",
+      "description": "Create the first graph titled 'Linear Baseline' using the raw target metric.",
+      "points": 15,
+      "visual_evidence": "A graph in the Graphite interface with the exact title 'Linear Baseline'. The metric query shown for this graph should be 'servers.ec2_instance_1.network.bytes_in'."
+    },
+    {
+      "id": "graph_logarithmic_intake",
+      "description": "Create the second graph titled 'Logarithmic Intake' using a base-10 logarithm transformation.",
+      "points": 20,
+      "visual_evidence": "A graph with the exact title 'Logarithmic Intake'. The metric query must show the 'logarithm' function applied with a base of 10 to the target metric (e.g., 'logarithm(servers.ec2_instance_1.network.bytes_in, 10)')."
+    },
+    {
+      "id": "graph_transient_burst_isolation",
+      "description": "Create the third graph titled 'Transient Burst Isolation' using a combination of moving median, diff series, and remove below value functions.",
+      "points": 35,
+      "visual_evidence": "A graph with the exact title 'Transient Burst Isolation'. The metric query must show a complex transformation including 'removeBelowValue(..., 0)', 'diffSeries', and 'movingMedian(..., 15)' applied to the target metric."
+    },
+    {
+      "id": "dashboard_assembly",
+      "description": "Assemble all three graphs into a single dashboard view.",
+      "points": 15,
+      "visual_evidence": "A single dashboard view in the Graphite web interface displaying all three configured graphs ('Linear Baseline', 'Logarithmic Intake', and 'Transient Burst Isolation') simultaneously."
+    },
+    {
+      "id": "dashboard_saved_name",
+      "description": "Save the dashboard with the exact required name.",
+      "points": 15,
+      "visual_evidence": "The dashboard title at the top of the Graphite interface or in the save dialog/confirmation must read exactly 'Network Burst Profiling' (case-sensitive)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Graphite web GUI to construct the dashboard.",
+      "visual_evidence": "Screenshots should show the Graphite web interface (e.g., browser window, graph composer, dashboard UI) being interacted with, rather than a terminal or text editor modifying JSON files directly."
+    },
+    {
+      "id": "genuine_data_rendering",
+      "description": "The graphs successfully render actual metric data.",
+      "visual_evidence": "The graphs should display actual plotted lines or data points, not empty axes, 'No Data' messages, or syntax error overlays, indicating the queries were valid and executed against the real dataset."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "The agent did not use browser developer tools to spoof the dashboard name or graph titles.",
+      "visual_evidence": "The UI should look like standard Graphite without the browser's 'Inspect Element' or Developer Tools pane open to modify DOM text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target metric: 'servers.ec2_instance_1.network.bytes_in'. Expected Dashboard Name: 'Network Burst Profiling'. Expected Graph Titles: 'Linear Baseline', 'Logarithmic Intake', 'Transient Burst Isolation'. Graph 2 must use 'logarithm(..., 10)'. Graph 3 must use 'removeBelowValue(diffSeries(..., movingMedian(..., 15)), 0)'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "save_filtered_packets@1",
+  "task_completion": [
+    {
+      "id": "filter_entered",
+      "description": "The correct filter expression is entered and applied in the Wireshark display filter bar.",
+      "points": 20,
+      "visual_evidence": "Look at the Wireshark display filter bar. It should contain 'tcp.flags.syn == 1 && tcp.flags.ack == 0' (or an equivalent expression like 'tcp.flags.syn==1 and tcp.flags.ack==0'). The background of the filter bar should be green, indicating the filter is valid and applied."
+    },
+    {
+      "id": "filtered_packets_displayed",
+      "description": "Only TCP SYN packets are displayed in the packet list.",
+      "points": 20,
+      "visual_evidence": "Look at the packet list pane in Wireshark. The 'Info' column for the visible packets should show '[SYN]' and should NOT show '[SYN, ACK]'. The status bar at the bottom should indicate that the number of 'Displayed' packets is less than the total 35 packets."
+    },
+    {
+      "id": "export_dialog_opened",
+      "description": "The 'Export Specified Packets' dialog is opened.",
+      "points": 10,
+      "visual_evidence": "A dialog box titled 'Export Specified Packets' (or similar file save dialog for exporting packets) should be visible over the Wireshark main window."
+    },
+    {
+      "id": "export_displayed_selected",
+      "description": "The 'Displayed' option is selected in the export dialog to save only the filtered packets.",
+      "points": 20,
+      "visual_evidence": "Inside the 'Export Specified Packets' dialog, look at the 'Packet Range' section. The radio button for 'Displayed' must be selected (instead of 'Captured'), ensuring only the filtered SYN packets are exported."
+    },
+    {
+      "id": "file_saved_correct_path",
+      "description": "The filtered packets are saved to the correct file path.",
+      "points": 30,
+      "visual_evidence": "In the export dialog, the 'Name' field should be 'syn_packets.pcapng' and the current directory should be '/home/ga/Documents/captures/'. Alternatively, a terminal or file manager window shows the file 'syn_packets.pcapng' successfully created in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wireshark_gui",
+      "description": "The agent used the Wireshark GUI to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with the Wireshark graphical interface (applying filters, opening menus), rather than relying solely on terminal commands like tshark."
+    },
+    {
+      "id": "genuine_export_operation",
+      "description": "The agent used Wireshark's export functionality rather than creating a dummy file.",
+      "visual_evidence": "The 'Export Specified Packets' dialog should be visible in at least one screenshot, showing genuine interaction with Wireshark's save/export feature."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply create a text file with the expected name.",
+      "visual_evidence": "There should be no evidence of text editors (like nano, vim, gedit) or basic terminal commands (like touch, echo) being used to artificially create 'syn_packets.pcapng'."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct filter expression to isolate TCP SYN packets while excluding SYN-ACK responses is 'tcp.flags.syn == 1 && tcp.flags.ack == 0'. The expected output path is '/home/ga/Documents/captures/syn_packets.pcapng'. The source PCAP file contains 35 packets, and applying the filter should reduce the number of displayed packets."
+}

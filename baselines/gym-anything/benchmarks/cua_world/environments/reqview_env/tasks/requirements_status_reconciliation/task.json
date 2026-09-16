@@ -1,0 +1,52 @@
+{
+  "id": "requirements_status_reconciliation@1",
+  "version": "1.0",
+  "env_id": "reqview_env@0.1",
+  "description": "You are a project manager conducting a pre-release compliance audit of the ReqView project. For the release to proceed, all SRS requirements implemented by architecture components (ARCH) must have their status set to 'Released'. Verify the implementation links and update the status to 'Released' for SRS-56 (Open File), SRS-83 (Requirements Table), SRS-106 (Create Requirement), SRS-137 (Traceability Links), and SRS-163 (Print). The application is already open with the project loaded.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/requirements_status_reconciliation/setup_task.sh",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "status_corruptions": [
+      {
+        "srs_id": "56",
+        "wrong_status": "Draft",
+        "correct_status": "Released"
+      },
+      {
+        "srs_id": "83",
+        "wrong_status": "Reviewed",
+        "correct_status": "Released"
+      },
+      {
+        "srs_id": "106",
+        "wrong_status": "Draft",
+        "correct_status": "Released"
+      },
+      {
+        "srs_id": "137",
+        "wrong_status": "Ready",
+        "correct_status": "Released"
+      },
+      {
+        "srs_id": "163",
+        "wrong_status": "Reviewed",
+        "correct_status": "Released"
+      }
+    ],
+    "target_document": "SRS"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_requirements_status_reconciliation"
+    }
+  }
+}

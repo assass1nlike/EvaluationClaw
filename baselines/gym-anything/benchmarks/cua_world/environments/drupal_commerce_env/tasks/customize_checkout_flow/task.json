@@ -1,0 +1,29 @@
+{
+  "id": "customize_checkout_flow@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Customize the default checkout flow for the Urban Electronics store to optimize the user experience. Rename the 'Default' checkout flow to 'Express Checkout'. Enable the 'Coupon redemption' pane within the 'Order information' step and the 'Order summary' pane within the 'Review' step. Update the completion message to: 'Thank you for shopping at Urban Electronics! Your order has been placed successfully.'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customize_checkout_flow/setup_task.sh",
+    "post_task": "/workspace/tasks/customize_checkout_flow/export_result.sh"
+  },
+  "metadata": {
+    "config_name": "commerce_checkout.commerce_checkout_flow.default",
+    "expected_label": "Express Checkout",
+    "expected_coupon_step": "order_information",
+    "expected_summary_step": "review",
+    "expected_message": "Thank you for shopping at Urban Electronics! Your order has been placed successfully."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_checkout_flow"
+    }
+  }
+}

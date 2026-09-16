@@ -1,0 +1,53 @@
+{
+  "task_id": "reschedule_meeting@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "The agent successfully logged into Odoo.",
+      "points": 10,
+      "visual_evidence": "The Odoo dashboard or app menu is visible in the browser after logging in at localhost:8069."
+    },
+    {
+      "id": "calendar_app_opened",
+      "description": "The agent navigated to the Calendar application.",
+      "points": 10,
+      "visual_evidence": "The Odoo Calendar interface is visible on the screen."
+    },
+    {
+      "id": "meeting_located",
+      "description": "The agent located the 'Tax Advisory - Alice Johnson' meeting on its original date.",
+      "points": 20,
+      "visual_evidence": "The meeting titled 'Tax Advisory - Alice Johnson' is visible on the calendar (originally 3 days from execution) or its summary pop-up is opened."
+    },
+    {
+      "id": "meeting_edit_opened",
+      "description": "The agent opened the meeting details to edit the schedule or dragged the meeting.",
+      "points": 20,
+      "visual_evidence": "The meeting details form is open for editing the date/time, or the meeting block is actively being dragged across the calendar view."
+    },
+    {
+      "id": "meeting_rescheduled_saved",
+      "description": "The meeting is successfully saved at the new date (10 days from execution) and time (10:00 AM).",
+      "points": 40,
+      "visual_evidence": "The calendar view shows the meeting 'Tax Advisory - Alice Johnson' on the new date (exactly one week after the original date) at 10:00 AM, or the saved meeting details form shows the new date and time."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "The agent used the Odoo web interface to reschedule the meeting.",
+      "visual_evidence": "The browser is open to localhost:8069 and the Odoo GUI is used, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "no_duplicate_meeting",
+      "description": "The agent modified the existing meeting rather than creating a duplicate.",
+      "visual_evidence": "There should not be two meetings with the title 'Tax Advisory - Alice Johnson' on different dates; the original meeting must be moved."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not use terminal commands to bypass the GUI.",
+      "visual_evidence": "No terminal windows showing curl commands, Python scripts, or direct database modifications to the Odoo backend."
+    }
+  ],
+  "privileged_info_for_vlm": "Odoo 17 is running at http://localhost:8069. Login credentials are admin/admin. The meeting title is 'Tax Advisory - Alice Johnson'. The original schedule is 3 days from the task execution date at 10:00 AM. The target schedule is 10 days from the task execution date (exactly 1 week later) at 10:00 AM. The VLM should verify the meeting is moved to the correct target date and time."
+}

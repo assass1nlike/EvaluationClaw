@@ -1,0 +1,53 @@
+{
+  "task_id": "ofac_sanctions_fuzzy_screening@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the 'Trade Compliance' database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., Oracle SQL Developer, DBeaver, or SQL*Plus) is open and shows an active connection for user 'compliance_officer' to the 'XEPDB1' service."
+    },
+    {
+      "id": "create_high_risk_matches_view",
+      "description": "Create the HIGH_RISK_MATCHES_VW view with the required columns and Jaro-Winkler logic.",
+      "points": 30,
+      "visual_evidence": "SQL editor showing a 'CREATE VIEW HIGH_RISK_MATCHES_VW AS' statement that includes a Jaro-Winkler similarity function (e.g., UTL_MATCH.JARO_WINKLER) with a threshold of 88, and a success message indicating the view was compiled/created."
+    },
+    {
+      "id": "verify_view_contents",
+      "description": "The created view contains the correct columns and the expected number of matching records.",
+      "points": 20,
+      "visual_evidence": "A data grid or query result showing a SELECT from HIGH_RISK_MATCHES_VW. It must display the columns: order_id, customer_name, matching_sanctioned_name, similarity_score, match_type, and contain exactly 6 rows."
+    },
+    {
+      "id": "update_erp_orders_status",
+      "description": "Update the status of matching orders in the ERP_ORDERS table to 'COMPLIANCE_HOLD'.",
+      "points": 20,
+      "visual_evidence": "SQL editor showing an 'UPDATE ERP_ORDERS SET status = 'COMPLIANCE_HOLD'' statement and a success message confirming that rows were updated (expected: 6 rows updated)."
+    },
+    {
+      "id": "export_compliance_holds_csv",
+      "description": "Export the contents of the view to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "An export wizard, terminal command, or file manager showing the file 'compliance_holds.csv' successfully saved in the directory '/home/ga/Documents/exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent interacted with a genuine database client and executed the queries.",
+      "visual_evidence": "Look for database system feedback (e.g., 'View created', '6 rows updated', execution times) in a DB client interface, rather than just SQL text written in a generic text editor."
+    },
+    {
+      "id": "dynamic_query_logic",
+      "description": "Verify the agent used programmatic fuzzy matching rather than hardcoding answers.",
+      "visual_evidence": "The SQL query must show the use of a similarity function (like UTL_MATCH.JARO_WINKLER) and the threshold 88. It should not contain a hardcoded list of specific order IDs or customer names in a WHERE IN (...) clause."
+    },
+    {
+      "id": "no_manual_csv_creation",
+      "description": "Verify the CSV was exported from the database, not manually typed.",
+      "visual_evidence": "The CSV export should originate from the database tool's export feature or a SQL spool command, not from the agent manually typing out the 6 rows into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The Jaro-Winkler similarity threshold must be exactly 88. There are exactly 6 true positive matches in the database, so the HIGH_RISK_MATCHES_VW view should contain exactly 6 rows, and the UPDATE statement should affect exactly 6 rows. The final CSV must be exported to exactly '/home/ga/Documents/exports/compliance_holds.csv'."
+}

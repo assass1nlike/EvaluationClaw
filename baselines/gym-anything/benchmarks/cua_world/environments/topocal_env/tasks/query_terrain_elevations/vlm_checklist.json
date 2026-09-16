@@ -1,0 +1,59 @@
+{
+  "task_id": "query_terrain_elevations@1",
+  "task_completion": [
+    {
+      "id": "load_survey_data",
+      "description": "Load the survey data into TopoCal",
+      "points": 10,
+      "visual_evidence": "Look for the TopoCal application open with point cloud or survey data loaded and visible in the main workspace."
+    },
+    {
+      "id": "create_mdt",
+      "description": "Create a triangulated terrain model (MDT)",
+      "points": 20,
+      "visual_evidence": "Look for a triangulated irregular network (TIN) or mesh surface (MDT) generated and displayed over the points in the TopoCal workspace."
+    },
+    {
+      "id": "query_north_points",
+      "description": "Determine interpolated elevation for NE and NW coordinates",
+      "points": 15,
+      "visual_evidence": "Look for TopoCal's coordinate readout, cursor tooltip, or query tool displaying X, Y coordinates near (5050.00, 5050.00) for NE and (4950.00, 5050.00) for NW, along with their corresponding Z elevation values."
+    },
+    {
+      "id": "query_south_points",
+      "description": "Determine interpolated elevation for SW and SE coordinates",
+      "points": 15,
+      "visual_evidence": "Look for TopoCal's coordinate readout, cursor tooltip, or query tool displaying X, Y coordinates near (4950.00, 4950.00) for SW and (5050.00, 4950.00) for SE, along with their corresponding Z elevation values."
+    },
+    {
+      "id": "create_output_file",
+      "description": "Create the target text file for results",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (e.g., Notepad) open and saving a file specifically named 'building_pad_elevations.txt' in the C:\\Users\\Docker\\Documents\\ directory."
+    },
+    {
+      "id": "format_and_save_results",
+      "description": "Save the queried results in the specified format",
+      "points": 30,
+      "visual_evidence": "Look at the text editor to verify it contains four lines of data, formatted exactly as 'CornerLabel, X, Y, Z' (e.g., 'NE, 5050.00, 5050.00, 123.45')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the TopoCal GUI to perform the task",
+      "visual_evidence": "Screenshots should show the agent actively clicking through TopoCal menus and using its tools to build the MDT and query points, rather than using command-line tools."
+    },
+    {
+      "id": "genuine_z_values",
+      "description": "Z-values in the text file match the TopoCal queries",
+      "visual_evidence": "The Z-values typed into the text file should correspond to the Z-values seen in the TopoCal interface during the coordinate querying steps, proving they were not hallucinated."
+    },
+    {
+      "id": "no_scripting_shortcut",
+      "description": "Agent did not use a script to bypass the application",
+      "visual_evidence": "There should be no terminal or IDE windows showing Python or PowerShell scripts written to automatically generate the output file with fabricated data."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file: C:\\Users\\Docker\\Documents\\building_pad_elevations.txt. Tolerances: XY = 1.5, Z = 2.5. Note: The task environment is critically defective and lacks the 'Colorado foothills' survey data file, making it impossible to verify exact Z values. The VLM should verify that the agent attempted the workflow (loading data, creating an MDT, querying the specified X/Y coordinates, and formatting the output file) using the TopoCal GUI, accepting whatever Z-values the agent obtains or reasonably substitutes during the process."
+}

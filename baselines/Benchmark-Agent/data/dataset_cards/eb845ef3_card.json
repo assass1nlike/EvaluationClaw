@@ -1,0 +1,74 @@
+{
+  "dataset_id": "eb845ef3",
+  "name": "Financial-Sentiment-Classification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Financial-Sentiment-Classification dataset contains 200 financial news snippets paired with sentiment labels. It evaluates whether a model can classify financial news as positive, negative, or neutral based on the raw text.",
+  "card_text": "This is a small text-only financial sentiment classification dataset. Each sample provides a short financial news headline or article snippet and a templated instruction asking the model to classify its sentiment into positive, negative, or neutral. The expected output is only the category name, without explanation or reasoning. The data are factual financial news statements, often containing market movements, company names, indices, and numerical values. The dataset assumes a three-way sentiment scheme and tests a model's ability to read financial text and assign the correct polarity label. It is intended for evaluating multiclass sentiment classification in the financial news domain.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "financial news sentiment",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw financial news text (headline or short article snippet) whose sentiment is to be classified. It is the main input content and is referenced by the prompt via a placeholder.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated instruction that asks the model to classify the sentiment of the accompanying raw_text into positive, negative, or neutral and to output only the category name. It frames the classification task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.sentiment"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold sentiment category for the raw_text, one of positive, negative, or neutral. It is the target label the model must predict.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with raw_text (the financial news text to classify) and a prompt (a templated instruction for sentiment classification), and an output object with a sentiment label (positive/negative/neutral). The prompt references the raw_text and specifies the label set; the output provides the single correct category. No rationale, options, or additional annotations are included."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Financial-Sentiment-Classification/annotation.json",
+    "existing_tags": {
+      "task": "financial_sentiment_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "transfer_student_intake@1",
+  "version": "1.0",
+  "env_id": "example.opensis_env@0.1",
+  "description": "You are a school registrar processing a transfer student intake for Zara Hoffman (Female, date of birth: August 22, 2007, Grade level: 11). Add the student record for Zara Hoffman to OpenSIS and create three courses: Advanced Chemistry (Code: CHEM301, Subject: Science, Grade Level: 11, Credits: 1.0), AP English Language (Code: ENG401, Subject: English, Grade Level: 11, Credits: 1.0), and US History (Code: HIST201, Subject: Social Studies, Grade Level: 11, Credits: 0.5). Enter transfer grades for Zara Hoffman in each course using the assignment name 'Transfer Final Grade' with scores of 91 for Advanced Chemistry, 88 for AP English Language, and 79 for US History. Login credentials: Username: admin, Password: Admin@123",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/transfer_student_intake/setup_task.sh",
+    "post_task": "/workspace/tasks/transfer_student_intake/export_result.sh"
+  },
+  "metadata": {
+    "target_student_first": "Zara",
+    "target_student_last": "Hoffman",
+    "target_dob": "2007-08-22",
+    "target_gender": "F",
+    "target_grade": "11",
+    "courses": [
+      "CHEM301",
+      "ENG401",
+      "HIST201"
+    ],
+    "assignment_name": "Transfer Final Grade",
+    "expected_grades": {
+      "CHEM301": 91,
+      "ENG401": 88,
+      "HIST201": 79
+    },
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_transfer_student_intake"
+    }
+  }
+}

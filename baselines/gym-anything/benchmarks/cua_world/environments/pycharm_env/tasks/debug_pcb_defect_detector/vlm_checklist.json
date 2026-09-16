@@ -1,0 +1,59 @@
+{
+  "task_id": "debug_pcb_defect_detector@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Access the pcb_inspector project files in an editor or IDE.",
+      "points": 10,
+      "visual_evidence": "Look for a screenshot showing an IDE (like PyCharm) or text editor open with the `/home/ga/PycharmProjects/pcb_inspector` project directory loaded."
+    },
+    {
+      "id": "fix_crash_bug",
+      "description": "Fix the IndexError causing crashes on grayscale images.",
+      "points": 15,
+      "visual_evidence": "Look for a screenshot showing the code editor where an image shape check is being corrected to safely handle grayscale images (e.g., changing `img.shape[2]` to check `len(img.shape)` first)."
+    },
+    {
+      "id": "fix_roi_bug",
+      "description": "Fix the incorrect ROI slicing indices.",
+      "points": 15,
+      "visual_evidence": "Look for a screenshot showing the code editor where array slicing for a Region of Interest (ROI) is being corrected, typically from `[x:x+w, y:y+h]` to the correct row-major format `[y:y+h, x:x+w]`."
+    },
+    {
+      "id": "fix_threshold_bug",
+      "description": "Fix the inverted threshold logic for defect detection.",
+      "points": 15,
+      "visual_evidence": "Look for a screenshot showing the code editor where thresholding logic is corrected (e.g., changing `cv2.THRESH_BINARY_INV` to `cv2.THRESH_BINARY` or fixing a comparison operator like `<` to `>`)."
+    },
+    {
+      "id": "fix_mutable_default_bug",
+      "description": "Fix the mutable default argument in the defect logging function.",
+      "points": 15,
+      "visual_evidence": "Look for a screenshot showing the code editor where a function definition (likely `log_defect`) is updated to remove a mutable default argument (e.g., changing `defects=[]` to `defects=None`)."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Run the test suite and ensure all tests pass.",
+      "points": 30,
+      "visual_evidence": "Look for a terminal or test runner output showing that the test suite (e.g., running `pytest tests/` or `python -m unittest`) has been executed and all tests passed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_modification",
+      "description": "Ensure the agent did not modify the test files to force them to pass.",
+      "visual_evidence": "Verify there are no open editor tabs showing modifications to files inside the `tests/` directory, and no terminal commands editing these files."
+    },
+    {
+      "id": "no_data_script_modification",
+      "description": "Ensure the agent did not modify the data generation script.",
+      "visual_evidence": "Verify there are no edits or modifications to `generate_data.py` or any script responsible for creating the test images."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Ensure the test results are from a genuine execution.",
+      "visual_evidence": "Check the terminal output for standard test framework formatting (like pytest's progress percentages and summary lines) rather than a simple `echo` command or printed text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/PycharmProjects/pcb_inspector. The agent must fix 4 specific bugs in the source code: 1) Incorrect ROI slicing indices, 2) A mutable default argument in a logging function, 3) An IndexError when checking grayscale image shapes, and 4) Inverted threshold logic for defect detection. The expected defect counts are 0 for test_01.jpg, 1 for test_02.jpg, and 2 for test_03.jpg. The agent must not modify any test files or the data generation script."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "split_opportunity_phased@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Split the 'Azure Interior - Whole Office Design' opportunity ($120,000) into two phased deals for the client Azure Interior to match their billing cycle. Update the existing opportunity by renaming it to 'Azure Interior - Design Phase' with an expected revenue of $20,000 and a closing date at the end of the current month. Create a new opportunity named 'Azure Interior - Implementation Phase' for the same customer with an expected revenue of $100,000 and a closing date approximately three months from today. Ensure both opportunities are saved and visible in the pipeline.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/split_opportunity_phased/setup_task.sh",
+    "post_task": "/workspace/tasks/split_opportunity_phased/export_result.sh"
+  },
+  "metadata": {
+    "customer_name": "Azure Interior",
+    "phase1_name": "Azure Interior - Design Phase",
+    "phase1_revenue": 20000,
+    "phase2_name": "Azure Interior - Implementation Phase",
+    "phase2_revenue": 100000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_split_opportunity_phased"
+    }
+  }
+}

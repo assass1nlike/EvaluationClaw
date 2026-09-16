@@ -1,0 +1,59 @@
+{
+  "task_id": "customize_server_config@1",
+  "task_completion": [
+    {
+      "id": "french_homepage_screenshot_saved",
+      "description": "Verify that a screenshot of the French Jitsi Meet home page was saved.",
+      "points": 20,
+      "visual_evidence": "A file named 'jitsi_config_verification.png' is visible (e.g., in an image viewer, file manager, or terminal) and displays the Jitsi Meet home page with French UI text (e.g., 'Commencer une r\u00e9union')."
+    },
+    {
+      "id": "served_config_file_created",
+      "description": "Verify that the served configuration was saved to a text file.",
+      "points": 10,
+      "visual_evidence": "A file named 'custom_config_served.txt' is visible in the user's home directory (~/)."
+    },
+    {
+      "id": "config_language_display_settings",
+      "description": "Verify the language and display name settings in the served configuration.",
+      "points": 20,
+      "visual_evidence": "The visible contents of 'custom_config_served.txt' include `config.defaultLanguage = 'fr'` and `config.requireDisplayName = true`."
+    },
+    {
+      "id": "config_media_settings",
+      "description": "Verify the initial media mute settings in the served configuration.",
+      "points": 15,
+      "visual_evidence": "The visible contents of 'custom_config_served.txt' include `config.startWithAudioMuted = true` and `config.startWithVideoMuted = true`."
+    },
+    {
+      "id": "config_prejoin_settings",
+      "description": "Verify the prejoin screen settings in the served configuration.",
+      "points": 15,
+      "visual_evidence": "The visible contents of 'custom_config_served.txt' include `config.prejoinConfig = { enabled: true, hideDisplayName: false }` (exact spacing/formatting may vary)."
+    },
+    {
+      "id": "config_misc_settings",
+      "description": "Verify the deep linking, third-party requests, and welcome page settings in the served configuration.",
+      "points": 20,
+      "visual_evidence": "The visible contents of 'custom_config_served.txt' include `config.disableDeepLinking = true`, `config.disableThirdPartyRequests = true`, and `config.enableWelcomePage = true`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_screenshot",
+      "description": "Ensure the screenshot is of a real browser rendering the Jitsi Meet interface.",
+      "visual_evidence": "The image 'jitsi_config_verification.png' should show a genuine web browser interface displaying the Jitsi Meet page, not a manually constructed image or a text document."
+    },
+    {
+      "id": "genuine_config_content",
+      "description": "Ensure the configuration file contains valid JavaScript syntax.",
+      "visual_evidence": "The contents of 'custom_config_served.txt' should look like valid JavaScript configuration lines (or a full JS config file), rather than just a raw copy-paste of the prompt's text."
+    },
+    {
+      "id": "no_inspect_element_hack",
+      "description": "Ensure the French UI is the result of a genuine configuration change.",
+      "visual_evidence": "The French translation on the Jitsi page should appear consistent across all UI elements (buttons, placeholders, settings), indicating a true language change rather than isolated text edits via the browser's Inspect Element tool."
+    }
+  ],
+  "privileged_info_for_vlm": "The configuration path is /home/ga/.jitsi-meet-cfg/web/custom-config.js. The Jitsi Meet web container mounts this directory and appends custom-config.js to the main config.js file. All requested parameters (defaultLanguage='fr', requireDisplayName, startWithAudioMuted, startWithVideoMuted, disableDeepLinking, disableThirdPartyRequests, enableWelcomePage) are valid Jitsi Meet configuration options. prejoinConfig is a valid object that controls the prejoin screen."
+}

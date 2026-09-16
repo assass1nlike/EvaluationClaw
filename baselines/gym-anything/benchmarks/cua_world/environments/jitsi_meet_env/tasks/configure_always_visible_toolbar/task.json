@@ -1,0 +1,31 @@
+{
+  "id": "configure_always_visible_toolbar@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure the Jitsi Meet instance in /home/ga/jitsi/ so that the in-meeting toolbar remains permanently visible by disabling the auto-hide feature in the interface configuration override file (/home/ga/.jitsi-meet-cfg/web/custom-interface_config.js). Verify the fix by joining the 'SilverConnectTest' meeting room and confirming the toolbar remains visible after 10 seconds of inactivity. Save a screenshot of the meeting with the visible toolbar to /home/ga/Documents/persistent_toolbar.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_always_visible_toolbar/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_always_visible_toolbar/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "config_file": "/home/ga/.jitsi-meet-cfg/web/custom-interface_config.js",
+    "expected_setting": "TOOLBAR_ALWAYS_VISIBLE",
+    "expected_value": "true",
+    "container_name": "jitsi-web-1",
+    "docker_compose_dir": "/home/ga/jitsi",
+    "evidence_screenshot": "/home/ga/Documents/persistent_toolbar.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_always_visible_toolbar"
+    }
+  }
+}

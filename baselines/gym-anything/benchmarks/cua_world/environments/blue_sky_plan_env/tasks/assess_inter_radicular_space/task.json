@@ -1,0 +1,28 @@
+{
+  "id": "assess_inter_radicular_space@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Assess an edentulous site in the posterior mandible for implant feasibility based on inter-radicular space (root proximity). Identify a missing posterior tooth site (e.g., #19, #30, #18, or #31) and measure the mesial-distal distance between the adjacent roots at the alveolar crest and at 6mm apical to the crest. Determine if a 4.0mm implant is feasible, which requires at least 7.0mm of space at both measurement locations. Save a screenshot showing the measurements to C:\\Users\\Docker\\Documents\\root_space_analysis.png and create a text report at C:\\Users\\Docker\\Documents\\feasibility_report.txt using the following format:\n\nSITE_ANALYSIS\nSelected Site: [Tooth Number]\nDistance at Crest: [X.X] mm\nDistance at 6mm Depth: [Y.Y] mm\n4.0mm Implant Feasible: [YES/NO]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\assess_inter_radicular_space\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\assess_inter_radicular_space\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_screenshot": "C:\\Users\\Docker\\Documents\\root_space_analysis.png",
+    "expected_report": "C:\\Users\\Docker\\Documents\\feasibility_report.txt",
+    "required_space_mm": 7.0,
+    "scan_file": "C:\\workspace\\data\\mandible_case.bsp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assess_inter_radicular_space"
+    }
+  }
+}

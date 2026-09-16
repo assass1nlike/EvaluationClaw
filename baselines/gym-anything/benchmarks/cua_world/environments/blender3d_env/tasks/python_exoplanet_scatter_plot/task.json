@@ -1,0 +1,28 @@
+{
+  "id": "python_exoplanet_scatter_plot@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Write a Python script within Blender to visualize exoplanet data from '/home/ga/Desktop/exoplanets.csv' (columns: id, x, y, z, radius, habitable). For each record, create a UV Sphere named 'Planet_{id}' at the specified (x, y, z) coordinates, scaled uniformly by a factor of 0.2 relative to the radius. Apply a green material (approx RGB 0,1,0) to spheres where 'habitable' is 'Yes' and a red material (approx RGB 1,0,0) where it is 'No'. All spheres must be placed within a collection named 'StarCluster'. Save the resulting project to '/home/ga/BlenderProjects/exoplanet_viz.blend'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/python_exoplanet_scatter_plot/setup_task.sh",
+    "post_task": "/workspace/tasks/python_exoplanet_scatter_plot/export_result.sh"
+  },
+  "metadata": {
+    "csv_path": "/home/ga/Desktop/exoplanets.csv",
+    "output_path": "/home/ga/BlenderProjects/exoplanet_viz.blend",
+    "collection_name": "StarCluster",
+    "scale_factor": 0.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_exoplanet_plot"
+    }
+  }
+}

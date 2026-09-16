@@ -1,0 +1,40 @@
+{
+  "id": "chinook_customer_rfm_analysis@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Perform a Recency, Frequency, Monetary (RFM) analysis on the Chinook database located at /home/ga/Documents/databases/chinook.db. Create a table or view named 'customer_rfm' containing CustomerId, Recency (days since last purchase relative to 2014-01-01), Frequency (total invoice count), Monetary (total spend), and Segment. Assign segments based on the following priority: VIP (Monetary > $40.00), Loyal (Frequency >= 5), Churn Risk (Recency > 365 days), and Standard (all others). Export the results with headers to /home/ga/Documents/exports/rfm_segments.csv and save the SQL script to /home/ga/Documents/scripts/rfm_analysis.sql.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_customer_rfm_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_customer_rfm_analysis/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "reference_date": "2014-01-01",
+    "output_csv": "/home/ga/Documents/exports/rfm_segments.csv",
+    "output_sql": "/home/ga/Documents/scripts/rfm_analysis.sql",
+    "required_columns": [
+      "CustomerId",
+      "Recency",
+      "Frequency",
+      "Monetary",
+      "Segment"
+    ],
+    "segment_rules": {
+      "vip_threshold": 40.0,
+      "loyal_frequency": 5,
+      "churn_days": 365
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_rfm_analysis"
+    }
+  }
+}

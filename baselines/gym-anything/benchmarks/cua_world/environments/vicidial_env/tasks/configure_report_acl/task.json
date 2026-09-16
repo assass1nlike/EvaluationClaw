@@ -1,0 +1,31 @@
+{
+  "id": "configure_report_acl@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Create a new User Group in Vicidial named 'SUP_SECURE' (Secure Supervisors) with restricted reporting capabilities to prevent data theft. Configure the group with Group ID 'SUP_SECURE', Group Name 'Secure Supervisors', and Description 'Restricted Reporting Access'. Access must be limited ONLY to 'Agent Performance Detail' and 'Real-Time Main Report', with all 'Export' reports blocked. Set 'Force Change Password' to 'Y'. Log in using User: 6666, Pass: andromeda.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_report_acl/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_report_acl/export_result.sh"
+  },
+  "metadata": {
+    "target_group_id": "SUP_SECURE",
+    "required_reports": [
+      "AST_agent_performance_detail.php",
+      "AST_timeonVDADall.php"
+    ],
+    "forbidden_keyword": "export",
+    "required_pwd_policy": "Y"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_report_acl"
+    }
+  }
+}

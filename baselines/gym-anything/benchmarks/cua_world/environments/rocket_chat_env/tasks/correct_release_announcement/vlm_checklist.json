@@ -1,0 +1,53 @@
+{
+  "task_id": "correct_release_announcement@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify the agent successfully logged into Rocket.Chat.",
+      "points": 10,
+      "visual_evidence": "The Rocket.Chat main interface is visible, showing the channel sidebar and user interface, indicating a successful login."
+    },
+    {
+      "id": "navigate_to_channel",
+      "description": "Verify the agent navigated to the #release-updates channel.",
+      "points": 10,
+      "visual_evidence": "The channel header or the active highlighted channel in the left sidebar clearly shows 'release-updates'."
+    },
+    {
+      "id": "locate_original_message",
+      "description": "Verify the agent located the original Release 8.0.0 message.",
+      "points": 10,
+      "visual_evidence": "The message 'Rocket.Chat Release 8.0.0 is now available. This is a major update with significant performance improvements.' is visible in the chat history."
+    },
+    {
+      "id": "initiate_message_edit",
+      "description": "Verify the agent opened the edit interface for the target message.",
+      "points": 20,
+      "visual_evidence": "The message text box shows the original message text in an editable state, or the message action menu is open with 'Edit' selected."
+    },
+    {
+      "id": "edit_message_text",
+      "description": "Verify the message was successfully edited to the new warning text.",
+      "points": 50,
+      "visual_evidence": "The chat history shows the message now reads '**WARNING**: Release 8.0.0 has been pulled due to a critical bug. Do not upgrade.' and it should have an 'edited' indicator (like a pencil icon or timestamp) next to it."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_not_terminal",
+      "description": "Ensure the agent used the Rocket.Chat GUI to perform the actions, not terminal API commands.",
+      "visual_evidence": "Screenshots show the Rocket.Chat graphical user interface being interacted with (mouse clicks, typing in the UI) rather than a terminal window executing cURL commands or scripts."
+    },
+    {
+      "id": "message_edited_not_replaced",
+      "description": "Ensure the agent actually edited the existing message rather than deleting it and sending a new one.",
+      "visual_evidence": "The final message in the chat history must have an 'edited' tag or pencil icon next to it. There should be no evidence of the original message being deleted and a completely new message being posted."
+    },
+    {
+      "id": "genuine_application_interaction",
+      "description": "Ensure the agent interacted with the actual Rocket.Chat application.",
+      "visual_evidence": "The Rocket.Chat interface (sidebar, message input, channel header) is clearly visible and matches the expected layout of the application, rather than text typed into a generic text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target channel: 'release-updates'. Original message text to locate: 'Rocket.Chat Release 8.0.0 is now available. This is a major update with significant performance improvements.'. Expected edited message text must contain: 'Release 8.0.0 has been pulled due to a critical bug. Do not upgrade.'."
+}

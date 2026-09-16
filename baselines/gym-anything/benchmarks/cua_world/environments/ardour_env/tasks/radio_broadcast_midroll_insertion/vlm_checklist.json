@@ -1,0 +1,59 @@
+{
+  "task_id": "radio_broadcast_midroll_insertion@1",
+  "task_completion": [
+    {
+      "id": "tracks_created",
+      "description": "Verify that two tracks named 'Program' and 'Ad Break' have been created.",
+      "points": 10,
+      "visual_evidence": "In the Ardour editor window, look at the track headers on the left side. There should be two audio tracks explicitly named 'Program' and 'Ad Break'."
+    },
+    {
+      "id": "narration_imported",
+      "description": "Verify that narration audio is imported onto the 'Program' track starting at 0:00.",
+      "points": 10,
+      "visual_evidence": "An audio region (waveform) should be visible on the 'Program' track, with its left edge aligned exactly at the 0:00 mark on the timeline."
+    },
+    {
+      "id": "program_gap_created",
+      "description": "Verify that the 'Program' track has a 10-second gap from 0:10 to 0:20.",
+      "points": 25,
+      "visual_evidence": "The audio region on the 'Program' track should be split into two separate clips. The first clip should end at the 10-second mark, and the second clip should start at the 20-second mark, leaving a clear empty space in between."
+    },
+    {
+      "id": "ad_break_placed",
+      "description": "Verify that the ad audio is placed on the 'Ad Break' track from 0:10 to 0:20.",
+      "points": 25,
+      "visual_evidence": "An audio region should be visible on the 'Ad Break' track. Its start point should align with the 10-second mark and its end point with the 20-second mark, perfectly filling the time gap created in the 'Program' track."
+    },
+    {
+      "id": "ad_break_gain",
+      "description": "Verify that the 'Ad Break' track gain is set to -6 dB.",
+      "points": 15,
+      "visual_evidence": "Look at the track header or mixer strip for the 'Ad Break' track. The volume fader or numerical gain indicator should be set to -6.0 dB."
+    },
+    {
+      "id": "export_and_save",
+      "description": "Verify that the final mix is exported to the correct path and the session is saved.",
+      "points": 15,
+      "visual_evidence": "Look for the Ardour Export dialog showing the destination path '/home/ga/Audio/broadcast/final_mix.wav', a file manager/terminal showing the exported file, or a 'Session saved' notification/menu action."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent used the Ardour GUI for audio editing.",
+      "visual_evidence": "Screenshots should show the Ardour interface being actively used (mouse cursor interacting with clips, faders, or menus), rather than terminal commands modifying session XML files."
+    },
+    {
+      "id": "genuine_waveforms",
+      "description": "Verify that the imported audio regions contain actual audio data.",
+      "visual_evidence": "The audio clips on the timeline should display visible waveform peaks and valleys, indicating real audio files were imported, not empty dummy regions."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Verify that the export was performed through Ardour.",
+      "visual_evidence": "The Ardour 'Export' dialog should be visible in at least one screenshot, proving the audio engine was used to render the file, rather than a terminal command like 'touch' or 'cp'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires splitting the 'Program' track at exactly 10.0s and resuming at 20.0s. The 'Ad Break' track must contain audio from 10.0s to 20.0s. The 'Ad Break' track gain must be set to -6 dB. The final mix must be exported to '/home/ga/Audio/broadcast/final_mix.wav'. A tolerance of 0.5 seconds is acceptable for timeline placements."
+}

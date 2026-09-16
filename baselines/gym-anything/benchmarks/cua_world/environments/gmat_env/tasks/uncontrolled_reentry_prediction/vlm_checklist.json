@@ -1,0 +1,53 @@
+{
+  "task_id": "uncontrolled_reentry_prediction@1",
+  "task_completion": [
+    {
+      "id": "configure_spacecraft_orbit",
+      "description": "Configure the spacecraft's initial orbital elements in GMAT based on the SSA bulletin.",
+      "points": 20,
+      "visual_evidence": "Look for the GMAT Spacecraft configuration window or script showing the Keplerian elements set to SMA: 6621.14 km, ECC: 0.0012, and INC: 41.47 deg."
+    },
+    {
+      "id": "configure_drag_model",
+      "description": "Set up the atmospheric drag model in GMAT with the specified solar flux.",
+      "points": 20,
+      "visual_evidence": "Look for the GMAT Force Model configuration window or script showing Atmospheric Drag enabled, using either 'JacchiaRoberts' or 'MSISE' as the model, with F107 (or F10.7) set to 150."
+    },
+    {
+      "id": "configure_stopping_condition",
+      "description": "Set the propagation stopping condition to the re-entry altitude threshold.",
+      "points": 20,
+      "visual_evidence": "Look for the GMAT Propagate command configuration or script showing a stopping condition where the spacecraft's altitude (e.g., Spacecraft.Earth.Altitude) reaches 120 km."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Save the GMAT simulation script to the required directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal window (e.g., 'ls' command), or GMAT 'Save As' dialog confirming a file named 'reentry_sim.script' exists in the '~/GMAT_output/' (or '/home/ga/GMAT_output/') directory."
+    },
+    {
+      "id": "generate_prediction_report",
+      "description": "Generate the final prediction report with all required fields.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor or terminal output displaying the contents of '~/GMAT_output/reentry_prediction_report.txt'. The file must contain the fields: reentry_utc, elapsed_days, reentry_latitude_deg, reentry_longitude_deg, reentry_altitude_km, and final_period_min, populated with numerical values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_usage",
+      "description": "Verify the agent actually used GMAT to perform the simulation.",
+      "visual_evidence": "Look for the GMAT GUI being actively used, or terminal commands executing the GMAT application/script (e.g., 'GMAT-R2022a/bin/GmatConsole'). The agent should not just write a text file with fabricated answers."
+    },
+    {
+      "id": "valid_gmat_script_syntax",
+      "description": "Verify the saved script is a genuine GMAT script.",
+      "visual_evidence": "If the script contents are visible, look for standard GMAT syntax such as 'Create Spacecraft', 'Create ForceModel', or 'Propagate'. It should not be a Python script or plain text summary."
+    },
+    {
+      "id": "plausible_report_values",
+      "description": "Verify the prediction report contains plausible simulated values rather than empty templates.",
+      "visual_evidence": "Check that the fields in 'reentry_prediction_report.txt' have actual calculated numbers (e.g., altitude near 120, valid latitude/longitude) rather than placeholders like 'XXX' or blank spaces."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct initial orbital elements to look for in the GMAT setup are SMA: 6621.14 km, ECC: 0.0012, and INC: 41.47 deg. The expected script path is exactly /home/ga/GMAT_output/reentry_sim.script and the expected report path is exactly /home/ga/GMAT_output/reentry_prediction_report.txt."
+}

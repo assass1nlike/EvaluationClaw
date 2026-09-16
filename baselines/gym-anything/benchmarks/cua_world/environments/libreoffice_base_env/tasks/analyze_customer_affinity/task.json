@@ -1,0 +1,28 @@
+{
+  "id": "analyze_customer_affinity@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Analyze customer purchase history in the Chinook database to identify 'Deep Catalog' customers. Create and save a query named 'DeepCatalogCustomers' that identifies customers who have purchased tracks from at least three distinct albums by the same artist, excluding the artist 'Various Artists'. The query must include the columns 'CustomerName' (FirstName and LastName combined with a space), 'ArtistName', and 'AlbumCount' (the count of distinct albums). Order the results by 'AlbumCount' descending, then by 'CustomerName' ascending. Save the query and the database file.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_customer_affinity/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_customer_affinity/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "DeepCatalogCustomers",
+    "excluded_artist": "Various Artists",
+    "min_album_count": 3,
+    "sqlite_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_customer_affinity"
+    }
+  }
+}

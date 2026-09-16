@@ -1,0 +1,59 @@
+{
+  "task_id": "hydronic_perimeter_heating_retrofit@1",
+  "task_completion": [
+    {
+      "id": "create_hw_loop",
+      "description": "Create a Hot Water Loop named 'Perimeter_HW_Loop' with the correct type and temperature.",
+      "points": 15,
+      "visual_evidence": "Look for an eQUEST Water Loop Properties dialog or spreadsheet view showing a loop named 'Perimeter_HW_Loop' with Type set to 'Pipe', Subtype set to 'Hot Water', and Design Supply Temp set to '180'."
+    },
+    {
+      "id": "create_boiler",
+      "description": "Create a Boiler named 'Perimeter_Boiler' with the correct Heat Input Ratio.",
+      "points": 15,
+      "visual_evidence": "Look for an eQUEST Boiler Properties dialog or spreadsheet view showing a boiler named 'Perimeter_Boiler' with the Heat Input Ratio (HIR) field set to '1.04'."
+    },
+    {
+      "id": "configure_zone_baseboard_source",
+      "description": "Configure the four top floor perimeter zones to use Hot Water baseboard heating linked to the new loop.",
+      "points": 25,
+      "visual_evidence": "Look for eQUEST Zone Properties dialogs or spreadsheet views for zones 'T.S31', 'T.E32', 'T.N33', and 'T.W34'. The Baseboard source/type must be set to 'Hot Water' and the assigned Loop must be 'Perimeter_HW_Loop'."
+    },
+    {
+      "id": "configure_zone_baseboard_capacity_control",
+      "description": "Set the baseboard capacity and control type for the four perimeter zones.",
+      "points": 25,
+      "visual_evidence": "Look for eQUEST Zone Properties dialogs or spreadsheet views for the four target zones showing the Baseboard Capacity set to '15000' (BTU/hr) and the Control type set to 'Thermostatic'."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the annual simulation.",
+      "points": 10,
+      "visual_evidence": "Look for the eQUEST simulation progress dialog box, a 'Simulation Complete' message, or the viewing of simulation output reports."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the eQUEST project.",
+      "points": 10,
+      "visual_evidence": "Look for the agent clicking 'File -> Save', using the save icon, or the absence of an unsaved changes indicator (like an asterisk) in the eQUEST window title bar after modifications."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the eQUEST graphical user interface to make changes.",
+      "visual_evidence": "Check that the agent is interacting with eQUEST dialog boxes, menus, and spreadsheet views rather than just opening the .inp file in a text editor (like Notepad or Vim) and typing the parameters."
+    },
+    {
+      "id": "genuine_simulation",
+      "description": "The simulation must be executed within the eQUEST application.",
+      "visual_evidence": "Verify that the simulation progress bar or completion dialog is a genuine eQUEST window and not a mocked terminal output or script."
+    },
+    {
+      "id": "no_script_injection",
+      "description": "The agent should not use external scripts to bypass the UI.",
+      "visual_evidence": "Ensure there are no terminal windows showing python or bash scripts being executed to directly modify the 4StoreyBuilding.inp file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target building model is '4StoreyBuilding'. The four target zones are verified as 'T.S31', 'T.E32', 'T.N33', and 'T.W34'. The hot water loop design supply temperature must be exactly 180\u00b0F. The boiler Heat Input Ratio (HIR) must be exactly 1.04. The baseboard capacity for each of the four zones must be exactly 15000 BTU/hr. Running the simulation is a strict requirement for task success."
+}

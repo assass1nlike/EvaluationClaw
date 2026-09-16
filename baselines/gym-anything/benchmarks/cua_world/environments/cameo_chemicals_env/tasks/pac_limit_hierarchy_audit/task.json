@@ -1,0 +1,67 @@
+{
+  "id": "pac_limit_hierarchy_audit@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Perform a Protective Action Criteria (PAC) audit for Chlorine, Cyclohexane, Methyl Mercaptan, Sodium Hydroxide, and Acetone using CAMEO Chemicals (https://cameochemicals.noaa.gov/). For each chemical, identify the PAC-2 value and the Source Basis (AEGL, ERPG, or TEEL) following the DOE hierarchy: AEGLs (60-min) > ERPGs > TEELs. Save the report to ~/Desktop/pac_audit_results.txt.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "pac",
+    "aegl",
+    "erpg",
+    "teel",
+    "emergency-planning",
+    "audit"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pac_limit_hierarchy_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/pac_limit_hierarchy_audit/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Desktop/pac_audit_results.txt",
+    "chemicals": [
+      {
+        "name": "Chlorine",
+        "expected_value": 2.0,
+        "unit": "ppm",
+        "expected_source": "AEGL"
+      },
+      {
+        "name": "Cyclohexane",
+        "expected_value": 1700,
+        "unit": "ppm",
+        "expected_source": "TEEL"
+      },
+      {
+        "name": "Methyl Mercaptan",
+        "expected_value": 23,
+        "trap_value": 30,
+        "unit": "ppm",
+        "expected_source": "AEGL"
+      },
+      {
+        "name": "Sodium Hydroxide",
+        "expected_value": 5,
+        "unit": "mg/m3",
+        "expected_source": "TEEL"
+      },
+      {
+        "name": "Acetone",
+        "expected_value": 3200,
+        "unit": "ppm",
+        "expected_source": "TEEL"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pac_limit_hierarchy_audit"
+    }
+  }
+}

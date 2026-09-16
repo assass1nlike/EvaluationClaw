@@ -1,0 +1,28 @@
+{
+  "id": "submit_proposal_and_advance_stage@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "You are working on the 'Office Design Project - Azure Interior' opportunity. You have just completed the proposal document and need to update the CRM. Update the 'Office Design Project - Azure Interior' opportunity by attaching the proposal file located at ~/Documents/Proposals/Azure_Interior_Renovation_v2.pdf, moving the stage to 'Proposition', and updating the probability to 70%.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/submit_proposal_and_advance_stage/setup_task.sh",
+    "post_task": "/workspace/tasks/submit_proposal_and_advance_stage/export_result.sh"
+  },
+  "metadata": {
+    "opportunity_name": "Office Design Project - Azure Interior",
+    "proposal_filename": "Azure_Interior_Renovation_v2.pdf",
+    "target_stage": "Proposition",
+    "target_probability": 70.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_submit_proposal"
+    }
+  }
+}

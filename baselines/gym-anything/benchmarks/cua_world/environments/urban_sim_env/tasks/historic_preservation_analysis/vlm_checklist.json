@@ -1,0 +1,62 @@
+{
+  "task_id": "historic_preservation_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened",
+      "description": "Open the target Jupyter notebook",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook interface is visible with the filename 'historic_analysis.ipynb' in the path '/home/ga/urbansim_projects/notebooks/'."
+    },
+    {
+      "id": "data_loaded_and_joined",
+      "description": "Load HDF5 data and join buildings with parcels",
+      "points": 10,
+      "visual_evidence": "Code cells showing pandas reading '/home/ga/urbansim_projects/data/sanfran_public.h5' and merging/joining the 'buildings' and 'parcels' dataframes to associate buildings with 'zone_id'."
+    },
+    {
+      "id": "data_filtered_and_categorized",
+      "description": "Filter for valid residential properties and categorize by era",
+      "points": 15,
+      "visual_evidence": "Code cells showing filtering logic for 'residential_sales_price > 0' and 'year_built > 1800', along with logic creating 'Historic' (year_built < 1940) and 'Modern' (year_built >= 1940) categories."
+    },
+    {
+      "id": "metrics_computed_and_sorted",
+      "description": "Compute zone-level metrics, filter by counts, and sort",
+      "points": 20,
+      "visual_evidence": "Code cells showing groupby operations on 'zone_id' calculating historic_count, modern_count, total_buildings, pct_historic, avg_historic_price, and avg_modern_price. There must be a filter for total_buildings >= 50 and historic_count >= 10, followed by sorting by avg_historic_price descending."
+    },
+    {
+      "id": "csv_exported_with_correct_data",
+      "description": "Export the final dataframe to CSV with correct top zones",
+      "points": 25,
+      "visual_evidence": "Code showing export to '/home/ga/urbansim_projects/output/historic_zones.csv'. A dataframe preview in the notebook output should show zone_id 34, 6, and 32 as the top 3 rows, or indicate exactly 160 rows."
+    },
+    {
+      "id": "scatter_plot_generated_and_saved",
+      "description": "Generate and save the scatter plot",
+      "points": 20,
+      "visual_evidence": "An inline scatter plot is visible in the notebook output plotting pct_historic vs. avg_historic_price, and code shows it being saved to '/home/ga/urbansim_projects/output/historic_scatter.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_execution",
+      "description": "Ensure the notebook cells were actually executed",
+      "points": 0,
+      "visual_evidence": "Jupyter notebook cells should have execution numbers (e.g., In [1], In [2]) and display actual pandas dataframe outputs or matplotlib plots, not just raw text or unexecuted code."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Ensure the results are derived from data manipulation, not hardcoded",
+      "points": 0,
+      "visual_evidence": "The code must show actual pandas operations (groupby, merge, filter). The agent should not manually create a dataframe with zone_ids 34, 6, and 32."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Ensure files are saved to the exact requested paths",
+      "points": 0,
+      "visual_evidence": "The to_csv and savefig commands must explicitly use the '/home/ga/urbansim_projects/output/' directory, not a generic or temporary folder."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output CSV must contain exactly 160 qualifying zones. The top 3 zones (highest avg_historic_price) must be zone_id 34, 6, and 32 in that exact order. The CSV must include the columns: historic_count, modern_count, total_buildings, pct_historic, avg_historic_price, avg_modern_price."
+}

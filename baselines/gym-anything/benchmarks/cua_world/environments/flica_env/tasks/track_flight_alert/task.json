@@ -1,0 +1,33 @@
+{
+  "id": "track_flight_alert@1",
+  "version": "1.0",
+  "env_id": "flica_env@0.1",
+  "description": "Enable a tracking alert for Delta flight 'DL400' in the Flight Crew View app. If the specific flight is not found due to schedule changes, navigate to the search result screen for 'DL400'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/track_flight_alert/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/track_flight_alert/export_result.sh"
+  },
+  "metadata": {
+    "flight_number": "DL400",
+    "airline": "Delta",
+    "keywords": [
+      "track",
+      "alert",
+      "follow",
+      "notify",
+      "watching"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_track_flight_alert"
+    }
+  }
+}

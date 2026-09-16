@@ -1,0 +1,85 @@
+{
+  "dataset_id": "b4ca2652",
+  "name": "Wood Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 24,
+  "description": "This dataset evaluates anomaly detection on wood/leather surfaces. Each sample provides an image and a text prompt asking to detect the anomaly region, and the model must output a segmentation mask highlighting the defective area.",
+  "card_text": "The Wood Anomaly Detection dataset contains images of wood or leather surfaces paired with a short instruction prompt ('Detect the anomaly region of the leather'). The input is a single image plus a text prompt, and the output is a binary segmentation mask that localizes the anomaly. The images are close-up views of material surfaces, typically simple in composition. The task requires the model to understand the prompt and produce a pixel-level mask indicating the anomalous region. This is a typical industrial visual inspection scenario, focusing on fine-grained localization of defects in materials.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "The input image showing a wood or leather surface, which is the main visual content to be inspected for anomalies. It is referenced by the filename 'image_file'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short text instruction that asks the model to detect the anomaly region in the provided image. It acts as the task query and is consistent across samples.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output segmentation mask that indicates the anomalous region in the input image. It is a binary image aligned with the input, where the detected defect area is highlighted.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image (input.image_file) and a text prompt (input.prompt) that instructs the detection of anomalies. The output is a segmentation mask (output.mask_file) that localizes the anomalous region in the input image. The mask is spatially aligned with the input image and serves as the ground truth for the segmentation task."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/WoodAnomalyDetection/wood_anomaly_detection.json",
+    "existing_tags": {
+      "task": "wood anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

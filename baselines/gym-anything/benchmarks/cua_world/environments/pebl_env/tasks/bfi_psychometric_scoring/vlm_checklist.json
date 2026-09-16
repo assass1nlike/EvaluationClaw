@@ -1,0 +1,53 @@
+{
+  "task_id": "bfi_psychometric_scoring@1",
+  "task_completion": [
+    {
+      "id": "access_input_files",
+      "description": "Agent accesses the raw data and scoring key.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening, reading, or loading 'bfi_raw_data.csv' and 'bfi_key.json' using a text editor, spreadsheet software, or a data processing script (e.g., pandas)."
+    },
+    {
+      "id": "implement_exclusion_criteria",
+      "description": "Agent implements logic to exclude participants for speeding or straight-lining.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code or spreadsheet formulas that filter out participants with a median 'rt_ms' < 500 or a standard deviation of raw responses < 0.25."
+    },
+    {
+      "id": "implement_reverse_scoring",
+      "description": "Agent implements reverse scoring for specified items.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code or formulas applying the transformation '6 - original_response' (or equivalent logic) to the specific items designated for reverse scoring in the key."
+    },
+    {
+      "id": "calculate_trait_means",
+      "description": "Agent calculates individual and group means for the Big Five traits.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing code or formulas that group the data by trait to calculate the mean score for each valid participant, followed by calculating the overall group mean for each of the Big Five traits."
+    },
+    {
+      "id": "export_final_report",
+      "description": "Agent exports the final results to the specified JSON report file.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the creation, saving, or writing of the final output to '/home/ga/pebl/analysis/bfi_report.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent did not access the hidden ground truth file.",
+      "visual_evidence": "Ensure there are no terminal commands, script lines, or file explorer actions attempting to open, read, or copy '/tmp/hidden_bfi_ground_truth.json'."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "Agent genuinely processed the data rather than hardcoding answers.",
+      "visual_evidence": "Look for actual data manipulation (e.g., a Python script using pandas, or spreadsheet formulas) rather than the agent simply printing or writing a pre-computed JSON string."
+    },
+    {
+      "id": "file_actually_saved",
+      "description": "Agent saved the output to the file system, not just printed it to the console.",
+      "visual_evidence": "Look for commands like 'with open(...) as f: json.dump(...)' or terminal commands (like 'ls' or 'cat') confirming the file 'bfi_report.json' was successfully written to the disk in the correct directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved exactly to '/home/ga/pebl/analysis/bfi_report.json'. The hidden ground truth used for automated verification is located at '/tmp/hidden_bfi_ground_truth.json'; the agent must not access or read this hidden file at any point."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "build_dynamic_localization_system@1",
+  "task_completion": [
+    {
+      "id": "system_strings_tiddler",
+      "description": "Verify the creation of the SystemStrings JSON DataTiddler.",
+      "points": 10,
+      "visual_evidence": "Look for a tiddler named 'SystemStrings' with its type set to 'application/json' (or similar JSON type) containing the imported translation key-value pairs."
+    },
+    {
+      "id": "language_state_initialized",
+      "description": "Verify the language state is initialized to English.",
+      "points": 10,
+      "visual_evidence": "Look for a tiddler named '$:/state/language' containing the text 'en', or evidence in the 'Language Settings' or story river that English is the default active language."
+    },
+    {
+      "id": "localization_macro_tiddler",
+      "description": "Verify the creation of the LocalizationMacro tiddler with the correct tag and macro definition.",
+      "points": 20,
+      "visual_evidence": "Look for a tiddler named 'LocalizationMacro' with the tag '$:/tags/Macro'. Its content should define a macro named 'loc' that constructs a lookup key using the input parameter and the '$:/state/language' tiddler."
+    },
+    {
+      "id": "language_settings_tiddler",
+      "description": "Verify the creation of the Language Settings tiddler with a language switching UI.",
+      "points": 20,
+      "visual_evidence": "Look for a tiddler named 'Language Settings' displaying interactive controls (e.g., radio buttons or a dropdown) labeled 'English', 'Espa\u00f1ol', and 'Fran\u00e7ais'."
+    },
+    {
+      "id": "home_dashboard_tiddler",
+      "description": "Verify the creation of the Home Dashboard tiddler using the loc macro.",
+      "points": 20,
+      "visual_evidence": "Look for a tiddler named 'Home Dashboard'. In edit mode or source view, it should show macro calls like `<<loc welcome>>` (formatted as a level 1 heading), `<<loc submit_ticket>>`, and `<<loc knowledge_base>>`."
+    },
+    {
+      "id": "dynamic_localization_working",
+      "description": "Verify that the Home Dashboard successfully renders the localized strings based on the selected language.",
+      "points": 20,
+      "visual_evidence": "Look at the rendered view of 'Home Dashboard'. It should display the actual translated text (e.g., 'Welcome to the IT Support Portal' as a heading, followed by the other two strings) matching the language currently selected in 'Language Settings'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the TiddlyWiki web interface to complete the task.",
+      "visual_evidence": "Screenshots should show the agent interacting with the TiddlyWiki GUI in a web browser (creating tiddlers, adding tags, saving), rather than just writing a script to generate the wiki."
+    },
+    {
+      "id": "no_hardcoded_text",
+      "description": "Verify the Home Dashboard does not hardcode the translated strings.",
+      "visual_evidence": "The 'Home Dashboard' tiddler source code must use the macro for localization and must not have the English, Spanish, or French strings hardcoded directly in its text."
+    },
+    {
+      "id": "macro_dynamic_lookup",
+      "description": "Verify the LocalizationMacro dynamically looks up values from SystemStrings.",
+      "visual_evidence": "The 'LocalizationMacro' source code should dynamically fetch values from 'SystemStrings' using a combined key, rather than containing a hardcoded list or switch statement of the translations."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected English strings are: 'Welcome to the IT Support Portal', 'Submit a New Ticket', 'Browse Knowledge Base'. The Spanish strings are: 'Bienvenido al Portal de Soporte de TI', 'Enviar un nuevo ticket', 'Explorar la base de conocimientos'. The French strings are: 'Bienvenue sur le portail d'assistance informatique', 'Soumettre un nouveau ticket', 'Parcourir la base de connaissances'. These must be dynamically fetched from the 'SystemStrings' JSON DataTiddler."
+}

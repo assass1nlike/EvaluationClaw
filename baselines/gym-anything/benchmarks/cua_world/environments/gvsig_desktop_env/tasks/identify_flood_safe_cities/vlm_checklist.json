@@ -1,0 +1,59 @@
+{
+  "task_id": "identify_flood_safe_cities@1",
+  "task_completion": [
+    {
+      "id": "load_layers",
+      "description": "Load the required cities and rivers layers in gvSIG",
+      "points": 10,
+      "visual_evidence": "The gvSIG application is open with 'ne_110m_populated_places' and 'ne_110m_rivers_lake_centerlines' visible in the Table of Contents."
+    },
+    {
+      "id": "filter_cities",
+      "description": "Filter cities by population and continent",
+      "points": 20,
+      "visual_evidence": "An attribute table, selection dialog, or map showing cities filtered by POP_MAX > 1,000,000 and restricted to South America (likely using a spatial join or selection by location with the countries layer)."
+    },
+    {
+      "id": "create_river_buffer",
+      "description": "Create a 0.5-degree buffer around rivers",
+      "points": 20,
+      "visual_evidence": "A geoprocessing dialog configuring a 0.5-degree buffer for the rivers layer, or the resulting buffer layer visible on the map."
+    },
+    {
+      "id": "save_river_buffer",
+      "description": "Save the river buffer to the specified path",
+      "points": 10,
+      "visual_evidence": "A layer named 'river_buffer_05deg.shp' visible in the Table of Contents, or an export dialog saving the buffer to this filename."
+    },
+    {
+      "id": "select_safe_cities",
+      "description": "Select cities located outside the river buffer",
+      "points": 20,
+      "visual_evidence": "A spatial selection dialog configuring the selection of cities that do not intersect the river buffer, or a map showing the selected cities far from rivers."
+    },
+    {
+      "id": "export_safe_cities",
+      "description": "Export the final selection of safe cities",
+      "points": 20,
+      "visual_evidence": "A layer named 'safe_cities.shp' in the Table of Contents or an export dialog saving to this filename. The attribute table or map should show the correct cities (Santiago, Lima, Bogota, Caracas)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "Agent used the gvSIG GUI for GIS operations",
+      "visual_evidence": "Geoprocessing, selection, and export actions are performed using gvSIG dialogs and menus, rather than terminal commands or Python scripts."
+    },
+    {
+      "id": "actual_layers_created",
+      "description": "Output files were generated through genuine GIS operations",
+      "visual_evidence": "The output shapefiles are created via gvSIG's export or geoprocessing tools, not by creating empty files using terminal commands like 'touch'."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent performed actual spatial queries rather than manually picking the known answers",
+      "visual_evidence": "The agent uses attribute filters and spatial selection tools to find the cities, rather than manually selecting Santiago, Lima, Bogota, and Caracas without applying the criteria."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output paths are '/home/ga/gvsig_data/exports/river_buffer_05deg.shp' and '/home/ga/gvsig_data/exports/safe_cities.shp'. The final exported safe cities must include Santiago, Lima, Bogota, and Caracas. The 'CONTINENT' attribute is only in the countries shapefile, so the agent must perform a spatial join or selection by location to filter South American cities. The 0.5-degree buffer is required to exclude cities near rivers."
+}

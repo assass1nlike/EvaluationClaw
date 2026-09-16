@@ -1,0 +1,32 @@
+{
+  "id": "unsafe_cross_origin_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a security audit for unsafe cross-origin links (Reverse Tabnabbing vulnerability) on https://crawler-test.com/ by identifying links with target='_blank' that are missing the rel='noopener' attribute. Export the list of identified unsafe links to ~/Documents/SEO/exports/unsafe_links.csv and record the total count of these links in a text file at ~/Documents/SEO/reports/security_summary.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/unsafe_cross_origin_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/unsafe_cross_origin_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "expected_csv_path": "/home/ga/Documents/SEO/exports/unsafe_links.csv",
+    "expected_report_path": "/home/ga/Documents/SEO/reports/security_summary.txt",
+    "required_columns": [
+      "Target",
+      "Rel"
+    ],
+    "min_expected_links": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_unsafe_cross_origin_audit"
+    }
+  }
+}

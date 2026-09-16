@@ -1,0 +1,33 @@
+{
+  "id": "configure_water_monitoring_pipeline@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "As a facility manager, configure the input processing for a water meter (Node: 'utility_room', Input: 'main_water_pulses') that generates 1 pulse for every 10 Liters. Create a PHPFina feed named 'water_total_m3' to track cumulative volume in cubic meters (m³) and a PHPFina feed named 'water_flow_lpm' to track the flow rate in Liters per minute. Both feeds must use a 10s interval. The input is currently receiving data but has no processing configured.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_water_monitoring_pipeline/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_water_monitoring_pipeline/export_result.sh"
+  },
+  "metadata": {
+    "node_name": "utility_room",
+    "input_name": "main_water_pulses",
+    "pulse_weight_liters": 10,
+    "target_feed_total": "water_total_m3",
+    "target_feed_flow": "water_flow_lpm",
+    "expected_total_m3_test_val": 200.1,
+    "expected_flow_lpm_test_val": 600.0,
+    "test_delta_pulses": 10,
+    "test_duration_sec": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_water_monitoring_pipeline"
+    }
+  }
+}

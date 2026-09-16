@@ -1,0 +1,53 @@
+{
+  "task_id": "scripted_input_pipeline@1",
+  "task_completion": [
+    {
+      "id": "script_created_and_executable",
+      "description": "Verify the telemetry script is created in the correct directory with executable permissions.",
+      "points": 15,
+      "visual_evidence": "Terminal screenshot showing the script located in '/opt/splunk/etc/apps/search/bin/' and an 'ls -l' command confirming it has executable (+x) permissions."
+    },
+    {
+      "id": "scripted_input_configured",
+      "description": "Verify the Scripted Input is configured with the correct parameters in Splunk.",
+      "points": 25,
+      "visual_evidence": "Splunk GUI (Settings > Data Inputs > Scripts) showing the script configured with Interval '60', Source Type 'os_telemetry', and Index 'system_logs'."
+    },
+    {
+      "id": "telemetry_data_ingested",
+      "description": "Verify that live OS telemetry data is successfully ingested into Splunk.",
+      "points": 25,
+      "visual_evidence": "Splunk Search interface showing search results for 'index=system_logs'. The events must be single-line key-value pairs containing the exact string 'event_type=live_os_telemetry' and real OS metrics (e.g., memory, disk space)."
+    },
+    {
+      "id": "saved_search_created",
+      "description": "Verify the creation of the saved search (Report) named 'Live_Telemetry_Monitor'.",
+      "points": 15,
+      "visual_evidence": "Splunk 'Reports' or 'Searches, Reports, and Alerts' page showing a saved report exactly named 'Live_Telemetry_Monitor'."
+    },
+    {
+      "id": "saved_search_aggregation",
+      "description": "Verify the saved search performs statistical aggregation on the correct index.",
+      "points": 20,
+      "visual_evidence": "The SPL query for 'Live_Telemetry_Monitor' is visible (either in the search bar or report details) and includes 'index=system_logs' along with a statistical command like 'stats', 'timechart', 'chart', or 'avg()'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_telemetry_generation",
+      "description": "Ensure the script generates real telemetry rather than hardcoded mock data.",
+      "visual_evidence": "Script contents (visible in terminal or editor) should use actual system commands like 'df', 'free', or read from '/proc'. It should not just 'echo' static, hardcoded numbers."
+    },
+    {
+      "id": "genuine_splunk_interface",
+      "description": "Ensure the agent interacted with the actual Splunk web interface to verify ingestion and create the report.",
+      "visual_evidence": "Screenshots should show the Splunk Web UI (http://localhost:8000) being used for searching and reporting, rather than just terminal outputs or text files."
+    },
+    {
+      "id": "authentic_search_results",
+      "description": "Ensure search results are genuinely parsed by Splunk.",
+      "visual_evidence": "Search results in the Splunk UI should show Splunk-generated timestamps, event formatting, and the 'os_telemetry' sourcetype tag, indicating real ingestion rather than a mocked HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "The script must be located exactly at '/opt/splunk/etc/apps/search/bin/'. The Splunk Scripted Input must be configured with interval '60', sourcetype 'os_telemetry', and index 'system_logs'. Ingested events must contain the exact string 'event_type=live_os_telemetry'. The saved search (Report) must be named exactly 'Live_Telemetry_Monitor' and its SPL query must perform statistical aggregation (using commands like stats, timechart, etc.) on the 'system_logs' index."
+}

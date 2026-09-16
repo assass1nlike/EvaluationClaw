@@ -1,0 +1,37 @@
+{
+  "id": "design_guest_bathroom@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Design a functional guest bathroom in the DreamPlan sample house. The design must include a bathtub, a toilet, and a vanity or sink. Export the final 3D view of the bathroom as a PNG image to C:\\Users\\Docker\\Documents\\bathroom_design.png and save the project.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\design_guest_bathroom\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\design_guest_bathroom\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\bathroom_design.png",
+    "min_file_size_kb": 10,
+    "required_items": [
+      "Bathtub",
+      "Toilet",
+      "Sink/Vanity"
+    ],
+    "score_weights": {
+      "file_exists": 10,
+      "file_valid": 10,
+      "vlm_content": 60,
+      "vlm_workflow": 20
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_guest_bathroom"
+    }
+  }
+}

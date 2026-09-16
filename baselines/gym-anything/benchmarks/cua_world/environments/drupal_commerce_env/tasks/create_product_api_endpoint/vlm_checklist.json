@@ -1,0 +1,53 @@
+{
+  "task_id": "create_product_api_endpoint@1",
+  "task_completion": [
+    {
+      "id": "endpoint_path_and_format",
+      "description": "The API endpoint is created at the correct path and outputs JSON.",
+      "points": 20,
+      "visual_evidence": "A browser window or API client showing a GET request to 'http://localhost/api/v1/products' that returns a JSON response, or the Drupal Views configuration showing a REST Export display with the path '/api/v1/products' and format set to 'json'."
+    },
+    {
+      "id": "anonymous_access",
+      "description": "The endpoint is accessible to anonymous users.",
+      "points": 10,
+      "visual_evidence": "The Views configuration shows 'Access: Unrestricted' or 'Role: Anonymous', OR the endpoint is successfully accessed in an incognito window or logged-out browser session."
+    },
+    {
+      "id": "required_fields_present",
+      "description": "The JSON response includes Product ID, Title, SKU, and Price.",
+      "points": 30,
+      "visual_evidence": "The JSON output clearly contains keys/values for product_id, title, sku, and price. Alternatively, the Views configuration 'Fields' section lists Product ID, Title, SKU, and Price (which typically requires a relationship to Product Variations in Drupal)."
+    },
+    {
+      "id": "minimum_product_count",
+      "description": "The endpoint returns at least 10 products.",
+      "points": 20,
+      "visual_evidence": "The JSON array in the response contains 10 or more distinct product objects, or the Views pager settings show 'Display a specified number of items: 10' (or more) / 'Display all items'."
+    },
+    {
+      "id": "sorting_criteria",
+      "description": "The results are sorted by creation date in descending order.",
+      "points": 20,
+      "visual_evidence": "The Drupal Views configuration screen shows a sort criterion for 'Authored on (desc)', 'Created (desc)', or a similar creation date field set to descending order."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_drupal_ui",
+      "description": "The agent used the Drupal Views UI to create the REST Export rather than creating a static file.",
+      "visual_evidence": "Screenshots show the agent navigating and configuring the Drupal Views administration interface (e.g., adding a new view, configuring REST Export settings)."
+    },
+    {
+      "id": "genuine_seeded_data",
+      "description": "The JSON output contains the actual seeded products, not mocked or hardcoded data.",
+      "visual_evidence": "The JSON response includes specific seeded items like 'Sony WH-1000XM5' or 'Apple MacBook Air M2' with their correct prices, rather than dummy data like 'Test Product 1'."
+    },
+    {
+      "id": "browser_interaction",
+      "description": "The agent interacted with the actual application via a web browser.",
+      "visual_evidence": "The presence of a web browser being used to access 'http://localhost' for both configuration and testing, rather than just terminal commands or text editors."
+    }
+  ],
+  "privileged_info_for_vlm": "The endpoint must be located at '/api/v1/products' and return 'application/json'. It must contain at least 10 items. Required fields in the JSON are 'title', 'product_id', 'sku', and 'price'. The environment is seeded with 12 real electronics products (e.g., Sony WH-1000XM5 at $348.00, Apple MacBook Air M2 at $1099.00, Samsung 65-inch TV at $997.99). Look for these specific products and prices in the JSON output to verify genuine data retrieval."
+}

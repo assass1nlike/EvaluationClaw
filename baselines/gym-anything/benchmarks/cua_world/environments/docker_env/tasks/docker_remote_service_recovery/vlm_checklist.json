@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_remote_service_recovery@1",
+  "task_completion": [
+    {
+      "id": "create_docker_context",
+      "description": "Create and use a Docker context named 'staging' pointing to the remote host.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like 'docker context create staging --docker \"host=tcp://staging-node:2375\"' and subsequent use of this context (e.g., 'docker context use staging' or passing '--context staging' to commands)."
+    },
+    {
+      "id": "diagnose_failure",
+      "description": "Diagnose the failure of the existing 'web-proxy' container.",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands like 'docker logs web-proxy' or 'docker inspect web-proxy' to investigate why the container crashed, revealing the missing UPSTREAM_TARGET environment variable."
+    },
+    {
+      "id": "remove_old_container",
+      "description": "Remove the broken 'web-proxy' container.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of 'docker rm -f web-proxy' or 'docker rm web-proxy' to clear the name for the replacement container."
+    },
+    {
+      "id": "run_new_container",
+      "description": "Run a new 'web-proxy' container with the correct image, port mapping, and environment variable.",
+      "points": 40,
+      "visual_evidence": "Terminal showing a 'docker run' command that includes '--name web-proxy', '-p 8080:80', '-e UPSTREAM_TARGET=<some_value>', and the image 'nginx:alpine'."
+    },
+    {
+      "id": "verify_running",
+      "description": "Verify the new container is running successfully.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the output of 'docker ps' with the 'web-proxy' container listed, its status as 'Up', using the 'nginx:alpine' image, and displaying the '8080->80/tcp' port mapping."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "terminal_execution",
+      "description": "Check that the agent executed commands in a real terminal emulator.",
+      "visual_evidence": "Commands and outputs should be visible in a terminal window (like bash or zsh), not just typed into a text editor or notes app."
+    },
+    {
+      "id": "no_ssh_usage",
+      "description": "Ensure the agent did not use SSH to access the remote node directly.",
+      "visual_evidence": "There should be no 'ssh ga@staging-node' or similar SSH commands executed. The task explicitly forbids SSH access and requires using the Docker API."
+    },
+    {
+      "id": "genuine_docker_output",
+      "description": "Verify that the Docker daemon responses look genuine.",
+      "visual_evidence": "Look for standard Docker output formats, such as 64-character hex container IDs returned after 'docker run', or standard image pulling progress bars for 'nginx:alpine'."
+    }
+  ],
+  "privileged_info_for_vlm": "The remote Docker daemon is located at tcp://staging-node:2375. The target container must be named 'web-proxy'. The specific environment variable required to fix the container crash is 'UPSTREAM_TARGET'. The new container must use the 'nginx:alpine' image and map host port 8080 to container port 80 (-p 8080:80)."
+}

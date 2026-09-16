@@ -1,0 +1,65 @@
+{
+  "task_id": "docker_build_cache_debug@1",
+  "task_completion": [
+    {
+      "id": "dockerignore_created",
+      "description": "Verify that a .dockerignore file was created in the project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'ls -la' listing a .dockerignore file, or the file open in a text editor/IDE tree view."
+    },
+    {
+      "id": "dockerignore_content",
+      "description": "Verify that the .dockerignore file contains the required exclusions to prevent cache invalidation.",
+      "points": 10,
+      "visual_evidence": "The contents of .dockerignore visible in a text editor or via a 'cat' command in the terminal, explicitly showing '.git' and '__pycache__'."
+    },
+    {
+      "id": "dockerfile_apt_order",
+      "description": "Verify that system package installations (e.g., apt-get) are placed before the main source code copy instruction.",
+      "points": 20,
+      "visual_evidence": "Dockerfile contents visible in an editor or terminal showing 'RUN apt-get update' and 'apt-get install' occurring before 'COPY . .' or similar full-source copy commands."
+    },
+    {
+      "id": "dockerfile_pip_order",
+      "description": "Verify that Python dependencies are installed before the main source code is copied.",
+      "points": 20,
+      "visual_evidence": "Dockerfile contents showing 'COPY requirements.txt ...' followed by 'RUN pip install ...' occurring before the main 'COPY . .' instruction."
+    },
+    {
+      "id": "dockerfile_source_copy_order",
+      "description": "Verify that the main source code copy instruction is placed after all dependency installations to maximize caching.",
+      "points": 20,
+      "visual_evidence": "Dockerfile contents showing 'COPY . .' (or equivalent source copy) placed near the end of the file, strictly after the apt and pip installation steps."
+    },
+    {
+      "id": "image_built",
+      "description": "Verify that the Docker image was successfully built with the correct tag.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution and successful completion of 'docker build -t build-project:optimized .' with standard Docker build output."
+    },
+    {
+      "id": "container_running",
+      "description": "Verify that the optimized container is running and accessible on port 5000.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a 'docker run' command mapping port 5000 (e.g., '-p 5000:5000'), 'docker ps' showing the container running on port 5000, or a successful 'curl localhost:5000' test."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Verify the agent actually edited the Dockerfile and .dockerignore files rather than just printing the expected final state.",
+      "visual_evidence": "Use of a text editor (nano, vim, VS Code) or valid shell commands (echo, sed, cat) visible in the terminal history."
+    },
+    {
+      "id": "genuine_docker_build",
+      "description": "Verify the agent actually executed the docker build process.",
+      "visual_evidence": "Authentic Docker build logs (e.g., 'Step 1/X', '=> CACHED', '=> exporting to image') visible in the terminal."
+    },
+    {
+      "id": "genuine_container_execution",
+      "description": "Verify the agent started the container and did not just mock a success message.",
+      "visual_evidence": "Authentic 'docker run' output, application startup logs (like Flask development server logs), or a valid 'docker ps' table."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/build-project. The .dockerignore file MUST contain '.git' and '__pycache__'. The Dockerfile MUST be optimized so that system packages (apt) and Python packages (pip via requirements.txt) are installed BEFORE the main source code is copied (e.g., COPY . .). The built image must be tagged exactly as 'build-project:optimized'. The container must be run and accessible on port 5000."
+}

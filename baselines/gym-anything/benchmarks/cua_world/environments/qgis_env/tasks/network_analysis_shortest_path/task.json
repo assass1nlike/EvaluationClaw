@@ -1,0 +1,39 @@
+{
+  "id": "network_analysis_shortest_path@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Calculate the shortest delivery route from the Warehouse to the Customer using the road network provided in /home/ga/GIS_Data/road_network.geojson. Use the Warehouse (South-West corner) and Customer (North-East corner) points from /home/ga/GIS_Data/logistics_stops.geojson as the start and end points. Export the resulting shortest path layer as a GeoJSON file to /home/ga/GIS_Data/exports/delivery_route.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/network_analysis_shortest_path/setup_task.sh",
+    "post_task": "/workspace/tasks/network_analysis_shortest_path/export_result.sh"
+  },
+  "metadata": {
+    "road_network_path": "/home/ga/GIS_Data/road_network.geojson",
+    "stops_path": "/home/ga/GIS_Data/logistics_stops.geojson",
+    "expected_output_path": "/home/ga/GIS_Data/exports/delivery_route.geojson",
+    "optimal_length_approx": 0.141,
+    "suboptimal_length_approx": 0.2,
+    "checkpoints": {
+      "optimal_midpoint": [
+        -0.5,
+        0.5
+      ],
+      "suboptimal_corner": [
+        -1.0,
+        1.0
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_network_analysis_shortest_path"
+    }
+  }
+}

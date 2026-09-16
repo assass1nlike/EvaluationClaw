@@ -1,0 +1,42 @@
+{
+  "id": "export_landmark_slices@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "Using the loaded CT Cranium DICOM dataset, export screenshots of the following anatomical views: an axial view of the orbits to /home/ga/Documents/axial_orbits.png, a sagittal midline view showing the nasal cavity and brainstem to /home/ga/Documents/sagittal_midline.png, and a coronal view of the petrous temporal bones to /home/ga/Documents/coronal_petrous.png. Ensure the relevant anatomy is clearly visible in each export.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_landmark_slices/setup_task.sh",
+    "post_task": "/workspace/tasks/export_landmark_slices/export_result.sh"
+  },
+  "metadata": {
+    "files": [
+      {
+        "path": "/home/ga/Documents/axial_orbits.png",
+        "desc": "Axial view showing orbits",
+        "min_size_kb": 30
+      },
+      {
+        "path": "/home/ga/Documents/sagittal_midline.png",
+        "desc": "Sagittal midline view",
+        "min_size_kb": 30
+      },
+      {
+        "path": "/home/ga/Documents/coronal_petrous.png",
+        "desc": "Coronal view of petrous bones",
+        "min_size_kb": 30
+      }
+    ],
+    "dicom_series": "ct_cranium"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_landmark_slices"
+    }
+  }
+}

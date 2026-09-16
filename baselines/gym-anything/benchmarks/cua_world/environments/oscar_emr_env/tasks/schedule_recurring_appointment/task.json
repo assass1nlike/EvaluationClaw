@@ -1,0 +1,36 @@
+{
+  "id": "schedule_recurring_appointment@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Schedule a recurring 'Physiotherapy' appointment series for patient Michael Chang in OSCAR EMR using the credentials: username 'oscardoc', password 'oscar', and PIN '1117'. The appointments must be set for 10:00 AM starting on the first Tuesday after today, with a duration of 30 minutes, recurring weekly for a total of 4 sessions. Ensure all 4 appointments are saved in the system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/schedule_recurring_appointment/setup_task.sh",
+    "post_task": "/workspace/tasks/schedule_recurring_appointment/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Michael",
+    "patient_lname": "Chang",
+    "provider_no": "999998",
+    "appt_reason": "Physiotherapy",
+    "appt_time": "10:00:00",
+    "appt_duration": "30",
+    "recurrence_count": 4,
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_schedule_recurring_appointment"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "foreign_currency_revaluation_run@1",
+  "task_completion": [
+    {
+      "id": "create_revaluation_document",
+      "description": "Navigate to the Exchange Rate Revaluation list and create a new document for Wind Power LLC.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows a new or draft 'Exchange Rate Revaluation' form in ERPNext with the 'Company' field set to 'Wind Power LLC'."
+    },
+    {
+      "id": "set_account_and_rate",
+      "description": "Fetch or add the row for 'EUR Bank - WP' and set the New Exchange Rate to 1.15.",
+      "points": 20,
+      "visual_evidence": "The accounts table within the Exchange Rate Revaluation form contains a row for 'EUR Bank - WP' and the 'New Exchange Rate' column/field is explicitly set to 1.15."
+    },
+    {
+      "id": "submit_revaluation",
+      "description": "Save and submit the Exchange Rate Revaluation document.",
+      "points": 20,
+      "visual_evidence": "The Exchange Rate Revaluation document displays a 'Submitted' status badge (typically red or green, or the presence of 'Cancel'/'Amend' buttons instead of 'Submit')."
+    },
+    {
+      "id": "generate_journal_entry",
+      "description": "Generate the corresponding Journal Entry from the submitted revaluation and verify the $1,000 gain.",
+      "points": 20,
+      "visual_evidence": "A 'Journal Entry' form is visible, linked to the Exchange Rate Revaluation, with accounting rows showing a 1,000 USD gain (e.g., a 1,000 debit/credit involving the EUR Bank - WP account and an Exchange Gain/Loss account)."
+    },
+    {
+      "id": "submit_journal_entry",
+      "description": "Save and submit the generated Journal Entry.",
+      "points": 30,
+      "visual_evidence": "The Journal Entry document displays a 'Submitted' status badge, confirming the financial posting is finalized."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_erpnext",
+      "description": "The agent interacted with the actual ERPNext web interface.",
+      "visual_evidence": "Screenshots show the ERPNext web application running in a browser (e.g., localhost:8080), with standard UI elements like navigation bars, forms, and tables, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_submission_status",
+      "description": "The document submissions are genuine ERPNext state changes.",
+      "visual_evidence": "The 'Submitted' status badges appear in the standard ERPNext document header location and format, not as typed text in a generic text editor or console output."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "The agent did not bypass the UI to manipulate the database directly.",
+      "visual_evidence": "There is no evidence of a database client (like MySQL/MariaDB CLI) or Python script being used to directly insert the Exchange Rate Revaluation or Journal Entry records."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected new exchange rate must be exactly 1.15. The resulting unrealized exchange gain must be exactly 1,000.0 USD (calculated from the 10,000 EUR balance changing from 1.05 to 1.15 USD/EUR). The target account is 'EUR Bank - WP' and the company is 'Wind Power LLC'."
+}

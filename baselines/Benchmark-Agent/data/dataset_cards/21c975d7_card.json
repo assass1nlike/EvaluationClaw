@@ -1,0 +1,93 @@
+{
+  "dataset_id": "21c975d7",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 208,
+  "description": "The dataset consists of infrared thermal images paired with textual prompts asking to identify the object depicted. It evaluates a model's ability to recognize objects from thermal imagery and return the object name as text.",
+  "card_text": "This dataset contains 208 samples, each with an infrared thermal image and a textual instruction/prompt. The task is to identify the object in the image and output its name (e.g., 'Grenade', 'Knife'). The images are single-object thermal scans, and the text provides explicit instructions. The dataset is an open-set visual question answering task focused on object recognition in the infrared domain. The assumption is that the model can interpret thermal imagery and map visual features to object labels. The prompts are short and directive, and answers are single words. The dataset is intended for evaluating multimodal models on thermal image understanding.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "infrared thermal imaging",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "The infrared thermal image of a single object, which is the primary visual input the model must analyze to identify the object.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt",
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The textual query and instruction that direct the model to analyze the infrared image and return the object's name, specifying the task and expected output format.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target object label (e.g., 'Grenade', 'Knife') that the model should produce, which is the correct identification of the object in the thermal image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Reference path to the infrared thermal image file, which depicts a single object to be identified.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an infrared thermal image (referenced by 'input.image_file'), a textual prompt ('input.prompt') and instruction ('input.instruction') that ask the model to identify the object, and the target answer ('output.answer') which is the object name. The image is the primary context, and the text fields guide the model's response."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Infrared_Thermal_Image_Classification/annotation_open.json",
+    "existing_tags": {
+      "task": "Infrared_Thermal_Image_Classification",
+      "type": "comprehension",
+      "skill": "Object Recognition",
+      "domain": "Infrared",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Infrared"
+  }
+}

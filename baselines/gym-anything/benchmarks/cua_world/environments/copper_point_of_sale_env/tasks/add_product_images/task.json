@@ -1,0 +1,40 @@
+{
+  "id": "add_product_images@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Enhance the store inventory by creating three new products in NCH Copper Point of Sale: 'Organic Honey Jar' (using honey.jpg), 'Oat Milk Liter' (using oat_milk.jpg), and 'Almond Croissant' (using croissant.jpg). The product images are located in C:\\Users\\Docker\\Documents\\Product_Photos\\. Export the updated inventory to C:\\Users\\Docker\\Documents\\inventory_update_verification.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_product_images\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_product_images\\export_result.ps1"
+  },
+  "metadata": {
+    "images_dir": "C:\\Users\\Docker\\Documents\\Product_Photos",
+    "output_csv_path": "C:\\Users\\Docker\\Documents\\inventory_update_verification.csv",
+    "expected_items": [
+      {
+        "name": "Organic Honey Jar",
+        "image_file": "honey.jpg"
+      },
+      {
+        "name": "Oat Milk Liter",
+        "image_file": "oat_milk.jpg"
+      },
+      {
+        "name": "Almond Croissant",
+        "image_file": "croissant.jpg"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_product_images"
+    }
+  }
+}

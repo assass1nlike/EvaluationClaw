@@ -1,0 +1,32 @@
+{
+  "id": "refactor_embedded_address@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Refactor the 'Hotels' vertex class in the 'demodb' database to use an embedded object for address data. Replace the existing flat 'Street', 'City', and 'Country' properties with a single 'Address' property of type EMBEDDED linked to a new 'Location' Document class (not extending V or E) containing those same fields as Strings. Migrate all existing hotel address data into the new 'Address' field and remove the original properties from the 'Hotels' class. Use OrientDB Studio (http://localhost:2480/studio/index.html) with credentials: root / GymAnything123!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_embedded_address/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_embedded_address/export_result.sh"
+  },
+  "metadata": {
+    "db_name": "demodb",
+    "target_class": "Hotels",
+    "embedded_class": "Location",
+    "embedded_property": "Address",
+    "test_hotel_name": "Hotel Artemide",
+    "test_hotel_city": "Rome",
+    "test_hotel_street": "Via Nazionale 22",
+    "test_hotel_country": "Italy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_embedded_address"
+    }
+  }
+}

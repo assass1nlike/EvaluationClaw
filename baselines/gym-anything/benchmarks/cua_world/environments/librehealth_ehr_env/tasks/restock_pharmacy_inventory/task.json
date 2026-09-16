@@ -1,0 +1,29 @@
+{
+  "id": "restock_pharmacy_inventory@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "You are a clinic pharmacist. You have received a shipment of medication that needs to be added to the system inventory immediately. Log in to LibreHealth EHR (admin / password) and record a new inventory transaction (Purchase/Addition) for 'Simvastatin 20mg' with the following details: Quantity: 500, Lot Number: SIM-2025-X84, Expiration Date: 2028-12-31, and Vendor: PharmaDistro Inc. Ensure the stock level is updated.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/restock_pharmacy_inventory/setup_task.sh",
+    "post_task": "/workspace/tasks/restock_pharmacy_inventory/export_result.sh"
+  },
+  "metadata": {
+    "drug_name": "Simvastatin 20mg",
+    "target_lot": "SIM-2025-X84",
+    "target_exp": "2028-12-31",
+    "target_qty": 500,
+    "vendor": "PharmaDistro Inc"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restock_pharmacy_inventory"
+    }
+  }
+}

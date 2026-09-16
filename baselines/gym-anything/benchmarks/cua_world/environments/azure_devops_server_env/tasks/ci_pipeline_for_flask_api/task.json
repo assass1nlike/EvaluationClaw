@@ -1,0 +1,37 @@
+{
+  "id": "ci_pipeline_for_flask_api@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are a DevOps Engineer at TailwindTraders. The Flask inventory management API in the TailwindTraders repository has no CI/CD pipeline — every commit goes to main without automated testing, and bugs like the concurrency issue and SQL injection vulnerability have been slipping through. Create a CI pipeline for the TailwindTraders project that triggers on pushes to the main branch and pull requests targeting main. The pipeline must use Python 3.11, install dependencies from requirements.txt, and execute the test suite using pytest on the tests/ directory. The repository already contains app.py, models.py, routes.py, requirements.txt, and tests/test_app.py.\n\nLogin URL: http://localhost/DefaultCollection\nUsername: Docker\nPassword: GymAnything123!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ci_pipeline_for_flask_api\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ci_pipeline_for_flask_api\\export_result.ps1"
+  },
+  "metadata": {
+    "target_project": "TailwindTraders",
+    "target_repo": "TailwindTraders",
+    "required_keywords": [
+      "python",
+      "pytest",
+      "requirements",
+      "trigger",
+      "main"
+    ],
+    "pipeline_should_trigger_on": [
+      "main",
+      "pull_request"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ci_pipeline_for_flask_api"
+    }
+  }
+}

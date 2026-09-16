@@ -1,0 +1,53 @@
+{
+  "task_id": "enable_timestamp_updates@1",
+  "task_completion": [
+    {
+      "id": "uncheck_preserve_timestamp",
+      "description": "Uncheck 'Preserve modification timestamp of file containers' in VeraCrypt Preferences.",
+      "points": 30,
+      "visual_evidence": "VeraCrypt Preferences window is open and the checkbox for 'Preserve modification timestamp of file containers' is visibly unchecked."
+    },
+    {
+      "id": "mount_volume",
+      "description": "Mount the evidence_locker.hc volume.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt main window showing the volume '/home/ga/Volumes/evidence_locker.hc' successfully mounted to a drive slot."
+    },
+    {
+      "id": "copy_evidence_file",
+      "description": "Copy new_evidence.txt into the mounted volume.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal showing 'new_evidence.txt' present inside the mounted VeraCrypt volume's directory."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Dismount the VeraCrypt volume.",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window showing the previously used drive slot is now empty, indicating the volume was dismounted."
+    },
+    {
+      "id": "verify_modification_time",
+      "description": "Verify the modification time of the evidence_locker.hc file.",
+      "points": 20,
+      "visual_evidence": "File manager properties window or terminal output (e.g., ls -l or stat) showing the current modification time for '/home/ga/Volumes/evidence_locker.hc'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_configuration_used",
+      "description": "The agent used the VeraCrypt GUI to change the preference.",
+      "visual_evidence": "Screenshots must show the VeraCrypt Preferences dialog box being interacted with, rather than direct text editing of Configuration.xml."
+    },
+    {
+      "id": "no_touch_command_cheat",
+      "description": "The agent did not artificially manipulate the timestamp using the 'touch' command.",
+      "visual_evidence": "Terminal windows should not show the use of 'touch /home/ga/Volumes/evidence_locker.hc' to fake the timestamp update."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "The agent genuinely copied the evidence file into the volume.",
+      "visual_evidence": "File manager copy/paste actions or a terminal 'cp' command moving '/home/ga/Documents/new_evidence.txt' to the mount point."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume path: /home/ga/Volumes/evidence_locker.hc. Password: Audit2024!. Evidence file to copy: /home/ga/Documents/new_evidence.txt. The VeraCrypt configuration file is located at /home/ga/.config/VeraCrypt/Configuration.xml, where the 'PreserveTimestamp' setting is stored."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "query_optimization@1",
+  "task_completion": [
+    {
+      "id": "index_hotels_city",
+      "description": "Create a NOTUNIQUE index on Hotels.City",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a database console, GUI, or script output where a NOTUNIQUE index on the 'City' property of the 'Hotels' class is created or listed."
+    },
+    {
+      "id": "index_hotels_country_stars",
+      "description": "Create a NOTUNIQUE COMPOSITE index on Hotels covering Country and Stars",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the creation or existence of a NOTUNIQUE composite index on the 'Hotels' class for properties 'Country' and 'Stars' (in that specific order)."
+    },
+    {
+      "id": "index_profiles_nationality",
+      "description": "Create a NOTUNIQUE index on Profiles.Nationality",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the creation or existence of a NOTUNIQUE index on the 'Nationality' property of the 'Profiles' class."
+    },
+    {
+      "id": "report_explain_before",
+      "description": "Document EXPLAIN results before optimization",
+      "points": 20,
+      "visual_evidence": "A text editor or document showing the EXPLAIN output for all three target queries before the indexes were created (typically showing full class scans or no utilized indexes)."
+    },
+    {
+      "id": "report_explain_after",
+      "description": "Document EXPLAIN results after optimization",
+      "points": 25,
+      "visual_evidence": "A text editor or document showing the EXPLAIN output for all three target queries after the indexes were created, demonstrating that the queries now utilize the newly created indexes."
+    },
+    {
+      "id": "report_saved",
+      "description": "Save the report at ~/query_optimization_report.txt",
+      "points": 10,
+      "visual_evidence": "A text editor title bar, terminal command (e.g., ls or cat), or file manager showing the report is saved exactly at /home/ga/query_optimization_report.txt."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacted with the actual database to execute queries and create indexes",
+      "visual_evidence": "Screenshots should show a real database client (like OrientDB Studio or console) being used to run the EXPLAIN commands and CREATE INDEX statements."
+    },
+    {
+      "id": "authentic_explain_output",
+      "description": "EXPLAIN outputs in the report appear genuine",
+      "visual_evidence": "The EXPLAIN results pasted into the report should look like authentic database output (e.g., JSON format or structured text with execution plans), not manually typed or hallucinated summaries."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Query results or execution stats match the actual database content",
+      "visual_evidence": "If record counts are visible in the EXPLAIN output, they should match the real data: 1 hotel in Rome, 3 Italian hotels with >= 4 stars, and 3 British profiles."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains synthetic travel agency data. Expected query results: `SELECT FROM Hotels WHERE City = 'Rome'` returns 1 record; `SELECT FROM Hotels WHERE Country = 'Italy' AND Stars >= 4` returns 3 records; `SELECT FROM Profiles WHERE Nationality = 'British'` returns 3 records. The required indexes are: NOTUNIQUE on Hotels.City, NOTUNIQUE COMPOSITE on Hotels(Country, Stars), and NOTUNIQUE on Profiles.Nationality. The final report must be saved at /home/ga/query_optimization_report.txt."
+}

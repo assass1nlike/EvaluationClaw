@@ -1,0 +1,53 @@
+{
+  "task_id": "object_relational_logistics@1",
+  "task_completion": [
+    {
+      "id": "create_object_type",
+      "description": "Create the T_MANIFEST_ITEM object type",
+      "points": 15,
+      "visual_evidence": "Look for a SQL script, terminal output, or DB client showing the execution of 'CREATE TYPE T_MANIFEST_ITEM AS OBJECT' with attributes ITEM_NAME (VARCHAR2), QUANTITY (NUMBER), and UNIT_WEIGHT_KG (NUMBER)."
+    },
+    {
+      "id": "create_collection_type",
+      "description": "Create the T_MANIFEST_TAB collection type",
+      "points": 15,
+      "visual_evidence": "Look for the execution of 'CREATE TYPE T_MANIFEST_TAB AS TABLE OF T_MANIFEST_ITEM' in a SQL client or script."
+    },
+    {
+      "id": "create_shipment_objects_table",
+      "description": "Create the SHIPMENT_OBJECTS table with explicit nested table storage",
+      "points": 20,
+      "visual_evidence": "Look for the execution of 'CREATE TABLE SHIPMENT_OBJECTS' including the column MANIFEST of type T_MANIFEST_TAB and the explicit clause 'NESTED TABLE MANIFEST STORE AS STORED_MANIFEST_ITEMS'."
+    },
+    {
+      "id": "insert_consolidated_data",
+      "description": "Migrate and consolidate data from the CSV into the new schema",
+      "points": 25,
+      "visual_evidence": "Look for a PL/SQL block, Python script, or SQL INSERT statements that read the CSV and populate SHIPMENT_OBJECTS. Alternatively, look for a SELECT query result showing 4 distinct shipment rows in SHIPMENT_OBJECTS with populated nested collections."
+    },
+    {
+      "id": "create_view_manifest_weights",
+      "description": "Create the V_MANIFEST_WEIGHTS view with required calculations",
+      "points": 25,
+      "visual_evidence": "Look for 'CREATE VIEW V_MANIFEST_WEIGHTS AS SELECT...' with aggregation functions calculating ITEM_COUNT_DISTINCT, TOTAL_ITEMS, and TOTAL_WEIGHT_KG. A SELECT query on this view showing shipment 1003 with 150 items and 238.5 weight is also strong evidence."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacted with a real database environment",
+      "visual_evidence": "Check that the agent executes the SQL commands in a real database environment (e.g., SQL*Plus, a DB IDE, or via a Python script) and receives successful execution feedback, rather than just typing text in an editor."
+    },
+    {
+      "id": "no_hardcoded_view_results",
+      "description": "View calculates values dynamically without hardcoding",
+      "visual_evidence": "Ensure the view V_MANIFEST_WEIGHTS is created with dynamic SQL aggregations (e.g., SUM, COUNT) and not by hardcoding the expected values for shipment 1003 or other shipments."
+    },
+    {
+      "id": "genuine_data_migration",
+      "description": "Agent read data from the provided CSV file",
+      "visual_evidence": "Verify that the agent actually reads the CSV file '/home/ga/Desktop/legacy_manifests.csv' (using Python, SQL*Loader, or external tables) instead of manually typing the data values into INSERT statements."
+    }
+  ],
+  "privileged_info_for_vlm": "The CSV file is located at /home/ga/Desktop/legacy_manifests.csv and contains 4 distinct shipments. The required object types are T_MANIFEST_ITEM and T_MANIFEST_TAB. The nested table storage must be named STORED_MANIFEST_ITEMS. For shipment ID 1003, the expected total weight is 238.5 kg and the total item count is 150."
+}

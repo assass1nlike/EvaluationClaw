@@ -45,11 +45,4 @@ def external_harness_issues(
         issues.append("External shell harnesses require environment.workdir=/workspace.")
     if has_workflow:
         issues.append("External shell harnesses do not implement multi-stage task workflows.")
-    if environment.get("actors"):
-        unsupported = [name for name in selected if name != "openclaw"]
-        if unsupported:
-            issues.append(
-                "Environment actors require the OpenClaw harness; incompatible selected "
-                "harnesses: " + ", ".join(unsupported) + "."
-            )
     return issues

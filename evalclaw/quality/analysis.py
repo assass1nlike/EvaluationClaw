@@ -50,8 +50,6 @@ from .analysis_tools import (
     read_run_artifact,
 )
 
-_MAX_ARTIFACT_CALLS = 6
-
 _FINAL_BENCHMARK_PROMPT = """\
 Whenever analysis ends, also deliver a benchmark selected from the main run and
 all completed probe iterations, grouped by the evaluated model's weaknesses.
@@ -75,10 +73,14 @@ classification. A task may belong to multiple weaknesses when justified, but
 do not repeat a reference within one group.
 
 This final deliverable is required both when you choose done=true and when
-remaining_probe_iterations or max_probe_tasks is zero. Do not request more tasks
-when ending. If no supported, in-scope weakness benchmark can be selected,
-return "benchmark": [] and explain the evidence limitation in analysis; do not
-invent a weakness to populate it. While continuing, omit benchmark.
+remaining_probe_iterations or max_probe_tasks is zero. If either budget is zero,
+set done=true and deliver the most complete benchmark that the evidence collected
+so far supports, even if coverage is unfinished. Explain any remaining gaps or
+unconfirmed weaknesses in analysis; do not claim exhaustive coverage without
+evidence. Do not request more tasks when ending. If no supported, in-scope
+weakness benchmark can be selected, return "benchmark": [] and explain the
+evidence limitation in analysis; do not invent a weakness to populate it.
+While continuing, omit benchmark.
 """
 
 ANALYSER_SYSTEM_PROMPT = """\
@@ -91,11 +93,13 @@ Your "analysis" is a narrative stating: a summary of what the evidence so far
 shows; which model-capability weaknesses are still unconfirmed; the hypothesis
 you hold about them; and how you plan to experiment to test that hypothesis.
 
-If you still need evidence, write a focused evaluation goal for that experiment.
+If you still need evidence, write an evaluation goal for that experiment.
 The framework runs the goal through the full Planner -> Builder -> Runner
 pipeline to produce the probe tasks. Probes are experiments, not adversarial
-expansion for its own sake. Write the goal so the Planner designs a small,
-focused probe. You may specify the task type, task count, and challenge effort
+expansion for its own sake. Choose task counts based on the coverage needed to
+identify weaknesses and demonstrate their distinct failure modes within the
+available budget; there is no requirement to keep the probe small or concise.
+You may specify the task type, task count, and challenge effort
 level — per task or for the probe as a whole — according to what your hypothesis
 needs. The three effort levels are:
 
@@ -106,12 +110,16 @@ needs. The three effort levels are:
 
 State these in the goal so the Planner materializes the probe as intended.
 
-Set "done": true only when you have fully identified every model capability
-weakness, AND produced a benchmark that covers exactly those weaknesses (so the
-model underperforms on it because of genuine inability), AND that benchmark has
-already passed one run showing it is itself correct — the model's poor
-performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
-"goal" empty. Otherwise set "done": false and give a goal.
+Keep every task aligned with the user's original evaluation need. Within that
+scope, aim to fully identify every model capability weakness and provide enough
+tasks for each weakness to demonstrate all its distinct failure modes with
+substantial coverage. The selected tasks must already have been run, with
+evidence that poor performance reflects genuine model inability rather than
+flawed, imprecise, or ambiguous tasks. If you judge that this goal has been
+achieved before the budget is exhausted, you may stop immediately: set "done":
+true, leave "goal" empty, and deliver the final benchmark. Otherwise continue
+with "done": false and a goal while budget remains; when it is exhausted,
+deliver the most complete supported result as instructed below.
 
 QC is not part of the default analysis context. Three read-only tools may be
 available: list_run_artifacts discovers saved evidence, read_run_artifact reads a named artifact (read the QC artifact
@@ -153,11 +161,14 @@ Your "analysis" is a narrative stating: a summary of what the evidence so far
 shows; which model-capability weaknesses are still unconfirmed; the hypothesis
 you hold about them; and how you plan to experiment to test that hypothesis.
 
-If you still need evidence, design focused probe tasks that test the hypothesis.
+If you still need evidence, design probe tasks that test the hypothesis.
 Probes are experiments, not adversarial expansion for its own sake. Return
 TaskDesigns for the existing TaskBuilder to materialize; do not construct final
 task JSON. Use only dimension ids listed in the request. The framework assigns
 all TaskDesign and task ids, so do not return an id.
+Choose task counts based on the coverage needed to identify weaknesses and
+demonstrate their distinct failure modes within the available budget; there is
+no requirement to keep the probe small or concise.
 
 Each task_designs entry contains dimension_id plus these TaskDesign fields:
 task_type, task_count, challenge_effort, content_design, input_requirements,
@@ -170,12 +181,16 @@ category. source_plan.strategy is generated, adapted, reused, or
 imported_dataset. generated uses no URLs or search queries; the other strategies
 require an existing URL.
 
-Set "done": true only when you have fully identified every model capability
-weakness, AND produced a benchmark that covers exactly those weaknesses (so the
-model underperforms on it because of genuine inability), AND that benchmark has
-already passed one run showing it is itself correct — the model's poor
-performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
-"task_designs" empty. Otherwise set "done": false and give task_designs.
+Keep every task aligned with the user's original evaluation need. Within that
+scope, aim to fully identify every model capability weakness and provide enough
+tasks for each weakness to demonstrate all its distinct failure modes with
+substantial coverage. The selected tasks must already have been run, with
+evidence that poor performance reflects genuine model inability rather than
+flawed, imprecise, or ambiguous tasks. If you judge that this goal has been
+achieved before the budget is exhausted, you may stop immediately: set "done":
+true, leave "task_designs" empty, and deliver the final benchmark. Otherwise
+continue with "done": false and task_designs while budget remains; when it is
+exhausted, deliver the most complete supported result as instructed below.
 
 The supplied responses may be bounded excerpts. When necessary, use read_item_evidence to inspect
 a main-run or probe item, list_run_artifacts to discover saved execution evidence, and
@@ -236,7 +251,7 @@ Return pure JSON only:
 {"analysis": "...", "task_designs": [], "done": false}"""
     else:
         output_instruction = """\
-When more tasks are needed, return a focused evaluation goal describing the benchmark to construct.
+When more tasks are needed, return an evaluation goal describing the benchmark to construct.
 This goal serves as an instruction for the Planner to create tasks similar to the identified failed
 tasks. State the observable properties that should be preserved and those that should vary. The goal
 may specify task type, count, and E1/E2/E3 challenge effort. Its total task count must not exceed
@@ -262,6 +277,9 @@ You are the EvaluationClaw Analyser reviewing freshly-built probe tasks before t
 These probe tasks were materialised from your TaskDesigns to test a hypothesis. Inspect
 each probe task and judge whether it faithfully and effectively distinguishes the
 hypothesis; fix the ones that do not.
+Also assess whether the set sufficiently covers the distinct failure modes
+under investigation, keeping every task aligned with the user's original
+evaluation need. Request additional tasks when needed for that coverage.
 
 Return pure JSON only:
 {
@@ -324,7 +342,7 @@ def _run_analyser_tool_loop(
                 ANALYSER_ARTIFACT_LIST_TOOL,
                 ANALYSER_ITEM_EVIDENCE_TOOL,
             ]
-            if artifact_dir is not None and calls_used < _MAX_ARTIFACT_CALLS
+            if artifact_dir is not None and calls_used < config.analyser_tool_max_calls
             else []
         )
         response = None
@@ -364,7 +382,7 @@ def _run_analyser_tool_loop(
             })
             continue
 
-        remaining = max(0, _MAX_ARTIFACT_CALLS - calls_used)
+        remaining = max(0, config.analyser_tool_max_calls - calls_used)
         selected = response.tool_calls[:remaining]
         if not selected:
             raise ValueError("Analyser requested tools after its artifact-read budget was exhausted.")
@@ -395,7 +413,7 @@ def _run_analyser_tool_loop(
         )
         calls_used += len(selected)
         _append_tool_results(messages, response, results)
-        if calls_used >= _MAX_ARTIFACT_CALLS:
+        if calls_used >= config.analyser_tool_max_calls:
             messages.append(
                 {
                     "role": "user",
@@ -528,6 +546,10 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
                 "judge_reasoning": result.judge_reasoning,
                 "error": result.error,
                 "latency_ms": result.latency_ms,
+                "execution": {
+                    key: value for key, value in result.execution.items()
+                    if key in {"stage", "termination", "target_started", "artifacts"}
+                },
                 "failure_evidence": {
                     "failed": bool(result.error) or result.score < 1.0,
                     "score": result.score,

@@ -1,0 +1,30 @@
+{
+  "id": "configure_self_service_portal@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Configure the Self-Service Portal settings in ManageEngine ServiceDesk Plus for Acme Global IT. Set the Welcome Message to \"Welcome to the Acme Global IT Portal. Please search the Solutions tab before submitting a ticket.\", disable the option to allow requesters to reopen resolved/closed requests, and enable the option to show request cost to the requester. Use the administrator credentials (administrator/administrator or Admin1234!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_self_service_portal/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_self_service_portal/export_result.sh",
+    "pre_task_timeout": 3600
+  },
+  "metadata": {
+    "expected_welcome_message": "Welcome to the Acme Global IT Portal. Please search the Solutions tab before submitting a ticket.",
+    "expected_reopen_allowed": "false",
+    "expected_show_cost": "true",
+    "db_param_reopen": "REOPEN_RESOLVED_REQUEST",
+    "db_param_cost": "SHOW_REQ_COST"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_self_service_portal"
+    }
+  }
+}

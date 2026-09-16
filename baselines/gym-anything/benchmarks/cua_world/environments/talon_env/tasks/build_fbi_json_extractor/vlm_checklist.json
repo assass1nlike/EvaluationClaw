@@ -1,0 +1,59 @@
+{
+  "task_id": "build_fbi_json_extractor@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Verify the target directory for the Talon tools was created.",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer window, terminal output, or editor tree showing the folder 'fbi_tools' exists within 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\'."
+    },
+    {
+      "id": "python_file_created",
+      "description": "Verify the Python module file was created in the target directory.",
+      "points": 10,
+      "visual_evidence": "Look for the file 'fbi_search.py' visible in the 'fbi_tools' directory."
+    },
+    {
+      "id": "talon_file_created",
+      "description": "Verify the Talon command file was created in the target directory.",
+      "points": 10,
+      "visual_evidence": "Look for the file 'fbi_search.talon' visible in the 'fbi_tools' directory."
+    },
+    {
+      "id": "python_action_and_json_path",
+      "description": "Verify the Python script defines the required Talon action and references the correct JSON data path.",
+      "points": 20,
+      "visual_evidence": "Look at the code inside 'fbi_search.py'. It must contain a Talon action definition for 'insert_fugitive_record(search_term: str)' (usually under a @mod.action_class decorator) and explicitly contain the file path 'C:\\workspace\\data\\fbi_wanted.json'."
+    },
+    {
+      "id": "python_formatting_logic",
+      "description": "Verify the Python script contains the correct formatting logic for both found and not found records.",
+      "points": 30,
+      "visual_evidence": "Look at the code inside 'fbi_search.py'. It must show logic to format a found record with 'SUBJECT:', 'ALIASES:', and 'WARNING:' (handling null/empty as 'None'). It must also show the fallback string 'NO RECORD FOUND FOR: [search_term]'."
+    },
+    {
+      "id": "talon_command_defined",
+      "description": "Verify the Talon file defines the correct voice command and calls the Python action.",
+      "points": 20,
+      "visual_evidence": "Look at the code inside 'fbi_search.talon'. It must contain the global voice command 'fugitive search <user.text>:' and show it executing 'user.insert_fugitive_record(...)' with the dictated text."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Ensure the files are actually saved to the disk in the correct directory.",
+      "visual_evidence": "Check that the text editor does not show an 'unsaved' indicator (like a dot or asterisk next to the filename) for fbi_search.py and fbi_search.talon, or look for terminal commands confirming the files were written."
+    },
+    {
+      "id": "no_hardcoded_search_results",
+      "description": "Ensure the Python script contains actual JSON parsing and search logic, not just hardcoded outputs.",
+      "visual_evidence": "The Python script should import 'json', open the file, iterate through the 'items' array, and check the 'title' field, rather than just returning a static string for a specific test name."
+    },
+    {
+      "id": "genuine_talon_imports",
+      "description": "Ensure the Python script uses genuine Talon API imports.",
+      "visual_evidence": "Look for 'from talon import Module, actions' (or similar) at the top of the Python script. There should be no evidence of the agent creating fake/mock Talon modules just to bypass errors."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\fbi_tools. Target Python file: fbi_search.py. Target Talon file: fbi_search.talon. Target JSON data path: C:\\workspace\\data\\fbi_wanted.json. The task requires creating these files with specific logic for searching the JSON and formatting the output."
+}

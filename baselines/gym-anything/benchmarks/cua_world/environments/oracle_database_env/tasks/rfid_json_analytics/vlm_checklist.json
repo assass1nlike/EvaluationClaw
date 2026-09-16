@@ -1,0 +1,53 @@
+{
+  "task_id": "rfid_json_analytics@1",
+  "task_completion": [
+    {
+      "id": "database_connection_established",
+      "description": "Verify the agent connected to the Oracle database.",
+      "points": 10,
+      "visual_evidence": "A terminal running SQL*Plus (e.g., 'sqlplus hr/hr123@localhost:1521/XEPDB1') or a GUI database client (like DBeaver) connected to the XEPDB1 database as the 'hr' user."
+    },
+    {
+      "id": "view_rfid_events_flat_created",
+      "description": "Verify the creation of the RFID_EVENTS_FLAT view.",
+      "points": 20,
+      "visual_evidence": "SQL code executing 'CREATE VIEW RFID_EVENTS_FLAT AS...' with JSON extraction logic, or the view appearing in a database schema browser with the required columns (EVENT_ID, TAG_ID, etc.)."
+    },
+    {
+      "id": "view_zone_traffic_summary_created",
+      "description": "Verify the creation of the ZONE_TRAFFIC_SUMMARY view.",
+      "points": 20,
+      "visual_evidence": "SQL code executing 'CREATE VIEW ZONE_TRAFFIC_SUMMARY AS...' with aggregation logic (COUNT, AVG, etc.), or the view appearing in a database schema browser with the required columns (FACILITY, ZONE, TOTAL_READS, etc.)."
+    },
+    {
+      "id": "function_get_tag_history_created",
+      "description": "Verify the creation of the GET_TAG_HISTORY PL/SQL function.",
+      "points": 30,
+      "visual_evidence": "SQL code executing 'CREATE OR REPLACE FUNCTION GET_TAG_HISTORY...' containing logic to return a pipe-delimited string of events, or the function appearing in a database schema browser."
+    },
+    {
+      "id": "report_exported",
+      "description": "Verify the zone traffic summary report was exported to the Desktop.",
+      "points": 20,
+      "visual_evidence": "A file named 'warehouse_report.txt' visible on the Desktop, or its contents displayed in a terminal/text editor showing tabular data with headers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Ensure the agent actually executed the SQL commands against the database.",
+      "visual_evidence": "Look for success messages from the database client (e.g., 'View created.', 'Function created.') rather than just SQL code typed into a text editor without being run."
+    },
+    {
+      "id": "dynamic_function_logic",
+      "description": "Ensure the PL/SQL function contains actual logic to query and concatenate data.",
+      "visual_evidence": "The function code should use a cursor, loop, or LISTAGG to dynamically build the string from the database, rather than returning a hardcoded string."
+    },
+    {
+      "id": "genuine_report_export",
+      "description": "Ensure the exported report contains actual aggregated data.",
+      "visual_evidence": "The 'warehouse_report.txt' file should contain multiple rows of data that appear to be generated from a database query (e.g., via spooling in SQL*Plus or exporting from a GUI), not manually typed text."
+    }
+  ],
+  "privileged_info_for_vlm": "Required views: 'RFID_EVENTS_FLAT' (columns: EVENT_ID, TAG_ID, EPC_URI, READER_ID, FACILITY, ZONE, READ_TIME, RSSI_DBM, SKU, ITEM_DESCRIPTION, ITEM_CATEGORY, UNIT_VALUE_USD, EVENT_TYPE) and 'ZONE_TRAFFIC_SUMMARY' (columns: FACILITY, ZONE, TOTAL_READS, UNIQUE_TAGS, UNIQUE_SKUS, ARRIVAL_COUNT, DEPARTURE_COUNT, AVG_SIGNAL_STRENGTH). Required function: 'GET_TAG_HISTORY'. Output file: '/home/ga/Desktop/warehouse_report.txt'."
+}

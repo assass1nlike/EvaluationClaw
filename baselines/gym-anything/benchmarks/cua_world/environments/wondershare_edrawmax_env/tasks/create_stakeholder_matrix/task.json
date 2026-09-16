@@ -1,0 +1,39 @@
+{
+  "id": "create_stakeholder_matrix@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a 2x2 Stakeholder Power/Interest Matrix for an 'EHR Migration Project' titled 'EHR Project Stakeholder Map'. The matrix should feature an X-axis for 'Interest' (Low to High) and a Y-axis for 'Power' (Low to High), with quadrants labeled 'Manage Closely' (Top-Right), 'Keep Satisfied' (Top-Left), 'Keep Informed' (Bottom-Right), and 'Monitor' (Bottom-Left). Plot the following stakeholders according to their attributes: 'Chief Medical Officer' (High Power, High Interest), 'Hospital Board' (High Power, High Interest), 'Finance Director' (High Power, Low Interest), 'Nursing Staff' (Low Power, High Interest), and 'IT Maintenance Team' (Low Power, Low Interest). Save the project to ~/Documents/stakeholder_map.eddx and export the final diagram to ~/Documents/stakeholder_map.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_stakeholder_matrix/setup_task.sh",
+    "post_task": "/workspace/tasks/create_stakeholder_matrix/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/stakeholder_map.eddx",
+    "expected_png_path": "/home/ga/Documents/stakeholder_map.png",
+    "required_text": [
+      "Interest",
+      "Power",
+      "Manage Closely",
+      "Keep Satisfied",
+      "Keep Informed",
+      "Monitor",
+      "Chief Medical Officer",
+      "Finance Director",
+      "Nursing Staff",
+      "IT Maintenance Team",
+      "Hospital Board"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_stakeholder_matrix"
+    }
+  }
+}

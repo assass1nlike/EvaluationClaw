@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_compliance_login_banner@1",
+  "task_completion": [
+    {
+      "id": "open_frontend_code",
+      "description": "Agent opens the Socioboard frontend source code to locate the login page template.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a text editor or terminal open to a file within the /opt/socioboard/socioboard-web-php/ directory (likely a login or auth blade/php file)."
+    },
+    {
+      "id": "insert_warning_html",
+      "description": "Agent inserts the required legal warning div into the source code.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the code editor show a div element with id='legal-warning' containing the exact text 'UNAUTHORIZED ACCESS IS PROHIBITED. All activity is logged.' being added to the file."
+    },
+    {
+      "id": "insert_privacy_link_html",
+      "description": "Agent inserts the required privacy policy anchor tag into the source code.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the code editor show an anchor (<a>) element with id='corp-privacy-policy', href='https://internal.marketpulse.io/privacy', and the text 'Privacy Policy' being added to the file."
+    },
+    {
+      "id": "load_login_page",
+      "description": "Agent navigates to the Socioboard login page in a web browser.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a web browser open to the Socioboard application's login page."
+    },
+    {
+      "id": "warning_banner_visible",
+      "description": "The legal warning banner is visible on the rendered login page.",
+      "points": 20,
+      "visual_evidence": "The text 'UNAUTHORIZED ACCESS IS PROHIBITED. All activity is logged.' is clearly visible on the rendered Socioboard login page in the browser."
+    },
+    {
+      "id": "privacy_link_visible",
+      "description": "The privacy policy link is visible on the rendered login page.",
+      "points": 20,
+      "visual_evidence": "The text 'Privacy Policy' (styled as a link) is clearly visible on the rendered Socioboard login page in the browser."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "modified_actual_source_file",
+      "description": "Agent modified the actual Socioboard source files rather than creating a dummy HTML file.",
+      "visual_evidence": "The file being edited is clearly part of the Socioboard directory structure (/opt/socioboard/socioboard-web-php/) and contains other Socioboard application code."
+    },
+    {
+      "id": "rendered_in_actual_app",
+      "description": "The browser screenshots show the actual Socioboard application running, not a standalone local file.",
+      "visual_evidence": "The browser URL bar shows a localhost or appropriate web server address for Socioboard (not a file:// URI), and the page retains the standard Socioboard styling."
+    },
+    {
+      "id": "no_devtools_injection",
+      "description": "Agent did not use browser Developer Tools to temporarily inject the HTML into the live page.",
+      "visual_evidence": "There is evidence of the agent saving the changes in a text editor/terminal, rather than just using the 'Elements' tab in browser DevTools to alter the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected warning ID is 'legal-warning' and its exact text must be 'UNAUTHORIZED ACCESS IS PROHIBITED. All activity is logged.'. The expected privacy policy link ID is 'corp-privacy-policy', its text must be 'Privacy Policy', and its href must be 'https://internal.marketpulse.io/privacy'."
+}

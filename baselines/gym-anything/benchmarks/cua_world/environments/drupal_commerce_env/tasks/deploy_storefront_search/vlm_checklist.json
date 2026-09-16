@@ -1,0 +1,59 @@
+{
+  "task_id": "deploy_storefront_search@1",
+  "task_completion": [
+    {
+      "id": "view_created",
+      "description": "Verify that a Drupal View named 'Catalog Search' is created for 'Products'.",
+      "points": 10,
+      "visual_evidence": "Look for the Drupal Views administration page (e.g., /admin/structure/views) showing a view named 'Catalog Search' (machine name: catalog_search) configured to show 'Products'."
+    },
+    {
+      "id": "page_path_configured",
+      "description": "Verify that the view has a Page display with the path set to '/search/catalog'.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Page settings' section in the Views UI showing the Path explicitly set to '/search/catalog'."
+    },
+    {
+      "id": "product_variations_relationship",
+      "description": "Verify that a relationship to 'Product variations' is added to the view.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Advanced' column in the Views UI. Under 'Relationships', there should be an entry for 'Product variations' (this is required to access the SKU field)."
+    },
+    {
+      "id": "exposed_filters_added",
+      "description": "Verify that exposed filters for both 'Title' and 'SKU' are added to the view.",
+      "points": 30,
+      "visual_evidence": "Look for the 'Filter criteria' section in the Views UI. It must list both 'Title' and 'SKU' (or Product variation SKU), and they must be marked as exposed (usually indicated by '(exposed)' next to the filter name or visible in the preview)."
+    },
+    {
+      "id": "menu_link_added",
+      "description": "Verify that a menu link titled 'Search' is added to the 'Main navigation'.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Menu' setting in the Views UI Page display showing 'Normal: Search' under Main navigation, or the Drupal Menu administration page showing the 'Search' link in the Main navigation menu."
+    },
+    {
+      "id": "search_page_functional",
+      "description": "Verify that the search page is accessible and displays the exposed filters and product results.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot of the frontend page at '/search/catalog'. It should display input fields for searching by Title and SKU, and show a list or table of products (e.g., tech products like Sony WH-1000XM5)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_drupal_interaction",
+      "description": "Verify the agent used the Drupal admin interface to construct the view.",
+      "visual_evidence": "Look for screenshots showing the agent navigating the actual Drupal Views UI (/admin/structure/views/add or /admin/structure/views/view/catalog_search) rather than just writing a script or editing database files directly."
+    },
+    {
+      "id": "dynamic_search_results",
+      "description": "Verify the search page displays actual dynamic content from the database.",
+      "visual_evidence": "Look at the frontend search page. The products shown should match the site's theme and structure (rendered entities or table of fields) and not look like a manually created static HTML page."
+    },
+    {
+      "id": "no_mocked_url",
+      "description": "Verify the agent actually visited the working search page.",
+      "visual_evidence": "Check the browser address bar for the correct URL (ending in /search/catalog) and ensure the page is fully loaded without 404 Not Found or Access Denied errors."
+    }
+  ],
+  "privileged_info_for_vlm": "View Name: 'Catalog Search' (machine name: catalog_search). Path: '/search/catalog'. Menu Link: 'Search' in Main navigation. Relationship: Must include 'Product variations' to access the SKU field. Filters: Exposed filters for 'Title' and 'SKU' must be present. Seed data includes tech products like 'Sony WH-1000XM5' (SKU: SONY-WH1000XM5) and 'Logitech MX Master 3S' (SKU: LOGI-MXM3S)."
+}

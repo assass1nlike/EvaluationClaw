@@ -1,0 +1,59 @@
+{
+  "task_id": "terminate_runaway_process@1",
+  "task_completion": [
+    {
+      "id": "access_webmin_processes",
+      "description": "Navigate to the Running Processes module in Webmin",
+      "points": 10,
+      "visual_evidence": "The Webmin interface is open in a web browser, and the 'Running Processes' page (usually under the System category) is displayed."
+    },
+    {
+      "id": "locate_target_process",
+      "description": "Locate the 'stuck_import.py' process in the Webmin process list",
+      "points": 10,
+      "visual_evidence": "The process list shows the command 'stuck_import.py', potentially displaying high CPU usage."
+    },
+    {
+      "id": "select_target_process",
+      "description": "Select the 'stuck_import.py' process for termination",
+      "points": 20,
+      "visual_evidence": "The checkbox next to the 'stuck_import.py' process is checked, or the specific process details page for 'stuck_import.py' is open."
+    },
+    {
+      "id": "initiate_termination",
+      "description": "Initiate the termination of the selected process",
+      "points": 20,
+      "visual_evidence": "The agent clicks a 'Kill', 'Terminate', or 'End' button in Webmin, or a confirmation screen for killing the 'stuck_import.py' process is visible."
+    },
+    {
+      "id": "confirm_target_terminated",
+      "description": "Verify that 'stuck_import.py' has been successfully terminated",
+      "points": 20,
+      "visual_evidence": "The Webmin process list is refreshed or updated, and 'stuck_import.py' is no longer visible in the list of running processes."
+    },
+    {
+      "id": "confirm_safe_process_running",
+      "description": "Verify that the legitimate 'daily_report.py' process is still running",
+      "points": 20,
+      "visual_evidence": "The Webmin process list clearly shows 'daily_report.py' is still present and active after the termination step."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_terminal_kill",
+      "description": "The agent must use the Webmin GUI, not terminal commands, to kill the process",
+      "visual_evidence": "No terminal emulator is shown executing commands like 'kill', 'pkill', or 'killall' against the python processes."
+    },
+    {
+      "id": "genuine_webmin_interaction",
+      "description": "The agent interacted with the actual Webmin web interface",
+      "visual_evidence": "The web browser displays the Webmin UI (typically on port 10000) with standard Webmin navigation menus and process tables, rather than a text editor or simulated environment."
+    },
+    {
+      "id": "safe_process_untouched",
+      "description": "The agent did not attempt to terminate the safe process",
+      "visual_evidence": "The checkbox next to 'daily_report.py' is never checked, and no kill confirmation screen is ever shown for its specific PID."
+    }
+  ],
+  "privileged_info_for_vlm": "The target process that must be terminated is 'stuck_import.py'. The safe process that must be preserved is 'daily_report.py'. The agent is strictly required to use the Webmin 'Running Processes' UI to perform the termination action."
+}

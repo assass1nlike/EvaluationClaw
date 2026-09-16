@@ -1,0 +1,34 @@
+{
+  "id": "second_floor_addition@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "You are a residential architect commissioned to design a second-story addition for the Contemporary House to accommodate a growing family. Design a distinct second floor above the existing footprint containing at least two rooms and one window, connected to the ground floor by a staircase. Export the 2D ground floor plan to C:\\Users\\Docker\\Desktop\\ground_floor_plan.jpg, the 2D second floor plan to C:\\Users\\Docker\\Desktop\\second_floor_plan.jpg, and a 3D exterior perspective of the complete structure to C:\\Users\\Docker\\Desktop\\two_story_exterior.jpg. Save the project to C:\\Users\\Docker\\Documents\\two_story_design.dpn.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 85,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\second_floor_addition\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\second_floor_addition\\export_result.ps1"
+  },
+  "metadata": {
+    "required_files": [
+      "C:\\Users\\Docker\\Desktop\\ground_floor_plan.jpg",
+      "C:\\Users\\Docker\\Desktop\\second_floor_plan.jpg",
+      "C:\\Users\\Docker\\Desktop\\two_story_exterior.jpg",
+      "C:\\Users\\Docker\\Documents\\two_story_design.dpn"
+    ],
+    "result_json_path": "C:\\Users\\Docker\\second_floor_addition_result.json",
+    "start_ts_path": "C:\\Users\\Docker\\task_start_ts_second_floor.txt",
+    "min_floorplan_size_bytes": 10000,
+    "min_exterior_size_bytes": 30000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_second_floor_addition"
+    }
+  }
+}

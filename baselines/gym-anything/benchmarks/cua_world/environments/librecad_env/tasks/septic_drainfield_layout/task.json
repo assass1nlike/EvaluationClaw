@@ -1,0 +1,53 @@
+{
+  "id": "septic_drainfield_layout@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a septic system drainfield plan in LibreCAD using inches as the unit. The plan must include four layers: 'DBOX' (Cyan), 'TRENCHES' (Green), 'PIPES' (Red), and 'LABELS' (Yellow). Draw a 24\"x24\" Distribution Box centered at (-48, 0) on the 'DBOX' layer. On the 'TRENCHES' layer, draw three parallel 36\" wide by 600\" long Absorption Trenches with their left edges aligned at X=48; position the middle trench centered at Y=0 and the top and bottom trenches centered at Y=108 and Y=-108. Draw three connecting pipe lines on the 'PIPES' layer from the D-Box outlet at (-36, 0) to the center-left of each trench at (48, 108), (48, 0), and (48, -108). Add text labels 'D-BOX', 'TRENCH 1', 'TRENCH 2', and 'TRENCH 3' on the 'LABELS' layer. Save the completed drawing to /home/ga/Documents/LibreCAD/septic_plan.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/septic_drainfield_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/septic_drainfield_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/septic_plan.dxf",
+    "required_layers": [
+      "DBOX",
+      "TRENCHES",
+      "PIPES",
+      "LABELS"
+    ],
+    "dbox_center": [
+      -48,
+      0
+    ],
+    "dbox_size": [
+      24,
+      24
+    ],
+    "trench_size": [
+      600,
+      36
+    ],
+    "trench_x_start": 48,
+    "trench_y_centers": [
+      108,
+      0,
+      -108
+    ],
+    "pipe_start": [
+      -36,
+      0
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_septic_layout"
+    }
+  }
+}

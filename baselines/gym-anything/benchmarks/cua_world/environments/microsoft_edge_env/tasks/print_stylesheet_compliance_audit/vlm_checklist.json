@@ -1,0 +1,65 @@
+{
+  "task_id": "print_stylesheet_compliance_audit@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_article",
+      "description": "Navigate to the Wikipedia article for 'Turing machine'",
+      "points": 10,
+      "visual_evidence": "A web browser is open with the address bar showing 'https://en.wikipedia.org/wiki/Turing_machine' and the Wikipedia page for Turing machine is loaded."
+    },
+    {
+      "id": "open_print_dialog",
+      "description": "Open the browser's print dialog",
+      "points": 10,
+      "visual_evidence": "The browser's print dialog or print preview screen is visible over the Wikipedia page."
+    },
+    {
+      "id": "disable_headers_footers",
+      "description": "Configure print settings to remove headers and footers",
+      "points": 15,
+      "visual_evidence": "In the print dialog settings (often under 'More settings'), the checkbox for 'Headers and footers' is unchecked or disabled."
+    },
+    {
+      "id": "disable_background_graphics",
+      "description": "Configure print settings to remove background graphics",
+      "points": 15,
+      "visual_evidence": "In the print dialog settings, the checkbox for 'Background graphics' is unchecked or disabled."
+    },
+    {
+      "id": "save_pdf_correct_path",
+      "description": "Save the output PDF to the specified Desktop path",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog or file manager shows the file being saved as 'turing_print_audit.pdf' in the '/home/ga/Desktop/' directory, or the file is visible on the Desktop."
+    },
+    {
+      "id": "verify_required_content",
+      "description": "Verify the PDF preserves the main article text",
+      "points": 15,
+      "visual_evidence": "The browser's print preview or the opened PDF shows the main article text, including phrases like 'Turing machine' and 'mathematical model of computation'."
+    },
+    {
+      "id": "verify_forbidden_content_hidden",
+      "description": "Verify the print stylesheet correctly hides sidebar navigation",
+      "points": 15,
+      "visual_evidence": "The browser's print preview or the opened PDF does NOT show standard Wikipedia sidebar elements like 'Donate to Wikipedia', 'Current events', 'Random article', or 'Upload file'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_print",
+      "description": "The agent used a real web browser's print functionality",
+      "visual_evidence": "Screenshots show interaction with a graphical web browser's print dialog, rather than using terminal commands (like wkhtmltopdf or pandoc) to bypass the browser's print stylesheet rendering."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "The agent did not manually create a fake PDF document",
+      "visual_evidence": "The agent does not open a word processor (like LibreOffice Writer) to paste text and export as PDF."
+    },
+    {
+      "id": "no_inspect_element_deletion",
+      "description": "The agent relied on the print stylesheet, not manual DOM manipulation",
+      "visual_evidence": "The agent does not use browser Developer Tools to manually delete the sidebar DOM elements before printing."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://en.wikipedia.org/wiki/Turing_machine. Output Path: /home/ga/Desktop/turing_print_audit.pdf. Required PDF content (main text): 'Turing machine', 'mathematical model of computation'. Forbidden PDF content (sidebar navigation that must be hidden by print stylesheet): 'Donate to Wikipedia', 'Current events', 'Random article', 'Upload file'. Print settings must have 'Headers and footers' and 'Background graphics' disabled."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "consolidate_duplicate_customers@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "A data import error caused a duplicate customer record for 'Hyperion Systems'. Clean this up by consolidating the information into the 'Hyperion Systems Inc.' record. Transfer the email address and all associated opportunities from 'Hyperion Systems' to 'Hyperion Systems Inc.', then archive the 'Hyperion Systems' record.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/consolidate_duplicate_customers/setup_task.sh",
+    "post_task": "/workspace/tasks/consolidate_duplicate_customers/export_result.sh"
+  },
+  "metadata": {
+    "master_name": "Hyperion Systems Inc.",
+    "duplicate_name": "Hyperion Systems",
+    "expected_email": "support@hyperion-sys.example.com",
+    "opportunities_to_move": [
+      "Battery Backup System",
+      "Inverter Upgrade"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_consolidate_duplicate_customers"
+    }
+  }
+}

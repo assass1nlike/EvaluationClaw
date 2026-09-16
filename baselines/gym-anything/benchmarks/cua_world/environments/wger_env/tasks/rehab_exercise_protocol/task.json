@@ -1,0 +1,84 @@
+{
+  "id": "rehab_exercise_protocol@1",
+  "version": "1.0",
+  "env_id": "wger_env@0.1",
+  "description": "You are a clinical exercise physiologist running a Phase II cardiac rehabilitation program. Logged into wger at http://localhost (admin/adminadmin), update the patient's records using the specification at /home/ga/Documents/cardiac_rehab_protocol.txt. Record the 6-week body weight history, the three clinical measurement categories with historical assessment data, the Phase II exercise routine (including training days, schedules, and exercises), and the heart-healthy nutrition plan with daily nutritional targets. All entries must match the specification document exactly.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 95,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/rehab_exercise_protocol/setup_task.sh",
+    "post_task": "/workspace/tasks/rehab_exercise_protocol/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Clinical Exercise Physiologist",
+    "soc_code": "29-9091.00",
+    "industry": "Health Care and Social Assistance",
+    "features_used": [
+      "weight_logging",
+      "measurement_category_creation",
+      "measurement_entries",
+      "routine_creation",
+      "training_day_with_dow",
+      "exercise_assignment",
+      "nutrition_plan",
+      "energy_macro_goals",
+      "companion_document_reading"
+    ],
+    "expected_weight_entries": {
+      "2026-01-12": 88.5,
+      "2026-01-19": 87.8,
+      "2026-01-26": 87.2,
+      "2026-02-02": 86.9,
+      "2026-02-09": 86.4,
+      "2026-02-16": 85.8
+    },
+    "expected_measurement_categories": {
+      "6-Minute Walk Distance": "m",
+      "Resting Systolic BP": "mmHg",
+      "Borg RPE Score": "RPE"
+    },
+    "expected_6mwd_entries": {
+      "2026-01-14": 310,
+      "2026-01-28": 342,
+      "2026-02-11": 378,
+      "2026-02-25": 415,
+      "2026-03-04": 448
+    },
+    "expected_bp_entries": {
+      "2026-01-14": 148,
+      "2026-01-28": 143,
+      "2026-02-11": 138,
+      "2026-02-25": 134,
+      "2026-03-04": 130
+    },
+    "expected_rpe_entries": {
+      "2026-01-14": 14,
+      "2026-01-28": 13,
+      "2026-02-11": 12,
+      "2026-02-25": 12,
+      "2026-03-04": 11
+    },
+    "expected_routine_name": "Phase II Cardiac Rehabilitation Protocol",
+    "expected_routine_description": "Supervised outpatient cardiac rehab: 12-week progressive aerobic and resistance program",
+    "expected_days": {
+      "Aerobic Warm-Up and Walking": 1,
+      "Low-Intensity Resistance Circuit": 3,
+      "Active Recovery and Flexibility": 5
+    },
+    "expected_nutrition_plan": "Cardiac Heart-Healthy Eating Plan",
+    "expected_energy_kcal": 2100,
+    "expected_protein_g": 95,
+    "expected_carbs_g": 280,
+    "expected_fat_g": 58
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rehab_exercise_protocol"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "configure_security_level@1",
+  "version": "1.0",
+  "env_id": "tor_browser_env@0.1",
+  "description": "Connect to the Tor network using Tor Browser and set the security level to 'Safer' or 'Safest'.",
+  "difficulty": "easy",
+  "tags": [
+    "tor",
+    "security",
+    "settings",
+    "privacy",
+    "configuration"
+  ],
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_security_level/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_security_level/export_result.sh"
+  },
+  "metadata": {
+    "initial_security_level": "standard",
+    "expected_security_levels": [
+      "safer",
+      "safest"
+    ],
+    "security_pref_name": "browser.security_level.security_slider"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_security_level"
+    }
+  }
+}

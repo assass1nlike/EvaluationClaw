@@ -1,0 +1,91 @@
+{
+  "dataset_id": "7d4059af",
+  "name": "Weed Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for weed detection in agricultural images. Given an image and a prompt, the model must output weed class names and bounding boxes for each detected instance.",
+  "card_text": "The Weed Detection dataset consists of 200 samples, each pairing an image of a weed plant with a short instruction prompt. The images are photographs taken in agricultural settings, containing one or more weed instances. The task is object detection: the model must identify the weed species (e.g., 'ridderzuring') and localize each instance with bounding boxes. Outputs are structured as a dictionary mapping class names to lists of bounding boxes. The dataset is designed to evaluate visual comprehension and object detection capabilities in the domain of agriculture. The prompt is a fixed instruction, 'Detect the weed in the given image', and the images vary in complexity, often containing multiple plants. This dataset supports the development and assessment of detection models that operate on natural images with text instructions.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "agriculture",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The image file containing a photograph of a weed plant (or multiple instances) to be analyzed for detection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction telling the model to detect weeds in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A dictionary mapping weed class names (e.g., 'ridderzuring') to a list of bounding boxes, representing the detected instances in the image.",
+        "path_types": [
+          "dict"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The bounding box coordinates for each detected weed instance, stored as lists of [x, y, w, h] under the corresponding class name in the output dictionary.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image file (context) and a short textual prompt (question). The output is a structured dictionary (answer) where keys are weed class names and values are lists of bounding boxes (bbox) that localize each detected instance in the image. The prompt instructs the model to detect weeds, and the output provides both the class labels and their spatial coordinates."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/WeedDetection/weed_detection.json",
+    "existing_tags": {
+      "task": "Weed Detection",
+      "type": "image comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "add_custom_analytics_script@1",
+  "task_completion": [
+    {
+      "id": "successful_login",
+      "description": "Verify the agent successfully logged into Rocket.Chat.",
+      "points": 10,
+      "visual_evidence": "The Rocket.Chat main dashboard or home screen is visible, indicating the login screen was bypassed."
+    },
+    {
+      "id": "open_analytics_script",
+      "description": "Verify the agent opened the provided analytics script.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window displays the contents of '/home/ga/Documents/analytics_snippet.js', which should include the tracker ID 'TRACKER-998877'."
+    },
+    {
+      "id": "navigate_workspace_settings",
+      "description": "Verify the agent navigated to the Rocket.Chat Administration/Workspace settings.",
+      "points": 20,
+      "visual_evidence": "The Rocket.Chat Administration panel or Workspace settings page is visible in the browser."
+    },
+    {
+      "id": "locate_custom_scripts_field",
+      "description": "Verify the agent located the Custom Scripts settings.",
+      "points": 20,
+      "visual_evidence": "The 'Custom Scripts' settings page is open, showing fields like 'Custom Script for Logged In Users'."
+    },
+    {
+      "id": "inject_script_content",
+      "description": "Verify the agent injected the script into the correct field and saved.",
+      "points": 30,
+      "visual_evidence": "The 'Custom Script for Logged In Users' text area contains the JavaScript snippet (including 'TRACKER-998877'), and changes are saved (e.g., 'Save changes' button clicked or success message visible)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_rocket_chat",
+      "description": "Ensure the agent used the Rocket.Chat web interface to update the settings.",
+      "visual_evidence": "The script injection happens within the web browser UI, not via terminal API (curl) commands."
+    },
+    {
+      "id": "authentic_script_content",
+      "description": "Ensure the agent used the actual script content from the file.",
+      "visual_evidence": "The text pasted into the Rocket.Chat settings matches the content of the opened file, specifically containing 'TRACKER-998877', rather than a generic or hallucinated script."
+    },
+    {
+      "id": "no_database_tampering",
+      "description": "Ensure the agent did not bypass the UI by directly modifying the database.",
+      "visual_evidence": "No terminal windows showing MongoDB shell commands or direct database updates to the 'CustomScript_Logged_In' setting."
+    }
+  ],
+  "privileged_info_for_vlm": "The custom tracking script located at '/home/ga/Documents/analytics_snippet.js' contains the expected tracker ID 'TRACKER-998877'. The target field in the Rocket.Chat workspace settings is 'Custom Script for Logged In Users'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "classify_channel_shape@1",
+  "task_completion": [
+    {
+      "id": "run_simulation",
+      "description": "Run the unsteady flow simulation for Plan 04.",
+      "points": 20,
+      "visual_evidence": "HEC-RAS computation window showing the execution of Plan 04, or terminal output indicating the simulation was successfully run."
+    },
+    {
+      "id": "extract_hdf5_data",
+      "description": "Extract required data from the HDF5 output.",
+      "points": 20,
+      "visual_evidence": "A script (e.g., Python using h5py) or tool visible on screen that opens the HDF5 output file and extracts Peak WSE, Flow Area, Top Width, and Minimum Channel Elevation."
+    },
+    {
+      "id": "calculate_shape_factor",
+      "description": "Calculate Shape Factor and classify the channel shape.",
+      "points": 20,
+      "visual_evidence": "Code or formulas visible calculating Hydraulic Depth (Flow Area / Top Width), Max Depth (Peak WSE - Min Elevation), Shape Factor (Hydraulic Depth / Max Depth), and applying the classification logic (Triangular, Parabolic, Rectangular)."
+    },
+    {
+      "id": "save_csv_results",
+      "description": "Save the results to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "Code or terminal command saving the output to /home/ga/Documents/hec_ras_results/channel_shape_analysis.csv."
+    },
+    {
+      "id": "verify_csv_columns",
+      "description": "Ensure the CSV contains the required columns.",
+      "points": 20,
+      "visual_evidence": "The generated CSV file is shown (e.g., via cat, head, or a CSV viewer) containing the columns: River_Station, Peak_WSE, Flow_Area, Top_Width, Hydraulic_Depth, Max_Depth, Shape_Factor, and Classification."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Verify that the simulation was actually executed.",
+      "visual_evidence": "The agent interacts with the HEC-RAS application or runs a valid command to execute the simulation, rather than just skipping to creating a CSV."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "Verify that the calculations and classifications are performed programmatically.",
+      "visual_evidence": "The agent uses code or a spreadsheet to compute the values and classifications based on the extracted data, rather than hardcoding a pre-made list of answers."
+    },
+    {
+      "id": "genuine_hdf5_extraction",
+      "description": "Verify that data is genuinely extracted from the HDF5 file.",
+      "visual_evidence": "The agent's script explicitly references and reads from the HEC-RAS HDF5 output file (e.g., .p04.hdf) instead of using a mock data source."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/Documents/hec_ras_projects/Muncie. The results must be saved to /home/ga/Documents/hec_ras_results/channel_shape_analysis.csv. The required CSV columns are: River_Station, Peak_WSE, Flow_Area, Top_Width, Hydraulic_Depth, Max_Depth, Shape_Factor, Classification."
+}

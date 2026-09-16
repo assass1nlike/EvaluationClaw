@@ -1,0 +1,28 @@
+{
+  "id": "export_timeseries_csv@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Extract flow (discharge) and water surface elevation (WSE) time series for all cross-sections from the Muncie HEC-RAS unsteady simulation results (Muncie.p04.hdf). Create two CSV files in /home/ga/Documents/hec_ras_results/ named 'flow_timeseries.csv' and 'wse_timeseries.csv'. Each file must include a header row with the first column named 'Time' (containing ISO datetime strings or hours from start) and subsequent columns named after the River Station IDs (e.g., '16404', '15696.8'). Ensure all extracted data is numeric.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_timeseries_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/export_timeseries_csv/export_result.sh"
+  },
+  "metadata": {
+    "flow_output_path": "/home/ga/Documents/hec_ras_results/flow_timeseries.csv",
+    "wse_output_path": "/home/ga/Documents/hec_ras_results/wse_timeseries.csv",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "hdf_filename": "Muncie.p04.hdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_timeseries_csv"
+    }
+  }
+}

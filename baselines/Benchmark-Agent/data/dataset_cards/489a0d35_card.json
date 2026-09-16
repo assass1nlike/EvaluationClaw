@@ -1,0 +1,106 @@
+{
+  "dataset_id": "489a0d35",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates multi-image visual reasoning by asking whether a natural-language statement about a pair of images is true or false. Each sample provides two images, a statement with binary answer choices, and a ground-truth label.",
+  "card_text": "The dataset contains 200 image-text samples for visual description verification. Each item presents two related images and a natural-language statement about their contents, such as object counts, attributes, or spatial relationships. The question is formatted as a true/false multiple-choice prompt with options (A) True and (B) False, and the answer is a single letter. A separate instruction prompt tells the model to evaluate the statement against the images and return the correct option. The images are everyday scenes with varied visual complexity, and the statements require numerical reasoning and comparison across the pair. The dataset is an openset comprehension benchmark for multi-image visual question answering and factual verification.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa",
+    "classification_binary",
+    "fact_verification"
+  ],
+  "domain": "general visual reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic task instruction that tells the model to evaluate the statement about the images and return 'A' for True or 'B' for False. It frames the visual verification task for every sample.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of two image paths that serve as the visual evidence. The paired images are inspected together to determine whether the accompanying natural-language statement about objects, counts, or spatial relations is true or false.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The sample-specific query contains a statement about the two images followed by two multiple-choice options, e.g., '(A) False (B) True'. It asks whether the statement is true or false.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The two answer choices are embedded at the end of the question text as '(A) ... (B) ...'. They are not stored in a separate field.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth multiple-choice label ('A' or 'B') indicating the correct option for the true/false statement about the image pair.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains two image references, a task prompt, a question with an embedded true/false statement and two multiple-choice options, and a single-letter answer label. The images are the visual evidence; the prompt defines the evaluation instruction; the question poses the statement to be verified; and the answer gives the correct option."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Numerical_Dual_Image_Description_Verification/annotation_open.json",
+    "existing_tags": {
+      "task": "Numerical_Dual_Image_Description_Verification",
+      "type": "comprehension",
+      "skill": "Multi-image Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Reasoning Ability",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "create_flowchart@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a flowchart in Wondershare EdrawMax depicting the Git pull request workflow. The diagram must include the following shapes connected by directional arrows: an oval labeled 'Start', a rectangle labeled 'Create Feature Branch', a rectangle labeled 'Write Code & Commit', a rectangle labeled 'Push Branch to Remote', a rectangle labeled 'Open Pull Request', a diamond labeled 'Tests Pass?', a rectangle labeled 'Fix Failures' (on No branch, looping back to Write Code), a rectangle labeled 'Code Review' (on Yes branch), a diamond labeled 'Approved?', a rectangle labeled 'Request Changes' (on No branch, looping back to Write Code), a rectangle labeled 'Merge to Main' (on Yes branch), and an oval labeled 'End'. Save the completed diagram to /home/ga/git_pr_",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_flowchart/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_flowchart"
+    }
+  }
+}

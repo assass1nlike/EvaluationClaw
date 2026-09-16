@@ -1,0 +1,45 @@
+{
+  "id": "resolve_merge_conflicts@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Resolve Git merge conflicts in the 'chinook-java' project resulting from merging 'main' into 'feature/playlist-export'. In Track.java, preserve both 'getStreamingQuality()' and 'toCsvRow()'. In PlaylistService.java, preserve both 'getPlaylistDuration()' and 'exportToCsv()'. In pom.xml, include both 'gson' and 'opencsv' dependencies. Ensure the project compiles and commit the merge with the message \"Merge main into feature/playlist-export\".",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/resolve_merge_conflicts/setup_task.sh",
+    "post_task": "/workspace/tasks/resolve_merge_conflicts/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/chinook-java",
+    "conflicted_files": [
+      "src/main/java/com/chinook/model/Track.java",
+      "src/main/java/com/chinook/service/PlaylistService.java",
+      "pom.xml"
+    ],
+    "required_methods": {
+      "Track.java": [
+        "getStreamingQuality",
+        "toCsvRow",
+        "StreamingQuality"
+      ],
+      "PlaylistService.java": [
+        "getPlaylistDuration",
+        "exportToCsv"
+      ]
+    },
+    "required_dependencies": [
+      "gson",
+      "opencsv"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_resolve_merge_conflicts"
+    }
+  }
+}

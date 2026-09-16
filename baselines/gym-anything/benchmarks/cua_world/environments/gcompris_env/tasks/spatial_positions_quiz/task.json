@@ -1,0 +1,35 @@
+{
+  "id": "spatial_positions_quiz@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Positions' activity in GCompris and complete at least 5 rounds of the spatial reasoning quiz. Save a screenshot of a question to '~/Documents/positions_question.png' and a screenshot of the success feedback to '~/Documents/positions_success.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spatial_positions_quiz/setup_task.sh",
+    "post_task": "/workspace/tasks/spatial_positions_quiz/export_result.sh"
+  },
+  "metadata": {
+    "activity_name": "Positions",
+    "category_hints": [
+      "Reading",
+      "Discovery",
+      "Logic"
+    ],
+    "expected_files": [
+      "/home/ga/Documents/positions_question.png",
+      "/home/ga/Documents/positions_success.png"
+    ],
+    "min_rounds": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spatial_positions_quiz"
+    }
+  }
+}

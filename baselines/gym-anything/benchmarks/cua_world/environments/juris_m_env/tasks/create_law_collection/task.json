@@ -1,0 +1,25 @@
+{
+  "id": "create_law_collection@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Create a collection in Juris-M with a name related to legal content and add at least three legal references to it from your existing library of US Supreme Court cases and law review articles.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_law_collection/setup_task.sh",
+    "post_task": "/workspace/tasks/create_law_collection/export_result.sh"
+  },
+  "metadata": {
+    "collection_name": "US Constitutional Law",
+    "expected_min_items_in_collection": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_law_collection"
+    }
+  }
+}

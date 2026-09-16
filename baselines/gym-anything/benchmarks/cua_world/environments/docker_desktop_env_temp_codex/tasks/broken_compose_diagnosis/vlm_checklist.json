@@ -1,0 +1,53 @@
+{
+  "task_id": "broken_compose_diagnosis@1",
+  "task_completion": [
+    {
+      "id": "open_compose_file",
+      "description": "Agent opens the docker-compose.yml file for inspection or editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) or terminal output (e.g., cat, less) displaying the contents of /home/ga/app-debug/docker-compose.yml."
+    },
+    {
+      "id": "edit_compose_file",
+      "description": "Agent modifies the docker-compose.yml file to fix the configuration bugs.",
+      "points": 20,
+      "visual_evidence": "A text editor showing modifications to docker-compose.yml, such as adding a top-level 'volumes: db_data:' block, adding 'networks' to the services, or correcting the database host environment variable."
+    },
+    {
+      "id": "start_docker_compose",
+      "description": "Agent starts the docker-compose stack.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'docker compose up', 'docker-compose up', or 'docker compose start' in the /home/ga/app-debug/ directory, with output indicating containers are being created or started."
+    },
+    {
+      "id": "verify_services_running",
+      "description": "Agent verifies that all three expected services (flask, nginx, db) are running.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the output of 'docker ps' or 'docker compose ps' with containers for flask, nginx, and db all showing an 'Up' status (none should be 'Exited')."
+    },
+    {
+      "id": "verify_app_response",
+      "description": "Agent verifies the application responds at http://localhost:8080.",
+      "points": 25,
+      "visual_evidence": "A web browser successfully loading http://localhost:8080, or a terminal showing the successful output of 'curl http://localhost:8080' (returning actual application content, not a connection refused or 502 error)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_app_code_modification",
+      "description": "Agent does not modify the application code, as explicitly forbidden by the task description.",
+      "visual_evidence": "No text editors are shown modifying files other than docker-compose.yml (e.g., no edits to app.py, Dockerfile, or nginx.conf)."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Agent genuinely executes Docker commands to run the stack.",
+      "visual_evidence": "Terminal shows authentic Docker daemon output, such as container IDs, network creation logs, and standard Docker formatting, rather than echoed text."
+    },
+    {
+      "id": "genuine_endpoint_test",
+      "description": "Agent genuinely tests the localhost endpoint.",
+      "visual_evidence": "A real browser window or a real curl/wget command execution is visible showing the actual HTTP response, rather than the agent just typing a success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is /home/ga/app-debug. The docker-compose.yml file contains 3 deliberate bugs that must be fixed: 1) Wrong DB hostname (needs to point to the 'db' service), 2) Missing network membership (services need to be on the same network), 3) Undeclared 'db_data' volume (needs a top-level 'volumes:' block). The expected services are 'flask', 'nginx', and 'db'. Nginx exposes port 8080. The task is complete when all three services are running and http://localhost:8080 is accessible."
+}

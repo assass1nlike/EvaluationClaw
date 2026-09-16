@@ -1,0 +1,59 @@
+{
+  "task_id": "prp_bottleneck_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent accesses the input CSV dataset.",
+      "points": 10,
+      "visual_evidence": "Visual evidence of code (e.g., Python pandas) or terminal commands reading '~/pebl/data/prp_dual_task_data.csv'."
+    },
+    {
+      "id": "exclude_non_compliant",
+      "description": "Agent excludes participant P99 for non-compliance.",
+      "points": 15,
+      "visual_evidence": "Code explicitly filtering out participant 'P99' or the final JSON output showing 'P99' inside the 'excluded_participants' list with a reason related to accuracy/non-compliance."
+    },
+    {
+      "id": "filter_correct_trials",
+      "description": "Agent filters the data to include only trials where both tasks were correct.",
+      "points": 15,
+      "visual_evidence": "Code showing a filtering operation where both 't1_correct' and 't2_correct' must be true, 1, or equivalent."
+    },
+    {
+      "id": "calculate_soa_means",
+      "description": "Agent calculates mean RT1 and RT2 for each SOA for individuals and the group.",
+      "points": 20,
+      "visual_evidence": "Code showing grouping by participant and SOA to calculate means for 'rt1_ms' and 'rt2_ms', or the final JSON showing 'soa_means' containing keys for SOAs (50, 150, 300, 500, 900) with rt1 and rt2 values."
+    },
+    {
+      "id": "calculate_prp_effect",
+      "description": "Agent calculates the PRP effect magnitude for each participant.",
+      "points": 20,
+      "visual_evidence": "Code showing the subtraction of Mean RT2 at 900ms SOA from Mean RT2 at 50ms SOA, or the final JSON showing a 'prp_effect_ms' value for participants."
+    },
+    {
+      "id": "save_json_output",
+      "description": "Agent saves the structured analysis to the specified JSON file.",
+      "points": 20,
+      "visual_evidence": "Code or terminal output showing the creation of '~/pebl/analysis/prp_report.json' containing the top-level keys: 'participants', 'excluded_participants', and 'group_soa_means'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "Agent wrote a script to compute the values rather than manually typing out a JSON file with fabricated numbers.",
+      "visual_evidence": "Presence of a data analysis script (e.g., Python, R) that performs pandas/dataframe operations."
+    },
+    {
+      "id": "script_execution",
+      "description": "Agent executed the script to generate the output file.",
+      "visual_evidence": "Terminal output showing the execution of the analysis script (e.g., 'python analyze_prp.py') without errors."
+    },
+    {
+      "id": "no_hardcoded_math",
+      "description": "Agent dynamically calculated the means and PRP effects from the data.",
+      "visual_evidence": "The script uses variables and aggregation functions (like .mean()) rather than hardcoding the final numerical results."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 20 valid participants and 1 contaminated participant (P99). The valid SOAs are exactly 50, 150, 300, 500, and 900. The output must be saved to /home/ga/pebl/analysis/prp_report.json. P99 must be placed in the 'excluded_participants' list due to task non-compliance (~50% T1 accuracy)."
+}

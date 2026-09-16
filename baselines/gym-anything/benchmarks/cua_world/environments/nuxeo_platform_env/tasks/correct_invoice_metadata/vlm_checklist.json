@@ -1,0 +1,59 @@
+{
+  "task_id": "correct_invoice_metadata@1",
+  "task_completion": [
+    {
+      "id": "view_document",
+      "description": "Navigate to the 'Scanned-Invoice' document and view the invoice image.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the Nuxeo web interface with the 'Scanned-Invoice' document open, displaying the invoice image preview."
+    },
+    {
+      "id": "edit_mode",
+      "description": "Open the metadata edit form for the document.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the metadata edit form or edit tab active for the 'Scanned-Invoice' document."
+    },
+    {
+      "id": "update_title",
+      "description": "Update the 'Title' field with the Invoice Number.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the 'Title' input field containing the Invoice Number (format: INV-XXXX) that matches the number visible in the invoice image."
+    },
+    {
+      "id": "update_source",
+      "description": "Update the 'Source' field with the Vendor Name.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the 'Source' input field containing the Vendor Name that matches the vendor visible in the invoice image."
+    },
+    {
+      "id": "update_description",
+      "description": "Update the 'Description' field with the Total Amount.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the 'Description' input field containing the Total Amount that matches the amount visible in the invoice image."
+    },
+    {
+      "id": "save_changes",
+      "description": "Save the metadata changes to the document.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the document view page with the updated metadata (Title, Source, Description) successfully saved, or a success message indicating the document was modified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Nuxeo web interface to edit the metadata.",
+      "visual_evidence": "Check that the browser is used to navigate Nuxeo and edit the document, rather than terminal windows executing curl, python, or psql commands."
+    },
+    {
+      "id": "actual_data_used",
+      "description": "The agent used the actual data from the invoice image.",
+      "visual_evidence": "Check that the values entered in the metadata fields exactly match the text visible in the invoice image preview, rather than generic placeholders or guessed values."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not access the ground truth JSON file to get the answers.",
+      "visual_evidence": "Check that the agent does not open or read the `/var/lib/nuxeo/invoice_ground_truth.json` file in a terminal or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task operates within Nuxeo Platform 10.10. The invoice image contains randomly generated data: Invoice numbers are formatted as INV-XXXX (e.g., INV-1234), vendors are one of [Acme Corp, Globex Inc, Soylent Corp, Umbrella Corp, Cyberdyne Systems], and amounts are random dollar values. The agent must extract this information from the image preview and update the document metadata: 'Title' (dc:title) = Invoice Number, 'Source' (dc:source) = Vendor Name, and 'Description' (dc:description) = Total Amount. The document is named 'Scanned-Invoice' and is located in the 'Projects' workspace."
+}

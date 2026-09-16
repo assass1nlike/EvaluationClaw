@@ -1,0 +1,59 @@
+{
+  "task_id": "fulltext_search_setup@1",
+  "task_completion": [
+    {
+      "id": "connect_demodb",
+      "description": "Connect to the 'demodb' database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing connection to 'demodb' as user 'admin' via OrientDB Studio, a database CLI, or a connection string in a script."
+    },
+    {
+      "id": "create_hotels_index",
+      "description": "Configure a Lucene FULLTEXT index on the 'Name' property of the 'Hotels' class.",
+      "points": 15,
+      "visual_evidence": "Database schema UI, CLI output, or script execution showing the creation of an index (e.g., `CREATE INDEX ... ON Hotels (Name) FULLTEXT ENGINE LUCENE`)."
+    },
+    {
+      "id": "create_restaurants_index",
+      "description": "Configure a Lucene FULLTEXT index on the 'Name' property of the 'Restaurants' class.",
+      "points": 15,
+      "visual_evidence": "Database schema UI, CLI output, or script execution showing the creation of an index (e.g., `CREATE INDEX ... ON Restaurants (Name) FULLTEXT ENGINE LUCENE`)."
+    },
+    {
+      "id": "execute_search_queries",
+      "description": "Perform the required full-text search queries for the specified hotels and restaurants.",
+      "points": 20,
+      "visual_evidence": "Query execution tabs, CLI output, or script logs showing searches for 'Palace'/'Plaza', 'Trattoria', and 'Hyatt'/'Four Seasons' returning results (Note: Trattoria will return 0 results)."
+    },
+    {
+      "id": "format_json_results",
+      "description": "Format the search results into a JSON structure with the required keys.",
+      "points": 20,
+      "visual_evidence": "A text editor, IDE, or script output showing a JSON object containing the exact keys: \"palace_plaza_hotels\", \"trattoria_restaurants\", and \"luxury_chain_hotels\", with arrays of records as values."
+    },
+    {
+      "id": "save_json_file",
+      "description": "Export and save the JSON file to the correct path.",
+      "points": 20,
+      "visual_evidence": "Terminal, file manager, or text editor showing the file saved exactly at `/home/ga/Documents/fulltext_search_results.json`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent interacted with the actual OrientDB database to retrieve results.",
+      "visual_evidence": "Screenshots must show OrientDB Studio, database CLI usage, or a script actively querying the database, rather than the agent hallucinating or hardcoding the JSON output from scratch."
+    },
+    {
+      "id": "index_creation_verified",
+      "description": "Verify the agent actually created the LUCENE FULLTEXT indexes before querying.",
+      "visual_evidence": "Look for explicit `CREATE INDEX` commands or UI interactions in the schema tab setting the engine to LUCENE and type to FULLTEXT, rather than the agent using standard `LIKE` queries to bypass index creation."
+    },
+    {
+      "id": "authentic_empty_result",
+      "description": "Verify the agent correctly handled the missing data for 'Trattoria' restaurants without hallucinating fake records.",
+      "visual_evidence": "The JSON output for the \"trattoria_restaurants\" key MUST be an empty array `[]`. If it contains fake restaurant names, the agent cheated by generating plausible data instead of using the actual database results."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is OrientDB. The agent must create LUCENE FULLTEXT indexes on the 'Name' property of both 'Hotels' and 'Restaurants' classes. The search for 'Palace' OR 'Plaza' hotels should yield 2 records. The search for 'Hyatt' OR 'Four Seasons' hotels should yield 2 records. CRITICAL: The seeded database contains ZERO restaurants with 'Trattoria' in their names, so the 'trattoria_restaurants' key in the JSON output MUST contain an empty array `[]`. The final output must be saved exactly at `/home/ga/Documents/fulltext_search_results.json`."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "csv_import_voronoi_analysis@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "A hydrologist needs to define coverage zones for water quality monitoring stations using Voronoi (Thiessen) polygons. Using the station data in /home/ga/GIS_Data/bay_area_water_stations.csv (8 stations in the San Francisco Bay Area), generate Voronoi polygons that preserve the original station attributes (station_name, ph, dissolved_oxygen_mg_l, etc.). Export the resulting polygon layer as a GeoJSON file to /home/ga/GIS_Data/exports/voronoi_zones.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/csv_import_voronoi_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/csv_import_voronoi_analysis/export_result.sh"
+  },
+  "metadata": {
+    "input_csv": "/home/ga/GIS_Data/bay_area_water_stations.csv",
+    "expected_output": "/home/ga/GIS_Data/exports/voronoi_zones.geojson",
+    "expected_feature_count": 8,
+    "expected_geometry": "Polygon",
+    "required_attributes": [
+      "station_name",
+      "ph",
+      "dissolved_oxygen_mg_l"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_csv_import_voronoi_analysis"
+    }
+  }
+}

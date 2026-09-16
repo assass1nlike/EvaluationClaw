@@ -1,0 +1,53 @@
+{
+  "task_id": "secure_mongodb_auth@1",
+  "task_completion": [
+    {
+      "id": "create_mongo_user",
+      "description": "Create the 'socioboard' MongoDB user with the required password and roles.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the mongo shell executing a command like `db.createUser({user: 'socioboard', pwd: 'SecureMongo2026!', roles: [{role: 'readWrite', db: 'socioboard'}]})` and receiving a 'Successfully added user' response."
+    },
+    {
+      "id": "enable_mongo_auth",
+      "description": "Configure the MongoDB server to enable authorization.",
+      "points": 20,
+      "visual_evidence": "A text editor (like nano or vim) or terminal output showing `/etc/mongod.conf` being edited to include `security:` followed by `authorization: enabled`."
+    },
+    {
+      "id": "update_microservice_configs",
+      "description": "Update the microservice configuration files to use the new MongoDB credentials.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing modifications to `/opt/socioboard/socioboard-api/*/config/development.json` (for user, feeds, publish, and notification services). The mongo connection string should be updated to include the credentials, e.g., `mongodb://socioboard:SecureMongo2026!@localhost:27017/socioboard`."
+    },
+    {
+      "id": "restart_and_verify_services",
+      "description": "Restart the services and verify they are running without crash-looping.",
+      "points": 20,
+      "visual_evidence": "Terminal showing commands to restart MongoDB (`systemctl restart mongod`) and the microservices (`pm2 restart all`), followed by a status check (like `pm2 status` or `pm2 list`) showing the 4 microservices online and not erroring."
+    },
+    {
+      "id": "verify_auth_enforced",
+      "description": "Verify that unauthenticated access to the database is no longer permitted.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a failed attempt to access or query the database without credentials (e.g., getting an 'Unauthorized' or 'Authentication failed' error), or a successful connection explicitly using the new credentials."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Check that configuration files were edited using a real text editor or standard command-line tools.",
+      "visual_evidence": "Screenshots should show the UI of a text editor like nano or vim, or standard commands like sed/echo being used, rather than just typing the desired content into a blank terminal."
+    },
+    {
+      "id": "genuine_mongo_interaction",
+      "description": "Check that the MongoDB user creation was performed inside the actual mongo interactive shell.",
+      "visual_evidence": "The terminal should show the correct mongo shell prompt (e.g., `> ` or `socioboard> `) and standard shell output formatting when creating the user."
+    },
+    {
+      "id": "genuine_service_status",
+      "description": "Check that the pm2 status output is genuine.",
+      "visual_evidence": "The `pm2 status` output should look like the genuine PM2 table format with correct columns (id, name, mode, status, cpu, memory) and not manually formatted text."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts for the VLM verifier:\n- Expected MongoDB user: 'socioboard'\n- Expected MongoDB password: 'SecureMongo2026!'\n- Expected MongoDB database: 'socioboard'\n- The 4 microservices that must be updated are 'user', 'feeds', 'publish', and 'notification'. Their configuration files are located at /opt/socioboard/socioboard-api/<service_name>/config/development.json."
+}

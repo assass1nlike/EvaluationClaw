@@ -1,0 +1,34 @@
+{
+  "id": "create_pipe_elbow@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a hollow 90-degree pipe elbow fitting in FreeCAD. The fitting must have a 25 mm outer diameter, a 21 mm inner diameter, and a 40 mm centerline bend radius. The model must be a single hollow solid. Save the result to /home/ga/Documents/FreeCAD/pipe_elbow.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_pipe_elbow/setup_task.sh",
+    "post_task": "/workspace/tasks/create_pipe_elbow/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "pipe_elbow.FCStd",
+    "target_bbox_sorted": [
+      25.0,
+      52.5,
+      52.5
+    ],
+    "bbox_tolerance": 8.0,
+    "min_volume": 5500.0,
+    "max_volume": 14000.0,
+    "min_faces": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_pipe_elbow"
+    }
+  }
+}

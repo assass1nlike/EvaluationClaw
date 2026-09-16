@@ -1,0 +1,93 @@
+{
+  "id": "tax_lot_portfolio_tracking@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "You are a Senior Accountant (CPA) at Harrington & Associates, preparing year-end tax documentation for a client's brokerage account. Document FIFO cost basis tracking for multiple tax lots by creating a portfolio named 'Tax Lots 2024' in JStock. Record the following buy transactions separately, ensuring broker commissions ($4.95) and clearing fees ($0.20) are recorded distinctly: 10 shares of COST (Costco Wholesale) at $638.22 on December 1, 2023 (Comment: 'COST lot 1 Dec 2023') and 8 shares of COST at $715.40 on January 19, 2024.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tax_lot_portfolio_tracking/setup_task.sh",
+    "post_task": "/workspace/tasks/tax_lot_portfolio_tracking/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Accountant / CPA (13-2011.00)",
+    "industry": "Public Accounting / Tax Services",
+    "portfolio_name": "Tax Lots 2024",
+    "watchlist_name": "Tax Watch 2024",
+    "data_source": "Yahoo Finance historical closing prices (Dec 2023 - Feb 2024)",
+    "buy_lots": [
+      {
+        "code": "COST",
+        "lot": 1,
+        "units": 10,
+        "price": 638.22,
+        "date": "Dec 1, 2023",
+        "broker": 4.95,
+        "clearing": 0.2
+      },
+      {
+        "code": "COST",
+        "lot": 2,
+        "units": 8,
+        "price": 715.4,
+        "date": "Jan 19, 2024",
+        "broker": 4.95,
+        "clearing": 0.2
+      },
+      {
+        "code": "META",
+        "lot": 1,
+        "units": 20,
+        "price": 367.15,
+        "date": "Dec 15, 2023",
+        "broker": 4.95,
+        "clearing": 0.2
+      },
+      {
+        "code": "META",
+        "lot": 2,
+        "units": 12,
+        "price": 484.1,
+        "date": "Jan 26, 2024",
+        "broker": 4.95,
+        "clearing": 0.2
+      },
+      {
+        "code": "AMZN",
+        "lot": 1,
+        "units": 30,
+        "price": 172.35,
+        "date": "Feb 2, 2024",
+        "broker": 4.95,
+        "clearing": 0.2
+      }
+    ],
+    "sell": {
+      "code": "COST",
+      "units": 10,
+      "price": 755.6,
+      "date": "Feb 22, 2024",
+      "broker": 4.95
+    },
+    "alerts": {
+      "META": {
+        "fall_below": 350.0,
+        "rise_above": 525.0
+      },
+      "AMZN": {
+        "fall_below": 155.0,
+        "rise_above": 195.0
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tax_lot_portfolio_tracking"
+    }
+  }
+}

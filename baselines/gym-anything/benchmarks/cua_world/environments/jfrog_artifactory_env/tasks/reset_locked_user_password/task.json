@@ -1,0 +1,30 @@
+{
+  "id": "reset_locked_user_password@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "A developer account 'jmonroe' has been locked out due to excessive failed login attempts. Log in to Artifactory (admin/password) to unlock the 'jmonroe' account and reset the password to 'TemporaryFix#2024'. Ensure the user remains a member of the 'backend-devs' group.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reset_locked_user_password/setup_task.sh",
+    "post_task": "/workspace/tasks/reset_locked_user_password/export_result.sh"
+  },
+  "metadata": {
+    "target_user": "jmonroe",
+    "target_password": "TemporaryFix#2024",
+    "target_group": "backend-devs",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reset_locked_user_password"
+    }
+  }
+}

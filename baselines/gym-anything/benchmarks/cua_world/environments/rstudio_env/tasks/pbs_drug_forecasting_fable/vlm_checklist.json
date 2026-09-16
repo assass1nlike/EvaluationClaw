@@ -1,0 +1,53 @@
+{
+  "task_id": "pbs_drug_forecasting_fable@1",
+  "task_completion": [
+    {
+      "id": "r_script_created",
+      "description": "The agent wrote the forecasting code in the specified R script file.",
+      "points": 10,
+      "visual_evidence": "An open text editor, IDE, or terminal showing R code saved to /home/ga/RProjects/forecast_analysis.R. The code should include library(fpp3) and references to the PBS dataset."
+    },
+    {
+      "id": "stl_decomposition_saved",
+      "description": "The agent generated and saved the STL decomposition plot.",
+      "points": 20,
+      "visual_evidence": "A file named l01_decomposition.png visible in /home/ga/RProjects/output/ via a file explorer or terminal list command, or an image viewer showing a multi-panel plot (data, trend, season, remainder)."
+    },
+    {
+      "id": "model_accuracy_saved",
+      "description": "The agent compared ETS and ARIMA models and saved the accuracy table.",
+      "points": 20,
+      "visual_evidence": "A file named l01_model_accuracy.csv visible in the output directory, or a terminal/editor showing its contents containing AICc values for both ETS and ARIMA models."
+    },
+    {
+      "id": "forecast_values_saved",
+      "description": "The agent generated a 36-month forecast using the best model and saved the values.",
+      "points": 20,
+      "visual_evidence": "A file named l01_forecast_values.csv in the output directory, or its contents displayed showing 36 rows of data with columns for Month, .mean, and prediction intervals."
+    },
+    {
+      "id": "forecast_plot_saved",
+      "description": "The agent generated and saved a visualization of the history and forecast.",
+      "points": 30,
+      "visual_evidence": "A file named l01_forecast_plot.png in the output directory, or an image viewer showing a time series plot with historical data and a 36-month forecasted line with shaded confidence intervals."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent executed the R script to generate the outputs rather than manually creating mock files.",
+      "visual_evidence": "Terminal output showing the execution of 'Rscript forecast_analysis.R' or an R console showing the script running and successfully producing output files."
+    },
+    {
+      "id": "authentic_data_usage",
+      "description": "The agent used the actual tsibble::PBS dataset and did not hardcode the forecast values.",
+      "visual_evidence": "The R script contains code loading the PBS dataset and filtering for ATC2 == 'L01'. The resulting plots and CSVs show realistic data variations, not perfectly linear or fabricated numbers."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "The agent saved the files exactly in the requested output directory.",
+      "visual_evidence": "Terminal commands (like ls /home/ga/RProjects/output/) or a file explorer confirming the 4 expected files are located exactly in /home/ga/RProjects/output/."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires saving exactly 4 files to /home/ga/RProjects/output/: l01_decomposition.png, l01_model_accuracy.csv, l01_forecast_values.csv, and l01_forecast_plot.png. The forecast horizon must be exactly 36 months. CRITICAL NOTE FOR VERIFICATION: The actual historical monthly average for L01 scripts is ~23,080, with a peak of ~49,213. A correct forecast will show mean values around 48,000. Do NOT expect the forecast values to exceed 100,000; if the agent's plot or CSV shows values in the 20k-50k range, this is factually correct based on the real dataset."
+}

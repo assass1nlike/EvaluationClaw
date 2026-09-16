@@ -1,0 +1,42 @@
+{
+  "id": "grouped_product_kit@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a new Grouped Product in Magento for a fitness bundle named 'Home Gym Starter Kit' (SKU: 'HOMEGYM-KIT-001'). Configure the product as Enabled with Visibility set to Catalog, Search, and assign it to the 'Sports' category. The group must include the following products: 'YOGA-001' (Yoga Mat Premium) with a default quantity of 1, 'BOTTLE-001' (Insulated Water Bottle) with a default quantity of 2, and 'TSHIRT-001' (Classic Cotton T-Shirt) with a default quantity of 1. If prompted, log in using admin / Admin1234!.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/grouped_product_kit/setup_task.sh",
+    "post_task": "/workspace/tasks/grouped_product_kit/export_result.sh"
+  },
+  "metadata": {
+    "expected_sku": "HOMEGYM-KIT-001",
+    "expected_name": "Home Gym Starter Kit",
+    "expected_type": "grouped",
+    "expected_category": "Sports",
+    "child_products": [
+      {
+        "sku": "YOGA-001",
+        "qty": 1
+      },
+      {
+        "sku": "BOTTLE-001",
+        "qty": 2
+      },
+      {
+        "sku": "TSHIRT-001",
+        "qty": 1
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_grouped_product_kit"
+    }
+  }
+}

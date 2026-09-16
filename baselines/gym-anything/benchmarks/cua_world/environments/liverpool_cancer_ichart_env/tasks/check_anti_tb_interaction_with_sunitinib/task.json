@@ -1,0 +1,35 @@
+{
+  "id": "check_anti_tb_interaction_with_sunitinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "You are an infectious disease specialist checking whether a patient's anti-tuberculosis medication is safe to continue alongside a new cancer treatment. Determine the interaction traffic light color (Red, Orange, Yellow, or Green) between the cancer drug 'Sunitinib' and the anti-TB drug 'Rifampicin' using the Liverpool Cancer iChart app. Save the color name in lowercase to /sdcard/Download/interaction_result.txt",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/check_anti_tb_interaction_with_sunitinib/setup_task.sh",
+    "post_task": "/sdcard/tasks/check_anti_tb_interaction_with_sunitinib/export_result.sh"
+  },
+  "metadata": {
+    "expected_answer": "red",
+    "output_file_path": "/sdcard/Download/interaction_result.txt",
+    "cancer_drug": "Sunitinib",
+    "co_medication": "Rifampicin",
+    "package_name": "com.liverpooluni.ichartoncology"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interaction_check"
+    }
+  },
+  "tags": [
+    "android",
+    "medical",
+    "drug-interaction",
+    "file-output"
+  ]
+}

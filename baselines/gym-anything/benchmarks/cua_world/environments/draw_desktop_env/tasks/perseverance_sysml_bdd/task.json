@@ -1,0 +1,46 @@
+{
+  "id": "perseverance_sysml_bdd@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Systems Engineer documenting the physical architecture for a Critical Design Review. Create a SysML Block Definition Diagram (BDD) for the NASA Mars Perseverance Rover based on the hierarchy and properties defined in ~/Desktop/perseverance_specs.txt. The diagram must include a top-level block named 'Mars Perseverance Rover' with the <<System>> stereotype, connected to its subsystems and components using composition relationships. Ensure blocks include their respective mass or location properties and multiplicity labels for quantities greater than one as specified in the source file. Save the diagram as ~/Desktop/perseverance_bdd.drawio and export it as a PNG to ~/Desktop/perseverance_bdd.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/perseverance_sysml_bdd/setup_task.sh",
+    "post_task": "/workspace/tasks/perseverance_sysml_bdd/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "perseverance_bdd.drawio",
+    "expected_image": "perseverance_bdd.png",
+    "required_blocks": [
+      "Perseverance",
+      "Power",
+      "Mobility",
+      "Science",
+      "Arm",
+      "MMRTG",
+      "Wheels",
+      "Rocker-Bogie",
+      "SHERLOC",
+      "SuperCam",
+      "MOXIE",
+      "PIXL"
+    ],
+    "required_attributes": [
+      "45 kg",
+      "Turret",
+      "Mast"
+    ],
+    "min_composition_edges": 8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perseverance_sysml_bdd"
+    }
+  }
+}

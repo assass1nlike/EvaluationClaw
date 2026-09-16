@@ -1,0 +1,59 @@
+{
+  "task_id": "process_gdpr_erasure_request@1",
+  "task_completion": [
+    {
+      "id": "export_data_requested",
+      "description": "Initiate the personal data export for the target user in WordPress.",
+      "points": 15,
+      "visual_evidence": "The WordPress 'Export Personal Data' screen showing 'alex.rebel@example.com' added to the request list, or the agent clicking to download the personal data."
+    },
+    {
+      "id": "export_file_saved",
+      "description": "Save the exported personal data to the specified legal holds directory.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal window, or browser download dialog showing the exported zip file saved exactly at '/home/ga/legal_holds/alex_rebel_export.zip'."
+    },
+    {
+      "id": "erase_data_requested",
+      "description": "Initiate the personal data erasure for the target user in WordPress.",
+      "points": 15,
+      "visual_evidence": "The WordPress 'Erase Personal Data' screen showing 'alex.rebel@example.com' added to the erasure request list."
+    },
+    {
+      "id": "erase_data_completed",
+      "description": "Confirm the erasure of the user's personal data.",
+      "points": 15,
+      "visual_evidence": "The 'Erase Personal Data' screen showing the status as 'Completed' or a success message indicating the personal data for 'alex.rebel@example.com' has been erased/anonymized."
+    },
+    {
+      "id": "user_deletion_initiated",
+      "description": "Navigate to the Users list and initiate deletion of the target user.",
+      "points": 15,
+      "visual_evidence": "The WordPress 'Users' screen showing the agent clicking 'Delete' for the user 'alex_rebel', leading to the 'Delete Users' confirmation page."
+    },
+    {
+      "id": "user_deleted_and_reassigned",
+      "description": "Reassign the user's posts to 'admin' and complete the account deletion.",
+      "points": 20,
+      "visual_evidence": "The 'Delete Users' screen showing the radio button 'Attribute all content to:' selected with 'admin' chosen in the dropdown, followed by a success message that the user was deleted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wordpress_gui",
+      "description": "Verify the agent used the WordPress admin panel GUI.",
+      "visual_evidence": "The agent should be seen interacting with the WordPress admin interface in a web browser, rather than bypassing the UI using WP-CLI commands in a terminal."
+    },
+    {
+      "id": "genuine_export_download",
+      "description": "Verify the export file was genuinely downloaded from WordPress.",
+      "visual_evidence": "The zip file should be downloaded via the browser's download manager or a legitimate curl/wget command to the WordPress export link, not artificially created using terminal commands like 'touch' or 'echo'."
+    },
+    {
+      "id": "genuine_user_deletion",
+      "description": "Verify user deletion and post reassignment were done via the GUI.",
+      "visual_evidence": "The deletion and reassignment must occur within the WordPress 'Users' interface, not via direct database manipulation (e.g., MySQL CLI or phpMyAdmin)."
+    }
+  ],
+  "privileged_info_for_vlm": "Target user: 'alex_rebel' (email: 'alex.rebel@example.com'). Required export path: exactly '/home/ga/legal_holds/alex_rebel_export.zip'. Reassign posts to: 'admin'."
+}

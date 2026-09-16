@@ -1,0 +1,59 @@
+{
+  "task_id": "compose_profiles_multi_team@1",
+  "task_completion": [
+    {
+      "id": "open_compose_file",
+      "description": "Open the target docker-compose.yml file",
+      "points": 10,
+      "visual_evidence": "A text editor (like VS Code, nano, or vim) or a terminal output (like cat or git diff) showing the contents of /home/ga/ecommerce-platform/docker-compose.yml."
+    },
+    {
+      "id": "base_services_unmodified",
+      "description": "Verify base services have no profiles assigned",
+      "points": 10,
+      "visual_evidence": "The 'postgres' and 'redis' service definitions do NOT contain a 'profiles:' key."
+    },
+    {
+      "id": "frontend_services_profiles",
+      "description": "Assign frontend and full profiles to frontend services",
+      "points": 20,
+      "visual_evidence": "The 'nginx' and 'storefront' service definitions contain a 'profiles:' key that includes both 'frontend' and 'full' (e.g., profiles: [\"frontend\", \"full\"] or as a YAML list)."
+    },
+    {
+      "id": "backend_services_profiles",
+      "description": "Assign backend and full profiles to backend services",
+      "points": 20,
+      "visual_evidence": "The 'api' and 'worker' service definitions contain a 'profiles:' key that includes both 'backend' and 'full'."
+    },
+    {
+      "id": "debug_services_profiles",
+      "description": "Assign debug and full profiles to debug services",
+      "points": 20,
+      "visual_evidence": "The 'test-runner' and 'prometheus' service definitions contain a 'profiles:' key that includes both 'debug' and 'full'."
+    },
+    {
+      "id": "constraints_maintained",
+      "description": "Verify existing configurations are not modified or deleted",
+      "points": 20,
+      "visual_evidence": "The service definitions still contain their original 'image:', 'ports:', and 'depends_on:' keys, showing they were not accidentally overwritten or deleted during the profile additions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_edited",
+      "description": "The agent actually edited the file rather than just printing the expected output",
+      "visual_evidence": "Modifications are visible within a genuine text editor interface (e.g., VS Code, nano, vim) or via valid terminal commands (e.g., sed, yq), rather than just echoing the answer to the terminal."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The agent modified the correct file",
+      "visual_evidence": "The file path /home/ga/ecommerce-platform/docker-compose.yml is visible in the editor's title bar, file explorer, or command history."
+    },
+    {
+      "id": "no_unrelated_deletions",
+      "description": "The agent did not replace the file with a minimal stub",
+      "visual_evidence": "The file retains its original multi-service structure, indentation, and complexity, rather than being replaced by a simplified mock version."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /home/ga/ecommerce-platform/docker-compose.yml. Base services ('postgres', 'redis') must have NO profiles defined. Services 'nginx' and 'storefront' must include both 'frontend' and 'full' profiles. Services 'api' and 'worker' must include both 'backend' and 'full' profiles. Services 'test-runner' and 'prometheus' must include both 'debug' and 'full' profiles. Existing ports, images, and depends_on must remain unchanged."
+}

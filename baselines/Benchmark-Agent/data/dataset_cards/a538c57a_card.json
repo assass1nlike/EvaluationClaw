@@ -1,0 +1,97 @@
+{
+  "dataset_id": "a538c57a",
+  "name": "Lung Nodule Diagnosis Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 120,
+  "description": "A medical visual question answering dataset for lung nodule diagnosis: given a CT image of a lung nodule and a yes/no question about its malignancy, the model must answer. It evaluates visual reasoning over medical images combined with binary clinical classification.",
+  "card_text": "This dataset contains 120 image-text samples, each pairing a lung CT image (referenced by filename, e.g. '0078.png') with a natural-language question asking whether the depicted lung nodule is malignant (Yes/No). A short generic instruction prompt ('Answer the question based on the given image') accompanies each item to frame the task. The expected output is a single short text label such as 'yes' or 'no'. Images are grayscale medical scans of the thorax focused on a nodule region, so visual content is clinically specific rather than natural-scene imagery. The language is simple, templated and instructional, with a fixed question wording across samples and only the image varying. The dataset is intended to probe image-conditioned reasoning and binary diagnostic judgement in the medical imaging domain.",
+  "tasks": [
+    "visual_question_answering",
+    "classification_binary"
+  ],
+  "domain": "medical imaging (lung nodule diagnosis)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short fixed instruction telling the model to answer the accompanying question using the provided image. It provides the task framing for every sample and is identical across items.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A single templated yes/no question asking whether the lung nodule shown in the image is malignant. It is the query that the image and context must be used to answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Filename reference to a lung CT scan depicting a single nodule of interest. It is the visual evidence the question refers to and the basis for the malignancy judgement.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The binary diagnostic label ('yes' or 'no') indicating whether the lung nodule in the image is judged malignant, produced in response to the question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference plus a fixed instructional context and a templated yes/no question in the input block, and a short binary answer label in the output block. The image_file points to a lung CT image, the prompt frames the answering task, and the question asks about nodule malignancy; the answer gives the corresponding yes/no diagnostic decision, so the question and image jointly determine the single short text output."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/lung_nodule_diagnosis_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "lung nodule diagnosis vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Medicine"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Medicine"
+    ]
+  }
+}

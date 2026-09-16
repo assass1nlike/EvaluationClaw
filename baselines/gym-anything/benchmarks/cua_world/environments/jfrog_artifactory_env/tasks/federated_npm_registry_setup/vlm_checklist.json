@@ -1,0 +1,59 @@
+{
+  "task_id": "federated_npm_registry_setup@1",
+  "task_completion": [
+    {
+      "id": "local_repo_created",
+      "description": "Verify the creation of the local npm repository 'npm-internal'.",
+      "points": 15,
+      "visual_evidence": "In the Artifactory Administration UI (Repositories -> Local), look for a repository named 'npm-internal' with the package type 'npm' and the description 'Internal npm packages - GlobalRetail'."
+    },
+    {
+      "id": "remote_repo_created",
+      "description": "Verify the creation of the remote npm repository 'npmjs-mirror'.",
+      "points": 15,
+      "visual_evidence": "In the Artifactory Administration UI (Repositories -> Remote), look for a repository named 'npmjs-mirror' with the package type 'npm' and the target URL 'https://registry.npmjs.org'."
+    },
+    {
+      "id": "virtual_repo_created",
+      "description": "Verify the creation of the virtual npm repository 'npm-all' aggregating the local and remote repos in the correct order.",
+      "points": 20,
+      "visual_evidence": "In the Artifactory Administration UI (Repositories -> Virtual), look for 'npm-all'. In its configuration or summary, verify that both 'npm-internal' and 'npmjs-mirror' are selected, with 'npm-internal' listed above/before 'npmjs-mirror'."
+    },
+    {
+      "id": "user_created",
+      "description": "Verify the creation of the non-admin user 'frontend-lead'.",
+      "points": 15,
+      "visual_evidence": "In the Artifactory Administration UI (Identity and Access -> Users), look for a user named 'frontend-lead' with the email address 'frontend-lead@globalretail.com'."
+    },
+    {
+      "id": "group_created",
+      "description": "Verify the creation of the group 'frontend-developers' containing the new user.",
+      "points": 15,
+      "visual_evidence": "In the Artifactory Administration UI (Identity and Access -> Groups), look for a group named 'frontend-developers'. The user 'frontend-lead' should be visible in the group's members list."
+    },
+    {
+      "id": "permission_target_created",
+      "description": "Verify the creation of the permission target 'frontend-npm-perms' with correct access rights.",
+      "points": 20,
+      "visual_evidence": "In the Artifactory Administration UI (Identity and Access -> Permissions), look for 'frontend-npm-perms'. It should show 'npm-internal' under included repositories, and under the Groups tab, 'frontend-developers' should have 'Read' and 'Deploy/Cache' permissions checked."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web browser GUI to configure Artifactory.",
+      "visual_evidence": "Screenshots should show the JFrog Artifactory web interface in a browser, rather than terminal windows executing curl commands or API scripts."
+    },
+    {
+      "id": "correct_url",
+      "description": "Verify the agent is interacting with the correct local Artifactory instance.",
+      "visual_evidence": "The browser address bar should show 'localhost:8082' or '127.0.0.1:8082'."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent interacted with the actual JFrog Artifactory application.",
+      "visual_evidence": "The interface should be the genuine JFrog Artifactory dashboard with its standard menus, icons, and layout, not a text editor or a mocked HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring JFrog Artifactory at http://localhost:8082. Expected entities: Local repo: 'npm-internal' (desc: 'Internal npm packages - GlobalRetail'). Remote repo: 'npmjs-mirror' (URL: https://registry.npmjs.org). Virtual repo: 'npm-all' (aggregating 'npm-internal' then 'npmjs-mirror'). User: 'frontend-lead' (email: frontend-lead@globalretail.com). Group: 'frontend-developers' (must include 'frontend-lead'). Permission target: 'frontend-npm-perms' (grants 'frontend-developers' Read and Deploy access on 'npm-internal')."
+}

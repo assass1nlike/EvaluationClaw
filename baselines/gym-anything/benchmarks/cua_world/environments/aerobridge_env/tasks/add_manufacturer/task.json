@@ -1,0 +1,30 @@
+{
+  "id": "add_manufacturer@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are using Aerobridge, an open-source drone/UAV fleet management system. Your task is to add a new drone company/manufacturer to the registry. Log in to the admin panel at http://localhost:8000/admin/ using username 'admin' and password 'adminpass123'. Register a company with the Full Name 'SkyTech Innovations', including a common name, website, and email address. The entry must be associated with the 'Default Aerobridge Document' and the country 'India' (IN). Do not log out after completing the registration.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_manufacturer/setup_task.sh",
+    "post_task": "/workspace/tasks/add_manufacturer/export_result.sh"
+  },
+  "metadata": {
+    "expected_full_name": "SkyTech Innovations",
+    "expected_country": "IN",
+    "admin_username": "admin",
+    "admin_password": "adminpass123",
+    "admin_url": "http://localhost:8000/admin/",
+    "model_admin_url": "http://localhost:8000/admin/registry/company/add/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_manufacturer"
+    }
+  }
+}

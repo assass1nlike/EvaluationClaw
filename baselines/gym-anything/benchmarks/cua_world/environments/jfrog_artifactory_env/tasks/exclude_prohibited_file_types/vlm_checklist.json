@@ -1,0 +1,53 @@
+{
+  "task_id": "exclude_prohibited_file_types@1",
+  "task_completion": [
+    {
+      "id": "login_admin",
+      "description": "Log in to the application using admin credentials.",
+      "points": 10,
+      "visual_evidence": "The login screen is bypassed, and the user is logged in as 'admin' (typically visible in the user profile section or top right corner of the UI)."
+    },
+    {
+      "id": "open_repo_settings",
+      "description": "Navigate to the configuration settings for 'example-repo-local'.",
+      "points": 20,
+      "visual_evidence": "The configuration or settings page specifically for the repository named 'example-repo-local' is open in the application."
+    },
+    {
+      "id": "input_exe_pattern",
+      "description": "Enter the exclusion pattern for .exe files.",
+      "points": 25,
+      "visual_evidence": "The exact string '**/*.exe' is visible inside the 'Excludes Pattern' (or equivalent file exclusion) input field."
+    },
+    {
+      "id": "input_dll_pattern",
+      "description": "Enter the exclusion pattern for .dll files.",
+      "points": 25,
+      "visual_evidence": "The exact string '**/*.dll' is visible inside the 'Excludes Pattern' (or equivalent file exclusion) input field, typically alongside the .exe pattern."
+    },
+    {
+      "id": "save_configuration",
+      "description": "Save the modified repository configuration.",
+      "points": 20,
+      "visual_evidence": "A 'Save' or 'Apply' button is clicked, or a success notification indicating the repository configuration has been successfully updated is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the application's graphical user interface to make changes.",
+      "visual_evidence": "Screenshots show navigation through the web interface (e.g., Artifactory/JFrog UI) rather than just executing API curl commands in a terminal."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "The agent modified the actual repository settings.",
+      "visual_evidence": "The exclusion patterns are typed into the correct configuration fields within the application, not in a separate text editor or notepad."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "The agent did not use browser developer tools to fake the configuration.",
+      "visual_evidence": "The browser developer console or 'Inspect Element' panel is not open to manipulate the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The target repository is exactly 'example-repo-local'. The required exclusion patterns are '**/*.exe' and '**/*.dll'. These must be added to the repository's 'Excludes Pattern' configuration. The system backend will verify that .txt files are accepted and .exe/.dll files are rejected."
+}

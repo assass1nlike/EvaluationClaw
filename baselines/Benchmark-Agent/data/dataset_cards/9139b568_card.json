@@ -1,0 +1,93 @@
+{
+  "dataset_id": "9139b568",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multi-image visual question answering dataset for verifying whether two photos show the same person performing the same action. Each sample contains two image paths, a comparison question, an instruction prompt, and a binary yes/no answer.",
+  "card_text": "Annotation Open is a 200-sample image-text benchmark for pose and activity consistency verification. Each item provides two cropped person images drawn from surveillance-style datasets such as CUHK03, a natural-language question asking whether both photos show the same person performing the same action, and a short prompt instructing the model to answer 'yes' or 'no'. The output is a single binary label. The dataset evaluates multi-image visual question answering and consistency judgment: a model must jointly reason about identity and action across two images rather than answering from a single image. Images are RGB person crops with varying poses and backgrounds; the text is short, instruction-oriented English. No bounding boxes, masks, or multiple-choice options are provided. The benchmark is designed as an openset evaluation set for fine-grained visual comparison and action-affective analysis.",
+  "tasks": [
+    "classification_binary",
+    "visual_question_answering",
+    "consistency_judgment"
+  ],
+  "domain": "person re-identification and action consistency",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is a short English instruction that tells the model to compare the two images and return 'yes' if they show the same person and same action, otherwise 'no'. It frames the comparison task and specifies the expected binary output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The question asks whether the two input images show the same person performing the same action. It is the direct query the model must answer using the two images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The answer is a binary label, 'yes' or 'no', indicating whether the two images depict the same person performing the same action.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "A list of two image file paths. Each image is a person crop; together they are the visual evidence for judging whether identity and action match across the pair.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample is a single visual comparison item. It contains two image references (input.image_files), a natural-language question (input.question), a short task instruction (input.prompt), and a binary answer (output.answer). The two images are the evidence; the question and prompt ask the model to compare them for same-person and same-action consistency; the answer is the yes/no label. There is no dialog, no multiple-choice options, and no spatial annotations such as bounding boxes or masks."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Pose_and_Activity_Consistency_Verification/annotation_open.json",
+    "existing_tags": {
+      "task": "Pose_and_Activity_Consistency_Verification",
+      "type": "comprehension",
+      "skill": "Multi-image Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Action Affective Analysis",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

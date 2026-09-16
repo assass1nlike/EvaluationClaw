@@ -1,0 +1,53 @@
+{
+  "task_id": "sales_interval_partitioning@1",
+  "task_completion": [
+    {
+      "id": "create_partitioned_table",
+      "description": "Create the GLOBAL_SALES table with Composite Interval-List Partitioning.",
+      "points": 30,
+      "visual_evidence": "Look for a SQL script execution or database GUI showing 'CREATE TABLE GLOBAL_SALES' with 'PARTITION BY RANGE (SALE_DATE) INTERVAL' (1 month) and 'SUBPARTITION BY LIST (REGION_CODE)' including values 'NA', 'EU', 'AS', 'SA', and a DEFAULT subpartition."
+    },
+    {
+      "id": "create_local_index",
+      "description": "Create a LOCAL partitioned index on the SALE_DATE column.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL command like 'CREATE INDEX ... ON GLOBAL_SALES (SALE_DATE) LOCAL' or a database GUI showing the index created with the 'LOCAL' property."
+    },
+    {
+      "id": "load_csv_data",
+      "description": "Load all data from the CSV file into the GLOBAL_SALES table.",
+      "points": 20,
+      "visual_evidence": "Look for a successful data import operation (e.g., SQL*Loader output, IDE import tool success message, or a Python script execution) showing exactly 2000 rows loaded from '/home/ga/Desktop/sales_data_raw.csv'."
+    },
+    {
+      "id": "insert_future_record",
+      "description": "Insert a specific future record to trigger automatic interval partitioning.",
+      "points": 15,
+      "visual_evidence": "Look for an executed SQL INSERT statement adding a record with SALE_DATE '2028-01-15', REGION_CODE 'EU', and AMOUNT '999.99' into the GLOBAL_SALES table, along with a '1 row inserted' success message."
+    },
+    {
+      "id": "export_partition_structure",
+      "description": "Export the partition structure details to a text file on the Desktop.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command redirecting partition query output to '/home/ga/Desktop/partition_structure.txt', or a text editor/file manager showing this file has been created and contains database partition details."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent actually executed the SQL commands against the database.",
+      "visual_evidence": "Look for a real database client (e.g., SQL*Plus, SQL Developer, DBeaver, or a Python script) showing execution results and connection to the Oracle DB, rather than just typing SQL into a text editor without running it."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the partition structure file was actually saved to the correct path.",
+      "visual_evidence": "Look for evidence that '/home/ga/Desktop/partition_structure.txt' exists on the filesystem (e.g., via 'ls' command or file explorer), not just printed to the console."
+    },
+    {
+      "id": "authentic_data_load",
+      "description": "Verify the agent loaded the actual CSV file rather than mocking the data.",
+      "visual_evidence": "Look for commands or GUI interactions that explicitly reference '/home/ga/Desktop/sales_data_raw.csv' during the import process, rather than manual INSERT statements for a few rows."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is Oracle (credentials: hr/hr123 at localhost:1521/XEPDB1). The source CSV file is at /home/ga/Desktop/sales_data_raw.csv and contains exactly 2000 rows. The required regions for subpartitioning are 'NA', 'EU', 'AS', 'SA', plus a DEFAULT subpartition. The future date to test interval partitioning is '2028-01-15' with amount 999.99 in region 'EU'."
+}

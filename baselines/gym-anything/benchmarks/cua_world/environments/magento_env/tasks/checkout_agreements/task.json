@@ -1,0 +1,46 @@
+{
+  "id": "checkout_agreements@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure legally-required checkout agreements for the store. Enable the checkout terms and conditions feature and create two manually applied agreements for all store views. The first agreement, named 'Handmade Goods Terms of Service', must have the checkbox text 'I agree to the Terms of Service for handmade goods' and HTML content including an <h2> heading 'Terms of Service', an explanation that items are 'handmade', a '2-4 weeks' shipping mention, and a '14 days' return window. The second agreement, named 'Privacy and Data Policy', must have the checkbox text 'I have read and agree to the Privacy and Data Policy' and HTML content including an <h2> heading 'Privacy Policy' with mentions of 'data' collection and 'cookie' usage. If not logged in, use admin / Admin1234!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/checkout_agreements/setup_task.sh",
+    "post_task": "/workspace/tasks/checkout_agreements/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "checkout/options/enable_agreements",
+    "agreement1": {
+      "name_partial": "Handmade Goods",
+      "checkbox_text_partial": "Terms of Service for handmade goods",
+      "content_required": [
+        "<h2",
+        "Terms of Service",
+        "handmade",
+        "2-4 weeks",
+        "14 days"
+      ]
+    },
+    "agreement2": {
+      "name_partial": "Privacy and Data",
+      "checkbox_text_partial": "agree to the Privacy and Data Policy",
+      "content_required": [
+        "<h2",
+        "Privacy Policy",
+        "data",
+        "cookie"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_checkout_agreements"
+    }
+  }
+}

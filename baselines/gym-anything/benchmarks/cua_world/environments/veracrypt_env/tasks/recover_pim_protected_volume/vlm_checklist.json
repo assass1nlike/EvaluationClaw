@@ -1,0 +1,53 @@
+{
+  "task_id": "recover_pim_protected_volume@1",
+  "task_completion": [
+    {
+      "id": "script_veracrypt_bruteforce",
+      "description": "The agent creates and executes a script or command-line loop to brute-force the VeraCrypt PIM.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a bash/python script or a shell loop (e.g., 'for i in {1..50}') being written or executed, invoking 'veracrypt' with the password 'ProjectAlpha2024!' and varying '--pim' arguments."
+    },
+    {
+      "id": "identify_correct_pim",
+      "description": "The agent successfully identifies the correct PIM value.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a successful VeraCrypt mount command without errors, or script output explicitly stating the found PIM number."
+    },
+    {
+      "id": "mount_volume",
+      "description": "The VeraCrypt volume is mounted to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a successful mount command targeting '/home/ga/MountPoints/slot1', or output from 'df -h', 'lsblk', or 'veracrypt -l' confirming the volume is mounted at that path."
+    },
+    {
+      "id": "extract_confidential_file",
+      "description": "The confidential file is extracted to the required destination.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'cp' command copying 'project_specs.txt' from the mount point to '/home/ga/Documents/recovered_specs.txt', or an 'ls'/'cat' command verifying the file exists at the destination."
+    },
+    {
+      "id": "save_pim_value",
+      "description": "The discovered PIM value is saved to the required text file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing an 'echo' command writing a number to '/home/ga/Documents/found_pim.txt', or a 'cat' command displaying a single integer (between 1 and 50) inside that file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "cli_scripting_used",
+      "description": "The agent used CLI scripting to find the PIM rather than manual GUI guessing.",
+      "visual_evidence": "Terminal history shows a loop or script execution for veracrypt commands. The VeraCrypt GUI password/PIM prompt should not be repeatedly opened and closed manually."
+    },
+    {
+      "id": "genuine_file_extraction",
+      "description": "The agent extracted the actual file from the mounted volume rather than fabricating it.",
+      "visual_evidence": "The copy command must clearly reference the mounted directory (e.g., '/home/ga/MountPoints/slot1/project_specs.txt') as the source file."
+    },
+    {
+      "id": "genuine_pim_discovery",
+      "description": "The agent actually ran a search process to find the PIM.",
+      "visual_evidence": "Terminal output showing failed mount attempts, a script iterating through multiple values, or a command history that proves a systematic search rather than magically guessing the correct PIM on the first try."
+    }
+  ],
+  "privileged_info_for_vlm": "The VeraCrypt volume is located at '/home/ga/Evidence/locked_project.hc'. The password is 'ProjectAlpha2024!'. The correct PIM is a random integer between 1 and 50. The volume must be mounted at '/home/ga/MountPoints/slot1'. The extracted file must be saved to '/home/ga/Documents/recovered_specs.txt'. The found PIM must be saved to '/home/ga/Documents/found_pim.txt'."
+}

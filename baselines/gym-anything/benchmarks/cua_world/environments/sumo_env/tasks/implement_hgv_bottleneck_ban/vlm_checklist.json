@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_hgv_bottleneck_ban@1",
+  "task_completion": [
+    {
+      "id": "identify_bottleneck_edge",
+      "description": "Identify the non-internal edge with the highest truck volume.",
+      "points": 15,
+      "visual_evidence": "Terminal output, script execution, or SUMO tool output showing the calculation or extraction of edge vehicle counts for 'truck_type' from the baseline scenario to find the maximum."
+    },
+    {
+      "id": "modify_network_ban_trucks",
+      "description": "Modify the network to ban trucks on the identified edge and save it.",
+      "points": 20,
+      "visual_evidence": "Use of netconvert, netedit, or a text editor modifying a .net.xml file to disallow trucks (e.g., disallow=\"truck\") on the bottleneck edge, and saving the output to 'acosta_hgv_ban.net.xml'."
+    },
+    {
+      "id": "create_ban_sumocfg",
+      "description": "Create a new simulation configuration for the ban scenario.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the creation of 'ban.sumocfg' that references the new network 'acosta_hgv_ban.net.xml', includes dynamic rerouting parameters (like device.rerouting), and sets tripinfo-output to '/home/ga/SUMO_Output/ban_tripinfo.xml'."
+    },
+    {
+      "id": "execute_ban_simulation",
+      "description": "Execute the new ban simulation configuration.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of 'sumo -c ban.sumocfg' (or similar) and the simulation running to completion."
+    },
+    {
+      "id": "calculate_avg_durations",
+      "description": "Calculate the average trip duration for completed truck trips in both scenarios.",
+      "points": 15,
+      "visual_evidence": "A Python script, awk command, or similar tool being written and executed to parse tripinfo XML files from both the baseline and ban scenarios, specifically filtering for 'truck_type' and calculating the average duration."
+    },
+    {
+      "id": "write_hgv_report",
+      "description": "Write the final results to the specified report file.",
+      "points": 15,
+      "visual_evidence": "Terminal output (e.g., cat, echo) or a text editor showing the contents of '/home/ga/SUMO_Output/hgv_report.txt' containing the exact keys: 'banned_edge:', 'baseline_truck_avg_duration:', and 'ban_truck_avg_duration:' with their corresponding values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_execution",
+      "description": "Verify the agent actually ran the SUMO simulations.",
+      "visual_evidence": "Look for actual SUMO terminal output showing step progression and simulation completion, rather than the agent just creating dummy tripinfo.xml files."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Verify the agent calculated the averages programmatically or manually based on real data.",
+      "visual_evidence": "Look for a script or command line tool parsing the XML files. The agent should not just guess or hallucinate the average duration numbers."
+    },
+    {
+      "id": "no_hallucinated_report",
+      "description": "Verify the report file was generated from actual findings.",
+      "visual_evidence": "The values in hgv_report.txt should clearly stem from the outputs of the scripts or commands run in previous steps, not typed out of nowhere."
+    }
+  ],
+  "privileged_info_for_vlm": "Scenario directory: /home/ga/SUMO_Scenarios/bologna_acosta. Output directory: /home/ga/SUMO_Output. Report file: /home/ga/SUMO_Output/hgv_report.txt. Truck vType: truck_type. Truck vClass: truck."
+}

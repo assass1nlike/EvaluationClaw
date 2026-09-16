@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_data_processing@1",
+  "task_completion": [
+    {
+      "id": "optimize_dedup",
+      "description": "Optimize deduplicate_records in dedup.py",
+      "points": 20,
+      "visual_evidence": "Look for dedup.py open in an editor. The deduplicate_records function should be modified to use an efficient data structure like a set or dict to track seen items, avoiding O(n^2) list lookups."
+    },
+    {
+      "id": "optimize_aggregate",
+      "description": "Optimize aggregate_by_category in aggregate.py",
+      "points": 20,
+      "visual_evidence": "Look for aggregate.py open in an editor. The aggregate_by_category function should be modified to use a dictionary or collections.defaultdict to accumulate values in a single pass (O(n))."
+    },
+    {
+      "id": "optimize_topk",
+      "description": "Optimize top_k_by_value in topk.py",
+      "points": 20,
+      "visual_evidence": "Look for topk.py open in an editor. The top_k_by_value function should be modified to use a heap (e.g., heapq.nlargest) for O(n log k) complexity instead of sorting the entire list."
+    },
+    {
+      "id": "optimize_join",
+      "description": "Optimize inner_join in join.py",
+      "points": 20,
+      "visual_evidence": "Look for join.py open in an editor. The inner_join function should be modified to build a hash map (dictionary) from one dataset to achieve O(n+m) complexity instead of nested loops."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Run correctness and performance tests successfully",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing a test runner (like pytest) executing the test suite. The output should indicate that all tests passed, specifically performance tests, completing in under 2.0 seconds."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_modification",
+      "description": "Agent did not modify test files to bypass performance checks",
+      "visual_evidence": "Check that test files (e.g., test_performance.py) are not modified to change the 2.0 second threshold or skip tests."
+    },
+    {
+      "id": "no_signature_change",
+      "description": "Agent did not change function signatures",
+      "visual_evidence": "Check that the function signatures (names and parameters) in the optimized files remain unchanged."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Test results are from genuine execution",
+      "visual_evidence": "Ensure the test passing output looks like genuine test runner output (e.g., standard pytest formatting) and not a mocked print statement or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/PycharmProjects/data_processing. The target functions to optimize are deduplicate_records (expected O(n)), aggregate_by_category (expected O(n)), top_k_by_value (expected O(n log k)), and inner_join (expected O(n+m)). The performance threshold for the tests is 2.0 seconds."
+}

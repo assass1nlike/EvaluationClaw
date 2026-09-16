@@ -1,0 +1,59 @@
+{
+  "task_id": "convert_run_to_compose@1",
+  "task_completion": [
+    {
+      "id": "create_compose_file",
+      "description": "Agent creates the docker-compose.yml file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (e.g., nano, vim, VS Code) open with the file '/home/ga/monitoring-stack/docker-compose.yml', or terminal commands creating this file."
+    },
+    {
+      "id": "configure_prometheus",
+      "description": "Agent configures the Prometheus service in the docker-compose.yml file.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'docker-compose.yml' showing a service for Prometheus using the image 'prom/prometheus:v2.53.0' and exposing port '9090'."
+    },
+    {
+      "id": "configure_grafana",
+      "description": "Agent configures the Grafana service in the docker-compose.yml file.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'docker-compose.yml' showing a service for Grafana using the image 'grafana/grafana:11.0.0' and exposing port '3000'."
+    },
+    {
+      "id": "configure_node_exporter",
+      "description": "Agent configures the Node Exporter service in the docker-compose.yml file.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'docker-compose.yml' showing a service for Node Exporter using the image 'prom/node-exporter:v1.8.1' and exposing port '9100'."
+    },
+    {
+      "id": "start_compose_stack",
+      "description": "Agent starts the Docker Compose stack.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing the execution of 'docker compose up' or 'docker-compose up' (often with the '-d' flag) in the '/home/ga/monitoring-stack' directory, followed by the creation/starting of the containers."
+    },
+    {
+      "id": "verify_running_services",
+      "description": "Agent verifies that the stack is running and services are accessible.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output of 'docker ps' showing the three containers running, or 'curl' commands/browser windows successfully accessing localhost on ports 9090, 3000, and 9100."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "did_not_run_legacy_script",
+      "description": "Ensure the agent did not simply execute the legacy shell script to start the services.",
+      "visual_evidence": "Check terminal history to ensure the agent did not execute 'bash run_commands.sh' or './run_commands.sh'."
+    },
+    {
+      "id": "used_docker_compose",
+      "description": "Ensure the containers were started using Docker Compose, not individual docker run commands.",
+      "visual_evidence": "Check terminal history to ensure the agent used 'docker compose up' or 'docker-compose up' to start the stack, rather than typing out individual 'docker run' commands."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Ensure the agent genuinely created the docker-compose.yml file.",
+      "visual_evidence": "Verify that the agent opened an editor (like nano, vim) or used standard terminal commands to construct the 'docker-compose.yml' file, rather than downloading a pre-made solution from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory is '/home/ga/monitoring-stack'. The agent must create 'docker-compose.yml' in this directory. The file must define three services: 'prometheus' (image: prom/prometheus:v2.53.0, port: 9090), 'grafana' (image: grafana/grafana:11.0.0, port: 3000), and 'node-exporter' (image: prom/node-exporter:v1.8.1, port: 9100). The services must be started using Docker Compose and be accessible on their respective ports."
+}

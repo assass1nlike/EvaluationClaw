@@ -1,0 +1,30 @@
+{
+  "id": "lab_scale_power_curve_gen@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Design a lab-scale wind turbine and generate its power curve. Generate a NACA 4415 airfoil and perform XFoil analysis at Reynolds = 300,000 with 360-degree extrapolation. Design a blade named 'LabBlade' with a length of 1.0 m, constant chord of 0.1 m, and 0 degrees twist using the NACA 4415 airfoil for all sections. Define a rotor named 'LabRotor' with 3 blades and a hub radius of 0.1 m. Run a dimensional BEM simulation with a wind speed sweep from 4 m/s to 20 m/s in 1 m/s steps at a fixed rotational speed of 500 RPM and 0 degrees pitch. Export the power vs wind speed results to /home/ga/Documents/projects/lab_power_curve.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lab_scale_power_curve_gen/setup_task.sh",
+    "post_task": "/workspace/tasks/lab_scale_power_curve_gen/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/projects/lab_power_curve.txt",
+    "min_wind_speed": 4,
+    "max_wind_speed": 20,
+    "rpm": 500,
+    "blade_length": 1.0,
+    "expected_power_order_magnitude": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lab_scale_power_curve_gen"
+    }
+  }
+}

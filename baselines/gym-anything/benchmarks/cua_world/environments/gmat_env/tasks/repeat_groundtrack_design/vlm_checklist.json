@@ -1,0 +1,53 @@
+{
+  "task_id": "repeat_groundtrack_design@1",
+  "task_completion": [
+    {
+      "id": "read_requirements",
+      "description": "Verify the agent opens or reads the EarthMapper-3 orbit requirements document.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat' or 'less') displaying the contents of /home/ga/Desktop/earthmapper3_orbit_requirements.txt."
+    },
+    {
+      "id": "create_gmat_script",
+      "description": "Verify the agent creates the required GMAT script file.",
+      "points": 20,
+      "visual_evidence": "A file named earthmapper3_orbit.script is visible in a text editor, IDE, or terminal file listing within the /home/ga/GMAT_output/ directory."
+    },
+    {
+      "id": "configure_16_day_propagation",
+      "description": "Verify the GMAT script is configured to propagate the satellite for one full repeat cycle (16 days).",
+      "points": 20,
+      "visual_evidence": "The GMAT script contents or GMAT GUI shows a propagation stopping condition set to 16 days (e.g., 'Propagate ... {Sat.ElapsedDays = 16}')."
+    },
+    {
+      "id": "create_results_file",
+      "description": "Verify the agent creates the required results text file.",
+      "points": 20,
+      "visual_evidence": "A file named groundtrack_design_results.txt is visible in a text editor or terminal file listing within the /home/ga/GMAT_output/ directory."
+    },
+    {
+      "id": "record_orbit_parameters",
+      "description": "Verify the results file contains the required orbital parameters with values within the acceptable ranges.",
+      "points": 30,
+      "visual_evidence": "The contents of groundtrack_design_results.txt show SMA_km (~7077.7), INC_deg (~98.19), ECC (< 0.002), altitude_km, longitude_drift_deg, repeat_cycle_revolutions (233), and sun_sync_RAAN_rate_degperday."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution_visible",
+      "description": "Verify the agent actually ran GMAT to compute the orbit, rather than hallucinating the results.",
+      "visual_evidence": "The GMAT GUI is open and showing the mission run, or a terminal window shows the execution of the GMAT script via command line."
+    },
+    {
+      "id": "authentic_script_content",
+      "description": "Verify the GMAT script contains genuine orbital mechanics setup and is not a dummy file.",
+      "visual_evidence": "The script file contains actual GMAT syntax (e.g., 'Create Spacecraft', 'Create Propagator', 'Propagate') rather than plain English text or empty space."
+    },
+    {
+      "id": "no_direct_copy_paste_cheating",
+      "description": "Verify the agent did not just write a script that echoes hardcoded text without performing the simulation.",
+      "visual_evidence": "The results file values appear to be derived from a simulation output (often having multiple decimal places) rather than perfectly rounded, fabricated numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The requirements document is located at /home/ga/Desktop/earthmapper3_orbit_requirements.txt. The required output files are /home/ga/GMAT_output/earthmapper3_orbit.script and /home/ga/GMAT_output/groundtrack_design_results.txt. A valid 16-day/233-rev sun-synchronous orbit requires a Semi-Major Axis (SMA) between 7070.0 and 7100.0 km (target ~7077.7 km), an Inclination (INC) between 98.0 and 98.5 degrees (target ~98.19 deg), and an Eccentricity (ECC) less than 0.002. The repeat cycle revolutions must be 233."
+}

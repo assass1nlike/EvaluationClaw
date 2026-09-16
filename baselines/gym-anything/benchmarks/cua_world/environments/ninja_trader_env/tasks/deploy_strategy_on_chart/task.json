@@ -1,0 +1,29 @@
+{
+  "id": "deploy_strategy_on_chart@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is open with real daily OHLCV data for SPY (Jan 2023 - Dec 2024) loaded. Deploy the 'SampleMACrossover' automated trading strategy on a new Daily chart for SPY. Configure the strategy parameters with Fast = 15 and Slow = 50, and set the Account to 'Sim101'. Enable the strategy and save the workspace to persist the configuration.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\deploy_strategy_on_chart\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\deploy_strategy_on_chart\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "strategy_name": "SampleMACrossover",
+    "param_fast": 15,
+    "param_slow": 50,
+    "account": "Sim101"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deploy_strategy_on_chart"
+    }
+  }
+}

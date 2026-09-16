@@ -1,0 +1,78 @@
+{
+  "dataset_id": "325742c7",
+  "name": "Utensil Recognition",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 190,
+  "description": "Dataset for recognizing utensils from images. Given a photo and a prompt, the model must output the correct utensil category. It evaluates multi-class object recognition on everyday kitchen tools.",
+  "card_text": "The Utensil Recognition dataset contains 190 image–text samples. Each sample pairs a photograph of a single utensil or kitchen tool with a fixed instruction, 'recognize the utensil in the image'. The expected output is a single uppercase category label such as KITCHEN_KNIFE or POTATO_PEELER. Images are everyday object photos, typically showing one dominant utensil. The task is closed-set multi-class classification: models read the image and the instruction, then predict the utensil class. No bounding boxes, segmentation masks, multiple-choice options, or free-form explanations are provided. The dataset assumes each image contains one recognizable utensil and that the category vocabulary is fixed. It targets basic visual object recognition in a kitchen-tool domain.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "kitchen utensils",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Photograph of a single utensil or kitchen tool, such as a knife or peeler. It is the visual input that the model must recognize.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Fixed textual instruction asking the model to recognize the utensil shown in the image. It specifies the task and directs attention to the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.prediction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Target utensil category label in uppercase snake_case, e.g., KITCHEN_KNIFE or POTATO_PEELER. It is the correct class for the pictured object.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference (input.image_file), a fixed textual instruction (input.prompt), and a single utensil category label (output.prediction). The image provides the visual object to recognize; the prompt asks the model to identify that utensil; the answer is the correct utensil class name. No bounding boxes, masks, options, or dialogs are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/utensil_recognition/json/annotation.json",
+    "existing_tags": {
+      "task": "Utensil Recognition",
+      "type": "comprehension",
+      "skill": "Object Recognition(Object Recog)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

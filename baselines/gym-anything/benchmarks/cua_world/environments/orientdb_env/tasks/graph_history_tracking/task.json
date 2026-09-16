@@ -1,0 +1,52 @@
+{
+  "id": "graph_history_tracking@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Implement a history tracking system for the 'Hotels' class in the 'demodb' database. Create a 'HotelHistory' vertex class with properties 'OriginalName' (String), 'OriginalStars' (Integer), 'OriginalPhone' (String), and 'MutationReason' (String), and a 'HasHistory' edge class. For each update, capture the hotel's pre-update state in a 'HotelHistory' vertex linked to the hotel via a 'HasHistory' edge. Execute these updates: set 'Hotel Artemide' to 5 stars (MutationReason: 'Annual Review'), change 'The Savoy' phone number to '+44-20-9999-8888' (MutationReason: 'Correction'), and rename 'Hotel Adlon Kempinski' to 'Adlon Kempinski Berlin' (MutationReason: 'Rebranding'). OrientDB Studio is open. Credentials: root / GymAnything123!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/graph_history_tracking/setup_task.sh",
+    "post_task": "/workspace/tasks/graph_history_tracking/export_result.sh"
+  },
+  "metadata": {
+    "db_name": "demodb",
+    "required_classes": [
+      "HotelHistory",
+      "HasHistory"
+    ],
+    "targets": [
+      {
+        "original_name": "Hotel Artemide",
+        "update_field": "Stars",
+        "new_value": 5,
+        "old_value": 4,
+        "reason": "Annual Review"
+      },
+      {
+        "original_name": "The Savoy",
+        "update_field": "Phone",
+        "new_value": "+44-20-9999-8888",
+        "old_value": "+44-20-7836-4343",
+        "reason": "Correction"
+      },
+      {
+        "original_name": "Hotel Adlon Kempinski",
+        "update_field": "Name",
+        "new_value": "Adlon Kempinski Berlin",
+        "old_value": "Hotel Adlon Kempinski",
+        "reason": "Rebranding"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_graph_history_tracking"
+    }
+  }
+}

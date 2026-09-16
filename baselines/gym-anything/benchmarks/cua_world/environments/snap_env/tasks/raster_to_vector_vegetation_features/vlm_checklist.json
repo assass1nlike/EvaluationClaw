@@ -1,0 +1,59 @@
+{
+  "task_id": "raster_to_vector_vegetation_features@1",
+  "task_completion": [
+    {
+      "id": "open_input_file",
+      "description": "Open the Landsat multispectral image in ESA SNAP Desktop.",
+      "points": 10,
+      "visual_evidence": "ESA SNAP Desktop is open and 'landsat_multispectral' is visible in the Product Explorer panel."
+    },
+    {
+      "id": "compute_ndvi_band",
+      "description": "Compute the NDVI band using the specified formula.",
+      "points": 20,
+      "visual_evidence": "The 'Band Math' dialog is visible showing the target band name 'ndvi' and the expression '(band_2 - band_3) / (band_2 + band_3)', or an 'ndvi' band is visible under the Bands folder in the Product Explorer."
+    },
+    {
+      "id": "create_vegetation_mask",
+      "description": "Create a mask to isolate dense vegetation where ndvi > 0.4.",
+      "points": 20,
+      "visual_evidence": "The Mask Manager panel or a logical band math dialog is visible showing a mask created with the condition 'ndvi > 0.4'."
+    },
+    {
+      "id": "convert_mask_to_vector",
+      "description": "Convert the dense vegetation mask into vector geometries.",
+      "points": 20,
+      "visual_evidence": "A tool like 'Geometry from Mask' is being used, or a new vector data node (representing the mask) is visible in the Vector Data folder of the Product Explorer."
+    },
+    {
+      "id": "export_shapefile",
+      "description": "Export the vector data as an ESRI Shapefile to the specified path.",
+      "points": 15,
+      "visual_evidence": "An export dialog for ESRI Shapefile is visible with the path ending in 'snap_exports/dense_vegetation.shp', or a file manager/terminal shows the file has been created."
+    },
+    {
+      "id": "save_dimap_project",
+      "description": "Save the project in BEAM-DIMAP format to the specified path.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' or 'Save Project' dialog is visible with the path ending in 'snap_projects/vegetation_analysis.dim', or the product name is updated in the Product Explorer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the ESA SNAP Desktop GUI to perform the tasks.",
+      "visual_evidence": "Screenshots should show interaction with SNAP Desktop menus, dialogs (Band Math, Mask Manager), and panels, rather than using terminal commands (e.g., gdal, snappy) to bypass the UI."
+    },
+    {
+      "id": "authentic_processing",
+      "description": "The agent actually computed the band and mask rather than creating dummy files.",
+      "visual_evidence": "The SNAP interface should show the actual image data, computed NDVI band, and vector geometries being rendered or processed in the main view or dialogs."
+    },
+    {
+      "id": "no_scripting_bypass",
+      "description": "The agent did not use a text editor to write a Python or shell script to solve the task.",
+      "visual_evidence": "No text editors (like nano, vim, gedit) are shown writing scripts to generate the .dim or .shp files directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif. The exact NDVI expression required is '(band_2 - band_3) / (band_2 + band_3)'. The mask condition must be 'ndvi > 0.4'. The final vector export must be saved to /home/ga/snap_exports/dense_vegetation.shp and the SNAP project must be saved to /home/ga/snap_projects/vegetation_analysis.dim."
+}

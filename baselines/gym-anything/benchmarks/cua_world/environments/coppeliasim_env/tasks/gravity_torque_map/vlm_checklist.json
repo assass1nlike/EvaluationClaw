@@ -1,0 +1,59 @@
+{
+  "task_id": "gravity_torque_map@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_ur5_loaded",
+      "description": "CoppeliaSim is running and the UR5 robot model is loaded into the scene.",
+      "points": 10,
+      "visual_evidence": "The CoppeliaSim application window is visible, and the UR5 robot arm is shown in the 3D viewport or listed in the scene hierarchy."
+    },
+    {
+      "id": "analysis_script_created",
+      "description": "A script is written to connect to the ZMQ Remote API, enable stepping mode, and iterate through joint configurations.",
+      "points": 20,
+      "visual_evidence": "A code editor or terminal shows a script (likely Python) importing the ZMQ Remote API client, setting up stepping mode, and containing loops to iterate through shoulder and elbow joint angles."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The torque_map.csv file is created in the specified exports directory.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window (e.g., using 'ls') shows the file 'torque_map.csv' located at '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "csv_content_valid",
+      "description": "The CSV file contains the correct columns and at least 25 rows of configuration data.",
+      "points": 20,
+      "visual_evidence": "The contents of 'torque_map.csv' are displayed (via text editor, cat command, or spreadsheet) showing the headers 'config_id, shoulder_deg, elbow_deg, shoulder_torque_nm, elbow_torque_nm' and multiple rows of data (at least 25 configurations)."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The torque_report.json file is created in the specified exports directory.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window shows the file 'torque_report.json' located at '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "json_content_valid",
+      "description": "The JSON report contains the required summary statistics based on the simulation.",
+      "points": 30,
+      "visual_evidence": "The contents of 'torque_report.json' are displayed showing the keys 'total_configs' (value >= 25), 'max_shoulder_torque_nm', 'max_elbow_torque_nm', 'max_shoulder_config_deg' (an array of 2 values), and 'max_elbow_config_deg'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_evidence",
+      "description": "The agent actually executed a script to interact with CoppeliaSim rather than manually typing fake output files.",
+      "visual_evidence": "A terminal window shows the execution command for the script (e.g., 'python3 script.py') and any associated print outputs or progress indicators."
+    },
+    {
+      "id": "genuine_data_variation",
+      "description": "The generated CSV data shows realistic, varying torque values corresponding to different angles.",
+      "visual_evidence": "In the displayed CSV contents, the 'shoulder_torque_nm' and 'elbow_torque_nm' columns contain varying floating-point numbers, not static, repeated, or overly simplistic dummy values."
+    },
+    {
+      "id": "zmq_api_usage",
+      "description": "The agent used the ZMQ Remote API to communicate with CoppeliaSim.",
+      "visual_evidence": "The script code visible in screenshots explicitly imports and uses the CoppeliaSim ZMQ Remote API client (e.g., 'RemoteAPIClient')."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating a minimum of 25 configurations (min_configs: 25) using at least 5 distinct angles per joint (min_angles: 5) spanning at least 90 degrees (min_span_deg: 90). The output CSV must be strictly located at /home/ga/Documents/CoppeliaSim/exports/torque_map.csv and the output JSON must be strictly located at /home/ga/Documents/CoppeliaSim/exports/torque_report.json."
+}

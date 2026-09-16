@@ -1,0 +1,59 @@
+{
+  "task_id": "enable_user_locking@1",
+  "task_completion": [
+    {
+      "id": "login_artifactory",
+      "description": "Log into JFrog Artifactory as admin",
+      "points": 10,
+      "visual_evidence": "The JFrog Artifactory web interface is visible in a browser, and the user profile or session indicates that the 'admin' user is logged in."
+    },
+    {
+      "id": "navigate_security_settings",
+      "description": "Navigate to the Security settings page",
+      "points": 10,
+      "visual_evidence": "The Administration module is open, specifically showing the Security settings page where User Lockout policies can be configured."
+    },
+    {
+      "id": "enable_user_lockout",
+      "description": "Enable the user lockout policy",
+      "points": 25,
+      "visual_evidence": "The 'Enable User Lockout' checkbox or toggle is checked/enabled."
+    },
+    {
+      "id": "set_max_attempts",
+      "description": "Set the maximum failed login attempts to 3",
+      "points": 25,
+      "visual_evidence": "The input field for 'Max Failed Login Attempts' (or similar) contains the value '3'."
+    },
+    {
+      "id": "set_lockout_time",
+      "description": "Set the lockout time to 1 hour",
+      "points": 20,
+      "visual_evidence": "The input field for 'Lockout Time' (or similar) contains the value '1' (or '60' if the UI unit is in minutes), representing 1 hour."
+    },
+    {
+      "id": "save_configuration",
+      "description": "Save the security configuration",
+      "points": 10,
+      "visual_evidence": "A 'Save' button has been clicked, evidenced by a success toast notification (e.g., 'Settings successfully saved') or the settings persisting in a saved state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent used the web browser GUI to configure settings",
+      "visual_evidence": "The configuration is done through the JFrog Artifactory web interface in a browser, not via terminal commands (like curl or API calls)."
+    },
+    {
+      "id": "actual_application",
+      "description": "The agent interacted with the actual Artifactory instance",
+      "visual_evidence": "The browser address bar shows http://localhost:8082, confirming interaction with the real application rather than a mock or text editor."
+    },
+    {
+      "id": "no_scripting",
+      "description": "The agent did not use a script to bypass the UI",
+      "visual_evidence": "There are no visible terminal windows running scripts to automatically configure the security settings."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration requires enabling user locking, setting max failed login attempts to 3, and setting the lockout time to 1 hour in JFrog Artifactory at http://localhost:8082 using the admin credentials (admin/password)."
+}

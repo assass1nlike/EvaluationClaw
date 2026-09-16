@@ -1,0 +1,39 @@
+{
+  "id": "organize_category_hierarchy@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are a craft artist who sells handmade clothing through your WooCommerce store. Your product catalog has grown and you need to organize it with a proper category hierarchy for better customer navigation. In the WooCommerce admin (http://localhost/wp-admin/, credentials: admin / Admin1234!), create a top-level category named 'Apparel' (slug: apparel, description: 'Clothing and fashion items'). Create two child categories under 'Apparel': 'Tops' (slug: tops, description: 'T-shirts, sweaters, and upper body wear') and 'Bottoms' (slug: bottoms, description: 'Jeans, pants, and lower body wear'). Assign the products 'Organic Cotton T-Shirt' and 'Merino Wool Sweater' to the 'Tops' category, and assign the 'Slim Fit Denim Jeans' to the 'Bottoms' category.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/organize_category_hierarchy/setup_task.sh",
+    "post_task": "/workspace/tasks/organize_category_hierarchy/export_result.sh"
+  },
+  "metadata": {
+    "parent_category": "Apparel",
+    "child_categories": [
+      "Tops",
+      "Bottoms"
+    ],
+    "product_assignments": {
+      "Organic Cotton T-Shirt": "Tops",
+      "Merino Wool Sweater": "Tops",
+      "Slim Fit Denim Jeans": "Bottoms"
+    },
+    "descriptions": {
+      "Apparel": "Clothing and fashion items",
+      "Tops": "T-shirts, sweaters, and upper body wear",
+      "Bottoms": "Jeans, pants, and lower body wear"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_category_hierarchy"
+    }
+  }
+}

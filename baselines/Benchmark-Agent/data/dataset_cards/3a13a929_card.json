@@ -1,0 +1,85 @@
+{
+  "dataset_id": "3a13a929",
+  "name": "Animal Image Matting",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 80,
+  "description": "The Animal Image Matting dataset consists of 80 samples where each sample includes an image of an animal and a fixed text prompt instructing the model to perform image matting on the animal. The goal is to generate a mask that separates the animal from the background. It evaluates image segmentation and matting capabilities in a multimodal instruction-following setup.",
+  "card_text": "The Animal Image Matting dataset is designed for evaluating image matting (alpha matting) of animals. Each of the 80 samples contains an input image in JPG format and a fixed text prompt: 'Perform image matting on the animal in the images.' The expected output is a corresponding mask image in PNG format that represents the alpha matte of the animal. The dataset focuses on a single animal subject per image, and the mask is a binary or grayscale image indicating the foreground. The images vary in scene complexity but consistently feature an animal as the main object. This dataset is suitable for testing segmentation and matting models that take multimodal instructions. No additional annotations or metadata are provided.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "animal image matting",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The input image containing an animal subject to be matted. It is the primary visual input for the matting task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed textual instruction that asks the model to perform image matting on the animal present in the input image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output mask image (PNG) that represents the matted foreground (animal) against the background. It serves as the ground truth for the segmentation/matting task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image (input.image_file) and a text prompt (input.prompt) that instructs the model to perform image matting on the animal. The output is a mask image (output.mask_file) that isolates the animal from the background. The prompt is identical across all samples, while the images and corresponding masks vary. The image and mask are paired, with the mask representing the ground truth matte for the given input image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/AnimalImageMatting/animal_image_matting.json",
+    "existing_tags": {
+      "task": "animal image matting",
+      "type": "image comprehension",
+      "skill": "Object Matting",
+      "domain": [
+        "Animal"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Animal"
+    ]
+  }
+}

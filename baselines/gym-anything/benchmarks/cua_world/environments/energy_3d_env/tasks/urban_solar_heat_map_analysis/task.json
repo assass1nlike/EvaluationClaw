@@ -1,0 +1,28 @@
+{
+  "id": "urban_solar_heat_map_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Load the city-block.ng3 project from ~/Documents/Energy3D/, configure the environment location to Boston, MA, and set the date to June 21 (Summer Solstice). Then, enable the Solar Radiation Heat Map view so buildings show false-color solar intensity. Take a screenshot clearly showing the heat map, date, and location, and save it as ~/Documents/Energy3D/boston_summer_heatmap.png. Finally, save the modified project as a new file at ~/Documents/Energy3D/city-block-boston-summer.ng3.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_solar_heat_map_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_solar_heat_map_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/Documents/Energy3D/city-block-boston-summer.ng3",
+    "expected_screenshot_path": "/home/ga/Documents/Energy3D/boston_summer_heatmap.png",
+    "location": "Boston, MA",
+    "date": "June 21"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_heat_map_analysis"
+    }
+  }
+}

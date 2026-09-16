@@ -1,0 +1,53 @@
+{
+  "task_id": "data_cleansing_regex@1",
+  "task_completion": [
+    {
+      "id": "inspect_source_table",
+      "description": "Inspect the ACQUIRED_EMPLOYEES table to understand the messy data structure.",
+      "points": 10,
+      "visual_evidence": "A SQL query like 'SELECT * FROM ACQUIRED_EMPLOYEES' executed in a database client or terminal, showing the unformatted, corrupted data."
+    },
+    {
+      "id": "write_transformation_query",
+      "description": "Write the SQL query to cleanse and standardize the data according to the requirements.",
+      "points": 30,
+      "visual_evidence": "SQL code visible in an editor or terminal containing string manipulation functions (e.g., REGEXP_SUBSTR, TRIM, INITCAP, LOWER, REPLACE) designed to extract numbers, split names, and format emails/phones."
+    },
+    {
+      "id": "execute_table_creation",
+      "description": "Create the new CLEAN_EMPLOYEES table and populate it with the transformed data.",
+      "points": 20,
+      "visual_evidence": "Execution of a 'CREATE TABLE CLEAN_EMPLOYEES AS ...' or 'INSERT INTO CLEAN_EMPLOYEES ...' statement with a success message indicating the table was created or rows were inserted."
+    },
+    {
+      "id": "verify_standardized_data",
+      "description": "Verify that the data in CLEAN_EMPLOYEES meets all specific formatting requirements.",
+      "points": 30,
+      "visual_evidence": "Query results for CLEAN_EMPLOYEES showing the transformed data: EMPLOYEE_ID is purely numeric, FIRST_NAME and LAST_NAME are in Title Case without extra spaces, EMAIL is lowercase and contains '@', and PHONE_NUMBER is formatted as 'XXX-XXX-XXXX'."
+    },
+    {
+      "id": "verify_row_count",
+      "description": "Ensure all rows from the source table were successfully processed and inserted.",
+      "points": 10,
+      "visual_evidence": "A query result showing exactly 45 rows in the CLEAN_EMPLOYEES table (e.g., 'SELECT COUNT(*) FROM CLEAN_EMPLOYEES' returning 45, or a UI indicator showing 45 rows fetched)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_execution",
+      "description": "Agent executed SQL queries against the actual database.",
+      "visual_evidence": "SQL client UI (e.g., DBeaver, SQL Developer) or terminal SQL prompt (e.g., sqlplus) showing successful query execution and actual database responses, not just text in a generic editor."
+    },
+    {
+      "id": "dynamic_sql_transformation",
+      "description": "Agent used SQL functions to transform the data dynamically rather than hardcoding the cleansed values.",
+      "visual_evidence": "The SQL query uses functions like TRIM, REGEXP_SUBSTR, etc., instead of manual INSERT statements with hardcoded values for all 45 rows."
+    },
+    {
+      "id": "no_direct_table_editing",
+      "description": "Agent did not manually edit the table data using a GUI grid editor.",
+      "visual_evidence": "Presence of SQL DML/DDL statements (CREATE TABLE AS SELECT or INSERT INTO ... SELECT) rather than the agent clicking into a table view and typing the corrected values cell by cell."
+    }
+  ],
+  "privileged_info_for_vlm": "Source table: 'ACQUIRED_EMPLOYEES'. Target table: 'CLEAN_EMPLOYEES'. Expected row count: exactly 45 rows. Note: A summary report at '/home/ga/Desktop/data_cleansing_report.txt' is also expected as part of the full system evaluation."
+}

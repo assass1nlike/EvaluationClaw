@@ -1,0 +1,54 @@
+{
+  "id": "query_optimization@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "You are a DBA tasked with optimizing slow queries in the 'demodb' travel agency database. Optimize the queries `SELECT FROM Hotels WHERE City = 'Rome'`, `SELECT FROM Hotels WHERE Country = 'Italy' AND Stars >= 4`, and `SELECT FROM Profiles WHERE Nationality = 'British'` by creating a NOTUNIQUE index on Hotels.City, a NOTUNIQUE COMPOSITE index on Hotels covering Country and Stars (in that order), and a NOTUNIQUE index on Profiles.Nationality. Verify that the queries utilize these indexes rather than full scans. Document the EXPLAIN results for all three queries before and after optimization in a report at ~/query_optimization_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/query_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/query_optimization/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/query_optimization_report.txt",
+    "queries": [
+      "SELECT FROM Hotels WHERE City = 'Rome'",
+      "SELECT FROM Hotels WHERE Country = 'Italy' AND Stars >= 4",
+      "SELECT FROM Profiles WHERE Nationality = 'British'"
+    ],
+    "required_indexes": [
+      {
+        "class": "Hotels",
+        "props": [
+          "City"
+        ],
+        "type": "NOTUNIQUE"
+      },
+      {
+        "class": "Hotels",
+        "props": [
+          "Country",
+          "Stars"
+        ],
+        "type": "NOTUNIQUE"
+      },
+      {
+        "class": "Profiles",
+        "props": [
+          "Nationality"
+        ],
+        "type": "NOTUNIQUE"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_query_optimization"
+    }
+  }
+}

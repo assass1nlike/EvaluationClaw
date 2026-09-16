@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_server_config_map@1",
+  "task_completion": [
+    {
+      "id": "xml_payload_structure",
+      "description": "Agent constructs an XML payload with the correct structure.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a text editor, script, or terminal command containing XML with a <map> root element, <entry> elements, <string> keys, and <com.mirth.connect.util.ConfigurationProperty> elements containing <value> and <comment>."
+    },
+    {
+      "id": "facility_and_hl7_entries",
+      "description": "XML payload includes the required facility and HL7 entries.",
+      "points": 20,
+      "visual_evidence": "The XML payload includes entries for FACILITY_CODE (MCH001), FACILITY_NAME (Mercy Community Hospital), SENDING_APPLICATION (NEXTGEN_CONNECT), and SENDING_FACILITY (MCH)."
+    },
+    {
+      "id": "network_and_env_entries",
+      "description": "XML payload includes the required network and environment entries.",
+      "points": 20,
+      "visual_evidence": "The XML payload includes entries for ADT_DESTINATION_HOST (10.10.50.25), ADT_DESTINATION_PORT (6661), ORM_DESTINATION_HOST (10.10.50.30), ORM_DESTINATION_PORT (6662), ENVIRONMENT (PRODUCTION), and RETRY_MAX_ATTEMPTS (5)."
+    },
+    {
+      "id": "api_request_configuration",
+      "description": "Agent configures the PUT request with the correct endpoint, headers, and credentials.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a curl command, Python script, or API client configured to send a PUT request to 'https://localhost:8443/api/server/configurationMap' with the header 'X-Requested-With: OpenAPI' and authentication (admin/admin)."
+    },
+    {
+      "id": "api_request_execution",
+      "description": "Agent executes the API request and receives a successful response.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the terminal or API client executing the request. Look for a successful HTTP response (e.g., HTTP 200 OK, or no error message returned by curl) indicating the Configuration Map was updated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "api_used_not_gui",
+      "description": "Verifies the agent used the REST API as requested, rather than the NextGen Connect Administrator GUI.",
+      "visual_evidence": "The agent interacts with the terminal (e.g., curl, python) or an API client to complete the task, not the Mirth Connect Administrator Java GUI."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Verifies the API request was actually executed.",
+      "visual_evidence": "The terminal shows the command being run and returning a response, rather than just being typed out without execution."
+    },
+    {
+      "id": "no_hardcoded_success",
+      "description": "Verifies the agent didn't just print a fake success message.",
+      "visual_evidence": "The output of the script or curl command looks like a genuine network response or standard script execution, rather than a simple hardcoded 'echo Success'."
+    }
+  ],
+  "privileged_info_for_vlm": "The Configuration Map requires 10 specific entries. Key pairs include: FACILITY_CODE: MCH001, FACILITY_NAME: Mercy Community Hospital, SENDING_APPLICATION: NEXTGEN_CONNECT, SENDING_FACILITY: MCH, ADT_DESTINATION_HOST: 10.10.50.25, ADT_DESTINATION_PORT: 6661, ORM_DESTINATION_HOST: 10.10.50.30, ORM_DESTINATION_PORT: 6662, ENVIRONMENT: PRODUCTION, RETRY_MAX_ATTEMPTS: 5. The payload must be XML with a <map> root, <entry> elements containing <string> keys, and <com.mirth.connect.util.ConfigurationProperty> containing <value> and <comment>."
+}

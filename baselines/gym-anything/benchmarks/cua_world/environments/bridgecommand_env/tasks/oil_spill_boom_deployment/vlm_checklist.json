@@ -1,0 +1,59 @@
+{
+  "task_id": "oil_spill_boom_deployment@1",
+  "task_completion": [
+    {
+      "id": "scenario_directory_and_file",
+      "description": "Verify the scenario file is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal or file manager with a scenario file (e.g., .ini) created inside the '/opt/bridgecommand/Scenarios/q) Oil Recovery V-Sweep/' directory."
+    },
+    {
+      "id": "environment_settings",
+      "description": "Verify the scenario environment is configured correctly.",
+      "points": 15,
+      "visual_evidence": "The contents of the scenario file show the location set to 'Solent', visibility set to 2nm (or 2), weather set to overcast, and sea state set to calm."
+    },
+    {
+      "id": "recovery_vessel_placement",
+      "description": "Verify the Recovery Vessel is positioned at the Collection Point.",
+      "points": 15,
+      "visual_evidence": "The scenario file contains a vessel of Type 'Coaster' or 'Tug' with coordinates Latitude 50.8350 and Longitude -1.3050 (West is negative)."
+    },
+    {
+      "id": "buoy_arms_start_points",
+      "description": "Verify the West and East arms of red buoys start at the correct coordinates.",
+      "points": 20,
+      "visual_evidence": "The scenario file contains multiple 'Buoy_R' entries. The starting coordinates for the West arm (Lat 50.8250, Long -1.3150) and East arm (Lat 50.8250, Long -1.2950) must be present."
+    },
+    {
+      "id": "buoy_spacing_intervals",
+      "description": "Verify the buoys are placed at exactly 0.002 degree intervals of Latitude.",
+      "points": 20,
+      "visual_evidence": "The scenario file shows buoy coordinates incrementing by exactly 0.002 in latitude from the start points towards the collection point (e.g., 50.8250, 50.8270, 50.8290, 50.8310, 50.8330)."
+    },
+    {
+      "id": "documentation_file_created",
+      "description": "Verify the deployment plan documentation is created with headings and buoy counts.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/Documents/boom_deployment_plan.txt' containing the calculated headings for each arm and the total number of buoys used."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Ensure the agent actually created and saved the scenario file on the system.",
+      "visual_evidence": "Look for the use of a text editor (nano, vim) or a script (Python, bash) writing to the actual '/opt/bridgecommand/Scenarios/' directory, rather than just printing text to the terminal."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Ensure the agent calculated the buoy coordinates and headings itself.",
+      "visual_evidence": "Look for evidence of mathematical calculation (e.g., a Python script, using a calculator, or manual step-by-step coordinate generation in the terminal) rather than pasting a pre-computed block of text."
+    },
+    {
+      "id": "no_pre_existing_solution",
+      "description": "Ensure the agent did not copy a pre-existing solution file.",
+      "visual_evidence": "The agent's history should show the construction of the scenario file from scratch, without commands like 'cp /tmp/solution.ini ...' or executing a pre-existing hidden script."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses real geographic coordinates in the Solent strait. West longitudes must be represented as negative numbers in the configuration (-1.3050, -1.3150, -1.2950). The collection point is at 50.8350\u00b0N, -1.3050\u00b0W. The West tip is at 50.8250\u00b0N, -1.3150\u00b0W and the East tip is at 50.8250\u00b0N, -1.2950\u00b0W. Buoys must be spaced at exactly 0.002\u00b0 latitude intervals, meaning the latitudes for the buoys on both arms should be 50.8250, 50.8270, 50.8290, 50.8310, and 50.8330. The total latitude span is 0.010\u00b0, yielding 5 intervals per arm. UK waters use IALA Region A, so red buoys (Buoy_R) are correct for port hand marks. The documentation file must contain the calculated headings and total buoy count."
+}

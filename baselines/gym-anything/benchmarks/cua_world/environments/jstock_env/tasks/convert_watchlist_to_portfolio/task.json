@@ -1,0 +1,35 @@
+{
+  "id": "convert_watchlist_to_portfolio@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Populate a new portfolio named 'Starter_Positions' with the five stocks from 'My Watchlist' (AAPL, MSFT, GOOGL, AMZN, and NVDA). Each stock must have a recorded 'Buy' transaction of 1 unit at a price of $150.00 with $0 fees using the default date.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_watchlist_to_portfolio/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_watchlist_to_portfolio/export_result.sh"
+  },
+  "metadata": {
+    "expected_portfolio_name": "Starter_Positions",
+    "expected_stocks": [
+      "AAPL",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "NVDA"
+    ],
+    "expected_units": 1.0,
+    "expected_price": 150.0,
+    "portfolio_rel_path": ".jstock/1.0.7/UnitedState/portfolios/Starter_Positions/buyportfolio.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_watchlist_to_portfolio"
+    }
+  }
+}

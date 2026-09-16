@@ -1,0 +1,59 @@
+{
+  "task_id": "oral_history_validator@1",
+  "task_completion": [
+    {
+      "id": "standardize_dates",
+      "description": "Standardize interview dates to YYYY-MM-DD format.",
+      "points": 20,
+      "visual_evidence": "A column (e.g., 'Interview Date (Standardized)') where all dates are formatted as YYYY-MM-DD."
+    },
+    {
+      "id": "calculate_ages",
+      "description": "Calculate interviewee ages using the YEAR formula.",
+      "points": 20,
+      "visual_evidence": "A column (e.g., 'Age at Interview') containing numerical ages calculated from the Birth Year and Interview Date."
+    },
+    {
+      "id": "archive_readiness_formula",
+      "description": "Create an archive readiness validation formula using AND logic.",
+      "points": 25,
+      "visual_evidence": "A column (e.g., 'Ready for Archive?') showing boolean or Yes/No results based on Transcription Status, Release Form Signed, Topic Tags, and Interview Date."
+    },
+    {
+      "id": "conditional_formatting",
+      "description": "Apply conditional formatting to identify errors.",
+      "points": 15,
+      "visual_evidence": "Cells or rows highlighted with specific colors indicating errors or incomplete status (e.g., missing tags, unsigned forms)."
+    },
+    {
+      "id": "sort_records",
+      "description": "Sort the records to prioritize incomplete entries.",
+      "points": 10,
+      "visual_evidence": "The spreadsheet rows are sorted such that incomplete or non-archive-ready records appear at the top."
+    },
+    {
+      "id": "save_file",
+      "description": "Save the result to /home/ga/Documents/cleaned_oral_history.xlsx.",
+      "points": 10,
+      "visual_evidence": "The LibreOffice Calc window title or a file manager window showing the file saved as 'cleaned_oral_history.xlsx' in the specified directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used LibreOffice Calc GUI to perform tasks.",
+      "visual_evidence": "Screenshots show LibreOffice Calc interface with active cell selections, formula bar usage, and formatting dialogs."
+    },
+    {
+      "id": "formula_usage",
+      "description": "Agent used actual formulas rather than hardcoding values.",
+      "visual_evidence": "The formula bar shows actual spreadsheet formulas (e.g., YEAR(), AND()) rather than static text or numbers."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Agent did not use terminal commands to generate the final file.",
+      "visual_evidence": "Absence of terminal windows running python scripts or bash commands to create the xlsx file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 10 records. The archive readiness formula must check: Transcription Status='Complete' AND Release Form Signed='Yes' AND Topic Tags not empty AND Interview Date not empty. Exactly 5 records should evaluate to 'Yes' (archive ready) and 5 to 'No' (incomplete). Birth years range from 1927-1945. Expected new columns are: Interview Date (Standardized), Age at Interview, Ready for Archive?."
+}

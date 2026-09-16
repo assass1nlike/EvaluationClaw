@@ -1,0 +1,53 @@
+{
+  "task_id": "hydrology_catchment_calibration@1",
+  "task_completion": [
+    {
+      "id": "script_editing",
+      "description": "Verify the agent is editing the required R script.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE (like RStudio, VS Code, or nano/vim) is open showing the file path '/home/ga/RProjects/catchment_analysis.R'."
+    },
+    {
+      "id": "model_configuration",
+      "description": "Verify the script configures the GR4J model using the airGR package for catchment L0123001.",
+      "points": 20,
+      "visual_evidence": "R code visible in the editor containing 'library(airGR)', references to the 'GR4J' model (e.g., RunModel_GR4J, CreateRunOptions), and the dataset 'L0123001'."
+    },
+    {
+      "id": "time_periods_setup",
+      "description": "Verify the script sets the correct warm-up, calibration, and validation periods.",
+      "points": 20,
+      "visual_evidence": "R code defining the specific date ranges: warm-up (1985-01-01 to 1985-12-31), calibration (1986-01-01 to 1990-12-31), and validation (1991-01-01 to 1995-12-31)."
+    },
+    {
+      "id": "metrics_csv_saved",
+      "description": "Verify the performance metrics are saved to the correct CSV file with the required columns.",
+      "points": 25,
+      "visual_evidence": "Code writing to '/home/ga/RProjects/output/catchment_metrics.csv' (e.g., write.csv) with column names 'Calibration_NSE' and 'Validation_NSE', or a terminal/file explorer showing the file exists and contains these columns."
+    },
+    {
+      "id": "hydrograph_png_saved",
+      "description": "Verify the validation hydrograph is created and saved to the correct path.",
+      "points": 25,
+      "visual_evidence": "Code saving a plot to '/home/ga/RProjects/output/validation_hydrograph.png' (e.g., using png() or ggsave()), or the image file visible in an image viewer/file manager showing a time series plot of observed vs simulated flow."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_executed",
+      "description": "Verify the R script was actually executed to generate the outputs.",
+      "visual_evidence": "Terminal or R console showing the script being run (e.g., 'Rscript catchment_analysis.R' or execution within an IDE), rather than just being typed out without running."
+    },
+    {
+      "id": "realistic_nse_values",
+      "description": "Verify the NSE values are dynamically calculated, not hardcoded.",
+      "visual_evidence": "The script should calculate the NSE using a function (e.g., ErrorCrit_NSE from airGR) and assign the result to the CSV, rather than hardcoding specific numbers (like 0.815 or 0.762)."
+    },
+    {
+      "id": "genuine_plot",
+      "description": "Verify the hydrograph is a genuine R plot generated from the data.",
+      "visual_evidence": "The plot code should use R plotting functions (plot(), lines(), or ggplot) mapping the simulated and observed data arrays, not downloading or copying a pre-existing image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected script path is /home/ga/RProjects/catchment_analysis.R. The required package is 'airGR' and the dataset is 'L0123001'. The output metrics must be saved to /home/ga/RProjects/output/catchment_metrics.csv and contain columns 'Calibration_NSE' and 'Validation_NSE'. A correct implementation will yield a Calibration NSE of approximately 0.815 (must be >= 0.70) and a Validation NSE of approximately 0.762 (must be >= 0.60). The output plot must be saved to /home/ga/RProjects/output/validation_hydrograph.png."
+}

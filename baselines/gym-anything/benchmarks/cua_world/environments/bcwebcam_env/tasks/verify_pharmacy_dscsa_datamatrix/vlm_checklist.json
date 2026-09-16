@@ -1,0 +1,53 @@
+{
+  "task_id": "verify_pharmacy_dscsa_datamatrix@1",
+  "task_completion": [
+    {
+      "id": "bcwebcam_running",
+      "description": "bcWebCam application is open and running.",
+      "points": 10,
+      "visual_evidence": "The bcWebCam application window is visible on the screen."
+    },
+    {
+      "id": "datamatrix_enabled",
+      "description": "DataMatrix 2D barcode recognition is enabled in bcWebCam settings.",
+      "points": 20,
+      "visual_evidence": "The settings or Barcode Options window in bcWebCam is open, and the checkbox for 'DataMatrix' is checked."
+    },
+    {
+      "id": "barcode_decoded",
+      "description": "The pharmaceutical barcode is successfully decoded by bcWebCam.",
+      "points": 20,
+      "visual_evidence": "The raw GS1 string '01003000106332151726053110BXL99' is visible in the bcWebCam decoded results field."
+    },
+    {
+      "id": "log_file_created",
+      "description": "A text file named dscsa_log.txt is created in C:\\workspace\\.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., Notepad) is open with the title 'dscsa_log.txt', or the file is visible in the C:\\workspace\\ directory in File Explorer."
+    },
+    {
+      "id": "parsed_data_written",
+      "description": "The parsed GS1 data is written to the text file in the exact specified format.",
+      "points": 40,
+      "visual_evidence": "The text editor shows the following exact lines: 'GTIN: 00300010633215', 'EXP: 260531', and 'LOT: BXL99'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_bcwebcam",
+      "description": "The agent interacted with the bcWebCam GUI to decode the barcode.",
+      "visual_evidence": "Screenshots should show the agent clicking through bcWebCam settings and the camera feed decoding the barcode, rather than bypassing the app."
+    },
+    {
+      "id": "gui_file_creation",
+      "description": "The agent used a GUI text editor to create and save the log file.",
+      "visual_evidence": "A text editor like Notepad should be visible with the typed contents, rather than terminal commands (like echo or Out-File) being used to generate the file."
+    },
+    {
+      "id": "genuine_parsing",
+      "description": "The agent genuinely parsed the string from the application.",
+      "visual_evidence": "The parsed values in the text file must correspond to the raw GS1 string shown in the bcWebCam interface, proving the agent didn't just hallucinate the expected values."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected raw GS1 string decoded by bcWebCam is '01003000106332151726053110BXL99'. The expected parsed values to be written in C:\\workspace\\dscsa_log.txt are:\nGTIN: 00300010633215\nEXP: 260531\nLOT: BXL99"
+}

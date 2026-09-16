@@ -1,0 +1,53 @@
+{
+  "task_id": "apply_spatial_filter@1",
+  "task_completion": [
+    {
+      "id": "weasis_image_loaded",
+      "description": "Verify that a DICOM image is loaded and visible in the Weasis application.",
+      "points": 10,
+      "visual_evidence": "The Weasis GUI is open and displaying a medical image (CT/X-Ray) in the main viewing area."
+    },
+    {
+      "id": "sharpen_filter_applied",
+      "description": "Verify that a sharpening spatial filter is applied to the image in Weasis.",
+      "points": 30,
+      "visual_evidence": "Weasis UI shows the spatial filter tools or menu being accessed, with 'Sharpen' (or a similar sharpening filter) selected, or the image visibly updates to appear sharper with filter settings visible on screen."
+    },
+    {
+      "id": "export_dialog_configured",
+      "description": "Verify that the export dialog is opened and configured to save a TIFF file to the correct path.",
+      "points": 20,
+      "visual_evidence": "An export dialog in Weasis is visible, showing the output format set to TIFF and the destination path set to or navigating towards ~/DICOM/exports/sharpened_ct.tiff."
+    },
+    {
+      "id": "tiff_file_verified",
+      "description": "Verify that the sharpened_ct.tiff file was successfully created in the expected directory.",
+      "points": 20,
+      "visual_evidence": "A terminal window or file manager shows the file 'sharpened_ct.tiff' exists in the '/home/ga/DICOM/exports/' directory."
+    },
+    {
+      "id": "text_file_verified",
+      "description": "Verify that the filter_applied.txt file was created with the correct keyword.",
+      "points": 20,
+      "visual_evidence": "A terminal window (e.g., using echo, cat, or nano) or a text editor shows the creation or contents of '/home/ga/DICOM/exports/filter_applied.txt' containing the word 'sharpen'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_filter_and_export",
+      "description": "Ensure the agent used the Weasis GUI to apply the filter and export the image, rather than bypassing the UI with command-line image processing tools (like ImageMagick).",
+      "visual_evidence": "Screenshots must show active interaction with the Weasis application menus, filter settings, and export dialogs."
+    },
+    {
+      "id": "genuine_text_file_creation",
+      "description": "Ensure the text file was genuinely created using a terminal or text editor.",
+      "visual_evidence": "Visible terminal commands (like echo 'sharpen' > ...) or a text editor interface saving the file, rather than just a terminal printing the expected output without saving."
+    },
+    {
+      "id": "no_fake_success_messages",
+      "description": "Ensure the agent did not simply print a fake success message to the terminal to simulate completion.",
+      "visual_evidence": "The trajectory must show the actual steps of interacting with Weasis and creating the files, not just a final terminal screen claiming the task is done."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected export path for the TIFF image is exactly '/home/ga/DICOM/exports/sharpened_ct.tiff'. The expected note path is '/home/ga/DICOM/exports/filter_applied.txt' and it must contain the exact keyword 'sharpen'."
+}

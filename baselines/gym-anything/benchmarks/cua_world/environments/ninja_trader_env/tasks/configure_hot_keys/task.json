@@ -1,0 +1,43 @@
+{
+  "id": "configure_hot_keys@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Configure three custom hot keys in NinjaTrader 8 for quick access to tools. Set up keyboard shortcuts for a new Chart window (Ctrl+Shift+C), the Strategy Analyzer (Ctrl+Shift+A), and the Market Analyzer (Ctrl+Shift+M). Create a text file at C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\configure_hot_keys_result.txt listing the keys you assigned in the format 'Action: KeyCombo'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_hot_keys\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_hot_keys\\export_result.ps1"
+  },
+  "metadata": {
+    "config_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\config",
+    "result_file": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\configure_hot_keys_result.txt",
+    "expected_keys": {
+      "Chart": [
+        "Ctrl",
+        "Shift",
+        "C"
+      ],
+      "StrategyAnalyzer": [
+        "Ctrl",
+        "Shift",
+        "A"
+      ],
+      "MarketAnalyzer": [
+        "Ctrl",
+        "Shift",
+        "M"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_hot_keys"
+    }
+  }
+}

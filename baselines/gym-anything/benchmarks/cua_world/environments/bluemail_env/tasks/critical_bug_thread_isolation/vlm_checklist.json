@@ -1,0 +1,53 @@
+{
+  "task_id": "critical_bug_thread_isolation@1",
+  "task_completion": [
+    {
+      "id": "folder_created",
+      "description": "Verify that a new folder named 'Critical-Thread' has been created.",
+      "points": 20,
+      "visual_evidence": "Look for a folder named 'Critical-Thread' in the email client's folder pane or sidebar."
+    },
+    {
+      "id": "emails_moved",
+      "description": "Verify that emails related to the critical Bug ID (4096) have been moved to the 'Critical-Thread' folder.",
+      "points": 30,
+      "visual_evidence": "Look for the contents of the 'Critical-Thread' folder. The message list should display emails referencing 'Bug 4096'."
+    },
+    {
+      "id": "draft_recipient",
+      "description": "Verify that an email is being drafted to the correct recipient.",
+      "points": 10,
+      "visual_evidence": "Look at the email compose window. The 'To' or recipient field must contain 'dev-team@company.com'."
+    },
+    {
+      "id": "draft_subject",
+      "description": "Verify that the drafted email has the correct subject line including the critical Bug ID.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Subject' field in the email compose window. It must exactly read 'Escalation: Bug 4096'."
+    },
+    {
+      "id": "draft_body",
+      "description": "Verify that the drafted email body states the exact number of messages found.",
+      "points": 20,
+      "visual_evidence": "Look at the main text area of the email compose window. It must contain the text 'Found 7 messages' (or a very similar statement explicitly mentioning the number 7)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_client_used",
+      "description": "Verify the agent used a graphical email client to perform the task.",
+      "visual_evidence": "The screenshots should show a recognizable GUI email application (like Thunderbird, Evolution, or a webmail interface), not just terminal windows manipulating maildir files."
+    },
+    {
+      "id": "genuine_draft_creation",
+      "description": "Verify the email draft is created within the email application.",
+      "visual_evidence": "The draft should be visible in an actual email compose window, not written in a basic text editor like Notepad or Nano."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "Verify the agent did not use terminal commands to bypass GUI folder creation and email moving.",
+      "visual_evidence": "There should be no terminal windows showing commands like 'mkdir Critical-Thread' or 'mv *4096* Critical-Thread/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The critical Bug ID with the most messages is '4096'. There are exactly 7 messages related to this bug. The expected folder name is 'Critical-Thread'. The report recipient is 'dev-team@company.com'. The expected subject is 'Escalation: Bug 4096' and the expected body text should state 'Found 7 messages'."
+}

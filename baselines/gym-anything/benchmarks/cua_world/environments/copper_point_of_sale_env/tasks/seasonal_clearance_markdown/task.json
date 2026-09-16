@@ -1,0 +1,96 @@
+{
+  "id": "seasonal_clearance_markdown@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "As store manager preparing for the seasonal clearance sale, import the Clothing & Apparel inventory from C:\\Users\\Docker\\Desktop\\clothing_inventory.csv into Copper Point of Sale. Apply pricing adjustments based on stock levels: reduce the price of overstocked items (30 or more units) by exactly 20% (round to nearest cent) and increase the price of low-stock items (7 or fewer units) by exactly 15% (round to nearest cent). Export the updated inventory list to C:\\Users\\Docker\\Desktop\\clearance_inventory.csv. Reference original prices and quantities in C:\\Users\\Docker\\Desktop\\pricing_reference.csv if needed.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 85
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\seasonal_clearance_markdown\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\seasonal_clearance_markdown\\export_result.ps1"
+  },
+  "metadata": {
+    "clearance_items": [
+      {
+        "name": "Floral White Top",
+        "original_price": 75.0,
+        "qty": 39,
+        "expected_price": 60.0
+      },
+      {
+        "name": "Striped Silk Blouse",
+        "original_price": 50.0,
+        "qty": 32,
+        "expected_price": 40.0
+      },
+      {
+        "name": "Dark Denim Top",
+        "original_price": 60.0,
+        "qty": 37,
+        "expected_price": 48.0
+      },
+      {
+        "name": "Navy Sports Jacket",
+        "original_price": 60.0,
+        "qty": 40,
+        "expected_price": 48.0
+      },
+      {
+        "name": "Soft Winter Jacket",
+        "original_price": 50.0,
+        "qty": 46,
+        "expected_price": 40.0
+      },
+      {
+        "name": "Black Leather Bag",
+        "original_price": 30.0,
+        "qty": 31,
+        "expected_price": 24.0
+      },
+      {
+        "name": "Zipped Jacket",
+        "original_price": 65.0,
+        "qty": 42,
+        "expected_price": 52.0
+      },
+      {
+        "name": "LED High Tops",
+        "original_price": 80.0,
+        "qty": 39,
+        "expected_price": 64.0
+      }
+    ],
+    "premium_items": [
+      {
+        "name": "Ocean Blue Shirt",
+        "original_price": 50.0,
+        "qty": 6,
+        "expected_price": 57.5
+      },
+      {
+        "name": "Silk Summer Top",
+        "original_price": 70.0,
+        "qty": 5,
+        "expected_price": 80.5
+      },
+      {
+        "name": "Striped Skirt and Top",
+        "original_price": 50.0,
+        "qty": 7,
+        "expected_price": 57.5
+      }
+    ],
+    "total_items_in_csv": 20,
+    "export_path": "C:\\Users\\Docker\\Desktop\\clearance_inventory.csv",
+    "result_json_path": "C:\\Users\\Docker\\seasonal_clearance_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_seasonal_clearance_markdown"
+    }
+  }
+}

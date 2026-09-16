@@ -1,0 +1,29 @@
+{
+  "id": "configure_connection_config@1",
+  "version": "1.0",
+  "env_id": "safe_exam_browser_env@0.1",
+  "name": "Configure SEB Client Connection",
+  "description": "Create and activate a new SEB Client Connection Configuration named 'Campus Lockdown Browser Config' for campus-wide deployment on the SEB Server (http://localhost:8080, credentials: super-admin / admin). Use password 'ExamQuit2024', enable the 'With Fallback' option, and set the fallback start URL to 'https://exam.university.edu/login'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_connection_config/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_connection_config/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_connection_config"
+    }
+  },
+  "tags": [
+    "seb-server",
+    "connection-config",
+    "web-ui",
+    "hard"
+  ]
+}

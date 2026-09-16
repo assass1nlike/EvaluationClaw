@@ -75,6 +75,8 @@ class DockerWorkspaceAgentEnvironment:
     allowed_workspace_tools: set[str] = field(default_factory=set)
     expose_test_tool: bool = True
     auto_evaluate_on_final: bool = False
+    judge_evaluator: Any = field(default=None, repr=False)
+    judge_artifact_dir: Path | None = None
     steps: int = 0
     invalid_actions: int = 0
     done: bool = False
@@ -609,6 +611,11 @@ class DockerWorkspaceAgentEnvironment:
 
     def evaluate_with_evidence(self, evidence: dict[str, Any]) -> str:
         """Run the final evaluator with runner-private episode evidence available."""
+        if self.judge_evaluator is not None:
+            return self.judge_evaluator(evidence)
+        return self._evaluate_script_with_evidence(evidence)
+
+    def _evaluate_script_with_evidence(self, evidence: dict[str, Any]) -> str:
         payload = json.dumps(evidence, ensure_ascii=False)
         self._require_ok(
             self._control_command(
@@ -642,7 +649,15 @@ class DockerWorkspaceAgentEnvironment:
 
     def preflight(self) -> EvaluatorResult:
         """Verify setup and evaluator materialization in an isolated container."""
-        self._run_configured_tests()
+        if self.judge_evaluator is not None:
+            self.evaluate_with_evidence({
+                "termination": {"status": "preflight"},
+                "target_execution": {"final_response": "", "trace": [], "tool_call_count": 0,
+                                     "final_state": self.state()},
+                "actors": {"interactions": []}, "interventions": [],
+            })
+        else:
+            self._run_configured_tests()
         assert self.last_test is not None
         combined_output = "\n".join(
             str(self.last_test.get(key) or "") for key in ("stderr", "stdout")

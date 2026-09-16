@@ -1,0 +1,31 @@
+{
+  "id": "generate_fleet_summary@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Your task is to generate a comprehensive Fleet Operations Summary Report by querying the Aerobridge database (/opt/aerobridge/aerobridge.sqlite3). The web admin panel does not provide a consolidated view, requiring a direct database query. Create a plain text file at /home/ga/Documents/fleet_summary.txt containing the following four sections:\n\n=== OPERATORS ===: List every registered Company with its Name, Country, and count of assigned aircraft.\n=== AIRCRAFT ===: List every registered Aircraft with its Manufacturer, Mass (kg), Operator Name, and Type Certificate status (Yes/No).\n=== PERSONNEL ===: List every registered Person with their Full Name and associated Operator/Company Name.\n=== SUMMARY ===: Show total counts for Operators, Aircraft, Persons, and Flight",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_fleet_summary/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_fleet_summary/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/fleet_summary.txt",
+    "required_sections": [
+      "=== OPERATORS ===",
+      "=== AIRCRAFT ===",
+      "=== PERSONNEL ===",
+      "=== SUMMARY ==="
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fleet_summary"
+    }
+  }
+}

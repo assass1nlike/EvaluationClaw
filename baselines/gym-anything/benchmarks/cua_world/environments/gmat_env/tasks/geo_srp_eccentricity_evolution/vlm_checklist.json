@@ -1,0 +1,59 @@
+{
+  "task_id": "geo_srp_eccentricity_evolution@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Agent opens and reads the satellite specifications file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/geo_srp_spec.txt, showing parameters like SMA, Area, and Cr."
+    },
+    {
+      "id": "gmat_script_configuration",
+      "description": "Agent configures the GMAT script with the correct force model and propagation settings.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI or a text editor showing geo_srp_mission.script with SRP enabled (Area=45.0, Cr=1.2), Sun and Moon point masses included, atmospheric drag disabled, and a propagation stopping condition of 365 days with a 1-day step size."
+    },
+    {
+      "id": "gmat_execution",
+      "description": "Agent successfully runs the GMAT mission script.",
+      "points": 20,
+      "visual_evidence": "GMAT interface showing a successful mission run, such as a completed 3D orbit view, an orbit ground track, or a console message indicating the script finished executing."
+    },
+    {
+      "id": "generate_orbital_report",
+      "description": "Agent generates the orbital element report from GMAT.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal, or text editor showing the existence and contents of ~/GMAT_output/geo_srp_report.txt containing orbital state data over the 365-day period."
+    },
+    {
+      "id": "create_analysis_report",
+      "description": "Agent creates the final eccentricity analysis report with the required labels.",
+      "points": 20,
+      "visual_evidence": "A text editor showing ~/GMAT_output/srp_eccentricity_analysis.txt with the exact labels: max_eccentricity, min_eccentricity, ecc_circle_radius, ecc_oscillation_period_days, final_sma_km, and srp_enabled."
+    },
+    {
+      "id": "accurate_analysis_values",
+      "description": "The analysis report contains physically accurate values derived from the simulation.",
+      "points": 15,
+      "visual_evidence": "In srp_eccentricity_analysis.txt, the 'ecc_oscillation_period_days' is between 340 and 390, 'final_sma_km' is near 42164.17, and 'max_eccentricity' is between 0.0003 and 0.005."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_usage",
+      "description": "Agent actually used GMAT to simulate the orbit rather than fabricating the output files.",
+      "visual_evidence": "Screenshots must show the GMAT application open, script being edited/run within GMAT, or terminal commands invoking the GMAT executable."
+    },
+    {
+      "id": "no_hardcoded_fabrication",
+      "description": "Agent derived the analysis from the report rather than guessing the values.",
+      "visual_evidence": "Evidence of the agent opening geo_srp_report.txt, using a script (like Python) to parse it, or manually calculating the min/max/period from the generated data."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Agent placed the output files in the exact requested directory.",
+      "visual_evidence": "File paths in the editor, terminal, or file explorer explicitly show the files are located in ~/GMAT_output/."
+    }
+  ],
+  "privileged_info_for_vlm": "The satellite specifications are: SMA = 42164.17 km, SRP Area = 45.0 m^2, SRP Cr = 1.2. The analysis report must be at /home/ga/GMAT_output/srp_eccentricity_analysis.txt. The correct eccentricity oscillation period is approximately 365 days (acceptable range: 340-390 days). The maximum eccentricity should be between 0.0003 and 0.005. The final SMA should be within 10 km of 42164.17 km."
+}

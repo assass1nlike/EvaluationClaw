@@ -1,0 +1,59 @@
+{
+  "task_id": "create_order_report_view@1",
+  "task_completion": [
+    {
+      "id": "view_basic_settings",
+      "description": "Verify the view is created with the correct name, path, and table format",
+      "points": 15,
+      "visual_evidence": "Look for the Views configuration UI showing the view name 'Order Report', the display format set to 'Table', and the Page settings showing the path '/admin/commerce/order-report'. Alternatively, the final rendered page at that path with the title 'Order Report' and a table layout."
+    },
+    {
+      "id": "view_fields",
+      "description": "Verify the required fields are included in the view",
+      "points": 20,
+      "visual_evidence": "Look for the 'Fields' section in the Views UI listing Order ID, Customer (or User), State, Total Price, and Created. Alternatively, check the final report page to see these exact column headers in the table."
+    },
+    {
+      "id": "view_exposed_filters",
+      "description": "Verify that State and Created date are added as exposed filters",
+      "points": 20,
+      "visual_evidence": "Look for the 'Filter criteria' section in the Views UI showing 'State' and 'Created' (or 'Authored on') marked as exposed. Alternatively, check the final report page for visible filter input forms for State and Created date."
+    },
+    {
+      "id": "view_sort_criteria",
+      "description": "Verify the results are sorted by Created date in descending order",
+      "points": 15,
+      "visual_evidence": "Look for the 'Sort criteria' section in the Views UI showing the 'Created' (or 'Authored on') field with a '(desc)' indicator, meaning descending order."
+    },
+    {
+      "id": "view_pager_settings",
+      "description": "Verify the pager is configured to show 25 items per page",
+      "points": 10,
+      "visual_evidence": "Look for the 'Pager' section in the Views UI showing 'Paged, 25 items' or similar text indicating the item limit per page."
+    },
+    {
+      "id": "view_access_settings",
+      "description": "Verify access is restricted to the Administrator role or the specific commerce permission",
+      "points": 20,
+      "visual_evidence": "Look for the 'Page settings' section in the Views UI. The 'Access' setting should display either 'Role | Administrator' or 'Permission | Access commerce administration pages'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Drupal web interface to create and configure the view",
+      "visual_evidence": "Screenshots should show the Drupal administrative UI (e.g., /admin/structure/views) being actively used in a web browser, rather than just terminal commands or scripts."
+    },
+    {
+      "id": "genuine_application_usage",
+      "description": "Verify the agent interacted with the actual Drupal application",
+      "visual_evidence": "The browser address bar should show the local Drupal URL, and the interface should reflect a standard Drupal 10 / Commerce 3.x environment."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "Verify the view was not created by directly manipulating the database via raw SQL",
+      "visual_evidence": "Absence of terminal windows showing raw SQL INSERT commands into Drupal's configuration tables to bypass the UI."
+    }
+  ],
+  "privileged_info_for_vlm": "The view must be based on the 'commerce_order_field_data' base table (Commerce Orders). The expected machine name is 'order_report' and the path must be exactly '/admin/commerce/order-report'. Required fields are order_id, customer/user, state, total_price, and created. Required exposed filters are state and created. Sort must be by the 'created' field in DESC (descending) order. Pager must be set to exactly 25 items per page. Access must be restricted by Role (Administrator) or Permission (Access commerce administration pages)."
+}

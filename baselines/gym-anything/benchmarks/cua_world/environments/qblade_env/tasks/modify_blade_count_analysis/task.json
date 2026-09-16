@@ -1,0 +1,32 @@
+{
+  "id": "modify_blade_count_analysis@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Modify the 'IEA_RWT.wpa' project to use a 2-blade rotor design. Run a BEM simulation with a wind speed of 10 m/s, 0-degree pitch, and a Tip Speed Ratio (TSR) sweep from 1 to 12. Save the project to /home/ga/Documents/projects/two_blade_analysis.wpa. Create a report at /home/ga/Documents/projects/blade_count_report.txt containing the maximum Power Coefficient (Cp) on the first line, the TSR at which it occurs on the second line, and the blade count (2) on the third line.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/modify_blade_count_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/modify_blade_count_analysis/export_result.sh"
+  },
+  "metadata": {
+    "source_project": "IEA_RWT.wpa",
+    "expected_project_path": "/home/ga/Documents/projects/two_blade_analysis.wpa",
+    "expected_report_path": "/home/ga/Documents/projects/blade_count_report.txt",
+    "target_blade_count": 2,
+    "bem_wind_speed": 10,
+    "bem_pitch": 0,
+    "min_tsr": 1,
+    "max_tsr": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_modify_blade_count_analysis"
+    }
+  }
+}

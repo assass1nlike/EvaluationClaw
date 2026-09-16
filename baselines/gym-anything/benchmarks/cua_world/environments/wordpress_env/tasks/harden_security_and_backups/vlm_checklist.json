@@ -1,0 +1,53 @@
+{
+  "task_id": "harden_security_and_backups@1",
+  "task_completion": [
+    {
+      "id": "create_sec_admin",
+      "description": "Verify that a new user named 'sec_admin' with the email 'security@example.com' and Administrator role has been created.",
+      "points": 15,
+      "visual_evidence": "WordPress Users list showing 'sec_admin' with the role 'Administrator' and email 'security@example.com'."
+    },
+    {
+      "id": "delete_admin_reassign_content",
+      "description": "Verify that the original 'admin' user is deleted and their content was reassigned to 'sec_admin'.",
+      "points": 20,
+      "visual_evidence": "The WordPress Users list no longer shows the 'admin' user. There may be a confirmation banner showing deletion and reassignment, or the post count for 'sec_admin' reflects the reassigned content."
+    },
+    {
+      "id": "disable_file_edit",
+      "description": "Verify that 'DISALLOW_FILE_EDIT' is set to true in wp-config.php.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor showing the contents of '/var/www/html/wordpress/wp-config.php' with the line `define( 'DISALLOW_FILE_EDIT', true );` or similar added to the file."
+    },
+    {
+      "id": "install_updraftplus",
+      "description": "Verify that the 'UpdraftPlus WordPress Backup Plugin' is installed and activated.",
+      "points": 15,
+      "visual_evidence": "WordPress Plugins page showing 'UpdraftPlus - Backup/Restore' as installed and active, or the UpdraftPlus settings page being visible in the dashboard."
+    },
+    {
+      "id": "configure_backup_schedules",
+      "description": "Verify that both files and database backup schedules are set to 'Weekly' and the retention limit is set to '4'.",
+      "points": 30,
+      "visual_evidence": "UpdraftPlus Settings tab showing dropdowns for 'Files backup schedule' and 'Database backup schedule' both set to 'Weekly', and the 'retain this many scheduled backups' input fields both set to '4'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_wordpress_interaction",
+      "description": "Ensure the agent interacted with the actual WordPress admin dashboard for user and plugin management.",
+      "visual_evidence": "Screenshots show the standard WordPress admin UI (wp-admin) being navigated in a web browser, not just API calls or text mockups."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "Ensure the agent actually edited the wp-config.php file using a terminal or text editor.",
+      "visual_evidence": "Screenshots show a terminal window with a text editor (like nano, vim) or a file manager modifying the actual '/var/www/html/wordpress/wp-config.php' file."
+    },
+    {
+      "id": "no_spoofed_confirmations",
+      "description": "Ensure the agent didn't just type out success messages in a text editor to fake completion.",
+      "visual_evidence": "Success messages (like 'User deleted') appear in the standard WordPress UI notification banners, not in a standalone text document or terminal echo."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected new admin username is 'sec_admin' with email 'security@example.com' and role 'administrator'. The original admin username to be deleted is 'admin'."
+}

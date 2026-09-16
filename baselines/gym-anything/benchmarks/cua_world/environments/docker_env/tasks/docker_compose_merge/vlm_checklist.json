@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_compose_merge@1",
+  "task_completion": [
+    {
+      "id": "merged_docker_compose_file",
+      "description": "Verify that a merged docker-compose.yml file has been created in the target directory and contains all 6 required services.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of '~/projects/merged/docker-compose.yml' (e.g., in a text editor or via 'cat') containing definitions for auth-api, catalog-api, cache (redis), search, and two database services."
+    },
+    {
+      "id": "db_services_and_ports_resolved",
+      "description": "Verify that the database service names and host ports for both APIs and DBs have been modified to avoid conflicts.",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, the two database services must have distinct names (e.g., 'auth-db' and 'catalog-db'). The host ports mapped for the APIs (originally both 8080) and the DBs (originally both 5432) must be distinct (e.g., 8080/8081 and 5432/5433)."
+    },
+    {
+      "id": "networks_and_volumes_resolved",
+      "description": "Verify that the network and volume conflicts have been resolved.",
+      "points": 15,
+      "visual_evidence": "In the docker-compose.yml file, the 'backend' network and 'db-data' volume must be either renamed to be distinct for each stack (e.g., 'auth-backend', 'catalog-backend') or properly merged so that services don't unintentionally share isolated resources or overwrite data."
+    },
+    {
+      "id": "env_vars_updated",
+      "description": "Verify that the environment variables for the APIs have been updated to point to the newly renamed database services.",
+      "points": 15,
+      "visual_evidence": "In the docker-compose.yml file, the environment variables (like DB_HOST or DATABASE_URL) for 'auth-api' and 'catalog-api' must reference the new, distinct names of their respective database services instead of the original 'db'."
+    },
+    {
+      "id": "stack_running",
+      "description": "Verify that the complete merged stack is running and healthy.",
+      "points": 30,
+      "visual_evidence": "Terminal output of 'docker compose ps' or 'docker ps' showing all 6 services running simultaneously with 'Up' status, indicating no port conflicts or crash loops."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_commands",
+      "description": "Verify that the agent used genuine Docker commands to start and check the stack.",
+      "visual_evidence": "Terminal history showing commands like 'docker compose up -d' and 'docker compose ps', rather than echoing fake output."
+    },
+    {
+      "id": "file_edited_properly",
+      "description": "Verify that the docker-compose.yml file was actually created and edited.",
+      "visual_evidence": "Screenshots showing the use of a text editor (nano, vim, etc.) or file manipulation commands (cat, cp, sed) to construct the merged file."
+    },
+    {
+      "id": "no_fake_running_status",
+      "description": "Verify that the running status of the containers is genuine.",
+      "visual_evidence": "The output of 'docker ps' or 'docker compose ps' should look like standard Docker output with correct formatting, container IDs, and port mappings."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: /home/ga/projects/merged. Expected services: 6 (auth-api, catalog-api, 2x postgres db, redis, search). Conflicts to resolve: service 'db', host ports 8080 and 5432, network 'backend', volume 'db-data'. Database credentials: POSTGRES_PASSWORD=secret. Auth API original port: 8080 (container 5000), Catalog API original port: 8080 (container 3000)."
+}

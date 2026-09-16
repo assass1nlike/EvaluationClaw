@@ -1,0 +1,82 @@
+{
+  "dataset_id": "a32693ae",
+  "name": "Exit-Sign-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Exit-Sign-Detection is an image understanding dataset in which models must locate emergency exit indicator lights (exit signs) inside photographs of indoor scenes. Each sample pairs an image and a task prompt with one or more bounding boxes annotated over the detected signage, evaluating visual object detection and localization.",
+  "card_text": "The dataset contains 200 image samples gathered from real-world indoor environments (often frames from video footage of hallways, corridors and building interiors). Each item provides an image file together with a short, user-defined prompt instructing the model to find the relevant target, and an output consisting of a list of bounding boxes. Every bounding box is expressed as a four-number coordinate list (x, y, width, height style values) keyed by the object class 'Emergency exit indicator light', so a single image may contain one or several exit signs. The visual content ranges from simple shots with a single clearly visible sign to moderately cluttered scenes with multiple illuminated exit indicators. The task stresses spatial grounding of a specific, safety-relevant object category rather than holistic scene description, and the annotation style is typical of object-detection benchmark data.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "emergency exit signage / indoor safety object detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is the textual instruction given alongside the image; it tells the model what to look for and emphasizes that prompts are defined per user/model. It frames the detection task that the image and bounding boxes answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A photograph of an indoor environment (corridor, hallway, room) that may contain one or more illuminated emergency exit indicator lights. This is the primary visual input the bounding boxes are drawn on.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A list of bounding-box annotations over the image. Each entry is an object whose single key is the class label 'Emergency exit indicator light' and whose value is a four-number coordinate list delimiting that object's region. The number of entries varies per sample depending on how many exit signs are visible.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample couples one image with a short textual instruction and a set of spatial annotations. The image (input.image_file) is the visual context, the prompt (input.prompt) is the instruction directing the model to the target object, and the answer is given as a list of bounding boxes (output.bbox), where every box is keyed by the class name 'Emergency exit indicator light' and stores four coordinates. Samples may contain a single box or several boxes, so the annotation list length varies from image to image, and the boxes are spatially tied to the corresponding image content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/exit-sign-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "exit-sign-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

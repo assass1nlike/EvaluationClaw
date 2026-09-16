@@ -1,0 +1,59 @@
+{
+  "task_id": "property_tax_revenue_projection@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened_and_data_loaded",
+      "description": "The correct notebook is open and loads the UrbanSim dataset.",
+      "points": 10,
+      "visual_evidence": "Look for a Jupyter Notebook named `tax_revenue_analysis.ipynb` open in an editor (like VS Code or JupyterLab), containing code that reads the HDF5 file from `/home/ga/urbansim_projects/data/sanfran_public.h5`."
+    },
+    {
+      "id": "data_processing_and_calculation",
+      "description": "The data is cleaned and tax calculations are performed according to instructions.",
+      "points": 20,
+      "visual_evidence": "Look for pandas operations in the notebook that filter out missing or zero sales prices, convert square meters to acres (using the constant 4046.86), and calculate the estimated annual tax by multiplying the assessed value by 0.0117 (1.17%)."
+    },
+    {
+      "id": "csv_exported",
+      "description": "The zone-level summary table is exported to a CSV file.",
+      "points": 20,
+      "visual_evidence": "Look for code (e.g., `to_csv`) saving a dataframe to `/home/ga/urbansim_projects/output/zone_tax_revenue.csv`. The code should show the dataframe being sorted descending by tax revenue and containing columns for zone_id, total_assessed_value, estimated_annual_tax, num_buildings, total_acres, and tax_per_acre."
+    },
+    {
+      "id": "plot_saved",
+      "description": "A horizontal bar chart of the top 15 zones is generated and saved.",
+      "points": 20,
+      "visual_evidence": "Look for plotting code (like matplotlib or seaborn) creating a horizontal bar chart with the title 'Top 15 Zones by Estimated Annual Property Tax Revenue' and saving it to `/home/ga/urbansim_projects/output/tax_revenue_top_zones.png`. The plot itself may also be visible in the notebook output."
+    },
+    {
+      "id": "citywide_totals_displayed",
+      "description": "The executed notebook displays the citywide totals.",
+      "points": 15,
+      "visual_evidence": "Look for an executed output cell in the notebook displaying the citywide total assessed value (which should be approximately 75.1 million) and the total tax (approximately 879,350)."
+    },
+    {
+      "id": "top_bottom_zones_displayed",
+      "description": "The executed notebook displays the top and bottom 5 zones by tax productivity.",
+      "points": 15,
+      "visual_evidence": "Look for an executed output cell in the notebook displaying a list, series, or dataframe of the top 5 and bottom 5 zones specifically ranked by tax productivity (tax per acre)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_notebook_execution",
+      "description": "The notebook was genuinely executed in a proper environment.",
+      "visual_evidence": "Check that the notebook cells have execution numbers (e.g., `In [1]:` or `[1]`) and the outputs are properly rendered by the notebook environment, not just typed out as markdown text."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent computed the results rather than hardcoding the expected answers.",
+      "visual_evidence": "Ensure the citywide totals and top/bottom zones are printed from variables or dataframe operations (e.g., `df['tax'].sum()`), not hardcoded strings."
+    },
+    {
+      "id": "correct_file_paths_used",
+      "description": "The agent used the exact file paths requested.",
+      "visual_evidence": "Verify that the file paths in the code exactly match the `/home/ga/urbansim_projects/...` paths specified in the prompt, without using shortcuts or temporary directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 188 zones. The correct citywide total assessed value is approximately 75.1 million, and the total tax is approximately 879,350. The top 5 zones by estimated annual tax are 184, 131, 168, 179, and 185. The tax rate to be applied is exactly 1.17% (0.0117)."
+}

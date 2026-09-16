@@ -1,0 +1,39 @@
+{
+  "id": "3d_nuclear_morphometry@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Perform a 3D volumetric analysis of a cell nucleus from the Z-stack microscopy image located at ~/Fiji_Data/raw/fluorescence_stack.dv. Ensure the image is spatially calibrated in microns. Segment the nucleus to measure its volume and surface area, applying a minimum size filter of 1000 to exclude noise. Save the resulting measurements table to ~/Fiji_Data/results/3d_morphometry.csv and the 3D object map to ~/Fiji_Data/results/3d_object_map.tif.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/3d_nuclear_morphometry/setup_task.sh",
+    "post_task": "/workspace/tasks/3d_nuclear_morphometry/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "~/Fiji_Data/raw/fluorescence_stack.dv",
+    "expected_csv": "~/Fiji_Data/results/3d_morphometry.csv",
+    "expected_map": "~/Fiji_Data/results/3d_object_map.tif",
+    "calibration_check": {
+      "min_volume_um3": 100,
+      "max_volume_um3": 5000,
+      "fail_threshold_pixels": 100000
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_3d_morphometry"
+    }
+  },
+  "tags": [
+    "3d",
+    "microscopy",
+    "morphometry",
+    "calibration",
+    "segmentation"
+  ]
+}

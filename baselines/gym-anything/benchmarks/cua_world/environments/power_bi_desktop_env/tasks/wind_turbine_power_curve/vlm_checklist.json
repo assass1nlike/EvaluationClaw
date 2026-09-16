@@ -1,0 +1,59 @@
+{
+  "task_id": "wind_turbine_power_curve@1",
+  "task_completion": [
+    {
+      "id": "filter_status_code",
+      "description": "Filter the dataset to include only records where 'Status_Code' is 'OK'",
+      "points": 10,
+      "visual_evidence": "Look for the Power Query Editor or the Filters pane showing 'Status_Code' actively filtered to the value 'OK'."
+    },
+    {
+      "id": "create_wind_bin_column",
+      "description": "Create a calculated column named 'Wind_Bin' that rounds 'Wind_Speed_ms' down to the nearest integer",
+      "points": 20,
+      "visual_evidence": "Look for 'Wind_Bin' in the Data pane (with a column icon) and ideally the DAX formula bar showing a rounding function (like ROUNDDOWN, INT, or FLOOR) applied to 'Wind_Speed_ms'."
+    },
+    {
+      "id": "create_avg_power_measure",
+      "description": "Define a DAX measure named 'Avg_Power' for the average of 'Power_kW'",
+      "points": 20,
+      "visual_evidence": "Look for 'Avg_Power' in the Data pane with a calculator icon indicating it is a measure, and ideally the formula bar showing 'AVERAGE(Power_kW)'."
+    },
+    {
+      "id": "create_line_chart",
+      "description": "Create a line chart showing 'Avg_Power' by 'Wind_Bin'",
+      "points": 20,
+      "visual_evidence": "Look for a line chart visual on the report canvas. The X-axis should be labeled with 'Wind_Bin' and the Y-axis (or values) should be 'Avg_Power'."
+    },
+    {
+      "id": "create_scatter_chart",
+      "description": "Create a scatter chart showing 'Power_kW' by 'Wind_Speed_ms'",
+      "points": 20,
+      "visual_evidence": "Look for a scatter chart visual on the report canvas. The axes should correspond to 'Wind_Speed_ms' and 'Power_kW'."
+    },
+    {
+      "id": "save_report_file",
+      "description": "Save the completed report as 'Turbine_Performance.pbix' on the Desktop",
+      "points": 10,
+      "visual_evidence": "Look for the Power BI window title bar displaying 'Turbine_Performance - Power BI Desktop' or the file 'Turbine_Performance.pbix' visible on the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_power_bi_desktop",
+      "description": "The agent used the actual Power BI Desktop application to complete the task",
+      "visual_evidence": "Look for the standard Power BI Desktop ribbon, canvas, and panes. The agent should not be using a text editor or Python script to generate the file."
+    },
+    {
+      "id": "genuine_dax_formulas",
+      "description": "The agent actually wrote DAX formulas for the required fields",
+      "visual_evidence": "Look for interaction with the DAX formula bar at the top of the canvas/data view, rather than just renaming existing fields to 'Wind_Bin' or 'Avg_Power'."
+    },
+    {
+      "id": "genuine_visuals",
+      "description": "The charts are genuine Power BI visuals",
+      "visual_evidence": "Look for standard Power BI visual formatting, tooltips, and selection handles around the charts, ensuring they are not just static images pasted into the report."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires specific Power BI elements: a calculated column 'Wind_Bin', a DAX measure 'Avg_Power', a line chart, and a scatter chart. Note: The source data file 'turbine_scada.csv' might be missing from the environment due to a known issue. If the agent encounters this missing file, it may be unable to load data. Score based on any visible progress or attempts to set up the required measures, columns, and visuals in Power BI Desktop."
+}

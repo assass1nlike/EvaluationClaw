@@ -1,0 +1,34 @@
+{
+  "id": "generate_annotated_reading_report@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A teaching assistant is preparing a seminar on 'The Origins of Artificial Intelligence'. Your task is to organize key historical papers into a reading packet. Create a collection named 'AI History Seminar' containing the following four papers: 'Computing Machinery and Intelligence' (Turing, 1950), 'On Computable Numbers...' (Turing, 1936), 'A Mathematical Theory of Communication' (Shannon, 1948), and 'Recursive Functions of Symbolic Expressions...' (McCarthy, 1960). Add a child note to the paper 'Computing Machinery and Intelligence' with the text: 'Essential reading: Discusses the Imitation Game.' Generate a report from the 'AI History Seminar' collection and save it as an HTML file to /home/ga/Documents/ai_seminar_report.html.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_annotated_reading_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_annotated_reading_report/export_result.sh"
+  },
+  "metadata": {
+    "collection_name": "AI History Seminar",
+    "output_path": "/home/ga/Documents/ai_seminar_report.html",
+    "target_papers": [
+      "Computing Machinery and Intelligence",
+      "On Computable Numbers",
+      "A Mathematical Theory of Communication",
+      "Recursive Functions of Symbolic Expressions"
+    ],
+    "note_content": "Essential reading: Discusses the Imitation Game",
+    "note_parent": "Computing Machinery and Intelligence"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_annotated_reading_report"
+    }
+  }
+}

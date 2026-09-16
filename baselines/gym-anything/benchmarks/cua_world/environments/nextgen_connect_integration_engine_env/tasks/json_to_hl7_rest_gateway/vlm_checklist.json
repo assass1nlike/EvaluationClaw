@@ -1,0 +1,53 @@
+{
+  "task_id": "json_to_hl7_rest_gateway@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'JSON_to_HL7_Gateway'",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'JSON_to_HL7_Gateway' in the channels list or summary interface of the integration engine (e.g., Mirth Connect Administrator)."
+    },
+    {
+      "id": "source_configured",
+      "description": "Configure the source as an HTTP Listener on port 6661",
+      "points": 20,
+      "visual_evidence": "Look for the Source configuration tab showing the connector type as 'HTTP Listener' (or similar) and the port explicitly set to '6661'."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Configure the destination to write to /tmp/hl7_output/ with unique filenames",
+      "points": 20,
+      "visual_evidence": "Look for the Destination configuration tab showing a File Writer (or similar) with the directory set to '/tmp/hl7_output/' and a filename pattern that ensures uniqueness (e.g., using a message ID, UUID, or timestamp variable)."
+    },
+    {
+      "id": "transformation_configured",
+      "description": "Configure mappings for PID-3, PID-5, PID-7, PID-8, PV1-19, and MSH-9",
+      "points": 40,
+      "visual_evidence": "Look for the Transformers, Scripts, or Mapping tab showing logic that extracts data from the JSON payload and maps it to HL7 fields: patient.mrn to PID.3, patient.lastName and firstName to PID.5, patient.dateOfBirth to PID.7 (with logic to remove hyphens or format as YYYYMMDD), patient.sex to PID.8, visit.visitNumber to PV1.19, and MSH.9 set to ADT^A04^ADT_A01."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Deploy the channel",
+      "points": 10,
+      "visual_evidence": "Look for the Dashboard or status screen showing the 'JSON_to_HL7_Gateway' channel with a status of 'Started', 'Deployed', or actively listening."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the application GUI to configure the channel",
+      "visual_evidence": "Screenshots should show interaction with the integration engine's graphical interface (e.g., Mirth Connect Administrator), rather than just editing backend XML files or writing a standalone script in a text editor."
+    },
+    {
+      "id": "no_hardcoded_test_data",
+      "description": "The transformation logic uses variables, not hardcoded test values",
+      "visual_evidence": "In the mapping or script screens, ensure the agent maps incoming JSON variables (e.g., msg['patient']['mrn']) rather than hardcoding the test payload values like 'MRN-TEST-999' or 'Verify^Agent'."
+    },
+    {
+      "id": "genuine_deployment",
+      "description": "The deployment status is genuine",
+      "visual_evidence": "The dashboard showing the deployed channel should appear as a normal part of the application interface, not a mock-up or a text output in a terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel name must be exactly 'JSON_to_HL7_Gateway'. The HTTP listener port must be 6661. The output directory must be '/tmp/hl7_output'. The transformation must map patient.mrn to PID-3, patient.lastName^patient.firstName to PID-5, patient.dateOfBirth (converted from YYYY-MM-DD to YYYYMMDD) to PID-7, patient.sex to PID-8, visit.visitNumber to PV1-19, and MSH-9 must contain ADT^A04^ADT_A01. Ensure the agent did not hardcode the test payload values (e.g., 'MRN-TEST-999', 'Verify^Agent', '19900101') into the mapping logic, but rather wrote dynamic mapping rules."
+}

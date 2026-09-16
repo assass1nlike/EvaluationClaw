@@ -1,0 +1,32 @@
+{
+  "id": "add_vaccine_lot@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Add a new vaccine inventory lot for 'Influenza' to the OSCAR EMR system using Lot Number 'FL2025-X9' and Expiry Date '2026-12-31'. Ensure the lot is active and saved. Log in as the administrator (Username: 'oscardoc', Password: 'oscar', PIN: '1117').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_vaccine_lot/setup_task.sh",
+    "post_task": "/workspace/tasks/add_vaccine_lot/export_result.sh"
+  },
+  "metadata": {
+    "target_lot": "FL2025-X9",
+    "target_expiry": "2026-12-31",
+    "vaccine_type": "Influenza",
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_vaccine_lot"
+    }
+  }
+}

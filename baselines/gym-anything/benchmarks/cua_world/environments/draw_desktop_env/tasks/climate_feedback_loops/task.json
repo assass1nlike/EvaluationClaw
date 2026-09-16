@@ -1,0 +1,34 @@
+{
+  "id": "climate_feedback_loops@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a Causal Loop Diagram (CLD) in draw.io visualizing three major climate feedback loops centered on 'Global Mean Temperature'. Use the specific loops and polarities provided in '~/Desktop/feedback_loops_data.txt', which include the Ice-Albedo Feedback, Permafrost Carbon Feedback, and Water Vapor Feedback. The diagram must use curved connectors for all relationships, include '+' or '-' labels on every arrow according to the data file, and feature an 'R' (Reinforcing) label inside each of the three loops. Save the diagram to '~/Desktop/climate_loops.drawio' and export it as a PNG to '~/Desktop/climate_loops.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/climate_feedback_loops/setup_task.sh",
+    "post_task": "/workspace/tasks/climate_feedback_loops/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "climate_loops.drawio",
+    "expected_png": "climate_loops.png",
+    "data_file": "/home/ga/Desktop/feedback_loops_data.txt",
+    "min_nodes": 6,
+    "min_edges": 6,
+    "required_loops": [
+      "albedo",
+      "permafrost",
+      "water_vapor"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_climate_feedback_loops"
+    }
+  }
+}

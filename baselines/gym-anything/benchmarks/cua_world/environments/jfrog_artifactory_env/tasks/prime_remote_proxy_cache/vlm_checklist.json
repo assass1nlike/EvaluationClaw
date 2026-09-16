@@ -1,0 +1,53 @@
+{
+  "task_id": "prime_remote_proxy_cache@1",
+  "task_completion": [
+    {
+      "id": "select_maven_package_type",
+      "description": "Create a Remote Repository and select 'Maven' as the package type.",
+      "points": 15,
+      "visual_evidence": "Artifactory UI showing the 'Select Package Type' screen for a new Remote Repository with 'Maven' selected."
+    },
+    {
+      "id": "set_repo_key",
+      "description": "Set the Repository Key to 'central-proxy-test'.",
+      "points": 15,
+      "visual_evidence": "Artifactory UI repository configuration screen with 'central-proxy-test' entered in the 'Repository Key' input field."
+    },
+    {
+      "id": "set_upstream_url",
+      "description": "Set the upstream URL to 'https://repo1.maven.org/maven2/'.",
+      "points": 20,
+      "visual_evidence": "Artifactory UI repository configuration screen with 'https://repo1.maven.org/maven2/' entered in the 'URL' input field."
+    },
+    {
+      "id": "request_artifact_via_proxy",
+      "description": "Cache the artifact by requesting it through the Artifactory proxy URL.",
+      "points": 25,
+      "visual_evidence": "A web browser address bar, terminal (e.g., curl/wget command), or download manager showing a request to 'http://localhost:8082/artifactory/central-proxy-test/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar'."
+    },
+    {
+      "id": "verify_artifact_in_artifactory_tree",
+      "description": "Verify the artifact is stored in the 'central-proxy-test' repository cache.",
+      "points": 25,
+      "visual_evidence": "Artifactory UI 'Artifacts' or 'Packages' tree view showing the 'central-proxy-test' (or 'central-proxy-test-cache') repository expanded, revealing the downloaded file 'commons-collections4-4.4.jar' at the correct path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_artifactory_ui",
+      "description": "Ensure the agent is interacting with the actual JFrog Artifactory web interface.",
+      "visual_evidence": "Screenshots should show the genuine JFrog Artifactory dashboard and configuration menus, not a text editor or mock interface."
+    },
+    {
+      "id": "genuine_proxy_request",
+      "description": "Ensure the artifact was requested via the local proxy, not downloaded directly from the internet.",
+      "visual_evidence": "The download request (in browser or terminal) must explicitly target 'localhost:8082/artifactory/central-proxy-test/...', not 'repo1.maven.org'."
+    },
+    {
+      "id": "no_ui_spoofing",
+      "description": "Ensure the Artifacts tree view showing the cached jar is genuine.",
+      "visual_evidence": "The UI should not show open browser developer tools (Inspect Element) being used to manipulate the DOM or inject the artifact name into the tree view."
+    }
+  ],
+  "privileged_info_for_vlm": "Repository Key must be exactly 'central-proxy-test'. Upstream URL must be exactly 'https://repo1.maven.org/maven2/'. Artifact Path: 'org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar'. The artifact size is ~751KB (minimum 700,000 bytes if file size is visible in the UI). Note: In Artifactory, remote repository caches are often displayed with a '-cache' suffix in the Artifacts tree (e.g., 'central-proxy-test-cache')."
+}

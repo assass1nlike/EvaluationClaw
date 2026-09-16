@@ -1,0 +1,53 @@
+{
+  "task_id": "recover_volume_with_unknown_keyfile@1",
+  "task_completion": [
+    {
+      "id": "select_veracrypt_volume",
+      "description": "Select the target VeraCrypt volume",
+      "points": 10,
+      "visual_evidence": "VeraCrypt GUI showing '/home/ga/Volumes/project_archive.hc' in the volume path field, or a terminal command targeting this volume path."
+    },
+    {
+      "id": "configure_mount_parameters",
+      "description": "Provide the password and select a candidate keyfile",
+      "points": 20,
+      "visual_evidence": "VeraCrypt mount dialog showing password entry (asterisks) and the Keyfiles selection window open, navigating to '/home/ga/Documents/candidates/' to add a Python script."
+    },
+    {
+      "id": "verify_volume_mounted",
+      "description": "Successfully mount the volume to the specified slot",
+      "points": 20,
+      "visual_evidence": "VeraCrypt main window showing the volume successfully mounted at '/home/ga/MountPoints/slot1', or a file manager/terminal open at this specific mount point."
+    },
+    {
+      "id": "extract_token_file",
+      "description": "Extract the secret token to the Documents folder",
+      "points": 30,
+      "visual_evidence": "File manager showing 'recovered_token.txt' in '/home/ga/Documents/', or a terminal/text editor showing the file being copied from the mount point to this destination."
+    },
+    {
+      "id": "save_keyfile_name",
+      "description": "Save the name of the successful keyfile",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal showing the creation or contents of '/home/ga/Documents/correct_keyfile_name.txt' containing just a filename (e.g., ending in .py)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_veracrypt_software",
+      "description": "Verify the agent actually used VeraCrypt to mount the volume rather than hallucinating the outputs.",
+      "visual_evidence": "VeraCrypt GUI windows or 'veracrypt' CLI commands visible in the screenshots."
+    },
+    {
+      "id": "genuine_volume_access",
+      "description": "Verify the agent accessed the mounted volume to retrieve the token.",
+      "visual_evidence": "File manager or terminal explicitly showing the contents of '/home/ga/MountPoints/slot1' being read or copied."
+    },
+    {
+      "id": "no_hardcoded_guessing",
+      "description": "Verify the agent interacted with the candidates directory to find the keyfile.",
+      "visual_evidence": "Screenshots showing the agent listing, viewing, or selecting files from '/home/ga/Documents/candidates/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target VeraCrypt volume is '/home/ga/Volumes/project_archive.hc'. Candidate keyfiles are located in '/home/ga/Documents/candidates'. The volume must be mounted to '/home/ga/MountPoints/slot1'. The extracted token must be saved to '/home/ga/Documents/recovered_token.txt' and the correct keyfile name to '/home/ga/Documents/correct_keyfile_name.txt'."
+}

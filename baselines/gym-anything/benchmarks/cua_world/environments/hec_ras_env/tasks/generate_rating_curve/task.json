@@ -1,0 +1,33 @@
+{
+  "id": "generate_rating_curve@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Run the HEC-RAS unsteady flow simulation for the Muncie project (~/Documents/hec_ras_projects/Muncie). From the resulting HDF5 output, identify the most upstream cross-section (highest River Station number) and extract its 'Flow' and 'Water Surface' time series. Generate the following files in ~/Documents/hec_ras_results/: 'cross_sections.txt' containing all River Station identifiers, 'rating_curve_data.csv' containing the 'Flow' and 'WSE' time series, 'rating_curve.png' showing a scatter plot of Stage (Y-axis) vs Discharge (X-axis), and 'rating_curve_report.txt' summarizing the River Station used along with min/max Flow and WSE values. The Python environment includes h5py, pandas, matplotlib, and rashdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_rating_curve/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_rating_curve/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "expected_csv": "rating_curve_data.csv",
+    "expected_plot": "rating_curve.png",
+    "expected_report": "rating_curve_report.txt",
+    "expected_xs_list": "cross_sections.txt",
+    "min_wse": 800,
+    "max_wse": 1000,
+    "min_flow_rows": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_rating_curve"
+    }
+  }
+}

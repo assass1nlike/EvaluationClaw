@@ -1,0 +1,42 @@
+{
+  "id": "compute_momentum_flux@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a hydraulic momentum analysis on the Muncie dataset located in ~/Documents/hec_ras_projects/Muncie using the HEC-RAS HDF5 results (e.g., Muncie.p04.hdf). Write a Python script at ~/Documents/hec_ras_results/compute_momentum_flux.py to calculate the Dynamic Momentum Flux ($M = \\rho \\times Q \\times V$, where $\\rho = 1.94$ slugs/ft³) and Specific Force ($SF = \\frac{Q^2}{g \\times A} + A \\times \\bar{y}$, where $g = 32.2$ ft/s² and $\\bar{y} \\approx \\text{Depth}/2$) for every cross-section at its peak discharge. Generate a CSV file at ~/Documents/hec_ras_results/momentum_flux.csv containing columns for River_Station, Q_peak, Velocity, Flow_Area, Depth, M_dynamic, and Specific_Force. Additionally, produce a summary report at ~/Documents/hec_ras_results/momentum_summary.txt identifying the river stations with the maximum Momentum Flux and maximum Specific Force.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_momentum_flux/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_momentum_flux/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "script_path": "/home/ga/Documents/hec_ras_results/compute_momentum_flux.py",
+    "csv_path": "/home/ga/Documents/hec_ras_results/momentum_flux.csv",
+    "report_path": "/home/ga/Documents/hec_ras_results/momentum_summary.txt",
+    "expected_columns": [
+      "River_Station",
+      "Q_peak",
+      "Velocity",
+      "Flow_Area",
+      "Depth",
+      "M_dynamic",
+      "Specific_Force"
+    ],
+    "physics_constants": {
+      "rho_slugs": 1.94,
+      "g_ft_s2": 32.2
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_momentum_flux"
+    }
+  }
+}
