@@ -1,0 +1,34 @@
+{
+  "id": "create_vertical_digital_signage@1",
+  "version": "1.0",
+  "env_id": "libreoffice_impress_env@0.1",
+  "description": "Create a vertical digital signage presentation for a travel agency window display. The presentation must use a portrait orientation (e.g., 9:16 aspect ratio) and consist of four slides using images from /home/ga/Documents/Assets/Cities/ (new_york.jpg, paris.jpg, tokyo.jpg, and london.jpg). On each slide, the image must cover the entire background with the corresponding city name as a large, visible text overlay. Configure the slideshow to advance automatically every 3 seconds and loop continuously. Save the final presentation to /home/ga/Documents/Presentations/vertical_signage.odp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_vertical_digital_signage/setup_task.sh",
+    "post_task": "/workspace/tasks/create_vertical_digital_signage/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/Presentations/vertical_signage.odp",
+    "asset_dir": "/home/ga/Documents/Assets/Cities",
+    "required_cities": [
+      "New York",
+      "Paris",
+      "Tokyo",
+      "London"
+    ],
+    "required_slide_count": 4,
+    "min_font_size": 24
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vertical_signage"
+    }
+  }
+}

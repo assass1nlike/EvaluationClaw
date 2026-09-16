@@ -1,0 +1,28 @@
+{
+  "id": "greenhouse_daily_light_integral_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Modify an existing building design into a highly transparent greenhouse, set the simulation date to the Winter Solstice, and generate a daily solar radiation heat map to evaluate winter sunlight penetration.\n\nExpected Actions:\n1. Open the existing building model located at `~/Documents/Energy3D/building-shape.ng3`.\n2. Change the geographic location of the simulation to \"Denver, CO\" (a major US greenhouse hub).\n3. Change the simulation date to **December 21** (Winter Solstice) to test the worst-case scenario for natural light.\n4. Convert the building into a greenhouse by setting the Window-to-Wall Ratio (WWR) of all the building's walls to **90%**.\n5. Run a **Daily Solar Radiation** analysis (which projects a color-coded radiation heat map onto the 3D scene).\n6. Take a screenshot of the 3D viewport showing the applied solar radiation heat map and save it to `~/Documents/Energy3D/winter_radiation_map.png`.\n7. Save the modified building design as `~/Documents/Energy3D/greenhouse_design.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/greenhouse_daily_light_integral_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/greenhouse_daily_light_integral_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_design": "/home/ga/Documents/Energy3D/greenhouse_design.ng3",
+    "expected_output_screenshot": "/home/ga/Documents/Energy3D/winter_radiation_map.png",
+    "expected_location": "Denver, CO",
+    "expected_date": "December 21"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_greenhouse_analysis"
+    }
+  }
+}

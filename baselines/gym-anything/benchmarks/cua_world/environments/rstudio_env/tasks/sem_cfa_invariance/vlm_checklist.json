@@ -1,0 +1,59 @@
+{
+  "task_id": "sem_cfa_invariance@1",
+  "task_completion": [
+    {
+      "id": "r_script_creation",
+      "description": "Create the R script with the correct lavaan model syntax",
+      "points": 10,
+      "visual_evidence": "Look for an R script named 'sem_analysis.R' in /home/ga/RProjects/ containing the lavaan model definition with three factors: Visual (x1, x2, x3), Textual (x4, x5, x6), and Speed (x7, x8, x9)."
+    },
+    {
+      "id": "cfa_fit_statistics_csv",
+      "description": "Save the CFA fit statistics to a CSV file",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'cfa_fit_statistics.csv' in /home/ga/RProjects/output/. If opened or printed in the console, it should have columns 'statistic' and 'value', including CFI, TLI, RMSEA, and SRMR."
+    },
+    {
+      "id": "cfa_factor_loadings_csv",
+      "description": "Save the standardized factor loadings to a CSV file",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'cfa_factor_loadings.csv' in /home/ga/RProjects/output/. If opened, it should have columns 'latent_factor', 'indicator', and 'std_loading'."
+    },
+    {
+      "id": "measurement_invariance_csv",
+      "description": "Conduct measurement invariance testing and save results to a CSV file",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'measurement_invariance.csv' in /home/ga/RProjects/output/. It should contain rows for 'configural', 'metric', and 'scalar' models, with columns for model, cfi, rmsea, chisq, and df."
+    },
+    {
+      "id": "cfa_path_diagram_png",
+      "description": "Generate and save the CFA path diagram",
+      "points": 20,
+      "visual_evidence": "Look for an image file named 'cfa_path_diagram.png' in /home/ga/RProjects/output/ or displayed in the RStudio plots pane, showing a structural equation model diagram with the 3 latent factors and 9 indicators."
+    },
+    {
+      "id": "correct_statistical_values",
+      "description": "Verify the calculated statistical values match the expected dataset results",
+      "points": 20,
+      "visual_evidence": "Look at the console output or the contents of the generated CSVs. The CFI should be approximately 0.931 (between 0.90 and 0.96), RMSEA should be approximately 0.092 (between 0.05 and 0.12), and the standardized loading for x4 should be approximately 0.852 (>0.75)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The agent actually executed the R script to generate the outputs",
+      "visual_evidence": "Look for evidence of R execution, such as commands run in the RStudio console, R terminal, or a script execution command, rather than manually creating the CSV files in a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected statistical values",
+      "visual_evidence": "Check the visible R script ('sem_analysis.R'). It should use lavaan functions like cfa(), fitMeasures(), standardizedSolution(), or measurementInvariance() to compute the results, rather than explicitly typing out values like 0.931 or 0.092 into data frames."
+    },
+    {
+      "id": "real_dataset_usage",
+      "description": "The agent used the actual HolzingerSwineford1939 dataset",
+      "visual_evidence": "The R script should load the dataset directly from the lavaan package (e.g., data(HolzingerSwineford1939) or using it directly in the cfa function) rather than loading a mocked or fabricated dataset."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct CFA model on the HolzingerSwineford1939 dataset yields a CFI of approximately 0.931 (acceptable: 0.90-0.96), an RMSEA of approximately 0.092 (acceptable: 0.05-0.12), and a standardized factor loading for x4 of approximately 0.852 (must be > 0.75). The measurement invariance test must include exactly 'configural', 'metric', and 'scalar' models."
+}

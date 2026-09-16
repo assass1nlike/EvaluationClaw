@@ -1,0 +1,35 @@
+{
+  "id": "web_code_edit_with_work_item_linking@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Edit the TailwindTraders repository configuration files in Azure DevOps to address the 'Production API timeout errors' bug. Update 'src/config/appsettings.json' by setting 'ApiTimeoutSeconds' to 120 and 'MaxRetryAttempts' to 3, using the commit message 'Fix API timeout configuration #<BugID>'. Update 'src/config/feature-flags.json' by setting 'EnableCircuitBreaker' and 'EnableRequestBuffering' to true, using the commit message 'Enable resilience feature flags #<BugID>'. Ensure both commits are linked to the bug work item by finding and using the correct Bug ID. Verify that the bug work item reflects these linked commits in its development section.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\web_code_edit_with_work_item_linking\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\web_code_edit_with_work_item_linking\\export_result.ps1"
+  },
+  "metadata": {
+    "target_project": "TailwindTraders",
+    "target_repo": "TailwindTraders",
+    "bug_title": "Production API timeout errors",
+    "expected_appsettings": {
+      "ApiTimeoutSeconds": 120,
+      "MaxRetryAttempts": 3
+    },
+    "expected_featureflags": {
+      "EnableCircuitBreaker": true,
+      "EnableRequestBuffering": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_web_code_edit_with_work_item_linking"
+    }
+  }
+}

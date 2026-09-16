@@ -1,0 +1,32 @@
+{
+  "id": "paperback_book_layout@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Reformat the sci-fi novella manuscript /home/ga/Documents/crystal_crypt_draft.odt for 6x9 inch paperback printing. The document must have a 6.00\" x 9.00\" page size with mirrored margins (Inner: 0.8\", Outer: 0.5\", Top/Bottom: 0.6\"). Configure alternating headers where Left (Verso) pages display the Page Number (Left aligned) and Book Title 'The Crystal Crypt' (Center aligned), and Right (Recto) pages display the Chapter Name field (Center aligned) and Page Number (Right aligned). Save the final version to /home/ga/Documents/crystal_crypt_print_ready.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/paperback_book_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/paperback_book_layout/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/Documents/crystal_crypt_draft.odt",
+    "output_path": "/home/ga/Documents/crystal_crypt_print_ready.odt",
+    "book_title": "The Crystal Crypt",
+    "expected_width_in": 6.0,
+    "expected_height_in": 9.0,
+    "inner_margin_in": 0.8,
+    "outer_margin_in": 0.5,
+    "margin_tolerance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_paperback_layout"
+    }
+  }
+}

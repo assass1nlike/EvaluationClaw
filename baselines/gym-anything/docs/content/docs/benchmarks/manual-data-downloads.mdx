@@ -1,0 +1,28 @@
+---
+title: Environments that require manual data downloads
+description: A small number of benchmark environments expect artifacts that cannot be auto-fetched. Each carries a MANUAL_DOWNLOAD.md with instructions.
+---
+
+Most benchmark environments fetch their data automatically — either from a `pre_start` hook that downloads inside the container, or from a host-side `scripts/fetch_data.sh` that runs before the env starts.
+
+A handful of environments depend on artifacts that are auth-gated, behind anti-bot protection, or only distributed through a vendor portal. Those envs do not run out of the box on a fresh clone — a one-time manual download is required.
+
+Each such env carries a `MANUAL_DOWNLOAD.md` at the env root. It tells you what file is needed, where to get it, where to place it, and the expected `sha256` to verify.
+
+## Affected environments
+
+| Env | Where to get the artifact |
+|---|---|
+| `android_aps_env` | Build from source (AGPL-3.0) — see env's `MANUAL_DOWNLOAD.md` |
+| `flica_env` | `adb pull` from a physical xxhdpi-density Android device |
+| `ninja_trader_env` | NinjaTrader account portal (free signup) |
+| `oracle_analytics_desktop_env` | Oracle eDelivery (free Oracle account) |
+| `skelion_env` | Personal/team archive of v5.5.2 |
+| `topocal_env` | Vendor site (currently unreachable) — contact maintainers |
+| `twon_access_commander_env` | 2N partner portal |
+
+For each, see `benchmarks/cua_world/environments/<env_id>/MANUAL_DOWNLOAD.md`.
+
+## Verifying after download
+
+Each `MANUAL_DOWNLOAD.md` includes the expected `sha256` of the project's reference build. Use `sha256sum` (Linux/macOS) or `Get-FileHash` (PowerShell) to confirm before running the env. If the hash doesn't match, the env may run but its tasks may produce unexpected results — verifiers in this project sometimes check exact data values.

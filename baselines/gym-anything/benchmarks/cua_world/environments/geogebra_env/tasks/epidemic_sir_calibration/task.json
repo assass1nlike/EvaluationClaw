@@ -1,0 +1,31 @@
+{
+  "id": "epidemic_sir_calibration@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are a public health researcher analyzing a 1978 influenza outbreak in a boarding school. Using the case data in '~/Documents/GeoGebra/data/flu_1978.csv', calibrate a dynamic SIR model (S' = -beta * S * I / N, I' = beta * S * I / N - gamma * I, R' = gamma * I) where N = 763, S(0)=762, I(0)=1, and R(0)=0. Fit the model's infected curve to the observed data for the period t=0 to t=15 by determining appropriate values for the transmission rate (beta) and recovery rate (gamma). Ensure the infected curve is visually distinct from the data points. Save the project to '~/Documents/GeoGebra/projects/sir_analysis.ggb'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/epidemic_sir_calibration/setup_task.sh",
+    "post_task": "/workspace/tasks/epidemic_sir_calibration/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "sir_analysis.ggb",
+    "data_path": "/home/ga/Documents/GeoGebra/data/flu_1978.csv",
+    "target_beta": 1.66,
+    "target_gamma": 0.44,
+    "beta_tolerance": 0.25,
+    "gamma_tolerance": 0.07,
+    "population_N": 763
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_epidemic_sir_calibration"
+    }
+  }
+}

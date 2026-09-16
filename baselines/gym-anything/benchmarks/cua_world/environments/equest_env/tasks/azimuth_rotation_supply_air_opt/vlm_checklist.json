@@ -1,0 +1,53 @@
+{
+  "task_id": "azimuth_rotation_supply_air_opt@1",
+  "task_completion": [
+    {
+      "id": "open_equest_project",
+      "description": "Verify the 4StoreyBuilding project is opened in eQUEST",
+      "points": 10,
+      "visual_evidence": "The eQUEST application window is open with the '4StoreyBuilding' project loaded, visible in the title bar or project navigator."
+    },
+    {
+      "id": "modify_building_azimuth",
+      "description": "Verify the building azimuth is changed to 90 degrees",
+      "points": 20,
+      "visual_evidence": "A properties dialog or building footprint screen showing the building 'Azimuth' parameter set to 90 degrees (East)."
+    },
+    {
+      "id": "modify_cooling_supply_temp",
+      "description": "Verify the cooling supply temperature is set to 58\u00b0F for all 5 ground floor systems",
+      "points": 40,
+      "visual_evidence": "The Air-Side Systems properties window (specifically the Cooling tab or Minimum Supply Temp field) showing a value of 58\u00b0F for the systems starting with 'G.' (G.S11, G.E12, G.N13, G.W14, G.C15)."
+    },
+    {
+      "id": "run_annual_simulation",
+      "description": "Verify the annual simulation is executed",
+      "points": 20,
+      "visual_evidence": "The eQUEST simulation progress window (DOE-2 calculation) is visible, showing the simulation running or a 'Simulation Complete' dialog."
+    },
+    {
+      "id": "save_project",
+      "description": "Verify the project is saved after modifications",
+      "points": 10,
+      "visual_evidence": "The File menu is open with 'Save' selected, a save confirmation dialog is visible, or the save icon is clicked in the toolbar."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_equest_gui",
+      "description": "Ensure the agent used the eQUEST GUI to make changes",
+      "visual_evidence": "Screenshots should show interaction with eQUEST's graphical interface (dialog boxes, system trees, property sheets) rather than a text editor."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Ensure the .inp file was not modified via text editors or terminal commands",
+      "visual_evidence": "No terminal windows using 'sed', 'awk', or text editors (like Notepad, VS Code) open with the 4StoreyBuilding.inp file."
+    },
+    {
+      "id": "actual_simulation_run",
+      "description": "Ensure the simulation was genuinely run within the software",
+      "visual_evidence": "The simulation dialog must be the authentic eQUEST/DOE-2 calculation window, not a mocked output or skipped step."
+    }
+  ],
+  "privileged_info_for_vlm": "CRITICAL: The task description mentions 'COOL-SET-T', but this parameter does not exist in eQUEST. The actual parameter in the eQUEST UI and INP file is 'Minimum Supply Temp' (MIN-SUPPLY-T). The target value is 58\u00b0F. The building has exactly 5 ground-floor systems that need this change: G.S11, G.E12, G.N13, G.W14, G.C15. The building azimuth should be changed from 360 (or 0) to 90 degrees."
+}

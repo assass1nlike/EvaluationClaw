@@ -1,0 +1,53 @@
+{
+  "task_id": "create_master_detail_form@1",
+  "task_completion": [
+    {
+      "id": "master_form_setup",
+      "description": "The main form is configured to use the 'Artist' table and displays the 'ArtistId' and 'Name' fields.",
+      "points": 20,
+      "visual_evidence": "In the Form Wizard (Step 1: Field Selection) or Form Design view, the 'Artist' table is selected, and the 'ArtistId' and 'Name' fields are added to the form. Alternatively, the final running form displays these specific fields."
+    },
+    {
+      "id": "subform_setup",
+      "description": "A subform is configured to use the 'Album' table, displays the 'Title' field, and is set to a datasheet format.",
+      "points": 20,
+      "visual_evidence": "In the Form Wizard (Step 2-3: Add Subform), the 'Album' table is selected with the 'Title' field. In Step 5 (Arrange controls), the subform arrangement is set to 'As Data Sheet'. Alternatively, the final running form shows the Album titles in a tabular/grid layout."
+    },
+    {
+      "id": "master_detail_link",
+      "description": "The subform is linked to the main form using the 'ArtistId' field.",
+      "points": 30,
+      "visual_evidence": "In the Form Wizard (Step 4: Get joined fields), 'ArtistId' is selected in both the 'First joined subform field' and 'First joined main form field' dropdowns. Alternatively, in the Subform Properties dialog (Data tab), 'ArtistId' is listed in 'Link master fields' and 'Link slave fields'."
+    },
+    {
+      "id": "form_saved",
+      "description": "The form is saved with the name 'ArtistDiscography'.",
+      "points": 20,
+      "visual_evidence": "In the final step of the Form Wizard, the name is set to 'ArtistDiscography'. After completion, 'ArtistDiscography' appears in the list of Forms in the main LibreOffice Base window."
+    },
+    {
+      "id": "database_saved",
+      "description": "The chinook database file is saved after creating the form.",
+      "points": 10,
+      "visual_evidence": "The agent clicks the 'Save' icon (floppy disk) in the main LibreOffice Base window, or uses File > Save. The title bar of the main database window should not show an unsaved changes indicator (like an asterisk) at the end of the trajectory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "The agent used the LibreOffice Base GUI to create the form.",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Base application, specifically the Form Wizard or Form Design view, rather than terminal commands or scripts modifying the .odb file directly."
+    },
+    {
+      "id": "correct_database_file",
+      "description": "The agent is modifying the correct chinook.odb database.",
+      "visual_evidence": "The title bar of the LibreOffice Base window shows 'chinook.odb' (located in /home/ga/chinook.odb), not a new or differently named database."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use Python or shell scripts to bypass the GUI form creation.",
+      "visual_evidence": "No terminal windows are shown executing scripts that directly inject XML into the .odb archive to create the form."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is '/home/ga/chinook.odb'. The master table is 'Artist' (contains 'ArtistId', 'Name'). The detail table is 'Album' (contains 'AlbumId', 'Title', 'ArtistId'). The tables are linked via a foreign key where Album.ArtistId references Artist.ArtistId. The target form name must be exactly 'ArtistDiscography'. LibreOffice Base's Form Wizard is the standard way to achieve this, where Step 1 selects the Master fields, Step 2 adds the Subform, Step 3 selects Subform fields, Step 4 joins them on 'ArtistId', Step 5 sets the subform to 'As Data Sheet', and Step 8 names the form 'ArtistDiscography'."
+}

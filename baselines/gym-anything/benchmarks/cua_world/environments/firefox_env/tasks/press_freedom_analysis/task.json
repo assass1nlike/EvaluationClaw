@@ -1,0 +1,47 @@
+{
+  "id": "press_freedom_analysis@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a data journalist preparing a report for World Press Freedom Day. Research the press freedom status of Norway, United States, Brazil, India, and China using Reporters Without Borders (RSF), Freedom House, and the Committee to Protect Journalists (CPJ). Create a Firefox bookmark folder named 'Press Freedom Research' containing at least five relevant pages from these sources. Compile your findings into a JSON file at ~/Documents/press_freedom_comparison.json. The JSON must include a 'countries' object with keys for each country ('norway', 'united_states', 'brazil', 'india', 'china'), each containing: 'rsf_rank' (integer), 'freedom_house_score' (0-100 integer), 'freedom_house_status' (Free/Partly Free/Not Free), 'cpj_journalists_imprisoned' (integer), and a brief 'summary' string.",
+  "difficulty": "hard",
+  "tags": [
+    "firefox",
+    "research",
+    "data-entry",
+    "journalism",
+    "bookmarks",
+    "json"
+  ],
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/press_freedom_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/press_freedom_analysis/export_result.sh"
+  },
+  "metadata": {
+    "required_countries": [
+      "norway",
+      "united_states",
+      "brazil",
+      "india",
+      "china"
+    ],
+    "required_sources": [
+      "rsf.org",
+      "freedomhouse.org",
+      "cpj.org"
+    ],
+    "output_file": "/home/ga/Documents/press_freedom_comparison.json",
+    "bookmark_folder": "Press Freedom Research",
+    "min_bookmarks": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_press_freedom_analysis"
+    }
+  }
+}

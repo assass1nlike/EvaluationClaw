@@ -1,0 +1,33 @@
+{
+  "id": "create_checkcode_form@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Create an Epi Info 7 project named 'RespSurveillance' at /home/ga/Documents/RespSurveillance.prj. Design a form with two pages: 'Patient Information' and 'Clinical Information'. \n\nThe 'Patient Information' page must include: \n- CaseID (Text, Required)\n- FirstName (Text)\n- LastName (Text)\n- DOB (Date)\n- Age (Number, Read Only)\n- Sex (Legal Values: Male, Female, Unknown)\n- County (Text)\n\nThe 'Clinical Information' page must include: \n- OnsetDate (Date)\n- Fever (Yes/No)\n- Cough (Yes/No)\n- SoreThroat (Yes/No)\n- Dyspnea (Yes/No)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_checkcode_form\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_checkcode_form\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\RespSurveillance\\RespSurveillance.prj",
+    "db_path": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\RespSurveillance\\RespSurveillance.mdb",
+    "expected_records": 3,
+    "expected_case_ids": [
+      "RS-0001",
+      "RS-0002",
+      "RS-0003"
+    ],
+    "check_code_snippet": "ASSIGN Age = YEARS(DOB)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_checkcode_form"
+    }
+  }
+}

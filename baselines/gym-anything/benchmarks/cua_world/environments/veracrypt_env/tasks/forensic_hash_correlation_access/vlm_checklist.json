@@ -1,0 +1,47 @@
+{
+  "task_id": "forensic_hash_correlation_access@1",
+  "task_completion": [
+    {
+      "id": "read_clue_file",
+      "description": "The agent accessed '~/Evidence/clue.txt' to find the target hash fragment.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat ~/Evidence/clue.txt' or a text editor displaying the contents of 'clue.txt'."
+    },
+    {
+      "id": "calculate_keyfile_hashes",
+      "description": "The agent calculated SHA-256 hashes for the files in the '~/Evidence/Keyfiles/' directory.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'sha256sum' (or a similar hashing command) executed on the files within '~/Evidence/Keyfiles/' and displaying the resulting hashes."
+    },
+    {
+      "id": "mount_veracrypt_volume",
+      "description": "The agent mounted the VeraCrypt volume '~/Evidence/sequestered_data.hc' to '/home/ga/MountPoints/slot1'.",
+      "points": 40,
+      "visual_evidence": "VeraCrypt GUI showing the volume mounted at '/home/ga/MountPoints/slot1', or a terminal showing a 'veracrypt' command with the correct volume path, mount point, password, and keyfile arguments."
+    },
+    {
+      "id": "extract_flag_file",
+      "description": "The agent copied 'flag.txt' from the mounted volume to '~/Evidence/extracted_flag.txt'.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a 'cp' command copying 'flag.txt' from the mount point to '~/Evidence/extracted_flag.txt', or a file manager/terminal showing 'extracted_flag.txt' successfully created in the Evidence directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "Verify that VeraCrypt was actually used to mount the volume.",
+      "visual_evidence": "Presence of the VeraCrypt GUI or execution of genuine 'veracrypt' CLI commands, rather than just creating a fake directory."
+    },
+    {
+      "id": "actual_hash_calculation",
+      "description": "Verify that the agent computed the hashes of the keyfiles.",
+      "visual_evidence": "Terminal output showing actual hash values being calculated (e.g., using sha256sum) rather than the agent guessing the keyfile."
+    },
+    {
+      "id": "no_direct_flag_creation",
+      "description": "Verify that the flag file was copied from the mounted volume and not manually fabricated.",
+      "visual_evidence": "A copy operation ('cp' or GUI copy-paste) from '/home/ga/MountPoints/slot1' to the destination, without the agent manually typing out the flag contents into a new file."
+    }
+  ],
+  "privileged_info_for_vlm": "Evidence directory: /home/ga/Evidence. Volume path: /home/ga/Evidence/sequestered_data.hc. Keyfiles directory: /home/ga/Evidence/Keyfiles. Mount point: /home/ga/MountPoints/slot1. Password: Investigation2024. Extracted flag path: /home/ga/Evidence/extracted_flag.txt."
+}

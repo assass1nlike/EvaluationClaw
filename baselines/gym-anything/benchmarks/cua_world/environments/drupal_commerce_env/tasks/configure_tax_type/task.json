@@ -1,0 +1,31 @@
+{
+  "id": "configure_tax_type@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Configure a new 'Custom' tax type for California sales tax in the Drupal Commerce store. The tax type must be labeled 'California State Sales Tax', with taxes not inclusive in product prices and rounding applied at the order item level. Include a zone labeled 'California' for the United States > California territory using a 'Standard' tax rate of 7.25% (0.0725).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_tax_type/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_tax_type/export_result.sh"
+  },
+  "metadata": {
+    "expected_label_substr": "California",
+    "expected_plugin": "custom",
+    "expected_display_inclusive": false,
+    "expected_country_code": "US",
+    "expected_admin_area": "CA",
+    "expected_rate_percentage": 0.0725,
+    "expected_rate_label": "Standard"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_tax_type"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "retry_failed_deployment@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "A deployment of the 'Payment-Gateway-Deploy' service has failed. Retry the deployment using the same Artifact Tag and Region parameters used in Build #3, while also enabling the 'FORCE_RESTART' option. You are logged in as admin.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/retry_failed_deployment/setup_task.sh",
+    "post_task": "/workspace/tasks/retry_failed_deployment/export_result.sh",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "job_name": "Payment-Gateway-Deploy",
+    "target_build_number": 3,
+    "parameter_keys": [
+      "ARTIFACT_TAG",
+      "REGION",
+      "FORCE_RESTART"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retry_failed_deployment"
+    }
+  }
+}

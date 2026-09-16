@@ -1,0 +1,53 @@
+{
+  "task_id": "web_scraper_bot_detection@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "The agent accessed the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "The Splunk Enterprise web interface is loaded in a web browser, typically showing the login screen, home screen, or Search & Reporting app."
+    },
+    {
+      "id": "search_query_execution",
+      "description": "The agent executed a search query to aggregate web log data by client IP, calculating total requests and total bytes, filtered for > 200 requests.",
+      "points": 20,
+      "visual_evidence": "The Splunk Search bar contains a query with commands like 'stats count sum(bytes) by clientip' (or similar) and a filter like 'where count > 200'. Search results should reflect this aggregation."
+    },
+    {
+      "id": "report_created",
+      "description": "The agent created a report named 'Aggressive_Scraper_Report'.",
+      "points": 20,
+      "visual_evidence": "A save dialog, success message, or the Reports list showing a report explicitly named 'Aggressive_Scraper_Report'."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "The agent created a dashboard named 'Bot_Activity_Dashboard'.",
+      "points": 20,
+      "visual_evidence": "A save dialog, success message, or the Dashboards list showing a dashboard explicitly named 'Bot_Activity_Dashboard'."
+    },
+    {
+      "id": "dashboard_panels_added",
+      "description": "The 'Bot_Activity_Dashboard' contains at least two panels visualizing web traffic patterns or scraper activity.",
+      "points": 30,
+      "visual_evidence": "The 'Bot_Activity_Dashboard' is viewed or edited, displaying at least two distinct visualization panels (e.g., charts, graphs, or tables) showing web traffic data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Splunk web GUI to complete the task.",
+      "visual_evidence": "Screenshots show a web browser with the URL localhost:8000 and active interaction with Splunk UI elements (buttons, search bar, menus)."
+    },
+    {
+      "id": "genuine_splunk_interface",
+      "description": "The agent used the actual Splunk Enterprise application.",
+      "visual_evidence": "Standard Splunk UI components are visible, such as the black top navigation bar, the 'Search & Reporting' app interface, and Splunk-styled visualizations, rather than a text editor or mock interface."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "The agent did not bypass the GUI by directly editing Splunk configuration files in the terminal.",
+      "visual_evidence": "The creation of reports and dashboards should be visible in the browser GUI, not through terminal commands editing .conf files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected report name is 'Aggressive_Scraper_Report'. The expected dashboard name is 'Bot_Activity_Dashboard'. The search query must filter for > 200 requests (or >= 201). Splunk credentials are admin / SplunkAdmin1!."
+}

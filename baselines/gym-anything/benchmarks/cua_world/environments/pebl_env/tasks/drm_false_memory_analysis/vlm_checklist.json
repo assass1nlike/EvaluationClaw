@@ -1,0 +1,59 @@
+{
+  "task_id": "drm_false_memory_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_dataset",
+      "description": "Open or read the DRM recognition dataset.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet viewer, text editor, or terminal showing the contents or loading of ~/pebl/data/drm_recognition_data.csv."
+    },
+    {
+      "id": "identify_exclusion",
+      "description": "Identify and exclude the participant with corrupted data based on the specified criteria.",
+      "points": 20,
+      "visual_evidence": "Code, script, or data manipulation steps showing filtering logic for mean RT < 100ms and 100% 'Yes' responses, or explicitly identifying 'sub-99' for exclusion."
+    },
+    {
+      "id": "compute_individual_metrics",
+      "description": "Compute the True Recognition Rate, Critical False Memory Rate, and Baseline False Alarm Rate for each valid participant.",
+      "points": 25,
+      "visual_evidence": "Code or spreadsheet formulas calculating rates based on 'studied', 'critical_lure', and 'unrelated' conditions."
+    },
+    {
+      "id": "compute_group_means",
+      "description": "Compute the average of the three metrics across all valid participants.",
+      "points": 15,
+      "visual_evidence": "Code or spreadsheet formulas calculating the mean of the previously computed individual rates."
+    },
+    {
+      "id": "format_json_report",
+      "description": "Structure the output as a JSON object with 'participants' and 'group_means' keys, including exclusion details.",
+      "points": 15,
+      "visual_evidence": "A script or text editor showing the construction of a JSON structure with the required keys, individual metrics, and exclusion details (id, reason)."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save the final JSON report to the specified output path.",
+      "points": 15,
+      "visual_evidence": "A file explorer, terminal command, or editor showing the file being saved to exactly ~/pebl/analysis/drm_report.json."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "The agent actually computed the metrics rather than hardcoding fake results.",
+      "visual_evidence": "Presence of a script (e.g., Python, R) or spreadsheet formulas performing the calculations, rather than just typing a JSON file from scratch."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent used the specified file paths for input and output.",
+      "visual_evidence": "The input file path ~/pebl/data/drm_recognition_data.csv and output file path ~/pebl/analysis/drm_report.json are visible in the commands or scripts."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "The agent did not invent participant IDs or data.",
+      "visual_evidence": "The participant IDs in the output JSON match those seen in the input dataset or script logic (e.g., 'sub-99' is explicitly handled as the excluded participant)."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant that must be excluded is 'sub-99', who has 100% 'yes' responses and reaction times between 20ms and 80ms. The final output must be saved exactly to '/home/ga/pebl/analysis/drm_report.json'."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "osint_language_spoofing_audit@1",
+  "task_completion": [
+    {
+      "id": "configure_russian_language",
+      "description": "Configure 'Russian (ru)' as the preferred language in Tor Browser.",
+      "points": 10,
+      "visual_evidence": "Tor Browser settings/preferences page showing 'Russian' or 'ru' added and moved to the top of the language preferences."
+    },
+    {
+      "id": "disable_spoof_english",
+      "description": "Disable the 'privacy.spoof_english' preference.",
+      "points": 20,
+      "visual_evidence": "Tor Browser 'about:config' page or a text editor modifying 'prefs.js' showing 'privacy.spoof_english' being changed to disable it (e.g., set to false, 0, or deleted)."
+    },
+    {
+      "id": "capture_ru_headers",
+      "description": "Navigate to https://httpbin.org/headers to capture the headers with Russian language configured.",
+      "points": 15,
+      "visual_evidence": "Tor Browser displaying the JSON response from https://httpbin.org/headers. The 'Accept-Language' field in the JSON should reflect 'ru'."
+    },
+    {
+      "id": "save_ru_json",
+      "description": "Export the Russian headers JSON response to /home/ga/Documents/headers_ru.json.",
+      "points": 10,
+      "visual_evidence": "A file save dialog, terminal command, or text editor showing the JSON response being saved exactly to '/home/ga/Documents/headers_ru.json'."
+    },
+    {
+      "id": "reenable_spoof_english",
+      "description": "Re-enable the 'privacy.spoof_english' protection.",
+      "points": 15,
+      "visual_evidence": "Tor Browser 'about:config' page or a text editor modifying 'prefs.js' showing 'privacy.spoof_english' being restored to its secure default (e.g., set to true, 2, or reset)."
+    },
+    {
+      "id": "capture_en_headers",
+      "description": "Navigate to https://httpbin.org/headers again to capture the headers with the protection re-enabled.",
+      "points": 15,
+      "visual_evidence": "Tor Browser displaying the JSON response from https://httpbin.org/headers. The 'Accept-Language' field in the JSON should reflect English ('en-US' or 'en')."
+    },
+    {
+      "id": "save_en_json",
+      "description": "Export the updated English headers JSON response to /home/ga/Documents/headers_en.json.",
+      "points": 15,
+      "visual_evidence": "A file save dialog, terminal command, or text editor showing the updated JSON response being saved exactly to '/home/ga/Documents/headers_en.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_used_for_capture",
+      "description": "The agent must use Tor Browser to navigate to the target URL and capture the headers.",
+      "visual_evidence": "Look for the Tor Browser UI displaying the https://httpbin.org/headers page. The agent should not bypass the browser entirely by using 'curl' or Python scripts, as the task requires testing the browser's anti-fingerprinting protections."
+    },
+    {
+      "id": "genuine_json_export",
+      "description": "The agent must export the actual JSON response received from the website.",
+      "visual_evidence": "Look for copy-pasting from the browser or saving the page directly. The agent should not manually type out a fabricated JSON response in a text editor."
+    },
+    {
+      "id": "actual_config_modification",
+      "description": "The agent must genuinely interact with Tor Browser's configuration to change the spoofing preference.",
+      "visual_evidence": "Look for interaction with 'about:config' or direct edits to 'prefs.js'. The agent should not just create the output files without actually changing the browser settings."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://httpbin.org/headers. Target preference: 'privacy.spoof_english'. Expected output files: /home/ga/Documents/headers_ru.json and /home/ga/Documents/headers_en.json. Note: 'privacy.spoof_english' is natively an integer preference (0, 1, 2) in Tor Browser. The agent may modify it via about:config (potentially deleting and recreating it as a boolean) or by editing prefs.js directly."
+}

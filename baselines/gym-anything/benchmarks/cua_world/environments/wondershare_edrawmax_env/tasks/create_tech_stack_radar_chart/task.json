@@ -1,0 +1,38 @@
+{
+  "id": "create_tech_stack_radar_chart@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Using the benchmark data in ~/Documents/cloud_benchmark_scores.txt, create a Radar (Spider) Chart in Wondershare EdrawMax titled 'Cloud Provider Evaluation 2026'. The chart must include three series (AWS, Azure, GCP) across five metrics (Cost Efficiency, Global Availability, Compute Performance, Support Quality, and Ease of Use) with a visible legend. Save the editable diagram to /home/ga/Documents/cloud_radar_comparison.eddx and export the chart as a PNG image to /home/ga/Documents/cloud_radar_comparison.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_tech_stack_radar_chart/setup_task.sh",
+    "post_task": "/workspace/tasks/create_tech_stack_radar_chart/export_result.sh"
+  },
+  "metadata": {
+    "data_file": "/home/ga/Documents/cloud_benchmark_scores.txt",
+    "expected_eddx": "/home/ga/Documents/cloud_radar_comparison.eddx",
+    "expected_png": "/home/ga/Documents/cloud_radar_comparison.png",
+    "required_strings": [
+      "AWS",
+      "Azure",
+      "GCP",
+      "Cost Efficiency",
+      "Global Availability",
+      "Compute Performance",
+      "Support Quality",
+      "Ease of Use",
+      "Cloud Provider Evaluation 2026"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_radar_chart"
+    }
+  }
+}

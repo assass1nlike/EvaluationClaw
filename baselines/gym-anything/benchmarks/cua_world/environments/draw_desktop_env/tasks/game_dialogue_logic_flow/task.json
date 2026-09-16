@@ -1,0 +1,40 @@
+{
+  "id": "game_dialogue_logic_flow@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a visual logic flowchart in draw.io Desktop for a 'Cyberpunk Black Market' quest based on the script provided at ~/Desktop/quest_script.txt. The flowchart must map the dialogue, player choices, the three logic checks, and all four endings (Success, Scammed, Combat, and Arrested) using the following visual schema: NPC Lines (Rectangles), Player Choices (Parallelograms or Hexagons), Logic/Skill Checks (Diamonds/Rhombus), Events/Updates (Rounded Rectangles), and Endings (Ellipses/Circles). Connect the nodes with labeled arrows showing the flow conditions and logic outcomes. Save the diagram as ~/Desktop/quest_flow.drawio and export it as ~/Desktop/quest_flow.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/game_dialogue_logic_flow/setup_task.sh",
+    "post_task": "/workspace/tasks/game_dialogue_logic_flow/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/Desktop/quest_script.txt",
+    "output_drawio": "/home/ga/Desktop/quest_flow.drawio",
+    "output_png": "/home/ga/Desktop/quest_flow.png",
+    "min_nodes": 12,
+    "min_edges": 10,
+    "required_phrases": [
+      "neural chip",
+      "streetwise",
+      "2000 credits",
+      "police drone",
+      "arrested"
+    ],
+    "required_shapes": [
+      "rhombus",
+      "ellipse"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_game_dialogue_logic_flow"
+    }
+  }
+}

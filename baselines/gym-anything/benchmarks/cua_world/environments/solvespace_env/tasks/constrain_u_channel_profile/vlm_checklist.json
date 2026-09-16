@@ -1,0 +1,59 @@
+{
+  "task_id": "constrain_u_channel_profile@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Read the tooling design specification file",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Desktop/tooling_design_spec.txt, showing the required dimensions."
+    },
+    {
+      "id": "open_solvespace_profile",
+      "description": "Open the U-channel profile in SolveSpace",
+      "points": 10,
+      "visual_evidence": "The SolveSpace GUI is open, displaying the 8-segment U-channel profile."
+    },
+    {
+      "id": "apply_overall_dimensions",
+      "description": "Apply the overall width and leg height constraints",
+      "points": 25,
+      "visual_evidence": "SolveSpace GUI showing a horizontal distance constraint of 120.0mm (overall width) and a vertical distance constraint of 70.0mm (leg height) applied to the sketch."
+    },
+    {
+      "id": "apply_inner_dimensions",
+      "description": "Apply the inner clear width and depth constraints",
+      "points": 25,
+      "visual_evidence": "SolveSpace GUI showing a horizontal distance constraint of 90.0mm (inner clear width) and a vertical distance constraint of 55.0mm (inner clear depth) applied to the inner segments of the sketch."
+    },
+    {
+      "id": "apply_thickness_dimension",
+      "description": "Apply the wall thickness constraint",
+      "points": 15,
+      "visual_evidence": "SolveSpace GUI showing a distance constraint of 15.0mm applied to represent the wall thickness of the U-channel."
+    },
+    {
+      "id": "save_constrained_file",
+      "description": "Save the fully constrained file to the target location",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog or terminal command showing the file being saved exactly as /home/ga/Documents/SolveSpace/u_channel_constrained.slvs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_solvespace_gui",
+      "description": "The agent used the SolveSpace GUI to apply the constraints",
+      "visual_evidence": "Screenshots should show the agent interacting with the SolveSpace graphical interface to add dimensions. (Note: Using a text editor initially to fix the corrupt file is expected and allowed, but the actual constraining should ideally involve the GUI or valid CAD operations)."
+    },
+    {
+      "id": "correct_target_file",
+      "description": "The agent saved the output to a new file rather than overwriting the input",
+      "visual_evidence": "The original u_channel_profile.slvs should remain distinct from the newly created u_channel_constrained.slvs."
+    },
+    {
+      "id": "geometry_preserved",
+      "description": "The fundamental 8-segment geometry was preserved",
+      "visual_evidence": "The final shape must still be a U-channel with 8 connected line segments, not a newly drawn arbitrary shape."
+    }
+  ],
+  "privileged_info_for_vlm": "The specification requires the following constraints: overall channel width = 120.0mm, leg height = 70.0mm, wall thickness = 15.0mm, inner clear depth = 55.0mm, inner clear width = 90.0mm. CRITICAL NOTE: The initial input file 'u_channel_profile.slvs' contains a fatal bug (constraint type 82 instead of 81 for vertical lines) that causes SolveSpace to crash immediately upon opening. The agent MUST first open the .slvs file in a text editor (like nano, vim, or gedit) to change the '82's to '81's before it can be successfully opened in the SolveSpace GUI. Do not penalize the agent for using a text editor for this initial fix; it is a necessary step to overcome a bug in the environment."
+}

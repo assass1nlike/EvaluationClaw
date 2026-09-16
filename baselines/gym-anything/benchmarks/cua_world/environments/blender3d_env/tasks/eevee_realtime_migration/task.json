@@ -1,0 +1,33 @@
+{
+  "id": "eevee_realtime_migration@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A visualization studio needs to convert a Cycles car scene to EEVEE for an interactive client presentation. The BMW demo scene (/home/ga/BlenderProjects/bmw_cycles.blend) is currently set up for Cycles rendering, which is far too slow for real-time use. Convert the scene to the EEVEE render engine with 64 render samples and 32 viewport samples. Enable Ambient Occlusion (GTAO) with a distance of 1.0 m and enable Ray Tracing or Screen Space Reflections. Set the render resolution to 1920x1080 at 100% scale. Render the scene to /home/ga/BlenderProjects/eevee_render.png and save the project file to /home/ga/BlenderProjects/eevee_scene.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/eevee_realtime_migration/setup_task.sh",
+    "post_task": "/workspace/tasks/eevee_realtime_migration/export_result.sh"
+  },
+  "metadata": {
+    "expected_render_samples": 64,
+    "expected_viewport_samples": 32,
+    "expected_ao_distance": 1.0,
+    "expected_resolution": [
+      1920,
+      1080
+    ],
+    "output_render_path": "/home/ga/BlenderProjects/eevee_render.png",
+    "output_blend_path": "/home/ga/BlenderProjects/eevee_scene.blend"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_eevee_migration"
+    }
+  }
+}

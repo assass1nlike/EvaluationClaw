@@ -1,0 +1,45 @@
+{
+  "id": "create_investigation_form@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are a county epidemiologist investigating a suspected Norovirus cluster linked to a catered event. Create a new Epi Info 7 project named 'NorovirusOutbreak' at C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\NorovirusOutbreak\\ with a form named 'CaseInvestigation'. The form must include the following 15 fields with exact names and specified types: CaseID (Text), LastName (Text), FirstName (Text), Age (Number), Sex (Legal Values: Male, Female, Unknown), OnsetDate (Date), Nausea (Yes/No), Vomiting (Yes/No), Diarrhea (Yes/No), AbdCramps (Yes/No), Fever (Yes/No), AteChicken (Yes/No), AtePastaSalad (Yes/No), AteRolls (Yes/No), and DrankPunch (Yes/No). Ensure the project file NorovirusOutbreak.prj is saved to the specified directory.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "bash /workspace/tasks/create_investigation_form/setup_task.sh",
+    "post_task": "bash /workspace/tasks/create_investigation_form/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\NorovirusOutbreak\\NorovirusOutbreak.prj",
+    "db_path_mdb": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\NorovirusOutbreak\\NorovirusOutbreak.mdb",
+    "db_path_sdf": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\NorovirusOutbreak\\NorovirusOutbreak.sdf",
+    "required_form_name": "CaseInvestigation",
+    "required_fields": [
+      "CaseID",
+      "LastName",
+      "FirstName",
+      "Age",
+      "Sex",
+      "OnsetDate",
+      "Nausea",
+      "Vomiting",
+      "Diarrhea",
+      "AbdCramps",
+      "Fever",
+      "AteChicken",
+      "AtePastaSalad",
+      "AteRolls",
+      "DrankPunch"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_investigation_form"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "satellite_rf_rain_fade_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_dataset_panoply",
+      "description": "Open the NCEP precipitation dataset in Panoply.",
+      "points": 10,
+      "visual_evidence": "The Panoply application window is open and shows 'prate.sfc.mon.ltm.nc' in the Datasets or Sources panel."
+    },
+    {
+      "id": "create_1d_time_series_plot",
+      "description": "Create a 1D time-series line plot for the precipitation rate (prate) variable.",
+      "points": 20,
+      "visual_evidence": "A Panoply plot window displaying a 1D line plot (Time on the X-axis, Precipitation/prate on the Y-axis) instead of a 2D map."
+    },
+    {
+      "id": "configure_jakarta_location",
+      "description": "Set the plot location to the grid point closest to Jakarta.",
+      "points": 20,
+      "visual_evidence": "The Array/Settings tab in the Panoply plot window shows the Latitude is set between -8.0 and -4.0, and the Longitude is set between 104.0 and 108.0."
+    },
+    {
+      "id": "save_plot_image",
+      "description": "Save the generated plot as 'jakarta_precip_timeseries.png' in the RainFade directory.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or Panoply save dialog showing 'jakarta_precip_timeseries.png' located in the '/home/ga/Documents/RainFade' directory."
+    },
+    {
+      "id": "create_fade_margin_report",
+      "description": "Create a structured report containing the extracted peak precipitation values.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the contents of 'rf_fade_margin_report.txt' in the RainFade directory, containing a peak precipitation value between 0.00008 and 0.00025."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "panoply_gui_used",
+      "description": "Verify the agent used the Panoply GUI to generate the plot.",
+      "visual_evidence": "Screenshots must show the agent interacting with the Panoply graphical interface to configure and view the plot, rather than bypassing it with a Python script or terminal utility."
+    },
+    {
+      "id": "plot_matches_panoply",
+      "description": "Verify the saved image file is the genuine output from Panoply.",
+      "visual_evidence": "The saved 'jakarta_precip_timeseries.png' should visually match the plot displayed in the Panoply application window during the trajectory."
+    },
+    {
+      "id": "report_matches_data",
+      "description": "Verify the reported peak value is extracted from the actual data.",
+      "visual_evidence": "The peak value written in the text report must correspond to the highest point on the generated Panoply line plot, rather than being a hallucinated or hardcoded value."
+    }
+  ],
+  "privileged_info_for_vlm": "Data file: /home/ga/PanoplyData/prate.sfc.mon.ltm.nc. Variable: 'prate'. Target location bounds: Latitude [-8.0, -4.0], Longitude [104.0, 108.0]. Expected outputs: /home/ga/Documents/RainFade/jakarta_precip_timeseries.png and /home/ga/Documents/RainFade/rf_fade_margin_report.txt. The valid peak precipitation value is between 0.00008 and 0.00025. CRITICAL: The actual data for this location peaks in November or May, not January. An agent correctly reading the data will report a non-January month. Score the agent based on extracting the true peak from the data (Nov/May), and do not penalize it for missing the flawed 'January' expectation."
+}

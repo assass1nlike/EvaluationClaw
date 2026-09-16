@@ -1,0 +1,31 @@
+{
+  "id": "product_launch_kickoff@1",
+  "version": "1.0",
+  "env_id": "odoo_scheduling_env@0.1",
+  "description": "You are Emma Thompson, the Product Manager at Northbridge, leading an upcoming product launch. Coordinate the launch effort in Odoo Calendar (http://localhost:8069, login: admin/admin) by creating a meeting titled 'Product Launch Kickoff' scheduled for approximately two weeks from today at 10:00 AM for two hours. Include the engineering leads and the marketing manager (found in Contacts) as attendees, set the location to 'Engineering Lab', and include a brief launch agenda in the description. Additionally, cancel the 'Sprint Planning - Engineering' meeting scheduled for that same week as it is superseded by the kickoff.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 640,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/product_launch_kickoff/setup_task.sh",
+    "post_task": "/workspace/tasks/product_launch_kickoff/export_result.sh"
+  },
+  "metadata": {
+    "new_event_name": "Product Launch Kickoff",
+    "event_to_delete": "Sprint Planning - Engineering",
+    "required_location_keyword": "engineering",
+    "required_attendees": 3,
+    "occupation": "Product Manager",
+    "company": "Northbridge",
+    "pass_threshold": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_product_launch_kickoff"
+    }
+  }
+}

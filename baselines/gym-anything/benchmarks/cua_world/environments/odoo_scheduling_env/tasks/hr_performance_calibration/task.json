@@ -1,0 +1,35 @@
+{
+  "id": "hr_performance_calibration@1",
+  "version": "1.0",
+  "env_id": "odoo_scheduling_env@0.1",
+  "description": "You are Frank Rivera, the HR Business Partner at Northbridge. Leadership has decided to replace ad-hoc individual performance reviews with a structured monthly calibration process. In Odoo Calendar (http://localhost:8069, login: admin/admin), create a recurring monthly event titled 'Performance Review Calibration' including HR leadership, the CFO, and the VP of Operations as attendees. The event description must include an agenda covering calibration methodology, promotion nominations, and compensation review. Additionally, remove the now-obsolete 'Annual Performance Review - Frank Rivera' individual meeting from the calendar.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 640,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hr_performance_calibration/setup_task.sh",
+    "post_task": "/workspace/tasks/hr_performance_calibration/export_result.sh"
+  },
+  "metadata": {
+    "new_event_name": "Performance Review Calibration",
+    "event_to_delete": "Annual Performance Review - Frank Rivera",
+    "required_recurrence": "monthly",
+    "required_attendees": [
+      "Frank Rivera",
+      "Grace Patel",
+      "Henry Kim"
+    ],
+    "occupation": "HR Business Partner",
+    "company": "Northbridge",
+    "pass_threshold": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hr_performance_calibration"
+    }
+  }
+}

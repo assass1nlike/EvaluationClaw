@@ -1,0 +1,59 @@
+{
+  "task_id": "export_event_bulletin_scbulletin@1",
+  "task_completion": [
+    {
+      "id": "invoke_scbulletin",
+      "description": "Invoke the scbulletin CLI tool",
+      "points": 10,
+      "visual_evidence": "Terminal window shows the agent typing or executing the command '/home/ga/seiscomp/bin/scbulletin' or 'scbulletin'."
+    },
+    {
+      "id": "specify_db_connection",
+      "description": "Provide the correct database connection string",
+      "points": 10,
+      "visual_evidence": "The command line includes the database connection argument 'mysql://sysop:sysop@localhost/seiscomp' (often with a -d flag)."
+    },
+    {
+      "id": "specify_time_window",
+      "description": "Set the time window for the full year 2024",
+      "points": 20,
+      "visual_evidence": "The command line includes start and end time arguments corresponding to '2024-01-01 00:00:00' (or with 'T') and '2024-12-31 23:59:59'."
+    },
+    {
+      "id": "include_phases_and_magnitudes",
+      "description": "Include phase arrivals and magnitudes in the output",
+      "points": 20,
+      "visual_evidence": "The command line includes flags or arguments specifically requesting phases and magnitudes (e.g., -p, -m, --phases, --magnitudes)."
+    },
+    {
+      "id": "export_to_file",
+      "description": "Export the output to the specified text file",
+      "points": 20,
+      "visual_evidence": "The command line redirects output (using '>' or an output flag like '-o') to '/home/ga/Desktop/noto_bulletin.txt'."
+    },
+    {
+      "id": "verify_output_file",
+      "description": "Verify the bulletin file is created and contains earthquake data",
+      "points": 20,
+      "visual_evidence": "A file named 'noto_bulletin.txt' is visible on the Desktop, or terminal output (via cat, head, less) shows the file's contents, revealing formatted seismicity data (e.g., origin times, coordinates, magnitudes)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_tool_usage",
+      "description": "The agent actually used the scbulletin tool to generate the data",
+      "visual_evidence": "The terminal history shows the execution of the scbulletin command rather than the agent manually creating a text file and typing out fake data."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "The agent did not copy-paste the Noto earthquake details directly into a file",
+      "visual_evidence": "The file noto_bulletin.txt is generated via a database query command, not by opening a text editor (like nano or gedit) and pasting the prompt's description."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "The output file is saved in the exact requested directory",
+      "visual_evidence": "The file path used in the command or visible in the file explorer is exactly '/home/ga/Desktop/noto_bulletin.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using the SeisComP 'scbulletin' CLI tool (/home/ga/seiscomp/bin/scbulletin) to export a seismicity bulletin. The database connection string is 'mysql://sysop:sysop@localhost/seiscomp'. The time window must be exactly '2024-01-01T00:00:00' to '2024-12-31T23:59:59' (formats may vary slightly, e.g., using spaces instead of T). The output must be saved to '/home/ga/Desktop/noto_bulletin.txt'. The resulting file should contain real earthquake data for the 2024 Noto Peninsula earthquake (magnitude 7.5)."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "add_procedure_provider@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Configure a new active external laboratory provider in LibreHealth EHR (Credentials: admin/password). Use the following configuration: Name: LabCorp Diagnostics, NPI: 1234567893, Sending Application ID: LIBREEHR, Sending Facility ID: CLINIC01, Receiving Application ID: LABCORP, Receiving Facility ID: LC7890, Protocol: DL, Remote Host: sftp.labcorp-example.com, Results/Orders Path: /home/results, and Lab Director: Dr. Sarah Chen.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_procedure_provider/setup_task.sh",
+    "post_task": "/workspace/tasks/add_procedure_provider/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "LabCorp Diagnostics",
+    "expected_npi": "1234567893",
+    "expected_send_app": "LIBREEHR",
+    "expected_send_fac": "CLINIC01",
+    "expected_recv_app": "LABCORP",
+    "expected_recv_fac": "LC7890",
+    "expected_host": "sftp.labcorp-example.com",
+    "expected_protocol": "DL"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_procedure_provider"
+    }
+  }
+}

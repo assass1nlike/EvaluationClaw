@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_shared_workspace@1",
+  "task_completion": [
+    {
+      "id": "group_created",
+      "description": "Verify the Unix group 'creative_team' was created.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands like 'groupadd creative_team', 'addgroup creative_team', or output from 'cat /etc/group' or 'getent group' showing 'creative_team' exists."
+    },
+    {
+      "id": "users_added_to_group",
+      "description": "Verify users 'jordan' and 'alex' were added to the 'creative_team' group.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands like 'usermod -aG creative_team jordan' and 'usermod -aG creative_team alex', or verification commands like 'groups jordan', 'id alex', or 'cat /etc/group' showing both users listed under 'creative_team'."
+    },
+    {
+      "id": "directory_created",
+      "description": "Verify the shared directory '/home/acmecorp/campaign_2026' was created.",
+      "points": 10,
+      "visual_evidence": "Look for the command 'mkdir /home/acmecorp/campaign_2026' (or with -p), or 'ls'/'stat' output confirming the directory exists at the exact path."
+    },
+    {
+      "id": "directory_ownership",
+      "description": "Verify the directory is owned by user 'acmecorp' and group 'creative_team'.",
+      "points": 20,
+      "visual_evidence": "Look for the command 'chown acmecorp:creative_team /home/acmecorp/campaign_2026' or output from 'ls -ld /home/acmecorp/campaign_2026' showing 'acmecorp' as the user owner and 'creative_team' as the group owner."
+    },
+    {
+      "id": "directory_permissions",
+      "description": "Verify the directory allows full Read/Write/Execute access for the owner and group, and no access for others.",
+      "points": 20,
+      "visual_evidence": "Look for 'chmod 2770' or 'chmod 770' commands, or 'ls -ld' output showing 'rwx' for the owner, 'rwx' (or 'rws') for the group, and '---' for others."
+    },
+    {
+      "id": "setgid_bit_enabled",
+      "description": "Verify the SetGID bit is enabled on the directory.",
+      "points": 20,
+      "visual_evidence": "Look for 'chmod g+s' or 'chmod 2770' commands, or 'ls -ld' output showing an 's' in the group execute position (e.g., 'drwxrws---')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_commands_executed",
+      "description": "Ensure the agent executed actual system commands rather than just printing text.",
+      "visual_evidence": "Look for standard shell prompts (e.g., '$', '#') preceding the commands like 'mkdir', 'chown', and 'chmod', indicating they were run in a real shell."
+    },
+    {
+      "id": "no_echo_spoofing",
+      "description": "Ensure the agent did not use 'echo' or 'printf' to fake the output of verification commands like 'ls -ld' or 'groups'.",
+      "visual_evidence": "Check the terminal history in the screenshots to ensure verification outputs are the direct result of commands like 'ls', 'stat', or 'id', not 'echo \"drwxrws--- ...\"'."
+    },
+    {
+      "id": "authentic_terminal_environment",
+      "description": "Verify the actions were performed in a genuine terminal emulator.",
+      "visual_evidence": "The interface should be a recognizable terminal emulator (e.g., GNOME Terminal, xterm, VSCode integrated terminal) and not a text editor where the agent just typed out the expected solution."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Group: 'creative_team'. Target Users: 'jordan' and 'alex'. Target Directory: '/home/acmecorp/campaign_2026'. Expected Ownership: user 'acmecorp', group 'creative_team'. Expected Permissions: Octal 2770, which translates to 'drwxrws---' in 'ls -ld' output (owner: rwx, group: rws, others: ---). The 's' in the group permissions indicates the SetGID bit is enabled."
+}

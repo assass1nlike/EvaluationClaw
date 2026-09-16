@@ -1,0 +1,32 @@
+{
+  "id": "computed_variable_efficiency@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Calculate a new 'Study Efficiency' metric using the open 'ExamAnxiety.csv' dataset in JASP. Create a scale computed column named 'Efficiency' using the formula: Efficiency = Exam / (Revise + 1). Export the updated dataset to /home/ga/Documents/JASP/efficiency_data.csv. Perform a Descriptive Statistics analysis on the 'Efficiency' variable including a density plot. Save the JASP project to /home/ga/Documents/JASP/efficiency_analysis.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/computed_variable_efficiency/setup_task.sh",
+    "post_task": "/workspace/tasks/computed_variable_efficiency/export_result.sh"
+  },
+  "metadata": {
+    "input_dataset": "/home/ga/Documents/JASP/ExamAnxiety.csv",
+    "expected_csv_path": "/home/ga/Documents/JASP/efficiency_data.csv",
+    "expected_jasp_path": "/home/ga/Documents/JASP/efficiency_analysis.jasp",
+    "formula_variables": [
+      "Exam",
+      "Revise"
+    ],
+    "target_column": "Efficiency"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_computed_variable_efficiency"
+    }
+  }
+}

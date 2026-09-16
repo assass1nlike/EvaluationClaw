@@ -1,0 +1,26 @@
+{
+  "id": "extract_dicom_parameters@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A medical physicist is auditing imaging protocols and needs to document the acquisition parameters of the CT Cranium dataset loaded in InVesalius from /home/ga/DICOM/ct_cranium. Extract the total number of slices, image matrix dimensions, in-plane pixel spacing in millimeters, slice thickness in millimeters, and imaging modality. Record these parameters in 'key: value' format using the keys 'slices', 'matrix', 'pixel_spacing', 'slice_thickness', and 'modality' to a text file at /home/ga/Documents/ct_parameters.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_dicom_parameters/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_dicom_parameters/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/ct_parameters.txt",
+    "ground_truth_path": "/var/lib/invesalius_ground_truth/ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_dicom_parameters"
+    }
+  }
+}

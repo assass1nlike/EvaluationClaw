@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_api_keys@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_rest_api",
+      "description": "Navigate to the WooCommerce REST API settings page.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the WordPress admin dashboard with WooCommerce -> Settings -> Advanced -> REST API selected."
+    },
+    {
+      "id": "configure_api_key",
+      "description": "Configure the new API key with the correct description, user, and permissions.",
+      "points": 20,
+      "visual_evidence": "The API key creation form is visible with 'ShipStation Integration' in the Description field, 'admin' (or the main admin user) in the User field, and 'Read/Write' selected in the Permissions dropdown."
+    },
+    {
+      "id": "generate_keys_success",
+      "description": "Successfully generate the API keys.",
+      "points": 20,
+      "visual_evidence": "A success screen is visible displaying the newly generated 'Consumer key' (starting with ck_) and 'Consumer secret' (starting with cs_)."
+    },
+    {
+      "id": "open_target_file",
+      "description": "Open the target file to save the credentials.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or a terminal window is open showing interaction with the file path '/home/ga/api_credentials.txt'."
+    },
+    {
+      "id": "write_description_line",
+      "description": "Write the Description line in the required format.",
+      "points": 10,
+      "visual_evidence": "The text file contains the exact line 'Description: ShipStation Integration'."
+    },
+    {
+      "id": "write_keys_lines",
+      "description": "Write the Consumer Key and Consumer Secret in the required format.",
+      "points": 30,
+      "visual_evidence": "The text file contains the lines 'Consumer Key: [actual key]' and 'Consumer Secret: [actual secret]', where the bracketed values match the keys generated in the WooCommerce GUI."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the WordPress/WooCommerce GUI to generate the keys.",
+      "visual_evidence": "Screenshots should show the agent clicking through the WordPress admin panel to create the keys, rather than using a terminal script, WP-CLI, or direct database insertion."
+    },
+    {
+      "id": "authentic_keys_saved",
+      "description": "The keys saved in the text file match the actual keys generated.",
+      "visual_evidence": "The 'ck_...' and 'cs_...' strings typed or pasted into the text file must be identical to those shown on the WooCommerce success screen, not dummy values or placeholders."
+    },
+    {
+      "id": "file_actually_saved",
+      "description": "The agent actually saved the credentials file.",
+      "visual_evidence": "If using a GUI text editor, there should be no 'unsaved changes' indicator (like an asterisk next to the filename) in the final screenshots. If using a terminal, the command to write the file (e.g., echo, cat) must have been executed."
+    }
+  ],
+  "privileged_info_for_vlm": "The API key must have the exact description 'ShipStation Integration' and 'Read/Write' permissions. The credentials must be saved to '/home/ga/api_credentials.txt'. WooCommerce Consumer Keys typically start with 'ck_' and Consumer Secrets start with 'cs_'."
+}

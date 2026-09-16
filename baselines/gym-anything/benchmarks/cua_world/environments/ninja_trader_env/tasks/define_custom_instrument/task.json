@@ -1,0 +1,29 @@
+{
+  "id": "define_custom_instrument@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Create a new custom instrument in NinjaTrader 8 named 'QUANTA' with the following specifications: Master Instrument: Stock, Currency: US Dollar, Exchange: Default, Point Value: 1, Tick Size: 0.05, and Trading Hours: Default 24x7. Export the instrument definition to C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\QUANTA_Definition.xml.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\define_custom_instrument\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\define_custom_instrument\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument_name": "QUANTA",
+    "expected_tick_size": 0.05,
+    "expected_point_value": 1.0,
+    "expected_type": "Stock",
+    "export_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\QUANTA_Definition.zip"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_define_custom_instrument"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "annotate_pdf_highlight@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Attach the file /home/ga/Documents/attention_paper.pdf to the library item 'Attention Is All You Need' (Vaswani et al., 2017). In the PDF, highlight the sentence in the Abstract starting with 'We propose a new simple network architecture, the Transformer...' and add a comment to the highlight with the text 'Core definition'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/annotate_pdf_highlight/setup_task.sh",
+    "post_task": "/workspace/tasks/annotate_pdf_highlight/export_result.sh"
+  },
+  "metadata": {
+    "target_paper_title": "Attention Is All You Need",
+    "pdf_path": "/home/ga/Documents/attention_paper.pdf",
+    "target_highlight_text": "We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely.",
+    "target_comment": "Core definition",
+    "pdf_content_stub": "Abstract\n\nThe dominant sequence transduction models are based on complex recurrent or convolutional neural networks. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annotate_pdf_highlight"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "fix_delivery_routing_engine@1",
+  "task_completion": [
+    {
+      "id": "open_routing_script",
+      "description": "Open the routing_engine.py script in a text editor or IDE.",
+      "points": 10,
+      "visual_evidence": "A text editor (like VS Code, Vim, or Nano) is visible displaying the contents of /home/ga/workspace/routing_system/routing_engine.py."
+    },
+    {
+      "id": "fix_distance_scaling",
+      "description": "Fix the logical bug related to distance scaling.",
+      "points": 15,
+      "visual_evidence": "Code modifications in routing_engine.py adjusting how distances or coordinates are scaled (e.g., multiplying or dividing by a constant to match integer requirements for OR-Tools)."
+    },
+    {
+      "id": "fix_node_indexing",
+      "description": "Fix the logical bug related to node indexing.",
+      "points": 15,
+      "visual_evidence": "Code modifications correcting the mapping between routing nodes and matrix indices, typically involving manager.NodeToIndex or manager.IndexToNode."
+    },
+    {
+      "id": "fix_driver_slack_time",
+      "description": "Fix the logical bug related to driver slack time.",
+      "points": 15,
+      "visual_evidence": "Code modifications in the time dimension setup, specifically adjusting slack variables or capacities (e.g., slack_max) to allow for driver waiting/slack time."
+    },
+    {
+      "id": "fix_drop_penalties",
+      "description": "Fix the logical bug related to drop penalties.",
+      "points": 15,
+      "visual_evidence": "Code modifications adding or correcting routing.AddDisjunction() calls to properly apply penalty costs for unassigned or dropped nodes."
+    },
+    {
+      "id": "fix_depot_time_windows",
+      "description": "Fix the logical bug related to depot time windows (Depot Return Constraint).",
+      "points": 15,
+      "visual_evidence": "Code modifications setting the time window for the depot end nodes, typically using time_dimension.CumulVar(routing.End(v)).SetRange() or similar logic."
+    },
+    {
+      "id": "execute_routing_solver",
+      "description": "Run the fixed routing engine script to produce valid routes.",
+      "points": 15,
+      "visual_evidence": "A terminal window showing the execution of python routing_engine.py with output displaying the generated routes, objective value, or solver statistics."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_edits",
+      "description": "Verify the agent actually edited the Python file using an editor or valid commands, rather than just printing text to the console.",
+      "visual_evidence": "Presence of a text editor interface or file modification commands (like sed/echo) targeting the actual routing_engine.py file."
+    },
+    {
+      "id": "no_hardcoded_output",
+      "description": "Verify the agent did not hardcode the final route output to bypass the OR-Tools solver.",
+      "visual_evidence": "The code in routing_engine.py should contain genuine OR-Tools solver logic (routing.SolveWithParameters) and dynamic print statements, not static strings of the expected output."
+    },
+    {
+      "id": "genuine_solver_execution",
+      "description": "Verify the script was actually executed and produced solver output.",
+      "visual_evidence": "Terminal output showing typical OR-Tools execution logs or formatted route outputs that match the script's print logic, rather than a mocked terminal echo."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in an OR-Tools VRP routing engine for 11 nodes and 3 vehicles. The 5 fixes correspond to distance scaling, node indexing, driver slack time, drop penalties, and depot time windows. Note: The automated verifier has a strict regex expecting `routing.End(v)` for the depot return constraint; however, functionally equivalent loop variables (e.g., `vehicle_id` instead of `v`) are logically correct and should be accepted by the VLM if seen in the code."
+}

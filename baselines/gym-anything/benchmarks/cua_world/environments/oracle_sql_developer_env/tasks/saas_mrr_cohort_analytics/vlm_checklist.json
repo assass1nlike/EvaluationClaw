@@ -1,0 +1,53 @@
+{
+  "task_id": "saas_mrr_cohort_analytics@1",
+  "task_completion": [
+    {
+      "id": "promo_abusers_view",
+      "description": "Verify the creation of the PROMO_ABUSERS_VW view with the required columns.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL client executing 'CREATE VIEW PROMO_ABUSERS_VW' or a SELECT statement returning the exact columns: customer_id, abuse_start_date, abuse_end_date, and number_of_cycles."
+    },
+    {
+      "id": "cohort_retention_view",
+      "description": "Verify the creation of the COHORT_RETENTION_VW view with the required columns.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL client executing 'CREATE VIEW COHORT_RETENTION_VW' or a SELECT statement returning the exact columns: COHORT_MONTH, TOTAL_CUSTOMERS, M0, M1, M2, M3, M4, M5, M6."
+    },
+    {
+      "id": "cohort_retention_percentages",
+      "description": "Verify that the cohort retention view contains percentage values rounded to 2 decimal places.",
+      "points": 10,
+      "visual_evidence": "Look at the query results for COHORT_RETENTION_VW. The values in columns M0 through M6 should be numbers between 0 and 100 (representing percentages), with up to two decimal places."
+    },
+    {
+      "id": "mrr_waterfall_table",
+      "description": "Verify the creation of the MRR_WATERFALL_2023 table with the required columns.",
+      "points": 25,
+      "visual_evidence": "Look for a SQL client executing 'CREATE TABLE MRR_WATERFALL_2023' or a SELECT statement returning the exact columns: REPORTING_MONTH, BEGINNING_MRR, NEW_MRR, EXPANSION_MRR, CONTRACTION_MRR, CHURN_MRR, REACTIVATION_MRR, ENDING_MRR."
+    },
+    {
+      "id": "mrr_waterfall_positive_values",
+      "description": "Verify that the MRR waterfall table contains positive metric values for all components.",
+      "points": 25,
+      "visual_evidence": "Look at the query results for MRR_WATERFALL_2023. Ensure that the values in CONTRACTION_MRR and CHURN_MRR are positive numbers (not negative), as explicitly required by the task description."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_client_used",
+      "description": "Verify the agent used a genuine database client or CLI to interact with the Oracle database.",
+      "visual_evidence": "Look for interfaces like DBeaver, Oracle SQL Developer, DataGrip, or a terminal running SQL*Plus/sqlcl, rather than just a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent wrote actual SQL logic rather than hardcoding the expected output.",
+      "visual_evidence": "Look at the SQL queries used to create the views and tables. They should contain complex logic (e.g., JOINs, window functions, aggregations) rather than simple 'SELECT 100 AS BEGINNING_MRR' statements."
+    },
+    {
+      "id": "queried_actual_schema",
+      "description": "Verify the agent queried the actual SAAS_ADMIN transactional logs.",
+      "visual_evidence": "Look for SQL queries referencing the raw event logs or tables within the SAAS_ADMIN schema, rather than creating dummy tables to bypass the logic."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

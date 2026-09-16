@@ -1,0 +1,80 @@
+{
+  "dataset_id": "6b429232",
+  "name": "Multi-Page Invoice Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 144,
+  "description": "This dataset evaluates visual question answering on multi-page invoice documents. Each sample pairs a natural-language question with one or more invoice page images, requiring the model to extract specific information such as costs, totals, or state details.",
+  "card_text": "The dataset consists of 144 samples pairing natural-language questions with one or more invoice page images. The questions are typically short and ask for specific details such as costs, totals, dates, or state information. The images are scanned or rendered invoice documents, often spanning multiple pages, and the answers are short text strings that may contain multiple values separated by slashes. The task requires the model to locate and read relevant text and numbers from the invoice images and produce the correct answer. The data is multimodal, with image and text as input and text as output. It assumes the model can perform optical character recognition and reasoning over structured document layouts.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "invoice document VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of image file references to one or more pages of an invoice document. These images constitute the visual context that the question asks about, and the model must read text and numbers from them to answer.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question about the invoice document, asking for specific information such as cost per page, total amount, state, or other details. It queries the context images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The expected answer text, a short string extracted from the invoice document. It may contain multiple values separated by a slash (e.g., '.15 per page / 78.96'). It directly answers the question based on the document images.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a natural-language question (input.prompt) and one or more invoice page images (input.image_files) that serve as the visual context. The expected output is a short text answer (output.text) extracted from the invoice content, occasionally containing multiple values separated by slashes. The images are the main source of information that the question queries."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageInvoiceDocumentVisualQuestionAnswering/multi-page_invoice_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Invoice Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

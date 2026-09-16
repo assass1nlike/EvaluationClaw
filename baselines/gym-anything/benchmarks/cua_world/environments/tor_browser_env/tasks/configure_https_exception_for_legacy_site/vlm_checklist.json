@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_https_exception_for_legacy_site@1",
+  "task_completion": [
+    {
+      "id": "https_only_mode_enabled",
+      "description": "Verify that the global HTTPS-Only Mode setting remains enabled in Tor Browser.",
+      "points": 15,
+      "visual_evidence": "In the Tor Browser Settings (Privacy & Security), the option for 'Enable HTTPS-Only Mode in all windows' (or similar global HTTPS-Only setting) should be selected/toggled on."
+    },
+    {
+      "id": "permanent_exception_added",
+      "description": "Verify that a permanent exception was created for http://neverssl.com.",
+      "points": 30,
+      "visual_evidence": "The 'HTTPS-Only Mode Exceptions' or 'Manage Exceptions' dialog in Tor Browser settings should list 'http://neverssl.com' or 'neverssl.com' with the status set to 'Off' or 'Allow', indicating HTTPS is not forced for this site."
+    },
+    {
+      "id": "site_navigated",
+      "description": "Verify that the agent navigated to the target legacy site.",
+      "points": 20,
+      "visual_evidence": "The Tor Browser address bar should show 'neverssl.com' (or 'http://neverssl.com') and the main content of the NeverSSL website should be visible in the viewport, without showing an HTTPS-Only Mode warning page."
+    },
+    {
+      "id": "bookmark_created",
+      "description": "Verify that the site was bookmarked.",
+      "points": 15,
+      "visual_evidence": "The bookmark star icon in the Tor Browser address bar should be filled/highlighted, or the 'Edit Bookmark' dialog/popup should be visible."
+    },
+    {
+      "id": "bookmark_title_correct",
+      "description": "Verify that the bookmark title is exactly 'Legacy Target'.",
+      "points": 20,
+      "visual_evidence": "The 'Edit Bookmark' popup, bookmark sidebar, or bookmark library must show the name/title of the bookmark for neverssl.com as exactly 'Legacy Target'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "Verify the agent used the actual Tor Browser application.",
+      "visual_evidence": "Screenshots should show the genuine Tor Browser interface (tabs, address bar, application menu) rather than a text editor or terminal modifying configuration files directly."
+    },
+    {
+      "id": "no_temporary_bypass",
+      "description": "Verify the agent did not use a temporary session-based exception.",
+      "visual_evidence": "The agent should not be seen clicking 'Continue to HTTP Site' on the Tor Browser HTTPS-Only Mode warning screen, as this only creates a temporary exception."
+    },
+    {
+      "id": "gui_settings_interaction",
+      "description": "Verify the agent interacted with the browser settings GUI to create the permanent exception.",
+      "visual_evidence": "There should be screenshots showing the Tor Browser 'about:preferences' or Settings tab, specifically the Privacy & Security section and the Exceptions dialog."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain is 'neverssl.com'. The exact URL to be excepted and navigated to is 'http://neverssl.com/'. The expected bookmark title is exactly 'Legacy Target'."
+}

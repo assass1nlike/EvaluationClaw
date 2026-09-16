@@ -1,0 +1,53 @@
+{
+  "task_id": "split_into_modules@1",
+  "task_completion": [
+    {
+      "id": "parent_pom_created",
+      "description": "Verify the parent POM is configured with the three child modules.",
+      "points": 15,
+      "visual_evidence": "Look for a pom.xml file in the root directory (~/IdeaProjects/petclinic-mono) open in an editor, containing a <modules> section that lists 'petclinic-model', 'petclinic-service', and 'petclinic-app'."
+    },
+    {
+      "id": "model_module_structure",
+      "description": "Verify the 'petclinic-model' module contains the correct packages.",
+      "points": 15,
+      "visual_evidence": "Look at the file explorer/tree in the IDE. There should be a 'petclinic-model' directory containing 'src/main/java/com/petclinic/model' and 'src/main/java/com/petclinic/util'."
+    },
+    {
+      "id": "service_module_structure_and_deps",
+      "description": "Verify the 'petclinic-service' module contains the correct package and depends on 'petclinic-model'.",
+      "points": 20,
+      "visual_evidence": "Look for a 'petclinic-service' directory containing 'src/main/java/com/petclinic/service' in the file tree. Also, look for the 'petclinic-service/pom.xml' file showing a <dependency> on the 'petclinic-model' artifact."
+    },
+    {
+      "id": "app_module_structure_and_deps",
+      "description": "Verify the 'petclinic-app' module contains the correct package and depends on both 'petclinic-model' and 'petclinic-service'.",
+      "points": 20,
+      "visual_evidence": "Look for a 'petclinic-app' directory containing 'src/main/java/com/petclinic/app' in the file tree. Also, look for the 'petclinic-app/pom.xml' file showing <dependency> entries for both 'petclinic-model' and 'petclinic-service'."
+    },
+    {
+      "id": "maven_build_success",
+      "description": "Verify the project compiles and packages successfully using 'mvn clean package'.",
+      "points": 30,
+      "visual_evidence": "Look for a terminal or IDE run tool window showing the execution of 'mvn clean package' (or similar Maven lifecycle execution) with a 'BUILD SUCCESS' message at the end, indicating all modules were built successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_movement",
+      "description": "Verify that the original Java files were actually moved into the new modules, not just empty directories created.",
+      "visual_evidence": "In the file tree, the new module package directories should contain the actual Java files (e.g., Pet.java, Owner.java in model; ClinicService.java in service; PetClinicApp.java in app)."
+    },
+    {
+      "id": "authentic_maven_execution",
+      "description": "Verify that the Maven build was genuinely executed in a terminal or IDE build tool.",
+      "visual_evidence": "The build output should show standard Maven log formatting (e.g., '[INFO] Scanning for projects...', reactor build order, and compilation logs), not just a manually typed 'BUILD SUCCESS' message."
+    },
+    {
+      "id": "ide_or_editor_usage",
+      "description": "Verify the agent used an editor or IDE to perform the refactoring.",
+      "visual_evidence": "Screenshots should show an IDE (like IntelliJ IDEA) or a text editor being used to edit the pom.xml files and manage the project structure."
+    }
+  ],
+  "privileged_info_for_vlm": "Project root is /home/ga/IdeaProjects/petclinic-mono. The expected child modules are 'petclinic-model', 'petclinic-service', and 'petclinic-app'. The 'petclinic-model' module must contain packages 'com/petclinic/model' (containing Pet.java, Owner.java) and 'com/petclinic/util' (containing DateFormatter.java). The 'petclinic-service' module must contain 'com/petclinic/service' (containing ClinicService.java, ClinicServiceImpl.java). The 'petclinic-app' module must contain 'com/petclinic/app' (containing PetClinicApp.java)."
+}

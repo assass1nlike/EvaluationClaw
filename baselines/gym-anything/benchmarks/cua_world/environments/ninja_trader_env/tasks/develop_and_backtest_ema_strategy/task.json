@@ -1,0 +1,29 @@
+{
+  "id": "develop_and_backtest_ema_strategy@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Act as a quantitative developer to create and validate a new trading strategy in NinjaTrader 8. Modify the 'SampleMACrossover' strategy to use Exponential Moving Averages (EMA) instead of Simple Moving Averages (SMA) and save it as a new strategy named 'SampleEMACrossover'. Ensure the parameters remain Fast=10 and Slow=25. Compile the strategy and validate it by running a backtest on SPY using a Daily interval for the period Jan 1, 2023, to Dec 31, 2023. Save the workspace to persist your configuration. Note: The environment has real market data for SPY pre-loaded.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/develop_and_backtest_ema_strategy/setup_task.sh",
+    "post_task": "/workspace/tasks/develop_and_backtest_ema_strategy/export_result.sh"
+  },
+  "metadata": {
+    "strategy_name": "SampleEMACrossover",
+    "source_path": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies\\SampleEMACrossover.cs",
+    "expected_indicator": "EMA",
+    "forbidden_indicator": "SMA",
+    "backtest_instrument": "SPY"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_develop_and_backtest_ema_strategy"
+    }
+  }
+}

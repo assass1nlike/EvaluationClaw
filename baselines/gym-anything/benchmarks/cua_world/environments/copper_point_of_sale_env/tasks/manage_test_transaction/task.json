@@ -1,0 +1,28 @@
+{
+  "id": "manage_test_transaction@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Perform a 'voiding drill' in NCH Copper Point of Sale to simulate an error correction workflow. Create a cash sale for one 'USB-C Charging Cable 3ft' (Item Code: USB-C30) and then permanently delete (void) the transaction so that no trace of the test record remains in the system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\manage_test_transaction\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\manage_test_transaction\\export_result.ps1"
+  },
+  "metadata": {
+    "target_item_name": "USB-C Charging Cable 3ft",
+    "target_item_code": "USB-C30",
+    "payment_method": "Cash",
+    "db_path": "C:\\ProgramData\\NCH Software\\Copper\\Shared"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manage_test_transaction"
+    }
+  }
+}

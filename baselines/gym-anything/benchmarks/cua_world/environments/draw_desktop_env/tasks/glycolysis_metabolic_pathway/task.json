@@ -1,0 +1,42 @@
+{
+  "id": "glycolysis_metabolic_pathway@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "A Biochemistry Professor needs a vector diagram of the 'Energy Investment Phase' of Glycolysis (Steps 1-5) for a lecture slide. Using the reaction data provided in '~/Desktop/glycolysis_reactions.txt', create a sequential metabolic pathway diagram in draw.io. The diagram must use rectangles or rounded rectangles for molecules and arrows labeled with the specific enzyme names for reactions. Explicitly represent the split of Fructose-1,6-Bisphosphate into two different molecules and label ATP consumption and ADP production where applicable. Ensure all six main carbon molecules and five enzymes from the text file are present and named correctly. Save the source file as '~/Desktop/glycolysis.drawio' and export the diagram as '~/Desktop/glycolysis.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/glycolysis_metabolic_pathway/setup_task.sh",
+    "post_task": "/workspace/tasks/glycolysis_metabolic_pathway/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Desktop/glycolysis_reactions.txt",
+    "expected_drawio": "/home/ga/Desktop/glycolysis.drawio",
+    "expected_png": "/home/ga/Desktop/glycolysis.png",
+    "molecules": [
+      "Glucose",
+      "Glucose-6-Phosphate",
+      "Fructose-6-Phosphate",
+      "Fructose-1,6-Bisphosphate",
+      "Dihydroxyacetone Phosphate",
+      "Glyceraldehyde-3-Phosphate"
+    ],
+    "enzymes": [
+      "Hexokinase",
+      "Phosphoglucose Isomerase",
+      "Phosphofructokinase",
+      "Aldolase",
+      "Triose Phosphate Isomerase"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_glycolysis_pathway"
+    }
+  }
+}

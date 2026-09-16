@@ -1,0 +1,53 @@
+{
+  "task_id": "gdpr_ip_anonymization@1",
+  "task_completion": [
+    {
+      "id": "create_gdpr_logs_index",
+      "description": "Create a new index named 'gdpr_logs'.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Splunk 'Indexes' settings page with 'gdpr_logs' listed, the index creation dialog, or a terminal showing 'indexes.conf' being edited to include '[gdpr_logs]'."
+    },
+    {
+      "id": "create_apache_gdpr_sourcetype_with_sedcmd",
+      "description": "Create a sourcetype named 'apache_gdpr' with an index-time SEDCMD to mask the last octet of IPv4 addresses.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the Splunk 'Sourcetypes' settings page for 'apache_gdpr' with an advanced SEDCMD configuration (e.g., replacing the last octet with 'XXX'), or a terminal showing 'props.conf' being edited with '[apache_gdpr]' and a 'SEDCMD' rule."
+    },
+    {
+      "id": "ingest_apache_logs",
+      "description": "Ingest an Apache log file from '/opt/splunk_data/apache/' using the 'apache_gdpr' sourcetype and 'gdpr_logs' index.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Splunk 'Add Data' workflow showing a file from '/opt/splunk_data/apache/' being uploaded or monitored, with the destination index explicitly set to 'gdpr_logs' and the sourcetype set to 'apache_gdpr'."
+    },
+    {
+      "id": "verify_anonymized_data_in_search",
+      "description": "Verify that the ingested logs have their IPv4 addresses permanently anonymized with 'XXX' in the last octet.",
+      "points": 25,
+      "visual_evidence": "Screenshots of the Splunk Search app querying 'index=\"gdpr_logs\"' (or similar) where the raw event data clearly shows IP addresses ending in 'XXX' (e.g., 192.168.1.XXX) without the use of search-time masking commands like 'rex' or 'eval' in the search bar."
+    },
+    {
+      "id": "create_saved_search_report",
+      "description": "Create a saved search named 'Anonymized_Traffic_Report' that queries the 'gdpr_logs' index.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the 'Save As Report' dialog with the name 'Anonymized_Traffic_Report', or the Splunk 'Reports' page listing 'Anonymized_Traffic_Report' as an available saved search."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_splunk_interaction",
+      "description": "The agent interacted with the actual Splunk application or its configuration files.",
+      "visual_evidence": "Screenshots must show the Splunk Web UI (http://localhost:8000), Splunk CLI commands, or terminal editors modifying actual Splunk .conf files, not a generic text editor writing mock answers."
+    },
+    {
+      "id": "index_time_anonymization",
+      "description": "The anonymization was performed at index-time via SEDCMD, not search-time.",
+      "visual_evidence": "The search bar in the Splunk Search app should only contain basic search terms (like 'index=\"gdpr_logs\"'). It must NOT contain 'eval', 'rex', or 'replace' commands to mask the IPs on the fly."
+    },
+    {
+      "id": "authentic_log_data",
+      "description": "The agent ingested actual Apache log files rather than manually typing fake log entries.",
+      "visual_evidence": "The search results should display standard Apache web server log formats with multiple distinct entries, rather than a single manually crafted string."
+    }
+  ],
+  "privileged_info_for_vlm": "Target index: 'gdpr_logs'. Target sourcetype: 'apache_gdpr'. Target report name: 'Anonymized_Traffic_Report'. IP mask: 'XXX' (replacing the last octet of IPv4 addresses). Splunk credentials: admin / SplunkAdmin1!."
+}

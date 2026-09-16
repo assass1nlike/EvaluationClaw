@@ -1,0 +1,39 @@
+{
+  "id": "voronoi_spatial_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Voronoi Tessellation and Spatial Distribution Analysis",
+  "description": "Perform a spatial distribution analysis on the 'Blobs (25K)' sample image using Voronoi tessellation to quantify the regularity of the particle distribution. Generate a Voronoi diagram based on the particle centroids and measure the area of the resulting cells. Calculate summary statistics for the cell areas, including Mean, Standard Deviation, and Coefficient of Variation (CV). Save the individual cell measurements and the summary statistics to ~/ImageJ_Data/results/voronoi_spatial_analysis.csv. Login: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "tags": [
+    "spatial-analysis",
+    "voronoi",
+    "tessellation",
+    "distribution",
+    "statistics",
+    "imagej"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/voronoi_spatial_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/voronoi_spatial_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/voronoi_spatial_analysis.csv",
+    "min_cell_count": 20,
+    "expected_median_area_min": 200,
+    "expected_median_area_max": 5000,
+    "expected_cv_min": 0.1,
+    "expected_cv_max": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_voronoi_analysis"
+    }
+  }
+}

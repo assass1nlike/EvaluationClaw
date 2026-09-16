@@ -1,0 +1,28 @@
+{
+  "id": "defect_triage_and_escalation@1",
+  "version": "1.0",
+  "env_id": "openproject_env@0.1",
+  "description": "You are logged into OpenProject at http://localhost:8080 as admin (password: Admin1234!). You are a QA Analyst performing a critical defect triage session for the 'mobile-banking-app' project after a production incident.\n\nUpdate the 'Fix transaction history pagination bug' (assigned to alice.johnson) by setting its priority to 'Immediate', changing its status to 'In progress', and adding the comment: 'PRODUCTION INCIDENT: Users cannot see transactions older than 90 days. Customer support tickets increasing. Escalated to P0. All hands on deck until resolved.' For the 'Security audit - JWT token expiration' (assigned to carol.williams), change the priority to 'High' and add the comment: 'Security vulnerability confirmed: JWT tokens persist after logout. Must be patched before next release. Adding to Sprint 1 security hardening scope.' \n\nCreate a new 'Bug' work package in the 'mobile-banking-app' project with the subject 'Emergency: Token invalidation on user logout' assigned to carol.williams in 'Sprint 1 - Auth & Onboarding' with 'Urgent' priority and the description: 'Implement immediate token revocation when user logs out. Related to JWT security audit findings.' Additionally, create a wiki page in the 'mobile-banking-app' project titled 'Incident Report - Transaction History' documenting the production incident, including the bug description, customer impact, escalation timeline, assigned team members, and remediation steps.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/defect_triage_and_escalation/setup_task.sh",
+    "post_task": "/workspace/tasks/defect_triage_and_escalation/export_result.sh"
+  },
+  "metadata": {
+    "project_identifier": "mobile-banking-app",
+    "pagination_wp_subject": "Fix transaction history pagination bug",
+    "jwt_wp_subject": "Security audit - JWT token expiration",
+    "new_bug_subject": "Emergency: Token invalidation on user logout",
+    "wiki_title": "Incident Report - Transaction History"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_defect_triage_and_escalation"
+    }
+  }
+}

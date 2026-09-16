@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_tls_interception_and_hardening@1",
+  "task_completion": [
+    {
+      "id": "import_proxy_cert",
+      "description": "Import the custom proxy certificate into Tor Browser.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the Tor Browser Certificate Manager (Authorities tab) with a file selection dialog opening '/home/ga/Documents/ProxyRootCA.crt', or the certificate successfully listed under the Authorities."
+    },
+    {
+      "id": "trust_proxy_cert",
+      "description": "Set the imported proxy certificate to be trusted to identify websites.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 'Downloading Certificate' or 'Edit Trust Settings' dialog in Tor Browser with the checkbox 'Trust this CA to identify websites.' explicitly checked."
+    },
+    {
+      "id": "export_isrg_root",
+      "description": "Export the built-in 'ISRG Root X1' certificate to the specified backup path.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'ISRG Root X1' selected in the Tor Browser Certificate Manager and a save dialog exporting it to '/home/ga/Documents/ISRG_Root_Backup.crt', or a file manager showing the newly created backup file in that location."
+    },
+    {
+      "id": "set_tls_min",
+      "description": "Configure the minimum TLS version in about:config.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the Tor Browser 'about:config' page with the preference 'security.tls.version.min' searched and its value set to '3'."
+    },
+    {
+      "id": "set_cert_pinning",
+      "description": "Configure the certificate pinning enforcement level in about:config.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the Tor Browser 'about:config' page with the preference 'security.cert_pinning.enforcement_level' searched and its value set to '2'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_tor_browser_gui",
+      "description": "The agent used the Tor Browser GUI to make configuration changes rather than bypassing it via terminal.",
+      "visual_evidence": "Screenshots should show the actual Tor Browser interface (Certificate Manager, about:config) being interacted with, rather than terminal commands modifying 'prefs.js' or using 'certutil'."
+    },
+    {
+      "id": "genuine_file_export",
+      "description": "The agent genuinely exported the certificate from the browser.",
+      "visual_evidence": "Screenshots should show the browser's export/save dialog being used for the ISRG Root X1 certificate, rather than a terminal 'cp' command copying a system certificate to the destination."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not use a text editor to manually write the expected configuration values.",
+      "visual_evidence": "Screenshots should not show text editors (like nano, vim, or gedit) being used to directly edit Tor Browser's 'prefs.js' file to insert the expected values."
+    }
+  ],
+  "privileged_info_for_vlm": "The proxy CA certificate to be imported is located at '/home/ga/Documents/ProxyRootCA.crt'. The ISRG Root X1 certificate must be exported to exactly '/home/ga/Documents/ISRG_Root_Backup.crt'. In about:config, 'security.tls.version.min' must be set to exactly '3' (which corresponds to TLS 1.2), and 'security.cert_pinning.enforcement_level' must be set to exactly '2'."
+}

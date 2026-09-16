@@ -1,0 +1,31 @@
+{
+  "id": "star_priority_conversations@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are a Computer Network Support Specialist starting your morning shift. The 'Network Support' mailbox has accumulated several tickets overnight. Star exactly these three critical network incident conversations for priority tracking: \"Core Switch Failure - Building A\", \"VPN Gateway Timeout Errors\", and \"DNS Resolution Failures Across Campus\". Ensure only these three are marked as starred for quick access from the Starred view throughout your shift.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/star_priority_conversations/setup_task.sh",
+    "post_task": "/workspace/tasks/star_priority_conversations/export_result.sh"
+  },
+  "metadata": {
+    "target_subjects": [
+      "Core Switch Failure - Building A",
+      "VPN Gateway Timeout Errors",
+      "DNS Resolution Failures Across Campus"
+    ],
+    "expected_starred_count": 3,
+    "mailbox_name": "Network Support"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_star_priority_conversations"
+    }
+  }
+}

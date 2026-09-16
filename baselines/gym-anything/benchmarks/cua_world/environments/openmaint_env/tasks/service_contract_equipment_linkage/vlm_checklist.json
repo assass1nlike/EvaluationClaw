@@ -1,0 +1,53 @@
+{
+  "task_id": "service_contract_equipment_linkage@1",
+  "task_completion": [
+    {
+      "id": "create_hvac_contract",
+      "description": "Verify the HVAC maintenance service contract was created in OpenMaint.",
+      "points": 15,
+      "visual_evidence": "Look for the OpenMaint web interface showing a contract record with the code 'SVC-2025-HVAC-001' in the contract list or detail view."
+    },
+    {
+      "id": "link_hvac_equipment",
+      "description": "Verify the HVAC contract is associated with the correct equipment.",
+      "points": 20,
+      "visual_evidence": "Look at the relations/links tab for the 'SVC-2025-HVAC-001' contract. It must show links to equipment assets 'EQ-CHILLER-010' and 'EQ-AHU-015'."
+    },
+    {
+      "id": "create_and_link_elevator_contract",
+      "description": "Verify the Elevator maintenance service contract was created and linked to its equipment.",
+      "points": 25,
+      "visual_evidence": "Look for a contract record with the code 'SVC-2025-ELEV-001'. In its relations/links tab, it must show an association with the equipment asset 'EQ-ELEV-007'."
+    },
+    {
+      "id": "create_fire_safety_contract",
+      "description": "Verify the Fire Safety maintenance service contract was created.",
+      "points": 15,
+      "visual_evidence": "Look for the OpenMaint web interface showing a contract record with the code 'SVC-2025-FIRE-001' in the contract list or detail view."
+    },
+    {
+      "id": "exclude_boiler_equipment",
+      "description": "Verify the contamination equipment (EQ-BOILER-003) was correctly excluded and NOT linked to any contract.",
+      "points": 25,
+      "visual_evidence": "Check the relations for the created contracts (especially HVAC) and ensure 'EQ-BOILER-003' is NOT listed. If the equipment record for 'EQ-BOILER-003' is visible, it should not show any linked service contracts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the OpenMaint web GUI to complete the task.",
+      "visual_evidence": "Screenshots should show the agent interacting with the OpenMaint web interface in a browser (http://localhost:8090/cmdbuild/ui/), not using terminal commands (like curl or psql) to manipulate the database directly."
+    },
+    {
+      "id": "read_specifications_file",
+      "description": "Verify the agent opened and read the contract specifications file.",
+      "visual_evidence": "Look for a screenshot showing the agent opening or reading the contents of '/home/ga/Desktop/contract_specifications.txt' (e.g., using cat, less, or a text editor) to gather the required information."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Verify the agent did not fake completion using a text editor.",
+      "visual_evidence": "Ensure the final outputs are shown within the actual OpenMaint application interface, not just typed out in a text editor or terminal window."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must create three contracts in OpenMaint: SVC-2025-HVAC-001, SVC-2025-ELEV-001, and SVC-2025-FIRE-001. The HVAC contract (SVC-2025-HVAC-001) must be linked to equipment EQ-CHILLER-010 and EQ-AHU-015. The Elevator contract (SVC-2025-ELEV-001) must be linked to equipment EQ-ELEV-007. The agent must NOT link equipment EQ-BOILER-003 to any contract, as it is explicitly excluded from vendor coverage."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_shoppable_editorial_content@1",
+  "task_completion": [
+    {
+      "id": "content_type_created",
+      "description": "Verify that the 'Editorial Review' content type was created.",
+      "points": 15,
+      "visual_evidence": "Look for a success message stating the content type 'Editorial Review' has been added, or the content types list page showing 'Editorial Review' with the machine name 'editorial_review'."
+    },
+    {
+      "id": "field_merchandise_created",
+      "description": "Verify that the 'Merchandise' field was added to the 'Editorial Review' content type.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Manage fields' page of the 'Editorial Review' content type showing a field named 'Merchandise' (machine name: field_merchandise) of type 'Entity reference' or 'Reference' targeting a Commerce Product."
+    },
+    {
+      "id": "display_configured_teaser",
+      "description": "Verify that the content display is configured to show the referenced merchandise as a teaser.",
+      "points": 25,
+      "visual_evidence": "Look for the 'Manage display' page of the 'Editorial Review' content type showing the 'Merchandise' field format set to 'Rendered entity' (or similar) with the view mode configured to 'Teaser' (often visible in the settings summary next to the format dropdown)."
+    },
+    {
+      "id": "node_created_published",
+      "description": "Verify that an 'Editorial Review' node titled 'Sony WH-1000XM5 Deep Dive' was created and published.",
+      "points": 20,
+      "visual_evidence": "Look for a success message like 'Editorial Review Sony WH-1000XM5 Deep Dive has been created' or the content list showing the node as published."
+    },
+    {
+      "id": "node_references_product",
+      "description": "Verify that the created node references and displays the 'Sony WH-1000XM5 Wireless Headphones' product.",
+      "points": 20,
+      "visual_evidence": "Look for the viewed node page showing the title 'Sony WH-1000XM5 Deep Dive' and displaying the 'Sony WH-1000XM5 Wireless Headphones' product as a teaser (which typically includes the product title, price, and an 'Add to cart' button)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the Drupal web GUI to perform the tasks.",
+      "visual_evidence": "Screenshots should show the agent navigating through the Drupal admin interface in a web browser, rather than executing Drush commands or scripts in a terminal."
+    },
+    {
+      "id": "genuine_content_creation",
+      "description": "Ensure the agent actually created the content type, field, and node.",
+      "visual_evidence": "Look for intermediate steps like filling out the 'Add content type' form, 'Add field' form, and 'Create Editorial Review' node form."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Ensure the agent did not use browser developer tools to fake success messages or page content.",
+      "visual_evidence": "The browser developer tools (Inspect Element) should not be open and used to modify the DOM text to simulate completion."
+    }
+  ],
+  "privileged_info_for_vlm": "The content type machine name must be 'editorial_review' and the field machine name must be 'field_merchandise'. The field must reference a Commerce Product. The target product is 'Sony WH-1000XM5 Wireless Headphones' (SKU: SONY-WH1000XM5). The display formatter should be 'Rendered entity' (plugin ID: entity_reference_entity_view) using the 'teaser' view mode."
+}

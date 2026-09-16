@@ -1,0 +1,28 @@
+{
+  "id": "add_wms_basemap_layer@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Connect to the Mundialis OSM WMS service (https://ows.mundialis.de/services/service?) and add the 'OSM-WMS' layer to the current project. Use the image/png format and EPSG:4326 SRS for the layer. Ensure the WMS layer is rendered below the existing 'ne_110m_admin_0_countries' layer. Save the project to /home/ga/gvsig_data/projects/wms_basemap_project.gvsproj.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_wms_basemap_layer/setup_task.sh",
+    "post_task": "/workspace/tasks/add_wms_basemap_layer/export_result.sh"
+  },
+  "metadata": {
+    "wms_url": "ows.mundialis.de",
+    "layer_name_fragment": "OSM",
+    "expected_output_path": "/home/ga/gvsig_data/projects/wms_basemap_project.gvsproj",
+    "min_file_size_kb": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_wms_basemap_layer"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "update_receipt_footer@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Log in to the Floreant POS Back Office (PIN: 1111) and update the receipt footer message to display the guest Wi-Fi information. Set the footer message to exactly: \"Wi-Fi: DinerGuest / Pass: pancakes24\" and save the configuration.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_receipt_footer/setup_task.sh",
+    "post_task": "/workspace/tasks/update_receipt_footer/export_result.sh"
+  },
+  "metadata": {
+    "target_footer_text": "Wi-Fi: DinerGuest / Pass: pancakes24",
+    "required_pin": "1111",
+    "db_table": "RESTAURANT",
+    "db_column": "TICKET_FOOTER_MESSAGE"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_receipt_footer"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "create_promo_landing_view@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a targeted promotional landing page for 'Pro Series' equipment at http://localhost using Drupal Views. Build a View named 'Pro Audio Sale' for 'Commerce Products' with a page display at the path '/pro-audio'. The page must filter for published products containing 'Pro' in the title and include a header with the text 'Upgrade your setup with our professional gear.' Additionally, add a 'Pro Audio' link to the Main Navigation menu for this page. Use the credentials admin / Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_promo_landing_view/setup_task.sh",
+    "post_task": "/workspace/tasks/create_promo_landing_view/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "pro-audio",
+    "expected_header_text": "Upgrade your setup with our professional gear",
+    "expected_menu_title": "Pro Audio",
+    "positive_product_match": "Pro",
+    "negative_product_match": "MX Master",
+    "data_source": "Existing product catalog"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_promo_landing_view"
+    }
+  }
+}

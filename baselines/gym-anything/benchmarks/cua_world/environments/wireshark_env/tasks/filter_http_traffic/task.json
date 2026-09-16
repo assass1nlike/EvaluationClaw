@@ -1,0 +1,25 @@
+{
+  "id": "filter_http_traffic@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Filter the network capture file /home/ga/Documents/captures/http.cap to isolate HTTP protocol packets. Export the resulting filtered traffic to /home/ga/Documents/captures/filtered_http.pcap.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 15,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/filter_http_traffic/setup_task.sh",
+    "post_task": "/workspace/tasks/filter_http_traffic/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "http.cap",
+    "display_filter": "http",
+    "expected_output": "filtered_http.pcap"
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::verify_filter_http_traffic"
+    }
+  }
+}

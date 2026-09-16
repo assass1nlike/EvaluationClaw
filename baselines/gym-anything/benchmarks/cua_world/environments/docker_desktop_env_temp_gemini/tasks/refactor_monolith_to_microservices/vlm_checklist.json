@@ -1,0 +1,59 @@
+{
+  "task_id": "refactor_monolith_to_microservices@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_file_created",
+      "description": "Verify that a docker-compose.yml file has been created in the legacy project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'ls' output containing 'docker-compose.yml' in /home/ga/legacy_project/, or a code editor open with this file in the project directory."
+    },
+    {
+      "id": "db_service_configured",
+      "description": "Verify the 'db' service is defined with the correct postgres image and database credentials.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the docker-compose.yml file with a 'db' service using 'image: postgres:15-alpine' and environment variables setting the user to 'notes_user', password to 'notes_password', and database to 'notes_db'."
+    },
+    {
+      "id": "db_named_volume_configured",
+      "description": "Verify a named volume is used for the 'db' service data persistence.",
+      "points": 15,
+      "visual_evidence": "Code editor showing a 'volumes' section under the 'db' service mapping to a named volume (e.g., db_data:/var/lib/postgresql/data), and a corresponding top-level 'volumes:' declaration in the docker-compose.yml."
+    },
+    {
+      "id": "app_service_configured",
+      "description": "Verify the 'app' service is defined to build the Flask app and connect to the 'db' service.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the 'app' service with a 'build' context, port mapping for 5000, and environment variables configuring the database connection to use host 'db', user 'notes_user', password 'notes_password', and db 'notes_db'."
+    },
+    {
+      "id": "containers_running",
+      "description": "Verify both 'app' and 'db' containers are successfully started using Docker Compose.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the output of 'docker compose up' or 'docker compose ps' indicating that both the 'app' and 'db' services are in a running/Up state."
+    },
+    {
+      "id": "app_accessible",
+      "description": "Verify the Flask application is accessible on localhost:5000.",
+      "points": 15,
+      "visual_evidence": "A web browser open to http://localhost:5000 showing the application UI, or a terminal showing a successful 'curl http://localhost:5000' command with an HTML/JSON response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_execution",
+      "description": "Check that Docker commands were actually executed in the terminal and produced genuine output.",
+      "visual_evidence": "Terminal shows standard Docker daemon output logs (e.g., pulling image layers, building steps, attaching to containers, container logs) rather than just typed commands without output."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "Check that the docker-compose.yml and Dockerfile were edited using a real editor or standard terminal commands.",
+      "visual_evidence": "Presence of a text editor (like nano, vim, VS Code) or standard echo/cat commands used to create and modify the files, rather than the files appearing without any user action."
+    },
+    {
+      "id": "genuine_app_verification",
+      "description": "Check that the verification of the app accessibility is genuine and not mocked.",
+      "visual_evidence": "If curl is used, it should show actual HTML/app output. If a browser is used, it should render the actual web page, not a local text file or a manually typed mock response."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/legacy_project. The Docker Compose configuration must define exactly two services: 'app' and 'db'. The 'db' service must use the 'postgres' image (specifically postgres:15-alpine). The 'app' service must be exposed and accessible on port 5000."
+}

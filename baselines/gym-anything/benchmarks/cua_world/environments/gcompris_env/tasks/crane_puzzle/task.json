@@ -1,0 +1,28 @@
+{
+  "id": "crane_puzzle@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete Level 1 and Level 2 of the 'Crane' activity in GCompris. Save a screenshot of the completed state after finishing Level 2 to /home/ga/crane_completion.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/crane_puzzle/setup_task.sh",
+    "post_task": "/workspace/tasks/crane_puzzle/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/home/ga/crane_completion.png",
+    "activity_name": "Crane",
+    "category": "Puzzle",
+    "min_levels": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_crane_puzzle"
+    }
+  }
+}

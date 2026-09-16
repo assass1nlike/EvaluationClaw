@@ -1,0 +1,65 @@
+{
+  "task_id": "ivc_diameter_assessment@1",
+  "task_completion": [
+    {
+      "id": "both_levels_measured",
+      "description": "Agent placed two distinct measurements for the intrahepatic and infrarenal levels.",
+      "points": 10,
+      "visual_evidence": "Screenshots of the 3D Slicer interface show at least two distinct measurement lines (rulers) placed on the abdominal CT scan."
+    },
+    {
+      "id": "measurement_location_valid",
+      "description": "Measurements are correctly located on the Inferior Vena Cava (IVC).",
+      "points": 15,
+      "visual_evidence": "The measurement lines are placed across the IVC (a large vein typically located anterior to the spine and to the right of the aorta in the axial view)."
+    },
+    {
+      "id": "intrahepatic_accuracy",
+      "description": "The intrahepatic measurement is accurate.",
+      "points": 25,
+      "visual_evidence": "The measurement value for the intrahepatic level (the more superior/upper measurement) shown in the 3D Slicer UI or the saved ivc_measurements.mrk.json file is approximately 22.0 mm."
+    },
+    {
+      "id": "infrarenal_accuracy",
+      "description": "The infrarenal measurement is accurate.",
+      "points": 20,
+      "visual_evidence": "The measurement value for the infrarenal level (the more inferior/lower measurement) shown in the 3D Slicer UI or the saved ivc_measurements.mrk.json file is approximately 18.0 mm."
+    },
+    {
+      "id": "report_completeness",
+      "description": "The report file contains all required fields.",
+      "points": 10,
+      "visual_evidence": "A file named 'ivc_report.json' is visible in a text editor or terminal, containing exactly these keys: intrahepatic_diameter_mm, infrarenal_diameter_mm, classification, morphology, and clinical_interpretation."
+    },
+    {
+      "id": "classification_correct",
+      "description": "The classification field contains a valid assessment.",
+      "points": 15,
+      "visual_evidence": "The 'classification' field in the ivc_report.json file contains a valid clinical classification of the IVC status (e.g., 'normal')."
+    },
+    {
+      "id": "morphology_correct",
+      "description": "The morphology field contains a valid assessment.",
+      "points": 5,
+      "visual_evidence": "The 'morphology' field in the ivc_report.json file contains a valid morphological description (e.g., 'normal', 'slit-like', 'plethoric')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_measurement_used",
+      "description": "Verify the agent used the 3D Slicer GUI to perform the measurements rather than just creating the output files directly.",
+      "visual_evidence": "Screenshots must show the 3D Slicer interface with active measurement tools (rulers/lines) on the CT scan, not just a text editor or terminal."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "Verify the report values correspond to the actual measurements taken in the GUI.",
+      "visual_evidence": "The measurement values in the ivc_report.json file match the values shown on the measurement lines in the 3D Slicer GUI."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Verify the agent saved the files to the exact requested directories.",
+      "visual_evidence": "Terminal commands or file explorer windows show the files saved specifically in ~/Documents/SlicerData/AMOS/."
+    }
+  ],
+  "privileged_info_for_vlm": "The Inferior Vena Cava (IVC) corresponds to label 9 in the AMOS 2022 dataset. For this specific case, the ground truth intrahepatic diameter is 22.0 mm and the infrarenal diameter is 18.0 mm. A 'normal' IVC classification and morphology is expected for these measurements."
+}

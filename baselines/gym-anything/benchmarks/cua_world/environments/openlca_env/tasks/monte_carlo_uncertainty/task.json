@@ -1,0 +1,33 @@
+{
+  "id": "monte_carlo_uncertainty@1",
+  "version": "1.0",
+  "env_id": "openlca_env@0.1",
+  "description": "You are an industrial ecologist conducting an uncertainty analysis for a carbon footprint study of electricity generation. Using openLCA, the USLCI database (~/LCA_Imports/uslci_database.zip), and LCIA methods (~/LCA_Imports/lcia_methods.zip), quantify the uncertainty in the global warming potential (GWP) of coal-fired electricity generation. The analysis must utilize a product system for a coal electricity generation process with at least three process input parameters defined by uncertainty distributions. Perform a Monte Carlo simulation with at least 500 iterations and export the mean GWP, standard deviation, and 95% confidence interval to ~/LCA_Results/monte_carlo_results.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 110,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/monte_carlo_uncertainty/setup_task.sh",
+    "post_task": "/workspace/tasks/monte_carlo_uncertainty/export_result.sh"
+  },
+  "metadata": {
+    "target_process": "coal electricity",
+    "simulation_iterations": 500,
+    "output_file": "/home/ga/LCA_Results/monte_carlo_results.csv",
+    "required_statistics": [
+      "mean",
+      "standard_deviation",
+      "confidence_interval"
+    ],
+    "results_dir": "/home/ga/LCA_Results"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_monte_carlo_uncertainty"
+    }
+  }
+}

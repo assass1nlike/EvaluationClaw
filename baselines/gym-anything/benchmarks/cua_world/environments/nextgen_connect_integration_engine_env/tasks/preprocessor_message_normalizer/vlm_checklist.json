@@ -1,0 +1,53 @@
+{
+  "task_id": "preprocessor_message_normalizer@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Channel 'Pharmacy_Message_Normalizer' is created",
+      "points": 10,
+      "visual_evidence": "In the Mirth Connect / NextGen Connect Administrator GUI, a channel named 'Pharmacy_Message_Normalizer' is visible in the Channels list or the Channel editor."
+    },
+    {
+      "id": "source_configured",
+      "description": "Source is configured as TCP Listener on port 6661",
+      "points": 20,
+      "visual_evidence": "In the Source tab of the channel, the Connector Type is set to 'TCP Listener' and the Port is set to '6661'."
+    },
+    {
+      "id": "preprocessor_script",
+      "description": "Preprocessor script is configured to replace '\\n' with '\\r' and trim trailing whitespace",
+      "points": 30,
+      "visual_evidence": "In the Scripts tab, under 'Preprocessor', there is JavaScript code modifying the `message` variable. It should contain logic to replace newlines (e.g., `.replace(/\\n/g, '\\r')`) and trim whitespace (e.g., `.trim()` or regex for trailing spaces)."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Destination is configured to write to the specified directory with the correct filename pattern",
+      "points": 20,
+      "visual_evidence": "In the Destinations tab, the Connector Type is 'File Writer', the Directory is '/tmp/normalized_messages' (or with a trailing slash), and the File Name is 'output_${date:yyyyMMddHHmmss}.hl7'."
+    },
+    {
+      "id": "message_processed",
+      "description": "Test message is processed through the listener port",
+      "points": 20,
+      "visual_evidence": "The Dashboard shows the channel is deployed with >0 messages received/sent, OR a terminal shows a command sending '/home/ga/test_message.hl7' to port 6661 (e.g., using `nc`), OR the 'Send Message' dialog is used to send the message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The NextGen Connect Administrator GUI was used to configure the channel",
+      "visual_evidence": "Screenshots show the actual NextGen Connect (Mirth) Administrator Java application being used, not just text editors modifying XML files."
+    },
+    {
+      "id": "actual_script_logic",
+      "description": "The preprocessor script contains actual logic, not hardcoded output",
+      "visual_evidence": "The preprocessor script uses string manipulation functions (like replace, trim) on the input message, rather than returning a hardcoded string."
+    },
+    {
+      "id": "genuine_message_processing",
+      "description": "The message was processed through the channel, not manually copied",
+      "visual_evidence": "Evidence of message processing exists in the Mirth Dashboard (message counts) or via a network tool sending the file to port 6661, rather than the file being manually copied to the output directory via terminal commands like `cp`."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel name must be exactly 'Pharmacy_Message_Normalizer'. The source must be a TCP Listener on port 6661. The preprocessor script must replace Unix newlines (LF, '\\n') with carriage returns (CR, '\\r') and trim trailing whitespace (the test message has 3 trailing spaces per segment). The destination must be a File Writer to '/tmp/normalized_messages' with filename pattern 'output_${date:yyyyMMddHHmmss}.hl7'. The test message is located at '/home/ga/test_message.hl7'."
+}

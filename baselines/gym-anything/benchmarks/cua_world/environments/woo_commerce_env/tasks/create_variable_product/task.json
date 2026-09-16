@@ -1,0 +1,54 @@
+{
+  "id": "create_variable_product@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "In the WooCommerce admin panel, create and publish a variable product named 'Handcrafted Ceramic Mug' (SKU: HCM-VAR) in the 'Accessories' category. \n\nDescription: 'Beautiful handcrafted ceramic mug, made with locally sourced clay and fired in a wood-burning kiln. Each piece is unique with slight natural variations in the glaze.'\n\nConfigure the product with two attributes used for variations: Size (Small, Large) and Color (Ocean Blue, Forest Green). Enable 'Manage Stock' for all four variations and apply the following settings:\n- Small, Ocean Blue: $18.00, 25 stock\n- Small, Forest Green: $18.00, 30 stock\n- Large, Ocean Blue: $24.00, 15 stock\n- Large, Forest Green: $24.00, 20 stock",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_variable_product/setup_task.sh",
+    "post_task": "/workspace/tasks/create_variable_product/export_result.sh"
+  },
+  "metadata": {
+    "product_name": "Handcrafted Ceramic Mug",
+    "sku": "HCM-VAR",
+    "category": "Accessories",
+    "expected_variation_count": 4,
+    "variations_config": [
+      {
+        "size": "Small",
+        "color": "Ocean Blue",
+        "price": "18.00",
+        "stock": "25"
+      },
+      {
+        "size": "Small",
+        "color": "Forest Green",
+        "price": "18.00",
+        "stock": "30"
+      },
+      {
+        "size": "Large",
+        "color": "Ocean Blue",
+        "price": "24.00",
+        "stock": "15"
+      },
+      {
+        "size": "Large",
+        "color": "Forest Green",
+        "price": "24.00",
+        "stock": "20"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_variable_product"
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "dataset_id": "10e98715",
+  "name": "Openset Sporting-Related Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Sporting-Related VQA dataset is a small open-set visual question answering benchmark. Each sample pairs one or more images with a long textual prompt that embeds instructions, context, history, and a question, and requires a short text answer.",
+  "card_text": "This dataset contains 200 open-set visual question answering samples. Each sample consists of an 'input' object with an 'image_file' array (one or more image filenames) and a 'prompt' string that combines a task instruction, references to a global table image, one or more history contexts (often including prior Q&A pairs and table images), a current context, and a final question. The 'output' object holds a short textual answer. The content mixes sports (e.g., Norwegian football clubs, players) and general knowledge (e.g., films, sequels). Images serve as table captures or visual evidence. The dataset evaluates multi-hop reasoning across images, text, and past Q&A interactions in a zero-shot/openset setting.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "question_answering",
+    "multi_hop_response"
+  ],
+  "domain": "sports and general knowledge visual QA",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "List of image filenames associated with the sample. These images may include a global table, history context tables, or other visual evidence used to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "A long, composite prompt that begins with a task instruction, then references a global table image, provides one or more history contexts (which may include text passages, tables, and prior Q&A pairs), presents a current context, and ends with a question. It serves as the main textual input for answering the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The final question embedded at the end of the prompt, asking about a fact from the current context or history. The model must extract the relevant question and produce an answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The short text answer to the question, typically a named entity, year, or phrase.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an 'input' object with an 'image_file' array (one or more image filenames) and a 'prompt' string that embeds the task instruction, references to a global table image, history contexts (each with text, table images, and prior Q&A), a current context, and a final question. The 'output' object contains a 'text' field with the short answer. The image files serve as visual context or table captures, while the prompt provides the textual context, question, and history needed for multi-hop reasoning."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Sporting-relatedVQA/openset_sporting-related_vqa.json",
+    "existing_tags": {
+      "task": "Sporting-related VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "Sports",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Sports"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "clock_activity@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "You are a childcare worker preparing a lesson. Navigate to the 'Learn to tell time' activity within the 'Discovery' category in GCompris. Save a screenshot of the initial target time to /tmp/clock_before.png. Complete the activity and save a final screenshot to /tmp/clock_after.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clock_activity/setup_task.sh",
+    "post_task": "/workspace/tasks/clock_activity/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "/tmp/clock_before.png",
+      "/tmp/clock_after.png"
+    ],
+    "min_image_size_bytes": 10000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clock_activity"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "internal_nofollow_restriction_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a technical audit of https://crawler-test.com/ to identify internal links blocked by the 'nofollow' attribute. Export the internal nofollow outlinks as a CSV to /home/ga/Documents/SEO/exports/internal_nofollow_report.csv. Additionally, write a summary report to /home/ga/Documents/SEO/reports/nofollow_summary.txt containing the total count of nofollow links identified and one example URL pair (Source -> Destination).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/internal_nofollow_restriction_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/internal_nofollow_restriction_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "expected_csv_path": "/home/ga/Documents/SEO/exports/internal_nofollow_report.csv",
+    "expected_report_path": "/home/ga/Documents/SEO/reports/nofollow_summary.txt",
+    "required_columns": [
+      "Source",
+      "Destination"
+    ],
+    "expected_content_indicators": [
+      "nofollow",
+      "false"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_internal_nofollow_restriction_audit"
+    }
+  }
+}

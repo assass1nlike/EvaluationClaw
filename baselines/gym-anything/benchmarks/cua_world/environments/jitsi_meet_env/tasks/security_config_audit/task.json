@@ -1,0 +1,35 @@
+{
+  "id": "security_config_audit@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Perform a security audit of the 'ConfidentialBoardRoom' meeting (http://localhost:8080/ConfidentialBoardRoom) using the name 'Security Auditor'. Evaluate the status of End-to-End Encryption (E2EE), Lobby Mode, and Password protection, enabling E2EE if available. Save a screenshot of the security options to /home/ga/security_options_screenshot.png. Document your findings in a report at /home/ga/security_audit.txt using the following format:\n\nJITSI MEET SECURITY AUDIT REPORT\n=================================\nMeeting Room: ConfidentialBoardRoom\nAudit Date: [current date]\nAuditor: Security Auditor\n\nSECURITY FEATURES STATUS:\n- End-to-End Encryption (E2EE): [Available/Not Available] | [Enabled/Disabled]\n- Lobby Mode: [Enabled/Disabled]\n- Password Protection: [Set/Not Set]\n\nACTIONS TAKEN:\n- [Describe actions, e.g., 'Enabled E2EE']\n\nRECOMMENDATIONS:\n- [Your observations]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/security_config_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/security_config_audit/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "room_name": "ConfidentialBoardRoom",
+    "report_path": "/home/ga/security_audit.txt",
+    "screenshot_path": "/home/ga/security_options_screenshot.png",
+    "required_keywords": [
+      "ConfidentialBoardRoom",
+      "E2EE",
+      "Lobby",
+      "Password",
+      "SECURITY FEATURES STATUS"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_security_audit"
+    }
+  }
+}

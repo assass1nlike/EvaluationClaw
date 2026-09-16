@@ -1,0 +1,42 @@
+{
+  "id": "panel_layout_drawing@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a control panel internal layout drawing in LibreCAD (units: millimeters) and save it to /home/ga/Documents/LibreCAD/control_panel_layout.dxf. The drawing requires a 600mm x 800mm backplate (BACKPLATE layer, White/Black) starting at (0,0) and 40mm wide wire ducts (WIREDUCT layer, Green) inset 20mm from the perimeter. Three 35mm high DIN rails (DINRAIL layer, Cyan) must span from X=80 to X=520 at Y coordinates 650, 400, and 150. Components (COMPONENTS layer, Red) include a Main Breaker (60x70) at X=100 and PLC (90x70) at X=200 on the top rail; three Contactors (55x55) at X=100, 200, and 300 on the middle rail; and a Terminal Block Strip (300x40) at X=100 on the bottom rail. The drawing must include labels (LABELS layer, Yellow) for QF1, PLC1, KM1, KM2, KM3, TB1 and the title 'MOTOR CONTROL PANEL - INTERNAL LAYOUT', along with dimensions (DIMENSIONS layer, Magenta) for overall width, height, and at least one vertical rail position.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/panel_layout_drawing/setup_task.sh",
+    "post_task": "/workspace/tasks/panel_layout_drawing/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/control_panel_layout.dxf",
+    "required_layers": [
+      "BACKPLATE",
+      "DINRAIL",
+      "WIREDUCT",
+      "COMPONENTS",
+      "LABELS",
+      "DIMENSIONS"
+    ],
+    "required_labels": [
+      "QF1",
+      "PLC1",
+      "KM1",
+      "KM2",
+      "KM3",
+      "TB1",
+      "MOTOR CONTROL PANEL"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_panel_layout_drawing"
+    }
+  }
+}

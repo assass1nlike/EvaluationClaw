@@ -1,0 +1,54 @@
+{
+  "task_id": "database_driven_message_replay_queue@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Channel named 'Staging_Table_Processor' is created",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'Staging_Table_Processor' in the Channels list or Dashboard of Mirth Connect."
+    },
+    {
+      "id": "source_database_reader",
+      "description": "Source is configured as a Database Reader polling the integration_queue table",
+      "points": 20,
+      "visual_evidence": "Look at the Source tab. The connector type should be 'Database Reader'. The SQL query should select from 'integration_queue' with a condition like \"status = 'PENDING'\". The polling frequency should be set to 10 seconds (10000 ms)."
+    },
+    {
+      "id": "destination_file_writer",
+      "description": "Destination is configured as a File Writer to the specified directory",
+      "points": 20,
+      "visual_evidence": "Look at the Destinations tab. The connector type should be 'File Writer'. The Directory should be '/tmp/processed_hl7' and the File Name should use a variable like '${id}.hl7' or similar."
+    },
+    {
+      "id": "database_update_configured",
+      "description": "An update statement is configured to mark records as PROCESSED",
+      "points": 20,
+      "visual_evidence": "Look for an UPDATE SQL statement either in the Source tab's 'Update Statement' section or in a separate Database Writer destination. It should update 'integration_queue' setting \"status = 'PROCESSED'\" and \"processed_at = NOW()\" for the specific record."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "The channel is deployed and running",
+      "points": 10,
+      "visual_evidence": "Look at the Dashboard tab. The 'Staging_Table_Processor' channel should be listed with a status of 'Started' or 'Polling'."
+    },
+    {
+      "id": "messages_processed",
+      "description": "The channel has processed exactly 3 messages",
+      "points": 20,
+      "visual_evidence": "Look at the Dashboard statistics for the 'Staging_Table_Processor' channel. The 'Received' and 'Sent' columns should show exactly 3, corresponding to the 3 initial PENDING records."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "mirth_connect_gui_used",
+      "description": "The agent used the Mirth Connect Administrator GUI to configure the channel",
+      "visual_evidence": "Screenshots should show the Mirth Connect Administrator Java application interface being used to configure the channel, rather than editing XML files directly."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent did not bypass the channel by using terminal commands",
+      "visual_evidence": "There should be no terminal windows showing manual `psql` UPDATE commands or `touch`/`echo` commands creating the .hl7 files in /tmp/processed_hl7."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel name must be 'Staging_Table_Processor'. The database URL is jdbc:postgresql://nextgen-postgres:5432/mirthdb. The table name is 'integration_queue'. The output directory is '/tmp/processed_hl7'. The initial database state has exactly 3 'PENDING' records, so the channel should process exactly 3 messages. The update statement must set status to 'PROCESSED'."
+}

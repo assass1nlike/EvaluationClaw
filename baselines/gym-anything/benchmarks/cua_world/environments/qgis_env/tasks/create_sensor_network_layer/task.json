@@ -1,0 +1,40 @@
+{
+  "id": "create_sensor_network_layer@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Create a GeoPackage vector layer to track sensor deployments. Save the database to /home/ga/GIS_Data/sensor_network.gpkg with the table name 'sensors', using Point geometry and EPSG:4326 - WGS 84. Include two fields: 'model_id' (Text) and 'install_year' (Integer). Add a point feature in the San Francisco area with the attributes model_id 'EnvSense-X1' and install_year 2024, ensuring all edits are saved to the file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_sensor_network_layer/setup_task.sh",
+    "post_task": "/workspace/tasks/create_sensor_network_layer/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/GIS_Data/sensor_network.gpkg",
+    "expected_layer_name": "sensors",
+    "expected_fields": [
+      {
+        "name": "model_id",
+        "type": "String"
+      },
+      {
+        "name": "install_year",
+        "type": "Integer"
+      }
+    ],
+    "expected_values": {
+      "model_id": "EnvSense-X1",
+      "install_year": 2024
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_sensor_network_layer"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "demographic_time_tree@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "The marketing team needs a graph-based index to analyze user cohorts by age in the 'demodb' database. Create a hierarchical time tree and link User Profiles to it based on their Birthday. The graph must include 'Year' vertices (integer 'Value' property) and 'Month' vertices (integer 'Value' property), linked by 'HasMonth' edges (Year to Month). Connect each Profile to its birth Month vertex using a 'BornIn' edge. Ensure that Year nodes are unique and that Month nodes are distinct per year (e.g., 1985's March is a different vertex from 1990's March). Database: demodb. Credentials: root / GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/demographic_time_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/demographic_time_tree/export_result.sh"
+  },
+  "metadata": {
+    "db_name": "demodb",
+    "required_vertex_classes": [
+      "Year",
+      "Month"
+    ],
+    "required_edge_classes": [
+      "HasMonth",
+      "BornIn"
+    ],
+    "profile_class": "Profiles"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_demographic_time_tree"
+    }
+  }
+}

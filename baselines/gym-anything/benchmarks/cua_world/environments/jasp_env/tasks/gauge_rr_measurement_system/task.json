@@ -1,0 +1,35 @@
+{
+  "id": "gauge_rr_measurement_system@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Crossed Gauge R&R (Repeatability and Reproducibility) study using the data from /home/ga/Documents/JASP/MeasurementData.csv. Assign 'Part' as the part variable, 'Operator' as the operator variable, and 'Measurement' as the measurement variable. Ensure the analysis includes a graph of variation components. Save the completed JASP project to /home/ga/Documents/JASP/GaugeStudy.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/gauge_rr_measurement_system/setup_task.sh",
+    "post_task": "/workspace/tasks/gauge_rr_measurement_system/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/GaugeStudy.jasp",
+    "data_path": "/home/ga/Documents/JASP/MeasurementData.csv",
+    "required_analysis_type": "qualityControlGaugeRrCrossed",
+    "required_variables": {
+      "part": "Part",
+      "operator": "Operator",
+      "measurement": "Measurement"
+    },
+    "required_options": [
+      "componentsChart"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gauge_rr"
+    }
+  }
+}

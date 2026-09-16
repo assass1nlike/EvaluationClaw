@@ -1,0 +1,38 @@
+{
+  "id": "molecular_pdb_viz_styling@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Scientific visualization task: Import the Caffeine molecule PDB file from /home/ga/Documents/caffeine.pdb and style the atoms for a publication figure using balls and sticks geometry. Set Carbon atoms to matte black (roughness 1.0) and Oxygen atoms to glowing red (Emission Strength >= 5.0). Render the final image to /home/ga/BlenderProjects/caffeine_viz.png and save the project to /home/ga/BlenderProjects/molecular_setup.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/molecular_pdb_viz_styling/setup_task.sh",
+    "post_task": "/workspace/tasks/molecular_pdb_viz_styling/export_result.sh"
+  },
+  "metadata": {
+    "pdb_path": "/home/ga/Documents/caffeine.pdb",
+    "expected_blend": "/home/ga/BlenderProjects/molecular_setup.blend",
+    "expected_render": "/home/ga/BlenderProjects/caffeine_viz.png",
+    "min_atom_count": 10,
+    "target_materials": {
+      "Carbon": {
+        "color_val": 0.1,
+        "roughness_min": 0.8
+      },
+      "Oxygen": {
+        "color_r_min": 0.8,
+        "emission_min": 4.0
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_molecular_viz"
+    }
+  }
+}

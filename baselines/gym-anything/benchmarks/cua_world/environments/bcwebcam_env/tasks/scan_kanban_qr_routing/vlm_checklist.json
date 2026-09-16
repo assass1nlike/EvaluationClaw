@@ -1,0 +1,59 @@
+{
+  "task_id": "scan_kanban_qr_routing@1",
+  "task_completion": [
+    {
+      "id": "open_bcwebcam",
+      "description": "Open the bcWebCam application",
+      "points": 10,
+      "visual_evidence": "The bcWebCam application window is visible on the screen."
+    },
+    {
+      "id": "display_qr_image",
+      "description": "Display the KANBAN QR code image",
+      "points": 10,
+      "visual_evidence": "The image file 'kanban_qr.png' from 'C:\\workspace\\data\\' is open and visible in an image viewer so that it can be scanned."
+    },
+    {
+      "id": "scan_qr_payload",
+      "description": "Scan the QR code to extract the payload",
+      "points": 20,
+      "visual_evidence": "The bcWebCam interface shows the successfully scanned QR code text containing the format 'PART:<part_num>;QTY:<quantity>;CELL:<workcell_id>;URGENT:<YES/NO>'."
+    },
+    {
+      "id": "open_replenishment_csv",
+      "description": "Open the replenishment orders CSV file",
+      "points": 10,
+      "visual_evidence": "The file 'replenishment_orders.csv' from 'C:\\workspace\\data\\' is open in a text editor or spreadsheet application."
+    },
+    {
+      "id": "append_parsed_data",
+      "description": "Append the parsed data and today's date as a new row",
+      "points": 30,
+      "visual_evidence": "A single new row is added at the bottom of the CSV file containing today's date (YYYY-MM-DD) followed by the extracted PartNumber, RequestedQuantity, SourceWorkcell, and IsUrgent values."
+    },
+    {
+      "id": "preserve_historical_data",
+      "description": "Preserve existing historical rows and header",
+      "points": 20,
+      "visual_evidence": "The original header row (DateScanned,PartNumber,RequestedQuantity,SourceWorkcell,IsUrgent) and all previously existing rows in the CSV remain completely unmodified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_bcwebcam_usage",
+      "description": "Agent used bcWebCam GUI to scan the QR code",
+      "visual_evidence": "Look for the bcWebCam application interface actively displaying the scanned result, rather than terminal commands or Python scripts being used to decode the QR image."
+    },
+    {
+      "id": "gui_csv_editing",
+      "description": "Agent interacted with the CSV file using a standard editor",
+      "visual_evidence": "Look for a text editor or spreadsheet GUI (e.g., Notepad, Excel) being used to edit the CSV, rather than terminal commands bypassing GUI interaction."
+    },
+    {
+      "id": "no_hardcoded_payload",
+      "description": "Agent did not copy-paste a pre-known payload",
+      "visual_evidence": "Ensure the payload entered into the CSV matches the actual scanned output shown in bcWebCam, proving the agent read it from the application."
+    }
+  ],
+  "privileged_info_for_vlm": "The automated programmatic verifier for this task is defective due to missing scripts (setup_task.ps1, export_result.ps1). The VLM must rely entirely on visual evidence of bcWebCam scanning the QR code and the correct CSV file ('C:\\workspace\\data\\replenishment_orders.csv') being updated with the parsed payload and today's date."
+}

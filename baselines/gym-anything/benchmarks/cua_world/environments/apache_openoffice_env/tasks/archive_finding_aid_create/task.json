@@ -1,0 +1,37 @@
+{
+  "id": "archive_finding_aid_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are an archivist at the Industrial History Archive of Cleveland. Create a formal Finding Aid for 'The Sterling Radiator Company Records' in Apache OpenOffice Writer using the metadata and inventory list provided in /home/ga/Documents/collection_metadata.json. The document must include a title page (containing the collection title, dates 1922-1965, and archive name), an automated Table of Contents, and page numbers. The finding aid must be organized into sections for 'Descriptive Summary', 'Biographical/Historical Note', 'Scope and Contents', and a 'Container List'. Within the 'Container List', organize the items by Series and present them in tables with columns for Box, Folder, Title, and Date. Save the completed document to /home/ga/Documents/Sterling_Finding_Aid.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archive_finding_aid_create/setup_task.sh",
+    "post_task": "/workspace/tasks/archive_finding_aid_create/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/collection_metadata.json",
+    "output_file": "/home/ga/Documents/Sterling_Finding_Aid.odt",
+    "expected_structure": {
+      "min_h1": 4,
+      "min_h2": 4,
+      "min_tables": 4,
+      "series_names": [
+        "Series I: Administrative Records",
+        "Series II: Financial Records",
+        "Series III: Marketing and Sales",
+        "Series IV: Technical Drawings"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archive_finding_aid"
+    }
+  }
+}

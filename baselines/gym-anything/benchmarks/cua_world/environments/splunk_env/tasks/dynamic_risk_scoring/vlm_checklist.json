@@ -1,0 +1,53 @@
+{
+  "task_id": "dynamic_risk_scoring@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Verify the agent has accessed and logged into the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser navigating to http://localhost:8000 and displaying the Splunk Enterprise interface (e.g., the 'Search & Reporting' app or the main dashboard)."
+    },
+    {
+      "id": "search_query_logic",
+      "description": "Verify the search query targets the correct index and implements the risk scoring logic.",
+      "points": 25,
+      "visual_evidence": "Look at the Splunk search bar. It must contain 'index=security_logs' (or similar) and logic (like 'eval' or 'case' statements) assigning 100 points for 'root', 50 for 'admin', and 10 for others, aggregated by 'src_ip'."
+    },
+    {
+      "id": "threshold_filter_applied",
+      "description": "Verify the query filters the results to only include source IPs with a total risk score strictly greater than 500.",
+      "points": 25,
+      "visual_evidence": "Look for a filter condition like '> 500' or '>500' in the search bar. The results table below the search bar should display 'src_ip' and the score, with all visible scores being greater than 500."
+    },
+    {
+      "id": "report_saved",
+      "description": "Verify the search results are saved as a Report with the specified name.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As Report' modal dialog being filled out, or the Splunk 'Reports' listing page showing a report named exactly 'Dynamic_IP_Risk_Scoring'."
+    },
+    {
+      "id": "alert_created",
+      "description": "Verify a scheduled Alert is created with the specified name and hourly cron schedule.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As Alert' modal dialog or the Splunk 'Alerts' listing page showing an alert named exactly 'High_Risk_IP_Detected'. The schedule settings should show 'Run on Cron Schedule' with '0 * * * *' or be set to 'Hourly'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_splunk_gui_used",
+      "description": "Ensure the agent interacted with the actual Splunk web interface rather than just writing a script in a text editor.",
+      "visual_evidence": "Look for standard Splunk UI elements like the Splunk bar, App menu, and Search & Reporting interface in a web browser."
+    },
+    {
+      "id": "genuine_search_results",
+      "description": "Ensure the search results are genuinely rendered by Splunk.",
+      "visual_evidence": "Look for the Splunk events/statistics table formatting, timeline histogram (if applicable), and job status bar (e.g., '\u2713 Complete') rather than mocked text."
+    },
+    {
+      "id": "no_direct_api_bypassing",
+      "description": "Ensure the agent used the GUI to create the report and alert as implied by the task instructions.",
+      "visual_evidence": "Look for screenshots of the Splunk 'Save As' dialogs for Reports and Alerts, rather than terminal windows showing 'curl' commands hitting the Splunk REST API."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The target index is 'security_logs'. The threshold for filtering is strictly greater than 500 (> 500). The saved report must be named exactly 'Dynamic_IP_Risk_Scoring'. The scheduled alert must be named exactly 'High_Risk_IP_Detected' and configured to run hourly (cron: 0 * * * *)."
+}

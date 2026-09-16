@@ -1,0 +1,30 @@
+{
+  "id": "recording_compliance_audit@1",
+  "version": "1.0",
+  "env_id": "nx_witness_vms_env@0.1",
+  "description": "You are the Security Manager at a commercial property management company. A compliance audit has flagged that the VMS is failing to maintain continuous 24/7 surveillance. Log in to the Nx Witness Web Admin at https://localhost:7001/static/index.html (credentials: admin / Admin1234!). Ensure every camera in the system is configured for 24/7 continuous high-quality recording. Create a shared monitoring layout named 'Compliance Audit View' containing all cameras in the system.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/recording_compliance_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/recording_compliance_audit/export_result.sh"
+  },
+  "metadata": {
+    "cameras_disabled_in_setup": [
+      "Parking Lot Camera",
+      "Server Room Camera"
+    ],
+    "camera_left_recording": "Entrance Camera",
+    "target_layout_name": "Compliance Audit View",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_recording_compliance_audit"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "caseload_closure_audit@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "You are a Probation Officer conducting a quarterly caseload closure audit in the ArkCase Complaints module. For all active probation cases with a 'Supervision End Date' before January 1, 2026, change the case status to 'Closed' and add a case note containing exactly: 'CASE CLOSED: Supervision term completed. Final compliance verified. Case administratively closed per SOP-PO-12.' Do not modify cases with supervision end dates on or after January 1, 2026.\n\nLogin: arkcase-admin@dev.arkcase.com / ArkCase1234!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/caseload_closure_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/caseload_closure_audit/export_result.sh"
+  },
+  "metadata": {
+    "expired_count": 3,
+    "active_count": 3,
+    "total_cases": 6,
+    "expiry_cutoff": "2026-01-01",
+    "required_status": "Closed",
+    "required_note_text": "CASE CLOSED: Supervision term completed. Final compliance verified. Case administratively closed per SOP-PO-12."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_caseload_closure_audit"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "excavation_report_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Dr. Elena Vasquez, Principal Investigator at the University of New Mexico. Having completed a 6-week excavation at Coyote Springs Pueblo (LA 189274), you must create a preliminary excavation report for the State Historic Preservation Office. Using the data from /home/ga/Documents/site_data.json, produce a professional report in Apache OpenOffice Writer saved as /home/ga/Documents/UNM-OCA-2024-031.odt. The report must include Heading 1 and Heading 2 styles (avoiding direct bold formatting), an auto-generated Table of Contents, page numbers in the footer, and at least three tables presenting the artifact inventory, dating results, and feature list.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/excavation_report_create/setup_task.sh",
+    "post_task": "/workspace/tasks/excavation_report_create/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/UNM-OCA-2024-031.odt",
+    "input_file": "/home/ga/Documents/site_data.json",
+    "min_file_size_kb": 8,
+    "criteria": {
+      "min_h1": 8,
+      "min_h2": 10,
+      "min_tables": 3,
+      "min_body_paras": 35
+    },
+    "required_content": {
+      "keywords": [
+        "LA 189274",
+        "Coyote Springs",
+        "pueblo",
+        "ceramic",
+        "stratigraphy"
+      ],
+      "specific_dates": [
+        "AD 1198",
+        "1050-1250"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_excavation_report"
+    }
+  }
+}

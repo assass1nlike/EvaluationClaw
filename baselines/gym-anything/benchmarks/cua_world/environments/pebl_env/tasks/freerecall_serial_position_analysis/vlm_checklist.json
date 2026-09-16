@@ -1,0 +1,53 @@
+{
+  "task_id": "freerecall_serial_position_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_data_file",
+      "description": "Read the free recall data from the specified CSV file.",
+      "points": 10,
+      "visual_evidence": "Code (e.g., Python using pandas) or a spreadsheet application opening or reading '~/pebl/data/freerecall_data.csv'."
+    },
+    {
+      "id": "calculate_participant_scores",
+      "description": "Calculate primacy, middle, recency, and overall recall scores for participants.",
+      "points": 20,
+      "visual_evidence": "Code defining the position bins (primacy: 1-3, middle: 4-12, recency: 13-15) and calculating the mean recall probability for each bin and overall recall per participant."
+    },
+    {
+      "id": "exclude_invalid_participant",
+      "description": "Identify and exclude invalid participants based on the specified criteria.",
+      "points": 20,
+      "visual_evidence": "Filtering logic in code checking for overall recall == 0.0 AND mean reaction time < 50ms, or output showing the exclusion of the contaminated participant (e.g., 'sub-999')."
+    },
+    {
+      "id": "calculate_group_curve",
+      "description": "Generate the group serial position curve across all valid participants.",
+      "points": 20,
+      "visual_evidence": "Code grouping the data by 'study_position' (1 through 15) and calculating the grand mean recall probability across all valid participants to produce an array of 15 floats."
+    },
+    {
+      "id": "export_json_report",
+      "description": "Export the final results to the specified JSON report file.",
+      "points": 30,
+      "visual_evidence": "Code writing a JSON object containing 'participants' (with id, scores, and exclusion status) and 'group_serial_position_curve' to '~/pebl/analysis/serial_position_report.json', or a terminal command confirming the file's creation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation",
+      "description": "The agent performs actual calculations on the dataset rather than creating a mock JSON file.",
+      "visual_evidence": "Execution of a script (e.g., running a Python file or Jupyter notebook cells) that processes the CSV data, rather than just typing out a JSON file manually."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent does not hardcode the final serial position curve or participant scores.",
+      "visual_evidence": "The code dynamically computes the means and arrays from the loaded dataframe instead of assigning fixed float values to the output variables."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent uses the exact file paths specified in the task.",
+      "visual_evidence": "The script explicitly references '~/pebl/data/freerecall_data.csv' for input and '~/pebl/analysis/serial_position_report.json' for output."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 30 valid participants and 1 contaminated participant ('sub-999'). The exact contamination criteria to enforce is overall recall of 0.0 and mean response time < 50ms. The output must be saved to /home/ga/pebl/analysis/serial_position_report.json."
+}

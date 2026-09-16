@@ -1,0 +1,53 @@
+{
+  "task_id": "write_epuck_controller@1",
+  "task_completion": [
+    {
+      "id": "open_controller_file",
+      "description": "The agent opened or created the obstacle_avoider.py file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE (like VS Code, gedit, or nano) showing the file path /home/ga/webots_projects/epuck_obstacle/controllers/obstacle_avoider/obstacle_avoider.py."
+    },
+    {
+      "id": "initialize_devices",
+      "description": "The Python script initializes the e-puck's proximity sensors and motors.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor containing strings like 'ps0' to 'ps7', 'left wheel motor', and 'right wheel motor' being retrieved using the Webots API (e.g., robot.getDevice(...))."
+    },
+    {
+      "id": "implement_control_loop",
+      "description": "The script contains a main Webots control loop.",
+      "points": 10,
+      "visual_evidence": "A `while` loop in the Python code, typically checking `robot.step(TIME_STEP) != -1`."
+    },
+    {
+      "id": "implement_avoidance_logic",
+      "description": "The script implements logic to read sensor values and adjust motor speeds to avoid obstacles.",
+      "points": 30,
+      "visual_evidence": "Inside the control loop, code that calls `.getValue()` on the sensors, includes conditional logic (if/else) to detect obstacles based on sensor thresholds, and calls `.setVelocity(...)` on the motors to turn the robot."
+    },
+    {
+      "id": "save_webots_world",
+      "description": "The Webots world is saved to the specified Desktop path.",
+      "points": 30,
+      "visual_evidence": "The Webots interface showing the world saved as 'epuck_avoidance.wbt', or a file manager/terminal showing the file 'epuck_avoidance.wbt' located at /home/ga/Desktop/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_editing",
+      "description": "The agent used a text editor or IDE to write the code.",
+      "visual_evidence": "Screenshots show the code being edited in a standard editor (e.g., VS Code, gedit, nano, vim) rather than just being dumped via a single terminal command like 'echo' or 'curl'."
+    },
+    {
+      "id": "webots_api_usage",
+      "description": "The code uses the genuine Webots Python API.",
+      "visual_evidence": "The script includes 'from controller import Robot' and uses standard Webots methods rather than a mocked or hardcoded print script."
+    },
+    {
+      "id": "actual_world_save",
+      "description": "The agent interacted with Webots to save the world or properly copied the .wbt file.",
+      "visual_evidence": "The Webots GUI is visible with the 'Save World As' dialog, or terminal commands show the .wbt file being explicitly copied/saved to the Desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The controller script must be located exactly at /home/ga/webots_projects/epuck_obstacle/controllers/obstacle_avoider/obstacle_avoider.py. The script must control an 'e-puck' robot, specifically utilizing proximity sensors named 'ps0' through 'ps7' and motors named 'left wheel motor' and 'right wheel motor'. The final Webots world file must be saved exactly to /home/ga/Desktop/epuck_avoidance.wbt."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "build_csv_extractor@1",
+  "task_completion": [
+    {
+      "id": "python_script_authored",
+      "description": "Notepad displays Python code defining the required action and reading the dataset.",
+      "points": 20,
+      "visual_evidence": "Look for a Notepad window containing Python code that defines a function like 'get_latest_covid_stats' and includes the file path 'C:\\workspace\\data\\us-counties-2020.csv'."
+    },
+    {
+      "id": "python_script_logic",
+      "description": "Python code includes logic to format the output string and copy it to the clipboard.",
+      "points": 20,
+      "visual_evidence": "Look for Python code in Notepad containing the exact string format 'As of {date}, {county} County reported {cases} cases and {deaths} deaths.' and a clipboard copying command (e.g., clip.set_text or pyperclip.copy)."
+    },
+    {
+      "id": "python_script_saved",
+      "description": "The Python script is saved to the correct Talon user directory.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As' dialog navigating to 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\data_extractor' with the filename 'csv_extractor.py', or the Notepad title bar showing 'csv_extractor.py' after saving."
+    },
+    {
+      "id": "talon_script_authored",
+      "description": "Notepad displays Talon code defining the voice command and invoking the Python action.",
+      "points": 20,
+      "visual_evidence": "Look for a Notepad window containing Talon script syntax with the command 'covid stats <user.text>:' and a call to the action, such as 'user.get_latest_covid_stats(text)'."
+    },
+    {
+      "id": "talon_script_saved",
+      "description": "The Talon script is saved to the correct Talon user directory.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As' dialog navigating to 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\data_extractor' with the filename 'csv_extractor.talon', or the Notepad title bar showing 'csv_extractor.talon' after saving."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_notepad",
+      "description": "The agent used Notepad to author the files as instructed.",
+      "visual_evidence": "Verify that the code is being typed and edited inside a Notepad GUI window, rather than using terminal commands like 'echo' or 'cat' to create the files."
+    },
+    {
+      "id": "gui_file_saving",
+      "description": "The agent used the GUI to save the files.",
+      "visual_evidence": "Verify that the files were saved using Notepad's 'File -> Save' or 'Save As' dialogs, rather than terminal commands."
+    },
+    {
+      "id": "no_direct_clipboard_spoofing",
+      "description": "The agent did not simply copy the expected string format directly to the clipboard to bypass the script logic.",
+      "visual_evidence": "Ensure the expected string format is only written within the Python script in Notepad, and not manually copied from the task description into the clipboard or a terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset path is 'C:\\workspace\\data\\us-counties-2020.csv'. The package directory is 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\data_extractor'. The exact expected string format is 'As of {date}, {county} County reported {cases} cases and {deaths} deaths.'."
+}

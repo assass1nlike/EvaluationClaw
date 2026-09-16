@@ -1,0 +1,53 @@
+{
+  "task_id": "water_leak_detector@1",
+  "task_completion": [
+    {
+      "id": "open_water_usage_data",
+      "description": "Open the household water usage dataset",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) or data analysis script is open, displaying the water usage data for January 1-30, 2024."
+    },
+    {
+      "id": "calculate_rolling_baseline",
+      "description": "Calculate the 7-day rolling average baseline",
+      "points": 20,
+      "visual_evidence": "A new column is created showing the 7-day rolling average of water usage, starting from the 8th day (Jan 8)."
+    },
+    {
+      "id": "calculate_anomaly_threshold",
+      "description": "Calculate the 150% anomaly threshold",
+      "points": 20,
+      "visual_evidence": "A column is created showing the anomaly threshold, which should be 1.5 times (150% of) the calculated 7-day rolling baseline."
+    },
+    {
+      "id": "calculate_excess_water",
+      "description": "Identify leaks and calculate excess water",
+      "points": 30,
+      "visual_evidence": "A column is created that calculates the excess water (usage minus baseline) specifically for days where the usage exceeds the anomaly threshold. There should be exactly 4 days flagged (Jan 8, 14, 18, 29)."
+    },
+    {
+      "id": "summarize_total_waste",
+      "description": "Quantify the total water waste",
+      "points": 20,
+      "visual_evidence": "A cell or output displays the sum of the excess water (expected to be 346.6 gallons) or the total cost of the waste (expected to be $3.47)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_appropriate_tool",
+      "description": "The agent used a spreadsheet application or wrote a script to process the data.",
+      "visual_evidence": "Screenshots show interaction with a spreadsheet GUI (like LibreOffice Calc) or a terminal/IDE running a Python/data analysis script, rather than just a text editor with typed answers."
+    },
+    {
+      "id": "formula_based_calculation",
+      "description": "The agent performed actual calculations rather than hardcoding the final expected values.",
+      "visual_evidence": "The spreadsheet shows formulas in the formula bar (e.g., =AVERAGE(), =IF()), or a script contains calculation logic, rather than just raw typed numbers for the final 346.6 gallon result."
+    },
+    {
+      "id": "no_external_assistance",
+      "description": "The agent did not use a web browser to search for the solution or download a pre-solved file.",
+      "visual_evidence": "No web browser is open with search queries related to the task, and the agent is working directly with the provided CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 30 days of water usage (Jan 1-30, 2024). Calculations must start on row 8 (Jan 8) to allow for a 7-day rolling average. The baseline is the average of the previous 7 days. The threshold is 1.5 * baseline. Excess water is calculated as (usage - baseline) ONLY when usage > threshold. There are exactly 4 anomaly days in the data: Jan 8 (189 gal), Jan 14 (172 gal), Jan 18 (197 gal), and Jan 29 (207 gal). The total excess water is 346.6 gallons. At $0.01/gallon, the total cost of the leaks is $3.47. Note: Jan 11 has a meter outage (0 gallons), which is intentional and should be included in the rolling average."
+}

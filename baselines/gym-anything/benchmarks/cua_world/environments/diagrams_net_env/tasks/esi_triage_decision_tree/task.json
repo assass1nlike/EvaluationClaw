@@ -1,0 +1,65 @@
+{
+  "id": "esi_triage_decision_tree@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Complete the partially-drawn Emergency Severity Index (ESI) v4 triage decision tree in ~/Diagrams/esi_triage_tree.drawio based on the specification provided in ~/Desktop/esi_v4_algorithm.txt. The completed diagram must include Decision Points C and D, all five ESI terminal nodes (Levels 1-5), and appropriate branching logic with labels. Apply specific color-coding to the terminal nodes: Level 1 (Red), Level 2 (Orange), Level 3 (Yellow), Level 4 (Green), and Level 5 (Blue). Include a legend mapping the ESI levels to their colors and acuity descriptions. Save the file and export the final diagram as ~/Diagrams/exports/esi_triage_tree.png and ~/Diagrams/exports/esi_triage_tree.svg.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/esi_triage_decision_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/esi_triage_decision_tree/export_result.sh"
+  },
+  "metadata": {
+    "diagram_path": "/home/ga/Diagrams/esi_triage_tree.drawio",
+    "png_export_path": "/home/ga/Diagrams/exports/esi_triage_tree.png",
+    "svg_export_path": "/home/ga/Diagrams/exports/esi_triage_tree.svg",
+    "required_text_elements": [
+      "resource",
+      "vital",
+      "danger",
+      "level 3",
+      "level 4",
+      "level 5"
+    ],
+    "forbidden_text_elements": [
+      "TODO"
+    ],
+    "color_codes": {
+      "red": [
+        "#FF0000",
+        "#CC0000",
+        "#FF3333"
+      ],
+      "orange": [
+        "#FF8C00",
+        "#FFA500",
+        "#FF6600"
+      ],
+      "yellow": [
+        "#FFD700",
+        "#FFFF00",
+        "#FFCC00"
+      ],
+      "green": [
+        "#00B050",
+        "#008000",
+        "#32CD32"
+      ],
+      "blue": [
+        "#0000FF",
+        "#0000CC",
+        "#3333FF"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_esi_triage_tree"
+    }
+  }
+}

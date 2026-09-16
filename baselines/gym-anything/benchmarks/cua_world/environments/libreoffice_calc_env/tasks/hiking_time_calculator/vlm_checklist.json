@@ -1,0 +1,59 @@
+{
+  "task_id": "hiking_time_calculator@1",
+  "task_completion": [
+    {
+      "id": "calculate_base_time",
+      "description": "Calculate the base hiking time based on distance.",
+      "points": 15,
+      "visual_evidence": "Look for a column or cell in the spreadsheet calculating base time using the formula: Distance (in km) divided by 5."
+    },
+    {
+      "id": "calculate_ascent_penalty",
+      "description": "Calculate the time penalty for elevation gain.",
+      "points": 15,
+      "visual_evidence": "Look for a column or cell calculating the ascent penalty using the formula: Elevation Gain (in meters) divided by 600."
+    },
+    {
+      "id": "calculate_descent_bonus",
+      "description": "Calculate the time bonus (reduction) for elevation loss.",
+      "points": 15,
+      "visual_evidence": "Look for a column or cell calculating the descent bonus using the formula: Elevation Loss (in meters) divided by 1200. This value should be subtracted from the total time."
+    },
+    {
+      "id": "calculate_total_moving_time",
+      "description": "Calculate the total moving time by combining base time, ascent penalty, and descent bonus.",
+      "points": 15,
+      "visual_evidence": "Look for a cell or column that sums the base time and ascent penalty, and subtracts the descent bonus for the segments or the overall hike."
+    },
+    {
+      "id": "apply_safety_margin",
+      "description": "Apply a 25% safety margin to the total moving time.",
+      "points": 20,
+      "visual_evidence": "Look for a cell calculating the final estimated time by multiplying the total moving time by 1.25 (or adding 25% of the total time to itself)."
+    },
+    {
+      "id": "determine_feasibility",
+      "description": "Determine if the hike is feasible within the 10-hour daylight window.",
+      "points": 20,
+      "visual_evidence": "Look for a cell containing a conditional statement (like an IF formula) that outputs 'YES', 'NO', or a similar boolean indicator by comparing the final time (with safety margin) against the 10-hour daylight limit."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_app",
+      "description": "The agent used a spreadsheet application to perform the calculations.",
+      "visual_evidence": "Screenshots should show a spreadsheet application (e.g., LibreOffice Calc) being used, rather than a Python script in a terminal or a plain text editor."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used actual spreadsheet formulas rather than manually calculating and typing in the answers.",
+      "visual_evidence": "The formula bar in the spreadsheet application should show formulas (e.g., =B2/5, =SUM(...), =IF(...)) when cells are selected in the screenshots."
+    },
+    {
+      "id": "ignored_readme_errors",
+      "description": "The agent calculated the true values from the data rather than copy-pasting the incorrect examples from the README.",
+      "visual_evidence": "The final total distance should be 19km (not 18km), total elevation gain should be 1500m (not 1200m), and the final time should be >6.5 hours (not the ~5.75 hours claimed in the README)."
+    }
+  ],
+  "privileged_info_for_vlm": "Formulas to verify: Base time = Distance(km) / 5. Ascent penalty = Elevation Gain(m) / 600. Descent bonus = Elevation Loss(m) / 1200 (subtracted). Safety margin = Total Time * 1.25. Available daylight = 10 hours. Note: The README contains incorrect totals (claims 18km distance and 1200m gain, actual sum of the synthetic data is 19km and 1500m). The agent must calculate the true values from the data. The final time with margin should be approximately 6.6 to 6.9 hours (not the ~5.75h claimed in README), and feasibility should evaluate to YES (since it is <= 10 hours)."
+}

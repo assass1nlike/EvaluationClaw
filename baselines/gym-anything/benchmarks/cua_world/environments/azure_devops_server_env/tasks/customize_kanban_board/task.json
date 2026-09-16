@@ -1,0 +1,57 @@
+{
+  "id": "customize_kanban_board@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Customize the 'Stories' Kanban board in the TailwindTraders project to match the team's new workflow. The board must feature the following columns in order: 'New' (no WIP limit), 'Development' (WIP limit 3), 'Code Review' (mapped to 'Active' state, WIP limit 2), 'Testing' (WIP limit 3), and 'Closed' (no WIP limit). The configuration must also include a swimlane named 'Expedite' and a styling rule named 'Priority' that applies a Red background to cards where Priority is 1. Credentials: User: Docker, Password: GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\customize_kanban_board\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\customize_kanban_board\\export_result.ps1"
+  },
+  "metadata": {
+    "project": "TailwindTraders",
+    "board": "Stories",
+    "expected_columns": [
+      {
+        "name": "New",
+        "limit": 0,
+        "state": "New"
+      },
+      {
+        "name": "Development",
+        "limit": 3,
+        "state": "Active"
+      },
+      {
+        "name": "Code Review",
+        "limit": 2,
+        "state": "Active"
+      },
+      {
+        "name": "Testing",
+        "limit": 3,
+        "state": "Resolved"
+      },
+      {
+        "name": "Closed",
+        "limit": 0,
+        "state": "Closed"
+      }
+    ],
+    "expected_swimlane": "Expedite",
+    "expected_rule_field": "Priority",
+    "expected_rule_value": "1",
+    "expected_color_type": "red"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_kanban_board"
+    }
+  }
+}

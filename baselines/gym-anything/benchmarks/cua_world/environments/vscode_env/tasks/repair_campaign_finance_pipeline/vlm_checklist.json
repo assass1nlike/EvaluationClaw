@@ -1,0 +1,53 @@
+{
+  "task_id": "repair_campaign_finance_pipeline@1",
+  "task_completion": [
+    {
+      "id": "fix_refunds_logic",
+      "description": "Fix the logic that incorrectly drops legitimate refunds.",
+      "points": 20,
+      "visual_evidence": "In the code editor for fec_analysis.py, look for modifications to the filtering logic that ensure refunds (typically negative amounts or specific refund codes) are retained rather than dropped from the pandas DataFrame."
+    },
+    {
+      "id": "fix_date_parsing",
+      "description": "Fix the date parsing errors affecting late months.",
+      "points": 20,
+      "visual_evidence": "In the code editor for fec_analysis.py, look for corrections to date formatting strings (e.g., fixing incorrect month directives like %M to %m) inside pd.to_datetime() or similar date parsing functions."
+    },
+    {
+      "id": "fix_data_normalization",
+      "description": "Implement donor name and zip code normalization.",
+      "points": 20,
+      "visual_evidence": "In the code editor for fec_analysis.py, look for pandas string operations applied to donor names (e.g., .str.upper(), .str.strip()) and zip codes (e.g., slicing to 5 digits or padding) prior to the aggregation step."
+    },
+    {
+      "id": "fix_election_grouping",
+      "description": "Calculate contribution limits per election (Primary vs General).",
+      "points": 20,
+      "visual_evidence": "In the code editor for fec_analysis.py, look for a groupby() operation that now includes the election type column (e.g., 'election_type', 'Primary/General') alongside the donor identifier columns."
+    },
+    {
+      "id": "identify_conduit_contributions",
+      "description": "Identify illegal conduit contributions exceeding the $3,300 legal limit.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing the script successfully executing and printing/exporting the final list of donors who exceeded the $3,300 limit, or code logic explicitly filtering the aggregated sums for amounts > 3300."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_editing",
+      "description": "The agent edited the script using a genuine text editor or IDE.",
+      "visual_evidence": "Screenshots should show the agent using an editor like VS Code, vim, or nano to modify fec_analysis.py, rather than just echoing a complete script into the file from the terminal."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent used actual pandas logic instead of hardcoding the final output.",
+      "visual_evidence": "The script must contain genuine pandas transformations (groupby, string methods, datetime parsing) rather than a hardcoded print statement of the expected illegal donors."
+    },
+    {
+      "id": "processed_actual_dataset",
+      "description": "The agent processed the provided FEC dataset.",
+      "visual_evidence": "The script should read from the original data source file (e.g., a CSV or database file) mentioned in the workspace, rather than the agent creating a tiny dummy dataset to bypass the actual file processing."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing four specific pandas bugs in fec_analysis.py: 1) handling legitimate refunds (not dropping them), 2) correcting date formatting for late months, 3) normalizing donor names and zip codes before aggregation, and 4) grouping contributions by election type (Primary vs General). The data is synthetic mock FEC data. The agent must successfully apply these transformations to identify donors exceeding the $3,300 limit."
+}

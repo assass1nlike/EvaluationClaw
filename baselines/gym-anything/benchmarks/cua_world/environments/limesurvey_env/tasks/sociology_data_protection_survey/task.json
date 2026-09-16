@@ -1,0 +1,41 @@
+{
+  "id": "sociology_data_protection_survey@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate an IRB-compliant sociological research survey titled 'Social Media Usage and Community Belonging Study 2024' in LimeSurvey (admin/Admin123!). The survey description must include 'IRB Protocol #2024-SOC-0847' and Principal Investigator 'Dr. Rebecca Thornton'. Ensure the welcome message mentions 'informed consent', 'voluntary', and 'anonymous', and the end message includes 'rthorn@stateuniv.edu' and 'Robert Putnam'. Configure the survey for anonymized responses, date stamps, no IP address saving, and a visible data policy notice. Use a group-by-group presentation format with a progress bar. The structure must consist of three question groups: 'Informed Consent' (containing a mandatory consent question), 'Social Media Usage', and 'Community Belonging' (each with at least one dummy question).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sociology_data_protection_survey/setup_task.sh",
+    "post_task": "/workspace/tasks/sociology_data_protection_survey/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Social Media Usage and Community Belonging Study 2024",
+    "irb_protocol": "2024-SOC-0847",
+    "pi_name": "Thornton",
+    "consent_keywords": [
+      "informed consent",
+      "voluntary",
+      "anonymous"
+    ],
+    "debrief_keywords": [
+      "rthorn@stateuniv.edu",
+      "Putnam"
+    ],
+    "expected_groups": [
+      "Informed Consent",
+      "Social Media Usage",
+      "Community Belonging"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sociology_data_protection_survey"
+    }
+  }
+}

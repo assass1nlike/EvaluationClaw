@@ -1,0 +1,39 @@
+{
+  "id": "belt_drive_system_design@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "You are a mechanical engineer designing a flat belt drive system. Model a two-pulley system in GeoGebra consisting of a Driver Pulley (Radius = 50 mm, center (0, 0)) and a Driven Pulley (Radius = 125 mm, center (500, 0)) connected by an open belt path using external common tangents. Construct the geometry, measure the Wrap Angle on the smaller Driver pulley, and calculate the Total Belt Length (sum of the straight segments and contact arcs). Display these values on the construction and save the design as 'belt_drive.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/belt_drive_system_design/setup_task.sh",
+    "post_task": "/workspace/tasks/belt_drive_system_design/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "belt_drive.ggb",
+    "driver_radius": 50,
+    "driver_pos": [
+      0,
+      0
+    ],
+    "driven_radius": 125,
+    "driven_pos": [
+      500,
+      0
+    ],
+    "expected_wrap_angle_deg": 162.75,
+    "expected_belt_length_mm": 1582.4,
+    "tolerance_angle": 2.0,
+    "tolerance_length": 10.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_belt_drive_system_design"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "schedule_report@1",
+  "version": "1.0",
+  "env_id": "manageengine_adaudit_plus_env@0.1",
+  "description": "Log in to ManageEngine ADAudit Plus using username 'admin' and password 'Admin@2024'. Create a new scheduled report named 'Weekly Security Summary' with a weekly frequency on Mondays. Set the report format to PDF and the email recipient to 'security-team@company.local'. Save the configuration.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\schedule_report\\setup_task.ps1",
+    "pre_task_timeout": 900
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_schedule_report"
+    }
+  },
+  "metadata": {
+    "report_name": "Weekly Security Summary",
+    "frequency": "Weekly",
+    "day": "Monday",
+    "format": "PDF",
+    "email_recipient": "security-team@company.local"
+  }
+}

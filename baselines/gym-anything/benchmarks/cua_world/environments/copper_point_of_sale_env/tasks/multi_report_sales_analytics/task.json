@@ -1,0 +1,52 @@
+{
+  "id": "multi_report_sales_analytics@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Copper Point of Sale is open. You are the regional sales manager preparing the quarterly analytics package. Import the 15 items from C:\\Users\\Docker\\Desktop\\electronics_clothing_inventory.csv into the system and process three transactions: Transaction A (two Anker PowerCore 10000 and one Apple Lightning Cable paid with Cash), Transaction B (one Samsung Galaxy Buds FE with a 10% manager discount paid with Credit Card), and Transaction C (two Ocean Blue Shirts and one Classic Varsity Top paid with Cash). Export a Sales Report to C:\\Users\\Docker\\Desktop\\weekly_sales.csv and an Inventory/Stock report to C:\\Users\\Docker\\Desktop\\stock_levels.csv. Finally, create a summary file at C:\\Users\\Docker\\Desktop\\analytics_summary.txt containing the total number of distinct items in the system, the number of transactions processed today, the revenue for each transaction (A, B, and C), the total revenue for the day, and the top category for the day. Ensure all summary values are accurate.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\multi_report_sales_analytics\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\multi_report_sales_analytics\\export_result.ps1"
+  },
+  "metadata": {
+    "transactions": [
+      {
+        "label": "A",
+        "items": "Anker PowerCore 10000 x2, Apple Lightning Cable x1",
+        "revenue": 71.97,
+        "payment": "Cash"
+      },
+      {
+        "label": "B",
+        "items": "Samsung Galaxy Buds FE x1",
+        "discount": 0.1,
+        "revenue": 89.99,
+        "payment": "Credit Card"
+      },
+      {
+        "label": "C",
+        "items": "Ocean Blue Shirt x2, Classic Varsity Top x1",
+        "revenue": 160.0,
+        "payment": "Cash"
+      }
+    ],
+    "expected_total_revenue": 321.96,
+    "expected_item_count": 15,
+    "required_output_files": [
+      "C:\\Users\\Docker\\Desktop\\weekly_sales.csv",
+      "C:\\Users\\Docker\\Desktop\\stock_levels.csv",
+      "C:\\Users\\Docker\\Desktop\\analytics_summary.txt"
+    ],
+    "result_json_path": "C:\\Users\\Docker\\multi_report_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multi_report_sales_analytics"
+    }
+  }
+}

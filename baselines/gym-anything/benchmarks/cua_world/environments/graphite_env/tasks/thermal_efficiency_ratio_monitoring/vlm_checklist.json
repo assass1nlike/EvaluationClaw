@@ -1,0 +1,59 @@
+{
+  "task_id": "thermal_efficiency_ratio_monitoring@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created_and_named",
+      "description": "Verify that a dashboard named 'HVAC Thermal Efficiency' has been created.",
+      "points": 10,
+      "visual_evidence": "The dashboard title 'HVAC Thermal Efficiency' should be clearly visible at the top of the dashboard interface."
+    },
+    {
+      "id": "raw_thermal_ratio_graph",
+      "description": "Verify the 'Raw Thermal Ratio' graph is created with the correct division logic and alias.",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Raw Thermal Ratio' is present. Its legend displays the alias 'Degrees per CPU %'. The query or metric definition should show the use of the divideSeries() function dividing 'servers.datacenter.machine_temperature' by 'averageSeries(servers.ec2_instance_*.cpu.*)'."
+    },
+    {
+      "id": "smoothed_alerting_signal_target1",
+      "description": "Verify the first target of the 'Smoothed Alerting Signal' graph uses a moving median filter.",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Smoothed Alerting Signal' is present. Its legend displays the alias 'Smoothed Ratio'. The metric query should show the divideSeries logic wrapped in a movingMedian() function with a window size of 12."
+    },
+    {
+      "id": "smoothed_alerting_signal_target2",
+      "description": "Verify the second target of the 'Smoothed Alerting Signal' graph is a static threshold line.",
+      "points": 15,
+      "visual_evidence": "The 'Smoothed Alerting Signal' graph displays a static horizontal line at the value 3.0. The legend displays the alias 'Critical Ratio', corresponding to a threshold(3.0) function."
+    },
+    {
+      "id": "temperature_vs_cpu_target1",
+      "description": "Verify the first target of the 'Temperature vs CPU Overlay' graph shows the facility temperature.",
+      "points": 15,
+      "visual_evidence": "A graph titled 'Temperature vs CPU Overlay' is present. Its legend displays the alias 'Facility Temp' for the 'servers.datacenter.machine_temperature' metric."
+    },
+    {
+      "id": "temperature_vs_cpu_target2",
+      "description": "Verify the second target of the 'Temperature vs CPU Overlay' graph shows fleet CPU on a second Y-axis.",
+      "points": 20,
+      "visual_evidence": "The 'Temperature vs CPU Overlay' graph has a right-hand Y-axis. The legend displays the alias 'Fleet CPU' for the average CPU metric, and the query shows the use of the secondYAxis() function."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web-based GUI to create the dashboard.",
+      "visual_evidence": "Screenshots should show the Graphite/Grafana web interface being actively used (e.g., clicking menus, typing in query boxes), rather than just a terminal window or text editor modifying JSON files."
+    },
+    {
+      "id": "genuine_data_rendering",
+      "description": "Verify the graphs are rendering actual data.",
+      "visual_evidence": "The graphs should display actual plotted data lines (real server metric data from the NAB dataset), not empty grids or error messages."
+    },
+    {
+      "id": "authentic_browser_usage",
+      "description": "Verify the agent is interacting with the genuine application.",
+      "visual_evidence": "The browser address bar should point to the local monitoring application (e.g., localhost or an internal IP) and not a static HTML file or unrelated website."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'HVAC Thermal Efficiency'. The dashboard must contain exactly three graphs with the titles: 'Raw Thermal Ratio', 'Smoothed Alerting Signal', and 'Temperature vs CPU Overlay'. The metrics involve real server data from the Numenta Anomaly Benchmark (NAB) dataset, so the graphs should display actual data lines, not empty charts."
+}

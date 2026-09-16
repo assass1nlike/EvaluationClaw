@@ -1,0 +1,47 @@
+{
+  "task_id": "leaf_skeleton_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_leaf_image",
+      "description": "Verify that the 'Leaf' sample image is opened in Fiji/ImageJ.",
+      "points": 10,
+      "visual_evidence": "An image window titled 'Leaf' or 'leaf.jpg' showing a photograph of a leaf is visible within the Fiji/ImageJ workspace."
+    },
+    {
+      "id": "generate_skeleton",
+      "description": "Verify that the leaf image has been processed into a morphological skeleton.",
+      "points": 30,
+      "visual_evidence": "An image window showing a skeletonized version of the leaf is visible. This typically appears as a binary image (black and white) where the vein network is represented by 1-pixel wide lines."
+    },
+    {
+      "id": "perform_branch_analysis",
+      "description": "Verify that a branch or skeleton analysis has been executed on the skeletonized image.",
+      "points": 30,
+      "visual_evidence": "A results table or window (e.g., 'Results' or 'Branch information') is visible, containing columns specifically for '# Branches', '# Junctions', and 'Average Branch Length'."
+    },
+    {
+      "id": "export_results_csv",
+      "description": "Verify that the analysis results are exported to the specified CSV file path.",
+      "points": 30,
+      "visual_evidence": "A save dialog, file manager, or terminal window showing the file 'skeleton_analysis.csv' being saved to or existing in the '~/ImageJ_Data/results/' (or '/home/ga/ImageJ_Data/results/') directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_fiji",
+      "description": "Ensure the agent used the Fiji/ImageJ GUI to perform the analysis rather than bypassing the UI with a script.",
+      "visual_evidence": "Screenshots should show Fiji/ImageJ menus being accessed (e.g., Process, Analyze, Plugins), dialog boxes for skeletonization, and Fiji results tables, rather than just terminal windows running Python or Bash scripts."
+    },
+    {
+      "id": "genuine_analysis_results",
+      "description": "Ensure the results table contains realistic values for the leaf skeleton rather than hardcoded minimums or dummy values.",
+      "visual_evidence": "The results table should show a large number of branches (well over 20) and junctions (well over 5), reflecting a genuine skeletonization of a complex leaf vein network, not just manually typed numbers."
+    },
+    {
+      "id": "actual_file_export",
+      "description": "Ensure the CSV file was genuinely exported from the application and not manually created in a text editor.",
+      "visual_evidence": "The save dialog from Fiji/ImageJ should be visible, or the results window should show evidence of being exported (e.g., File > Save As within the Results window), rather than a text editor like nano or gedit open with manually typed CSV contents."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the built-in 'Leaf' sample in Fiji (File > Open Samples > Leaf). A genuine skeletonization of this leaf yields over 1,200 branches and 700 junctions, so any results showing exactly 20 branches or 5 junctions are likely fabricated. The expected output file must be saved exactly at '/home/ga/ImageJ_Data/results/skeleton_analysis.csv'. The results table must include columns explicitly named '# Branches', '# Junctions', and 'Average Branch Length'."
+}

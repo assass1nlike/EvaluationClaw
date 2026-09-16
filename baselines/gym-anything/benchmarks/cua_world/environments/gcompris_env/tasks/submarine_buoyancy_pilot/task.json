@@ -1,0 +1,37 @@
+{
+  "id": "submarine_buoyancy_pilot@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Demonstrate buoyancy principles by piloting the submarine in GCompris. Document the submarine at the ocean floor with a screenshot saved to '~/Documents/submarine_depth.png' and at the surface with a screenshot saved to '~/Documents/submarine_surface.png'. Provide a written explanation of the physics used (including terms like ballast, density, sink, and rise) in '~/Documents/captains_log.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/submarine_buoyancy_pilot/setup_task.sh",
+    "post_task": "/workspace/tasks/submarine_buoyancy_pilot/export_result.sh"
+  },
+  "metadata": {
+    "depth_screenshot": "/home/ga/Documents/submarine_depth.png",
+    "surface_screenshot": "/home/ga/Documents/submarine_surface.png",
+    "log_file": "/home/ga/Documents/captains_log.txt",
+    "required_keywords": [
+      "ballast",
+      "density",
+      "sink",
+      "rise",
+      "float",
+      "tank",
+      "water",
+      "valve"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_submarine_pilot"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "hypervisor_realtime_telemetry@1",
+  "task_completion": [
+    {
+      "id": "dashboard_named",
+      "description": "Verify the dashboard is named 'Hypervisor Telemetry'",
+      "points": 10,
+      "visual_evidence": "Look at the top of the Graphite dashboard interface. The title should explicitly read 'Hypervisor Telemetry'."
+    },
+    {
+      "id": "memory_graph_configured",
+      "description": "Verify the 'System Memory Layout' graph is added with stacked memory metrics",
+      "points": 20,
+      "visual_evidence": "Look for a graph with the title 'System Memory Layout'. The graph should display memory metrics (e.g., collectd.*.memory.*) and the visual representation must be stacked (filled areas layered on top of each other)."
+    },
+    {
+      "id": "cpu_graph_configured",
+      "description": "Verify the 'CPU Core Comparison' graph is added with CPU user metrics",
+      "points": 20,
+      "visual_evidence": "Look for a graph with the title 'CPU Core Comparison'. It should display lines representing user-space CPU time for individual cores (e.g., collectd.*.cpu.*.cpu-user)."
+    },
+    {
+      "id": "cpu_graph_aliased",
+      "description": "Verify the CPU metrics are aliased by the core number",
+      "points": 20,
+      "visual_evidence": "Examine the legend of the 'CPU Core Comparison' graph. The metric names should be aliased to show only the core numbers (e.g., '0', '1', '2') instead of the full metric paths, indicating aliasByNode(3) was applied."
+    },
+    {
+      "id": "load_graph_configured",
+      "description": "Verify the 'System Load Envelopes' graph is added with load metrics and line width 2",
+      "points": 20,
+      "visual_evidence": "Look for a graph with the title 'System Load Envelopes'. It should display system load averages (e.g., collectd.*.load.load.*) and the lines must be noticeably thicker, corresponding to a line width of 2."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Verify the dashboard has been saved",
+      "points": 10,
+      "visual_evidence": "Look for visual indicators that the dashboard has been saved, such as a 'Saved' notification, the dashboard name appearing in the URL bar, or the dashboard being visible in the saved dashboards list/Finder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "Check that the agent interacted with the Graphite web UI in a browser to build the dashboard rather than using curl commands or API scripts."
+    },
+    {
+      "id": "genuine_metrics",
+      "description": "Verify the graphs display actual data",
+      "visual_evidence": "Ensure the graphs actually render data lines or areas, proving that real metrics were queried and not just empty graph templates."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "Verify the agent did not bypass the UI by directly editing JSON files",
+      "visual_evidence": "Verify that the agent did not use a terminal or text editor to directly write the dashboard JSON file, but instead used the graphical interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named exactly 'Hypervisor Telemetry'. It must contain three graphs: 1. 'System Memory Layout' (must use stacked memory metrics). 2. 'CPU Core Comparison' (must use aliasByNode with index 3 for CPU cores). 3. 'System Load Envelopes' (must use lineWidth 2 for load metrics). The expected result file is /tmp/hypervisor_realtime_telemetry_result.json, but the VLM should verify the visual state of the Graphite UI."
+}

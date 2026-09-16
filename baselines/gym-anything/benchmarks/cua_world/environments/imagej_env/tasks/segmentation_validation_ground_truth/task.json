@@ -1,0 +1,38 @@
+{
+  "id": "segmentation_validation_ground_truth@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Validation of Segmentation against Ground Truth",
+  "description": "Perform a rigorous validation of a segmentation workflow by comparing it against ground truth data. Your goal is to process the synthetic cell image `~/ImageJ_Data/raw/BBBC005/SIMCEPImages_A01_C1_F1_s01_w1.TIF` using a Gaussian Blur (sigma=2) and an Otsu threshold to generate a binary segmentation mask. Quantitatively compare this result to the ground truth binary mask located at `~/ImageJ_Data/raw/BBBC005_ground_truth/SIMCEPImages_A01_C1_F1_s01_w1.TIF` by calculating the pixel-level difference. Save the difference image to `~/ImageJ_Data/results/segmentation_difference.tif` and export the validation metrics, including the mean intensity of the difference, to `~/ImageJ_Data/results/validation_metrics.csv`.",
+  "difficulty": "medium",
+  "tags": [
+    "validation",
+    "ground-truth",
+    "image-calculator",
+    "segmentation",
+    "binary-math",
+    "quality-control"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/segmentation_validation_ground_truth/setup_task.sh",
+    "post_task": "/workspace/tasks/segmentation_validation_ground_truth/export_result.sh"
+  },
+  "metadata": {
+    "raw_image_name": "SIMCEPImages_A01_C1_F1_s01_w1.TIF",
+    "expected_result_path": "/home/ga/ImageJ_Data/results/segmentation_difference.tif",
+    "expected_metrics_path": "/home/ga/ImageJ_Data/results/validation_metrics.csv",
+    "target_mean_error_min": 0.1,
+    "target_mean_error_max": 50.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_segmentation_validation"
+    }
+  }
+}

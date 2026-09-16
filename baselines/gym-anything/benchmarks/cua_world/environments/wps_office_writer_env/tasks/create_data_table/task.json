@@ -1,0 +1,61 @@
+{
+  "id": "create_data_table@1",
+  "version": "1.0",
+  "env_id": "wps_office_writer_env@0.1",
+  "description": "Create a formatted sales report in WPS Writer using Amazon Q4 2023 financial data. The document must feature a centered, bold title 'Amazon Q4 2023 Regional Net Sales Report' and a 5-row by 4-column table with headers (Region, Q4 2023 Net Sales, Year-over-Year Growth, % of Total) containing data for North America ($105.5B, +13%, 62%), International ($40.2B, +17%, 24%), AWS ($24.2B, +13%, 14%), and Total ($170.0B, +14%, 100%). Apply bold text and a blue background to the header row, right-align all numeric columns, and use alternating white and light gray colors for the data rows. Save the final document to ~/Documents/amazon_q4_report.docx.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_data_table/setup_task.sh",
+    "post_task": "/workspace/tasks/create_data_table/export_result.sh"
+  },
+  "metadata": {
+    "title_text": "Amazon Q4 2023 Regional Net Sales Report",
+    "expected_rows": 5,
+    "expected_columns": 4,
+    "header_row": [
+      "Region",
+      "Q4 2023 Net Sales",
+      "Year-over-Year Growth",
+      "% of Total"
+    ],
+    "data_rows": [
+      [
+        "North America",
+        "$105.5B",
+        "+13%",
+        "62%"
+      ],
+      [
+        "International",
+        "$40.2B",
+        "+17%",
+        "24%"
+      ],
+      [
+        "AWS",
+        "$24.2B",
+        "+13%",
+        "14%"
+      ],
+      [
+        "Total",
+        "$170.0B",
+        "+14%",
+        "100%"
+      ]
+    ],
+    "output_filename": "amazon_q4_report.docx",
+    "data_source": "Amazon Q4 2023 earnings report: https://ir.aboutamazon.com/news-release/news-release-details/2024/Amazon.com-Announces-Fourth-Quarter-Results/ and Statista regional data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_data_table"
+    }
+  }
+}

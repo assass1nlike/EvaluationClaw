@@ -1,0 +1,25 @@
+{
+  "id": "check_agent_status@1",
+  "version": "1.0",
+  "env_id": "wazuh_env@0.1",
+  "description": "In the Wazuh dashboard, navigate to the Configuration Assessment module and display the full details for a failed security check, including its title, result status, description, and rationale.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/check_agent_status/setup_task.sh"
+  },
+  "metadata": {
+    "expected_active_agents": 1,
+    "module": "Agents"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_check_agent_status"
+    }
+  }
+}

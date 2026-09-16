@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_tiered_recording_policy@1",
+  "task_completion": [
+    {
+      "id": "entrance_camera_configured",
+      "description": "Verify the Entrance Camera is configured according to Tier 1 policy.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Nx Witness Web Admin interface or API commands (e.g., curl, Python) configuring the 'Entrance Camera' to 25 FPS, 4096 kbps, High Quality, and an 'Always' (24/7) recording schedule."
+    },
+    {
+      "id": "parking_lot_camera_configured",
+      "description": "Verify the Parking Lot Camera is configured according to Tier 2 policy.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Nx Witness Web Admin interface or API commands configuring the 'Parking Lot Camera' to 15 FPS, 2048 kbps, Normal Quality, and an 'Always' (24/7) recording schedule."
+    },
+    {
+      "id": "lobby_camera_configured",
+      "description": "Verify the Lobby Camera is configured according to Tier 2 policy.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Nx Witness Web Admin interface or API commands configuring the 'Lobby Camera' to 15 FPS, 2048 kbps, Normal Quality, and an 'Always' (24/7) recording schedule."
+    },
+    {
+      "id": "server_room_camera_configured",
+      "description": "Verify the Server Room Camera is configured according to Tier 3 policy.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the Nx Witness Web Admin interface or API commands configuring the 'Server Room Camera' to 10 FPS, 1024 kbps, Low Quality, and an 'Always' (24/7) recording schedule."
+    },
+    {
+      "id": "report_content_cameras",
+      "description": "Verify the compliance report contains the required camera details.",
+      "points": 20,
+      "visual_evidence": "Screenshots of a terminal (e.g., using cat) or text editor showing the contents of '/home/ga/recording_policy_report.txt'. The file must list all four cameras along with their Name, Tier, FPS, Bitrate, and Stream Quality."
+    },
+    {
+      "id": "report_total_storage",
+      "description": "Verify the compliance report calculates the Total Daily Storage estimate.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the final line of the report calculating the Total Daily Storage estimate in GB. The value should be approximately 94.92 GB."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_configuration_performed",
+      "description": "Verify that the agent actually interacted with the Nx Witness system to configure the cameras.",
+      "visual_evidence": "Look for genuine interaction with the Nx Witness Web Admin GUI (at localhost:7001) or valid API requests (curl/Python) being executed in the terminal, rather than the agent just writing the report without applying the settings."
+    },
+    {
+      "id": "report_path_correct",
+      "description": "Verify the report is saved at the correct absolute path.",
+      "visual_evidence": "Look for terminal commands or editor paths confirming the file is saved exactly at '/home/ga/recording_policy_report.txt', not just printed to standard output or saved in a temporary location."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Verify the agent did not fake API responses or GUI interactions.",
+      "visual_evidence": "Ensure that any terminal output showing API success responses comes from actually executing a command, and not from the agent simply echoing text to make it look like a success."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts for the VLM verifier:\n- The expected Total Daily Storage estimate is approximately 94.92 GB (acceptable range is 89.9 to 99.9 GB).\n- The report must be located at /home/ga/recording_policy_report.txt.\n- Camera configurations:\n  * Entrance Camera: Tier 1, 25 fps, 4096 kbps, high quality\n  * Parking Lot Camera: Tier 2, 15 fps, 2048 kbps, normal quality\n  * Lobby Camera: Tier 2, 15 fps, 2048 kbps, normal quality\n  * Server Room Camera: Tier 3, 10 fps, 1024 kbps, low quality"
+}

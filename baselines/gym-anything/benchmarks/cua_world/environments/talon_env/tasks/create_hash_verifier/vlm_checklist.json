@@ -1,0 +1,53 @@
+{
+  "task_id": "create_hash_verifier@1",
+  "task_completion": [
+    {
+      "id": "talon_list_file",
+      "description": "Create the Talon list file for evidence IDs",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the creation of 'evidence_ids.talon-list' containing 'list: user.evidence_id' and the mappings: 'alpha' to 'email_dump.txt', 'bravo' to 'network_trace.pcap', and 'charlie' to 'system_config.ini'."
+    },
+    {
+      "id": "python_action_definition",
+      "description": "Define the Python action for verifying evidence",
+      "points": 15,
+      "visual_evidence": "A text editor showing 'evidence_verifier.py' with a Talon module action class (e.g., @mod.action_class) and the function definition 'def verify_evidence(evidence_id)'."
+    },
+    {
+      "id": "python_hash_logic",
+      "description": "Implement CSV reading and SHA256 hashing logic",
+      "points": 25,
+      "visual_evidence": "Code in 'evidence_verifier.py' that reads 'C:\\workspace\\data\\evidence\\manifest.csv', opens the corresponding file in 'C:\\workspace\\data\\evidence\\', and computes its SHA256 hash (e.g., using hashlib.sha256)."
+    },
+    {
+      "id": "python_notify_log",
+      "description": "Implement notification and audit logging logic",
+      "points": 20,
+      "visual_evidence": "Code in 'evidence_verifier.py' showing a call to 'actions.app.notify' to display VERIFIED or CORRUPTED, and file writing logic that appends a formatted string (YYYY-MM-DD HH:MM:SS, <EvidenceID>, <Filename>, <ComputedHash>, <Status>) to 'C:\\workspace\\data\\evidence\\audit_log.txt'."
+    },
+    {
+      "id": "talon_command_file",
+      "description": "Create the Talon voice command file",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'evidence_verifier.talon' containing the voice command definition 'verify evidence {user.evidence_id}:' followed by the action call 'user.verify_evidence(evidence_id)'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_directory",
+      "description": "Verify the module is created in the correct Talon user directory",
+      "visual_evidence": "File paths in the editor, terminal, or file explorer explicitly show the files being saved in 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\evidence_verifier\\'."
+    },
+    {
+      "id": "dynamic_hashing",
+      "description": "Verify the agent uses dynamic hashing rather than hardcoding results",
+      "visual_evidence": "The Python script imports 'hashlib' and dynamically computes the hash of the file, rather than containing hardcoded expected hashes or hardcoded 'VERIFIED'/'CORRUPTED' strings for specific files."
+    },
+    {
+      "id": "append_mode",
+      "description": "Verify the audit log is appended to, not overwritten",
+      "visual_evidence": "The Python script opens 'audit_log.txt' using append mode (e.g., open(..., 'a') or open(..., 'a+')) rather than write mode ('w')."
+    }
+  ],
+  "privileged_info_for_vlm": "Workspace directory: C:\\workspace\\data\\evidence. Manifest file: C:\\workspace\\data\\evidence\\manifest.csv. Audit log file: C:\\workspace\\data\\evidence\\audit_log.txt. The Talon module must be created in C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\evidence_verifier\\."
+}

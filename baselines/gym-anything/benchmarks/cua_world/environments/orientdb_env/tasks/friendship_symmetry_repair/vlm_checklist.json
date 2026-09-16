@@ -1,0 +1,59 @@
+{
+  "task_id": "friendship_symmetry_repair@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Agent logged into the 'demodb' database.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio web interface or database CLI is visible, showing an active connection to 'demodb'."
+    },
+    {
+      "id": "identify_asymmetric_edges",
+      "description": "Agent queried the database to audit existing HasFriend edges.",
+      "points": 15,
+      "visual_evidence": "A SELECT or MATCH query in the query editor (e.g., SELECT FROM HasFriend) and its results, or a graph visualization showing the initial one-way relationships."
+    },
+    {
+      "id": "create_reverse_edge_maria_john",
+      "description": "Agent created the missing reverse edge from Maria Garcia to John Smith.",
+      "points": 20,
+      "visual_evidence": "A CREATE EDGE query executed where the FROM target is maria.garcia@example.com and the TO target is john.smith@example.com, or a graph view showing this specific new directed edge."
+    },
+    {
+      "id": "create_reverse_edge_sophie_david",
+      "description": "Agent created the missing reverse edge from Sophie Martin to David Jones.",
+      "points": 20,
+      "visual_evidence": "A CREATE EDGE query executed where the FROM target is sophie.martin@example.com and the TO target is david.jones@example.com, or a graph view showing this specific new directed edge."
+    },
+    {
+      "id": "create_reverse_edge_james_yuki",
+      "description": "Agent created the missing reverse edge from James Brown to Yuki Tanaka.",
+      "points": 20,
+      "visual_evidence": "A CREATE EDGE query executed where the FROM target is james.brown@example.com and the TO target is yuki.tanaka@example.com, or a graph view showing this specific new directed edge."
+    },
+    {
+      "id": "verify_final_edge_count",
+      "description": "Agent verified that the total number of HasFriend edges is exactly 10.",
+      "points": 15,
+      "visual_evidence": "A query like 'SELECT count(*) FROM HasFriend' returning 10, or a graph visualization showing exactly 10 edges with all pairs being bidirectional."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacted with the actual OrientDB database interface.",
+      "visual_evidence": "Screenshots show the OrientDB Studio web interface or a legitimate database CLI executing commands, not just a text editor with drafted SQL commands."
+    },
+    {
+      "id": "no_edge_deletion",
+      "description": "Agent did not delete any existing edges.",
+      "visual_evidence": "There are no 'DELETE EDGE' commands visible in the query history or command prompt."
+    },
+    {
+      "id": "no_duplicate_creation",
+      "description": "Agent did not create duplicate edges.",
+      "visual_evidence": "The final edge count is exactly 10, and query results or graph views do not show multiple identical edges between the same two profiles."
+    }
+  ],
+  "privileged_info_for_vlm": "The database initially contains 7 'HasFriend' edges. The agent must create exactly 3 new reverse edges to achieve symmetry, resulting in exactly 10 edges. The missing edges that must be created are: 1) FROM maria.garcia@example.com TO john.smith@example.com, 2) FROM sophie.martin@example.com TO david.jones@example.com, 3) FROM james.brown@example.com TO yuki.tanaka@example.com. The agent must not delete any edges or create duplicates."
+}

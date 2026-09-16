@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_corridor_emissions@1",
+  "task_completion": [
+    {
+      "id": "run_sumo_with_emissions",
+      "description": "Run the SUMO scenario with emissions enabled for all vehicles.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the 'sumo' command with the config file '/home/ga/SUMO_Scenarios/bologna_pasubio/run.sumocfg' and the flag '--device.emissions.probability 1.0' (or evidence of the config file being edited to include this setting)."
+    },
+    {
+      "id": "save_statistics_xml",
+      "description": "Save the simulation statistics to the specified XML file.",
+      "points": 20,
+      "visual_evidence": "Terminal command showing the SUMO execution including '--statistic-output /home/ga/SUMO_Output/statistics.xml', or a file explorer/terminal showing the creation of 'statistics.xml' in the '/home/ga/SUMO_Output/' directory."
+    },
+    {
+      "id": "create_emissions_report",
+      "description": "Generate a plain-text report at the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (like 'touch', 'echo', or redirection '>') or a text editor showing the creation and editing of '/home/ga/SUMO_Output/emissions_report.txt'."
+    },
+    {
+      "id": "report_contains_labels",
+      "description": "The emissions report contains all required metric labels on separate lines.",
+      "points": 20,
+      "visual_evidence": "The contents of 'emissions_report.txt' displayed in a terminal (via 'cat', 'less') or text editor, showing the exact labels: 'CO2_mg', 'CO_mg', 'NOx_mg', 'PMx_mg', 'Fuel_mL', and 'Vehicle_Count'."
+    },
+    {
+      "id": "report_contains_correct_values",
+      "description": "The emissions report contains the correct numeric values corresponding to the ground truth.",
+      "points": 30,
+      "visual_evidence": "The contents of 'emissions_report.txt' showing numeric values closely matching the ground truth (Vehicle_Count: 8776, CO2_mg: ~4041511822.8, CO_mg: ~35905401.16, NOx_mg: ~10795954.69, PMx_mg: ~367976.66, Fuel_mL: ~1272917878.36)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify that the agent actually ran the SUMO simulation.",
+      "visual_evidence": "Terminal output showing genuine SUMO simulation progress logs (e.g., step routing, loading networks, simulation end statistics) rather than just a script printing fake outputs."
+    },
+    {
+      "id": "data_extraction_visible",
+      "description": "Verify that the agent extracted the data from the simulation output.",
+      "visual_evidence": "Terminal commands showing the agent parsing 'statistics.xml' (e.g., using 'grep', 'awk', a Python script) or opening the XML file to manually read the values."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify that the agent did not simply hardcode the final answers.",
+      "visual_evidence": "The agent should not immediately create the 'emissions_report.txt' with the final numbers without first running the SUMO simulation and inspecting the resulting statistics file."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must run the Bologna Pasubio scenario with emissions enabled (device.emissions.probability=1.0). The true aggregated emissions totals for this scenario are approximately: CO2_mg: 4041511822.8, CO_mg: 35905401.16, NOx_mg: 10795954.69, PMx_mg: 367976.66, and Fuel_mL: 1272917878.36. The total Vehicle_Count is exactly 8776. The VLM should verify that the agent's final report at /home/ga/SUMO_Output/emissions_report.txt contains values that closely match these figures."
+}

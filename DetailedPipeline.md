@@ -76,7 +76,7 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 
 替换题生成后，框架重跑完整三层 QC，并按单题严格比较：只有阻塞 error 数量严格减少的题才保留候选版本，其余题回退历史最佳版本。每道题独立维护历史最佳，所以同一轮可以部分保留、部分回退；某道替换题未通过结构校验时，只保留该题的旧版本，同一 TaskDesign 及其他 TaskDesign 的合法候选仍继续接受 QC。如此循环，最多运行 `max_qc_iterations` 轮。
 
-修复结束后，如果通过了 QC，benchmark 正式完成。仍有阻塞则默认抛异常拒绝产出 runner-ready benchmark；显式设置 `allow_incomplete_benchmark=true` 时，框架移除带 error 的题目，并以其余题目继续产出和执行。设置 `strict_qc_filter=true` 时，带 warning 的题目也会移除。
+初始构题按单题保留通过结构检查和环境预检的产物，其他题修复失败不影响它们进入 QC。修复结束后，默认移除带 error 的题目，以其余题目继续产出和执行。显式使用 `--strict-benchmark`（`allow_incomplete_benchmark=false`）时，所有计划题目都必须交付且通过 QC，否则停止执行。设置 `strict_qc_filter=true` 时，允许不完整 benchmark 的模式也会移除带 warning 的题目。
 
 <a id="section-human-review"></a>
 
@@ -1271,12 +1271,7 @@ def run_task_builder_tools(
     include_source_tools: bool,
 ) -&gt; tuple[str, list[str]]:
     &quot;&quot;&quot;Run a bounded TaskBuilder tool loop and return final builder JSON text.&quot;&quot;&quot;
-    max_calls = _bounded_int(
-        config.task_builder_tool_max_calls,
-        default=50,
-        minimum=1,
-        maximum=50,
-    )
+    max_calls = config.task_builder_tool_max_calls
     max_chars = _bounded_int(
         config.task_builder_tool_max_chars,
         default=50_000,
@@ -2653,11 +2648,11 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `task_builder_repair_attempts` | `int` | `2` | 每个 Builder job 在全局 QC 前的结构修复次数 | 直接：修复 payload 的 `max_repair_attempts` |
 | `task_builder_call_retries` | `int` | `5` | 每个 TaskBuilder 模型调用失败后的重试次数 | 否 |
 | `task_builder_truncation_retries` | `int` | `3` | 每个 Builder job 的输出截断恢复次数 | 否 |
-| `task_builder_tool_max_calls` | `int` | `50` | 单次 Builder 构题工具调用预算，运行时限制为 1-50 | 否 |
+| `task_builder_tool_max_calls` | `int` | `2000` | 单次 Builder 构题工具调用预算，可显式增大 | 否 |
 | `task_builder_tool_max_chars` | `int` | `50_000` | 每次构题工具结果的最大字符数，运行时限制为 1,000-100,000 | 派生：限制工具结果正文 |
 | `judge_double_pass` | `bool` | `True` | 执行阶段 Judge 是否进行双遍审计 | 派生：决定 Judge 调用次数和第二遍输入 |
 | `llm_backend` | `Literal["auto", "litellm"]` | `"auto"` | 标准模型调用使用 LiteLLM；`auto` 允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter，`litellm` 则强制可由 LiteLLM 承担的调用使用 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现 | 调用参数 |
-| `allow_incomplete_benchmark` | `bool` | `False` | QC 仍有阻塞问题时，是否移除带 error 的题目并以剩余题目继续 | 否 |
+| `allow_incomplete_benchmark` | `bool` | `True` | 移除 QC 不合格题后继续；设为 false 时要求计划题目全部交付并通过 QC | 否 |
 | `strict_qc_filter` | `bool` | `False` | 不完整模式下是否同时移除带 warning 的题目 | 否 |
 
 ### G.4 流程、输出、人工审核与 Analysis（15 个字段）

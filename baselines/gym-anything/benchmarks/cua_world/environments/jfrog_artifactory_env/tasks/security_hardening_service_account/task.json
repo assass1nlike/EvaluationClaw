@@ -1,0 +1,35 @@
+{
+  "id": "security_hardening_service_account@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "You are a platform security engineer at Apex Healthcare. A Q1 2026 internal security audit found that your CI/CD deployment pipelines are running as the Artifactory admin user with a long-lived API key — a critical violation of your SOC 2 compliance policy, which requires service accounts to use scoped, expiring tokens with least-privilege access. Remediate the compliance findings in Artifactory (http://localhost:8082, admin / password) by ensuring a non-admin service user named 'svc-deploy' exists with email 'svc-deploy@apex-healthcare.com' as a member of the 'ci-services' group. A local npm repository named 'npm-builds' (description: 'CI/CD npm artifact store') must be configured with a permission target named 'svc-deploy-perms' granting the 'ci-services' group Deploy and Read access. Generate a new access token for the 'svc-deploy' user with the description 'Service account token - Q1 2026 rotation' to replace the compromised credential.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/security_hardening_service_account/setup_task.sh",
+    "post_task": "/workspace/tasks/security_hardening_service_account/export_result.sh"
+  },
+  "metadata": {
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082",
+    "occupation": "Platform Security Engineer",
+    "industry": "Healthcare / Life Sciences",
+    "target_user": "svc-deploy",
+    "target_user_email": "svc-deploy@apex-healthcare.com",
+    "target_group": "ci-services",
+    "target_repo": "npm-builds",
+    "target_permission": "svc-deploy-perms",
+    "target_token_description": "Service account token - Q1 2026 rotation"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_security_hardening_service_account"
+    }
+  }
+}

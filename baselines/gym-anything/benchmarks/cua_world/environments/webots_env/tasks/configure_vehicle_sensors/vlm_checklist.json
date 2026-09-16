@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_vehicle_sensors@1",
+  "task_completion": [
+    {
+      "id": "locate_sensors",
+      "description": "Locate the front_camera and velodyne_lidar in the Webots scene tree.",
+      "points": 10,
+      "visual_evidence": "The Webots GUI is open. The scene tree panel shows the 'autonomous_vehicle' node expanded, revealing the 'front_camera' and 'velodyne_lidar' child nodes."
+    },
+    {
+      "id": "configure_camera_resolution",
+      "description": "Update the front_camera resolution to 640x480.",
+      "points": 30,
+      "visual_evidence": "The 'front_camera' node is selected in the scene tree. In the field editor panel, the 'width' field is set to 640 and the 'height' field is set to 480."
+    },
+    {
+      "id": "configure_lidar_layers",
+      "description": "Update the velodyne_lidar scanning layers to 16.",
+      "points": 20,
+      "visual_evidence": "The 'velodyne_lidar' node is selected in the scene tree. In the field editor panel, the 'numberOfLayers' field is set to 16."
+    },
+    {
+      "id": "configure_lidar_max_range",
+      "description": "Update the velodyne_lidar maximum range to 100 meters.",
+      "points": 20,
+      "visual_evidence": "The 'velodyne_lidar' node is selected in the scene tree. In the field editor panel, the 'maxRange' field is set to 100."
+    },
+    {
+      "id": "save_world_file",
+      "description": "Save the configured world file to the specified Desktop path.",
+      "points": 20,
+      "visual_evidence": "A 'Save World As...' dialog in Webots shows the file being saved as 'av_sensors_configured.wbt' in '/home/ga/Desktop/', or a file manager/terminal confirms the existence of this file on the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_webots_gui",
+      "description": "Verify the agent used the Webots GUI to make changes rather than a text editor.",
+      "visual_evidence": "Screenshots show interaction with the Webots application interface (scene tree, field editor) to modify parameters, not a text editor like nano, vim, or gedit editing the .wbt file."
+    },
+    {
+      "id": "no_terminal_text_manipulation",
+      "description": "Verify the agent did not use terminal commands to bypass the GUI.",
+      "visual_evidence": "The terminal does not show commands like 'sed', 'awk', or 'echo' being used to directly find and replace text in the .wbt file."
+    },
+    {
+      "id": "genuine_save_operation",
+      "description": "Verify the agent saved the file from within Webots.",
+      "visual_evidence": "The Webots 'File -> Save World As...' menu or dialog is visible in the screenshots, indicating a genuine save operation from the simulator rather than just copying/renaming the file in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output path: /home/ga/Desktop/av_sensors_configured.wbt. Expected camera resolution: 640x480 (width=640, height=480). Expected lidar properties: 16 layers (numberOfLayers=16) and 100m max range (maxRange=100). The starting values were 128x64 for the camera and 4 layers / 20m range for the lidar. The robot name is 'autonomous_vehicle', camera name is 'front_camera', and lidar name is 'velodyne_lidar'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "logistics_journey_segmentation@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle Database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., SQL Developer, DBeaver, or sqlplus terminal) open and showing an active connection to localhost:1521/XEPDB1 with the user 'hr'."
+    },
+    {
+      "id": "view_creation_execution",
+      "description": "Create a database view named JOURNEY_SEGMENTS.",
+      "points": 20,
+      "visual_evidence": "A SQL statement starting with 'CREATE [OR REPLACE] VIEW JOURNEY_SEGMENTS AS' being executed, or a success message indicating the view was created, or the view appearing in the database object explorer."
+    },
+    {
+      "id": "gaps_and_islands_logic",
+      "description": "Implement logic to consolidate consecutive logs with the same status while keeping 'A-B-A' transitions distinct.",
+      "points": 30,
+      "visual_evidence": "The SQL query uses window functions (like LAG(), LEAD(), SUM() OVER, or MATCH_RECOGNIZE) to group consecutive identical statuses, or the query results show distinct segments for the same status separated by a different status (e.g., Container 101 having two separate 'Transit' segments)."
+    },
+    {
+      "id": "required_columns_present",
+      "description": "Ensure the view includes all required columns: CONTAINER_ID, SEGMENT_ID, STATUS, START_TIME, END_TIME, and DURATION_MINS.",
+      "points": 20,
+      "visual_evidence": "The SELECT clause of the view definition explicitly lists or aliases columns to CONTAINER_ID, SEGMENT_ID, STATUS, START_TIME, END_TIME, and DURATION_MINS, or a DESCRIBE command/result grid shows these exact column names."
+    },
+    {
+      "id": "csv_export_and_ordering",
+      "description": "Export the view contents to /home/ga/Desktop/journey_report.csv ordered by Container ID and Start Time.",
+      "points": 20,
+      "visual_evidence": "A file named 'journey_report.csv' visible on the Desktop or opened in a file viewer/editor, and the SQL query or export command shows an 'ORDER BY CONTAINER_ID, START_TIME' clause."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the actual Oracle database to process the data.",
+      "visual_evidence": "Screenshots show a real database client (GUI or CLI) executing queries against the CONTAINER_LOGS table, rather than the agent manually typing out a CSV file in a text editor."
+    },
+    {
+      "id": "dynamic_sql_logic",
+      "description": "The agent used dynamic SQL logic rather than hardcoding the expected results.",
+      "visual_evidence": "The SQL query uses analytical functions or grouping logic to determine segments. It does NOT contain hardcoded values like 'WHERE container_id = 101' with manually typed segment rows."
+    },
+    {
+      "id": "authentic_export_process",
+      "description": "The CSV file was generated via a genuine export process from the database.",
+      "visual_evidence": "Evidence of an export wizard, a spool command in sqlplus, or a script saving the query results directly to the required path, rather than copy-pasting text into a file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected view name is 'JOURNEY_SEGMENTS'. The exported CSV must be saved to '/home/ga/Desktop/journey_report.csv'. The correct output data should show exactly 4 segments for Container 101 (Transit -> Customs -> Transit -> Docked), 1 segment for Container 102 (Docked), and 5 segments for Container 103 (Rapid A-B switching)."
+}

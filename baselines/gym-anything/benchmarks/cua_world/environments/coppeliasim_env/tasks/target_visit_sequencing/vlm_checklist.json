@@ -1,0 +1,53 @@
+{
+  "task_id": "target_visit_sequencing@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_connection",
+      "description": "Verify that the agent connects to CoppeliaSim via the ZMQ Remote API.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a script executing and successfully connecting to CoppeliaSim on port 23000, or the CoppeliaSim GUI open while a script is running."
+    },
+    {
+      "id": "target_and_sequence_logic",
+      "description": "Verify the script defines at least 6 target waypoints and logic to test at least 5 different orderings.",
+      "points": 20,
+      "visual_evidence": "Code editor showing a Python script with an array/list of at least 6 target coordinates and a loop or permutation logic designed to test at least 5 different sequences."
+    },
+    {
+      "id": "robot_execution_progress",
+      "description": "Verify the script executes the sequences and measures motion time and travel distance.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the progress of the robot executing multiple sequences, printing out times and distances for each sequence, or visual movement of the robot arm in the CoppeliaSim GUI."
+    },
+    {
+      "id": "csv_output_verification",
+      "description": "Verify the creation and formatting of the visit_sequences.csv file.",
+      "points": 25,
+      "visual_evidence": "The file /home/ga/Documents/CoppeliaSim/exports/visit_sequences.csv is shown in an editor or terminal (via cat/head), containing the exact columns: sequence_id, visit_order, total_time_s, total_distance_m, and at least 5 rows of sequence data."
+    },
+    {
+      "id": "json_output_verification",
+      "description": "Verify the creation and formatting of the sequencing_report.json file.",
+      "points": 25,
+      "visual_evidence": "The file /home/ga/Documents/CoppeliaSim/exports/sequencing_report.json is shown in an editor or terminal, containing the keys: num_targets (value >= 6), num_sequences_tested (value >= 5), best_sequence_id, best_time_s, worst_time_s, improvement_pct, and target_positions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_interaction",
+      "description": "Ensure the agent interacted with the CoppeliaSim API to generate the data.",
+      "visual_evidence": "The agent must write and execute a script importing the ZMQ Remote API to control the robot, rather than manually typing out fake CSV/JSON files in a text editor."
+    },
+    {
+      "id": "realistic_variance_in_results",
+      "description": "Ensure the sequence results are genuinely measured and not placeholder data.",
+      "visual_evidence": "The total_time_s and total_distance_m values in the CSV should vary across different sequences, reflecting actual physical differences in the robot's travel path."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Ensure the summary statistics in the JSON report are dynamically calculated.",
+      "visual_evidence": "The script should contain logic to calculate best_time_s, worst_time_s, and improvement_pct from the simulation results, rather than hardcoding arbitrary numbers into the JSON export."
+    }
+  ],
+  "privileged_info_for_vlm": "The task strictly requires at least 6 target waypoints (separated by min 0.04m, spanning min 0.15m max distance) and at least 5 tested sequences. The expected output paths are exactly /home/ga/Documents/CoppeliaSim/exports/visit_sequences.csv and /home/ga/Documents/CoppeliaSim/exports/sequencing_report.json."
+}

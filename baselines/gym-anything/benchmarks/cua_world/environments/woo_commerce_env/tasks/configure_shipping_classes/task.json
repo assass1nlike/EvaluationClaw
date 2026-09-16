@@ -1,0 +1,41 @@
+{
+  "id": "configure_shipping_classes@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure advanced shipping rules for the store by creating and assigning shipping classes. Create a \"Bulky Items\" shipping class (slug: bulky-items, description: \"Large or heavy items requiring special shipping handling\") and a \"Fragile\" shipping class (slug: fragile, description: \"Delicate items requiring careful packaging\"). For the Domestic shipping zone, configure the Flat rate shipping class costs as follows: $15.00 for Bulky Items, $8.00 for Fragile, and $5.00 for no shipping class. Assign the \"Fragile\" class to the \"Wireless Bluetooth Headphones\" (SKU: WBH-001) and the \"Bulky Items\" class to the \"Merino Wool Sweater\" (SKU: MWS-GRY-L).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_shipping_classes/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_shipping_classes/export_result.sh"
+  },
+  "metadata": {
+    "class_1": {
+      "name": "Bulky Items",
+      "slug": "bulky-items"
+    },
+    "class_2": {
+      "name": "Fragile",
+      "slug": "fragile"
+    },
+    "costs": {
+      "bulky": "15.00",
+      "fragile": "8.00",
+      "no_class": "5.00"
+    },
+    "assignments": {
+      "WBH-001": "fragile",
+      "MWS-GRY-L": "bulky-items"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_shipping_classes"
+    }
+  }
+}

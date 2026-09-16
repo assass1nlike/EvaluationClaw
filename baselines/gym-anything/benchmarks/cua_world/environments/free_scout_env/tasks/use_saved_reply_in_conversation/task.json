@@ -1,0 +1,31 @@
+{
+  "id": "use_saved_reply_in_conversation@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "Respond to Rachel Torres's maintenance request 'Projector Maintenance Request - Conference Room B' in the 'AV Service Desk' mailbox. Log in as admin@helpdesk.local (Admin123!) and use the 'Maintenance Appointment Confirmation' saved reply template to send the response.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/use_saved_reply_in_conversation/setup_task.sh",
+    "post_task": "/workspace/tasks/use_saved_reply_in_conversation/export_result.sh"
+  },
+  "metadata": {
+    "expected_phrases": [
+      "scheduled your equipment maintenance appointment",
+      "certified technician will arrive",
+      "powered off and accessible"
+    ],
+    "mailbox_name": "AV Service Desk",
+    "conversation_subject": "Projector Maintenance Request - Conference Room B"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_use_saved_reply"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "create_statistical_infographic@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a statistical infographic in Wondershare EdrawMax titled 'Remote Work Impact 2024' that visualizes survey data regarding productivity changes: 45% Increased, 35% No Change, and 20% Decreased. The infographic must include the key insight text 'Flexibility is the top driver of productivity' and a relevant icon (such as a computer, home, or person). Save the editable file to /home/ga/Diagrams/remote_work_infographic.eddx and export the final infographic as an image to /home/ga/Diagrams/remote_work_infographic.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_statistical_infographic/setup_task.sh",
+    "post_task": "/workspace/tasks/create_statistical_infographic/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/remote_work_infographic.eddx",
+    "expected_png_path": "/home/ga/Diagrams/remote_work_infographic.png",
+    "required_strings": [
+      "Remote Work Impact 2024",
+      "Flexibility is the top driver"
+    ],
+    "required_data_values": [
+      45,
+      35,
+      20
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_statistical_infographic"
+    }
+  }
+}

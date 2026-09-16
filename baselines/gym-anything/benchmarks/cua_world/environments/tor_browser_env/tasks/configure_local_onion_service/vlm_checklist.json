@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_local_onion_service@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Create the hidden service directory with 700 permissions.",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands like 'mkdir' and 'chmod 700' for '/home/ga/Documents/local_onion/', or a file manager showing the folder properties with restricted permissions."
+    },
+    {
+      "id": "torrc_configured",
+      "description": "Update the torrc configuration file to expose the local server.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the 'torrc' file with lines specifying 'HiddenServiceDir /home/ga/Documents/local_onion/' and 'HiddenServicePort 80 127.0.0.1:8080'."
+    },
+    {
+      "id": "hostname_retrieved",
+      "description": "Retrieve the generated .onion address from the hostname file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'cat /home/ga/Documents/local_onion/hostname' or a text editor displaying the generated .onion address."
+    },
+    {
+      "id": "onion_site_loaded",
+      "description": "Navigate to the generated .onion address within Tor Browser.",
+      "points": 20,
+      "visual_evidence": "Tor Browser open with the .onion address in the URL bar, displaying the 'Secure Drop Site' page."
+    },
+    {
+      "id": "site_bookmarked",
+      "description": "Bookmark the resulting page with the title 'Local Drop Site Test'.",
+      "points": 30,
+      "visual_evidence": "Tor Browser bookmark creation dialog, bookmarks toolbar, or bookmarks menu showing a bookmark titled 'Local Drop Site Test' for the .onion site."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_tor_browser_used",
+      "description": "The agent used Tor Browser to load the site.",
+      "visual_evidence": "The browser shown in the screenshots must be Tor Browser (identifiable by the onion logo or Tor Browser branding), not a standard Firefox or Chrome instance."
+    },
+    {
+      "id": "genuine_onion_address",
+      "description": "The loaded URL is a genuine onion address.",
+      "visual_evidence": "The URL bar in Tor Browser must show a .onion address, not a localhost or 127.0.0.1 address."
+    },
+    {
+      "id": "no_direct_localhost_bookmark",
+      "description": "The bookmark must point to the .onion address, not the local server.",
+      "visual_evidence": "The bookmark dialog or properties should show the .onion address as the URL, ensuring the agent didn't just bookmark 127.0.0.1:8080."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected bookmark title is exactly 'Local Drop Site Test'. The local website content will display 'Secure Drop Site'."
+}

@@ -1,0 +1,96 @@
+{
+  "dataset_id": "948f9397",
+  "name": "Openset Industrial Inspection Multi-Image Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Industrial Inspection Multi-Image Reasoning dataset evaluates multimodal models on comparing industrial workpieces across multiple images. Each item presents one or more images of workpieces and a binary question (True/False) about whether they share the same genre or damages, testing visual reasoning and inspection skills.",
+  "card_text": "This dataset consists of 200 samples for industrial inspection multi-image reasoning. Each sample includes a variable number of images (typically 2–4) of industrial workpieces, such as metal parts or components, and a text prompt asking a binary comparison question (e.g., 'Are these two workpieces the same genre?' or 'Do both workpieces have the same damages?'). The prompt embeds <ImageHere> placeholders for each image and specifies a choice list of True/False. The model must analyze the visual details across images and output the correct textual answer. The data is designed for open-set evaluation of multimodal reasoning, focusing on fine-grained visual comparison and defect identification in an engineering context.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa",
+    "classification_binary",
+    "consistency_judgment"
+  ],
+  "domain": "industrial inspection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of one or more photographs of industrial workpieces (e.g., metal parts, gears, or components) that serve as the visual context for inspection and comparison.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "File references to individual industrial inspection images; each image shows a workpiece, and multiple images are used for comparison.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question asking whether the depicted workpieces share the same genre or damages; the prompt includes <ImageHere> placeholders for each image and specifies a choice list of True/False.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold binary answer, either 'True' or 'False', indicating whether the queried property (same genre or same damages) holds for the workpieces.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of image file references (input.image_file) showing industrial workpieces, a text prompt (input.prompt) that poses a comparison question with <ImageHere> placeholders and an embedded True/False choice list, and a gold text answer (output.text) that is either True or False. The images provide the visual context, while the prompt instructs the model to compare the workpieces and select an answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/IndustrialInspectionMulti-ImageReasoning/openset_industrial_inspection_multi-image_reasoning.json",
+    "existing_tags": {
+      "task": "Industrial Inspection Multi-Image Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "Engineering",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Engineering"
+  }
+}

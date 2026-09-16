@@ -1,0 +1,37 @@
+{
+  "id": "create_investment_decision_tree@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a 'Build vs. Buy' investment decision tree diagram in EdrawMax. The diagram must feature a square root decision node labeled 'Strategy' with two primary branches: 'Build In-house' and 'Buy Vendor Sol.', each terminating in a circular chance node. The 'Build In-house' path must branch into 'Success (60%)' with an outcome of '$50,000' and 'Failure (40%)' with an outcome of '$120,000'. The 'Buy Vendor Sol.' path must branch into 'Compatible (90%)' with an outcome of '$80,000' and 'Incompatible (10%)' with an outcome of '$150,000'. Ensure all text labels are visible. Save the diagram as '/home/ga/Documents/build_vs_buy_tree.eddx' and export it as '/home/ga/Documents/build_vs_buy_tree.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_investment_decision_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/create_investment_decision_tree/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename_eddx": "build_vs_buy_tree.eddx",
+    "expected_filename_png": "build_vs_buy_tree.png",
+    "expected_dir": "/home/ga/Documents/",
+    "required_text": [
+      "Strategy",
+      "Build In-house",
+      "Buy Vendor Sol",
+      "Success",
+      "50,000",
+      "120,000",
+      "80,000",
+      "150,000"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_investment_decision_tree"
+    }
+  }
+}

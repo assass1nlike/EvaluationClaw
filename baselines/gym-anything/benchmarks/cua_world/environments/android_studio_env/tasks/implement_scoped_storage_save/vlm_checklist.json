@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_scoped_storage_save@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open the ImageExporter.kt file",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or IDE showing the file `ImageExporter.kt` open, with the path `app/src/main/java/com/example/photostamp/ImageExporter.kt` visible."
+    },
+    {
+      "id": "remove_legacy_storage_code",
+      "description": "Remove legacy file path storage code",
+      "points": 10,
+      "visual_evidence": "Look at the `saveBitmapToGallery` function in the editor. Ensure the terms `getExternalStorageDirectory` and `/sdcard/` have been completely removed from the code."
+    },
+    {
+      "id": "setup_content_values",
+      "description": "Configure ContentValues with MIME type and relative path",
+      "points": 20,
+      "visual_evidence": "Look for code instantiating `ContentValues()`. It must include setting the MIME type to `image/jpeg` and the relative path to `Pictures/PhotoStamp`."
+    },
+    {
+      "id": "insert_mediastore_uri",
+      "description": "Insert into MediaStore using ContentResolver",
+      "points": 20,
+      "visual_evidence": "Look for code calling `contentResolver.insert(...)`. The first argument must be `MediaStore.Images.Media.EXTERNAL_CONTENT_URI` and the second argument must be the `ContentValues` object."
+    },
+    {
+      "id": "write_bitmap_outputstream",
+      "description": "Write bitmap data to the OutputStream",
+      "points": 20,
+      "visual_evidence": "Look for code calling `contentResolver.openOutputStream(...)` using the URI returned from the insert operation, followed by writing/compressing the bitmap data to this output stream."
+    },
+    {
+      "id": "build_project_success",
+      "description": "Build the project successfully",
+      "points": 20,
+      "visual_evidence": "Look for a terminal or IDE build window showing a successful Gradle build (e.g., 'BUILD SUCCESSFUL in ...', 'Build: completed successfully') after the code changes were made."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "Verify the agent used a genuine editor to modify the code",
+      "visual_evidence": "The screenshots should show the code being edited in a real text editor or IDE (like Android Studio, VS Code, Vim, or Nano) rather than being blindly overwritten via echo/sed commands without viewing."
+    },
+    {
+      "id": "actual_implementation",
+      "description": "Verify the function is actually implemented, not stubbed",
+      "visual_evidence": "The `saveBitmapToGallery` function should contain the actual MediaStore logic. It should not be commented out, empty, or just returning a hardcoded `true`."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "Verify the build success is from a real Gradle execution",
+      "visual_evidence": "The build success message should appear in the context of a real Gradle run (e.g., `./gradlew build` or Android Studio's Build tool window), not a mocked echo command in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /home/ga/AndroidStudioProjects/PhotoStamp/app/src/main/java/com/example/photostamp/ImageExporter.kt. The correct implementation MUST include the following terms: 'MediaStore', 'ContentValues', 'EXTERNAL_CONTENT_URI', 'contentResolver', 'openOutputStream', and 'Pictures/PhotoStamp'. It MUST NOT include the legacy terms 'getExternalStorageDirectory' or '/sdcard/'. The MIME type must be exactly 'image/jpeg'."
+}

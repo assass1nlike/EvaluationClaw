@@ -1,0 +1,28 @@
+{
+  "id": "import_external_csv_data@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Import the physiological data from 'C:\\Users\\Docker\\Documents\\prototype_pleth.csv' into Vital Recorder. Ensure the photoplethysmogram (PPG) waveform is visible and correctly scaled in the track view. Save the project as 'device_test_import.vital' in 'C:\\Users\\Docker\\Documents\\' and save a screenshot of the visible waveform to 'C:\\Users\\Docker\\Desktop\\import_verification.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_external_csv_data\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_external_csv_data\\export_result.ps1"
+  },
+  "metadata": {
+    "csv_path": "C:\\Users\\Docker\\Documents\\prototype_pleth.csv",
+    "expected_vital_file": "C:\\Users\\Docker\\Documents\\device_test_import.vital",
+    "expected_screenshot": "C:\\Users\\Docker\\Desktop\\import_verification.png",
+    "min_vital_size_bytes": 1024
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_external_csv_data"
+    }
+  }
+}

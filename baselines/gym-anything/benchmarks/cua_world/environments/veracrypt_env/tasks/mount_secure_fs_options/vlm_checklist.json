@@ -1,0 +1,53 @@
+{
+  "task_id": "mount_secure_fs_options@1",
+  "task_completion": [
+    {
+      "id": "volume_mounted",
+      "description": "The encrypted volume is mounted to the correct mount point.",
+      "points": 15,
+      "visual_evidence": "Terminal output of a successful VeraCrypt mount command, VeraCrypt GUI showing the volume mounted at '/home/ga/MountPoints/secure_data', or 'df'/'mount' output showing the mapping."
+    },
+    {
+      "id": "mount_options_checked",
+      "description": "The agent checks the mount options to confirm noexec, nosuid, and nodev are applied.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'mount' or 'cat /proc/mounts' (or 'grep') and the output clearly displaying 'noexec', 'nosuid', and 'nodev' for the '/home/ga/MountPoints/secure_data' mount point."
+    },
+    {
+      "id": "test_script_execution_denied",
+      "description": "The agent creates a test script and attempts to execute it, which is denied.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the creation of 'test_exec.sh', making it executable (e.g., 'chmod +x'), and an attempt to run it directly (e.g., './test_exec.sh') resulting in a 'Permission denied' error message."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The security compliance report is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, gedit) or terminal command (like 'cat', 'echo') showing the file '/home/ga/Documents/mount_security_report.txt' being written to or viewed."
+    },
+    {
+      "id": "report_content_complete",
+      "description": "The security compliance report contains all required information.",
+      "points": 30,
+      "visual_evidence": "The visible text of the report includes the volume path ('/home/ga/Volumes/data_volume.hc'), mount point ('/home/ga/MountPoints/secure_data'), the options ('noexec, nosuid, nodev'), a list of files from the volume, and a statement confirming execution was denied."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_mount_operation",
+      "description": "The agent used VeraCrypt (CLI or GUI) to mount the volume.",
+      "visual_evidence": "Look for 'veracrypt' commands in the terminal or the VeraCrypt GUI being used, rather than just creating a fake directory or using standard 'mount' without decryption."
+    },
+    {
+      "id": "genuine_execution_test",
+      "description": "The 'Permission denied' error is a genuine shell error.",
+      "visual_evidence": "The error message should look like a standard bash/shell error (e.g., 'bash: ./test_exec.sh: Permission denied') and not be a manually echoed string."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "The report is written using a text editor or standard redirection commands.",
+      "visual_evidence": "The agent should be seen typing out the report in an editor or using 'echo'/'cat' with output redirection, and the list of files should appear to be actual output from an 'ls' command on the mount point."
+    }
+  ],
+  "privileged_info_for_vlm": "The volume path is '/home/ga/Volumes/data_volume.hc'. The mount point is '/home/ga/MountPoints/secure_data'. The password is 'MountMe2024'. The expected mount options are 'noexec', 'nosuid', and 'nodev'. The report must be saved to '/home/ga/Documents/mount_security_report.txt'."
+}

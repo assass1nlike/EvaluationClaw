@@ -1,0 +1,53 @@
+{
+  "task_id": "flag_high_risk_security_facilities@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "The agent opens the facility database to begin the security audit.",
+      "points": 10,
+      "visual_evidence": "A database viewer, spreadsheet application, or text/XML editor is open, displaying the contents of the epcra_tier2_data.xml file."
+    },
+    {
+      "id": "search_target_chemical",
+      "description": "The agent searches the database for the target chemical.",
+      "points": 20,
+      "visual_evidence": "A search dialog, find bar, or query interface is visible containing the text 'Ammonium Nitrate' or the CAS number '6484-52-2'."
+    },
+    {
+      "id": "review_database_contents",
+      "description": "The agent reviews the database contents and identifies that no facilities contain the target chemical.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent viewing the search results (yielding 0 matches) or manually inspecting the XML file, which only contains the 'Green Valley Water Facility' with Chlorine and Fluorosilic Acid."
+    },
+    {
+      "id": "create_audit_list_file",
+      "description": "The agent creates the required output text file on the Desktop.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., Notepad) is open or a terminal command is executed to create a file specifically at C:\\Users\\Docker\\Desktop\\audit_list.txt."
+    },
+    {
+      "id": "save_empty_audit_list",
+      "description": "The agent saves the audit list without adding any facility names, correctly reflecting that zero facilities met the criteria.",
+      "points": 30,
+      "visual_evidence": "The audit_list.txt file is shown to be completely empty (or containing no facility names) when it is saved, demonstrating the agent correctly recognized that no facilities qualified for the audit."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with the actual provided database file rather than hallucinating data.",
+      "visual_evidence": "The agent is seen opening and reading the specific epcra_tier2_data.xml file in the environment. It does not generate outputs based on the task description's metadata alone."
+    },
+    {
+      "id": "no_hallucinated_facilities",
+      "description": "The agent did not populate the output file with fake facilities.",
+      "visual_evidence": "The audit_list.txt file does NOT contain hallucinated names such as 'Agri-Grow Services', 'Industrial Blasting Co', 'Westside Garden Center', 'City Parks Dept', or 'Midwest Logistics'."
+    },
+    {
+      "id": "no_unwarranted_modifications",
+      "description": "The agent did not incorrectly modify non-qualifying facilities.",
+      "visual_evidence": "The epcra_tier2_data.xml file is NOT modified to include the '[DHS-AUDIT-REQUIRED]' tag, as the only facility in the database (Green Valley Water Facility) does not store Ammonium Nitrate."
+    }
+  ],
+  "privileged_info_for_vlm": "The actual database (epcra_tier2_data.xml) contains only ONE facility: 'Green Valley Water Facility', which stores Chlorine and Fluorosilic Acid. It does NOT contain Ammonium Nitrate (CAS 6484-52-2). Therefore, NO facilities meet the audit criteria. The agent should NOT update any records with '[DHS-AUDIT-REQUIRED]', and the final 'audit_list.txt' file must be empty (or contain zero facility names). Any facilities listed in the output (e.g., Agri-Grow Services, Industrial Blasting Co) are hallucinated from the prompt metadata and indicate a failed task."
+}

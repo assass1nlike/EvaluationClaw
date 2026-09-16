@@ -281,7 +281,6 @@ def test_analyser_tool_round_preserves_artifact_context(monkeypatch, tmp_path) -
 
 def test_analyser_answers_every_call_when_a_batch_exceeds_budget(monkeypatch, tmp_path) -> None:
     (tmp_path / "qc_report.json").write_text('{"issues": []}', encoding="utf-8")
-    monkeypatch.setattr(analysis, "_MAX_ARTIFACT_CALLS", 1)
     calls = [ToolCall(id=f"call-{i}", name="read_run_artifact", arguments={"path": "qc_report.json"}) for i in range(3)]
     turns = 0
 
@@ -300,7 +299,8 @@ def test_analyser_answers_every_call_when_a_batch_exceeds_budget(monkeypatch, tm
             tool_calls=[], assistant_message={"role": "assistant"}, raw_response={})
 
     monkeypatch.setattr(analysis, "call_orchestrator_with_tools", model)
-    assert analysis._run_analyser_tool_loop({}, _config(), trace_dir=None, artifact_dir=tmp_path)["done"] is True
+    config = _config().model_copy(update={"analyser_tool_max_calls": 1})
+    assert analysis._run_analyser_tool_loop({}, config, trace_dir=None, artifact_dir=tmp_path)["done"] is True
 
 
 def test_analyser_retries_missing_content_without_using_reasoning_as_answer(monkeypatch) -> None:

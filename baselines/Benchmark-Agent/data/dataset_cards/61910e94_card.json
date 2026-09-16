@@ -1,0 +1,74 @@
+{
+  "dataset_id": "61910e94",
+  "name": "Protein-Protein-Interaction-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset targets extraction of protein-protein interactions (PPIs) from biomedical text. Given a scientific sentence or abstract plus an instruction prompt, a model must output all protein interactions in the form 'protein1 => interaction_type => protein2', where the interaction type is one of enzyme, structural, or negative.",
+  "card_text": "This is a small, English, text-only relation-extraction dataset drawn from biomedical literature (titles and abstract sentences about proteins, genes, and molecular interactions). Each sample pairs a raw scientific passage with a fixed extraction instruction listing the allowed interaction types (enzyme, structural, negative) and the required output template. The target is a short string (or strings) listing the protein-protein interactions found in the passage, each rendered as 'protein1 => interaction_type => protein2'. Typical content mentions specific protein names (e.g., collapsin-1, Bni1p, profilin) and describes binding, regulation, or competition events. The dataset assumes the answer must be grounded strictly in the supplied passage and follow the exact triple format.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "biomedical literature (protein-protein interactions)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "A scientific sentence or short abstract fragment from the biomedical literature describing proteins, genes, binding, and molecular regulation. It is the source passage from which all protein-protein interactions must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed extraction instruction that embeds the raw text via a '<<<raw_text>>>' placeholder, states the allowed interaction types (enzyme, structural, negative), and specifies the required triple output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The extracted protein-protein interactions grounded in the context passage, serialized as 'protein1 => interaction_type => protein2'. It answers the instruction directly and is empty only when no valid interaction exists.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three text components: a raw biomedical passage (input.raw_text) that serves as the context, a fixed instruction prompt (input.prompt) that asks for protein-protein interaction extraction and defines the allowed types and output template, and a short structured answer string (output.text) listing the interactions found in the passage as 'protein1 => interaction_type => protein2' triples. The prompt references the passage through a placeholder, and the answer must be derived solely from that same passage."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Protein-Protein-Interaction-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "protein_protein_interaction_extraction",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

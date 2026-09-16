@@ -1,0 +1,27 @@
+{
+  "id": "create_journal_entry@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In the Northwind Traders business in Manager.io, record a manual journal entry for an office rent expense dated today. The entry must include a 3000.00 debit to 'Accounting fees' (or 'Advertising and promotion') and a 3000.00 credit to 'Retained earnings' with the narration 'Prepaid office rent Q1'. Credentials: Username = administrator, Password = (leave empty).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_journal_entry/setup_task.sh"
+  },
+  "metadata": {
+    "expected_amount": 3000.0,
+    "expected_narration_keyword": "prepaid",
+    "manager_module": "journal_entries",
+    "manager_action": "new"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_journal_entry"
+    }
+  }
+}

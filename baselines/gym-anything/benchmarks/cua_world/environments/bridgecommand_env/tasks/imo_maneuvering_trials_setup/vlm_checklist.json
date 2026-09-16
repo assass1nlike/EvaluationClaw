@@ -1,0 +1,53 @@
+{
+  "task_id": "imo_maneuvering_trials_setup@1",
+  "task_completion": [
+    {
+      "id": "directories_created",
+      "description": "Verify the creation of the simulation directory and the three required scenario subfolders.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output (e.g., 'ls' or 'tree') or a file manager showing the path '/opt/bridgecommand/Scenarios/Sea Trials/' containing exactly three folders: 'Turning Circle Test', 'Zig-Zag Test', and 'Crash Stop Test'."
+    },
+    {
+      "id": "scenario_ini_configured",
+      "description": "Verify the scenario INI files are configured with the correct weather, location, traffic, ownship, and speed parameters.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., 'cat' or 'grep') showing the scenario INI files containing: 'Weather=0', 'RainVisible=0', 'Fog=0', a latitude value less than 50.65, no traffic ships configured, ownship set to 'MV Blue Whale', and speed set to 14.0."
+    },
+    {
+      "id": "bc5_ini_configured",
+      "description": "Verify that 'track_history' is enabled in the bc5.ini configuration file.",
+      "points": 15,
+      "visual_evidence": "Look for the 'bc5.ini' file open in a text editor or terminal output showing 'track_history' set to an enabled state (e.g., 'track_history=1', 'track_history=true', or similar depending on the simulator's format)."
+    },
+    {
+      "id": "trials_plan_file_created",
+      "description": "Verify the trials plan text file was created in the correct location.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands or a text editor showing the file '/home/ga/Documents/trials_plan.txt' being created or edited."
+    },
+    {
+      "id": "imo_calculations_correct",
+      "description": "Verify the calculated IMO criteria in the trials plan are correct for a 225m vessel.",
+      "points": 30,
+      "visual_evidence": "Read the contents of '/home/ga/Documents/trials_plan.txt'. It must explicitly state the correct calculated values: Max Tactical Diameter = 1125.0m, Max Advance = 1012.5m, and Max Stopping Distance = 3375.0m."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent actually edited the configuration and text files using standard tools.",
+      "visual_evidence": "Look for the use of text editors (nano, vim, gedit) or valid shell commands (echo, sed, awk) to modify the INI and TXT files, rather than just printing what the contents should be."
+    },
+    {
+      "id": "genuine_directory_creation",
+      "description": "Verify the agent genuinely created the directories.",
+      "visual_evidence": "Look for the execution of 'mkdir' commands or GUI file manager interactions to create the directories, rather than just navigating to pre-existing ones."
+    },
+    {
+      "id": "no_pre_existing_script",
+      "description": "Verify the agent did not use a pre-existing shortcut script to complete the task.",
+      "visual_evidence": "Ensure the agent executed the configuration steps manually or wrote its own script, rather than running a pre-existing script like 'setup_trials.sh' found in the environment."
+    }
+  ],
+  "privileged_info_for_vlm": "IMO Resolution A.751(18) criteria for a 225m vessel: Max Tactical Diameter = 1125.0m (5.0 * Lpp), Max Advance = 1012.5m (4.5 * Lpp), Max Stopping Distance = 3375.0m (15 * Lpp). The scenarios must be located south of 50.65\u00b0N. Weather parameters must be exactly Weather=0, RainVisible=0, Fog=0. Target speed is 14.0 knots."
+}

@@ -386,7 +386,22 @@ def _preflight_executable_items(
             continue
         environment = None
         try:
+            from ..runners.harness import preflight_harness_environments
+
+            harness_outcomes = preflight_harness_environments(
+                item, config, artifact_dir=trace_dir / safe_name(item.id) if trace_dir else None,
+            )
+            for outcome in harness_outcomes:
+                report.probes.append(EnvironmentProbe(
+                    name="task_preflight", ok=True,
+                    detail="External harness setup, runtime and evaluator checks completed.",
+                    data={"item_id": item.id, "environment": _agent_env_type(item), **outcome},
+                ))
+            if harness_outcomes and all(target.harness for target in config.targets):
+                continue
             environment = build_agent_environment(item, config)
+            if getattr(environment, "judge_evaluator", None) is not None and trace_dir:
+                environment.judge_artifact_dir = trace_dir / safe_name(item.id) / "judge"
             preflight = getattr(environment, "preflight", None)
             if not callable(preflight):
                 raise RuntimeError("Executable environment does not implement preflight().")

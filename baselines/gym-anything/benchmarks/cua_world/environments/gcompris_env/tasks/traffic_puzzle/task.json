@@ -1,0 +1,27 @@
+{
+  "id": "traffic_puzzle@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the Traffic puzzle activity in GCompris and solve Level 1. Save a screenshot of the completed level to /tmp/traffic_completed.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/traffic_puzzle/setup_task.sh",
+    "post_task": "/workspace/tasks/traffic_puzzle/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/tmp/traffic_completed.png",
+    "activity_name": "traffic",
+    "min_screenshot_size_kb": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_traffic_puzzle"
+    }
+  }
+}

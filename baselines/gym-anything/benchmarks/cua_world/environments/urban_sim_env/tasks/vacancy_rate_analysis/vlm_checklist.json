@@ -1,0 +1,59 @@
+{
+  "task_id": "vacancy_rate_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_execution",
+      "description": "Create and execute the Jupyter notebook for vacancy analysis",
+      "points": 10,
+      "visual_evidence": "A Jupyter notebook open at /home/ga/urbansim_projects/notebooks/vacancy_analysis.ipynb showing executed cells (with execution numbers like [1], [2]) that load the sanfran_public.h5 file."
+    },
+    {
+      "id": "csv_generation",
+      "description": "Export the zone-level data to a CSV with the required columns",
+      "points": 15,
+      "visual_evidence": "Code saving a dataframe to /home/ga/urbansim_projects/output/vacancy_by_zone.csv, and output showing the dataframe contains columns: zone_id, total_units, occupied_units, vacant_units, vacancy_rate, and market_condition."
+    },
+    {
+      "id": "market_condition_logic",
+      "description": "Implement the correct logic for market_condition classification",
+      "points": 20,
+      "visual_evidence": "Notebook code showing conditional logic (e.g., np.select, apply, or loc) classifying zones with < 50 units as 'insufficient_data', and others as 'tight' (< 0.05), 'healthy' (0.05 to 0.10), or 'soft' (> 0.10)."
+    },
+    {
+      "id": "json_summary_generation",
+      "description": "Save the summary statistics to a JSON file with the required keys",
+      "points": 15,
+      "visual_evidence": "Code writing to /home/ga/urbansim_projects/output/vacancy_summary.json, with a dictionary containing keys: citywide_vacancy_rate, num_zones_analyzed, highest_vacancy_zone_id, lowest_vacancy_zone_id, num_tight_zones, num_healthy_zones, and num_soft_zones."
+    },
+    {
+      "id": "json_summary_correctness",
+      "description": "Compute the correct summary statistics for the JSON output",
+      "points": 25,
+      "visual_evidence": "Notebook output or file content showing the correct values: num_zones_analyzed = 190, citywide_vacancy_rate ~ 0.0763 (or 7.63%), num_tight_zones = 70, num_healthy_zones = 27, num_soft_zones = 91, highest_vacancy_zone_id = 4, lowest_vacancy_zone_id = 89."
+    },
+    {
+      "id": "histogram_generation",
+      "description": "Generate a histogram of vacancy rates with vertical lines at 5% and 10%",
+      "points": 15,
+      "visual_evidence": "An inline plot in the notebook or an image viewer showing /home/ga/urbansim_projects/output/vacancy_distribution.png. The plot must be a histogram with two distinct vertical lines at the 0.05 and 0.10 marks on the x-axis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_processing",
+      "description": "The agent actually processed the HDF5 data rather than hardcoding the expected answers.",
+      "visual_evidence": "The notebook contains pandas/h5py code reading from sanfran_public.h5 and performing aggregations/calculations, rather than just assigning the final known values to variables."
+    },
+    {
+      "id": "programmatic_output_creation",
+      "description": "The agent generated the CSV, JSON, and PNG files programmatically.",
+      "visual_evidence": "The notebook contains code like .to_csv(), json.dump(), and plt.savefig() targeting the expected output paths, rather than the agent manually typing the JSON or CSV in a text editor."
+    },
+    {
+      "id": "notebook_actually_executed",
+      "description": "The Jupyter notebook was genuinely executed.",
+      "visual_evidence": "The notebook cells show execution counts (e.g., In [3]:) and corresponding outputs, indicating the code was run in the kernel."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected numerical results for the JSON summary are: num_zones_analyzed: 190, citywide_vacancy_rate: ~0.0763 (7.63%), highest_vacancy_zone_id: 4, lowest_vacancy_zone_id: 89, num_tight_zones: 70, num_healthy_zones: 27, num_soft_zones: 91. The CSV must contain exactly these columns: zone_id, total_units, occupied_units, vacant_units, vacancy_rate, and market_condition. The PNG must be a histogram with vertical lines at 0.05 and 0.10."
+}

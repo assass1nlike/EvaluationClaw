@@ -1,0 +1,53 @@
+{
+  "task_id": "reconcile_country_hotel_governance@1",
+  "task_completion": [
+    {
+      "id": "connect_orientdb_studio",
+      "description": "Connect to demodb in OrientDB Studio",
+      "points": 10,
+      "visual_evidence": "Browser showing OrientDB Studio interface (localhost:2480) successfully logged in and connected to the 'demodb' database."
+    },
+    {
+      "id": "restore_country_records",
+      "description": "Restore canonical values for the affected country records",
+      "points": 20,
+      "visual_evidence": "Query results or Browse tab in OrientDB Studio showing the Countries class with corrected names 'United Kingdom' and 'Netherlands', and their type set to 'European'."
+    },
+    {
+      "id": "restore_hotel_records",
+      "description": "Restore canonical values for the affected hotel records",
+      "points": 20,
+      "visual_evidence": "Query results or Browse tab showing the hotel records where 'The Savoy' is correctly associated with 'United Kingdom' and 'Intercontinental Amsterdam' is associated with 'Netherlands'."
+    },
+    {
+      "id": "establish_unique_constraint",
+      "description": "Re-establish a UNIQUE constraint on Countries.Name",
+      "points": 25,
+      "visual_evidence": "Schema tab showing an index of type UNIQUE on the 'Name' property of the 'Countries' class, or a successful query execution result for 'CREATE INDEX ... UNIQUE'."
+    },
+    {
+      "id": "produce_audit_trail",
+      "description": "Produce a remediation audit trail in GovernanceFixLog",
+      "points": 25,
+      "visual_evidence": "Query results or Browse tab showing a newly created record in the 'GovernanceFixLog' class containing issue keys and ownership/resolved_by information."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_gui",
+      "description": "Agent used the OrientDB Studio web interface",
+      "visual_evidence": "Screenshots must show interactions within the web browser at http://localhost:2480/studio/index.html, rather than terminal commands (like curl or console.sh) executing the database changes."
+    },
+    {
+      "id": "genuine_database_interaction",
+      "description": "Agent genuinely interacted with the database to make changes",
+      "visual_evidence": "Screenshots should show SQL commands being typed and executed in the OrientDB Studio 'Query' tab, or edits being made and saved in the 'Browse'/'Schema' tabs."
+    },
+    {
+      "id": "no_external_script_bypass",
+      "description": "Agent did not use an external script to bypass the GUI requirement",
+      "visual_evidence": "The terminal should not show the execution of a pre-written Python, Bash, or OrientDB console script that automatically applies all the database fixes."
+    }
+  ],
+  "privileged_info_for_vlm": "The Savoy must be associated with the country 'United Kingdom'. Intercontinental Amsterdam must be associated with the country 'Netherlands'. Both 'United Kingdom' and 'Netherlands' must be classified as 'European' countries."
+}

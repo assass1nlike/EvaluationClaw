@@ -1,0 +1,59 @@
+{
+  "task_id": "remove_dives_from_trips@1",
+  "task_completion": [
+    {
+      "id": "open_subsurface",
+      "description": "Open the Subsurface application with the dive log loaded.",
+      "points": 10,
+      "visual_evidence": "The Subsurface application window is visible, displaying a list of dives and trips."
+    },
+    {
+      "id": "locate_dive_4",
+      "description": "Locate and select Dive #4 under the 'Sund Rock' trip.",
+      "points": 10,
+      "visual_evidence": "Dive #4 is visible in the dive list and is highlighted or clicked. It should initially appear indented under a trip header named 'Sund Rock'."
+    },
+    {
+      "id": "remove_dive_4",
+      "description": "Remove Dive #4 from its trip grouping.",
+      "points": 30,
+      "visual_evidence": "A context menu showing 'Remove dive from trip' is clicked for Dive #4, OR Dive #4 is subsequently shown as a standalone entry in the dive list (no longer indented under the 'Sund Rock' trip header)."
+    },
+    {
+      "id": "locate_dive_8",
+      "description": "Locate and select Dive #8 under the 'Yellow House' trip.",
+      "points": 10,
+      "visual_evidence": "Dive #8 is visible in the dive list and is highlighted or clicked. It should initially appear indented under a trip header named 'Yellow House'."
+    },
+    {
+      "id": "remove_dive_8",
+      "description": "Remove Dive #8 from its trip grouping.",
+      "points": 30,
+      "visual_evidence": "A context menu showing 'Remove dive from trip' is clicked for Dive #8, OR Dive #8 is subsequently shown as a standalone entry in the dive list (no longer indented under the 'Yellow House' trip header)."
+    },
+    {
+      "id": "save_updated_log",
+      "description": "Save the updated dive log to the target file.",
+      "points": 10,
+      "visual_evidence": "The 'Save' or 'Save As' option is clicked in the File menu, a save dialog targeting '/home/ga/Documents/dives.ssrf' is visible, or the main window title indicates there are no unsaved changes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Subsurface graphical user interface to modify the dive log.",
+      "visual_evidence": "Screenshots show interaction with the Subsurface application window (menus, dive list, right-click context menus) rather than a terminal, script, or text editor modifying the .ssrf XML file directly."
+    },
+    {
+      "id": "selective_removal",
+      "description": "The agent only removed the specified dives, leaving other trip groupings intact.",
+      "visual_evidence": "Other dives in the list (such as Dive #1 or Dive #5) remain indented under their respective trip headers, proving the agent did not simply use a global 'flatten' or 'remove all trips' command."
+    },
+    {
+      "id": "genuine_application_state",
+      "description": "The application state reflects genuine interaction with the loaded logbook.",
+      "visual_evidence": "The dive list shows a realistic sequence of dives (up to 29 dives exist in the file) with correct trip headers ('Sund Rock', 'Yellow House') rather than mocked or manually typed text."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /home/ga/Documents/dives.ssrf. The task requires removing Dive #4 (chronological index 3) from the 'Sund Rock' trip and Dive #8 (chronological index 7) from the 'Yellow House' trip. Dives #1 (index 0) and #5 (index 4) must remain grouped in their respective trips. Verify that Dive #4 and Dive #8 appear as standalone, un-indented entries in the Subsurface dive list, while other dives remain indented under trip headers."
+}

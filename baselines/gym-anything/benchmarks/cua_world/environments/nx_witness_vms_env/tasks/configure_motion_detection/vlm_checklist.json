@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_motion_detection@1",
+  "task_completion": [
+    {
+      "id": "fetch_camera_data",
+      "description": "Retrieve the list of cameras and their IDs from the Nx Witness API",
+      "points": 10,
+      "visual_evidence": "Terminal output, script execution, or API client showing a GET request to the Nx Witness API (e.g., /rest/v1/devices) to retrieve the list of cameras and their dynamically generated UUIDs."
+    },
+    {
+      "id": "configure_target_cameras",
+      "description": "Configure the Entrance, Server Room, and Loading Dock cameras",
+      "points": 30,
+      "visual_evidence": "API requests (via curl, Python script, or API client) sending PATCH/PUT requests to modify the Entrance Camera, Server Room Camera, and Loading Dock Camera. The payloads must set 'motionType' to 'software' and update the recording schedule to 'motionOnly'."
+    },
+    {
+      "id": "preserve_ignored_cameras",
+      "description": "Ensure Parking Lot and Lobby cameras remain unchanged",
+      "points": 10,
+      "visual_evidence": "The agent's script logic or manual commands explicitly skip or do not send modification requests for the Parking Lot Camera and Lobby Camera."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Create the JSON configuration report at the specified path",
+      "points": 20,
+      "visual_evidence": "A command (e.g., redirecting output) or script writing the final configuration state to the file /home/ga/motion_detection_config.json."
+    },
+    {
+      "id": "verify_json_content",
+      "description": "Verify the contents of the generated JSON report",
+      "points": 30,
+      "visual_evidence": "The contents of /home/ga/motion_detection_config.json displayed on screen (e.g., via 'cat' or a text editor). It must be valid JSON with 'generated_by': 'agent' and a 'cameras' array containing 5 objects. The 3 target cameras must show 'motionType': 'software' and 'recordingType': 'motionOnly'. The 2 ignored cameras must show 'motionType': 'default' and 'recordingType': 'always'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Verify the agent actually interacted with the Nx Witness API",
+      "visual_evidence": "Look for actual HTTP requests (curl, Python requests, etc.) sent to https://localhost:7001 to configure the cameras, rather than the agent just generating a fake JSON report without making system changes."
+    },
+    {
+      "id": "dynamic_uuid_fetching",
+      "description": "Verify camera UUIDs were fetched dynamically",
+      "visual_evidence": "The agent must extract the real camera UUIDs from the API response and include them in the JSON report, rather than hardcoding fake or placeholder UUIDs."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Verify the JSON report was actually saved to the file system",
+      "visual_evidence": "Look for evidence that the file was written to disk at /home/ga/motion_detection_config.json (e.g., using a file write operation in a script or a shell redirection), not just printed to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Nx Witness VMS API is at https://localhost:7001. Credentials: admin / Admin1234!. Target cameras: 'Entrance Camera', 'Server Room Camera', 'Loading Dock Camera' (must be configured with motionType='software' and recordingType='motionOnly'). Ignored cameras: 'Parking Lot Camera', 'Lobby Camera' (must remain unchanged with motionType='default' and recordingType='always'). The final JSON report must be saved at /home/ga/motion_detection_config.json and include all 5 cameras with their real UUIDs."
+}

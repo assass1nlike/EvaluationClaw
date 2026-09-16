@@ -1,0 +1,39 @@
+{
+  "id": "mri_volume_estimation@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Brain Tissue Volume Estimation from MRI Stack",
+  "description": "Estimate the total brain tissue volume of the \"T1 Head\" MRI sample stack. Segment the brain tissue from the background, CSF, and skull to measure the tissue area across the slices. Save the per-slice area measurements and the total volume estimate to ~/ImageJ_Data/results/mri_volume_results.csv. The CSV must include a slice identifier column, the measured area per slice, and the total volume value. Note that tissue area varies across the 129 slices of this T1-weighted scan.",
+  "difficulty": "medium",
+  "tags": [
+    "medical-imaging",
+    "mri",
+    "volumetrics",
+    "stack-processing",
+    "thresholding",
+    "3d-analysis"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mri_volume_estimation/setup_task.sh",
+    "post_task": "/workspace/tasks/mri_volume_estimation/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/ImageJ_Data/results/mri_volume_results.csv",
+    "min_data_rows": 20,
+    "min_area_variation_std": 100.0,
+    "expected_max_area_min": 5000,
+    "expected_max_area_max": 65536,
+    "sample_image": "T1 Head (2.4MB, MRI)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mri_volume_estimation"
+    }
+  }
+}

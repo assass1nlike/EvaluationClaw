@@ -1,0 +1,53 @@
+{
+  "task_id": "recover_access_with_candidate_passwords@1",
+  "task_completion": [
+    {
+      "id": "open_password_list",
+      "description": "The agent opened the list of potential passwords.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Documents/potential_passwords.txt'."
+    },
+    {
+      "id": "mount_volume",
+      "description": "The agent successfully mounted the encrypted volume.",
+      "points": 30,
+      "visual_evidence": "The VeraCrypt GUI showing the volume '/home/ga/Volumes/project_alpha_archive.hc' mounted to a drive slot, or a file manager/terminal showing the contents of the mounted volume."
+    },
+    {
+      "id": "copy_target_file",
+      "description": "The agent copied the target file to the Recovered directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal showing 'Project_Alpha_Summary.pdf' present inside the '/home/ga/Documents/Recovered' directory."
+    },
+    {
+      "id": "create_password_file",
+      "description": "The agent created a text file containing the correct password.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the file '/home/ga/Documents/Recovered/correct_password.txt' containing a single password string."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "The agent dismounted the encrypted volume after finishing.",
+      "points": 20,
+      "visual_evidence": "The VeraCrypt GUI showing the volume is no longer mounted, or a terminal command executing the dismount operation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "The agent genuinely interacted with VeraCrypt to mount the volume.",
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI, password prompt dialog, or valid 'veracrypt' CLI commands being executed, rather than just creating the output files directly."
+    },
+    {
+      "id": "actual_file_copy",
+      "description": "The agent copied the file from the mounted volume rather than creating a dummy file.",
+      "visual_evidence": "A file manager or terminal showing the source path of 'Project_Alpha_Summary.pdf' originating from the VeraCrypt mount point."
+    },
+    {
+      "id": "password_file_content",
+      "description": "The correct_password.txt file contains only the password.",
+      "visual_evidence": "The contents of 'correct_password.txt' show only a single password string, without extra text, task instructions, or scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "The encrypted volume is located at '/home/ga/Volumes/project_alpha_archive.hc'. The candidate passwords are in '/home/ga/Documents/potential_passwords.txt'. The target file to recover is 'Project_Alpha_Summary.pdf', which must be placed in '/home/ga/Documents/Recovered/'. The correct password must be saved to '/home/ga/Documents/Recovered/correct_password.txt'."
+}

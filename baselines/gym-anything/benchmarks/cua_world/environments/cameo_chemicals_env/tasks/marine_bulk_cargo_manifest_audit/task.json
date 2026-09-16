@@ -1,0 +1,55 @@
+{
+  "id": "marine_bulk_cargo_manifest_audit@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "As a Marine Cargo Surveyor, create a preliminary stowage manifest for five liquid bulk chemicals using CAMEO Chemicals (https://cameochemicals.noaa.gov/): Acrylonitrile, Morpholine, Styrene monomer, Sulfuric acid, and Propionic acid. For each chemical, identify the USCG CHRIS Code and the USCG Compatibility Group number (used for 46 CFR 150). Create a CSV file at '~/Desktop/marine_manifest.csv' with the headers 'Chemical Name, CHRIS Code, USCG Group' containing the data for all five chemicals. Note: Ensure you use the USCG Compatibility Group number, NOT the NOAA Reactive Group.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "uscg",
+    "maritime",
+    "chris-code",
+    "compatibility-group",
+    "csv"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/marine_bulk_cargo_manifest_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/marine_bulk_cargo_manifest_audit/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Desktop/marine_manifest.csv",
+    "ground_truth": {
+      "Acrylonitrile": {
+        "chris": "ACN",
+        "group": "15"
+      },
+      "Morpholine": {
+        "chris": "MPH",
+        "group": "7"
+      },
+      "Styrene monomer": {
+        "chris": "STY",
+        "group": "30"
+      },
+      "Sulfuric acid": {
+        "chris": "SFA",
+        "group": "2"
+      },
+      "Propionic acid": {
+        "chris": "PNA",
+        "group": "4"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_marine_bulk_cargo_manifest_audit"
+    }
+  }
+}

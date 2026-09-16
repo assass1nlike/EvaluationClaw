@@ -1,0 +1,59 @@
+{
+  "task_id": "onion_network_profiling@1",
+  "task_completion": [
+    {
+      "id": "load_clearnet_site",
+      "description": "Navigate to the Tor Project check site in Tor Browser",
+      "points": 10,
+      "visual_evidence": "Tor Browser is open with 'check.torproject.org' in the URL bar and the page is fully loaded."
+    },
+    {
+      "id": "capture_clearnet_network",
+      "description": "Open Developer Tools to capture the clearnet network log",
+      "points": 15,
+      "visual_evidence": "The Developer Tools pane is open in Tor Browser, the 'Network' tab is selected, and network requests for the Tor check site are visible."
+    },
+    {
+      "id": "export_clearnet_har",
+      "description": "Export the clearnet network log as a HAR file to the specified directory",
+      "points": 25,
+      "visual_evidence": "A 'Save As' dialog or file manager showing the file being saved as 'check_clearnet.har' inside the '/home/ga/Documents/OnionProfiling' directory."
+    },
+    {
+      "id": "load_onion_site",
+      "description": "Navigate to the DuckDuckGo Onion service in Tor Browser",
+      "points": 10,
+      "visual_evidence": "Tor Browser is open with 'duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion' in the URL bar and the DuckDuckGo page is fully loaded."
+    },
+    {
+      "id": "capture_onion_network",
+      "description": "Open Developer Tools to capture the Onion service network log",
+      "points": 15,
+      "visual_evidence": "The Developer Tools pane is open in Tor Browser, the 'Network' tab is selected, and network requests for the DuckDuckGo Onion site are visible."
+    },
+    {
+      "id": "export_onion_har",
+      "description": "Export the Onion network log as a HAR file to the specified directory",
+      "points": 25,
+      "visual_evidence": "A 'Save As' dialog or file manager showing the file being saved as 'ddg_onion.har' inside the '/home/ga/Documents/OnionProfiling' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_browser_gui",
+      "description": "The agent used the Tor Browser GUI to capture data, not terminal commands.",
+      "visual_evidence": "Screenshots should show the Tor Browser interface and its Developer Tools being interacted with, rather than terminal windows running commands like curl or wget."
+    },
+    {
+      "id": "genuine_network_capture",
+      "description": "The HAR files were generated via the browser's export functionality.",
+      "visual_evidence": "Look for the 'Save All as HAR' context menu option being clicked in the Network tab, or the browser's native save dialog, rather than a text editor being used to manually create or paste JSON data."
+    },
+    {
+      "id": "actual_site_interaction",
+      "description": "The agent interacted with the actual live websites.",
+      "visual_evidence": "The actual web pages for Tor Check and DuckDuckGo Onion should be visible in the browser viewport, confirming live access."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URLs: Clearnet is 'check.torproject.org' and Onion is 'duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion'. Output directory is '/home/ga/Documents/OnionProfiling'. Expected files are 'check_clearnet.har' and 'ddg_onion.har'."
+}

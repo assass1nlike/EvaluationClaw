@@ -1,0 +1,59 @@
+{
+  "task_id": "ip_camera_stream_capture_archival@1",
+  "task_completion": [
+    {
+      "id": "vlc_open_stream",
+      "description": "Open the live stream URL in VLC Media Player.",
+      "points": 10,
+      "visual_evidence": "VLC Media Player's 'Open Media' or 'Network Stream' dialog showing the URL 'http://127.0.0.1:8080/cam01', or the main VLC window actively playing this stream."
+    },
+    {
+      "id": "vlc_transcode_config",
+      "description": "Configure VLC to transcode the stream to H.264/AAC in an MP4 container and save to the correct path.",
+      "points": 20,
+      "visual_evidence": "VLC's 'Convert' dialog showing the destination file as '/home/ga/Videos/camera_archive/cam01_capture.mp4' and the profile set to Video - H.264 + AAC (MP4), or a file manager showing the resulting .mp4 file in that directory."
+    },
+    {
+      "id": "capture_snapshots",
+      "description": "Capture at least three PNG snapshots to the specified directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window showing at least three .png image files located in '/home/ga/Pictures/vlc/', or VLC on-screen display notifications confirming the snapshots were saved there."
+    },
+    {
+      "id": "identify_codecs",
+      "description": "Identify the original stream's native video and audio codecs using VLC.",
+      "points": 15,
+      "visual_evidence": "VLC's 'Current Media Information' window open to the 'Codec' tab, displaying 'mpeg2video' for video and 'mp2' for audio."
+    },
+    {
+      "id": "create_json_report",
+      "description": "Document the stream information in a JSON report.",
+      "points": 20,
+      "visual_evidence": "A text editor showing a JSON file saved at '/home/ga/Documents/stream_report.json' containing the keys 'stream_url', 'original_video_codec' (mpeg2video), 'original_audio_codec' (mp2), and 'capture_duration_seconds'."
+    },
+    {
+      "id": "verify_duration",
+      "description": "Ensure the recorded video capture is approximately 45 seconds long.",
+      "points": 15,
+      "visual_evidence": "File properties, a media player timeline, or terminal output showing the duration of 'cam01_capture.mp4' is between 40 and 50 seconds."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_vlc_gui",
+      "description": "Verify the agent used VLC Media Player to perform the recording and snapshots.",
+      "visual_evidence": "Screenshots should show interaction with the VLC graphical user interface (menus, dialogs, playback window) rather than bypassing it using terminal commands like 'ffmpeg' or 'curl'."
+    },
+    {
+      "id": "genuine_snapshots",
+      "description": "Verify the snapshots are genuine captures from the video stream.",
+      "visual_evidence": "The PNG files in the file manager or image viewer should display actual video frames from the stream, not blank, empty, or dummy files."
+    },
+    {
+      "id": "manual_report_creation",
+      "description": "Verify the JSON report was created based on actual observation.",
+      "visual_evidence": "The agent should be seen opening a text editor to write the JSON report or using a standard file creation method, rather than blindly copying a pre-made script to generate it without checking VLC's codec info."
+    }
+  ],
+  "privileged_info_for_vlm": "The target stream URL is 'http://127.0.0.1:8080/cam01'. The original native codecs are 'mpeg2video' (video) and 'mp2' (audio). The transcoded video must be saved to '/home/ga/Videos/camera_archive/cam01_capture.mp4' and have a duration between 40 and 50 seconds (target 45s). Snapshots must be saved in '/home/ga/Pictures/vlc/'. The JSON report must be located at '/home/ga/Documents/stream_report.json'."
+}

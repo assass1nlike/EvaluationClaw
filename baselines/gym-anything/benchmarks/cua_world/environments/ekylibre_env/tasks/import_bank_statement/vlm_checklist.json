@@ -1,0 +1,53 @@
+{
+  "task_id": "import_bank_statement@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_import",
+      "description": "Navigate to the bank statement import section in Ekylibre",
+      "points": 10,
+      "visual_evidence": "The Ekylibre web interface is visible, showing a page for importing data or bank statements (e.g., 'Imports', 'Bank statements', or 'Accounting' section)."
+    },
+    {
+      "id": "select_import_file",
+      "description": "Select the correct OFX file for upload",
+      "points": 20,
+      "visual_evidence": "A file upload input or file picker dialog shows 'bank_import.ofx' selected from the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "select_bank_account",
+      "description": "Map the import to the main bank account",
+      "points": 20,
+      "visual_evidence": "A dropdown, radio button, or selection field for the target account is set to 'Banque' or 'Compte Courant'."
+    },
+    {
+      "id": "confirm_import",
+      "description": "Initiate and complete the import process",
+      "points": 20,
+      "visual_evidence": "A success flash message, progress indicator, or import summary screen indicating that the file was successfully processed by Ekylibre."
+    },
+    {
+      "id": "verify_imported_transactions",
+      "description": "Verify the imported transactions match the file contents",
+      "points": 30,
+      "visual_evidence": "A bank statement or transaction list in Ekylibre showing exactly 3 imported transactions with the amounts 4500.00, -125.50, and -85.20 (or matching payees AGRI SUPPLY CO, COOP GRAIN SALES, FUEL STATION)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "The agent used the Ekylibre web interface to perform the import",
+      "visual_evidence": "Screenshots show a web browser interacting with the Ekylibre application, not terminal commands (like curl) or direct database manipulation."
+    },
+    {
+      "id": "actual_file_upload",
+      "description": "The agent uploaded the file rather than manually entering transactions",
+      "visual_evidence": "Screenshots show the file upload UI being used. There should be no evidence of the agent manually typing the 3 transactions one by one into a ledger entry form."
+    },
+    {
+      "id": "genuine_ui_elements",
+      "description": "The results appear in genuine Ekylibre UI elements",
+      "visual_evidence": "The transaction list and success messages match the standard Ekylibre styling and layout, without signs of DOM manipulation (e.g., browser developer tools open and modifying text)."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is located at '/home/ga/Documents/bank_import.ofx'. It contains exactly 3 transactions: AGRI SUPPLY CO (-125.50), COOP GRAIN SALES (4500.00), and FUEL STATION (-85.20). The VLM must verify that the final imported statement in Ekylibre reflects these exact 3 transactions (amounts 4500.00, -125.50, -85.20) and is mapped to the 'Banque' or 'Compte Courant' account."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "export_enamel_model@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A forensic odontologist needs a 3D model of the patient's dentition for identification from the loaded CT Cranium scan. Create a 3D surface model of the teeth enamel and dense petrous bone using a segmentation mask with a threshold range of 1500 to 3071 HU. Export the model as a binary STL to /home/ga/Documents/enamel_model.stl and save the project to /home/ga/Documents/enamel_project.inv3.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_enamel_model/setup_task.sh",
+    "post_task": "/workspace/tasks/export_enamel_model/export_result.sh"
+  },
+  "metadata": {
+    "stl_path": "/home/ga/Documents/enamel_model.stl",
+    "project_path": "/home/ga/Documents/enamel_project.inv3",
+    "min_hu_threshold": 1400,
+    "min_volume_mm3": 5000,
+    "max_volume_mm3": 250000,
+    "dicom_series": "ct_cranium/0051"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_enamel_model"
+    }
+  }
+}

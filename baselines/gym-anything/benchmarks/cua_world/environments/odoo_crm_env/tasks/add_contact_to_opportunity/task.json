@@ -1,0 +1,41 @@
+{
+  "id": "add_contact_to_opportunity@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "A new procurement manager has been hired at 'Gemini Furniture' and is now the primary point of contact for an existing deal. In Odoo CRM, create a new individual contact for Patricia Williams (Procurement Manager, p.williams@geminifurniture.example.com, +1 555-0192) as a contact person under the 'Gemini Furniture' company. Update the 'Office Furniture Bulk Order' CRM opportunity by changing the customer from 'Gemini Furniture' to Patricia Williams.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_contact_to_opportunity/setup_task.sh",
+    "post_task": "/workspace/tasks/add_contact_to_opportunity/export_result.sh"
+  },
+  "metadata": {
+    "company_name": "Gemini Furniture",
+    "opportunity_name": "Office Furniture Bulk Order",
+    "contact": {
+      "name": "Patricia Williams",
+      "email": "p.williams@geminifurniture.example.com",
+      "phone": "+1 555-0192",
+      "job_position": "Procurement Manager"
+    },
+    "scoring": {
+      "contact_exists": 15,
+      "company_linkage": 15,
+      "correct_email": 10,
+      "correct_phone": 10,
+      "correct_job": 10,
+      "opportunity_updated": 25,
+      "timing": 15
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_contact_to_opportunity"
+    }
+  }
+}

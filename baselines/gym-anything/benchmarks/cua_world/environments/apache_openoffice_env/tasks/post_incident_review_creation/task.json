@@ -1,0 +1,37 @@
+{
+  "id": "post_incident_review_creation@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Lead Site Reliability Engineer at OmniCart e-Solutions. A major checkout outage occurred during a flash sale (Incident INC-4092). Using the raw incident data in /home/ga/Documents/incident_ticket_4092.json, create a formal Post-Incident Review (PIR) document in Apache OpenOffice Writer and save it as /home/ga/Documents/INC-4092_PIR.odt. The document must include the title 'Post-Incident Review: INC-4092' (Centered, Heading 1) and four main sections using Heading 1 style: 'Executive Summary', 'Incident Timeline', 'Root Cause Analysis', and 'Corrective Actions'. Include a summary paragraph explaining the root cause identified in",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/post_incident_review_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/post_incident_review_creation/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/incident_ticket_4092.json",
+    "output_file": "/home/ga/Documents/INC-4092_PIR.odt",
+    "required_headings": [
+      "Executive Summary",
+      "Incident Timeline",
+      "Root Cause Analysis",
+      "Corrective Actions"
+    ],
+    "technical_terms": [
+      "SQLSTATE 40P01",
+      "inventory_items"
+    ],
+    "footer_text": "OmniCart Confidential"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pir_creation"
+    }
+  }
+}

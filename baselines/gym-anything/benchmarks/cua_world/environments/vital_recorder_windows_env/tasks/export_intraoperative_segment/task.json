@@ -1,0 +1,48 @@
+{
+  "id": "export_intraoperative_segment@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "As an anesthesia quality reviewer, export the intraoperative portion of the '0001.vital' recording currently open in Vital Recorder 1.16.6. The recording contains physiological waveforms and surgical milestones ('Case started', 'Surgery started', 'Surgery finished', 'Case finished') from a surgery at Seoul National University Hospital. Export only the segment between the 'Surgery started' and 'Surgery finished' events, excluding pre-operative and post-operative periods. Save the vital signs data as a CSV file to C:\\Users\\Docker\\Desktop\\intraop_0001.csv. Login: Desktop user (no login required).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\export_intraoperative_segment\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\export_intraoperative_segment\\export_result.ps1"
+  },
+  "metadata": {
+    "case_file": "0001.vital",
+    "case_duration": "3h 12m 22s",
+    "case_duration_seconds": 11542,
+    "surgery_started": "00:27:48",
+    "surgery_started_seconds": 1668,
+    "surgery_finished": "02:52:48",
+    "surgery_finished_seconds": 10368,
+    "intraop_duration_approx_min": 145,
+    "intraop_duration_seconds": 8700,
+    "expected_output": "C:\\Users\\Docker\\Desktop\\intraop_0001.csv",
+    "result_json_path": "C:\\Users\\Docker\\Desktop\\task_result_intraop.json",
+    "baseline_json_path": "C:\\Users\\Docker\\task_baseline_intraop.json",
+    "intraop_row_fraction_min": 0.5,
+    "intraop_row_fraction_max": 0.9,
+    "physiological_columns": [
+      "ART",
+      "ECG",
+      "PLETH",
+      "CO2",
+      "AWP",
+      "BIS",
+      "SEVO"
+    ],
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_intraoperative_segment"
+    }
+  }
+}

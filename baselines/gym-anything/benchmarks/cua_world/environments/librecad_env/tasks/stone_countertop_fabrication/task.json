@@ -1,0 +1,48 @@
+{
+  "id": "stone_countertop_fabrication@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a fabrication drawing for an L-shaped granite countertop in LibreCAD (units: mm). The drawing must include a 'STONE' layer (Color: Cyan) for the countertop profile and a 'CUTOUTS' layer (Color: Red) for appliance openings. The L-shaped profile should follow the coordinates (0,0) -> (3000,0) -> (3000,600) -> (600,600) -> (600,2400) -> (0,2400) -> close, with a 50mm radius fillet at the internal corner (600,600). Include an 800mm x 450mm sink cutout centered at (1500, 300) and a 500mm x 500mm cooktop cutout centered at (300, 1500) on the 'CUTOUTS' layer. Save the final drawing to /home/ga/Documents/LibreCAD/countertop.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stone_countertop_fabrication/setup_task.sh",
+    "post_task": "/workspace/tasks/stone_countertop_fabrication/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/LibreCAD/countertop.dxf",
+    "layer_stone": "STONE",
+    "layer_cutouts": "CUTOUTS",
+    "fillet_radius": 50,
+    "fillet_location": [
+      600,
+      600
+    ],
+    "sink_center": [
+      1500,
+      300
+    ],
+    "sink_size": [
+      800,
+      450
+    ],
+    "cooktop_center": [
+      300,
+      1500
+    ],
+    "cooktop_size": [
+      500,
+      500
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stone_countertop"
+    }
+  }
+}

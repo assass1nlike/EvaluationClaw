@@ -1,0 +1,35 @@
+{
+  "id": "configure_cab@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Log in as administrator (password: administrator) and configure a new Change Advisory Board (CAB) in ManageEngine ServiceDesk Plus. Create a CAB named 'Technical Infrastructure CAB' with the description 'Responsible for reviewing and approving all high-impact network and server infrastructure changes.' Add David Chen and Sarah Miller as members to this CAB.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_cab/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_cab/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_cab_name": "Technical Infrastructure CAB",
+    "expected_members": [
+      "David Chen",
+      "Sarah Miller"
+    ],
+    "expected_description_keywords": [
+      "reviewing",
+      "approving",
+      "infrastructure"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_cab"
+    }
+  }
+}

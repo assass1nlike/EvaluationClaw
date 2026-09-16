@@ -1,0 +1,30 @@
+{
+  "id": "points_along_lines_export@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "A utility company needs regularly-spaced inspection waypoints along their line infrastructure. Load the line layer from /home/ga/GIS_Data/sample_lines.geojson (EPSG:4326) and generate points along the geometry at a distance of 0.05 degrees with no start or end offsets. Export the resulting points layer in GeoJSON format to /home/ga/GIS_Data/exports/inspection_points.geojson, ensuring the CRS remains EPSG:4326.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/points_along_lines_export/setup_task.sh",
+    "post_task": "/workspace/tasks/points_along_lines_export/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/sample_lines.geojson",
+    "expected_output_file": "/home/ga/GIS_Data/exports/inspection_points.geojson",
+    "expected_min_points": 8,
+    "expected_max_points": 30,
+    "expected_crs": "EPSG:4326",
+    "param_distance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_points_along_lines_export"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "support_backlog_triage@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the Customer Success Manager at a tech company addressing a support inbox backlog where several conversations have never received a first response. Log in at http://localhost:8080 with admin@helpdesk.local / Admin123!. In the 'General Support' mailbox, identify all active conversations that have received no agent replies. Tag these conversations as 'awaiting-first-response', assign them to 'Admin User', and add an internal note to each stating: 'Priority: requires first response within 24 hours'. Reopen the three conversations currently in 'Closed' status by changing their status to 'Active'. Finally, locate the conversation with the subject 'Software installation failure', assign it to agent Derek Thompson, and reply with the message: 'Thank you for your patience. We have identified the issue and our engineering team is working on a fix. We will notify you once it is resolved.'",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/support_backlog_triage/setup_task.sh",
+    "post_task": "/workspace/tasks/support_backlog_triage/export_result.sh"
+  },
+  "metadata": {
+    "mailbox_name": "General Support",
+    "unresponded_conv_count": 4,
+    "closed_conv_count": 3,
+    "expected_tag": "awaiting-first-response",
+    "target_conv_subject": "Software installation failure",
+    "target_reply_keywords": [
+      "patience",
+      "engineering",
+      "resolved"
+    ],
+    "assignee_first": "Derek",
+    "assignee_last": "Thompson",
+    "assignee_email": "derek.thompson@helpdesk.local",
+    "data_source": "Kaggle Customer Support Ticket Dataset (chiapudding/kaggle-customer-service)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_support_backlog_triage"
+    }
+  }
+}

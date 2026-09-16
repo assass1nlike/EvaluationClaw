@@ -1,0 +1,53 @@
+{
+  "task_id": "document_patient_phone_call@1",
+  "task_completion": [
+    {
+      "id": "read_call_details",
+      "description": "Open and read the call details text file",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Desktop/call_details.txt, showing a patient's name and details about a phone call."
+    },
+    {
+      "id": "login_librehealth",
+      "description": "Log into the LibreHealth EHR system",
+      "points": 10,
+      "visual_evidence": "The LibreHealth EHR web interface is visible in a browser, indicating a successful login (e.g., dashboard or main menu is shown)."
+    },
+    {
+      "id": "find_patient",
+      "description": "Search for and select the correct patient",
+      "points": 20,
+      "visual_evidence": "The patient search interface or the specific patient's chart/dashboard is open, matching the name found in the call details file."
+    },
+    {
+      "id": "navigate_to_notes",
+      "description": "Navigate to the 'Notes' section of the patient's chart",
+      "points": 20,
+      "visual_evidence": "The 'Notes' tab or section is actively selected and visible within the patient's chart in the LibreHealth EHR interface."
+    },
+    {
+      "id": "create_patient_note",
+      "description": "Create a new Patient Note documenting the lost medication",
+      "points": 40,
+      "visual_evidence": "A note creation form is filled out with details from the phone call, specifically mentioning the lost medication, and there is evidence of saving or submitting the note."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_ehr",
+      "description": "Agent used the web browser GUI to interact with LibreHealth EHR",
+      "visual_evidence": "The agent is seen clicking and typing within a web browser showing the LibreHealth EHR interface, rather than using terminal commands (like curl) or database scripts to insert the note."
+    },
+    {
+      "id": "actual_note_entry",
+      "description": "Agent entered the note into the genuine EHR application",
+      "visual_evidence": "The text regarding the lost medication is typed into the actual 'Notes' text area of the LibreHealth web application, not into a separate text editor or a mock file."
+    },
+    {
+      "id": "authentic_information_retrieval",
+      "description": "Agent retrieved patient details from the provided file",
+      "visual_evidence": "The agent explicitly opens or reads /home/ga/Desktop/call_details.txt on screen before searching for the patient, proving it didn't use pre-programmed knowledge of the synthetic patient data."
+    }
+  ],
+  "privileged_info_for_vlm": "Call details are located at /home/ga/Desktop/call_details.txt. The target system is LibreHealth EHR. The note must be created in the patient's 'Notes' section (which corresponds to the 'pnotes' table in the backend database) and should include keywords indicating lost medication (acceptable keywords include 'lost', 'losing', 'miss', or 'gone')."
+}

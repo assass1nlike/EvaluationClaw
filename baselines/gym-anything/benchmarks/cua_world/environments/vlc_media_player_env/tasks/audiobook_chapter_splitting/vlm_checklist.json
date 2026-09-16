@@ -1,0 +1,59 @@
+{
+  "task_id": "audiobook_chapter_splitting@1",
+  "task_completion": [
+    {
+      "id": "read_timecode_sheet",
+      "description": "Agent reads the timecode sheet to determine split points and metadata.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the contents of /home/ga/Documents/chapter_markers.txt being displayed in a text editor or terminal (e.g., via cat or less)."
+    },
+    {
+      "id": "audio_split_execution",
+      "description": "Agent splits the raw narration audio into four distinct chapters.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent executing audio splitting commands (like ffmpeg with -ss and -t/-to flags) or using a GUI audio editor to export multiple segments from /home/ga/Music/raw_narration.wav."
+    },
+    {
+      "id": "audio_properties_and_tags",
+      "description": "Agent sets the required audio properties (Mono, 64 kbps, 44.1kHz) and ID3 tags (Artist, Album, Title, Track).",
+      "points": 20,
+      "visual_evidence": "Screenshots showing command-line flags (e.g., -ac 1 -b:a 64k -ar 44100 -metadata ...) or GUI export settings specifying the bitrate, sample rate, channels, and ID3 tags for the MP3 files."
+    },
+    {
+      "id": "audio_files_created",
+      "description": "Agent creates the four required MP3 files in the delivery directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing chapter_01.mp3, chapter_02.mp3, chapter_03.mp3, and chapter_04.mp3 present in /home/ga/Music/audiobook_delivery/ (e.g., via a terminal 'ls' command or file manager)."
+    },
+    {
+      "id": "manifest_json_created",
+      "description": "Agent creates the manifest.json file in the delivery directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the creation or existence of /home/ga/Music/audiobook_delivery/manifest.json."
+    },
+    {
+      "id": "manifest_json_content",
+      "description": "Agent populates the manifest.json with the correct metadata keys and values.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of manifest.json containing a JSON object with keys 'expected_files', 'expected_artist', 'expected_album', 'expected_bitrate', and 'expected_channels', matching the expected values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_audio_processing",
+      "description": "Verify the agent actually processed the audio file rather than creating dummy files.",
+      "visual_evidence": "Look for genuine audio processing commands (e.g., ffmpeg, sox) or GUI audio editor usage, rather than 'touch' or 'cp' commands creating empty/fake MP3 files."
+    },
+    {
+      "id": "correct_source_file_used",
+      "description": "Verify the agent used the provided master recording.",
+      "visual_evidence": "Check that /home/ga/Music/raw_narration.wav is explicitly used as the input file in the processing steps."
+    },
+    {
+      "id": "genuine_manifest_creation",
+      "description": "Verify the agent manually constructed or scripted the manifest.json.",
+      "visual_evidence": "Look for the agent typing the JSON content in a text editor, using echo/cat commands, or running a script to generate it, rather than copying a pre-existing file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected metadata is: Artist: 'Sun Tzu', Album: 'The Art of War', Bitrate: 64000, Channels: 1. The expected files are: chapter_01.mp3 (75s, Title: 'Chapter 1: Laying Plans', Track: '1'), chapter_02.mp3 (85s, Title: 'Chapter 2: Waging War', Track: '2'), chapter_03.mp3 (80s, Title: 'Chapter 3: Attack by Stratagem', Track: '3'), chapter_04.mp3 (60s, Title: 'Chapter 4: Tactical Dispositions', Track: '4')."
+}

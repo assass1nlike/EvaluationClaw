@@ -1,0 +1,75 @@
+{
+  "dataset_id": "be41d097",
+  "name": "Climate-Change-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A climate-related named entity recognition (NER) dataset where each sample contains a short climate science text and a prompt asking to extract climate entities and their types (e.g., hazards, organizations, datasets).",
+  "card_text": "The dataset consists of 200 text-only samples focused on climate change. Each sample includes a raw text passage (typically one or two sentences from climate literature) and an instruction prompt that lists the allowed entity types and asks for extraction in the format 'entity => type'. The output is a comma-separated list of extracted entities and their types. The task is open-set NER with a predefined type inventory including assets, datasets, greenhouse-gases, hazards, impacts, mitigations, models, nature, observations, organizations, organisms, problem-origins, and properties. The dataset evaluates a model's ability to identify and classify climate-related entities in context, supporting extraction-style evaluation.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction"
+  ],
+  "domain": "climate change",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "The raw text passage from climate change literature, typically one or two sentences describing climate-related studies, impacts, or organizations. It serves as the input text from which entities are to be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract climate-related named entities and their types from the given raw text, specifying the allowed entity types and the output format ('entity => type').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A comma-separated list of extracted entities and their types in the format 'entity => type', representing the named entities found in the context passage.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample includes a context passage (input.raw_text) and an instruction prompt (input.prompt) that together form the model input, plus an answer (output.text) listing extracted entities and their types. The context provides the text to analyze, the prompt specifies the extraction task and the allowed entity type inventory, and the answer gives the resulting entities with their types in a structured string format."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Climate-Change-NER/annotation.json",
+    "existing_tags": {
+      "task": "climate_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

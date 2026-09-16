@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_zombie_process_leak@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file in a text editor.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit, VS Code) is visible on screen displaying the contents of '/home/ga/zombie-debug/docker-compose.yml'."
+    },
+    {
+      "id": "add_init_flag",
+      "description": "Modify docker-compose.yml to include the init flag for the job-worker service.",
+      "points": 30,
+      "visual_evidence": "The text 'init: true' (or equivalent init process configuration) is visible under the 'job-worker' service definition in the docker-compose.yml file."
+    },
+    {
+      "id": "apply_compose_changes",
+      "description": "Apply the changes by restarting or recreating the Docker Compose service.",
+      "points": 20,
+      "visual_evidence": "Terminal shows execution of 'docker compose up -d', 'docker compose up --force-recreate', or similar commands in the '/home/ga/zombie-debug' directory, with output indicating the container was recreated or started."
+    },
+    {
+      "id": "verify_service_running",
+      "description": "Verify that the job-worker service is running after the changes.",
+      "points": 10,
+      "visual_evidence": "Terminal shows output of 'docker ps' or 'docker compose ps' with the 'job-worker' container listed and its status showing as 'Up'."
+    },
+    {
+      "id": "verify_zombie_count",
+      "description": "Verify that zombie processes are no longer accumulating.",
+      "points": 30,
+      "visual_evidence": "Terminal shows a process check (e.g., 'top', 'ps aux | grep Z', or 'docker exec job-worker ps') indicating 2 or fewer zombie/defunct processes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_worker_py_modification",
+      "description": "Ensure the application code (worker.py) was not modified.",
+      "visual_evidence": "There should be no evidence of worker.py being opened and edited in a text editor, or terminal commands altering worker.py."
+    },
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Ensure Docker commands were genuinely executed.",
+      "visual_evidence": "Terminal outputs for Docker commands should show standard Docker formatting, progress bars, or status messages, rather than manually typed or echoed mock outputs."
+    },
+    {
+      "id": "genuine_file_save",
+      "description": "Ensure the docker-compose.yml file was actually saved.",
+      "visual_evidence": "The text editor should show signs of saving (e.g., 'Wrote X lines' in nano) or subsequent terminal commands like 'cat docker-compose.yml' should reflect the 'init: true' addition."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/zombie-debug'. The service and container are both named 'job-worker'. The standard fix is adding 'init: true' to the service in docker-compose.yml. The application code (worker.py) must NOT be modified. To award full points for zombie verification, the VLM must observe a zombie/defunct process count of 2 or fewer."
+}

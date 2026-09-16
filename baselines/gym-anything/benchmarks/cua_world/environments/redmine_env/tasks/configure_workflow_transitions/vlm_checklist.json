@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_workflow_transitions@1",
+  "task_completion": [
+    {
+      "id": "select_role_and_tracker",
+      "description": "Select the correct Role and Tracker in the Workflow configuration",
+      "points": 10,
+      "visual_evidence": "In the Redmine Workflows screen, the dropdown for 'Role' should have 'Developer' selected, and the dropdown for 'Tracker' should have 'Support' selected. The transitions matrix for this combination should be visible."
+    },
+    {
+      "id": "transitions_from_new",
+      "description": "Configure allowed transitions from the 'New' status",
+      "points": 15,
+      "visual_evidence": "In the workflow transitions matrix, locate the row for 'New'. Verify that ONLY the checkboxes in the columns for 'In Progress' and 'Rejected' are checked. All other checkboxes in this row must be empty."
+    },
+    {
+      "id": "transitions_from_in_progress",
+      "description": "Configure allowed transitions from the 'In Progress' status",
+      "points": 15,
+      "visual_evidence": "In the workflow transitions matrix, locate the row for 'In Progress'. Verify that ONLY the checkboxes in the columns for 'Resolved' and 'Feedback' are checked. All other checkboxes in this row must be empty."
+    },
+    {
+      "id": "transitions_from_resolved",
+      "description": "Configure allowed transitions from the 'Resolved' status",
+      "points": 15,
+      "visual_evidence": "In the workflow transitions matrix, locate the row for 'Resolved'. Verify that ONLY the checkboxes in the columns for 'Closed' and 'In Progress' are checked. All other checkboxes in this row must be empty."
+    },
+    {
+      "id": "transitions_from_feedback_and_rejected",
+      "description": "Configure allowed transitions from the 'Feedback' and 'Rejected' statuses",
+      "points": 15,
+      "visual_evidence": "In the workflow transitions matrix, locate the row for 'Feedback' and verify ONLY the 'In Progress' column is checked. Locate the row for 'Rejected' and verify ONLY the 'New' column is checked. All other checkboxes in these rows must be empty."
+    },
+    {
+      "id": "transitions_from_closed_and_save",
+      "description": "Ensure no transitions from 'Closed' and save the configuration",
+      "points": 30,
+      "visual_evidence": "In the workflow transitions matrix, locate the row for 'Closed' and verify NO checkboxes are checked. Finally, look for a success message (e.g., 'Successful update.') indicating the workflow settings were saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "The agent interacted with the actual Redmine web interface",
+      "visual_evidence": "Screenshots should show a web browser navigating the Redmine application at localhost:3000, rather than a text editor or a static mockup."
+    },
+    {
+      "id": "no_devtools_manipulation",
+      "description": "The agent did not use browser developer tools to fake the configuration",
+      "visual_evidence": "The browser's Developer Tools (Inspect Element) pane should not be open or used to artificially check the boxes."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent used the GUI rather than terminal commands to configure the database",
+      "visual_evidence": "The agent should be seen clicking checkboxes and the Save button in the browser, rather than executing curl commands, SQL scripts, or rails console commands in a terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Tracker: 'Support'. Target Role: 'Developer'. Required transitions (Row -> Column): 'New' -> 'In Progress', 'Rejected'; 'In Progress' -> 'Resolved', 'Feedback'; 'Resolved' -> 'Closed', 'In Progress'; 'Feedback' -> 'In Progress'; 'Rejected' -> 'New'. All other transitions must be disabled (unchecked)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "summarize_cases_by_pathogen@1",
+  "task_completion": [
+    {
+      "id": "open_classic_analysis",
+      "description": "Open Epi Info 7 Classic Analysis",
+      "points": 10,
+      "visual_evidence": "The Epi Info 7 Classic Analysis application window is open and visible on the screen."
+    },
+    {
+      "id": "import_case_reports",
+      "description": "Import the CaseReports.csv line list",
+      "points": 20,
+      "visual_evidence": "The READ dialog or command is visible in Classic Analysis, specifically referencing the file path 'C:\\Users\\Docker\\Documents\\EpiData\\CaseReports.csv'."
+    },
+    {
+      "id": "filter_confirmed_cases",
+      "description": "Filter the data to include only 'Confirmed' cases",
+      "points": 20,
+      "visual_evidence": "The SELECT dialog or command is visible in the analysis output or command log, showing a filter condition such as CaseStatus = 'Confirmed'."
+    },
+    {
+      "id": "generate_summary_table",
+      "description": "Generate a summary table for Count and Average Age by PathogenName and OnsetQuarter",
+      "points": 30,
+      "visual_evidence": "A MEANS, TABLES, or similar summary dialog/command is visible, showing PathogenName and OnsetQuarter as cross-tab/grouping variables, and Age as the means/aggregate variable."
+    },
+    {
+      "id": "export_summary_table",
+      "description": "Export the summary table to the specified CSV path",
+      "points": 20,
+      "visual_evidence": "The WRITE or EXPORT dialog/command is visible, showing the destination file path 'C:\\Users\\Docker\\Documents\\FoodborneOutput\\pathogen_quarterly_summary.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_gui",
+      "description": "Agent used Epi Info 7 Classic Analysis instead of external scripts",
+      "visual_evidence": "The agent performs the data manipulation within the Epi Info 7 interface, rather than writing and executing a Python, PowerShell, or command-line script to process the CSV."
+    },
+    {
+      "id": "no_fake_data_creation",
+      "description": "Agent did not fabricate the missing input data",
+      "visual_evidence": "The agent does not open a text editor or spreadsheet program to manually type out a fake 'CaseReports.csv' file to bypass the missing data issue."
+    },
+    {
+      "id": "genuine_export_interaction",
+      "description": "Agent exported results via the application",
+      "visual_evidence": "The agent uses Epi Info's built-in export functionality rather than manually creating the 'pathogen_quarterly_summary.csv' file and typing in the expected columns."
+    }
+  ],
+  "privileged_info_for_vlm": "Note: The required input file 'CaseReports.csv' is missing from the environment due to a defect. The agent will likely fail to import the data and may not be able to complete the task. Evaluate based on the agent's genuine attempts to perform the steps. If the agent somehow reaches the export stage, the expected output file is 'C:\\Users\\Docker\\Documents\\FoodborneOutput\\pathogen_quarterly_summary.csv' with columns: [\"PathogenName\", \"OnsetQuarter\", \"CaseCount\", \"AvgAge\"], and filter criteria: CaseStatus = 'Confirmed'."
+}

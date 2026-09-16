@@ -1,0 +1,27 @@
+{
+  "id": "reading_practice_activity@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete at least 5 levels of the 'Reading practice' activity in GCompris. Record each successfully matched word, one per line, to a log file at /home/ga/Documents/reading_log.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reading_practice_activity/setup_task.sh",
+    "post_task": "/workspace/tasks/reading_practice_activity/export_result.sh"
+  },
+  "metadata": {
+    "log_file_path": "/home/ga/Documents/reading_log.txt",
+    "min_words_required": 5,
+    "activity_name": "Reading practice"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reading_practice"
+    }
+  }
+}

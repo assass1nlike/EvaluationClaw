@@ -1,0 +1,59 @@
+{
+  "task_id": "oracle_xml_data_export@1",
+  "task_completion": [
+    {
+      "id": "db_connection_established",
+      "description": "Verify the agent connected to the Oracle database.",
+      "points": 10,
+      "visual_evidence": "A database client (like DBeaver, SQL Developer) or terminal (sqlplus, Python script) open and showing a successful connection to the XEPDB1 database using the 'hr' user."
+    },
+    {
+      "id": "org_structure_file_created",
+      "description": "Verify the organizational hierarchy XML file is created with the correct root and department elements.",
+      "points": 20,
+      "visual_evidence": "A file named 'org_structure.xml' on the Desktop or opened in an editor/terminal, showing a root <organization> element containing <department> elements with an 'id' attribute, <name>, and <manager_name>."
+    },
+    {
+      "id": "org_structure_employee_details",
+      "description": "Verify the organizational hierarchy XML contains the correct employee details.",
+      "points": 20,
+      "visual_evidence": "Inside 'org_structure.xml', look for an <employees> container within departments, containing <employee> elements with an 'id' attribute, <first_name>, <last_name>, <email>, <job_id>, <salary>, and <hire_date>."
+    },
+    {
+      "id": "compensation_feed_file_created",
+      "description": "Verify the compensation statistics XML file is created with the correct root and job elements.",
+      "points": 20,
+      "visual_evidence": "A file named 'compensation_feed.xml' on the Desktop or opened in an editor/terminal, showing a root <compensation_report> element containing <job> elements with an 'id' attribute."
+    },
+    {
+      "id": "compensation_feed_details",
+      "description": "Verify the compensation statistics XML contains the correct aggregated job data.",
+      "points": 15,
+      "visual_evidence": "Inside 'compensation_feed.xml', look for <job> elements containing <title>, <min_salary>, <max_salary>, <employee_count>, <avg_actual_salary>, and <total_payroll>."
+    },
+    {
+      "id": "plsql_function_created",
+      "description": "Verify the PL/SQL function GENERATE_DEPT_XML was created in the database.",
+      "points": 15,
+      "visual_evidence": "A SQL client or terminal showing the execution of 'CREATE OR REPLACE FUNCTION GENERATE_DEPT_XML(p_dept_id IN NUMBER) RETURN XMLTYPE' with a success message (e.g., 'Function created.'), or the function visible in the database schema objects."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_querying",
+      "description": "Ensure the agent actually queried the Oracle database to generate the XML files.",
+      "visual_evidence": "Look for SQL queries, PL/SQL blocks, or scripts (e.g., Python/Bash) interacting with the database. The XML files should not be manually typed out with fabricated data."
+    },
+    {
+      "id": "authentic_schema_data",
+      "description": "Ensure the XML files contain realistic Oracle HR schema data.",
+      "visual_evidence": "The XML files should contain recognizable Oracle HR sample data (e.g., departments like 'Executive' or 'IT', employees like 'Steven King' or 'Alexander Hunold') rather than placeholder text like 'Test Dept' or 'John Doe'."
+    },
+    {
+      "id": "function_executed_in_db",
+      "description": "Ensure the PL/SQL function was actually compiled in the database, not just written in a text file.",
+      "visual_evidence": "Look for evidence of the function being executed/compiled in a database tool or sqlplus terminal (e.g., 'Function created' or 'Compiled'), rather than just existing as a .sql text file on the desktop."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating two XML files on the Desktop: '/home/ga/Desktop/org_structure.xml' and '/home/ga/Desktop/compensation_feed.xml'. The Oracle HR schema contains 11 distinct departments with employees and 19 distinct jobs with employees. The org_structure.xml should reflect these 11 departments and at least 100 employees. The compensation_feed.xml should contain exactly 19 <job> elements. The PL/SQL function must be named 'GENERATE_DEPT_XML'."
+}

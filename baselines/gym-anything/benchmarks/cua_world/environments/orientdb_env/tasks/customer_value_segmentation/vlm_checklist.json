@@ -1,0 +1,53 @@
+{
+  "task_id": "customer_value_segmentation@1",
+  "task_completion": [
+    {
+      "id": "connect_demodb",
+      "description": "Connect to the 'demodb' database in OrientDB",
+      "points": 10,
+      "visual_evidence": "Look for the OrientDB Studio interface in a web browser showing a connection to the 'demodb' database."
+    },
+    {
+      "id": "add_customertier_property",
+      "description": "Add 'CustomerTier' property to the 'Profiles' class",
+      "points": 20,
+      "visual_evidence": "Look for the Schema tab in OrientDB Studio showing the 'Profiles' class with a new property 'CustomerTier' of type STRING, or a successful SQL command like 'CREATE PROPERTY Profiles.CustomerTier STRING'."
+    },
+    {
+      "id": "update_customertier",
+      "description": "Update 'CustomerTier' based on spending rules",
+      "points": 30,
+      "visual_evidence": "Look for SQL UPDATE queries in OrientDB Studio calculating the sum of 'Price' from connected 'Orders' via 'HasOrder' and setting 'CustomerTier' to 'Platinum', 'Gold', or 'Silver'. Alternatively, look for the Browse tab showing the 'Profiles' class with the 'CustomerTier' column populated with these values."
+    },
+    {
+      "id": "query_platinum_customers",
+      "description": "Query Platinum customers with required fields",
+      "points": 20,
+      "visual_evidence": "Look for a SELECT query in OrientDB Studio filtering for 'CustomerTier' = 'Platinum' and projecting the fields 'Name', 'Surname', 'Email', and 'CustomerTier'."
+    },
+    {
+      "id": "export_json",
+      "description": "Export the Platinum customers to a JSON file",
+      "points": 20,
+      "visual_evidence": "Look for a terminal, text editor, or file manager showing the file `/home/ga/platinum_customers.json`. The contents should be a JSON array containing the Platinum customers with their Name, Surname, Email, and CustomerTier."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "The agent used OrientDB Studio to interact with the database",
+      "visual_evidence": "Check that the agent actually opened OrientDB Studio in a web browser to perform schema changes and queries, rather than just guessing or writing a script without checking the DB."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The exported JSON file contains genuine data from the database",
+      "visual_evidence": "Check that the JSON file contains actual database records (like the VIP tracer account) and is formatted correctly, indicating it was generated from a query result or carefully constructed from actual query outputs."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "The agent did not hardcode the JSON file without querying",
+      "visual_evidence": "Ensure there is evidence of the agent querying the database for Platinum customers before creating the JSON file. The agent should not just type a mock JSON file from scratch without retrieving the data."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains synthetic tracer accounts to verify correctness. Victoria VIP (vip_tracer@example.com) has a total spend of 3500 and must be classified as 'Platinum'. Mike Mid (mid_tracer@example.com) has a spend of 1500 and must be 'Gold'. Larry Low (low_tracer@example.com) has a spend of 500 and must be 'Silver'. Ian Inactive (inactive_tracer@example.com) has 0 orders and must be 'Silver'. The final exported JSON at /home/ga/platinum_customers.json MUST include the Victoria VIP account with the 'Platinum' tier."
+}

@@ -1,0 +1,99 @@
+---
+title: Remote
+description: Running environments on other machines instead of your local one.
+---
+
+<Callout type="info">
+If you're running everything on one machine, you can ignore this page.
+</Callout>
+
+This part of Gym Anything is for the case where environments run on other machines and your code talks to them over the network.
+
+## When You Need This
+
+Use the remote setup when:
+
+- you have multiple machines for experiments
+- environments are too heavy to run on your laptop
+- you want one machine to manage work across several workers
+
+## The Basic Idea
+
+The remote setup has three pieces:
+
+- a **master** server that routes requests
+- one or more **worker** servers that actually run environments
+- a remote client called `RemoteGymEnv`
+
+## The Main Commands
+
+The main server commands are:
+
+- `gym-anything-master`
+- `gym-anything-worker`
+- `gym-anything-dashboard`
+
+{/* TODO: screenshot of the remote cluster dashboard showing connected workers */}
+
+Start one master:
+
+```bash
+gym-anything-master --host 0.0.0.0 --port 5800
+```
+
+Start workers on the machines that should host environments:
+
+```bash
+gym-anything-worker \
+  --master-url http://master-host:5800 \
+  --max-envs 1 \
+  --advertise-host "$(hostname -f)"
+```
+
+The master stores worker and environment routing state in memory, so run a single master process. Submit worker jobs with your cluster scheduler by launching `gym-anything-worker` in each job. The environment paths and cache paths used by clients must also exist on the worker machines.
+
+Workers run a runner preflight before registering with the master. The same logic that powers `gym-anything doctor` discovers which runners are usable on the host (binaries present, `/dev/kvm` openable for QEMU-family runners on Linux, etc.) and the worker advertises that list to the master under `metadata.available_runners`. The master uses it to route environments only to workers that can run them: when a request includes an explicit `runner` (set in `env.json` or forwarded by the client), creation is filtered to matching workers; otherwise routing falls back to least-loaded across the cluster.
+
+If the host has no usable runner the worker exits without registering. Pass `--skip-preflight` (or `GYM_ANYTHING_WORKER_SKIP_PREFLIGHT=1`) for local development and tests that don't actually execute a real runner. The previous `--skip-kvm-check` flag and `GYM_ANYTHING_WORKER_SKIP_KVM_CHECK` env var still work as deprecated aliases.
+
+To assert that a specific runner must be available before the worker comes up — e.g. when a Slurm job is reserved for QEMU work and should fail fast otherwise — pass `--must-support-runner qemu` (or `GYM_ANYTHING_WORKER_MUST_SUPPORT_RUNNER=qemu,docker` for multiple). The preflight raises and the worker exits if any listed runner is unavailable.
+
+## Python Usage
+
+From Python, the remote client looks like this:
+
+```python
+from gym_anything import RemoteGymEnv
+
+env = RemoteGymEnv.from_config(
+    remote_url="http://localhost:5800",
+    env_dir="benchmarks/cua_world/environments/moodle_env",
+    task_id="enroll_student",
+)
+```
+
+After that, the flow is similar to a local environment:
+
+- `reset()`
+- `step(...)`
+- `close()`
+
+## Benchmark Usage
+
+`gym-anything benchmark` can route environment execution through a remote master or worker:
+
+```bash
+gym-anything benchmark moodle \
+  --task enroll_student \
+  --agent ClaudeAgent \
+  --model claude-opus-4 \
+  --remote-url http://master-host:5800
+```
+
+The agent loop still runs in the client process. Environment reset, actions, screenshots, and verification run on the selected worker.
+
+Useful remote flags:
+
+- `--remote-url`: master or worker URL
+- `--remote-timeout`: HTTP timeout for long reset/step calls
+- `--remote-worker-reset-policy`: worker-local reset policy, usually `core`

@@ -496,6 +496,84 @@ def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
     assert any("keeping 1 structurally valid replacement" in message for message in logs)
 
 
+@pytest.mark.parametrize("strict", [False, True])
+def test_initial_builder_keeps_individual_tasks_across_repairs(monkeypatch, tmp_path, strict):
+    dimension = EvalDimension(
+        id="execution", name="Execution", description="Execute tasks.", approach="Use tools.",
+        task_types=[TaskType.agent], target_item_count=3,
+    )
+    spec = EvalSpec(objective="Execute tasks.", dimensions=[dimension], scale=3)
+    blueprint = make_blueprint(
+        "execution_tasks", dimension.id, "Execution", task_type=TaskType.agent,
+        count=3, environment_type=AgentEnvironmentType.docker_workspace,
+        source_plan={"strategy": "adapted"},
+    )
+    calls = []
+
+    def fake_builder(messages, **kwargs):
+        payload = json.loads(messages[0].content)
+        calls.append(payload)
+        attempt = len(calls)
+        tasks = []
+        for index in range(1, 4):
+            tasks.append({
+                "task_type": "agent", "title": f"Task {index}",
+                "prompt": f"Create result-{index}.txt." if index in {attempt, 3} else "",
+                "resource_ids": ["resource_1"],
+                "environment": {
+                    "type": "docker_workspace", "test_command": "python3 tests.py",
+                    "hidden_files": {"tests.py": "print('{\"score\": 0}')"},
+                },
+                "reference_trajectory": [{"action": f"Create result-{index}.txt."}],
+                "scoring": {"method": "executable_test", "pass_criteria": "Correct file."},
+                "metadata": {"challenge_effort_self_assessment": {
+                    "requested_effort": "E3", "meets_requested_effort": True,
+                    "rationale": "Implement and verify the requested artifact.",
+                }},
+            })
+        return json.dumps({
+            "tasks": tasks,
+            "resources": [{"kind": "web", "uri": f"https://example.org/source-{attempt}"}],
+        })
+
+    patch_task_builder_model(monkeypatch, fake_builder)
+    monkeypatch.setattr("evalclaw.construction.suite.require_docker_available", lambda **kwargs: None)
+
+    def preflight(tasks, **kwargs):
+        failed = {task.id for task in tasks if task.id.endswith("_task_3")}
+        return [f"{task_id}: evaluator missing" for task_id in failed], failed
+
+    monkeypatch.setattr("evalclaw.construction.suite._preflight_builder_environments", preflight)
+    reviewed = []
+
+    def qc(suite, config):
+        reviewed.append(suite)
+        return QcReport(passed_item_ids=[task.id for task in suite.tasks])
+
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", qc)
+    config = BenchmarkConfig(
+        **dummy_config_kwargs(), output_dir=str(tmp_path), max_qc_iterations=0,
+        task_builder_repair_attempts=1, allow_incomplete_benchmark=not strict,
+    )
+    if strict:
+        with pytest.raises(RuntimeError, match="1 unbuilt item"):
+            build_suite_from_spec_with_qc_loop(spec, [blueprint], config, log=lambda _: None)
+    else:
+        suite, report = build_suite_from_spec_with_qc_loop(
+            spec, [blueprint], config, log=lambda _: None,
+        )
+        assert len(build_execution_plan(suite, report).accepted_item_ids) == 2
+    assert len(calls) == 2
+    assert [task.id for task in reviewed[0].tasks] == [
+        "execution_tasks_task_1", "execution_tasks_task_2",
+    ]
+    resources = {resource.id: resource.uri for resource in reviewed[0].resources}
+    for index, task in enumerate(reviewed[0].tasks, 1):
+        assert [resources[rid] for rid in task.source_definition.resource_ids] == [
+            f"https://example.org/source-{index}",
+        ]
+
+
 def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:
     item = BenchmarkItem(
         id="partial_task",
@@ -990,7 +1068,7 @@ def test_unified_qc_loop_fails_closed_after_repair_exhaustion(monkeypatch) -> No
     with pytest.raises(RuntimeError, match="runner-ready suite"):
         build_benchmark_suite_with_qc_loop(
             spec.objective,
-            BenchmarkConfig(max_qc_iterations=0),
+            BenchmarkConfig(max_qc_iterations=0, allow_incomplete_benchmark=False),
             log=progress.append,
         )
 
@@ -1001,7 +1079,7 @@ def test_unified_qc_loop_fails_closed_after_repair_exhaustion(monkeypatch) -> No
     )
 
 
-def test_unified_qc_loop_allows_explicit_incomplete_draft(monkeypatch) -> None:
+def test_unified_qc_loop_allows_incomplete_benchmark_by_default(monkeypatch) -> None:
     spec, blueprint, suite, rejected = _rejected_fixture()
     monkeypatch.setattr(
         "evalclaw.benchmark.plan_benchmark",
@@ -1012,7 +1090,7 @@ def test_unified_qc_loop_allows_explicit_incomplete_draft(monkeypatch) -> None:
 
     _, run_ready_suite, qc_report = build_benchmark_suite_with_qc_loop(
         spec.objective,
-        BenchmarkConfig(max_qc_iterations=0, allow_incomplete_benchmark=True),
+        BenchmarkConfig(max_qc_iterations=0),
         log=lambda message: None,
     )
 

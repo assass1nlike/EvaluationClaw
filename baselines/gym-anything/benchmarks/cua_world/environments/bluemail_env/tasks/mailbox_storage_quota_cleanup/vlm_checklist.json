@@ -1,0 +1,59 @@
+{
+  "task_id": "mailbox_storage_quota_cleanup@1",
+  "task_completion": [
+    {
+      "id": "identify_large_emails",
+      "description": "Agent identifies the large emails in the inbox.",
+      "points": 10,
+      "visual_evidence": "Visual evidence of the agent scrolling through the inbox or using the search bar to locate emails with subjects containing 'Project Assets', 'High Res', or 'Backup Dump'."
+    },
+    {
+      "id": "delete_project_assets",
+      "description": "Agent deletes emails related to Project Assets.",
+      "points": 15,
+      "visual_evidence": "Visual evidence of emails with 'Project Assets' in the subject being selected and moved to the Trash/Deleted folder."
+    },
+    {
+      "id": "delete_high_res",
+      "description": "Agent deletes emails related to High Res files.",
+      "points": 15,
+      "visual_evidence": "Visual evidence of emails with 'High Res' in the subject being selected and moved to the Trash/Deleted folder."
+    },
+    {
+      "id": "delete_backup_dump",
+      "description": "Agent deletes emails related to Backup Dumps.",
+      "points": 15,
+      "visual_evidence": "Visual evidence of emails with 'Backup Dump' (or similar large dump/archive subjects like 'Log Dump' or 'Video Archive') being selected and moved to the Trash/Deleted folder."
+    },
+    {
+      "id": "empty_trash",
+      "description": "Agent permanently reclaims space by emptying the Trash.",
+      "points": 30,
+      "visual_evidence": "Visual evidence of the agent navigating to the Trash or Deleted Items folder and executing the 'Empty Trash' action, or confirming a prompt to permanently delete the items."
+    },
+    {
+      "id": "preserve_normal_emails",
+      "description": "Agent preserves normal correspondence in the inbox.",
+      "points": 15,
+      "visual_evidence": "Visual evidence showing the Inbox still contains a large number of normal, everyday emails after the large asset emails have been removed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the graphical email client to perform the task.",
+      "visual_evidence": "The agent is seen clicking and interacting with the actual email application's interface (e.g., BlueMail or Thunderbird) rather than using terminal commands to delete underlying mail files."
+    },
+    {
+      "id": "genuine_permanent_deletion",
+      "description": "Agent genuinely emptied the trash within the application.",
+      "visual_evidence": "The trash folder is shown being emptied via the application's native buttons or context menus, not by spoofing a success message in a text editor."
+    },
+    {
+      "id": "authentic_preservation",
+      "description": "Preserved emails are genuine and not synthetically recreated.",
+      "visual_evidence": "The remaining emails in the inbox appear to be the original normal correspondence (various senders, dates, and subjects) and not manually typed placeholder emails."
+    }
+  ],
+  "privileged_info_for_vlm": "The target max size quota is 5MB (5242880 bytes). To successfully meet this quota, all 5 injected large emails must be permanently deleted. The exact subjects of the large emails are: 'Project Assets Backup 1', 'Project Assets Backup 2', 'High Res Dump', 'Video Archive', and 'Log Dump 2023'. The inbox initially contains 45 normal emails from the SpamAssassin Public Corpus; a minimum of 40 normal emails must be preserved (allowing up to 5 mistaken deletions)."
+}

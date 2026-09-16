@@ -1,0 +1,35 @@
+{
+  "id": "nearest_neighbor_distance_matrix@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Compute a nearest-neighbor distance matrix for western US state capitals using /home/ga/GIS_Data/us_western_capitals.geojson. The output must be a linear (N*k x 3) matrix showing the distance to the nearest other capital for each entry. Export the results to /home/ga/GIS_Data/exports/capital_distance_matrix.csv and save the project to /home/ga/GIS_Data/projects/distance_analysis.qgz.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nearest_neighbor_distance_matrix/setup_task.sh",
+    "post_task": "/workspace/tasks/nearest_neighbor_distance_matrix/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/us_western_capitals.geojson",
+    "expected_output_path": "/home/ga/GIS_Data/exports/capital_distance_matrix.csv",
+    "expected_row_count": 17,
+    "ground_truth_pairs": {
+      "Denver": "Cheyenne",
+      "Bismarck": "Pierre",
+      "Lincoln": "Topeka",
+      "Sacramento": "Carson City",
+      "Salem": "Olympia"
+    },
+    "min_distance_deg": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nearest_neighbor_distance_matrix"
+    }
+  }
+}

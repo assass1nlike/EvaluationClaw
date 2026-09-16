@@ -1,0 +1,53 @@
+{
+  "task_id": "duplicate_dive_and_adjust_time@1",
+  "task_completion": [
+    {
+      "id": "select_original_dive",
+      "description": "Verify the agent locates and selects the original 'Yellow House' dive from September 2011.",
+      "points": 20,
+      "visual_evidence": "Look for a highlighted or selected row in the dive list showing the location 'Yellow House' and a date in September 2011."
+    },
+    {
+      "id": "duplicate_dive",
+      "description": "Verify the agent duplicates the selected dive.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Duplicate' context menu action being clicked, or the appearance of a newly created dive in the list that is identical to the original 'Yellow House' dive."
+    },
+    {
+      "id": "adjust_start_time",
+      "description": "Verify the start time of the newly duplicated dive is set to exactly 13:35.",
+      "points": 30,
+      "visual_evidence": "Look at the dive details or edit panel for the new dive. The start time input field must explicitly show '13:35'."
+    },
+    {
+      "id": "verify_unchanged_data",
+      "description": "Verify that the other data for the duplicated dive remains unchanged.",
+      "points": 10,
+      "visual_evidence": "Look at the dive details for the new dive; the location field must still say 'Yellow House' and the date must still be in September 2011."
+    },
+    {
+      "id": "save_dive_log",
+      "description": "Verify the agent saves the updated dive log.",
+      "points": 20,
+      "visual_evidence": "Look for the agent clicking a 'Save' button, using a save menu option (e.g., File -> Save), or the absence of an 'unsaved changes' indicator (like an asterisk) in the application title bar after modifications are made."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "Verify the agent interacted with the graphical dive log application.",
+      "visual_evidence": "Screenshots should show a genuine dive log GUI (e.g., Subsurface) being used to perform the tasks, rather than a terminal or text editor."
+    },
+    {
+      "id": "no_terminal_manipulation",
+      "description": "Verify the agent did not use terminal commands to bypass the GUI.",
+      "visual_evidence": "No terminal windows should be visible executing commands like `sed`, `awk`, or python scripts to directly modify the dive log file."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Verify the agent did not manually edit the underlying save file as text.",
+      "visual_evidence": "No text editors (like nano, vim, or gedit) should be open displaying the raw XML or text contents of the dive log file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target dive to duplicate is located at 'Yellow House' in September 2011. The new duplicated dive must have its start time set to exactly '13:35'. The final logbook should contain 30 dives in total (the original 29 plus the new duplicated one). The duplicated dive must retain identical data to the original (location, date, etc.) except for the adjusted time."
+}

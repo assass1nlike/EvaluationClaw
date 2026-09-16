@@ -1,0 +1,53 @@
+{
+  "task_id": "locate_eye_blink_artifact@1",
+  "task_completion": [
+    {
+      "id": "open_openbci_gui",
+      "description": "Open the OpenBCI GUI application",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI application window is visible on the screen."
+    },
+    {
+      "id": "select_playback_file",
+      "description": "Select the specified EEG recording file for playback",
+      "points": 20,
+      "visual_evidence": "The OpenBCI GUI shows 'Playback' mode selected and the file 'OpenBCI-EEG-S001-EyesOpen.txt' is loaded or being selected in the file chooser."
+    },
+    {
+      "id": "view_time_series",
+      "description": "Start the data stream and view the Time Series widget",
+      "points": 20,
+      "visual_evidence": "The Time Series widget is visible in the GUI, displaying scrolling EEG waveforms, with Channels 1 and 2 (Fp1/Fp2) clearly visible."
+    },
+    {
+      "id": "locate_blink_artifact",
+      "description": "Locate the first eye blink artifact in the recording",
+      "points": 20,
+      "visual_evidence": "The GUI playback is paused or focused near the beginning of the recording (around 0.5 to 1.5 seconds), showing a large, rounded deflection (peak) in Channels 1 and 2."
+    },
+    {
+      "id": "save_timestamp",
+      "description": "Save the identified timestamp to the output file",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal window shows the creation or editing of '/home/ga/blink_timestamp.txt' containing a numerical value around 0.624 (acceptable range is 0.0 to 2.124 due to tolerance)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_present",
+      "description": "The agent used the OpenBCI GUI to find the artifact",
+      "visual_evidence": "Screenshots must show the agent interacting with the OpenBCI GUI (e.g., clicking playback, viewing the time series) rather than just parsing the text file with a terminal script."
+    },
+    {
+      "id": "no_scripting_shortcut",
+      "description": "The agent did not use a script to bypass visual inspection",
+      "visual_evidence": "There should be no evidence of the agent writing a Python or bash script to programmatically find the 80uV threshold peak in the text file."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The output file was genuinely created with the result",
+      "visual_evidence": "A terminal command (like echo or nano) or a text editor is explicitly used to write the numerical timestamp to '/home/ga/blink_timestamp.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is 'OpenBCI-EEG-S001-EyesOpen.txt'. The first eye blink artifact (large peak in Channel 1/Fp1) occurs at exactly 0.624 seconds. The task allows a tolerance of 1.5 seconds, meaning any saved timestamp between 0.0 and 2.124 seconds is technically considered correct, though the agent should ideally identify a value very close to 0.624. The agent must use the OpenBCI GUI to visually identify this, rather than writing a script to parse the data file."
+}

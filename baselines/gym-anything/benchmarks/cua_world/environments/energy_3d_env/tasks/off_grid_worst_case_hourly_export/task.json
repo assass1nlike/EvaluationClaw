@@ -1,0 +1,29 @@
+{
+  "id": "off_grid_worst_case_hourly_export@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are sizing an off-grid solar system and need the worst-case winter generation profile. Open the 'solar-rack-array.ng3' sample project. Change the Location (City) to Boston, MA. Change the Date to December 21 (the Winter Solstice). Save this modified project as 'boston_winter.ng3' in the Documents/Energy3D folder. Next, run a Daily Solar Radiation analysis (Compute Daily for Today) to view the yield graph, and use the export feature to save the hourly simulation data as a CSV file named 'boston_dec21_hourly.csv' in the Documents/Energy3D folder.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/off_grid_worst_case_hourly_export/setup_task.sh",
+    "post_task": "/workspace/tasks/off_grid_worst_case_hourly_export/export_result.sh"
+  },
+  "metadata": {
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/boston_winter.ng3",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/boston_dec21_hourly.csv",
+    "city": "Boston",
+    "month": 12,
+    "day": 21
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_off_grid_hourly_export"
+    }
+  }
+}

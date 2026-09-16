@@ -1,0 +1,42 @@
+{
+  "id": "factorial_anova_interaction@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a two-way (factorial) ANOVA on the 'Tooth Growth' dataset (/home/ga/Documents/JASP/ToothGrowth.csv) to analyze the interaction between supplement type ('supp') and dosage ('dose') on tooth length ('len'). Ensure 'dose' is treated as a nominal or ordinal factor. The analysis must include the interaction term 'supp * dose', descriptive statistics, descriptive plots (with 'dose' on the horizontal axis and 'supp' as separate lines), Levene's homogeneity tests, and post-hoc tests for the interaction. Save the analysis results to /home/ga/Documents/JASP/ToothGrowth_Factorial.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/factorial_anova_interaction/setup_task.sh",
+    "post_task": "/workspace/tasks/factorial_anova_interaction/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/ToothGrowth_Factorial.jasp",
+    "dataset_path": "/home/ga/Documents/JASP/ToothGrowth.csv",
+    "required_analysis_type": "anova",
+    "dependent_variable": "len",
+    "fixed_factors": [
+      "supp",
+      "dose"
+    ],
+    "interaction_term": [
+      "supp",
+      "dose"
+    ],
+    "check_keywords": [
+      "Descriptive statistics",
+      "Levene's Test",
+      "Post Hoc Comparisons",
+      "Descriptive Plot"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_factorial_anova"
+    }
+  }
+}

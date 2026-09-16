@@ -1,0 +1,33 @@
+{
+  "id": "hreflang_implementation_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are an International SEO Specialist hired to diagnose why a multilingual website is underperforming in non-English markets. Audit the hreflang tag implementation for https://crawler-test.com/ using Screaming Frog SEO Spider. Export the complete hreflang data showing each page's attribute values and language codes as a CSV to ~/Documents/SEO/exports/. Additionally, provide a professional audit report at ~/Documents/SEO/reports/hreflang_report.txt detailing the unique language codes found, the count of pages with hreflang tags, specific error types identified (such as missing return links, incorrect language codes, or non-canonical pages), and prioritized fixes. Login: user=ga.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hreflang_implementation_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/hreflang_implementation_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "report_path": "~/Documents/SEO/reports/hreflang_report.txt",
+    "expected_min_hreflang_rows": 5,
+    "expected_language_codes": [
+      "en",
+      "de",
+      "fr"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hreflang_implementation_audit"
+    }
+  }
+}

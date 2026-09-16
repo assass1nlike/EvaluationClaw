@@ -1,0 +1,31 @@
+{
+  "id": "outlier_detection_mahalanobis_exam@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a multivariate outlier analysis on the Exam Anxiety dataset (/home/ga/Documents/JASP/ExamAnxiety.csv). Conduct a linear regression using 'Exam' as the dependent variable and 'Anxiety' and 'Revise' as covariates to determine the Mahalanobis distance for each case. Identify the student 'Code' associated with the highest Mahalanobis distance and record only that ID in /home/ga/Documents/JASP/outlier_report.txt. Save the completed JASP project to /home/ga/Documents/JASP/OutlierAnalysis.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/outlier_detection_mahalanobis_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/outlier_detection_mahalanobis_exam/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/ExamAnxiety.csv",
+    "output_jasp": "/home/ga/Documents/JASP/OutlierAnalysis.jasp",
+    "output_report": "/home/ga/Documents/JASP/outlier_report.txt",
+    "predictors": [
+      "Anxiety",
+      "Revise"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_outlier_detection"
+    }
+  }
+}

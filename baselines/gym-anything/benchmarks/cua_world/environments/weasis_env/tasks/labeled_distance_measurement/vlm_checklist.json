@@ -1,0 +1,53 @@
+{
+  "task_id": "labeled_distance_measurement@1",
+  "task_completion": [
+    {
+      "id": "dicom_image_loaded",
+      "description": "Verify that the DICOM image is loaded and visible in a DICOM viewer application.",
+      "points": 10,
+      "visual_evidence": "A medical imaging viewer window is open displaying an X-Ray Angiography image."
+    },
+    {
+      "id": "measurement_line_drawn",
+      "description": "Verify that a distance measurement line has been drawn on the central prominent structure.",
+      "points": 20,
+      "visual_evidence": "A line segment with measurement endpoints (and likely a numeric distance value) is visible over the central structure in the X-Ray image."
+    },
+    {
+      "id": "properties_dialog_opened",
+      "description": "Verify that the measurement properties dialog is opened to edit the line's attributes.",
+      "points": 20,
+      "visual_evidence": "A dialog box, context menu, or properties panel specific to the selected measurement line is visible on screen."
+    },
+    {
+      "id": "label_applied",
+      "description": "Verify that the measurement line is labeled exactly 'Aortic Root'.",
+      "points": 20,
+      "visual_evidence": "The text 'Aortic Root' is visible inside the label text field of the properties dialog, or directly rendered next to the measurement line on the image."
+    },
+    {
+      "id": "export_dialog_used",
+      "description": "Verify that the annotated image is exported as a PNG to the correct path.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' or 'Export' file dialog is visible with the filename 'labeled_vessel.png' and the directory path pointing to '~/DICOM/exports/' or '/home/ga/DICOM/exports/', or a file manager/terminal shows the file successfully created at that location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify that the agent interacted with a genuine DICOM viewer GUI to perform the measurement.",
+      "visual_evidence": "The measurement and labeling are done within a medical viewer interface, not via terminal commands, scripts, or generic image editors like GIMP."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "Verify that the agent used the application's native export functionality.",
+      "visual_evidence": "The save/export dialog belongs to the DICOM viewer application, rather than the agent taking a system screenshot and saving it via command line tools."
+    },
+    {
+      "id": "no_text_overlay_cheat",
+      "description": "Verify that the label was applied via the measurement properties, not just pasted as generic text.",
+      "visual_evidence": "The label 'Aortic Root' is entered in a specific measurement properties field or natively attached to the measurement tool, rather than using a generic free-text annotation tool to fake the label."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/DICOM/exports/labeled_vessel.png'. The label applied to the measurement line must be exactly 'Aortic Root'. The exported file must be a valid image with a file size of at least 5000 bytes."
+}

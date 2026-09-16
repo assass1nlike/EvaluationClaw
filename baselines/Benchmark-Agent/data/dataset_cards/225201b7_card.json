@@ -1,0 +1,75 @@
+{
+  "dataset_id": "225201b7",
+  "name": "Tweet-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 204,
+  "description": "The Tweet-Question-Answering dataset contains question-answer pairs over individual tweets. Each sample provides a tweet as context and a natural language question about that tweet, with one or more short free-text answers. It evaluates open-ended reading comprehension on social media content.",
+  "card_text": "Tweet-Question-Answering is a text-only extractive/open-ended QA dataset built from Twitter posts. Each of the 204 samples consists of an input context (a tweet with author handle and timestamp), a natural language question, and an output answer list containing one or more short answer strings. The tweets are short, informal, and often include hashtags and personal commentary, so questions probe understanding of social media style and implied context. Answers are typically brief phrases or named entities mentioned in or inferred from the tweet. The dataset is suitable for evaluating open-domain question answering and reading comprehension over noisy, short-text social media content. No multiple-choice options, images, or multi-turn dialogue are present.",
+  "tasks": [
+    "question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "social media (Twitter) question answering",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.context"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The main input context is a single tweet, including its text, hashtags, author handle, and posting date. It provides the evidence and social media framing needed to answer the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question asking about a specific piece of information conveyed in the tweet context. It directs the model to extract or infer the answer from the tweet.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of one or more short free-text answers that satisfy the question based on the tweet context. Answers are typically spans, phrases, or named entities.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with a context field containing a tweet and a question field containing a natural language query, plus an output object with an answer field containing a list of short answer strings. The context supplies the tweet evidence, the question specifies what to ask about it, and the answer list provides the target response(s). No dialog, options, images, tables, or other auxiliary annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Tweet-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "tweet_qa",
+      "type": "OpenQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

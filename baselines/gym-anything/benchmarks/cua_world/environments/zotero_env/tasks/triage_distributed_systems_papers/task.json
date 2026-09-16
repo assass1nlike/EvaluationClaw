@@ -1,0 +1,30 @@
+{
+  "id": "triage_distributed_systems_papers@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a teaching assistant for a Distributed Systems course. Your library contains 20 seminal papers on systems research. Organize these papers into two collections based on their publication year. Create a collection named 'Classic Systems' for all papers published in 2004 or earlier, and a collection named 'Modern Systems' for all papers published in 2005 or later. Ensure every paper is assigned to exactly one collection and that collection names are exactly as specified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/triage_distributed_systems_papers/setup_task.sh",
+    "post_task": "/workspace/tasks/triage_distributed_systems_papers/export_result.sh"
+  },
+  "metadata": {
+    "classic_cutoff_year": 2004,
+    "collections": [
+      "Classic Systems",
+      "Modern Systems"
+    ],
+    "expected_item_count": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_triage_distributed_systems_papers"
+    }
+  }
+}

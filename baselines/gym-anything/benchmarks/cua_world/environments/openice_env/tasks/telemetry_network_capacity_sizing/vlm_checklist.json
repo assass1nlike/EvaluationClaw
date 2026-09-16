@@ -1,0 +1,59 @@
+{
+  "task_id": "telemetry_network_capacity_sizing@1",
+  "task_completion": [
+    {
+      "id": "multiparameter_monitor_running",
+      "description": "The OpenICE Multiparameter Monitor simulated device adapter is launched and running.",
+      "points": 15,
+      "visual_evidence": "An OpenICE ICE_Device_Interface application window is visible, showing that a 'Multiparameter Monitor' device simulation is active."
+    },
+    {
+      "id": "network_measurement_visible",
+      "description": "A tool is used to measure network bandwidth consumption (RX/TX bytes).",
+      "points": 15,
+      "visual_evidence": "A terminal running a network command (e.g., ifconfig, ip -s link, vnstat) or a GUI system monitor is visible, displaying network receive (RX) and transmit (TX) statistics."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The capacity planning report is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor is open showing a file named 'capacity_plan.txt' located in '/home/ga/Desktop/'."
+    },
+    {
+      "id": "baseline_and_active_metrics_recorded",
+      "description": "The report includes baseline and active network activity over 10-second periods.",
+      "points": 20,
+      "visual_evidence": "The text in the report explicitly lists the baseline network activity (RX/TX bytes) for a 10-second idle period and the active network traffic for a 10-second period with the monitor running."
+    },
+    {
+      "id": "per_device_bandwidth_calculated",
+      "description": "The report includes the calculated per-device bandwidth in Kbps.",
+      "points": 20,
+      "visual_evidence": "The text in the report shows a calculated per-device bandwidth value explicitly labeled in 'Kbps' (derived from Active Rate - Baseline Rate)."
+    },
+    {
+      "id": "projection_table_included",
+      "description": "The report includes a projection table estimating total bandwidth for 10, 50, and 100 devices.",
+      "points": 20,
+      "visual_evidence": "A table or structured list is visible in the report, clearly showing estimated total bandwidth values for exactly 10, 50, and 100 devices."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_device_simulation",
+      "description": "The agent actually ran the OpenICE Multiparameter Monitor simulation rather than hallucinating the active traffic numbers.",
+      "visual_evidence": "The OpenICE device simulator GUI must be visible in at least one screenshot during the trajectory."
+    },
+    {
+      "id": "actual_network_measurement",
+      "description": "The agent actually measured network traffic using a system tool rather than guessing the RX/TX bytes.",
+      "visual_evidence": "A terminal or network monitoring tool displaying actual RX/TX statistics must be visible in the screenshots."
+    },
+    {
+      "id": "realistic_bandwidth_value",
+      "description": "The calculated bandwidth is within a realistic range for this medical device simulation.",
+      "visual_evidence": "The calculated per-device bandwidth in the report must be a reasonable number between 1.0 Kbps and 5000.0 Kbps."
+    }
+  ],
+  "privileged_info_for_vlm": "The capacity planning report must be saved exactly to '/home/ga/Desktop/capacity_plan.txt'. The expected device type to be simulated is 'Multiparameter Monitor' using the OpenICE ICE_Device_Interface application. A realistic calculated per-device bandwidth for this simulation falls between 1.0 Kbps and 5000.0 Kbps (5 Mbps)."
+}

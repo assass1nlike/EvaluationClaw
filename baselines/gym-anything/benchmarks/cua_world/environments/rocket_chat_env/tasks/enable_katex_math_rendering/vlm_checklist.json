@@ -1,0 +1,59 @@
+{
+  "task_id": "enable_katex_math_rendering@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify the agent successfully logged into Rocket.Chat.",
+      "points": 10,
+      "visual_evidence": "The main Rocket.Chat interface is visible, showing channels like #general, indicating successful login as admin."
+    },
+    {
+      "id": "navigate_message_settings",
+      "description": "Verify the agent navigated to the Message configuration settings.",
+      "points": 10,
+      "visual_evidence": "The Administration panel is open, and the 'Settings' -> 'Message' configuration page is visible on the screen."
+    },
+    {
+      "id": "enable_katex",
+      "description": "Verify the 'KaTeX Enabled' setting is turned on.",
+      "points": 20,
+      "visual_evidence": "Within the Message settings (specifically the KaTeX section), the toggle switch for 'KaTeX Enabled' is in the active/true/on position."
+    },
+    {
+      "id": "enable_katex_dollar",
+      "description": "Verify the 'KaTeX Dollar Syntax' setting is turned on.",
+      "points": 20,
+      "visual_evidence": "Within the Message settings, the toggle switch for 'KaTeX Dollar Syntax' is in the active/true/on position."
+    },
+    {
+      "id": "enable_katex_parenthesis",
+      "description": "Verify the 'KaTeX Parenthesis Syntax' setting is turned on.",
+      "points": 20,
+      "visual_evidence": "Within the Message settings, the toggle switch for 'KaTeX Parenthesis Syntax' is in the active/true/on position."
+    },
+    {
+      "id": "post_verification_message",
+      "description": "Verify the specific test message was posted to the #general channel.",
+      "points": 20,
+      "visual_evidence": "In the #general channel chat history, there is a message from the admin reading 'The final equation is $E = mc^2$'. Note: Because KaTeX is enabled, the '$E = mc^2$' portion may appear as a visually rendered mathematical equation rather than raw text."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "Ensure the agent used a web browser to interact with the Rocket.Chat UI.",
+      "visual_evidence": "Screenshots should show a web browser (like Chromium/Firefox) navigating the Rocket.Chat web interface, not terminal windows executing API curl commands or database scripts."
+    },
+    {
+      "id": "genuine_chat_interface",
+      "description": "Ensure the message was posted in the actual Rocket.Chat application.",
+      "visual_evidence": "The message should be visible within the standard Rocket.Chat channel UI layout, complete with timestamps, user avatars, and the message input box, rather than in a text editor or a mocked HTML page."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Ensure the agent did not use browser developer tools to fake the settings or message.",
+      "visual_evidence": "The browser's developer tools (Elements/Console tab) should not be open and used to inject the 'true' state into the toggles or the message text into the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The target channel is exactly 'general'. The expected message is exactly 'The final equation is $E = mc^2$'. Note that due to a known defect in the automated evaluation scripts for this task, the backend will fail to verify the settings. Therefore, visual confirmation of the 'KaTeX Enabled', 'KaTeX Dollar Syntax', and 'KaTeX Parenthesis Syntax' toggles being set to ON in the UI is the definitive source of truth for success."
+}

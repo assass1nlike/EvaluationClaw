@@ -1,0 +1,53 @@
+{
+  "task_id": "phantom_account_investigation@1",
+  "task_completion": [
+    {
+      "id": "locate_target_user",
+      "description": "Locate the user account associated with the email domain '@external-vendor.net'.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the 2N Access Commander 'Users' section with a search for '@external-vendor.net' or the profile of 'Alex Ghost' (admin@external-vendor.net) opened."
+    },
+    {
+      "id": "save_rfid_card_to_file",
+      "description": "Save the assigned RFID card number to /home/ga/compromised_card.txt.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a terminal or text editor where an RFID card number (matching the one seen in the user's profile) is being saved to the file path '/home/ga/compromised_card.txt'."
+    },
+    {
+      "id": "remove_rfid_credential",
+      "description": "Revoke physical access by removing the RFID card credential from the user's profile.",
+      "points": 30,
+      "visual_evidence": "Screenshots of the 2N Access Commander GUI showing the RFID card being deleted or the card field being empty for the target user."
+    },
+    {
+      "id": "update_company_status",
+      "description": "Change the user's 'Company' field to 'Quarantined'.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the user's profile in the GUI showing the 'Company' text field updated to exactly 'Quarantined'."
+    },
+    {
+      "id": "save_modifications",
+      "description": "Save the modifications without deleting the user account.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent clicking a 'Save' or 'Apply' button in the user profile, or a success notification indicating the profile was updated, with the user account still visible in the system."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_web_interaction",
+      "description": "The agent interacted with the 2N Access Commander web interface to make the changes.",
+      "visual_evidence": "Screenshots must show the web browser navigating the 2N Access Commander UI to remove the card and change the company, rather than using curl/API commands in the terminal."
+    },
+    {
+      "id": "matching_rfid_extraction",
+      "description": "The extracted RFID card number matches the actual randomized card assigned to the user.",
+      "visual_evidence": "The number saved in compromised_card.txt must visually match the RFID number shown in the user's profile before it was deleted. It should not be a placeholder or guessed value."
+    },
+    {
+      "id": "account_not_deleted",
+      "description": "The user account was modified, not deleted.",
+      "visual_evidence": "There should be no evidence of the agent clicking 'Delete User' or confirming a user deletion. The final screens should show the user profile still exists but with updated fields."
+    }
+  ],
+  "privileged_info_for_vlm": "The target user is 'Alex Ghost' with the email 'admin@external-vendor.net'. The RFID card number is randomized per session, so you must verify that the number saved to /home/ga/compromised_card.txt matches the exact number displayed in Alex Ghost's profile before it was removed. The expected company status is exactly 'Quarantined'."
+}

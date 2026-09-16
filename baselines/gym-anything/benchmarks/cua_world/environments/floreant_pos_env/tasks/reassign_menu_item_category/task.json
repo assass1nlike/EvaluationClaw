@@ -1,0 +1,28 @@
+{
+  "id": "reassign_menu_item_category@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "A menu item has been incorrectly categorized in the system. Reassign the item 'Garlic Naan' from its current category ('ENTREE') to the 'SIDES' category using the Floreant POS Back Office. Use the Administrator PIN: 1111 for access.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reassign_menu_item_category/setup_task.sh",
+    "post_task": "/workspace/tasks/reassign_menu_item_category/export_result.sh"
+  },
+  "metadata": {
+    "target_item_name": "Garlic Naan",
+    "target_category_name": "SIDES",
+    "initial_category_name": "ENTREE",
+    "admin_pin": "1111"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reassign_menu_item_category"
+    }
+  }
+}

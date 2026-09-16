@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_reassign_leads_state@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_leads",
+      "description": "Navigate to the leads search or list management interface.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent accessing the leads administration, search, or list modification page within the CRM interface."
+    },
+    {
+      "id": "search_source_list",
+      "description": "Search or filter for leads in the source list (List ID: 9001).",
+      "points": 20,
+      "visual_evidence": "Screenshots show '9001' entered into a List ID search field or a filter applied to show only leads from the 'US Senators General' list."
+    },
+    {
+      "id": "identify_ca_leads",
+      "description": "Identify the leads associated with California ('CA').",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent locating the 2 leads with 'CA'. Note: Due to a system bug, 'CA' may appear in the 'Status' column instead of the 'State' column."
+    },
+    {
+      "id": "reassign_to_target_list",
+      "description": "Change the List ID of the identified CA leads to the target list (List ID: 9002).",
+      "points": 30,
+      "visual_evidence": "Screenshots show the agent editing the CA leads and inputting '9002' into the List ID field, or using a bulk move tool with '9002' as the destination."
+    },
+    {
+      "id": "save_and_confirm_move",
+      "description": "Save the changes to finalize the reassignment.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a confirmation message of the update, or the CA leads subsequently appearing when searching for List ID 9002."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "The agent used the graphical user interface to perform the task.",
+      "visual_evidence": "Actions are performed in a web browser or CRM GUI, not via terminal commands, SQL queries, or API scripts."
+    },
+    {
+      "id": "authentic_data_modification",
+      "description": "The agent modified the actual system records rather than a local file.",
+      "visual_evidence": "Changes are made within the application's lead modification screens, not in a text editor or spreadsheet application."
+    },
+    {
+      "id": "no_unrelated_modifications",
+      "description": "The agent did not move non-CA leads or delete any data.",
+      "visual_evidence": "Only the 2 leads containing 'CA' are selected and modified. No delete buttons are clicked, and no bulk actions are applied to the entire list of 100 leads indiscriminately."
+    }
+  ],
+  "privileged_info_for_vlm": "Source List ID: 9001. Target List ID: 9002. Target State: 'CA'. Expected CA leads: exactly 2 out of 100 total leads. CRITICAL NOTE: Due to a known database import bug in the environment, the state values (including 'CA') were accidentally mapped to the 'status' column, leaving the 'state' column empty. The agent is correct if it identifies and moves the 2 leads based on 'CA' appearing in the status column."
+}

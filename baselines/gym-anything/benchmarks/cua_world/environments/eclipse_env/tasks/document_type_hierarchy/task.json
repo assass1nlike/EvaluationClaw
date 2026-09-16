@@ -1,0 +1,64 @@
+{
+  "id": "document_type_hierarchy@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Identify all concrete classes in the 'MessageSystem' project that implement the 'IMessageHandler' interface, including those inheriting it through abstract base classes. Record these classes in 'handler_audit.txt' in the project root directory using the format 'ClassName: [Javadoc Description]', where the description is the class-level Javadoc. Exclude abstract classes and interfaces from the list.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/document_type_hierarchy/setup_task.sh",
+    "post_task": "/workspace/tasks/document_type_hierarchy/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/MessageSystem",
+    "output_file": "handler_audit.txt",
+    "expected_classes": {
+      "EmailHandler": {
+        "type": "direct",
+        "keywords": [
+          "smtp",
+          "email",
+          "registered administrators"
+        ]
+      },
+      "SMSHandler": {
+        "type": "direct",
+        "keywords": [
+          "twilio",
+          "gateway",
+          "urgent"
+        ]
+      },
+      "AuditLogHandler": {
+        "type": "indirect",
+        "keywords": [
+          "immutable",
+          "compliance",
+          "audit log"
+        ]
+      },
+      "MetricsHandler": {
+        "type": "indirect",
+        "keywords": [
+          "datadog",
+          "throughput",
+          "statistics"
+        ]
+      }
+    },
+    "forbidden_classes": [
+      "AbstractLoggingHandler",
+      "IMessageHandler"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_document_type_hierarchy"
+    }
+  }
+}

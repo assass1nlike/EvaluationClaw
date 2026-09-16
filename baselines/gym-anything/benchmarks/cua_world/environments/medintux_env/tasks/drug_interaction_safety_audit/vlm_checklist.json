@@ -1,0 +1,53 @@
+{
+  "task_id": "drug_interaction_safety_audit@1",
+  "task_completion": [
+    {
+      "id": "database_query_formulated",
+      "description": "Formulate a query to find patients with both drugs.",
+      "points": 20,
+      "visual_evidence": "A SQL query or script is visible that connects to the DrTuxTest database and searches for both 'Kard\u00e9gic' and 'Sintrom' in the clinical history (Rubriques)."
+    },
+    {
+      "id": "query_executed",
+      "description": "Execute the query to retrieve patient data.",
+      "points": 20,
+      "visual_evidence": "The query is executed in a terminal, script output, or database client, and the results showing patient names and GUIDs are visible."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "Create the output CSV file in the correct location.",
+      "points": 20,
+      "visual_evidence": "A file named 'interaction_alert_list.csv' is visible in the '/home/ga/Documents/' directory, either in a file manager, terminal (e.g., ls command), or an editor."
+    },
+    {
+      "id": "csv_headers_correct",
+      "description": "Ensure the CSV file has the correct headers.",
+      "points": 10,
+      "visual_evidence": "The contents of the CSV file or the script generating it show the exact header row 'PatientName,GUID'."
+    },
+    {
+      "id": "csv_content_correct",
+      "description": "Ensure the CSV file contains the correct patient records.",
+      "points": 30,
+      "visual_evidence": "The CSV file is shown to contain exactly 4 patient rows with names (Lastname Firstname format) and GUIDs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not access the ground truth file.",
+      "visual_evidence": "There is no evidence of the agent opening, reading, or copying the file at '/var/lib/medintux/ground_truth_interaction.csv'."
+    },
+    {
+      "id": "genuine_database_query",
+      "description": "The agent queried the database instead of hardcoding results.",
+      "visual_evidence": "The agent is seen writing and executing a genuine SQL query or script against the DrTuxTest database, rather than hardcoding patient names or GUIDs."
+    },
+    {
+      "id": "authentic_csv_generation",
+      "description": "The CSV file was generated from query results.",
+      "visual_evidence": "The CSV file was created programmatically or exported directly from the database client, not by manually typing the patient data."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is 'DrTuxTest' and uses MedinTux tables (IndexNomPrenom, fchpat, Rubriques). The target output is a CSV file at '/home/ga/Documents/interaction_alert_list.csv' with exactly two columns: 'PatientName' and 'GUID'. The correct result contains exactly 4 patients. Patient names are formatted as 'Lastname Firstname'. The agent must not access the ground truth file at '/var/lib/medintux/ground_truth_interaction.csv'."
+}

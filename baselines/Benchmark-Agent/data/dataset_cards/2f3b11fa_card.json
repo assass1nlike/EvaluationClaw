@@ -1,0 +1,74 @@
+{
+  "dataset_id": "2f3b11fa",
+  "name": "Scientific-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Scientific-Ner is a benchmark for named entity recognition in scientific text, requiring extraction of entities labelled as Dataset, Method, or Task. Each sample provides a raw scientific sentence and an instruction, and the expected output lists each entity with its type.",
+  "card_text": "Scientific-Ner is a text-to-text dataset of 200 samples designed to evaluate named entity recognition (NER) on scientific text, particularly from NLP and machine learning papers. The input consists of a short raw scientific sentence (e.g., mentioning methods like SVM or Matrix-LSTM) and a prompt that instructs the model to extract all named entities and classify them as Dataset, Method, or Task. The output is a formatted string listing each entity followed by '=>' and its type, separated by commas. The dataset assumes sentence-level context and focuses on technical terminology, acronyms, and multi-word expressions. It tests a model's ability to identify and type domain-specific entities in a structured, extractive manner.",
+  "tasks": [
+    "entity_recognition"
+  ],
+  "domain": "scientific NLP/ML",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A raw scientific sentence or short passage that contains named entities such as methods, datasets, or tasks. It serves as the main input text to be analyzed.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An explicit instruction asking to extract all named entities and their types from the raw text, specifying the allowed entity types (Dataset, Method, Task) and the output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The extracted entities with their types, formatted as 'entity => type' pairs separated by commas. It is the target output that answers the extraction instruction.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with two text fields: 'raw_text' (the scientific sentence to analyze) and 'prompt' (the extraction instruction). The output object contains a single 'text' field with the extracted entities and their types in a structured format. There are no dialogs, options, or visual components."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Scientific-NER/annotation.json",
+    "existing_tags": {
+      "task": "scientific_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

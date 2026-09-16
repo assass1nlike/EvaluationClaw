@@ -1,0 +1,59 @@
+{
+  "task_id": "visualize_web_attacks_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create a new dashboard named 'Web_Attack_Analysis'",
+      "points": 10,
+      "visual_evidence": "The Wazuh/OpenSearch Dashboards interface shows a dashboard being created or edited with the title 'Web_Attack_Analysis'."
+    },
+    {
+      "id": "metric_visualization",
+      "description": "Create a metric visualization for critical web alerts",
+      "points": 20,
+      "visual_evidence": "A metric visualization (a single large number) is visible. The editor or filter bar should show it filters for 'rule.level' >= 10 (or 10) and 'rule.groups' containing 'web'."
+    },
+    {
+      "id": "pie_chart_visualization",
+      "description": "Create a pie or donut chart for Attack Vectors",
+      "points": 20,
+      "visual_evidence": "A pie or donut chart is visible. The legend, axis configuration, or tooltip should indicate it is aggregating by the field 'rule.description'."
+    },
+    {
+      "id": "bar_chart_visualization",
+      "description": "Create a horizontal bar chart for Top Attacker IPs",
+      "points": 20,
+      "visual_evidence": "A horizontal bar chart is visible. The axis labels or configuration panel should show IP addresses, indicating aggregation by the field 'data.srcip'."
+    },
+    {
+      "id": "data_table_visualization",
+      "description": "Create a data table for Recent Web Incidents",
+      "points": 20,
+      "visual_evidence": "A data table is visible. The column headers must include 'data.srcip' and 'data.url' (along with @timestamp, data.method, and rule.id)."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the dashboard containing all four visualizations",
+      "points": 10,
+      "visual_evidence": "The final dashboard named 'Web_Attack_Analysis' is shown in view mode or a 'Saved' confirmation notification is visible, displaying all four required visualizations together."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "The agent used the Wazuh/OpenSearch Dashboards web interface to create the dashboard",
+      "visual_evidence": "Screenshots show interaction with the web browser and the Wazuh/OpenSearch Dashboards UI, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "actual_visualizations_created",
+      "description": "The visualizations are genuinely rendered in the UI",
+      "visual_evidence": "The screenshots show actual rendered charts, metrics, and tables with data, not just JSON payloads or text files."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The dashboard was not faked using browser developer tools",
+      "visual_evidence": "The UI appears consistent with normal Wazuh Dashboards behavior, without signs of HTML manipulation or text editing to fake the titles or charts."
+    }
+  ],
+  "privileged_info_for_vlm": "The target dashboard must be named 'Web_Attack_Analysis' and include 4 visualizations. The evaluation script checks for specific configuration parameters rather than exact titles: a 'metric' type with filter_field 'rule.level' containing value '10', a 'pie' chart with agg_field 'rule.description', a 'horizontal_bar' with agg_field 'data.srcip', and a 'table' containing columns 'data.srcip' and 'data.url'. Exact visualization titles are ignored by the verifier, so focus on verifying the chart types and their data fields."
+}

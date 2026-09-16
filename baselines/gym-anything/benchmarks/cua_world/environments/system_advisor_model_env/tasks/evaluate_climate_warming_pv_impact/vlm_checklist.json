@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_climate_warming_pv_impact@1",
+  "task_completion": [
+    {
+      "id": "weather_file_modification",
+      "description": "Create the +3C warming scenario weather file",
+      "points": 20,
+      "visual_evidence": "A script or terminal command showing the agent reading '/home/ga/SAM_Weather_Data/phoenix_az_tmy.csv', adding 3.0 to the ambient temperature column, and saving it to '/home/ga/SAM_Weather_Data/phoenix_plus_3c.csv'."
+    },
+    {
+      "id": "pysam_script_parameters",
+      "description": "Configure the PySAM Pvwattsv8 model with the exact specified parameters",
+      "points": 30,
+      "visual_evidence": "A Python script showing PySAM Pvwattsv8 setup with parameters: system_capacity=50000, module_type=0, array_type=2, tilt=0, azimuth=180, losses=14.08, dc_ac_ratio=1.2, and inv_eff=96."
+    },
+    {
+      "id": "json_report_creation",
+      "description": "Save the results to the specified JSON report with correct keys",
+      "points": 20,
+      "visual_evidence": "A file named 'climate_risk_report.json' in '/home/ga/Documents/SAM_Projects/' containing the exact keys: 'baseline_energy_kwh', 'warming_scenario_energy_kwh', 'energy_loss_kwh', and 'percentage_loss_pct'."
+    },
+    {
+      "id": "baseline_energy_accuracy",
+      "description": "Calculate a baseline energy yield within the expected range",
+      "points": 15,
+      "visual_evidence": "The 'baseline_energy_kwh' value in the JSON report or terminal output is between 90,000,000 and 140,000,000 (expected ~105,953,110)."
+    },
+    {
+      "id": "percentage_loss_accuracy",
+      "description": "Calculate a percentage loss within the expected range",
+      "points": 15,
+      "visual_evidence": "The 'percentage_loss_pct' value in the JSON report or terminal output is between 1.0 and 2.0 (expected ~1.27)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_execution",
+      "description": "The agent actually executed the PySAM simulation rather than hardcoding expected answers.",
+      "visual_evidence": "Terminal output showing the execution of the Python script (e.g., 'python simulate.py') and the script dynamically writing variables to the JSON file rather than hardcoded strings."
+    },
+    {
+      "id": "programmatic_weather_modification",
+      "description": "The agent programmatically added 3.0 to the temperature data rather than just copying the file.",
+      "visual_evidence": "Python or shell script logic explicitly showing an addition operation (+ 3) applied to the temperature column (e.g., using pandas or the csv module)."
+    },
+    {
+      "id": "pysam_library_usage",
+      "description": "The agent used the actual PySAM library to compute the energy yield.",
+      "visual_evidence": "The Python script contains 'import PySAM.Pvwattsv8' or similar valid PySAM import statements."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected baseline energy ('baseline_energy_kwh') is approximately 105,953,110 kWh (acceptable range: 90,000,000 to 140,000,000). The expected percentage loss ('percentage_loss_pct') under the +3\u00b0C scenario is approximately 1.27% (acceptable range: 1.0 to 2.0). The modified weather file must be saved at '/home/ga/SAM_Weather_Data/phoenix_plus_3c.csv' and the JSON report at '/home/ga/Documents/SAM_Projects/climate_risk_report.json'."
+}

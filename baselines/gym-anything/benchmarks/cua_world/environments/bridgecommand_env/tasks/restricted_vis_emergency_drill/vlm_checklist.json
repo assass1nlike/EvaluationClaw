@@ -1,0 +1,59 @@
+{
+  "task_id": "restricted_vis_emergency_drill@1",
+  "task_completion": [
+    {
+      "id": "environment_ini_configured",
+      "description": "Verify environment.ini is updated with fog conditions.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output showing environment.ini with VisibilityRange=0.5, Weather=1.0, Rain=0.0, and StartTime=8.0."
+    },
+    {
+      "id": "ownship_ini_configured",
+      "description": "Verify ownship.ini is updated with safe speed and new ship name.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output showing ownship.ini with InitialSpeed=5.0 and ShipName='MV Caution'."
+    },
+    {
+      "id": "othership_ini_existing_vessels",
+      "description": "Verify the existing two vessels in othership.ini have their speeds halved.",
+      "points": 15,
+      "visual_evidence": "Look for othership.ini showing the first two vessels with halved speeds (e.g., Vessel 1 speeds around 4, 3, 2; Vessel 2 speeds around 2.5 or 3)."
+    },
+    {
+      "id": "othership_ini_new_vessel",
+      "description": "Verify a third Cargo vessel is added to othership.ini on a near-collision course.",
+      "points": 20,
+      "visual_evidence": "Look for othership.ini showing Number=3 (or a 3rd vessel block) with Type(3)='Cargo', InitLat increased by 0.02 compared to baseline, heading between 170 and 190, speed 10, and 2 legs."
+    },
+    {
+      "id": "bc5_ini_configured",
+      "description": "Verify bc5.ini is updated with full radar and ARPA enabled.",
+      "points": 15,
+      "visual_evidence": "Look for bc5.ini showing full_radar=1, arpa_on=1, and radar_range_resolution=256."
+    },
+    {
+      "id": "fog_drill_checklist_created",
+      "description": "Verify the fog drill safety checklist is created with required COLREGS items.",
+      "points": 20,
+      "visual_evidence": "Look for a file named fog_drill_checklist.txt containing at least 10 numbered items. The items must explicitly mention Rule 6, Rule 19, radar plotting, sound signals (or Rule 35), lookout posting (or Rule 5), and engine status."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_scenario_directory",
+      "description": "Ensure the agent modified the files in the correct Portsmouth Approach Custom scenario directory.",
+      "visual_evidence": "File paths in the editor or terminal should point to /opt/bridgecommand/Scenarios/m) Portsmouth Approach Custom/."
+    },
+    {
+      "id": "checklist_file_location",
+      "description": "Ensure the checklist is saved in the correct Documents directory.",
+      "visual_evidence": "The checklist file path should be exactly /home/ga/Documents/fog_drill_checklist.txt."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the files were actually modified and saved, not just printed to the console.",
+      "visual_evidence": "Look for evidence of saving in a text editor, or terminal commands like 'cat' showing the final file contents, rather than just 'echo' commands without redirection to the actual files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying Bridge Command simulator configuration files for a fog drill. 1. environment.ini: VisibilityRange=0.5, Weather=1.0, Rain=0.0, StartTime=8.0. 2. ownship.ini: InitialSpeed=5.0, ShipName='MV Caution'. 3. othership.ini: Original 2 vessels (Tanker, Yacht) must have speeds halved (Tanker to approx 4, 3, 2; Yacht to approx 2.5 or 3). A 3rd vessel must be added: Type='Cargo', InitLat offset by +0.02, heading 170-190, speed 10, 2 legs. 4. bc5.ini: full_radar=1, arpa_on=1, radar_range_resolution=256. 5. Checklist at /home/ga/Documents/fog_drill_checklist.txt must have 10+ numbered items covering COLREGS Rules 5, 6, 19, 35, radar plotting, and engine status."
+}

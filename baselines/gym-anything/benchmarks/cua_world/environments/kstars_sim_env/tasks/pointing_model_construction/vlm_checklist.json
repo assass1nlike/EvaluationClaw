@@ -1,0 +1,59 @@
+{
+  "task_id": "pointing_model_construction@1",
+  "task_completion": [
+    {
+      "id": "unpark_telescope",
+      "description": "Verify the telescope is unparked.",
+      "points": 10,
+      "visual_evidence": "Look for the KStars/INDI telescope control panel or Ekos mount module showing the telescope status as 'Unparked' or tracking actively."
+    },
+    {
+      "id": "read_spec_file",
+      "description": "Verify the agent opened or read the maintenance specification file.",
+      "points": 10,
+      "visual_evidence": "Look for 'pointing_calibration_spec.txt' open in a text editor or its contents displayed in a terminal."
+    },
+    {
+      "id": "capture_star_exposures",
+      "description": "Verify 5-second LIGHT frame exposures are captured for the 8 reference stars.",
+      "points": 30,
+      "visual_evidence": "Look for the KStars/Ekos capture module showing an exposure time of '5' seconds, frame type 'LIGHT', and a sequence running or completed for the target stars (Polaris, Capella, Regulus, Arcturus, Vega, Altair, Deneb, Fomalhaut)."
+    },
+    {
+      "id": "verify_image_directories",
+      "description": "Verify images are saved to the correct star-specific directories.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager or terminal output showing directories named after the stars (e.g., 'polaris', 'capella') inside '/home/ga/Images/pointing_model/' containing newly captured image files."
+    },
+    {
+      "id": "generate_pointing_model",
+      "description": "Verify the creation of the TPoint-format pointing model input file.",
+      "points": 20,
+      "visual_evidence": "Look for '/home/ga/Documents/pointing_model.dat' open in a text editor or displayed in the terminal, containing coordinate data for all 8 reference stars."
+    },
+    {
+      "id": "capture_final_sky_view",
+      "description": "Verify the final sky view is captured using the provided script.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal window showing the execution of '~/capture_sky_view.sh' or a file manager/image viewer displaying 'final_sky.png' in '~/Images/pointing_model/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kstars_usage",
+      "description": "Verify the agent used the KStars/Ekos GUI to capture images rather than faking them.",
+      "visual_evidence": "Look for interaction with the KStars application, Ekos capture sequences, and INDI control panels, rather than terminal commands using 'touch' or 'cp' to create fake FITS files."
+    },
+    {
+      "id": "ignored_stale_files",
+      "description": "Verify the agent did not reuse stale FITS files from previous runs.",
+      "visual_evidence": "Look for evidence that the agent actively ran new capture sequences for the stars instead of just moving or renaming existing files in the directory."
+    },
+    {
+      "id": "genuine_pointing_model_data",
+      "description": "Verify the pointing model file contains actual coordinates.",
+      "visual_evidence": "Look for realistic coordinate data (Right Ascension/Declination or Alt/Az) in 'pointing_model.dat' rather than placeholder text, dummy values, or a direct copy-paste of the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Target stars: polaris, capella, regulus, arcturus, vega, altair, deneb, fomalhaut. Exposure time: 5 seconds. Base directory: /home/ga/Images/pointing_model. Pointing model file: /home/ga/Documents/pointing_model.dat. The task operates in a simulated KStars/INDI environment."
+}

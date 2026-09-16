@@ -1,0 +1,32 @@
+{
+  "id": "chinook_playlist_curation@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Data Engineer at a digital music distributor. Your task is to curate three new playlists in the Chinook database (/home/ga/Documents/databases/chinook.db) by populating the playlists and playlist_track tables. Create a playlist named 'Long Rock Anthems' containing all 'Rock' genre tracks with a duration strictly greater than 300,000 milliseconds. Create a playlist named 'Global Bestsellers' containing the track with the highest total quantity sold for each distinct BillingCountry (if tied, use the lowest TrackId). Create a playlist named 'Hidden Gems' containing all tracks that have never been purchased. Export a summary CSV to /home/ga/Documents/exports/playlist_summary.csv with columns PlaylistName, TrackCount, and TotalDurationMinutes (rounded to 2 decimal places), sorted alphabetically by PlaylistName. Save the SQL script to /home/ga/Documents/scripts/playlist_curation.sql. Use 'Chinook' as the database connection name.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_playlist_curation/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_playlist_curation/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/Documents/databases/chinook.db",
+    "required_playlists": [
+      "Long Rock Anthems",
+      "Global Bestsellers",
+      "Hidden Gems"
+    ],
+    "export_path": "/home/ga/Documents/exports/playlist_summary.csv",
+    "script_path": "/home/ga/Documents/scripts/playlist_curation.sql"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_playlist_curation"
+    }
+  }
+}

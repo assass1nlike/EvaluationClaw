@@ -1,0 +1,59 @@
+{
+  "task_id": "harden_airgapped_network@1",
+  "task_completion": [
+    {
+      "id": "open_config_file",
+      "description": "Agent accesses the Matomo configuration file inside the container.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command to edit or view `/var/www/html/config/config.ini.php` inside the `matomo-app` container (e.g., using `docker exec` with `vi`, `nano`, or `sed`)."
+    },
+    {
+      "id": "locate_general_section",
+      "description": "Agent locates the [General] section in the configuration file.",
+      "points": 10,
+      "visual_evidence": "The text `[General]` is visible in the text editor or terminal output while modifying the file."
+    },
+    {
+      "id": "set_internet_features",
+      "description": "Agent adds the setting to disable internet features.",
+      "points": 20,
+      "visual_evidence": "The line `enable_internet_features=0` (or with spaces) is visible being added or present under the `[General]` section."
+    },
+    {
+      "id": "set_marketplace",
+      "description": "Agent adds the setting to disable marketplace connectivity.",
+      "points": 20,
+      "visual_evidence": "The line `enable_marketplace=0` (or with spaces) is visible being added or present under the `[General]` section."
+    },
+    {
+      "id": "set_update_communication",
+      "description": "Agent adds the setting to disable core software update checks.",
+      "points": 20,
+      "visual_evidence": "The line `enable_update_communication=0` (or with spaces) is visible being added or present under the `[General]` section."
+    },
+    {
+      "id": "save_configuration",
+      "description": "Agent saves the changes to the configuration file.",
+      "points": 20,
+      "visual_evidence": "Evidence of the file being saved, such as exiting the text editor back to the shell prompt, a save confirmation message, or a `cat` command showing the updated file contents."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "container_interaction",
+      "description": "Verify the agent interacted with the actual Docker container.",
+      "visual_evidence": "Commands should explicitly target the `matomo-app` container (e.g., `docker exec matomo-app ...`) rather than modifying a local, unrelated file."
+    },
+    {
+      "id": "correct_section_placement",
+      "description": "Verify the settings were added to the correct section.",
+      "visual_evidence": "The three new settings must be placed under the `[General]` header and before any other bracketed section header (e.g., `[database]`)."
+    },
+    {
+      "id": "genuine_modification",
+      "description": "Verify the file was actually modified and not just printed.",
+      "visual_evidence": "Look for actual file editing interfaces (vim, nano) or shell redirection (`>`) to the file, rather than just `echo`ing the text to the terminal without saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The configuration file is located at /var/www/html/config/config.ini.php inside the 'matomo-app' Docker container. To properly air-gap Matomo, three settings must be set to 0 under the [General] section: enable_internet_features=0, enable_marketplace=0, and enable_update_communication=0."
+}

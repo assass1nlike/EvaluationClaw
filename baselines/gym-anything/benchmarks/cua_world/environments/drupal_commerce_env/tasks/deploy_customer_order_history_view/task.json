@@ -1,0 +1,28 @@
+{
+  "id": "deploy_customer_order_history_view@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a test order for customer 'janesmith'. Create a block named 'My Recent Orders' that displays the 5 most recent orders for the specific user whose profile is being viewed. The block must include the Order ID, Placed date, Total price, and State fields. Configure the block to appear in the Content region only on user profile pages (/user/*). Verify the block's functionality by visiting Jane Smith's profile (/user/3).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deploy_customer_order_history_view/setup_task.sh",
+    "post_task": "/workspace/tasks/deploy_customer_order_history_view/export_result.sh"
+  },
+  "metadata": {
+    "test_user": "janesmith",
+    "test_uid": 3,
+    "view_machine_name": "my_recent_orders",
+    "expected_path_pattern": "/user/*"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deploy_customer_order_history_view"
+    }
+  }
+}

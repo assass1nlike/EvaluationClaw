@@ -1,0 +1,53 @@
+{
+  "task_id": "build_icd10_voice_assistant@1",
+  "task_completion": [
+    {
+      "id": "target_directory_created",
+      "description": "Verifies that the target directory for the Talon module was created.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing directory creation (e.g., mkdir), or a file explorer/IDE sidebar showing the 'icd_assistant' folder inside 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user'."
+    },
+    {
+      "id": "python_file_setup_and_csv",
+      "description": "Verifies that icd_assistant.py is created, defines a Talon Module, and includes logic to load the CSV file.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'icd_assistant.py' with imports from talon, a Module('icd_assistant') declaration, and file reading operations for 'C:\\Users\\Docker\\Documents\\icd10_codes.csv'."
+    },
+    {
+      "id": "python_icd_search_action",
+      "description": "Verifies that icd_assistant.py implements the icd_search action to display the top 3 matches.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'icd_assistant.py' with a function 'icd_search' (typically inside a @mod.action_class) that filters the loaded CSV data and calls 'app.notify' to show up to 3 results."
+    },
+    {
+      "id": "python_icd_insert_action",
+      "description": "Verifies that icd_assistant.py implements the icd_insert action to type the best match code.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'icd_assistant.py' with a function 'icd_insert' that selects the top match from the CSV data and calls 'actions.insert' with the corresponding code."
+    },
+    {
+      "id": "talon_file_creation",
+      "description": "Verifies that icd_assistant.talon is created and maps the required voice commands to the Python actions.",
+      "points": 30,
+      "visual_evidence": "Code editor showing 'icd_assistant.talon' containing the exact phrases 'diagnosis search <user.text>:' and 'diagnosis insert <user.text>:' mapped to the respective user actions (e.g., user.icd_search and user.icd_insert)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Check that the files are actually saved in the correct directory.",
+      "visual_evidence": "Look for saved file indicators in the IDE (e.g., no 'unsaved' dot on the file tabs) or terminal commands confirming the files exist in the target directory."
+    },
+    {
+      "id": "no_hardcoded_test_queries",
+      "description": "Ensure the Python script implements a genuine search algorithm and does not hardcode expected answers.",
+      "visual_evidence": "The code should not contain hardcoded test queries (e.g., 'cholera', 'diabetes') or expected codes (e.g., 'A00.0', 'E11.9')."
+    },
+    {
+      "id": "no_mocking_talon_api",
+      "description": "Ensure the script uses the actual Talon API rather than mocking it.",
+      "visual_evidence": "The script must import from the actual 'talon' library (e.g., 'from talon import Module, actions, app') and not define dummy classes or functions to bypass Talon execution."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\icd_assistant. CSV path: C:\\Users\\Docker\\Documents\\icd10_codes.csv. The agent must implement genuine search logic and not hardcode expected test queries such as 'cholera vibrio biovar' (A00.0), 'type 2 diabetes without complications' (E11.9), or 'headache unspecified' (R51.9)."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "dsst_processing_speed_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent reads the input CSV file containing DSST data.",
+      "points": 10,
+      "visual_evidence": "A script, command, or tool referencing the input path '/home/ga/pebl/data/dsst_data.csv' or a dataframe being loaded from this path."
+    },
+    {
+      "id": "filter_time_window",
+      "description": "Agent filters the dataset to include only trials within the 90-second window.",
+      "points": 10,
+      "visual_evidence": "Code or commands showing a filter condition for the time window, such as 'elapsed_time_ms <= 90000'."
+    },
+    {
+      "id": "calculate_participant_metrics",
+      "description": "Agent calculates the Clinical Score-90, Accuracy Rate, and Incidental Learning Index (ILI) for participants.",
+      "points": 20,
+      "visual_evidence": "Code showing calculations for the sum of correct trials, accuracy (correct/total), and ILI (difference between mean 'rt_ms' of the first 15 and last 15 correct trials)."
+    },
+    {
+      "id": "handle_exclusions_and_nulls",
+      "description": "Agent implements logic to exclude participants with low accuracy and handle null ILI values.",
+      "points": 20,
+      "visual_evidence": "Conditional statements checking if accuracy is '< 0.20' (to flag as excluded) and if the number of correct trials is '< 30' (to set ILI to null)."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Agent calculates the group mean score and group mean learning ms.",
+      "points": 20,
+      "visual_evidence": "Code computing the average of 'clinical_score_90s' and 'incidental_learning_ms' across all valid participants, explicitly or implicitly ignoring null ILI values."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Agent generates and saves the final JSON report.",
+      "points": 20,
+      "visual_evidence": "Code writing to '/home/ga/pebl/analysis/dsst_report.json' or the file's contents being displayed, showing keys like 'participants', 'group_mean_score', and 'group_mean_learning_ms'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "algorithmic_computation",
+      "description": "The agent uses code or a data processing tool to compute the results rather than hardcoding the final answers.",
+      "visual_evidence": "Presence of a script (e.g., Python, R) or tool usage performing the calculations, not just a manually typed JSON file with guessed values."
+    },
+    {
+      "id": "no_hardcoded_participant_ids",
+      "description": "The agent does not hardcode specific participant IDs for exclusion or null handling.",
+      "visual_evidence": "The exclusion and null handling logic relies entirely on calculated metrics (e.g., accuracy < 0.20), not hardcoded IDs like 'sub-err-44' or 'sub-115'."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The agent saves the output to the exact requested path.",
+      "visual_evidence": "The file path '/home/ga/pebl/analysis/dsst_report.json' is visible in the save command, script, or file explorer."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data is at /home/ga/pebl/data/dsst_data.csv and output must be at /home/ga/pebl/analysis/dsst_report.json. The dataset has 30 participants. Participant 'sub-err-44' should be excluded (Accuracy Rate < 0.20). Participants 'sub-115', 'sub-108', and 'sub-122' should have a null Incidental Learning Index (ILI) because they have fewer than 30 correct trials in the 90-second window."
+}

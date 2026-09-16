@@ -1,0 +1,26 @@
+{
+  "id": "create_basement_story@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Modify the DreamPlan Home Design Sample House project to include a new subterranean level named 'Basement'. On this level, draw a foundation wall perimeter that roughly matches the floor above.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_basement_story\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_basement_story\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_story_name": "Basement",
+    "required_elevation_type": "negative"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_basement_story"
+    }
+  }
+}

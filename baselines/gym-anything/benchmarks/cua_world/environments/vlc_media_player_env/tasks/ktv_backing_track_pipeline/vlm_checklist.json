@@ -1,0 +1,53 @@
+{
+  "task_id": "ktv_backing_track_pipeline@1",
+  "task_completion": [
+    {
+      "id": "vocal_removal_applied",
+      "description": "Verify that the agent applied phase cancellation to remove center-panned lead vocals from the audio tracks.",
+      "points": 25,
+      "visual_evidence": "Look for terminal commands (e.g., ffmpeg) using audio filters for phase cancellation/channel subtraction (like 'pan=stereo|c0=c0-c1|c1=c1-c0', 'stereotools', or 'extrastereo'), or an audio editor (like Audacity) showing channel splitting and inversion."
+    },
+    {
+      "id": "watermark_applied",
+      "description": "Verify that the agent overlaid the ktv_logo.png watermark in the bottom-right corner of the videos.",
+      "points": 20,
+      "visual_evidence": "Look for ffmpeg commands using the 'overlay' filter with parameters placing the image at the bottom right (e.g., 'W-w:H-h', 'main_w-overlay_w:main_h-overlay_h', or specific pixel coordinates), or a video editor GUI showing the logo positioned in the bottom-right."
+    },
+    {
+      "id": "subtitles_muxed",
+      "description": "Verify that the agent embedded the .srt lyric files as selectable subtitle streams in the MKV container.",
+      "points": 20,
+      "visual_evidence": "Look for ffmpeg commands that include the .srt file as an input ('-i track1.srt') and map it to a subtitle stream (e.g., '-c:s srt', '-c:s copy', or '-scodec copy'), or usage of a muxing GUI like MKVToolNix."
+    },
+    {
+      "id": "mkv_outputs_generated",
+      "description": "Verify that the three processed MKV files were saved to the correct destination directory.",
+      "points": 15,
+      "visual_evidence": "Look for terminal 'ls' output or a file manager window showing 'track1_karaoke.mkv', 'track2_karaoke.mkv', and 'track3_karaoke.mkv' successfully created in '/home/ga/Videos/ktv_ready/'."
+    },
+    {
+      "id": "catalog_json_created",
+      "description": "Verify that the catalog.json file was created with the correct schema and venue name.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., 'cat catalog.json') showing a JSON object with 'venue': 'Star KTV' and a 'processed_tracks' array containing the required metadata for all three tracks."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_media_processing",
+      "description": "Ensure the media files were actually processed and not just renamed or created as empty files.",
+      "visual_evidence": "Look for execution of genuine media processing tools (ffmpeg, Audacity, MKVToolNix) or scripts containing these commands, rather than simple 'mv', 'cp', or 'touch' commands masquerading as MKV files."
+    },
+    {
+      "id": "selectable_subtitles_not_hardcoded",
+      "description": "Ensure subtitles were embedded as selectable streams, not burned (hardcoded) into the video.",
+      "visual_evidence": "Check that the agent did not use the 'subtitles=' video filter in ffmpeg (which burns the text into the video frames), but rather muxed the .srt file as a separate stream."
+    },
+    {
+      "id": "complete_json_catalog",
+      "description": "Ensure the JSON catalog contains entries for all three tracks, not just a copy-paste of the single example from the prompt.",
+      "visual_evidence": "Check that the 'processed_tracks' array in catalog.json actually contains distinct entries for track1, track2, and track3, rather than just repeating track1 or only containing one item."
+    }
+  ],
+  "privileged_info_for_vlm": "The original tracks are synthetically generated. Track 1 has a center frequency of 1000Hz, Track 2 has 1500Hz, and Track 3 has 1200Hz. Phase cancellation should target these center-panned frequencies. The side frequencies (Track 1: 400/800Hz, Track 2: 500/900Hz, Track 3: 300/700Hz) should remain intact."
+}

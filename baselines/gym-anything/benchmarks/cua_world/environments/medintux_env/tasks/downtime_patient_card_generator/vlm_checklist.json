@@ -1,0 +1,59 @@
+{
+  "task_id": "downtime_patient_card_generator@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The agent creates a Python or Bash script to handle the business continuity task.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the source code of a script being written that includes logic to read a JSON file and connect to a MySQL database."
+    },
+    {
+      "id": "output_directory_created",
+      "description": "The output directory for the downtime cards is created.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'mkdir' being run for '~/downtime_cards' or an 'ls' command confirming the 'downtime_cards' directory exists."
+    },
+    {
+      "id": "html_files_generated",
+      "description": "The script successfully generates the three expected HTML files with the correct naming convention.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., from 'ls ~/downtime_cards') showing the files: '0900_MARTIN_Jean.html', '0930_DUBOIS_Marie.html', and '1015_LEROY_Pierre.html'."
+    },
+    {
+      "id": "html_content_basic_info",
+      "description": "The generated HTML cards contain the appointment time, full name, calculated age, and sex.",
+      "points": 20,
+      "visual_evidence": "The contents of the HTML files (viewed via 'cat', 'less', or a browser) displaying the correct appointment times (09:00, 09:30, 10:15), names, ages (45, 30, 81), and sex."
+    },
+    {
+      "id": "html_content_address_nir",
+      "description": "The generated HTML cards contain the patient's address (with postal code and city) and Social Security Number (NIR).",
+      "points": 20,
+      "visual_evidence": "The contents of the HTML files displaying address fields and the specific NIRs (e.g., 1800575001001 for MARTIN Jean)."
+    },
+    {
+      "id": "html_content_phone_logic",
+      "description": "The generated HTML cards correctly display phone numbers, specifically handling empty phone numbers by displaying 'N/A'.",
+      "points": 20,
+      "visual_evidence": "The contents of the HTML files showing phone numbers, specifically verifying that DUBOIS Marie's card explicitly displays 'N/A' for the phone number."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_used_not_manual",
+      "description": "The agent wrote and executed a script to generate the files, rather than manually creating the HTML files one by one.",
+      "visual_evidence": "The screenshots should show a script being executed (e.g., 'python3 script.py' or './script.sh') that results in the creation of the files, not manual 'echo' or text editor commands for each individual HTML file."
+    },
+    {
+      "id": "no_hardcoded_patient_data",
+      "description": "The script queries the database dynamically instead of hardcoding the patient details.",
+      "visual_evidence": "The script source code should contain SQL queries (e.g., 'SELECT ... FROM ...') and must NOT contain hardcoded patient names (MARTIN, DUBOIS, LEROY), ages, or NIRs."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not access the hidden ground truth file to copy the expected results.",
+      "visual_evidence": "The terminal history and editor windows should not show any commands reading or opening '/var/lib/medintux/downtime_ground_truth.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "Output directory: /home/ga/downtime_cards. Expected files: 0900_MARTIN_Jean.html, 0930_DUBOIS_Marie.html, 1015_LEROY_Pierre.html. Expected data to verify in the HTML cards: MARTIN Jean (Age 45, Phone 0102030405, NIR 1800575001001), DUBOIS Marie (Age 30, Phone 'N/A', NIR 2951169006002), LEROY Pierre (Age 81, Phone 0607080910, NIR 1450133000003)."
+}

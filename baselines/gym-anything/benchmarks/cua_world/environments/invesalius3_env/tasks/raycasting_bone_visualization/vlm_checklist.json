@@ -1,0 +1,53 @@
+{
+  "task_id": "raycasting_bone_visualization@1",
+  "task_completion": [
+    {
+      "id": "dicom_loaded",
+      "description": "Verify that the CT Cranium DICOM dataset is loaded in InVesalius 3.",
+      "points": 15,
+      "visual_evidence": "The InVesalius 3 interface should display the loaded dataset, with 2D slices visible in the axial, coronal, and sagittal views. The patient name 'CT 0051' or similar dataset identifiers may be visible."
+    },
+    {
+      "id": "raycasting_enabled",
+      "description": "Verify that the Raycasting (volume rendering) technique is used for the 3D visualization.",
+      "points": 25,
+      "visual_evidence": "The 3D view pane should display a volumetric rendering (Raycasting) rather than a solid surface mesh. The Raycasting or Volume Rendering tab/options should be active in the GUI."
+    },
+    {
+      "id": "bone_preset_applied",
+      "description": "Verify that a bone-appropriate preset is applied to the volume rendering.",
+      "points": 25,
+      "visual_evidence": "A preset like 'Bone' should be selected in the Raycasting preset dropdown, and the 3D visualization should clearly highlight the bony structures of the skull."
+    },
+    {
+      "id": "cranium_view_adjusted",
+      "description": "Verify that the 3D view is adjusted to show the cranium clearly.",
+      "points": 15,
+      "visual_evidence": "The skull in the 3D view should be centered, appropriately zoomed, and clearly visible without being obscured or clipped."
+    },
+    {
+      "id": "screenshot_exported",
+      "description": "Verify that a screenshot of the visualization is exported to the specified path.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or save dialog should show the file 'volume_render_bone.png' being saved or existing in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent used the InVesalius 3 GUI to create the visualization and export the screenshot.",
+      "visual_evidence": "Screenshots should show the agent clicking through the InVesalius 3 interface, adjusting settings, and using the GUI's export/save functionality, rather than using terminal scripts to generate the image."
+    },
+    {
+      "id": "no_mesh_export",
+      "description": "Verify that the agent did not export a 3D surface mesh (STL/OBJ).",
+      "visual_evidence": "The agent should be saving a 2D image file (.png), not interacting with the 'Export 3D surface' dialog to save an STL or OBJ file."
+    },
+    {
+      "id": "genuine_dataset",
+      "description": "Verify that the visualization is generated from the provided CT Cranium dataset.",
+      "visual_evidence": "The 3D rendering should match the shape of a human skull base/cranium, consistent with the loaded DICOM slices, rather than a generic downloaded image of a skull."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is a CT scan of a human head (cranium/skull base region) with 108 slices. The patient name in the DICOM metadata is 'CT 0051 - InVesalius Sample'. The expected output is a 2D image file (volume_render_bone.png) saved in /home/ga/Documents/, representing a Raycasting volume rendering, NOT a 3D surface mesh (STL/OBJ)."
+}

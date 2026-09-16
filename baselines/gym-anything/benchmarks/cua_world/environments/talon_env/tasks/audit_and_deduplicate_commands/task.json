@@ -1,0 +1,38 @@
+{
+  "id": "audit_and_deduplicate_commands@1",
+  "version": "1.0",
+  "env_id": "talon_env@0.1",
+  "description": "You are a Talon Voice power user managing a large custom command set. Resolve all command conflicts where the same voice trigger phrase appears in multiple .talon files within C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\user_commands\\. For each conflict, keep the most specific version and comment out or remove the less specific duplicate(s) without deleting any files. Document each conflict and its resolution in a plain-text audit report at C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\user_commands\\audit_report.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\audit_and_deduplicate_commands\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\audit_and_deduplicate_commands\\export_result.ps1"
+  },
+  "metadata": {
+    "commands_dir": "C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\user_commands",
+    "report_file": "C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\user_commands\\audit_report.txt",
+    "result_file": "C:\\Users\\Docker\\audit_and_deduplicate_commands_result.json",
+    "expected_conflicts": 3,
+    "duplicate_triggers": [
+      "go to line",
+      "open terminal",
+      "save file"
+    ],
+    "files_with_conflicts": [
+      "editor_commands.talon",
+      "general_commands.talon",
+      "productivity_commands.talon"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_and_deduplicate_commands"
+    }
+  }
+}

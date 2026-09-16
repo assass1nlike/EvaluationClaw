@@ -1,0 +1,81 @@
+{
+  "dataset_id": "c42b0875",
+  "name": "Underwater-Garbage-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for detecting underwater garbage objects in images. Given an underwater image and a detection prompt, the model must output bounding boxes for garbage items such as plastic bags.",
+  "card_text": "The Underwater-Garbage-Detection dataset consists of 200 image-text samples aimed at object detection in underwater environments. Each sample includes an image file showing underwater scenes, often containing debris, and a text prompt that specifies the detection task. The target output is a list of bounding boxes annotated with a class label such as 'pbag', represented as [x1, y1, x2, y2] coordinates. The dataset focuses on locating garbage objects, primarily plastic bags, in challenging underwater conditions. It evaluates a model's ability to ground textual instructions in visual content and produce precise spatial localizations. The visual domain is marine/underwater, and the text prompts are short, user-defined instructions. The annotations provide both category information and bounding box coordinates, making it suitable for object detection and visual grounding tasks.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "underwater garbage detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "Underwater image that serves as the visual input. It contains marine environments and garbage objects (e.g., plastic bags) to be detected.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "User-defined prompt that instructs the model to detect and locate underwater garbage objects. It provides the task specification.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "List of bounding box annotations for detected garbage objects. Each entry is a dictionary mapping a class label (e.g., 'pbag') to coordinates [x1, y1, x2, y2] defining the object's location in the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an underwater image (input.image_file), a short text prompt (input.prompt) that instructs detection, and an output annotation (output.bbox) containing bounding boxes with class labels for garbage objects. The prompt conditions the detection task, the image provides the visual scene, and the bbox output specifies the location and category of each detected object."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/underwater-garbage-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "underwater-garbage-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

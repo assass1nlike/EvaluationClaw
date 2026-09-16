@@ -1,0 +1,53 @@
+{
+  "task_id": "lob_document_ingestion@1",
+  "task_completion": [
+    {
+      "id": "create_directory_and_grant",
+      "description": "Create the LICENSE_DIR directory object and grant READ permission to the hr user.",
+      "points": 15,
+      "visual_evidence": "SQL interface (like SQL*Plus or SQL Developer) logged in as system showing 'CREATE DIRECTORY LICENSE_DIR AS '/tmp/licenses';' and 'GRANT READ ON DIRECTORY LICENSE_DIR TO hr;' with success messages ('Directory created', 'Grant succeeded')."
+    },
+    {
+      "id": "create_license_archive_table",
+      "description": "Create the LICENSE_ARCHIVE table in the hr schema with the specified columns.",
+      "points": 15,
+      "visual_evidence": "SQL interface logged in as hr showing 'CREATE TABLE LICENSE_ARCHIVE' with columns ID (NUMBER), FILENAME (VARCHAR2), FILE_CONTENT (BLOB), FILE_HASH (VARCHAR2), and INGEST_DATE (DATE) followed by a 'Table created' message."
+    },
+    {
+      "id": "ingest_files_to_blob",
+      "description": "Archive the 5 text files from the directory into the LICENSE_ARCHIVE table's BLOB column.",
+      "points": 25,
+      "visual_evidence": "A PL/SQL block or script execution showing the use of DBMS_LOB (e.g., LOADFROMFILE or LOADBLOBFROMFILE) to read the files from LICENSE_DIR and insert them into LICENSE_ARCHIVE, followed by a successful completion message."
+    },
+    {
+      "id": "calculate_sha256_hash",
+      "description": "Calculate and store the SHA-256 hash of the binary data in the FILE_HASH column.",
+      "points": 20,
+      "visual_evidence": "SQL or PL/SQL code showing the use of DBMS_CRYPTO.HASH with the SHA256 algorithm (e.g., DBMS_CRYPTO.HASH_SH256) applied to the BLOB data, or a SELECT query output showing 64-character hex strings in the FILE_HASH column."
+    },
+    {
+      "id": "generate_duplicate_report",
+      "description": "Identify duplicate files based on hashes and save the report to /home/ga/Desktop/duplicate_report.txt.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing the creation or contents (via 'cat' or a text editor) of '/home/ga/Desktop/duplicate_report.txt' containing the filenames 'apache-2.0.txt' and 'vendor_terms.txt' along with their shared hash."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent actually interacted with the Oracle Database to perform the tasks.",
+      "visual_evidence": "Look for genuine SQL*Plus, SQLcl, or SQL Developer interfaces with standard Oracle prompts and system feedback (e.g., 'PL/SQL procedure successfully completed.'), rather than mocked text files."
+    },
+    {
+      "id": "authentic_hash_calculation",
+      "description": "Verify the agent calculated the hashes using the database or a script, rather than hardcoding them.",
+      "visual_evidence": "Look for the actual execution of DBMS_CRYPTO or a similar hashing function in the SQL history, rather than direct INSERT statements with pre-calculated hash strings."
+    },
+    {
+      "id": "no_hardcoded_report",
+      "description": "Verify the agent generated the duplicate report based on actual data analysis.",
+      "visual_evidence": "Look for a SQL query (e.g., using GROUP BY FILE_HASH HAVING COUNT(*) > 1) or a script that dynamically identifies the duplicates, rather than the agent manually typing 'apache-2.0.txt and vendor_terms.txt' into the text editor from prior knowledge."
+    }
+  ],
+  "privileged_info_for_vlm": "The source directory is '/tmp/licenses' and contains exactly 5 files. The duplicate files that must be identified are 'apache-2.0.txt' and 'vendor_terms.txt'. The report must be saved to '/home/ga/Desktop/duplicate_report.txt'. The target table must be named 'LICENSE_ARCHIVE' and the directory object must be named 'LICENSE_DIR'."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "fix_build_errors@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Fix the build errors in the Maven project located at ~/eclipse-workspace/gs-maven-broken/ using Eclipse. Import the project, identify the missing dependency causing compilation failures, and update the pom.xml to ensure the project builds successfully without errors.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_build_errors/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_build_errors/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/gs-maven-broken",
+    "expected_dependency": "joda-time",
+    "expected_version": "2.12.5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_build_errors"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "run_heteroskedasticity_test@1",
+  "task_completion": [
+    {
+      "id": "open_food_dataset",
+      "description": "Verify the food.gdt dataset is opened in Gretl.",
+      "points": 10,
+      "visual_evidence": "Gretl main window shows 'food.gdt' as the active dataset, with variables 'food_exp' and 'income' listed in the variable view."
+    },
+    {
+      "id": "configure_ols_regression",
+      "description": "Verify the setup of an OLS regression model with the correct variables.",
+      "points": 15,
+      "visual_evidence": "A Gretl dialog box (e.g., 'Specify Model') or command input showing 'food_exp' selected as the dependent variable and 'income' as an independent variable/regressor."
+    },
+    {
+      "id": "view_ols_results",
+      "description": "Verify the OLS regression model was successfully estimated.",
+      "points": 15,
+      "visual_evidence": "A Gretl model window displaying OLS estimation results with 'food_exp' at the top as the dependent variable. The R-squared value should be approximately 0.88."
+    },
+    {
+      "id": "execute_white_test",
+      "description": "Verify White's test for heteroskedasticity is executed on the OLS model.",
+      "points": 30,
+      "visual_evidence": "A Gretl window or output tab specifically titled 'White's test for heteroskedasticity' showing the test statistic (e.g., TR^2 or LM) and p-value based on the OLS model."
+    },
+    {
+      "id": "save_test_results",
+      "description": "Verify the White test results are saved to the specified text file path.",
+      "points": 30,
+      "visual_evidence": "A text editor, terminal (e.g., using the 'cat' command), or file manager showing the file 'white_test_results.txt' located exactly in '/home/ga/Documents/gretl_output/' and containing the Gretl output for White's test."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gretl_software",
+      "description": "Verify the agent used Gretl to perform the analysis rather than bypassing the application.",
+      "visual_evidence": "Screenshots should show interaction with the Gretl graphical user interface or gretlcli, rather than a generic Python script or echoing text directly from the terminal."
+    },
+    {
+      "id": "genuine_test_output",
+      "description": "Verify the regression and test outputs match the specific synthetic dataset provided in the environment.",
+      "visual_evidence": "The OLS results should show an R-squared of approximately 0.88 (due to the synthetic data), not the standard 0.38 from the real textbook dataset. The test output should reflect this specific data."
+    },
+    {
+      "id": "no_manual_text_creation",
+      "description": "Verify the agent saved or exported the output directly from Gretl rather than manually typing out expected results.",
+      "visual_evidence": "The final text file should contain the exact formatting of Gretl's statistical output, and there should be evidence of saving/exporting from Gretl (e.g., a save dialog or output redirection) rather than manual typing in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using Gretl to run an OLS regression of 'food_exp' on 'income' using the 'food.gdt' dataset, followed by White's test for heteroskedasticity. The output must be saved exactly to '/home/ga/Documents/gretl_output/white_test_results.txt'. Note: The dataset provided in the environment contains synthetic data for most observations, resulting in an artificially high OLS R-squared of approximately 0.88 (unlike the real textbook dataset's 0.38). The VLM should look for this R-squared value in the OLS results to confirm the agent used the provided environment data rather than hallucinating standard textbook results."
+}

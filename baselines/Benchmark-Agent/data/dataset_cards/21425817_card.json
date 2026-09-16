@@ -1,0 +1,108 @@
+{
+  "dataset_id": "21425817",
+  "name": "Openset Historical Multi-Source Dialogue",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "An open-set visual-textual question answering dataset in which each sample pairs one table image with a composite textual prompt containing an instruction, a global table reference, retrieved history Q&A contexts, and the current context plus question. The model must produce a short factual answer grounded in the mixed sources.",
+  "card_text": "This dataset evaluates multi-source, image-and-text question answering. Each item provides a single image file that renders a 'Global Table' (referenced in the prompt by the placeholder <ImageHere>) and a long textual prompt built from four stacked parts: a task instruction template, the global-table slot, one or more 'History Context' passages that already include previous question/answer pairs, and a 'Current Context' passage ending with the actual 'Question: ... Answer:' to be completed. The textual content is encyclopedic and fact-oriented (TV series, songs, albums, films), while the table image supplies complementary structured facts. The expected output is a short free-form answer string, often a date, a person, or a list of entities. The set is 'open' because questions are natural-language and answers are not restricted to a fixed label space. Typical challenges include ignoring the earlier history Q&A pairs, locating the relevant snippet in the current context, and, when needed, reading the tabular image.",
+  "tasks": [
+    "question_answering",
+    "open_ended_qa",
+    "visual_question_answering",
+    "multi_hop_response"
+  ],
+  "domain": "general knowledge multi-source QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "The prompt is a composite context: an instruction template, a '<ImageHere>' placeholder for the global table image, one or more 'History Context' passages with embedded past Q&A pairs, and a 'Current Context' passage. It carries all the textual evidence the model is expected to read before answering.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The actual query is appended at the end of the prompt as 'Question: ... Answer:' and asks for a specific factual attribute (a date, an author, a performer, etc.) about the entity described in the current context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold free-form answer string, typically a short entity name, date, or a small list of entities, which resolves the question using the current context and/or the global table image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "One image file per sample, referenced by filename, that renders the 'Global Table' inserted at the '<ImageHere>' slot; it provides structured/tabular facts that complement the textual contexts.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "dialog": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "dialog",
+        "semantics": "Embedded 'History Context N' segments contain previous context/question/answer triples, forming a Q&A history that may or may not be relevant to the current question and that should be distinguished from the current context.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has an id plus two blocks: 'input' and 'output'. 'input' holds 'image_file' (a list with one image filename rendering the global table) and 'prompt', a single long string that concatenates an instruction template, a '<ImageHere>' placeholder marking where the table image belongs, one or more 'History Context' passages containing earlier context/question/answer pairs, a 'Current Context' passage, and finally the current 'Question: ... Answer:' to be completed. 'output.text' gives the short gold answer to that current question. The image and the textual passages are complementary evidence sources, while the embedded history Q&A pairs form a dialogue-like prior that the model must not confuse with the question actually being asked."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/HistoricalMulti-SourceDialogue/openset_historical_multi-source_dialogue.json",
+    "existing_tags": {
+      "task": "Historical Multi-Source Dialogue",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

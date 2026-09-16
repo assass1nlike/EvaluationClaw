@@ -1,0 +1,59 @@
+{
+  "task_id": "prob_reversal_wsls_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_csv",
+      "description": "Agent accesses the input CSV data file.",
+      "points": 10,
+      "visual_evidence": "Terminal command (e.g., head, cat), script reading the file, or the CSV opened in an editor showing the path ~/pebl/data/reversal_learning_data.csv."
+    },
+    {
+      "id": "script_calculates_metrics",
+      "description": "Agent writes logic to calculate the required PRL metrics.",
+      "points": 20,
+      "visual_evidence": "Code visible in an editor or terminal calculating Win-Stay, Lose-Shift, acquisition accuracy, reversal accuracy, perseverative errors, and trials to criterion."
+    },
+    {
+      "id": "script_detects_alternation",
+      "description": "Agent writes logic or inspects data to identify the mechanical alternating response pattern.",
+      "points": 20,
+      "visual_evidence": "Code logic checking for alternating choices (e.g., choice[t] != choice[t-1] or Win-Stay == 0.0), or terminal output identifying the corrupted participant."
+    },
+    {
+      "id": "json_contains_valid_metrics",
+      "description": "Agent generates a JSON report containing the 'participants' list with calculated metrics.",
+      "points": 20,
+      "visual_evidence": "The resulting JSON file (or script generating it) shows a 'participants' list with the required metrics for the valid participants."
+    },
+    {
+      "id": "json_contains_exclusion",
+      "description": "Agent includes an exclusion flag and reason for the corrupted participant in the JSON report.",
+      "points": 20,
+      "visual_evidence": "The JSON file shows participant PRL-999 with an exclusion flag and a reason mentioning mechanical/alternating responses."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent saves the final JSON report to the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal command, file explorer, or editor showing the file saved precisely at ~/pebl/analysis/reversal_report.json."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis_execution",
+      "description": "Agent executed a script or used a data analysis tool to process the CSV rather than manually fabricating the JSON.",
+      "visual_evidence": "Terminal showing the execution of an analysis script (e.g., python, R) or interactive data analysis environment, rather than a manually typed JSON file."
+    },
+    {
+      "id": "dynamic_exclusion_logic",
+      "description": "Agent inspected the data or wrote code to find the alternating participant, rather than magically knowing the ID.",
+      "visual_evidence": "The agent uses code to detect the alternation or manually inspects the CSV to find the pattern, rather than hardcoding 'PRL-999' without prior data inspection."
+    },
+    {
+      "id": "no_hallucinated_metrics",
+      "description": "The metrics in the JSON report are derived from actual computation.",
+      "visual_evidence": "The JSON output matches the structure and variables defined in the agent's analysis script, indicating genuine computation."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data contains exactly 19 participants. 18 are valid, and 1 is intentionally corrupted. The corrupted participant has the ID 'PRL-999' and exhibits a perfect mechanical alternation pattern (A, B, A, B), which mathematically results in a Win-Stay rate of 0.0. The final output must be saved to /home/ga/pebl/analysis/reversal_report.json and must include an exclusion flag and reason for PRL-999."
+}

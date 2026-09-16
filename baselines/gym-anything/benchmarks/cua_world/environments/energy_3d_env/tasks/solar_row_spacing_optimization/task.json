@@ -1,0 +1,28 @@
+{
+  "id": "solar_row_spacing_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Increase the row spacing of an existing solar array to eliminate winter shading, run a yield analysis for the Winter Solstice, and export the results.\n\nStarting State: Energy3D is open. The file `~/Documents/Energy3D/solar-rack-array-row-spacing.ng3` is available in the user's documents directory.\n\nExpected Actions:\n1. Open the file `~/Documents/Energy3D/solar-rack-array-row-spacing.ng3`.\n2. Locate the existing solar panel array in the scene.\n3. Modify the array's properties to increase the 'Row Spacing' to at least 6.0 meters to prevent shadows from the front rows from hitting the back rows.\n4. Open the Daily Environmental Temperature/Solar Yield graph tool (Analysis > Solar Panels > Daily Yield Analysis).\n5. Set the simulation date specifically to the Winter Solstice (December 21).\n6. Run the daily simulation.\n7. Export the resulting graph data to a CSV file named `~/Documents/Energy3D/winter_yield_optimized.csv`.\n8. Save the modified scene layout as `~/Documents/Energy3D/optimized_array.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/solar_row_spacing_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/solar_row_spacing_optimization/export_result.sh"
+  },
+  "metadata": {
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/optimized_array.ng3",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/winter_yield_optimized.csv",
+    "starter_file": "solar-rack-array-row-spacing.ng3",
+    "target_date": "December 21"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_row_spacing"
+    }
+  }
+}

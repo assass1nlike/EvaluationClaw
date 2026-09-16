@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_webmin_access@1",
+  "task_completion": [
+    {
+      "id": "webmin_accessed",
+      "description": "Access the Webmin web interface",
+      "points": 10,
+      "visual_evidence": "Look for a web browser open to the Webmin interface, typically showing the Webmin logo, left-hand navigation menu, or system dashboard."
+    },
+    {
+      "id": "ip_access_control_opened",
+      "description": "Navigate to the IP Access Control settings",
+      "points": 20,
+      "visual_evidence": "Look for the 'IP Access Control' settings page being visible, usually accessed via Webmin -> Webmin Configuration."
+    },
+    {
+      "id": "restrict_access_selected",
+      "description": "Select the option to restrict access to listed addresses",
+      "points": 20,
+      "visual_evidence": "Look for a selected radio button or setting that explicitly restricts access, such as 'Only allow from listed addresses'."
+    },
+    {
+      "id": "localhost_ip_entered",
+      "description": "Enter the localhost IP address into the allowed list",
+      "points": 20,
+      "visual_evidence": "Look for the exact IP address '127.0.0.1' typed into the text box for allowed addresses."
+    },
+    {
+      "id": "admin_vpn_ip_entered",
+      "description": "Enter the Admin VPN IP address into the allowed list",
+      "points": 20,
+      "visual_evidence": "Look for the exact IP address '10.8.0.42' typed into the text box for allowed addresses alongside the localhost IP."
+    },
+    {
+      "id": "settings_saved",
+      "description": "Save the IP Access Control configuration",
+      "points": 10,
+      "visual_evidence": "Look for the cursor clicking the 'Save' button on the IP Access Control page, or a subsequent confirmation message indicating the settings were successfully applied."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_configuration",
+      "description": "Agent used the Webmin web interface rather than terminal commands",
+      "visual_evidence": "Verify the agent used the Webmin web GUI in a browser to make changes, rather than opening a terminal and editing /etc/webmin/miniserv.conf directly with a text editor like nano or vim."
+    },
+    {
+      "id": "no_extra_ips_allowed",
+      "description": "No additional or wildcard IPs were added to the allowed list",
+      "visual_evidence": "Check the allowed addresses text box to ensure ONLY '127.0.0.1' and '10.8.0.42' are present. No other IPs, subnets, or wildcards should be listed."
+    },
+    {
+      "id": "real_browser_interaction",
+      "description": "Agent interacted with the genuine Webmin application",
+      "visual_evidence": "Ensure the screenshots show a real web browser with a URL bar and authentic Webmin UI elements, not a static text file or simulated interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring Webmin's IP access control. The underlying configuration file modified by this action is /etc/webmin/miniserv.conf. The required allowed IPs are exactly [\"127.0.0.1\", \"10.8.0.42\"]. The VLM should verify these exact IPs are entered in the Webmin GUI and that access is restricted to only these addresses."
+}

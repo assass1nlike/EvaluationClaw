@@ -1,0 +1,77 @@
+{
+  "id": "garden_bed_layout@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "You are an agricultural engineer designing a formal demonstration garden for a county extension office. Create a plan-view layout drawing in LibreCAD using meters as the unit. The drawing must include a BOUNDARY layer (color: White/7) with a rectangle from (0, 0) to (12, 9); a BEDS layer (color: Green/3) containing a central elliptical planting bed (center: 6, 4.5; major-axis radius: 3.0, minor-axis radius: 1.8) and four circular corner beds (radius: 0.9) centered at (2,2), (10,2), (2,7), and (10,7); a WALKWAYS layer (color: Yellow/2) with two 1.2m wide cross-axis walkways defined by lines from (5.4, 0) to (5.4, 9), (6.6, 0) to (6.6, 9), (0, 3.9) to (12, 3.9), and (0, 5.1) to (12, 5.1); a FOUNTAIN layer (color: Cyan/4) with a circle at (6, 4.5) and radius 0.45; and a DIMENSIONS layer (color: Red/1) with at least three annotations showing the boundary width (12), boundary height (9), and the ellipse major axis. Save the completed drawing to ~/Documents/LibreCAD/garden_layout.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/garden_bed_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/garden_bed_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/garden_layout.dxf",
+    "required_layers": [
+      "BOUNDARY",
+      "BEDS",
+      "WALKWAYS",
+      "FOUNTAIN",
+      "DIMENSIONS"
+    ],
+    "geometry_specs": {
+      "boundary": {
+        "w": 12,
+        "h": 9
+      },
+      "ellipse": {
+        "center": [
+          6,
+          4.5
+        ],
+        "rx": 3.0,
+        "ry": 1.8
+      },
+      "corner_circles": {
+        "radius": 0.9,
+        "centers": [
+          [
+            2,
+            2
+          ],
+          [
+            10,
+            2
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            10,
+            7
+          ]
+        ]
+      },
+      "fountain": {
+        "center": [
+          6,
+          4.5
+        ],
+        "radius": 0.45
+      },
+      "walkways": {
+        "width": 1.2
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_garden_layout"
+    }
+  }
+}

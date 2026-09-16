@@ -1,0 +1,53 @@
+{
+  "task_id": "rotate_compromised_keyfiles@1",
+  "task_completion": [
+    {
+      "id": "generate_new_keyfile",
+      "description": "Generate the new random keyfile named 'lab_access_v2.key'",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the VeraCrypt Keyfile Generator creating 'lab_access_v2.key', or a terminal/file manager window confirming the new file exists in '/home/ga/Keyfiles/'."
+    },
+    {
+      "id": "select_volume_for_update",
+      "description": "Select the target volume for a credentials update",
+      "points": 10,
+      "visual_evidence": "VeraCrypt main window or 'Change Volume Password' dialog showing the target volume path '/home/ga/Volumes/lab_data.hc' selected."
+    },
+    {
+      "id": "enter_current_credentials",
+      "description": "Provide the current password and compromised keyfile",
+      "points": 20,
+      "visual_evidence": "The 'Change Volume Password' dialog showing password fields filled (asterisks) in the 'Current' section, and the 'Current Keyfiles' list containing '/home/ga/Keyfiles/lab_access_compromised.key'."
+    },
+    {
+      "id": "configure_new_credentials",
+      "description": "Configure the new keyfile while keeping the password",
+      "points": 30,
+      "visual_evidence": "The 'Change Volume Password' dialog showing password fields filled in the 'New' section, and the 'New Keyfiles' list containing ONLY '/home/ga/Keyfiles/lab_access_v2.key' (the old keyfile must be removed from this list)."
+    },
+    {
+      "id": "verify_update_and_dismount",
+      "description": "Complete the in-place update and ensure the volume is dismounted",
+      "points": 20,
+      "visual_evidence": "A success message indicating the volume password/keyfiles were successfully changed, AND the VeraCrypt main window showing no volumes mounted in the drive slots."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_veracrypt_usage",
+      "description": "Verify the agent used the actual VeraCrypt application or valid CLI commands to perform the update.",
+      "visual_evidence": "Screenshots should show the VeraCrypt GUI or terminal commands interacting with the 'veracrypt' binary, not just a text editor or mock interface."
+    },
+    {
+      "id": "in_place_update_check",
+      "description": "Verify the agent performed an in-place header update rather than creating a new volume.",
+      "visual_evidence": "The agent should use 'Volume Tools -> Change Volume Password' (or equivalent CLI flag). The 'VeraCrypt Volume Creation Wizard' should NOT be used to overwrite or recreate 'lab_data.hc'."
+    },
+    {
+      "id": "genuine_keyfile_generation",
+      "description": "Verify the new keyfile was generated randomly and not just typed out.",
+      "visual_evidence": "Use of VeraCrypt's Keyfile Generator tool, or system tools like 'dd' with '/dev/urandom', rather than opening a text editor and typing random characters."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Volume: /home/ga/Volumes/lab_data.hc. Password: 'Research2024!'. Old Keyfile: /home/ga/Keyfiles/lab_access_compromised.key. New Keyfile: /home/ga/Keyfiles/lab_access_v2.key. The task requires an in-place update using VeraCrypt's 'Change Volume Password' feature (which handles keyfile rotation), not creating a new volume container."
+}

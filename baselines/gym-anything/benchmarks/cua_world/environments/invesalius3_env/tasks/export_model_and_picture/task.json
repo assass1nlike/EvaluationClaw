@@ -1,0 +1,29 @@
+{
+  "id": "export_model_and_picture@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "Prepare a surgical planning package in InVesalius 3 using the loaded CT Cranium DICOM scan. Create a bone segmentation mask and a 3D surface reconstruction. Export the 3D surface as a Wavefront OBJ file to /home/ga/Documents/skull_surface.obj and save a screenshot of the view to /home/ga/Documents/surgical_view.png. Login: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_model_and_picture/setup_task.sh",
+    "post_task": "/workspace/tasks/export_model_and_picture/export_result.sh"
+  },
+  "metadata": {
+    "obj_output_path": "/home/ga/Documents/skull_surface.obj",
+    "png_output_path": "/home/ga/Documents/surgical_view.png",
+    "min_obj_vertices": 1000,
+    "min_png_size_bytes": 51200,
+    "dicom_series": "ct_cranium/0051"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_model_and_picture"
+    }
+  }
+}

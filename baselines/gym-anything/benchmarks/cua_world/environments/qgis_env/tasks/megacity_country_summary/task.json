@@ -1,0 +1,35 @@
+{
+  "id": "megacity_country_summary@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Create a country-level dataset summarizing megacities (population > 5 million) using the country boundaries from /home/ga/GIS_Data/ne_110m_admin_0_countries.geojson and populated places from /home/ga/GIS_Data/ne_110m_populated_places.geojson. For each country, calculate the count of megacities and the total population of those megacities (sum of POP_MAX). Export the resulting dataset as a GeoJSON file to /home/ga/GIS_Data/exports/megacity_stats_by_country.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/megacity_country_summary/setup_task.sh",
+    "post_task": "/workspace/tasks/megacity_country_summary/export_result.sh"
+  },
+  "metadata": {
+    "countries_file": "/home/ga/GIS_Data/ne_110m_admin_0_countries.geojson",
+    "places_file": "/home/ga/GIS_Data/ne_110m_populated_places.geojson",
+    "output_file": "/home/ga/GIS_Data/exports/megacity_stats_by_country.geojson",
+    "population_threshold": 5000000,
+    "check_countries": [
+      "China",
+      "United States of America",
+      "Japan",
+      "India",
+      "Brazil"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_megacity_country_summary"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "pubmed_central_paper_archival@1",
+  "task_completion": [
+    {
+      "id": "pubmed_search",
+      "description": "Verify that the agent searched for 'Circadian Rhythm' on the PubMed database.",
+      "points": 10,
+      "visual_evidence": "Web browser displaying pubmed.ncbi.nlm.nih.gov with 'Circadian Rhythm' in the search bar or search results page."
+    },
+    {
+      "id": "free_full_text_filter",
+      "description": "Verify that the agent filtered the search results for 'Free full text' or 'PubMed Central' articles.",
+      "points": 10,
+      "visual_evidence": "PubMed search results page showing the 'Free full text' or 'PubMed Central' filter checked or applied in the sidebar/active filters."
+    },
+    {
+      "id": "download_pdfs",
+      "description": "Verify that the agent downloaded the PDF full text for the articles.",
+      "points": 20,
+      "visual_evidence": "Browser download manager, PDF viewer, or file manager showing the downloading or completion of PDF files from PubMed/PMC."
+    },
+    {
+      "id": "create_target_folder",
+      "description": "Verify the creation of the 'JournalClub' folder in the Documents directory.",
+      "points": 10,
+      "visual_evidence": "File manager or terminal showing a directory named 'JournalClub' located inside the '~/Documents/' folder."
+    },
+    {
+      "id": "three_pdfs_saved",
+      "description": "Verify that three distinct PDFs are saved in the target folder.",
+      "points": 20,
+      "visual_evidence": "File manager showing exactly or at least three distinct PDF files inside the 'JournalClub' folder."
+    },
+    {
+      "id": "pdfs_renamed_correctly",
+      "description": "Verify that the PDFs are renamed according to the FirstAuthor_Year.pdf format.",
+      "points": 30,
+      "visual_evidence": "The PDF files in the JournalClub folder have names matching the pattern of an author's last name followed by an underscore and a 4-digit year (e.g., Smith_2023.pdf)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Check that the agent actually navigated the PubMed website to find the articles.",
+      "visual_evidence": "Browser UI showing actual PubMed/PMC pages and navigation, rather than just using terminal commands (like curl/wget) to bypass the search process."
+    },
+    {
+      "id": "genuine_pdf_files",
+      "description": "Check that the files are actual downloaded PDFs, not empty dummy files.",
+      "visual_evidence": "File sizes in the file manager are typical for scientific PDFs (e.g., hundreds of KBs or MBs), or a PDF viewer shows actual article content, rather than 0-byte files created via the 'touch' command."
+    },
+    {
+      "id": "literal_filename_check",
+      "description": "Check that the agent didn't literally name the files 'FirstAuthor_Year.pdf'.",
+      "visual_evidence": "Filenames use actual author names and publication years (like 'Takahashi_2015.pdf'), not the literal string 'FirstAuthor_Year.pdf'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: /home/ga/Documents/JournalClub. Search term: 'Circadian Rhythm'. Required files: 3 distinct PDFs. Filename format: FirstAuthor_Year.pdf (regex: ^[A-Za-z]+_\\d{4}\\.pdf$). Required domain: pubmed.ncbi.nlm.nih.gov (PubMed Central domain may appear as pmc.ncbi.nlm.nih.gov or ncbi.nlm.nih.gov/pmc)."
+}

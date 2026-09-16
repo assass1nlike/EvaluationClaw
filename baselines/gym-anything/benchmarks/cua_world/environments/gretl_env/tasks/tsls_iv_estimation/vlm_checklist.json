@@ -1,0 +1,53 @@
+{
+  "task_id": "tsls_iv_estimation@1",
+  "task_completion": [
+    {
+      "id": "load_mroz_dataset",
+      "description": "Load the 'mroz' dataset into the statistical software.",
+      "points": 10,
+      "visual_evidence": "The 'mroz' dataset is visible in the software's main window, environment pane, or a command/script is shown loading 'mroz' (e.g., open mroz.gdt)."
+    },
+    {
+      "id": "specify_tsls_variables",
+      "description": "Specify the correct variables for the TSLS regression.",
+      "points": 20,
+      "visual_evidence": "A dialog box or script showing 'lwage' as the dependent variable, 'educ' as the endogenous regressor, 'mothereduc' and 'fathereduc' as instruments, and 'const', 'exper', 'expersq' as exogenous regressors."
+    },
+    {
+      "id": "execute_tsls_estimation",
+      "description": "Execute the Two-Stage Least Squares (TSLS) estimation.",
+      "points": 20,
+      "visual_evidence": "A model results window or console output explicitly indicating that the estimation method used is TSLS (or Instrumental Variables), with the specified variables."
+    },
+    {
+      "id": "verify_estimation_results",
+      "description": "Verify the regression output matches the expected correct values.",
+      "points": 30,
+      "visual_evidence": "The regression results show a coefficient for 'educ' of approximately 0.061 (or 0.0614) and a sample size (N or observations) of 428."
+    },
+    {
+      "id": "save_results_to_file",
+      "description": "Save the full model output to the specified text file path.",
+      "points": 20,
+      "visual_evidence": "A 'Save as' dialog pointing to '/home/ga/Documents/gretl_output/tsls_results.txt', a script command saving the output to this path, or a terminal/file manager verifying the file exists at this exact location with the regression output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_estimation",
+      "description": "The agent actually estimated the model using statistical software rather than typing the expected output into a text editor.",
+      "visual_evidence": "Presence of a statistical software interface (e.g., Gretl GUI, R, Python script) with actual computation outputs, rather than a text editor with manually typed or hardcoded results."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not bypass the estimation process by directly echoing the target coefficient into the output file.",
+      "visual_evidence": "The output file generation should be the result of the software's save/export function or script output redirection, not a direct 'echo' command in the terminal containing the final answers."
+    },
+    {
+      "id": "complete_output_saved",
+      "description": "The saved file contains the full model output, not just the target coefficient.",
+      "visual_evidence": "If the contents of 'tsls_results.txt' are visible, it should look like a standard, complete regression output table (including standard errors, t-statistics, R-squared, etc.), not just a single line with the 'educ' coefficient."
+    }
+  ],
+  "privileged_info_for_vlm": "The target dataset is 'mroz' (428 observations used for working women). The target method is Two-Stage Least Squares (TSLS). The dependent variable is 'lwage'. The endogenous regressor is 'educ', instrumented by 'mothereduc' and 'fathereduc'. Exogenous regressors are 'const', 'exper', and 'expersq'. The correct estimated coefficient for 'educ' is approximately 0.0614 (or 0.061). The sample size in the regression output must be exactly 428."
+}

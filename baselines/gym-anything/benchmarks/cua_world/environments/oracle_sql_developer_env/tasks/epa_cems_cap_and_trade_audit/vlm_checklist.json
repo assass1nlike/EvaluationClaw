@@ -1,0 +1,59 @@
+{
+  "task_id": "epa_cems_cap_and_trade_audit@1",
+  "task_completion": [
+    {
+      "id": "cems_imputed_vw_created",
+      "description": "Create the CEMS_IMPUTED_VW view with imputed CO2 values",
+      "points": 15,
+      "visual_evidence": "Look for a SQL query creating 'CEMS_IMPUTED_VW' or a SELECT statement querying it. The results or query should show columns: facility_id, op_date, op_hour, original_co2, and imputed_co2, utilizing a window function (like LAG ... IGNORE NULLS) to fill missing values."
+    },
+    {
+      "id": "annual_emissions_vw_created",
+      "description": "Create the ANNUAL_EMISSIONS_VW view",
+      "points": 10,
+      "visual_evidence": "Look for a SQL query creating 'ANNUAL_EMISSIONS_VW' or a SELECT statement querying it. It should aggregate the imputed data to show 'total_emissions_tons' per 'facility_id'."
+    },
+    {
+      "id": "net_allowances_vw_created",
+      "description": "Create the NET_ALLOWANCES_VW view calculating final allowances",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query creating 'NET_ALLOWANCES_VW' or a SELECT statement querying it. The logic must calculate 'final_allowances' using initial_allocation + purchases - sales, treating missing values as 0 (e.g., using COALESCE or NVL)."
+    },
+    {
+      "id": "compliance_penalties_table_created",
+      "description": "Generate the COMPLIANCE_PENALTIES table",
+      "points": 15,
+      "visual_evidence": "Look for a CREATE TABLE statement for 'COMPLIANCE_PENALTIES' or a SELECT query showing its structure. It must include columns: facility_id, facility_name, total_emissions_tons, final_allowances, shortfall_tons, and penalty_amount."
+    },
+    {
+      "id": "compliance_penalties_data_correct",
+      "description": "Verify the calculated penalties in the COMPLIANCE_PENALTIES table",
+      "points": 20,
+      "visual_evidence": "Look at the query results for the COMPLIANCE_PENALTIES table. It should contain exactly 3 rows for facilities 102, 103, and 104. The penalty_amount column must show 107000 for facility 102, 214000 for facility 103, and 107000 for facility 104."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the COMPLIANCE_PENALTIES table to the specified CSV file path",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window, file explorer, or text editor showing the file '/home/ga/Documents/exports/epa_penalties.csv' has been created and contains the exported penalty data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with the database using a genuine SQL client",
+      "visual_evidence": "Look for the use of Oracle SQL Developer, SQL*Plus, or a Python/shell script executing real SQL commands, rather than just typing text into a mock interface."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent used SQL logic to calculate penalties rather than hardcoding the final answers",
+      "visual_evidence": "Check the SQL scripts or query history. The agent should use mathematical operations (e.g., shortfall_tons * 214) and joins rather than INSERT statements with hardcoded values like 107000 or 214000."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Agent exported the CSV using a tool or script rather than manual transcription",
+      "visual_evidence": "Look for the use of SQL Developer's export wizard, a SQL spool command, or a script to generate the CSV, rather than manually typing the CSV contents into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The final COMPLIANCE_PENALTIES table and exported CSV must contain exactly 3 rows for non-compliant facilities: 102, 103, and 104. The calculated penalties must be exactly: Facility 102 = 107000, Facility 103 = 214000, Facility 104 = 107000. These values are derived from a $214 per ton penalty on the calculated shortfalls."
+}

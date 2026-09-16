@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_system_security@1",
+  "task_completion": [
+    {
+      "id": "access_vms",
+      "description": "Agent accesses the Nx Witness VMS server.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening a web browser to https://localhost:7001, or using terminal commands (e.g., curl) or an API client to interact with the server at localhost:7001."
+    },
+    {
+      "id": "configure_session_limit",
+      "description": "Agent configures sessionLimitMinutes to 15.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the setting 'sessionLimitMinutes' being changed to 15 in the VMS web interface, or included in an API request payload with the value 15."
+    },
+    {
+      "id": "configure_auto_discovery",
+      "description": "Agent configures autoDiscoveryEnabled to false.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the setting 'autoDiscoveryEnabled' being disabled (false) in the VMS web interface, or included in an API request payload with the value false."
+    },
+    {
+      "id": "configure_encryption_statistics",
+      "description": "Agent configures trafficEncryptionForced to true and statisticsAllowed to false.",
+      "points": 15,
+      "visual_evidence": "Screenshots show 'trafficEncryptionForced' set to true and 'statisticsAllowed' set to false in the VMS web interface, or included in an API request payload with these values."
+    },
+    {
+      "id": "configure_insecure_api",
+      "description": "Agent configures insecureDeprecatedApiEnabled to false.",
+      "points": 15,
+      "visual_evidence": "Screenshots show 'insecureDeprecatedApiEnabled' set to false in the VMS web interface, or included in an API request payload with the value false."
+    },
+    {
+      "id": "create_report",
+      "description": "Agent creates the security hardening report file.",
+      "points": 15,
+      "visual_evidence": "Screenshots show a text editor (like nano, vim, or gedit) or terminal commands creating a file at '/home/ga/security_hardening_report.txt'."
+    },
+    {
+      "id": "report_content",
+      "description": "The report contains the summary of the changes made.",
+      "points": 15,
+      "visual_evidence": "The contents of 'security_hardening_report.txt' are visible and explicitly list the five configured settings (sessionLimitMinutes, autoDiscoveryEnabled, trafficEncryptionForced, statisticsAllowed, insecureDeprecatedApiEnabled) and their new values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_configuration_performed",
+      "description": "Agent actually configures the VMS server.",
+      "visual_evidence": "The agent must interact with the VMS server (via GUI or API) to apply the settings. It should not just write the report without making the actual system changes."
+    },
+    {
+      "id": "authentic_report",
+      "description": "Agent creates the report based on actions taken.",
+      "visual_evidence": "The report file is manually typed or generated via script by the agent, not just copied from the task description without performing the task."
+    },
+    {
+      "id": "correct_credentials_used",
+      "description": "Agent authenticates using the provided credentials.",
+      "visual_evidence": "The agent uses 'admin' and 'Admin1234!' to log in to the web interface or includes them in API requests (e.g., basic auth or login endpoint)."
+    }
+  ],
+  "privileged_info_for_vlm": "The Nx Witness VMS server is running on https://localhost:7001. The credentials are admin / Admin1234!. The API endpoint /rest/v1/system/settings is typically used for system configuration. The report must be saved to /home/ga/security_hardening_report.txt. The required settings are: sessionLimitMinutes (15), autoDiscoveryEnabled (false), trafficEncryptionForced (true), statisticsAllowed (false), and insecureDeprecatedApiEnabled (false)."
+}

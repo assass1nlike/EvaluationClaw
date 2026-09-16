@@ -1,0 +1,28 @@
+{
+  "id": "protractor_geometry@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Open the 'Measure Angle' activity in GCompris (Math > Geometry). Correctly measure and answer two consecutive angle problems. Save a screenshot of the success state after the second problem to /home/ga/Documents/protractor_success.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/protractor_geometry/setup_task.sh",
+    "post_task": "/workspace/tasks/protractor_geometry/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/home/ga/Documents/protractor_success.png",
+    "activity_category": "Mathematics",
+    "activity_subcategory": "Geometry",
+    "activity_name": "Measure Angle"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_protractor_geometry"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_accessible_reading_profile@1",
+  "task_completion": [
+    {
+      "id": "font_settings_configured",
+      "description": "Configure minimum font size to 18 and disable pages from choosing their own fonts.",
+      "points": 15,
+      "visual_evidence": "Look for Tor Browser settings where 'Minimum font size' is set to 18 and 'Allow pages to choose their own fonts, instead of your selections above' is unchecked. Alternatively, in about:config, `font.minimum-size.x-western` is 18 and `browser.display.use_document_fonts` is 0."
+    },
+    {
+      "id": "color_settings_configured",
+      "description": "Set text to white, background to black, and unvisited links to yellow.",
+      "points": 15,
+      "visual_evidence": "Look for Tor Browser color settings showing Text as white (#ffffff), Background as black (#000000), and Unvisited Links as yellow (#ffff00). Alternatively, in about:config, `browser.display.foreground_color` is '#ffffff', `browser.display.background_color` is '#000000', and `browser.anchor_color` is '#ffff00'."
+    },
+    {
+      "id": "override_colors_configured",
+      "description": "Configure the browser to always override page colors.",
+      "points": 15,
+      "visual_evidence": "Look for Tor Browser color settings where 'Override the colors specified by the page with your selections above' is set to 'Always'. Alternatively, in about:config, `browser.display.document_color_use` is 2."
+    },
+    {
+      "id": "caret_browsing_enabled",
+      "description": "Enable caret browsing.",
+      "points": 15,
+      "visual_evidence": "Look for Tor Browser settings under Browsing where 'Always use the cursor keys to navigate within pages' is checked, or a dialog prompt accepting Caret Browsing (F7). Alternatively, in about:config, `accessibility.browsewithcaret` is true."
+    },
+    {
+      "id": "test_url_navigated",
+      "description": "Navigate to the test URL to confirm the profile.",
+      "points": 20,
+      "visual_evidence": "Look for the Tor Browser address bar containing 'check.torproject.org' with the page loaded."
+    },
+    {
+      "id": "profile_visually_active",
+      "description": "The test URL page visually reflects the high-contrast, large-text reading profile.",
+      "points": 20,
+      "visual_evidence": "Look at the check.torproject.org page in the browser; it must display with a black background, white text, yellow links, and noticeably large text, proving the settings are active."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "The agent interacted with the actual Tor Browser.",
+      "visual_evidence": "Screenshots should show the genuine Tor Browser interface (or Firefox-based UI) being used, not a text editor or mock application."
+    },
+    {
+      "id": "settings_applied_in_browser",
+      "description": "Settings were applied through the browser's configuration interface.",
+      "visual_evidence": "The agent must use the browser's Settings GUI or `about:config` page to apply the changes, rather than just typing the requirements into a terminal or file."
+    },
+    {
+      "id": "no_inspect_element_cheating",
+      "description": "The final page appearance was not faked using Developer Tools.",
+      "visual_evidence": "Ensure the Developer Tools (Inspect Element) panel is not open and being used to inject custom CSS (like background-color: black) directly into the check.torproject.org page."
+    }
+  ],
+  "privileged_info_for_vlm": "The required Tor Browser preferences correspond to standard Firefox accessibility settings. Expected values in about:config: font.minimum-size.x-western (18), browser.display.document_color_use (2 for 'Always'), browser.display.foreground_color ('#ffffff'), browser.display.background_color ('#000000'), browser.anchor_color ('#ffff00'), browser.display.use_document_fonts (0 for disabled), and accessibility.browsewithcaret (true). The test URL is 'check.torproject.org'."
+}

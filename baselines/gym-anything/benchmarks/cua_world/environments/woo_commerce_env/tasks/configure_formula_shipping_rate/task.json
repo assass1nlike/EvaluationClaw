@@ -1,0 +1,28 @@
+{
+  "id": "configure_formula_shipping_rate@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure a dynamic shipping rate for the 'Domestic' zone in WooCommerce. Add a 'Flat rate' shipping method named 'Volume Shipping' with a cost calculation formula of 10.00 + (2.50 * [qty]). The shipping method must be enabled and calculate costs exactly as specified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_formula_shipping_rate/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_formula_shipping_rate/export_result.sh"
+  },
+  "metadata": {
+    "target_zone": "Domestic",
+    "expected_method_title": "Volume Shipping",
+    "expected_cost_formula": "10.00 + (2.50 * [qty])",
+    "normalized_formula_check": "10.00+(2.50*[qty])"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_formula_shipping_rate"
+    }
+  }
+}

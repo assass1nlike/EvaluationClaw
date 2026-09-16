@@ -1,0 +1,53 @@
+{
+  "task_id": "create_soc_macros@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_macros",
+      "description": "Agent accesses the Splunk web interface and navigates to the Search Macros settings page.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Splunk Web UI (localhost:8000) with the 'Search Macros' page open (usually under Settings -> Advanced Search)."
+    },
+    {
+      "id": "create_auth_failures_macro",
+      "description": "Agent creates the 'auth_failures_by_ip(1)' macro with the correct index and logic.",
+      "points": 25,
+      "visual_evidence": "A macro creation/edit screen showing the name 'auth_failures_by_ip(1)' (or 'auth_failures_by_ip' with 1 argument) and a definition that includes 'index=security_logs', failed authentication criteria, and a count function."
+    },
+    {
+      "id": "create_top_attackers_macro",
+      "description": "Agent creates the 'top_attackers(1)' macro with the correct index and logic.",
+      "points": 25,
+      "visual_evidence": "A macro creation/edit screen showing the name 'top_attackers(1)' (or 'top_attackers' with 1 argument) and a definition that includes 'index=security_logs', failed authentication criteria, and a command like 'top' to return top N source IPs."
+    },
+    {
+      "id": "create_event_volume_macro",
+      "description": "Agent creates the 'event_volume_trend' macro with the 'timechart' command and multiple indexes.",
+      "points": 25,
+      "visual_evidence": "A macro creation/edit screen showing the name 'event_volume_trend' (0 arguments) and a definition containing the 'timechart' command and referencing at least two of: 'security_logs', 'web_logs', or 'system_logs'."
+    },
+    {
+      "id": "macros_saved_and_enabled",
+      "description": "All three macros are saved and their status is set to enabled.",
+      "points": 15,
+      "visual_evidence": "The Splunk Search Macros list view displaying the three newly created macros ('auth_failures_by_ip', 'top_attackers', 'event_volume_trend') with their status clearly shown as 'Enabled', or individual macro screens showing the 'Enable' toggle active."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_splunk_interaction",
+      "description": "Agent interacted with the actual Splunk application.",
+      "visual_evidence": "Screenshots show the genuine Splunk Web UI or Splunk CLI being used, rather than a text editor or mock HTML file."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Agent did not just type the expected macro definitions into a text file or terminal without applying them to Splunk.",
+      "visual_evidence": "The SPL queries and macro names are entered into the actual Splunk configuration fields (Web UI forms or macros.conf via terminal), not just printed to the screen."
+    },
+    {
+      "id": "distinct_macro_definitions",
+      "description": "Agent wrote distinct, functional SPL queries for each macro.",
+      "visual_evidence": "The definitions for the three macros are different and match their specific requirements, rather than copy-pasting the exact same query for all three to bypass checks."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating three specific Splunk macros: 'auth_failures_by_ip(1)', 'top_attackers(1)', and 'event_volume_trend'. The target indices are 'security_logs', 'web_logs', and 'system_logs'. Macros 1 and 2 must query 'security_logs'. Macro 3 must query at least two of the three indices and use the 'timechart' command. Splunk credentials are admin / SplunkAdmin1!."
+}

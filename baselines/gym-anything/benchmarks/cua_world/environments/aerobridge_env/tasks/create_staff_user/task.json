@@ -1,0 +1,31 @@
+{
+  "id": "create_staff_user@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Create a new staff user account for a flight operations coordinator in the Aerobridge admin panel (http://localhost:8000/admin/) using the admin credentials (Username: 'admin', Password: 'adminpass123'). The new account must have the username 'ops_coordinator', password 'FlightOps2024!', first name 'Maria', last name 'Rodriguez', and email 'maria.rodriguez@skyviewaerial.io'. Ensure the account is granted staff status but is not a superuser.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_staff_user/setup_task.sh",
+    "post_task": "/workspace/tasks/create_staff_user/export_result.sh"
+  },
+  "metadata": {
+    "target_username": "ops_coordinator",
+    "target_first_name": "Maria",
+    "target_last_name": "Rodriguez",
+    "target_email": "maria.rodriguez@skyviewaerial.io",
+    "target_is_staff": true,
+    "target_is_superuser": false,
+    "admin_url": "http://localhost:8000/admin/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_staff_user"
+    }
+  }
+}

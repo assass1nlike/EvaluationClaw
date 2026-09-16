@@ -1,0 +1,62 @@
+{
+  "id": "museum_conservation_hazard_audit@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are the safety officer for a museum conservation lab auditing the 'wet cleaning' room. Research the fire risks of Linseed Oil, Turpentine, Acetone, Stoddard Solvent, and Hydrogen Peroxide (concentration > 20% but < 60%) using CAMEO Chemicals (https://cameochemicals.noaa.gov/). Create a safety report CSV file at /home/ga/Documents/conservation_safety_audit.csv with headers 'Chemical', 'Flash_Point_F', 'Spontaneous_Combustion_Risk', and 'Is_Oxidizer'. The report must contain the Flash Point in degrees Fahrenheit (or 'N/A'), and 'TRUE'/'FALSE' values for spontaneous combustion risk (based on explicit warnings for rags, waste, or self-heating) and oxidizer status for all listed chemicals.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/museum_conservation_hazard_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/museum_conservation_hazard_audit/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/conservation_safety_audit.csv",
+    "chemicals": [
+      {
+        "name": "Linseed Oil",
+        "flash_point_min": 200,
+        "flash_point_max": 500,
+        "spontaneous": true,
+        "oxidizer": false
+      },
+      {
+        "name": "Turpentine",
+        "flash_point_min": 85,
+        "flash_point_max": 105,
+        "spontaneous": false,
+        "oxidizer": false
+      },
+      {
+        "name": "Acetone",
+        "flash_point_min": -10,
+        "flash_point_max": 15,
+        "spontaneous": false,
+        "oxidizer": false
+      },
+      {
+        "name": "Stoddard Solvent",
+        "flash_point_min": 95,
+        "flash_point_max": 120,
+        "spontaneous": false,
+        "oxidizer": false
+      },
+      {
+        "name": "Hydrogen Peroxide",
+        "flash_point_min": -999,
+        "flash_point_max": -999,
+        "spontaneous": false,
+        "oxidizer": true
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_museum_audit"
+    }
+  }
+}

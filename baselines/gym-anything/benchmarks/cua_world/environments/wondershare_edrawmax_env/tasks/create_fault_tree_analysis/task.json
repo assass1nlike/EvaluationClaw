@@ -1,0 +1,33 @@
+{
+  "id": "create_fault_tree_analysis@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a Fault Tree Analysis (FTA) diagram in Wondershare EdrawMax to model a 'Database Connection Failure'. The diagram must feature a top event labeled 'Database Connection Failure' connected via an OR gate to two intermediate events: 'Network Timeout' and 'Authentication Failure'. The 'Network Timeout' branch should connect via an OR gate to basic events 'Firewall Misconfiguration' and 'ISP Outage'. The 'Authentication Failure' branch should connect via an OR gate to basic events 'Expired Service Account' and 'Wrong Password'. Save the project file to /home/ga/Documents/fta_db_failure.eddx and export the diagram as an image to /home/ga/Documents/fta_db_failure.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_fault_tree_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/create_fault_tree_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/fta_db_failure.eddx",
+    "expected_png_path": "/home/ga/Documents/fta_db_failure.png",
+    "required_text": [
+      "Database Connection Failure",
+      "Network Timeout",
+      "Authentication Failure",
+      "Firewall Misconfiguration",
+      "Expired Service Account"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_fault_tree_analysis"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "regulatory_guidance_research@1",
+  "version": "1.0",
+  "env_id": "microsoft_edge_env@0.1",
+  "description": "You are a regulatory affairs specialist preparing a dossier in support of a new drug application. Based on the research briefing at /home/ga/Desktop/research_brief.txt, find and download at least two relevant PDF guidance documents from the FDA website (https://www.fda.gov). Bookmark the consulted pages in a Microsoft Edge Favorites folder named 'FDA Guidance'. Create a regulatory research summary at /home/ga/Desktop/fda_research_summary.txt including the title, FDA URL or document identifier, and a one-sentence scope description for each document.",
+  "difficulty": "very_hard",
+  "tags": [
+    "edge",
+    "fda",
+    "regulatory",
+    "pharmaceutical",
+    "downloads",
+    "bookmarks",
+    "research"
+  ],
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/regulatory_guidance_research/setup_task.sh",
+    "post_task": "/workspace/tasks/regulatory_guidance_research/export_result.sh"
+  },
+  "metadata": {
+    "research_brief_path": "/home/ga/Desktop/research_brief.txt",
+    "summary_path": "/home/ga/Desktop/fda_research_summary.txt",
+    "target_domain": "fda.gov",
+    "required_bookmark_folder": "FDA Guidance",
+    "required_download_count": 2,
+    "occupation_context": "Regulatory Affairs Manager - FDA guidance document research for pharmaceutical NDA/BLA preparation"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regulatory_guidance_research"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "garch_volatility_inflation@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The agent created the Gretl script file named garch_inflation.inp in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'garch_inflation.inp' in the directory '/home/ga/Documents/gretl_output/'. This can be seen in a file manager window, a terminal running 'ls', or an open text editor."
+    },
+    {
+      "id": "garch_estimation_command",
+      "description": "The script contains the correct Gretl command to estimate a GARCH(1,1) model for 'inf' with a constant.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the script. It should contain a command similar to 'garch 1 1 ; inf const' or 'garch 1 1 ; inf 0' which specifies a GARCH(1,1) model for the 'inf' variable including a constant."
+    },
+    {
+      "id": "output_redirection_command",
+      "description": "The script contains commands to redirect the model output to garch_output.txt.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the script. It should contain an 'outfile' command pointing to '/home/ga/Documents/gretl_output/garch_output.txt' (often with '--write') before the GARCH command, and an 'outfile --close' command after it."
+    },
+    {
+      "id": "csv_store_command",
+      "description": "The script contains a command to save the inflation series and conditional variance to a CSV file.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the script. It should contain a 'store' command pointing to '/home/ga/Documents/gretl_output/garch_cond_variance.csv' and specifying the variables 'inf' and '$h' (which is Gretl's internal variable for conditional variance)."
+    },
+    {
+      "id": "files_generated",
+      "description": "The script was executed, successfully generating the required output text and CSV files.",
+      "points": 30,
+      "visual_evidence": "Look for the presence of 'garch_output.txt' and 'garch_cond_variance.csv' in '/home/ga/Documents/gretl_output/'. This is typically visible via a terminal 'ls' command or in a file manager window after the script execution."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "authentic_script_execution",
+      "description": "The agent actually executed the script using Gretl rather than faking the output files.",
+      "visual_evidence": "Look for terminal commands like 'gretlcli -b /home/ga/Documents/gretl_output/garch_inflation.inp' or evidence of the script being run from within the Gretl GUI. The output files should not be manually created using 'echo' or Python scripts."
+    },
+    {
+      "id": "genuine_gretl_commands",
+      "description": "The script file contains genuine Gretl syntax.",
+      "visual_evidence": "Verify that the .inp file contains actual Gretl commands (open, garch, outfile, store) and not bash commands or Python code disguised as a Gretl script."
+    },
+    {
+      "id": "correct_dataset_loaded",
+      "description": "The script explicitly loads the correct usa.gdt dataset.",
+      "visual_evidence": "Look for the command 'open /home/ga/Documents/gretl_data/usa.gdt' (or similar path) at the beginning of the script to ensure the correct data is being used."
+    }
+  ],
+  "privileged_info_for_vlm": "Dataset: usa.gdt (103 quarterly observations, 1984 Q1 to 2009 Q3). Target variable: 'inf' (CPI inflation rate). Software: Gretl 2022a. Expected Gretl script commands: 1) 'open /home/ga/Documents/gretl_data/usa.gdt' 2) 'outfile /home/ga/Documents/gretl_output/garch_output.txt --write' 3) 'garch 1 1 ; inf const' (estimates GARCH(1,1) with constant) 4) 'outfile --close' 5) 'store /home/ga/Documents/gretl_output/garch_cond_variance.csv inf $h' (where $h is the internal Gretl accessor for conditional variance)."
+}

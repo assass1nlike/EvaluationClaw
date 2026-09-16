@@ -1,0 +1,35 @@
+{
+  "id": "multimodal_person_trip_analysis@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "You are a multimodal transportation planner at SRM (Servizio Ferroviario Metropolitano) Bologna, tasked with evaluating transit accessibility along the Acosta corridor using the scenario located at /home/ga/SUMO_Scenarios/bologna_acosta/. Analyze bus transit performance and identify service gaps by generating and processing simulation data, including per-stop dwell times and passenger data saved to /home/ga/SUMO_Scenarios/bologna_acosta/stop_output.xml. Compute modal performance metrics (average travel time, speed, time loss, and vehicle count) for buses and private cars, exporting the results to /home/ga/SUMO_Output/modal_performance.csv. Perform a bus stop analysis calculating the number of buses served, total dwell time, and average headway for each stop, saved to /home/ga/SUMO_Output/bus_stop_analysis.csv. Identify underserved stops—defined as those with fewer than 3 visits or an average headway exceeding 1200 seconds—and document them in /home/ga/SUMO_Output/underserved_stops.csv. Propose a service improvement by creating a new bus route file at /home/ga/SUMO_Scenarios/bologna_acosta/acosta_new_bus_route.rou.xml that serves at least 3 underserved stops with at least 2 new vehicles, and configure a modified simulation at /home/ga/SUMO_Scenarios/bologna_acosta/run_improved_transit.sumocfg. Document the complete transit accessibility assessment, including modal split analysis, stop utilization, identified gaps, and proposed impacts, in a report at /home/ga/SUMO_Output/transit_assessment_report.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multimodal_person_trip_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/multimodal_person_trip_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Urban and Regional Planners (19-3051.00)",
+    "industry": "Professional, Scientific, and Technical Services",
+    "scenario": "bologna_acosta",
+    "num_bus_stops": 35,
+    "num_bus_vehicles": 157,
+    "modal_performance_path": "/home/ga/SUMO_Output/modal_performance.csv",
+    "bus_stop_analysis_path": "/home/ga/SUMO_Output/bus_stop_analysis.csv",
+    "underserved_stops_path": "/home/ga/SUMO_Output/underserved_stops.csv",
+    "new_bus_route_path": "/home/ga/SUMO_Scenarios/bologna_acosta/acosta_new_bus_route.rou.xml",
+    "improved_cfg_path": "/home/ga/SUMO_Scenarios/bologna_acosta/run_improved_transit.sumocfg",
+    "report_path": "/home/ga/SUMO_Output/transit_assessment_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multimodal_person_trip_analysis"
+    }
+  }
+}

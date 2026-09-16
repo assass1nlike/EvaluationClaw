@@ -1,0 +1,59 @@
+{
+  "task_id": "sakila_payment_partitioning@1",
+  "task_completion": [
+    {
+      "id": "mysql_workbench_connected",
+      "description": "Verify that MySQL Workbench is open and connected to the local database.",
+      "points": 10,
+      "visual_evidence": "The MySQL Workbench application window is visible, showing an active connection (e.g., a SQL editor tab open for 'localhost' or user 'ga')."
+    },
+    {
+      "id": "create_payment_archive_table",
+      "description": "Verify the creation of the partitioned 'payment_archive' table.",
+      "points": 20,
+      "visual_evidence": "The SQL editor shows a CREATE TABLE statement for 'payment_archive' that includes 'PARTITION BY RANGE' on the year of 'payment_date', with partitions 'p2005', 'p2006', and 'p_future'. A green checkmark in the Action Output panel indicates successful execution."
+    },
+    {
+      "id": "insert_payment_data",
+      "description": "Verify that data from the 'payment' table is inserted into 'payment_archive'.",
+      "points": 15,
+      "visual_evidence": "The SQL editor shows an INSERT INTO ... SELECT statement copying data from 'payment' to 'payment_archive', with a corresponding success message/green checkmark in the Action Output panel showing rows affected."
+    },
+    {
+      "id": "create_sp_partition_stats",
+      "description": "Verify the creation of the 'sp_partition_stats' stored procedure.",
+      "points": 20,
+      "visual_evidence": "The SQL editor shows a CREATE PROCEDURE statement for 'sp_partition_stats' querying 'INFORMATION_SCHEMA.PARTITIONS' for the 'payment_archive' table. A green checkmark in the Action Output panel indicates successful creation."
+    },
+    {
+      "id": "execute_sp_partition_stats",
+      "description": "Verify the execution of the stored procedure to view partition statistics.",
+      "points": 15,
+      "visual_evidence": "The SQL editor shows 'CALL sp_partition_stats()' (or similar execution), and a Result Grid is visible displaying partition names (p2005, p2006, p_future) and their respective row counts."
+    },
+    {
+      "id": "export_partition_stats_csv",
+      "description": "Verify the results are exported to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "An 'Export Resultset' dialog is visible saving to '/home/ga/Documents/exports/partition_stats.csv', or a file manager/terminal window shows the 'partition_stats.csv' file successfully created in that exact directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Verify the agent used the MySQL Workbench GUI for database operations.",
+      "visual_evidence": "The screenshots should show interaction with the MySQL Workbench interface (SQL editor, Action Output, Result Grid) rather than just executing terminal commands or scripts."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Verify that SQL queries were actually executed.",
+      "visual_evidence": "The Action Output panel at the bottom of MySQL Workbench should show actual execution logs, timestamps, and row counts, rather than just typed text in the editor."
+    },
+    {
+      "id": "authentic_export",
+      "description": "Verify the CSV export was generated from the query results.",
+      "visual_evidence": "The export should originate from the MySQL Workbench Result Grid (e.g., using the export button) rather than the agent manually typing the expected partition names and row counts into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database: sakila. Target table: payment_archive. Source table: payment. Expected partitions: p2005, p2006, p_future. Partition method: RANGE. Expected stored procedure: sp_partition_stats. Expected output file: /home/ga/Documents/exports/partition_stats.csv."
+}

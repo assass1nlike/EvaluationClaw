@@ -1,0 +1,53 @@
+{
+  "task_id": "assess_fish_passage_window@1",
+  "task_completion": [
+    {
+      "id": "open_muncie_project",
+      "description": "Open the Muncie project in HEC-RAS.",
+      "points": 10,
+      "visual_evidence": "HEC-RAS main window is open and displays the 'Muncie' project loaded in the project title or file path."
+    },
+    {
+      "id": "run_unsteady_simulation",
+      "description": "Run the unsteady flow simulation (RasUnsteady).",
+      "points": 20,
+      "visual_evidence": "HEC-RAS compute window showing the unsteady flow simulation in progress or successfully completed."
+    },
+    {
+      "id": "analyze_hdf5_results",
+      "description": "Analyze the HDF5 results to find the critical cross-section.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a Python script execution, or an HDF5 viewer (like HDFView) open, accessing the generated Muncie.p04.hdf file to extract velocity data."
+    },
+    {
+      "id": "create_velocity_plot",
+      "description": "Create a velocity time series plot named velocity_hydrograph.png with a 3.5 ft/s threshold line.",
+      "points": 25,
+      "visual_evidence": "An image viewer, IDE, or file explorer displaying 'velocity_hydrograph.png', showing a time series graph of velocity with a distinct horizontal line at the 3.5 threshold."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the fish_passage_report.json with the required keys and calculated values.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the contents of 'fish_passage_report.json' containing the keys 'critical_river_station' (value 14039.64), 'max_channel_velocity_fps' (value ~18.40), 'velocity_threshold_fps' (3.5), and 'passable_duration_hours' (0.0)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_hec_ras_interaction",
+      "description": "Verify the agent actually ran the simulation in HEC-RAS.",
+      "visual_evidence": "Screenshots should show the HEC-RAS GUI and compute window being interacted with, rather than the agent just creating dummy output files."
+    },
+    {
+      "id": "script_or_tool_used_for_hdf5",
+      "description": "Verify the agent extracted data from the HDF5 file programmatically or via a viewer.",
+      "visual_evidence": "Look for a Python script (using h5py/h5netcdf) or HDFView being used to read the data. The agent should not magically know the values without opening or parsing the HDF5 file."
+    },
+    {
+      "id": "authentic_plot_generation",
+      "description": "Verify the plot is generated from actual simulation data.",
+      "visual_evidence": "The velocity_hydrograph.png should show a realistic hydrograph curve (fluctuating values over time) that stays above the 3.5 ft/s threshold, not a blank or generic placeholder image."
+    }
+  ],
+  "privileged_info_for_vlm": "The true critical river station is '14039.64' with a max channel velocity of ~18.40 fps. The velocity at this section never drops below 12.45 fps during the simulation, so the passable duration (< 3.5 fps) is exactly 0.0 hours. The JSON report must be saved to /home/ga/Documents/hec_ras_results/fish_passage_report.json and the plot to /home/ga/Documents/hec_ras_results/velocity_hydrograph.png."
+}

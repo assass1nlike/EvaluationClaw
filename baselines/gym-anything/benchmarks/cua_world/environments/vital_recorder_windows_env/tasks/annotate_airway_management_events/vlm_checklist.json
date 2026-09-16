@@ -1,0 +1,53 @@
+{
+  "task_id": "annotate_airway_management_events@1",
+  "task_completion": [
+    {
+      "id": "co2_waveform_visible",
+      "description": "The agent views the capnography (CO2) waveform in Vital Recorder.",
+      "points": 10,
+      "visual_evidence": "The Vital Recorder window is open and displays a waveform track, typically labeled 'Primus/CO2' or showing CO2 data."
+    },
+    {
+      "id": "intubation_marker_added",
+      "description": "The agent adds an 'INTUBATION' event marker at the start of the CO2 breaths.",
+      "points": 30,
+      "visual_evidence": "An event marker or label reading 'INTUBATION' is visible on the timeline exactly where the CO2 waveform first starts showing regular breath cycles (values > 10.0 mmHg)."
+    },
+    {
+      "id": "extubation_marker_added",
+      "description": "The agent adds an 'EXTUBATION' event marker at the end of the CO2 breaths.",
+      "points": 30,
+      "visual_evidence": "An event marker or label reading 'EXTUBATION' is visible on the timeline exactly where the CO2 waveform stops showing regular breath cycles."
+    },
+    {
+      "id": "save_as_dialog_used",
+      "description": "The agent initiates saving the annotated file.",
+      "points": 10,
+      "visual_evidence": "A 'Save As' or similar dialog box is open in Vital Recorder."
+    },
+    {
+      "id": "file_saved_to_path",
+      "description": "The agent saves the file to the correct path.",
+      "points": 20,
+      "visual_evidence": "The save dialog shows the file name 'annotated_case.vital' and the directory path 'C:\\Users\\Docker\\Documents\\', or a file explorer confirms the file's presence in this location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_vital_recorder_gui",
+      "description": "The agent used the Vital Recorder graphical interface to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the Vital Recorder application menus, timeline, and dialogs, rather than terminal windows or code editors."
+    },
+    {
+      "id": "manual_marker_placement",
+      "description": "The agent manually placed the markers using the GUI.",
+      "visual_evidence": "The event markers are seen being created through the application's UI (e.g., right-clicking the timeline, using an 'Add Event' button)."
+    },
+    {
+      "id": "no_python_scripting",
+      "description": "The agent did not write a script to bypass the GUI.",
+      "visual_evidence": "No Python scripts, command-line tools, or text editors are used to modify the .vital file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves VitalDB Case #6. The CO2 waveform track is 'Primus/CO2'. A valid CO2 breath is defined as exceeding a threshold of 10.0 mmHg. The agent must place the 'INTUBATION' marker at the start of the first valid breath and the 'EXTUBATION' marker at the end of the last valid breath. The expected output path is C:\\Users\\Docker\\Documents\\annotated_case.vital. The time tolerance for event markers is 60 seconds."
+}

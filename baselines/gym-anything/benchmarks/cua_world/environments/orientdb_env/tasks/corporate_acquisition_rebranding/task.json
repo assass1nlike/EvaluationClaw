@@ -1,0 +1,28 @@
+{
+  "id": "corporate_acquisition_rebranding@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Perform a corporate acquisition data migration in the 'demodb' database using OrientDB Studio (http://localhost:2480/studio/index.html) with credentials root/GymAnything123!. The luxury hospitality group 'The Collections' has acquired all hotels of Type 'Boutique'. Update the database to reflect this change by creating a 'Brands' vertex class, a 'BelongsTo' edge class, and a Brand vertex named 'The Collections'. For all hotels currently identified as Type 'Boutique', update their Type to 'Luxury Collection', append ' - The Collections' to their Name, and create a 'BelongsTo' edge linking the Hotel to 'The Collections' Brand vertex.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/corporate_acquisition_rebranding/setup_task.sh",
+    "post_task": "/workspace/tasks/corporate_acquisition_rebranding/export_result.sh"
+  },
+  "metadata": {
+    "target_original_type": "Boutique",
+    "target_new_type": "Luxury Collection",
+    "brand_name": "The Collections",
+    "suffix": " - The Collections"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_corporate_acquisition_rebranding"
+    }
+  }
+}

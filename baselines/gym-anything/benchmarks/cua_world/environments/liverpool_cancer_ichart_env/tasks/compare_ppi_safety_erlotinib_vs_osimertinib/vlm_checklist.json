@@ -1,0 +1,59 @@
+{
+  "task_id": "compare_ppi_safety_erlotinib_vs_osimertinib@1",
+  "task_completion": [
+    {
+      "id": "screenshot_shows_app",
+      "description": "Verify the screenshot saved at /sdcard/ppi_comparison_table.png shows the Liverpool Cancer iChart app.",
+      "points": 10,
+      "visual_evidence": "A file viewer or image viewer displaying the screenshot, which should contain the distinctive UI of the Liverpool Cancer iChart application."
+    },
+    {
+      "id": "screenshot_shows_correct_drugs",
+      "description": "Verify the screenshot shows the interaction result table comparing Omeprazole against both Erlotinib and Osimertinib.",
+      "points": 20,
+      "visual_evidence": "The interaction table in the screenshot must explicitly list 'Omeprazole' as the co-medication and both 'Erlotinib' and 'Osimertinib' as the cancer drugs."
+    },
+    {
+      "id": "report_format_correct",
+      "description": "Verify the report at /sdcard/ppi_switch_recommendation.txt exists and follows the exact requested format.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the file contents with the exact labels: 'Interaction 1: Erlotinib + Omeprazole', 'Color:', 'Interaction 2: Osimertinib + Omeprazole', 'Color:', 'Safer Choice:', and 'Reason:'."
+    },
+    {
+      "id": "erlotinib_color_correct",
+      "description": "Verify the report correctly identifies the interaction color for Erlotinib + Omeprazole.",
+      "points": 15,
+      "visual_evidence": "Under 'Interaction 1', the 'Color:' field should state 'Yellow' (or indicate a potential weak interaction)."
+    },
+    {
+      "id": "osimertinib_color_correct",
+      "description": "Verify the report correctly identifies the interaction color for Osimertinib + Omeprazole.",
+      "points": 15,
+      "visual_evidence": "Under 'Interaction 2', the 'Color:' field should state 'Green' (or indicate no interaction expected)."
+    },
+    {
+      "id": "safer_choice_and_reason_correct",
+      "description": "Verify the report correctly identifies the safer choice and provides a valid reason.",
+      "points": 30,
+      "visual_evidence": "The 'Safer Choice:' field must state 'Osimertinib'. The 'Reason:' field must explain that Erlotinib absorption is pH-dependent (or reduced by PPIs), whereas Osimertinib has minimal/no interaction."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_app_interaction",
+      "description": "Verify the agent actually used the Liverpool Cancer iChart app to get the results.",
+      "visual_evidence": "The screenshot of the interaction table must show the native Android UI of the Liverpool Cancer iChart app, not a web browser search or a text document."
+    },
+    {
+      "id": "authentic_screenshot_file",
+      "description": "Verify the screenshot file is a genuine capture of the device screen.",
+      "visual_evidence": "The image saved to /sdcard/ppi_comparison_table.png should look like a full or partial Android screen capture, not a downloaded stock image or a blank file."
+    },
+    {
+      "id": "no_blind_text_generation",
+      "description": "Verify the agent did not just guess the text file contents without opening the app.",
+      "visual_evidence": "Trajectory screenshots should show the agent opening the iChart app, searching for the specific drugs, and viewing the results before writing the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "In the Liverpool Cancer iChart app, the interaction color for Erlotinib + Omeprazole is Yellow (Potential Weak Interaction), and for Osimertinib + Omeprazole is Green (No Interaction Expected). The safer choice is Osimertinib because Erlotinib absorption is highly pH-dependent and is significantly reduced when co-administered with a PPI like Omeprazole, whereas Osimertinib has negligible interaction."
+}

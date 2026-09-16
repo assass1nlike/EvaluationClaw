@@ -1,0 +1,53 @@
+{
+  "task_id": "enable_local_https_nginx@1",
+  "task_completion": [
+    {
+      "id": "open_nginx_config",
+      "description": "Open the Nginx configuration file for editing",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) is open showing an Nginx configuration file located within the '/home/ga/ssl-task/' directory."
+    },
+    {
+      "id": "configure_https_port",
+      "description": "Configure Nginx to listen on port 443 with SSL",
+      "points": 20,
+      "visual_evidence": "The Nginx configuration file contains a directive to listen on port 443 for SSL/HTTPS traffic (e.g., 'listen 443 ssl;' or 'listen 443; ssl on;')."
+    },
+    {
+      "id": "configure_ssl_certificates",
+      "description": "Specify the paths to the self-signed SSL certificates",
+      "points": 20,
+      "visual_evidence": "The Nginx configuration file contains 'ssl_certificate' pointing to '/home/ga/ssl-task/certs/server.crt' and 'ssl_certificate_key' pointing to '/home/ga/ssl-task/certs/server.key'."
+    },
+    {
+      "id": "restart_nginx",
+      "description": "Restart or reload the Nginx service to apply changes",
+      "points": 20,
+      "visual_evidence": "A terminal showing a command executed to restart or reload Nginx (e.g., 'nginx -s reload', 'systemctl restart nginx', or a docker/docker-compose restart command since the service runs in a container)."
+    },
+    {
+      "id": "verify_https_access",
+      "description": "Verify the website is accessible via HTTPS on localhost",
+      "points": 30,
+      "visual_evidence": "A web browser navigated to 'https://localhost' displaying 'Welcome to the Secure Local Site' (or an SSL security warning which is acceptable), OR a terminal showing a successful 'curl -k https://localhost' command returning the expected text."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_config_modification",
+      "description": "The agent genuinely modified the Nginx configuration file",
+      "visual_evidence": "Screenshots show actual editing of the Nginx configuration file rather than just creating a mock script or echoing text to bypass the setup."
+    },
+    {
+      "id": "genuine_https_request",
+      "description": "The agent tested the site using an actual HTTPS request",
+      "visual_evidence": "The browser URL bar explicitly shows 'https://localhost' or the curl command explicitly uses 'https://localhost'. It should not be a local file path (file://) or plain HTTP."
+    },
+    {
+      "id": "no_fake_curl_output",
+      "description": "The agent did not fake the curl output",
+      "visual_evidence": "If curl is used, the output 'Welcome to the Secure Local Site' must be the result of the curl command execution, not manually typed or printed via a basic echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "The Nginx project directory is '/home/ga/ssl-task'. The required self-signed certificates are located in '/home/ga/ssl-task/certs'. When successfully configured and accessed via https://localhost, the webpage should display the text 'Welcome to the Secure Local Site'."
+}

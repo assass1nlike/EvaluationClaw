@@ -1,0 +1,53 @@
+{
+  "task_id": "execute_db_search_replace_migration@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_wp_dir",
+      "description": "Agent navigates to the WordPress directory",
+      "points": 10,
+      "visual_evidence": "Look for a terminal window showing the current working directory as /var/www/html/wordpress."
+    },
+    {
+      "id": "execute_search_replace",
+      "description": "Agent executes a serialization-safe search and replace command",
+      "points": 30,
+      "visual_evidence": "Look for a terminal command being executed that performs a serialization-safe search and replace, most commonly WP-CLI: `wp search-replace 'http://staging.local' 'http://localhost'`."
+    },
+    {
+      "id": "search_replace_success_output",
+      "description": "Search and replace operation completes successfully",
+      "points": 20,
+      "visual_evidence": "Look for terminal output confirming the replacements were made. For WP-CLI, this is typically a table listing database tables and the number of replacements, followed by a 'Success' message."
+    },
+    {
+      "id": "open_browser_localhost",
+      "description": "Agent opens a web browser to test the local site",
+      "points": 10,
+      "visual_evidence": "Look for a web browser window opened with the address bar pointing to http://localhost/ or http://localhost."
+    },
+    {
+      "id": "frontend_loads_successfully",
+      "description": "The WordPress frontend loads successfully without a redirect loop",
+      "points": 30,
+      "visual_evidence": "Look for the fully rendered WordPress website in the browser. It must NOT show a redirect loop error (e.g., ERR_TOO_MANY_REDIRECTS) or a broken layout."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_wp_config_hardcoding",
+      "description": "Agent did not hardcode the URL in wp-config.php",
+      "visual_evidence": "If wp-config.php is visible in a text editor or terminal output, ensure the agent did NOT add `define('WP_HOME', 'http://localhost');` or `define('WP_SITEURL', 'http://localhost');`."
+    },
+    {
+      "id": "genuine_search_replace_execution",
+      "description": "Agent actually ran a tool rather than echoing fake output",
+      "visual_evidence": "Verify that the search and replace output comes from a genuine tool execution (like WP-CLI) and not from the agent simply typing `echo 'Success'` or manually printing a fake table."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Agent verified the site using a real web browser",
+      "visual_evidence": "Verify that the successful frontend load is shown in an actual web browser (like Chrome, Firefox, or Chromium) and not just a text-based curl output or a local HTML file."
+    }
+  ],
+  "privileged_info_for_vlm": "The old URL to be replaced is exactly 'http://staging.local' and the new URL is 'http://localhost'. The WordPress directory is '/var/www/html/wordpress'. A successful repair means the frontend at 'http://localhost/' loads with an HTTP 200 status (visually, the site renders without a redirect loop error). The agent must use a serialization-safe method (like WP-CLI's `wp search-replace`) and must NOT hardcode the URL in wp-config.php."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "azygos_vein_diameter@1",
+  "task_completion": [
+    {
+      "id": "measurement_exists",
+      "description": "A measurement markup is created on the chest CT.",
+      "points": 15,
+      "visual_evidence": "A line or ruler annotation tool is actively placed and visible on the CT scan image within the medical imaging viewer (e.g., 3D Slicer)."
+    },
+    {
+      "id": "anatomical_location",
+      "description": "The measurement is taken at the azygos arch, measuring the short-axis diameter.",
+      "points": 25,
+      "visual_evidence": "The measurement line is placed across the azygos vein on an axial slice (located in the right paratracheal region where it arches anteriorly to join the superior vena cava), specifically spanning the shortest diameter of the vessel cross-section."
+    },
+    {
+      "id": "diameter_plausible",
+      "description": "The measured diameter value is visible and clinically plausible.",
+      "points": 15,
+      "visual_evidence": "The measurement annotation on the CT scan displays a numeric length value, typically falling within a plausible anatomical range (e.g., between 5 mm and 25 mm)."
+    },
+    {
+      "id": "measurement_saved",
+      "description": "The measurement markup is saved to the required file path.",
+      "points": 15,
+      "visual_evidence": "A save dialog, terminal command, or file explorer shows the markup being saved exactly as 'azygos_measurement.mrk.json' in the '~/Documents/SlicerData/LIDC/' directory."
+    },
+    {
+      "id": "report_complete",
+      "description": "The report JSON file is created with all required fields.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displays the contents of 'azygos_report.json' in '~/Documents/SlicerData/LIDC/', containing exactly the keys: 'diameter_mm', 'classification', 'slice_level', and 'interpretation'."
+    },
+    {
+      "id": "classification_and_interpretation",
+      "description": "The classification and interpretation correctly correspond to the measured diameter based on clinical thresholds.",
+      "points": 20,
+      "visual_evidence": "In the 'azygos_report.json' file, the 'classification' and 'interpretation' logically match the 'diameter_mm' value (e.g., normal if <= 10 mm, dilated if >= 15 mm)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the medical imaging software's GUI to perform the measurement.",
+      "visual_evidence": "Screenshots show the agent interacting with the imaging software interface (e.g., 3D Slicer), using the cursor to scroll through slices and place the measurement tool, rather than just writing a script to generate a fake markup file."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "The report values are derived from the actual measurement taken.",
+      "visual_evidence": "The 'diameter_mm' value entered in the report JSON exactly matches or closely rounds to the measurement value visible on the CT scan in the imaging software."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not copy-paste a pre-written JSON response without performing the task.",
+      "visual_evidence": "The trajectory shows a logical sequence: opening the scan, finding the anatomical location, measuring it, and finally creating the report files, rather than creating the report files immediately at the start of the task."
+    }
+  ],
+  "privileged_info_for_vlm": "Clinical thresholds for azygos vein diameter on CT scans (supine patients): Normal is <= 10 mm. Definite dilation is >= 15 mm. Use these thresholds to verify if the agent's classification and interpretation in the report logically match the measured diameter."
+}

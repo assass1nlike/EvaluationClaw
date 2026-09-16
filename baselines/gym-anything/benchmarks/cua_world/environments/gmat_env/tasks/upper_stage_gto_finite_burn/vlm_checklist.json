@@ -1,0 +1,53 @@
+{
+  "task_id": "upper_stage_gto_finite_burn@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Agent opens and reads the specification document.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor, terminal (e.g., using 'cat' or 'less'), or file viewer displaying the contents of ~/Desktop/upper_stage_specs.txt."
+    },
+    {
+      "id": "configure_propulsion_hardware",
+      "description": "Agent configures the required propulsion hardware in GMAT.",
+      "points": 20,
+      "visual_evidence": "Look for GMAT script code or GMAT GUI windows showing the creation and configuration of 'ChemicalTank', 'ChemicalThruster', and 'FiniteBurn' objects."
+    },
+    {
+      "id": "configure_burn_conditions",
+      "description": "Agent sets the correct burn initiation and termination conditions.",
+      "points": 20,
+      "visual_evidence": "Look for GMAT script code or GUI elements showing the burn starting at Descending Node (True Anomaly / TA = 180.0 deg) and a stopping condition where the apoapsis radius reaches exactly 42164.14 km."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Agent saves the GMAT script to the correct location.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal command (like 'ls ~/GMAT_output/'), or editor title bar showing 'gto_injection.script' saved in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "generate_report_file",
+      "description": "Agent generates the final report with the required metrics.",
+      "points": 40,
+      "visual_evidence": "Look for the contents of ~/GMAT_output/gto_injection_report.txt displayed on screen, containing 'burn_duration_seconds', 'final_apoapsis_km', and 'remaining_fuel_kg' with calculated values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gmat_execution",
+      "description": "Verify that GMAT was actually used to compute the results.",
+      "visual_evidence": "Look for the GMAT GUI running the simulation, or a terminal executing the GMAT command-line tool, rather than the agent just calculating numbers externally."
+    },
+    {
+      "id": "no_hardcoded_report",
+      "description": "Ensure the agent did not hardcode the report values.",
+      "visual_evidence": "Check terminal history or text editors to ensure the agent didn't just use 'echo' or a basic Python script to write guessed/calculated numbers directly into gto_injection_report.txt without running the GMAT script."
+    },
+    {
+      "id": "authentic_script_content",
+      "description": "Ensure the script contains genuine GMAT syntax.",
+      "visual_evidence": "Look at the contents of gto_injection.script to confirm it contains actual GMAT object definitions and mission sequence commands (e.g., 'Create Spacecraft', 'BeginMissionSequence', 'Maneuver')."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected final apoapsis radius is exactly 42164.14 km. A correct GMAT simulation should result in a burn duration between 290.0 and 320.0 seconds (approx 298.7s), and remaining fuel between 7400.0 and 7700.0 kg (approx 7553.7kg). The report must be saved at ~/GMAT_output/gto_injection_report.txt and the script at ~/GMAT_output/gto_injection.script."
+}

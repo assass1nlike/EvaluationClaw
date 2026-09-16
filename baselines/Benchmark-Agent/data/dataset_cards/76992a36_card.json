@@ -1,0 +1,83 @@
+{
+  "dataset_id": "76992a36",
+  "name": "Face Emotion Recognition",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 216,
+  "description": "The Face Emotion Recognition dataset evaluates a model's ability to identify the emotion expressed on a person's face. Each sample pairs a cropped facial image with a short instruction prompt, and the model must output the correct emotion label.",
+  "card_text": "This dataset is a small (216-sample) image-and-text benchmark for facial emotion recognition. Each item contains a single cropped image of a human face stored via an image file path, together with a fixed instruction prompt asking the model to recognize the emotion of the person in the image. The expected output is a short textual emotion category label (e.g., 'Happy', 'Ahegao'). Images are close-up face crops rather than full scenes, so the task is essentially multiclass categorization of the displayed emotional expression conditioned on visual input. The emotional taxonomy appears open-ended across samples, spanning common expressions and more specialized face categories. Because the prompt is a natural-language instruction and the answer is a class word, the data also fits a visual question answering framing. No rationale or additional annotations are provided.",
+  "tasks": [
+    "classification_multiclass",
+    "visual_question_answering"
+  ],
+  "domain": "facial emotion recognition",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A file path to a single cropped photograph of a human face. The image is the primary visual content the model must inspect to determine the displayed emotional expression.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short fixed instruction ('Recognize the emotion of the person in the image') that tells the model what to do with the accompanying image. It is constant across samples and conditions the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single emotion category word (e.g., 'Happy', 'Ahegao') that names the expression shown in the image. It is the target label produced in response to the prompt and image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three components: an image reference (input.image_file) pointing to a cropped face photo, a short textual instruction prompt (input.prompt) that asks the model to recognize the person's emotion, and a short textual answer (output.text) giving the emotion label. The image supplies the visual evidence, the prompt defines the task, and the answer is the single class word that should be predicted from the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/face_emotion_recognition/json/annotation_v1.json",
+    "existing_tags": {
+      "task": "facial emotion recognition",
+      "type": "comprehension",
+      "skill": "Emotion Detection",
+      "domain": "General-domain",
+      "general_capability": [
+        "Content Recognition",
+        "Commonsense Knowledge"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General-domain"
+  }
+}

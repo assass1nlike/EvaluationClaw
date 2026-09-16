@@ -1,0 +1,37 @@
+{
+  "id": "create_form@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Create a new clinical form definition in the OpenMRS administration interface (https://localhost/openmrs/admin) using the credentials Username: superman and Password: Admin123. The form must be named 'COVID-19 Screening Form', version '1.0', with the description 'Screening form for COVID-19 symptoms and exposure history', and set as Published.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_form/setup_task.sh",
+    "post_task": "/workspace/tasks/create_form/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_form_name": "COVID-19 Screening Form",
+    "target_version": "1.0",
+    "target_description_keywords": [
+      "covid",
+      "symptom",
+      "exposure"
+    ],
+    "admin_url": "https://localhost/openmrs/admin",
+    "credentials": {
+      "username": "superman",
+      "password": "Admin123"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_form"
+    }
+  }
+}

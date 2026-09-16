@@ -1,0 +1,26 @@
+{
+  "id": "create_harvest_log@1",
+  "env_id": "example.farmos_field_kit_env@0.1",
+  "difficulty": "easy",
+  "description": "The farmOS Field Kit app is open on the Tasks screen. Create a new log named 'Tomato harvest - 50 lbs' with the log type set to 'Harvest'. Include the note 'Harvested from greenhouse row 3' and ensure the log is saved to the Tasks list.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/create_harvest_log/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/create_harvest_log/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_harvest_log"
+    }
+  },
+  "metadata": {
+    "log_name": "Tomato harvest - 50 lbs",
+    "log_type": "Harvest",
+    "notes": "Harvested from greenhouse row 3"
+  }
+}

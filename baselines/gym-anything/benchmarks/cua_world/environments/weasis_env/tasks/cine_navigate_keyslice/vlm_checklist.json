@@ -1,0 +1,59 @@
+{
+  "task_id": "cine_navigate_keyslice@1",
+  "task_completion": [
+    {
+      "id": "weasis_active",
+      "description": "Verify Weasis is open and displaying the synthetic CT series.",
+      "points": 10,
+      "visual_evidence": "The Weasis application window is visible on screen with the synthetic CT series loaded in the viewer."
+    },
+    {
+      "id": "navigate_to_slice_3",
+      "description": "Verify the agent navigated to slice 3 of the CT series.",
+      "points": 20,
+      "visual_evidence": "The Weasis viewer displays slice 3, which can be verified by looking for '3/5', 'Instance: 3', or 'SliceLocation 15.0' in the image overlay or navigation bar."
+    },
+    {
+      "id": "export_png_dialog",
+      "description": "Verify the agent initiated the image export process in Weasis.",
+      "points": 15,
+      "visual_evidence": "An export or save image dialog within the Weasis application is open, preparing to save the current slice."
+    },
+    {
+      "id": "save_png_correct_path",
+      "description": "Verify the PNG image is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "The save dialog or a terminal/file manager confirms the exported file is named 'key_slice.png' and is being saved in the '~/DICOM/exports/' (or '/home/ga/DICOM/exports/') directory."
+    },
+    {
+      "id": "create_txt_file",
+      "description": "Verify the agent created the required text file at the correct path.",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., nano, gedit) or terminal command (e.g., echo, cat) is visible, creating or editing a file named 'slice_info.txt' in the '~/DICOM/exports/' directory."
+    },
+    {
+      "id": "txt_file_content",
+      "description": "Verify the text file contains the exact required slice information.",
+      "points": 20,
+      "visual_evidence": "The contents of 'slice_info.txt' are visible on screen and exactly match the required lines: 'Slice: 3', 'Total: 5', and 'File: CT_slice_003.dcm'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_export",
+      "description": "Ensure the agent used the Weasis GUI to export the image.",
+      "visual_evidence": "Screenshots should show the Weasis export dialog being used. The agent should not use terminal commands (like ImageMagick or Python scripts) to convert the DICOM file directly to PNG bypassing the GUI."
+    },
+    {
+      "id": "genuine_navigation",
+      "description": "Ensure the agent actually navigated the CT series in the viewer.",
+      "visual_evidence": "The Weasis UI should show the slice changing or the scrollbar/navigation tools being interacted with to reach slice 3, rather than the agent just guessing the file name for the text file without looking."
+    },
+    {
+      "id": "manual_file_creation",
+      "description": "Ensure the text file was actively created by the agent with the correct content.",
+      "visual_evidence": "The agent should be seen typing or echoing the specific text into the file in the terminal or a text editor, rather than copying a pre-existing file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target slice 3 corresponds to CT_slice_003.dcm with InstanceNumber 3 and SliceLocation 15.0. The expected output paths are /home/ga/DICOM/exports/key_slice.png and /home/ga/DICOM/exports/slice_info.txt."
+}

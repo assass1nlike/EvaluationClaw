@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_enterprise_backup_script@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_workspace",
+      "description": "Agent accesses the workspace directory.",
+      "points": 10,
+      "visual_evidence": "Terminal shows navigation to '/home/ga/workspace/backup_system/' or an editor/IDE is opened with this directory as the root."
+    },
+    {
+      "id": "open_backup_script",
+      "description": "Agent opens the legacy backup bash script for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) is open and displaying the contents of the backup bash script."
+    },
+    {
+      "id": "edit_script_logic",
+      "description": "Agent modifies the bash script to fix the specified vulnerabilities.",
+      "points": 20,
+      "visual_evidence": "The editor shows active modifications addressing the issues (e.g., adding quotes around variables for spaces, adding 'trap' commands for cleanup, adding checks for empty backups, or fixing lockfile logic)."
+    },
+    {
+      "id": "save_script_changes",
+      "description": "Agent saves the modifications to the bash script.",
+      "points": 10,
+      "visual_evidence": "The agent exits the editor returning to the terminal prompt, or the editor shows a 'saved' status indicator."
+    },
+    {
+      "id": "execute_pytest",
+      "description": "Agent runs the pytest test suite.",
+      "points": 20,
+      "visual_evidence": "The terminal shows the exact command 'pytest tests/test_backup.py' being executed."
+    },
+    {
+      "id": "pytest_all_passed",
+      "description": "The pytest test suite completes with all tests passing.",
+      "points": 30,
+      "visual_evidence": "The terminal output from pytest displays a successful run, typically indicated by green text, '100%', and a message like 'passed in' with no failures."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Verify the test suite was actually executed.",
+      "visual_evidence": "The pytest output should appear as standard terminal output from a genuine execution, not a simple 'echo' command or a manually typed success message."
+    },
+    {
+      "id": "actual_script_modification",
+      "description": "Verify the script was genuinely edited.",
+      "visual_evidence": "The agent should use a text editor or valid shell commands (like sed) to modify the script, rather than downloading a pre-computed solution or replacing the file entirely from an external source."
+    },
+    {
+      "id": "no_test_suite_tampering",
+      "description": "Verify the test suite was not modified to force a pass.",
+      "visual_evidence": "The agent should not open or edit 'tests/test_backup.py' to remove assertions or alter the test logic to artificially achieve a passing result."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing five specific bash vulnerabilities: empty backups reporting success, hanging on interruption (lock files), skipping files with spaces (missing quotes), 0-byte totals, and leaving unencrypted data in /tmp/ on error (missing traps). The agent must edit the bash script and run 'pytest tests/test_backup.py'. The VLM should verify editor usage and terminal execution of the test suite showing all tests passing. Note: The automated verifier relies on static regex analysis of the bash script for 15 points per vulnerability, but the VLM should look for visual evidence of the edits and the passing test suite output."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "retrieve_archive_entry@1",
+  "task_completion": [
+    {
+      "id": "locate_artifact",
+      "description": "Locate the target zip artifact in Artifactory.",
+      "points": 15,
+      "visual_evidence": "The Artifactory UI shows navigation to 'example-repo-local/com/acme/app/2.0/app-bundle-v2.0.zip', OR a terminal command is seen targeting this specific URL path."
+    },
+    {
+      "id": "access_archive_contents",
+      "description": "Access the contents of the zip archive without downloading the whole file.",
+      "points": 25,
+      "visual_evidence": "The Artifactory UI displays the contents of the zip archive (e.g., via the archive browser), OR a terminal command uses the Artifactory archive entry syntax (e.g., appending '!/config.properties' to the URL)."
+    },
+    {
+      "id": "locate_config_file",
+      "description": "Locate the 'config.properties' file inside the archive.",
+      "points": 20,
+      "visual_evidence": "The file 'config.properties' is selected or visible within the archive browser in the Artifactory UI, OR it is explicitly specified in the extraction command."
+    },
+    {
+      "id": "view_or_extract_content",
+      "description": "View or extract the content of the target file.",
+      "points": 20,
+      "visual_evidence": "The content of 'config.properties' is displayed in the Artifactory UI preview pane, OR the terminal shows the successful retrieval of just this file's content."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save the recovered content to the specified output file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal shows the content being saved to '/home/ga/recovered_config.properties', or a command outputs directly to this file path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_full_zip_download",
+      "description": "The agent did not download the entire zip archive.",
+      "visual_evidence": "There is no evidence of 'app-bundle-v2.0.zip' being downloaded in the browser's download manager, and no terminal commands like 'wget' or 'curl' downloading the full '.zip' file without the archive entry syntax."
+    },
+    {
+      "id": "no_local_unzip",
+      "description": "The agent did not use local unzipping tools on a downloaded archive.",
+      "visual_evidence": "The terminal does not show commands like 'unzip app-bundle-v2.0.zip' or GUI archive managers opening a locally downloaded zip file."
+    },
+    {
+      "id": "genuine_content_saved",
+      "description": "The saved content appears to be genuinely extracted from the archive.",
+      "visual_evidence": "The content in '/home/ga/recovered_config.properties' contains a database URL and secret key, matching what would be expected from the actual file, rather than placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "The target artifact is located at 'example-repo-local/com/acme/app/2.0/app-bundle-v2.0.zip' in Artifactory. The target file inside the zip is 'config.properties'. The output must be saved to '/home/ga/recovered_config.properties'. The content of 'config.properties' contains a dynamically generated database URL and secret key."
+}

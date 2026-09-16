@@ -2,6 +2,8 @@
 
 TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（`TaskDefinition`），框架再打包成 `BenchmarkItem` 交给 Runner 执行。本文列出**所有任务类型字段的并集**（最通用的超集），以及每个字段的类型、语义、适用任务类型、必填性。
 
+构题 Python 在独立 Docker 环境中运行，同一 Builder 的调用共享环境，仅挂载该作业的文件目录，使用独立 `/tmp`。默认镜像为 `python:3.11-slim`，每个构题执行容器的内存上限为 8192 MiB、进程数上限为 512；运行方可通过 `builder_sandbox_image`、`builder_memory_mb`、`builder_pids_limit` 配置。可在其中安装 Python 包、启动后台服务；后台进程需把输入输出重定向到文件或 DEVNULL。Python 调用超时（60 秒）会停止整个环境，作业结束或所属框架进程退出时会清理容器。只有作业目录中的文件保留。Docker 构建与检查通过框架工具完成；检查容器也挂载该作业目录，且受内存、进程和生命周期管理约束。
+
 ## 1. 输出结构总览
 
 ```
@@ -141,7 +143,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `pull_image` | `bool` | 否 | `true` | 是否拉取镜像 |
 | `pull_timeout` | `int` | 否 | `300` | 拉取超时（秒） |
 | `setup_commands` | `list[str]` | 否 | `[]` | 环境初始化命令 |
-| `test_command` | `str` | 否 | `""` | 评分测试命令（默认 `pytest -q`） |
+| `test_command` | `str` | Docker 脚本或混合评分必填 | `""` | 显式评分命令，放在 environment 下 |
 | `max_steps` | `int` | 否 | `8` | 最大交互步数 |
 | `timeout` | `int` | 否 | `20` | 单步超时 |
 | `network` | `str` | 否 | `"none"` | 容器网络策略 |
@@ -156,7 +158,18 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `vm` / `vm_materialization` / `vm_provisioning` | `dict` | 否 | `{}` | VM 相关定义 |
 | `session` | `dict` | 否 | `{}` | 会话定义 |
 | `evaluation` | `dict` | 否 | `{}` | 评估定义 |
+| `judge` | `AgentJudgeSpec` | 否 | `null` | 单阶段 Docker 题的探索式作答评分；省略时使用脚本 |
 | `notes` | `str` | 否 | `""` | 备注 |
+
+外部 shell harness 共用同一套题目初始化、运行检查和评分流程。`setup_commands` 和评分器以 root 执行，目标以非 root 用户执行；初始化时可使用 `EVALCLAW_TARGET_UID`、`EVALCLAW_TARGET_GID` 为需要目标修改的文件设置所有权。声明结构化评分时，即使尚无作答也必须返回合法分数，不能把评分器异常当作答错。
+
+`environment.judge` 包含 `mode`（`judge` 或 `hybrid`）、`instructions` 和非空 `criteria`。每项 criterion 包含唯一 `id`、描述 0–1 分锚点及证据要求的 `rubric`，以及正数 `weight`（默认 1）。Builder 从可用 task models 中选择一个，写入 `metadata.task_model_id`；模型连接由运行配置提供。Judge 分数是各项分数的加权平均，必须附带理由和所引用的审阅工具调用 ID。
+
+`judge` 模式不要求 `test_command`。`hybrid` 模式要求脚本和显式 `script_weight`，按 `script_weight × 脚本分 + (1-script_weight) × judge分` 汇总；可设 `script_gate=true`，使脚本分不足 1 时总分为 0。脚本与 judge 执行异常均作为评估错误。
+
+Judge 审阅本次作答后的文件系统副本和保存的执行证据，命令以评审权限运行并单独留痕。副本保留文件及目录挂载的权限，不保留原进程、内存或外部网络。可选 `judge.setup_commands` 用于在副本中恢复本地服务，不得重新初始化、修复或代做目标的产物。需要判定历史行为时，应在环境中留下相应日志。VM 和多阶段 workflow 暂不支持这一评分方式。
+
+角色通过 `environment.actors` 定义，各自提供 `id`、`system_prompt`，以及可选的 `description`、`actor_toolsets` 中的 `toolset` 名称。各个外部 shell harness 均通过 `python3 /run/evalclaw-contacts/contacts.py list` 列出联系人，通过 `python3 /run/evalclaw-contacts/contacts.py send CONTACT_ID 'message'` 联系角色；任务镜像须包含 Python 3，客户端和使用说明由框架提供。角色的历史、工具权限和私有角色知识由框架管理，模型接口凭据不进入题目容器。
 
 ### 4.5 AgentWorkflow / WorkflowStage / WorkflowMetric
 

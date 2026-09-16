@@ -1,0 +1,35 @@
+{
+  "id": "compute_flood_wave_travel_time@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are a water resource specialist analyzing flood wave propagation through the HEC-RAS Muncie, Indiana river model for emergency flood warning planning. Using the plan HDF file located at /home/ga/Documents/hec_ras_projects/Muncie/ (the file ending in .p04.hdf or .p04.tmp.hdf), calculate the flood wave travel time and average celerity between the most upstream (highest river station number) and most downstream (lowest river station number) cross-sections.\n\nSave your results to /home/ga/Documents/hec_ras_results/flood_wave_travel_time.txt. The output file must contain the following labeled values:\n- Upstream Cross-Section Station\n- Downstream Cross-Section Station\n- Reach Length (ft)\n- Peak Flow at Upstream (cfs)\n- Peak Flow at Downstream (cfs)\n- Time of Peak at Upstream (hrs from simulation start)\n- Time of Peak at Downstream (hrs from simulation start)\n- Travel Time (hrs)\n- Average Wave Celerity (ft/s)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_flood_wave_travel_time/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_flood_wave_travel_time/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "output_file": "flood_wave_travel_time.txt",
+    "expected_ranges": {
+      "reach_length_min": 1000,
+      "reach_length_max": 200000,
+      "celerity_min": 0.1,
+      "celerity_max": 50.0,
+      "travel_time_min": 0.0,
+      "travel_time_max": 48.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flood_wave_travel_time"
+    }
+  }
+}

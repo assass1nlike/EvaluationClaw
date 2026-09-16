@@ -1,0 +1,30 @@
+{
+  "id": "implement_soft_delete_view@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Implement a content moderation 'soft delete' system in the 'demodb' database (User: root, Pass: GymAnything123!). Modify the 'Reviews' class schema to include a Boolean property named 'IsHidden' and flag all reviews with 1 or 2 stars as hidden. Create a database View named 'PublicReviews' that exposes only the reviews that are not hidden.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_soft_delete_view/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_soft_delete_view/export_result.sh"
+  },
+  "metadata": {
+    "database": "demodb",
+    "target_class": "Reviews",
+    "target_property": "IsHidden",
+    "target_view": "PublicReviews",
+    "marker_toxic": "MARKER_TOXIC_REVIEW",
+    "marker_good": "MARKER_GOOD_REVIEW"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_soft_delete_view"
+    }
+  }
+}

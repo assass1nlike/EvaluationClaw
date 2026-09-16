@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_cleanup_selective@1",
+  "task_completion": [
+    {
+      "id": "remove_target_containers",
+      "description": "Remove the specified stopped containers",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'docker rm old-dev-server test-runner-0412 failed-build-temp expired-worker' or terminal output echoing these container names after a removal command."
+    },
+    {
+      "id": "remove_dangling_images",
+      "description": "Remove all dangling Docker images",
+      "points": 15,
+      "visual_evidence": "Look for the command 'docker image prune' (with a 'y' confirmation) or 'docker rmi' combined with a filter for dangling images, followed by output showing deleted image SHAs."
+    },
+    {
+      "id": "remove_target_volumes",
+      "description": "Remove the specified unused volumes",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'docker volume rm old-test-data build-cache-vol tmp-upload-vol' and the corresponding success output."
+    },
+    {
+      "id": "remove_target_networks",
+      "description": "Remove the specified unused networks",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'docker network rm deprecated-frontend old-backend-net' and the corresponding success output."
+    },
+    {
+      "id": "preserve_required_resources",
+      "description": "Strictly preserve the required running/stopped containers and volume",
+      "points": 25,
+      "visual_evidence": "Verify that 'docker rm' was NEVER run on 'staging-db-snapshot', 'prod-web', 'prod-cache', or 'prod-api'. Verify 'docker volume rm' was NEVER run on 'persistent-config'. A final 'docker ps -a' and 'docker volume ls' showing these resources still exist is strong evidence."
+    },
+    {
+      "id": "generate_summary_report",
+      "description": "Save a summary report of the removals to /home/ga/cleanup-report.txt",
+      "points": 15,
+      "visual_evidence": "Look for commands writing to the file (e.g., 'echo ... > /home/ga/cleanup-report.txt', 'nano /home/ga/cleanup-report.txt') or a text editor open showing the summary of deleted items at that specific path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_destructive_prune_all",
+      "description": "Agent must not use destructive blanket commands that violate the preservation constraints",
+      "visual_evidence": "Ensure the agent did NOT run 'docker system prune -a' or 'docker container prune' without filters, as this would have deleted the preserved stopped container 'staging-db-snapshot'."
+    },
+    {
+      "id": "actual_docker_execution",
+      "description": "Agent must actually execute Docker commands, not just write a script without running it",
+      "visual_evidence": "Look for the actual execution of 'docker' commands in the terminal emulator and the standard Docker daemon response outputs, rather than just text in an editor."
+    },
+    {
+      "id": "correct_report_path",
+      "description": "The report must be saved to the exact requested path",
+      "visual_evidence": "Check that the file path used in the terminal or editor is exactly '/home/ga/cleanup-report.txt' and not just printed to stdout or saved in a different directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The following resources MUST be removed: Containers ('old-dev-server', 'test-runner-0412', 'failed-build-temp', 'expired-worker'), Volumes ('old-test-data', 'build-cache-vol', 'tmp-upload-vol'), Networks ('deprecated-frontend', 'old-backend-net'), and all dangling images. The following resources MUST be preserved: Containers ('prod-web', 'prod-cache', 'prod-api', 'staging-db-snapshot') and Volume ('persistent-config'). The final report must be located exactly at '/home/ga/cleanup-report.txt'."
+}

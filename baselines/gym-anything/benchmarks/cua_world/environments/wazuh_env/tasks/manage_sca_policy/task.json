@@ -1,0 +1,25 @@
+{
+  "id": "manage_sca_policy@1",
+  "version": "1.0",
+  "env_id": "wazuh_env@0.1",
+  "description": "In the Wazuh dashboard, identify a failed security check for the Wazuh manager (agent 000) in the Configuration Assessment module and view the associated remediation guidance.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manage_sca_policy/setup_task.sh"
+  },
+  "metadata": {
+    "target_agent_id": "000",
+    "module": "Security Configuration Assessment"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manage_sca_policy"
+    }
+  }
+}

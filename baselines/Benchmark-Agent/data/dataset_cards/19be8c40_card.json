@@ -1,0 +1,74 @@
+{
+  "dataset_id": "19be8c40",
+  "name": "Adverse-Drug-Reaction-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for adverse drug reaction (ADR) detection from biomedical text. Each sample contains a raw medical text and a prompt asking whether it describes an ADR, requiring a binary Yes/No label.",
+  "card_text": "Adverse-Drug-Reaction-Detection is a text-only binary classification dataset of 200 samples. Each item provides a raw medical text, typically a sentence or short passage drawn from clinical case reports or biomedical literature. An instruction prompt asks the model to determine whether the text describes an adverse drug reaction (ADR) and to output only 'Yes' or 'No'. The target label is a binary string. The dataset evaluates a model's ability to identify descriptions of adverse drug events in medical text. The content is factual and clinical, using specialized biomedical terminology. Assumptions: the raw text is the sole evidence; the prompt format is constant across samples; labels are binary and mutually exclusive.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "medical",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A raw medical text, typically a sentence or short passage from a clinical case report or biomedical article. It is the main content to be classified and may or may not describe an adverse drug reaction.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that embeds the raw text via a placeholder and asks the model to decide whether the text describes an adverse drug reaction, requiring only a Yes/No label. It defines the classification task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.label"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The binary label 'Yes' or 'No' indicating whether the associated raw text describes an adverse drug reaction. It is the target output for the classification task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample is composed of a raw medical text (input.raw_text) that serves as the context, an instruction prompt (input.prompt) that asks whether the text describes an adverse drug reaction and specifies the required Yes/No output format, and a binary label (output.label) giving the final answer. The prompt references the raw text and the label corresponds directly to the prompt's question."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Adverse-Drug-Reaction-Detection/annotation.json",
+    "existing_tags": {
+      "task": "adverse_drug_reaction_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

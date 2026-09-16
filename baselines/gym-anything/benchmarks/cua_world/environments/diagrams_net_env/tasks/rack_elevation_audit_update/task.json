@@ -1,0 +1,43 @@
+{
+  "id": "rack_elevation_audit_update@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Update the data center rack elevation diagram for Rack A-07 in '~/Diagrams/rack_a07.drawio' based on the physical inventory change log found in '~/Desktop/rack_a07_changes.txt'. The updated diagram must reflect the removal of 'DB-REPLICA-01' (U9-U10), the addition of new devices (DB-REPLICA-02, SW-DIST-01, APP-API-01, APP-API-02, Patch Panel) at their designated U-positions, and the relocation of the Cable Management Panel. Equipment should be color-coded by type (Red=Power, Blue=Network, Green=Compute, Orange=Database). Include a second page titled 'Power Budget' containing a table of power consumption data from the change log. Export the complete multi-page diagram to '~/Diagrams/exports/rack_a07_audit.pdf', ensuring all labels match the hostnames in the log exactly.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/rack_elevation_audit_update/setup_task.sh",
+    "post_task": "/workspace/tasks/rack_elevation_audit_update/export_result.sh"
+  },
+  "metadata": {
+    "diagram_path": "/home/ga/Diagrams/rack_a07.drawio",
+    "pdf_path": "/home/ga/Diagrams/exports/rack_a07_audit.pdf",
+    "changes_file": "/home/ga/Desktop/rack_a07_changes.txt",
+    "expected_text": [
+      "DB-REPLICA-02",
+      "SW-DIST-01",
+      "APP-API-01",
+      "APP-API-02",
+      "Patch Panel"
+    ],
+    "forbidden_text": [
+      "DB-REPLICA-01"
+    ],
+    "expected_colors": [
+      "#f8cecc",
+      "#dae8fc",
+      "#d5e8d4",
+      "#ffe6cc"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rack_elevation_audit_update"
+    }
+  }
+}

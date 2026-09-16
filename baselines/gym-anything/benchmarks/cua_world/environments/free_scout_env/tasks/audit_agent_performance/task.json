@@ -1,0 +1,27 @@
+{
+  "id": "audit_agent_performance@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the Support Team Lead conducting a performance review for agent 'Marcus Chen'. Determine the total number of conversations assigned to 'Marcus Chen' that have the status 'Closed'. Write only the numerical count to /home/ga/Documents/marcus_closed_count.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_agent_performance/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_agent_performance/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/marcus_closed_count.txt",
+    "target_user_name": "Marcus Chen",
+    "target_status": "Closed"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_agent_performance"
+    }
+  }
+}

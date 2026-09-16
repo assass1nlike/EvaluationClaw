@@ -1,0 +1,31 @@
+{
+  "id": "compare_airfoil_polars@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Generate NACA 0012 and NACA 4412 airfoils in QBlade. Perform an XFoil direct analysis on both airfoils using Reynolds number 500,000, Mach 0, and an alpha range from -5 to 15 with a step of 0.5 or 1.0. Save the complete project file containing both airfoils and their polar data to /home/ga/Documents/projects/airfoil_comparison.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compare_airfoil_polars/setup_task.sh",
+    "post_task": "/workspace/tasks/compare_airfoil_polars/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/Documents/projects/airfoil_comparison.wpa",
+    "required_airfoils": [
+      "0012",
+      "4412"
+    ],
+    "required_reynolds": 500000,
+    "min_file_size_bytes": 5000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compare_airfoil_polars"
+    }
+  }
+}

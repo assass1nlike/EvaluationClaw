@@ -1,0 +1,28 @@
+{
+  "id": "configure_level_ii_depth_window@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running with the Control Center visible. Market data for SPY is available. A scalper needs to set up a Level II (Depth of Market) window to monitor the order book for SPY and place orders directly from the window. Open a Level II window for the 'SPY' instrument and ensure the Order Entry panel is visible. Save the workspace to persist this configuration. Login credentials (if asked): Docker / GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_level_ii_depth_window\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_level_ii_depth_window\\export_result.ps1"
+  },
+  "metadata": {
+    "target_instrument": "SPY",
+    "target_window_type": "LevelII",
+    "required_property": "ShowOrderEntry",
+    "workspace_path": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_level_ii_depth_window"
+    }
+  }
+}

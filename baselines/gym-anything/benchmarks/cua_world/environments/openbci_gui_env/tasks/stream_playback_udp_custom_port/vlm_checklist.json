@@ -1,0 +1,65 @@
+{
+  "task_id": "stream_playback_udp_custom_port@1",
+  "task_completion": [
+    {
+      "id": "playback_mode_selected",
+      "description": "Verify that the OpenBCI GUI is set to Playback mode.",
+      "points": 10,
+      "visual_evidence": "Look for 'PLAYBACK' selected as the data source in the System Control panel at the top left or center of the OpenBCI GUI."
+    },
+    {
+      "id": "correct_file_loaded",
+      "description": "Verify that the correct EEG recording file is selected for playback.",
+      "points": 20,
+      "visual_evidence": "Look for the filename 'OpenBCI-EEG-S001-EyesOpen.txt' visible in the file selection area of the Playback configuration in the System Control panel."
+    },
+    {
+      "id": "networking_widget_active",
+      "description": "Verify that the Networking widget is open in the GUI.",
+      "points": 10,
+      "visual_evidence": "Look for a widget panel titled 'Networking' visible in the main grid interface of the OpenBCI GUI."
+    },
+    {
+      "id": "protocol_udp_selected",
+      "description": "Verify that the UDP protocol is selected in the Networking widget.",
+      "points": 15,
+      "visual_evidence": "Look for 'UDP' selected in the protocol dropdown menu within the Networking widget."
+    },
+    {
+      "id": "port_12345_configured",
+      "description": "Verify that the port is set to 12345 in the Networking widget.",
+      "points": 15,
+      "visual_evidence": "Look for the number '12345' entered into the port configuration text field within the Networking widget."
+    },
+    {
+      "id": "network_stream_started",
+      "description": "Verify that the network stream has been started.",
+      "points": 15,
+      "visual_evidence": "Look for the stream control button in the Networking widget indicating an active state (e.g., the button says 'Stop' or 'Stop Stream', or there is a visual indicator that streaming is active)."
+    },
+    {
+      "id": "data_playback_started",
+      "description": "Verify that the main data playback has been started.",
+      "points": 15,
+      "visual_evidence": "Look for EEG data actively scrolling across the Time Series graphs and the main system control button at the top left showing 'Stop Data Stream' instead of 'Start Data Stream'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the OpenBCI GUI application to perform the task.",
+      "visual_evidence": "The OpenBCI GUI application window must be visible and properly configured, not just a text editor showing the configuration file."
+    },
+    {
+      "id": "no_terminal_spoofing",
+      "description": "Ensure the agent did not use terminal commands to fake the UDP stream.",
+      "visual_evidence": "Check visible terminal windows for commands like 'nc', 'socat', or python scripts designed to spoof UDP packets on port 12345. The stream must originate from the OpenBCI GUI."
+    },
+    {
+      "id": "genuine_playback",
+      "description": "Ensure the EEG data being played back appears genuine.",
+      "visual_evidence": "The Time Series widget should display multiple channels (up to 8) of fluctuating EEG data, consistent with a real recording, rather than a static image or empty graphs."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring OpenBCI GUI v5.2.2. The correct file to load in Playback mode is 'OpenBCI-EEG-S001-EyesOpen.txt' located in '~/Documents/OpenBCI_GUI/Recordings/'. The Networking widget must be configured for the 'UDP' protocol on port '12345'. Both the main data playback (EEG graphs updating) and the network stream must be actively running."
+}

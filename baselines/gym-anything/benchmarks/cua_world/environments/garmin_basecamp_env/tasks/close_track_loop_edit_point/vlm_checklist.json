@@ -1,0 +1,53 @@
+{
+  "task_id": "close_track_loop_edit_point@1",
+  "task_completion": [
+    {
+      "id": "track_renamed",
+      "description": "The track is renamed to 'Closed_Boundary_Loop'.",
+      "points": 15,
+      "visual_evidence": "Look for the track name 'Closed_Boundary_Loop' in the layers panel, track list, or properties dialog of the GIS/GPS application."
+    },
+    {
+      "id": "color_changed",
+      "description": "The track display color is set to 'Yellow'.",
+      "points": 15,
+      "visual_evidence": "Look for the track color being set to 'Yellow' in the properties dialog, or the track appearing yellow on the map canvas."
+    },
+    {
+      "id": "loop_closed",
+      "description": "The track boundary is closed by matching the last point's coordinates to the first.",
+      "points": 30,
+      "visual_evidence": "Look for a point list/table showing the first and last coordinates are exactly the same, OR the map view showing a closed loop where the start and end points connect. The track must still show multiple points (at least 20), not just a simple 2-point line."
+    },
+    {
+      "id": "export_dialog_path",
+      "description": "The export/save dialog is configured with the correct output path.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As' or 'Export' dialog showing the file name 'closed_boundary.gpx' and the directory path 'C:\\workspace\\output'."
+    },
+    {
+      "id": "file_exported",
+      "description": "The GPX file is successfully exported to the target directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file explorer window or terminal listing 'closed_boundary.gpx' in 'C:\\workspace\\output', or a clear success message from the application confirming the export."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_edits",
+      "description": "The agent used the application's graphical interface to edit the track.",
+      "visual_evidence": "Check that the agent interacted with a GIS/GPS application's menus, properties, and point editors, rather than opening the GPX file in a text editor (like Notepad) to manually change XML tags."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not use terminal commands to bypass the application export.",
+      "visual_evidence": "Ensure the agent did not use commands like 'echo' or 'touch' in a terminal to create a fake 'closed_boundary.gpx' file."
+    },
+    {
+      "id": "geometry_preserved",
+      "description": "The agent edited the existing track rather than creating a new trivial one.",
+      "visual_evidence": "Verify that the map shows a complex route (the original fells_loop shape) rather than a newly drawn simple shape or straight line."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is 'C:\\workspace\\output\\closed_boundary.gpx'. The track must be renamed to 'Closed_Boundary_Loop' and its color set to 'Yellow'. The original track has 46 points; the final closed track must preserve the multi-point geometry (minimum 20 points) and not be replaced by a simple 2-point line."
+}

@@ -1,0 +1,91 @@
+{
+  "dataset_id": "3364bedc",
+  "name": "Medical Image Qa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 899,
+  "description": "The Medical Image QA dataset contains pairs of medical images and natural language questions about them, with short free-text answers. It evaluates visual question answering in the medical domain, requiring models to identify pathologies or findings in medical images.",
+  "card_text": "This dataset comprises 899 samples of medical image question answering. Each sample includes a medical image (e.g., radiograph, CT, MRI), a natural language question about the image, a generic instruction prompt, and a short textual answer. The images cover various medical findings and pathologies, and questions range from yes/no queries to open-ended identification of abnormalities. The task is open-ended visual question answering: given an image and a question, the model must generate a concise answer based on visual evidence. The dataset is intended for evaluating multimodal models in clinical or radiological settings. Answers are typically single words or short phrases, reflecting clinical findings or diagnoses.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "medical",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic instruction prompt telling the model to answer the question using the provided image. It sets the task format but contains no specific medical information.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question about the medical image, asking about specific findings, pathologies, or visual attributes. It directs the model to focus on particular regions or conditions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The short free-text answer to the question, typically a single word or phrase (e.g., 'yes', 'nodules'). It represents the clinical finding or response based on the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A reference to a medical image (e.g., radiograph, CT, MRI) that serves as the visual context for the question. The image contains the anatomical and pathological information needed to answer.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a medical image reference, a natural language question about the image, a generic instruction prompt, and a short textual answer. The question queries specific visual content (e.g., presence of a pathology, location, or characteristic). The prompt provides a general instruction to answer based on the image. The answer is a concise free-text response derived from the image content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/medical_image_qa/json/annotation.json",
+    "existing_tags": {
+      "task": "medical image qa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering (Img VQA)",
+      "domain": "Medicine",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Medicine"
+  }
+}

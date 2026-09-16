@@ -1,0 +1,62 @@
+{
+  "dataset_id": "86ca51c1",
+  "name": "Multi-Document-Summarization",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 120,
+  "description": "A multi-document summarization dataset built from news articles. Each sample provides one or more related news documents and a reference summary that condenses the key events and information across all documents.",
+  "card_text": "This dataset contains text-only samples for multi-document summarization in the news domain. Each sample includes a document_list field holding one or more full news articles, and an output.summary field containing a concise reference summary. The source documents are typically factual news reports covering human-interest stories, disasters, or unusual events. The number of documents and their lengths vary across samples, requiring the model to synthesize information from multiple sources into a single coherent summary. The dataset is intended to evaluate abstractive summarization ability, especially information aggregation and redundancy reduction across related news articles.",
+  "tasks": [
+    "summarization"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "document_list"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "A list of one or more full news articles that serve as the source material for summarization. The articles are related, often covering the same story or event from different angles, and together provide all the information needed to produce the summary.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.summary"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "A concise reference summary that condenses the most important information from all articles in the document_list. It is written as a single coherent paragraph, typically a few sentences long, and serves as the target output for the summarization task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an id, a document_list with one or more source news articles as context, and an output object whose summary field holds the target summary. The context is a list of full articles, and the answer is a single condensed paragraph synthesizing those articles."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Multi-Document-Summarization/annotation.json",
+    "existing_tags": {
+      "task": "Multi-Document Summarization",
+      "type": "Summarization",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

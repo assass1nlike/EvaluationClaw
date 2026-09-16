@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_latency_spikes_tcp_delta@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the target packet capture file in Wireshark.",
+      "points": 10,
+      "visual_evidence": "Wireshark window is visible with '200722_tcp_anon.pcapng' loaded in the title bar or recent files."
+    },
+    {
+      "id": "apply_tcp_delta_filter",
+      "description": "Apply a display filter to find TCP latency spikes greater than 0.2 seconds.",
+      "points": 20,
+      "visual_evidence": "The Wireshark display filter bar contains 'tcp.time_delta > 0.2' (or equivalent syntax) and is applied (green background), showing a filtered list of packets."
+    },
+    {
+      "id": "export_filtered_packets",
+      "description": "Export the filtered packets to a new PCAPNG file named latency_spikes.pcapng.",
+      "points": 20,
+      "visual_evidence": "The 'Export Specified Packets' dialog is visible with the filename 'latency_spikes.pcapng' and the 'Displayed' packets option selected, or the resulting file is visible in a file manager/terminal."
+    },
+    {
+      "id": "report_total_spike_packets",
+      "description": "Record the correct total number of spike packets in the report.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal shows the creation of 'latency_report.txt' containing 'total_spike_packets: 5' (or similar key-value format)."
+    },
+    {
+      "id": "report_worst_stream_index",
+      "description": "Record the correct worst stream index in the report.",
+      "points": 15,
+      "visual_evidence": "The 'latency_report.txt' file contains 'worst_stream_index: 1'."
+    },
+    {
+      "id": "report_max_delta_seconds",
+      "description": "Record the correct maximum delta seconds in the report.",
+      "points": 20,
+      "visual_evidence": "The 'latency_report.txt' file contains 'max_delta_seconds: 8.651661' (allow minor rounding if manually typed, e.g., 8.65)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wireshark_gui",
+      "description": "The agent used the Wireshark GUI to analyze the packets rather than relying solely on terminal commands like tshark.",
+      "visual_evidence": "Screenshots show the Wireshark application interface being actively used to filter and inspect packets."
+    },
+    {
+      "id": "genuine_pcap_export",
+      "description": "The agent genuinely exported the PCAP using Wireshark's export functionality.",
+      "visual_evidence": "The 'Export Specified Packets' dialog or Wireshark File menu interactions are visible."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent extracted the values from Wireshark to create the report, rather than hallucinating or copying from a script.",
+      "visual_evidence": "The agent is seen inspecting the packet details pane (e.g., expanding TCP stream index, viewing time delta) in Wireshark before or while writing the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected results are: total_spike_packets = 5, worst_stream_index = 1, and max_delta_seconds = 8.651661. The output PCAP file must be named 'latency_spikes.pcapng' and the report 'latency_report.txt'."
+}

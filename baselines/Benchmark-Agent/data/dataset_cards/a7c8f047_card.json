@@ -1,0 +1,81 @@
+{
+  "dataset_id": "a7c8f047",
+  "name": "Empty-Shelf-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset contains images of retail shelves with annotations for empty shelf regions. It evaluates the ability to detect and localize empty spaces on shelves.",
+  "card_text": "Empty-Shelf-Detection is a multimodal dataset of 200 samples, each pairing a photograph of a retail shelf with a text prompt and bounding box annotations. The images show store shelves stocked with products, often with gaps where items are missing. The prompt is a generic instruction to detect empty shelf areas. The output is a list of bounding boxes, each labeled 'empty_shelf' and given by four coordinates (x, y, width, height). The dataset targets object detection in a retail environment, focusing on recognizing empty spaces as distinct objects. It supports applications such as inventory monitoring and shelf management. Annotations are structured text, suitable for vision-language models.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "retail shelf inventory",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "Photograph of a retail shelf displaying products, potentially containing empty shelf spaces. This image is the visual context for the empty shelf detection task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A placeholder prompt instructing the model to detect empty shelves. It is a user-defined prompt that accompanies the image and specifies the task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of bounding boxes, each labeled 'empty_shelf' and given as [x, y, width, height] coordinates, indicating the locations of empty shelf regions in the input image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image of a retail shelf (input.image_file), a textual prompt (input.prompt) that instructs the model to detect empty shelves, and an output list of bounding boxes (output.bbox). Each bounding box is associated with the label 'empty_shelf' and four coordinates. The image serves as the visual context, the prompt as the task instruction, and the bounding boxes as the detection targets."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/empty-shelf-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "empty-shelf-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

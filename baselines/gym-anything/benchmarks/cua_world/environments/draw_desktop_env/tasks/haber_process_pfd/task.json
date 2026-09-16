@@ -1,0 +1,44 @@
+{
+  "id": "haber_process_pfd@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Process Engineer at a fertilizer plant. Create a Process Flow Diagram (PFD) for the high-pressure ammonia synthesis loop (Haber-Bosch process) for a safety report, using the process description found in '~/Desktop/process_description.txt'. The diagram must utilize standard engineering symbols and include a Feed Compressor, Pre-heater, Catalytic Reactor, Cooler/Condenser, and High-Pressure Separator connected in sequence, including a recycle loop from the separator top back to the start. Label the streams (e.g., 'N2+H2 Feed', 'Liquid NH3', 'Recycle Gas'). Save the diagram to '~/Desktop/haber_process.drawio' and export it to '~/Desktop/haber_process.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/haber_process_pfd/setup_task.sh",
+    "post_task": "/workspace/tasks/haber_process_pfd/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/haber_process.drawio",
+    "expected_png": "/home/ga/Desktop/haber_process.png",
+    "required_keywords": [
+      "compressor",
+      "reactor",
+      "separator",
+      "condenser",
+      "heater",
+      "recycle",
+      "nh3",
+      "ammonia"
+    ],
+    "required_shapes": [
+      "compressor",
+      "heat",
+      "vessel",
+      "reactor"
+    ],
+    "min_shapes": 5,
+    "min_edges": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_haber_process_pfd"
+    }
+  }
+}

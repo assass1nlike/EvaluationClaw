@@ -1,0 +1,62 @@
+{
+  "dataset_id": "c53c9f18",
+  "name": "Table-To-Text-Generation",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for table-to-text generation, where a structured table is converted into a fluent natural language description. It evaluates the model's ability to accurately and coherently verbalize tabular data.",
+  "card_text": "The dataset contains 200 samples for table-to-text generation. Each sample includes an input table represented as a list of objects with a header string (column names separated by '|') and rows containing pipe-delimited values. The output is a generated natural language paragraph that describes the table's content in a factual and narrative style. The tables cover domains such as music releases and awards, but the task is general. The model must infer relationships across rows and columns and produce a coherent text without any explicit question. This tests data-to-text generation, information ordering, and fluency.",
+  "tasks": [
+    "report_generation"
+  ],
+  "domain": "Wikipedia tables",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.table"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "structured",
+        "semantics": "The input table is provided as a list of objects, each containing a header string (column names separated by '|') and a list of row strings with pipe-separated cell values. It is the source data that the model must verbalize into natural language.",
+        "path_types": [
+          "list<dict>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.response.text"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "The target natural language text that describes the information from the input table. It is a coherent, factual paragraph that summarizes or narrates the table's content, often using past tense and connecting multiple rows.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input table (a list with a header string and rows of pipe-delimited values) and an output response text. The table acts as the context, and the response is the answer to be generated. There is no question, options, or additional annotation. The model must generate a fluent description based solely on the table."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Table-to-Text-Generation/annotation.json",
+    "existing_tags": {
+      "task": "Table-to-Text Generation",
+      "type": "Table-to-Text Generation",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

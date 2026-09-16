@@ -1,0 +1,38 @@
+{
+  "id": "hreflang_validation_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are a Search Marketing Strategist validating international targeting for a client. Crawl 'https://crawler-test.com/' using Screaming Frog SEO Spider. Export the Hreflang data and the Internal HTML report as CSV files to '~/Documents/SEO/exports/' (filenames must contain 'hreflang' and 'internal' respectively). Write a validation report of at least 300 characters to '~/Documents/SEO/reports/hreflang_report.txt' summarizing your findings, including page counts, errors found, and recommendations.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hreflang_validation_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/hreflang_validation_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "report_path": "/home/ga/Documents/SEO/reports/hreflang_report.txt",
+    "required_report_keywords": [
+      "hreflang",
+      "language",
+      "return",
+      "tag",
+      "missing",
+      "error",
+      "recommendation"
+    ],
+    "min_report_length": 300
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hreflang_validation_audit"
+    }
+  }
+}

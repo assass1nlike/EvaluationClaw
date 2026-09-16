@@ -1,0 +1,81 @@
+{
+  "dataset_id": "d0c0ac7e",
+  "name": "Openset Surveillance Object-Level Change Description",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates open-set object-level change description between pairs of surveillance images. Given two images and a prompt asking what distinguishes them, a model must produce a short textual description of the difference, typically involving people or objects.",
+  "card_text": "The Openset Surveillance Object-Level Change Description dataset contains 200 image-text samples. Each sample consists of two surveillance images (input.image_file) and a natural-language prompt (input.prompt) that asks the model to identify differences between the images, using <ImageHere> placeholders to indicate where each image should be embedded. The expected output (output.text) is a short open-ended phrase or sentence describing the object-level change, such as 'people are missing' or 'the picture on the right has 6 people and left does not'. The dataset is designed to test visual relation inference and content recognition in change detection scenarios. It assumes the model can compare two visual scenes and articulate differences in terms of objects, people, or their attributes. Images are likely fixed-camera surveillance frames, and the text prompts are templated difference questions.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "surveillance imagery",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "scenery",
+        "semantics": "A list of two image filenames representing a before-and-after or pair of surveillance frames that the model must compare. Each image is a visual scene possibly containing people or objects; the pair defines the change to be described.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated natural-language instruction asking what distinguishes the two images, with <ImageHere> placeholders for the images and a 'Difference:' suffix to cue the answer. It directs the model to perform object-level change detection and describe the difference.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A short free-text description of the object-level difference between the two images, e.g., missing people or a count difference. It is the ground-truth target for the change description task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains two surveillance image references (input.image_file), a templated text prompt (input.prompt) that asks for differences and includes <ImageHere> placeholders, and a short text answer (output.text) describing the object-level change. The images serve as the visual context, the prompt provides the comparison instruction, and the answer is the target difference description."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/SurveillanceObject-LevelChangeDescription/openset_surveillance_object-level_change_description.json",
+    "existing_tags": {
+      "task": "Surveillance Object-Level Change Description",
+      "type": "image comprehension",
+      "skill": "Visual Relation Inference",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

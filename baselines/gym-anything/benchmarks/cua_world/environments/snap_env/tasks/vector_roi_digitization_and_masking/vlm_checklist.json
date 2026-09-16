@@ -1,0 +1,65 @@
+{
+  "task_id": "vector_roi_digitization_and_masking@1",
+  "task_completion": [
+    {
+      "id": "image_opened",
+      "description": "Open the Sentinel-2 image in the application",
+      "points": 10,
+      "visual_evidence": "The SNAP application (or similar GIS software) is open with 'sentinel2_tci.tif' loaded in the Product Explorer or displayed in the main image view."
+    },
+    {
+      "id": "vector_container_created",
+      "description": "Create a vector data container named 'field_boundaries'",
+      "points": 15,
+      "visual_evidence": "A vector data node or folder named 'field_boundaries' is visible in the Product Explorer under the loaded image."
+    },
+    {
+      "id": "polygons_drawn",
+      "description": "Draw at least two distinct polygons representing fields",
+      "points": 20,
+      "visual_evidence": "At least two distinct polygons are drawn over the satellite image in the main view."
+    },
+    {
+      "id": "masked_band_created",
+      "description": "Produce a new band named 'masked_field_data'",
+      "points": 20,
+      "visual_evidence": "A band named 'masked_field_data' is visible in the Bands folder of the Product Explorer."
+    },
+    {
+      "id": "beam_dimap_saved",
+      "description": "Save the enriched product as a BEAM-DIMAP file",
+      "points": 10,
+      "visual_evidence": "A save dialog, a saved product path in the Product Explorer, or a file manager/terminal showing 'field_extraction.dim' in '/home/ga/snap_projects/'."
+    },
+    {
+      "id": "shapefile_exported",
+      "description": "Export the vector geometries as an ESRI Shapefile",
+      "points": 10,
+      "visual_evidence": "An export dialog or file manager/terminal showing 'fields.shp' in '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "geotiff_exported",
+      "description": "Export the final masked product as a GeoTIFF",
+      "points": 15,
+      "visual_evidence": "An export dialog or file manager/terminal showing 'field_extraction.tif' in '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the application GUI to process the image and create outputs",
+      "visual_evidence": "The SNAP application window is visible with the image loaded and tools being used, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_polygons",
+      "description": "The polygons are drawn over actual agricultural fields",
+      "visual_evidence": "Polygons enclose areas that look like agricultural fields on the satellite image, not just random shapes on a blank screen."
+    },
+    {
+      "id": "no_mocking_files",
+      "description": "The output files were not mocked using terminal commands",
+      "visual_evidence": "Absence of terminal commands like 'touch' or 'echo' creating empty files with the target names; presence of application save/export dialogs."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is /home/ga/snap_data/sentinel2_tci.tif. The vector container must be named 'field_boundaries' and contain at least 2 polygons. The masked band must be named 'masked_field_data'. The expected outputs are a BEAM-DIMAP file at /home/ga/snap_projects/field_extraction.dim, a shapefile at /home/ga/snap_exports/fields.shp, and a GeoTIFF at /home/ga/snap_exports/field_extraction.tif."
+}

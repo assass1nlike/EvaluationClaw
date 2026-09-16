@@ -1,0 +1,33 @@
+{
+  "id": "add_diagnosis@1",
+  "version": "1.0",
+  "env_id": "openmrs_env@0.1",
+  "description": "Add a diagnosis of Hypertension (Certainty: Confirmed, Type: Primary) to the active visit for patient Ezekiel Walter (DOB: 1998-05-31). Login credentials: admin / Admin123. URL: http://localhost/openmrs/spa",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_diagnosis/setup_task.sh"
+  },
+  "metadata": {
+    "patient_name": "Ezekiel Walter",
+    "patient_dob": "1998-05-31",
+    "expected_diagnosis_keywords": [
+      "hypertension",
+      "high blood pressure"
+    ],
+    "expected_certainty_keywords": [
+      "confirmed"
+    ],
+    "expected_rank": "PRIMARY"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_diagnosis"
+    }
+  }
+}

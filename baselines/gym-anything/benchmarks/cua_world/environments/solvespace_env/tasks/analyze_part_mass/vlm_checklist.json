@@ -1,0 +1,53 @@
+{
+  "task_id": "analyze_part_mass@1",
+  "task_completion": [
+    {
+      "id": "open_solvespace_file",
+      "description": "Open the 'side.slvs' file in SolveSpace",
+      "points": 10,
+      "visual_evidence": "SolveSpace application window is open displaying the 2D/3D sketch of the 'side' part."
+    },
+    {
+      "id": "extrude_sketch",
+      "description": "Extrude the sketch by 5.0 mm",
+      "points": 20,
+      "visual_evidence": "The Property Browser in SolveSpace shows an extrusion group with a depth/thickness value of 5.0 mm, or the 3D view clearly shows the extrusion operation being applied."
+    },
+    {
+      "id": "save_extruded_model",
+      "description": "Save the model as 'side_extruded.slvs'",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing the filename 'side_extruded.slvs' in the '~/Documents/SolveSpace/' directory, or the SolveSpace window title updated to 'side_extruded.slvs'."
+    },
+    {
+      "id": "determine_volume",
+      "description": "Determine the volume of the part in mm\u00b3",
+      "points": 20,
+      "visual_evidence": "SolveSpace's 'Analyze' -> 'Volume' or 'Measure' dialog/text is visible on screen, displaying the calculated volume of the solid in mm\u00b3."
+    },
+    {
+      "id": "save_mass_report",
+      "description": "Calculate mass and save to 'mass_report.txt'",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal window showing the file 'mass_report.txt' containing the final calculated mass value in grams."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_cad_interaction",
+      "description": "Agent used the SolveSpace GUI to perform the extrusion and measure the volume",
+      "visual_evidence": "Screenshots show active interaction with SolveSpace menus, property browser, and analyze tools, rather than just running a script or editing files blindly."
+    },
+    {
+      "id": "authentic_mass_calculation",
+      "description": "The mass reported is genuinely calculated from the volume found in SolveSpace",
+      "visual_evidence": "The mass value in 'mass_report.txt' should mathematically match the volume shown on-screen in SolveSpace multiplied by 0.0027. It should not be a random or hallucinated number."
+    },
+    {
+      "id": "genuine_file_save",
+      "description": "The extruded model was saved properly through the CAD software",
+      "visual_evidence": "The agent used SolveSpace's 'File -> Save As' functionality to create 'side_extruded.slvs', rather than just copying the file or creating an empty text file with a .slvs extension."
+    }
+  ],
+  "privileged_info_for_vlm": "The original file 'side.slvs' is already a 3D solid (~5.99 mm thick, volume ~155405 mm\u00b3). Adding a new 5.0 mm extrusion unions with the existing solid, keeping the volume at ~155405 mm\u00b3 (mass ~419.6 g). If the agent modifies the existing extrusion to 5.0 mm instead, the volume becomes ~129625 mm\u00b3 (mass ~350.0 g). You must pass the mass calculation step if the value in 'mass_report.txt' equals the onscreen volume shown in SolveSpace multiplied by 0.0027 g/mm\u00b3, regardless of which of the two volumes the agent ended up with."
+}

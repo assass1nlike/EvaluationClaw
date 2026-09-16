@@ -1,0 +1,59 @@
+{
+  "task_id": "identify_at_risk_students@1",
+  "task_completion": [
+    {
+      "id": "login_admin",
+      "description": "Verify the agent logged into Moodle as the admin user.",
+      "points": 10,
+      "visual_evidence": "Look for the Moodle dashboard or homepage with indicators of an admin session (e.g., 'Admin User' or a profile icon in the top right corner)."
+    },
+    {
+      "id": "navigate_course",
+      "description": "Verify the agent navigated to the 'Chemistry 101' course.",
+      "points": 10,
+      "visual_evidence": "Look for the course title 'Chemistry 101' or shortname 'CHEM101' prominently displayed in the course header or navigation breadcrumbs."
+    },
+    {
+      "id": "access_participants",
+      "description": "Verify the agent accessed the course participants list.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Participants' page within the CHEM101 course, displaying a table or list of enrolled students."
+    },
+    {
+      "id": "select_target_users",
+      "description": "Verify the agent selected ONLY the students who have been inactive for more than 4 weeks.",
+      "points": 30,
+      "visual_evidence": "Look for checkboxes ticked next to the target users ('dlee' and 'epatel'). Ensure that the control users ('fkim', 'awilson', 'bbrown') are NOT selected. The agent may use the 'Last access to course' column or a filter to identify them."
+    },
+    {
+      "id": "compose_message",
+      "description": "Verify the agent composed a bulk message containing the required text.",
+      "points": 20,
+      "visual_evidence": "Look for a Moodle message composition dialog or text area (usually triggered via 'With selected users...' -> 'Send a message') that contains the exact phrase 'catch up' in the message body."
+    },
+    {
+      "id": "send_message",
+      "description": "Verify the agent sent the message to the selected students.",
+      "points": 20,
+      "visual_evidence": "Look for the agent clicking the 'Send message' button or a subsequent success notification/toast confirming that the message was sent to the selected participants."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Moodle web interface to complete the task.",
+      "visual_evidence": "Look for a web browser displaying the Moodle UI. The agent should not be using terminal commands (like curl or mysql) to interact with the database or API directly."
+    },
+    {
+      "id": "genuine_message_composition",
+      "description": "Verify the message was composed within the actual Moodle application.",
+      "visual_evidence": "The text 'catch up' should be visible inside a Moodle text input field, not just written in a separate text editor, terminal, or notes app."
+    },
+    {
+      "id": "logical_workflow",
+      "description": "Verify the agent followed a logical sequence of UI interactions rather than faking the final state.",
+      "visual_evidence": "The screenshots should show a progression from the participants list, to selection, to message composition, and finally sending, without sudden jumps that suggest HTML manipulation via browser DevTools."
+    }
+  ],
+  "privileged_info_for_vlm": "The course is 'CHEM101'. The target users who have been inactive for more than 4 weeks (45 days) and MUST be selected are 'dlee' and 'epatel'. The control users who are active and MUST NOT be selected are 'fkim', 'awilson', and 'bbrown'. The bulk message body must contain the exact phrase 'catch up'."
+}

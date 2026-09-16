@@ -1,0 +1,30 @@
+{
+  "id": "anova_planned_contrasts_viagra@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Using the dataset '/home/ga/Documents/JASP/Viagra.csv' which contains clinical trial data for libido across three dose groups (Placebo, Low Dose, and High Dose), perform a One-Way ANOVA with 'Libido' as the dependent variable and 'Dose' as the fixed factor. The analysis must include a simple contrast comparing the experimental groups (Low and High) against the 'Placebo' group as the reference category. Include descriptive statistics in the results and save the JASP project to '/home/ga/Documents/JASP/Viagra_Contrasts.jasp'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/anova_planned_contrasts_viagra/setup_task.sh",
+    "post_task": "/workspace/tasks/anova_planned_contrasts_viagra/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/Viagra_Contrasts.jasp",
+    "dataset_path": "/home/ga/Documents/JASP/Viagra.csv",
+    "reference_level": "Placebo",
+    "contrast_type": "simple",
+    "dependent_variable": "Libido",
+    "grouping_variable": "Dose"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anova_contrasts"
+    }
+  }
+}

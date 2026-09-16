@@ -1,0 +1,53 @@
+{
+  "task_id": "entrypoint_debugging@1",
+  "task_completion": [
+    {
+      "id": "dockerfiles_and_scripts_fixed",
+      "description": "Verify that the agent edited the Dockerfiles or entrypoint scripts in the project directory to fix the startup issues.",
+      "points": 20,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal commands (like sed, echo, or cat) showing modifications to Dockerfile or entrypoint.sh files within /home/ga/entrypoint-debug/."
+    },
+    {
+      "id": "all_services_running",
+      "description": "Verify that all three required services (Gateway, API, Worker) are running simultaneously without crashing.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker ps' or 'docker compose ps' showing containers for gateway, api, and worker all with a status of 'Up' (not 'Exited')."
+    },
+    {
+      "id": "gateway_responds_8080",
+      "description": "Verify that the Gateway service responds correctly on host port 8080.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'curl http://localhost:8080' showing a successful HTTP response, or a web browser successfully loading localhost:8080."
+    },
+    {
+      "id": "api_responds_5000_health",
+      "description": "Verify that the API service is reachable from the host and responds on the /health endpoint at port 5000.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'curl http://localhost:5000/health' showing a successful response (e.g., a JSON payload indicating health), or a web browser showing the same."
+    },
+    {
+      "id": "worker_processes_5s_interval",
+      "description": "Verify that the Worker service is processing jobs using the configured 5-second interval.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker logs' for the worker container showing log entries with timestamps approximately 5 seconds apart, or log messages explicitly confirming the 5-second interval."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_docker_compose",
+      "description": "Ensure the agent actually used Docker Compose to run the stack.",
+      "visual_evidence": "Presence of 'docker compose up' or 'docker-compose up' commands in the terminal, confirming the services are running via Docker and not as standalone host processes."
+    },
+    {
+      "id": "genuine_file_edits",
+      "description": "Ensure the agent modified the actual project files rather than creating a separate mock project.",
+      "visual_evidence": "File paths in the editor or terminal commands must point to /home/ga/entrypoint-debug/."
+    },
+    {
+      "id": "no_mocked_endpoints",
+      "description": "Ensure the agent didn't bypass Docker to fake the port responses.",
+      "visual_evidence": "No evidence of the agent running standalone python (e.g., 'python3 -m http.server') or node scripts directly on the host machine to listen on ports 8080 or 5000."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/entrypoint-debug. Expected services are 'gateway', 'api', and 'worker'. Gateway must be published on port 8080, API on port 5000, and Worker must receive and use a 5-second interval (--interval 5)."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "db_reader_patient_feed@1",
+  "task_completion": [
+    {
+      "id": "api_usage_visible",
+      "description": "Agent uses the NextGen Connect API with the required header to create and deploy the channel.",
+      "points": 15,
+      "visual_evidence": "Screenshots show a script (e.g., Python) or terminal commands (e.g., curl) making requests to 'https://localhost:8443/api' with the header 'X-Requested-With: OpenAPI'."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "The channel 'DB_Patient_Registration_Feed' is successfully created and deployed.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the channel listed in the NextGen Connect Administrator GUI as deployed, or an API response indicating successful deployment."
+    },
+    {
+      "id": "database_updated",
+      "description": "The database records are updated to mark them as processed.",
+      "points": 15,
+      "visual_evidence": "Screenshots show a database query result where the 'processed' column in the 'patient_registrations' table is set to true (or 't')."
+    },
+    {
+      "id": "hl7_files_created",
+      "description": "HL7 files are written to the specified output directory.",
+      "points": 15,
+      "visual_evidence": "Screenshots show a terminal or file explorer listing multiple files with '.hl7' extensions in the '/opt/connect/outbound_hl7' directory."
+    },
+    {
+      "id": "hl7_msh_evn_segments",
+      "description": "The generated HL7 messages contain the correct MSH and EVN segments.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the content of an output '.hl7' file. The MSH segment must contain 'REGISTRATION_PORTAL', 'DOWNSTREAM_HIS', 'ADT^A04', and '2.5.1'. The EVN segment must contain 'A04' and a timestamp."
+    },
+    {
+      "id": "hl7_pid_pv1_segments",
+      "description": "The generated HL7 messages contain the correct PID and PV1 segments.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the content of an output '.hl7' file. The PID segment must contain patient details (MRN, name, DOB, gender, address, phone). The PV1 segment must contain 'O' and 'REG'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "api_interaction_genuine",
+      "description": "The agent genuinely interacted with the NextGen Connect API.",
+      "visual_evidence": "Screenshots show execution of scripts or curl commands targeting the API, with authentic server responses, rather than just writing the script without running it."
+    },
+    {
+      "id": "automated_hl7_generation",
+      "description": "HL7 files were generated automatically by the NextGen Connect channel.",
+      "visual_evidence": "Multiple '.hl7' files are present in the output directory, indicating automated generation, rather than the agent manually creating and typing out individual HL7 files."
+    },
+    {
+      "id": "no_manual_db_update",
+      "description": "The database 'processed' column was updated by the channel, not manually by the agent.",
+      "visual_evidence": "The terminal history does not show the agent manually executing an 'UPDATE patient_registrations SET processed = true' SQL command to bypass the channel's update requirement."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a NextGen Connect channel named 'DB_Patient_Registration_Feed' via its API (https://localhost:8443/api) using the header 'X-Requested-With: OpenAPI'. The channel reads from PostgreSQL (jdbc:postgresql://nextgen-postgres:5432/mirthdb, table 'patient_registrations') and writes HL7 v2.5.1 ADT^A04 messages to /opt/connect/outbound_hl7. The database contains 25 synthetic patient records. The output HL7 files must contain specific MSH, EVN, PID, and PV1 segments as defined in the task. The channel must also update the 'processed' column to true for polled records."
+}

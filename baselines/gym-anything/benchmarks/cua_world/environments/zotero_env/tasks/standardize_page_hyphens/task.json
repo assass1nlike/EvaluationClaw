@@ -1,0 +1,41 @@
+{
+  "id": "standardize_page_hyphens@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Your Zotero library contains citation data with inconsistent page number formatting. Standardize the 'Pages' field for the following three papers to use a single hyphen ('-') instead of double hyphens ('--') or en-dashes ('–'): 'On Computable Numbers, with an Application to the Entscheidungsproblem' (Turing, 1936), 'A Mathematical Theory of Communication' (Shannon, 1948), and 'Deep Residual Learning for Image Recognition' (He et al., 2016).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/standardize_page_hyphens/setup_task.sh",
+    "post_task": "/workspace/tasks/standardize_page_hyphens/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title_fragment": "On Computable Numbers",
+        "expected_pages": "230-265",
+        "initial_corruption": "230--265"
+      },
+      {
+        "title_fragment": "A Mathematical Theory of Communication",
+        "expected_pages": "379-423",
+        "initial_corruption": "379–423"
+      },
+      {
+        "title_fragment": "Deep Residual Learning",
+        "expected_pages": "770-778",
+        "initial_corruption": "770--778"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_standardize_page_hyphens"
+    }
+  }
+}

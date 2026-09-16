@@ -1,0 +1,53 @@
+{
+  "task_id": "synoptic_combine_plot_lecture@1",
+  "task_completion": [
+    {
+      "id": "load_datasets_panoply",
+      "description": "Open Panoply and load both the air temperature and sea level pressure datasets.",
+      "points": 10,
+      "visual_evidence": "The Panoply application window is open, and the 'Sources' or 'Datasets' panel lists both 'air.mon.ltm.nc' and 'slp.mon.ltm.nc'."
+    },
+    {
+      "id": "create_combined_plot",
+      "description": "Create a combined plot overlaying January SLP contours on January air temperature color fill.",
+      "points": 30,
+      "visual_evidence": "A Panoply plot window showing a map with both color fill (representing temperature) and contour lines (representing pressure). The time/array index should indicate January (e.g., time step 1 or index 0)."
+    },
+    {
+      "id": "create_standalone_slp_plot",
+      "description": "Create a standalone plot for January Sea Level Pressure.",
+      "points": 20,
+      "visual_evidence": "A Panoply plot window showing a map of only Sea Level Pressure (slp), typically as a color fill or contour plot without the temperature data overlaid, set to January."
+    },
+    {
+      "id": "export_plots",
+      "description": "Export the combined plot and standalone SLP plot to the SynopticLecture directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window, terminal `ls` output, or Panoply 'Save As' dialog showing 'combine_temp_slp_jan.png' and 'slp_standalone_jan.png' being saved to or existing in '~/Documents/SynopticLecture/'."
+    },
+    {
+      "id": "create_teaching_notes",
+      "description": "Create the structured teaching notes file documenting the SLP for a major Low and High in January, using correct physical units (hPa/mb).",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'synoptic_teaching_notes.txt' in '~/Documents/SynopticLecture/'. The text must contain SLP values for a Low and High. The values must be in the physical range of ~970 to 1060 (e.g., 990, 1020). If the values are divided by 100 (e.g., 9.9, 10.2), this item should not receive points."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_panoply",
+      "description": "The agent used the Panoply GUI to create the plots.",
+      "visual_evidence": "Screenshots show the Panoply graphical interface being actively used (menus, plot windows, array tabs) rather than a Python script or CLI tool generating the images."
+    },
+    {
+      "id": "genuine_value_extraction",
+      "description": "The agent extracted actual values from the Panoply plot interface rather than hallucinating or blindly following the misleading prompt instructions.",
+      "visual_evidence": "The agent is seen clicking on the plot or using the 'Array' tab in Panoply to read the actual data values (which are in millibars/hPa) before writing them to the teaching notes."
+    },
+    {
+      "id": "no_terminal_plot_bypass",
+      "description": "The agent did not use terminal commands to bypass the Panoply requirement.",
+      "visual_evidence": "Terminal history does not show the execution of Python scripts (e.g., using matplotlib/xarray) or ImageMagick commands to generate or combine the expected PNG files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected outputs are combine_temp_slp_jan.png, slp_standalone_jan.png, and synoptic_teaching_notes.txt in ~/Documents/SynopticLecture/. The teaching notes must document a major climatological Low and High SLP in January. The valid SLP range for a Low is [970, 1015] hPa and for a High is [1015, 1060] hPa. Crucially, the task instructions mislead the agent by stating the data is in Pascals and must be divided by 100. The actual netCDF data is in millibars (hPa), so the agent must NOT divide the values by 100. If the notes show values like 9.9 or 10.2 instead of 990 or 1020, the agent fell for the trap and failed the physical plausibility check."
+}

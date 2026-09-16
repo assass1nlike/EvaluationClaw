@@ -1,0 +1,65 @@
+{
+  "task_id": "process_triage_list@1",
+  "task_completion": [
+    {
+      "id": "read_triage_list",
+      "description": "The agent opens and reads the triage list.",
+      "points": 10,
+      "visual_evidence": "A text editor or file viewer is open displaying the contents of '/home/ga/Desktop/triage_list.txt', showing the patient names and details."
+    },
+    {
+      "id": "alice_martin_record",
+      "description": "The agent accesses the existing record for Alice MARTIN.",
+      "points": 10,
+      "visual_evidence": "The MedinTux application shows the patient record for Alice MARTIN (DOB 1980-05-15). The agent should be viewing her existing profile, not creating a new one."
+    },
+    {
+      "id": "alice_martin_note",
+      "description": "The agent adds a clinical note for Alice MARTIN.",
+      "points": 20,
+      "visual_evidence": "Within Alice MARTIN's record in MedinTux, a new clinical note or consultation entry is visible containing her vitals (Temperature, BP) and main symptom."
+    },
+    {
+      "id": "bob_dubois_record",
+      "description": "The agent creates a new record for Bob DUBOIS.",
+      "points": 10,
+      "visual_evidence": "The MedinTux application shows a new patient creation form being filled out or a newly created profile for Bob DUBOIS (DOB 1992-11-20)."
+    },
+    {
+      "id": "bob_dubois_note",
+      "description": "The agent adds a clinical note for Bob DUBOIS.",
+      "points": 20,
+      "visual_evidence": "Within Bob DUBOIS's record in MedinTux, a new clinical note or consultation entry is visible containing his vitals (Temperature, BP) and main symptom."
+    },
+    {
+      "id": "charlie_lefebvre_record",
+      "description": "The agent accesses the existing record for Charlie LEFEBVRE.",
+      "points": 10,
+      "visual_evidence": "The MedinTux application shows the patient record for Charlie LEFEBVRE (DOB 1975-03-10). The agent should be viewing his existing profile, not creating a new one."
+    },
+    {
+      "id": "charlie_lefebvre_note",
+      "description": "The agent adds a clinical note for Charlie LEFEBVRE.",
+      "points": 20,
+      "visual_evidence": "Within Charlie LEFEBVRE's record in MedinTux, a new clinical note or consultation entry is visible containing his vitals (Temperature, BP) and main symptom."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_medintux_gui",
+      "description": "The agent used the MedinTux GUI to complete the task.",
+      "visual_evidence": "The agent interacts with the MedinTux graphical interface to manage patients and notes. It does not use terminal commands (like mysql) to insert data directly into the database."
+    },
+    {
+      "id": "no_duplicates_created",
+      "description": "The agent did not create duplicate records for existing patients.",
+      "visual_evidence": "For Alice MARTIN and Charlie LEFEBVRE, the agent uses the search function and selects their existing records. It does not open the 'new patient' form for them."
+    },
+    {
+      "id": "genuine_notes_in_app",
+      "description": "The clinical notes are entered into the MedinTux application.",
+      "visual_evidence": "The vitals and symptoms are typed into the appropriate text areas within the MedinTux application's consultation or notes section, rather than being written in a separate text file or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The triage list is located at /home/ga/Desktop/triage_list.txt and contains three patients: Alice MARTIN (DOB 1980-05-15), Bob DUBOIS (DOB 1992-11-20), and Charlie LEFEBVRE (DOB 1975-03-10). Alice MARTIN and Charlie LEFEBVRE are existing patients in the MedinTux database; the agent must search for them and update their records without creating duplicates. Bob DUBOIS is a new patient and requires a new record to be created. For each patient, the agent must create a new clinical note containing their Temperature, BP, and main symptom."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "correct_diagnosis_error@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Dr. Chen noticed an error in Maria Garcia's chart. Her condition is recorded as 'Essential Hypertension' (401), but it should be 'Secondary Hypertension' (405). Using the credentials oscardoc/oscar/1117, update Maria Garcia's Disease Registry/Problem List in OSCAR to reflect the correct diagnosis of Secondary Hypertension (405).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_diagnosis_error/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_diagnosis_error/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Maria",
+    "patient_lname": "Garcia",
+    "incorrect_code": "401",
+    "incorrect_desc": "Essential Hypertension",
+    "target_code": "405",
+    "target_desc": "Secondary Hypertension",
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_correct_diagnosis_error"
+    }
+  }
+}

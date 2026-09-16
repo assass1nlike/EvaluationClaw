@@ -1,0 +1,53 @@
+{
+  "task_id": "delete_dive@1",
+  "task_completion": [
+    {
+      "id": "open_subsurface_app",
+      "description": "Open the Subsurface application",
+      "points": 10,
+      "visual_evidence": "The Subsurface application window is open and visible on the screen."
+    },
+    {
+      "id": "load_dive_log_file",
+      "description": "Load the specified dive log file",
+      "points": 20,
+      "visual_evidence": "The file '/home/ga/Documents/dives.ssrf' is loaded, which can be verified by the file path in the application's title bar or within a file open dialog."
+    },
+    {
+      "id": "select_target_dive",
+      "description": "Locate and select the target dive to be deleted",
+      "points": 20,
+      "visual_evidence": "The bottom-most/most recent dive entry (Date: 2014-10-10, Time: 12:34:34, Location: Divi Flamingo House Reef) is highlighted, selected, or right-clicked in the dive list."
+    },
+    {
+      "id": "delete_target_dive",
+      "description": "Delete the target dive entry",
+      "points": 20,
+      "visual_evidence": "The target dive (2014-10-10 12:34:34) is no longer visible in the dive list, while the other older dives remain."
+    },
+    {
+      "id": "save_updated_file",
+      "description": "Save the updated dive log file",
+      "points": 30,
+      "visual_evidence": "The agent clicks the 'Save' button/icon, uses the File -> Save menu, or the application title bar no longer shows an 'unsaved changes' indicator (like an asterisk next to the filename)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "Agent used the Subsurface GUI application to delete the dive",
+      "visual_evidence": "The agent interacted with the Subsurface application interface rather than opening the .ssrf XML file in a plain text editor or using terminal commands like 'sed' or 'grep'."
+    },
+    {
+      "id": "no_unrelated_deletions",
+      "description": "Agent did not delete other valid dive entries",
+      "visual_evidence": "The rest of the dive list remains intact (there should be 28 dives remaining after deleting the target dive)."
+    },
+    {
+      "id": "genuine_save_action",
+      "description": "Agent performed a genuine save action",
+      "visual_evidence": "A save action is visually confirmed through the application's UI menus, icons, or dialog boxes."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is /home/ga/Documents/dives.ssrf. The target dive to be deleted is the chronologically last dive (date '2014-10-10', time '12:34:34', location 'Divi Flamingo House Reef'). Note that the prompt's description of it being a 'shallow pool checkout session' is fabricated roleplay; the VLM should look for the dive matching the date/time/location mentioned."
+}

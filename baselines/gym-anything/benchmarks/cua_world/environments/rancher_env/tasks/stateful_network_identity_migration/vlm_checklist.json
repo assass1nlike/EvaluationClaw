@@ -1,0 +1,53 @@
+{
+  "task_id": "stateful_network_identity_migration@1",
+  "task_completion": [
+    {
+      "id": "read_specifications",
+      "description": "Open and read the architecture specifications on the desktop",
+      "points": 10,
+      "visual_evidence": "A document, text file, or image viewer open on the desktop displaying the detailed architecture specifications for the hazelcast workload."
+    },
+    {
+      "id": "create_headless_service",
+      "description": "Create a headless service named 'hazelcast-discovery'",
+      "points": 20,
+      "visual_evidence": "Rancher UI Service creation or details screen showing a Service named 'hazelcast-discovery' in the 'data-grid' namespace with the Cluster IP explicitly set to 'None' or marked as Headless."
+    },
+    {
+      "id": "delete_stateless_workload",
+      "description": "Delete the existing stateless 'hazelcast-mock' deployment",
+      "points": 20,
+      "visual_evidence": "Rancher UI Workloads list for the 'data-grid' namespace showing the original 'hazelcast-mock' Deployment being deleted, or a confirmation prompt for its deletion."
+    },
+    {
+      "id": "create_statefulset",
+      "description": "Create a new StatefulSet named 'hazelcast-mock' with 3 replicas",
+      "points": 30,
+      "visual_evidence": "Rancher UI Workloads screen showing the creation or active status of a StatefulSet named 'hazelcast-mock' in the 'data-grid' namespace, with the replica count set to 3."
+    },
+    {
+      "id": "link_headless_service",
+      "description": "Link the StatefulSet to the 'hazelcast-discovery' headless service",
+      "points": 20,
+      "visual_evidence": "Rancher UI StatefulSet configuration or details page for 'hazelcast-mock' showing the 'Service Name' or 'Headless Service' field explicitly set to 'hazelcast-discovery'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_gui",
+      "description": "The agent used the Rancher web interface to perform the migration",
+      "visual_evidence": "The browser is open to https://localhost showing the Rancher UI, rather than a terminal window running kubectl commands."
+    },
+    {
+      "id": "genuine_resource_creation",
+      "description": "The agent actually created and modified resources in the cluster",
+      "visual_evidence": "Rancher UI shows actual resource lists, creation forms, or success notifications, not just text typed into a notepad or a mock interface."
+    },
+    {
+      "id": "correct_workload_type",
+      "description": "The agent created a StatefulSet, not just another Deployment",
+      "visual_evidence": "The workload type for the new 'hazelcast-mock' is clearly labeled as 'StatefulSet' in the Rancher UI, rather than 'Deployment' or 'DaemonSet'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace is 'data-grid'. Target workload is 'hazelcast-mock'. The pass threshold for the task is 75 points. The task requires replacing the existing Deployment with a StatefulSet and linking it to a headless service."
+}

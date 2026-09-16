@@ -1,0 +1,53 @@
+{
+  "task_id": "metadata_reconstruction_band_stacking@1",
+  "task_completion": [
+    {
+      "id": "load_raw_files",
+      "description": "Load the raw Red and NIR band files into the application.",
+      "points": 10,
+      "visual_evidence": "The files 'sentinel2_B04_red.tif' and 'sentinel2_B08_nir.tif' should be visible as opened products in the application's product explorer or workspace."
+    },
+    {
+      "id": "create_multiband_product",
+      "description": "Create a single multi-band product from the raw files.",
+      "points": 20,
+      "visual_evidence": "A new product (e.g., created via a Stack, Collocation, or Band Math tool) should be visible in the workspace, containing bands from both the Red and NIR source files."
+    },
+    {
+      "id": "rename_bands",
+      "description": "Rename the bands in the new product to 'S2_Red' and 'S2_NIR'.",
+      "points": 20,
+      "visual_evidence": "The bands within the newly created multi-band product should be explicitly named 'S2_Red' and 'S2_NIR' in the product tree or band list."
+    },
+    {
+      "id": "set_wavelengths",
+      "description": "Set the spectral wavelengths for the bands to 665.0 nm and 842.0 nm.",
+      "points": 20,
+      "visual_evidence": "A band properties dialog or metadata view should show the wavelength property set to 665.0 for the 'S2_Red' band and 842.0 for the 'S2_NIR' band."
+    },
+    {
+      "id": "save_final_product",
+      "description": "Save the final product in BEAM-DIMAP format to the specified export directory.",
+      "points": 30,
+      "visual_evidence": "A save dialog, export confirmation, or file manager window showing the file 's2_reconstructed_stack.dim' being saved or existing in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_genuine_software",
+      "description": "The agent used genuine Earth Observation software (like ESA SNAP) to process the data.",
+      "visual_evidence": "The screenshots should show the interface of a real remote sensing application (e.g., SNAP) being used, rather than a text editor or a mock interface."
+    },
+    {
+      "id": "actual_band_modification",
+      "description": "The agent actually modified the band properties rather than just renaming files.",
+      "visual_evidence": "There should be evidence of interacting with band properties/metadata dialogs within the software, not just renaming files in a file manager."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not simply create a dummy file with the target name.",
+      "visual_evidence": "The final saved file should be the result of an export or save operation from the software containing the processed bands, rather than a simple 'touch' command or empty file creation in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The raw input files are located at '/home/ga/snap_data/sentinel2_B04_red.tif' and '/home/ga/snap_data/sentinel2_B08_nir.tif'. The expected output file must be saved to '/home/ga/snap_exports/s2_reconstructed_stack.dim'. The target wavelengths are exactly 665.0 nm for the Red band and 842.0 nm for the NIR band."
+}

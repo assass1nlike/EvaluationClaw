@@ -1,0 +1,59 @@
+{
+  "task_id": "design_swept_blade@1",
+  "task_completion": [
+    {
+      "id": "project_loaded",
+      "description": "Load the 'HAWT_Start.wpa' project in QBlade.",
+      "points": 10,
+      "visual_evidence": "The QBlade application is open and 'HAWT_Start' is visible in the project tree, workspace, or application title bar."
+    },
+    {
+      "id": "blade_design_interface_opened",
+      "description": "Open the blade design or geometry modification interface.",
+      "points": 10,
+      "visual_evidence": "A blade design table or geometry editor is visible, showing rows for different blade sections (radius, chord, twist, offsets, etc.)."
+    },
+    {
+      "id": "x_offset_modified",
+      "description": "Set the tip section X-Offset (Sweep) to 2.0 m.",
+      "points": 25,
+      "visual_evidence": "In the blade design table, the 'X-Offset' or 'Sweep' column for the tip section (the row with the highest radius value) is set to 2.0 (or within 1.9 to 2.1)."
+    },
+    {
+      "id": "y_offset_modified",
+      "description": "Set the tip section Y-Offset (Pre-bend) to 1.5 m.",
+      "points": 25,
+      "visual_evidence": "In the blade design table, the 'Y-Offset' or 'Pre-bend' column for the tip section (the row with the highest radius value) is set to 1.5 (or within 1.4 to 1.6)."
+    },
+    {
+      "id": "project_saved",
+      "description": "Save the modified project as swept_blade.wpa.",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog box shows the file being saved as 'swept_blade.wpa' in the /home/ga/Documents/projects/ directory, or the QBlade title bar updates to reflect the new filename."
+    },
+    {
+      "id": "stl_exported",
+      "description": "Export the blade geometry as an STL file.",
+      "points": 15,
+      "visual_evidence": "An export dialog box or file manager shows 'swept_blade.stl' being saved to the /home/ga/Documents/projects/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the QBlade graphical user interface to perform the modifications.",
+      "visual_evidence": "Screenshots should show the agent clicking through QBlade menus, tables, and dialogs rather than executing scripts to bypass the UI."
+    },
+    {
+      "id": "no_text_editor_hack",
+      "description": "The agent must not manually edit the project file using a text editor.",
+      "visual_evidence": "There should be no instances of the agent opening the .wpa file in a text editor (like nano, vim, or gedit) to manually change XML/text values."
+    },
+    {
+      "id": "no_terminal_mocking",
+      "description": "The agent must not use terminal commands to create fake output files.",
+      "visual_evidence": "The agent should not use commands like 'touch /home/ga/Documents/projects/swept_blade.stl' or 'cp' to simply create dummy files without actually exporting from QBlade."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying a wind turbine blade in QBlade. The target X-Offset (Sweep) for the tip section is 2.0 m, and the target Y-Offset (Pre-bend) is 1.5 m. A tolerance of \u00b10.1 m is acceptable for both values. The tip section is typically the last row in the blade geometry table (highest radius). The expected project save path is /home/ga/Documents/projects/swept_blade.wpa and the expected STL export path is /home/ga/Documents/projects/swept_blade.stl."
+}

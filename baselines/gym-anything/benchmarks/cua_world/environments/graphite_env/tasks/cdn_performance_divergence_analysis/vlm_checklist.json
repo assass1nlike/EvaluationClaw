@@ -1,0 +1,65 @@
+{
+  "task_id": "cdn_performance_divergence_analysis@1",
+  "task_completion": [
+    {
+      "id": "graph_1_query_creation",
+      "description": "Create the first graph calculating the absolute difference between the two speed sensors.",
+      "points": 15,
+      "visual_evidence": "The query editor for a graph panel shows the use of 'absolute' and 'diffSeries' functions applied to 'servers.web_traffic.speed_sensor_1' and 'servers.web_traffic.speed_sensor_2'."
+    },
+    {
+      "id": "graph_1_title_and_alias",
+      "description": "Set the correct title and alias for the first graph.",
+      "points": 10,
+      "visual_evidence": "The graph panel is titled 'Absolute Speed Divergence' and the legend displays the alias 'Absolute Gap'."
+    },
+    {
+      "id": "graph_2_query_creation",
+      "description": "Create the second graph calculating the performance ratio of sensor 1 to sensor 2.",
+      "points": 15,
+      "visual_evidence": "The query editor for a graph panel shows the use of the 'divideSeries' function with 'speed_sensor_1' as the dividend and 'speed_sensor_2' as the divisor."
+    },
+    {
+      "id": "graph_2_title_and_alias",
+      "description": "Set the correct title and alias for the second graph.",
+      "points": 10,
+      "visual_evidence": "The graph panel is titled 'S1/S2 Performance Ratio' and the legend displays the alias 'S1 to S2 Ratio'."
+    },
+    {
+      "id": "graph_3_query_creation",
+      "description": "Create the third graph calculating a 10-point moving average of the minimum value across both sensors.",
+      "points": 20,
+      "visual_evidence": "The query editor for a graph panel shows the use of 'movingAverage' (with a parameter of 10) and 'minSeries' functions applied to both speed sensors."
+    },
+    {
+      "id": "graph_3_title_and_alias",
+      "description": "Set the correct title and alias for the third graph.",
+      "points": 10,
+      "visual_evidence": "The graph panel is titled 'Smoothed Lower Bound Floor' and the legend displays the alias 'Smoothed Worst Speed'."
+    },
+    {
+      "id": "dashboard_saved_with_correct_name",
+      "description": "Save the dashboard with the exact requested name.",
+      "points": 20,
+      "visual_evidence": "The dashboard title at the top of the screen or in the save dialog is exactly 'CDN Routing Divergence'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verification",
+      "description": "Verify the agent used the monitoring application GUI (e.g., Grafana/Graphite) to create the dashboard.",
+      "visual_evidence": "Screenshots should show the agent clicking through the UI, adding panels, and using the query builder/editor, rather than just running a script in the terminal to generate a JSON dashboard file."
+    },
+    {
+      "id": "real_data_rendering",
+      "description": "Verify the graphs are actually rendering data.",
+      "visual_evidence": "The graph panels should display actual plotted lines or data points, confirming that the metrics are correctly queried from the backend and not just empty mockups."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Verify the agent did not simply type the expected output into a text editor.",
+      "visual_evidence": "The active window should be a web browser displaying the monitoring tool, not a text editor or terminal echoing the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Dashboard Name: 'CDN Routing Divergence'. Expected Graph Titles: 'Absolute Speed Divergence', 'S1/S2 Performance Ratio', 'Smoothed Lower Bound Floor'. The task requires using specific series functions (absolute, diffSeries, divideSeries, movingAverage, minSeries) and aliases ('Absolute Gap', 'S1 to S2 Ratio', 'Smoothed Worst Speed') within a monitoring UI."
+}

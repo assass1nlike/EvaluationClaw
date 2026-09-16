@@ -1,0 +1,26 @@
+{
+  "id": "audit_failed_login_attempt@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "Investigate a security incident where a failed login attempt was detected for the admin account in FreeScout (admin@helpdesk.local / Admin123!). Identify the source IP address of the most recent 'Failed login' event for the admin user and save only the IP address to /home/ga/suspicious_ip.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_failed_login_attempt/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_failed_login_attempt/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "suspicious_ip.txt",
+    "target_user_email": "admin@helpdesk.local"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_failed_login_attempt"
+    }
+  }
+}

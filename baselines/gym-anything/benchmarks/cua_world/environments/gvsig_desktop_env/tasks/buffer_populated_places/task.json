@@ -1,0 +1,33 @@
+{
+  "id": "buffer_populated_places@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Perform a buffer analysis on the world cities dataset located at /home/ga/gvsig_data/cities/ne_110m_populated_places.shp. Use a buffer distance of 3.0 degrees. Export the resulting buffer polygons to /home/ga/gvsig_data/exports/city_buffers.shp and ensure the layer is added to the view.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/buffer_populated_places/setup_task.sh",
+    "post_task": "/workspace/tasks/buffer_populated_places/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "output_path": "/home/ga/gvsig_data/exports/city_buffers.shp",
+    "expected_geometry_type": 5,
+    "min_feature_count": 100,
+    "expected_files": [
+      "city_buffers.shp",
+      "city_buffers.dbf",
+      "city_buffers.shx"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_buffer_populated_places"
+    }
+  }
+}

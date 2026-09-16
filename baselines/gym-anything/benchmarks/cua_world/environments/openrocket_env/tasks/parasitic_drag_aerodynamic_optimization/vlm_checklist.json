@@ -1,0 +1,59 @@
+{
+  "task_id": "parasitic_drag_aerodynamic_optimization@1",
+  "task_completion": [
+    {
+      "id": "open_initial_design",
+      "description": "Open the initial rocket design in OpenRocket",
+      "points": 10,
+      "visual_evidence": "The OpenRocket application window is open with 'drag_heavy_rocket.ork' visible in the title bar or the file loading screen."
+    },
+    {
+      "id": "change_surface_finishes",
+      "description": "Change all external surface finishes to 'Polished'",
+      "points": 20,
+      "visual_evidence": "Component configuration dialog windows (e.g., for Nose cone, Body tube, or Fins) open in OpenRocket with the 'Finish' or 'Surface finish' dropdown explicitly set to 'Polished'."
+    },
+    {
+      "id": "change_fin_cross_section",
+      "description": "Update fin cross-sections to 'Airfoil'",
+      "points": 20,
+      "visual_evidence": "The fin configuration dialog window (e.g., Trapezoidal fin set) open with the 'Cross section' dropdown explicitly set to 'Airfoil'."
+    },
+    {
+      "id": "remove_launch_lug",
+      "description": "Remove the launch lug from the rocket design",
+      "points": 10,
+      "visual_evidence": "The component tree in the top-left panel of the OpenRocket GUI shows the rocket components, and the 'Launch lug' is visibly absent or seen being deleted."
+    },
+    {
+      "id": "save_optimized_design",
+      "description": "Save the optimized design to the specified path",
+      "points": 10,
+      "visual_evidence": "A 'Save As' dialog saving the file as 'optimized_rocket.ork' in the /home/ga/Documents/rockets/ directory, or the OpenRocket main window title updated to 'optimized_rocket.ork'."
+    },
+    {
+      "id": "create_aerodynamic_report",
+      "description": "Document the apogee metrics and summary of changes in a text report",
+      "points": 30,
+      "visual_evidence": "A text editor window open showing the file 'aerodynamic_report.txt' containing documented values for baseline apogee, optimized apogee, net altitude gain, and a summary of the aerodynamic changes made."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the OpenRocket GUI to modify the rocket design",
+      "visual_evidence": "Screenshots should show the agent interacting with OpenRocket's graphical interface (component tree, edit dialogs) rather than using terminal commands or a text editor to directly modify the XML structure of the .ork file."
+    },
+    {
+      "id": "simulation_execution",
+      "description": "Agent ran actual simulations to obtain apogee values",
+      "visual_evidence": "Screenshots should show the 'Flight simulations' tab in OpenRocket being used to run simulations and read the apogee results, ensuring the numbers in the report are not hallucinated."
+    },
+    {
+      "id": "motor_integrity",
+      "description": "Agent did not alter the motor configuration to cheat the altitude gain",
+      "visual_evidence": "The 'Motors & Configuration' tab in OpenRocket, if visible, should show that the motor remains 'G80'. There should be no evidence of the agent selecting a more powerful motor."
+    }
+  ],
+  "privileged_info_for_vlm": "The initial rocket file is located at /home/ga/Documents/rockets/drag_heavy_rocket.ork. The optimized rocket must be saved to /home/ga/Documents/rockets/optimized_rocket.ork. The report must be saved to /home/ga/Documents/exports/aerodynamic_report.txt. The required motor configuration is 'G80' and must not be changed (changing it is considered cheating). The required surface finish for external components (nosecone, bodytube, trapezoidfinset) is exactly 'polished'. The required fin cross-section is exactly 'airfoil'."
+}

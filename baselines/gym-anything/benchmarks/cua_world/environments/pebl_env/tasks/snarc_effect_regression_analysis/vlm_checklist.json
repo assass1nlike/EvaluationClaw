@@ -1,0 +1,53 @@
+{
+  "task_id": "snarc_effect_regression_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent opens or writes code to read the input dataset.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a script (e.g., Python, R) reading '~/pebl/data/snarc_data.csv', or the file being opened in a spreadsheet/data viewer."
+    },
+    {
+      "id": "identify_contamination",
+      "description": "Agent identifies the contaminated participant based on invariant reaction times or accuracy.",
+      "points": 20,
+      "visual_evidence": "Code logic filtering for invariant RTs/accuracy, terminal output showing data exploration that flags 'sub-99', or explicit mention of 'sub-99' having 45.0ms RTs."
+    },
+    {
+      "id": "compute_individual_statistics",
+      "description": "Agent computes mean accuracy and SNARC slope for each participant.",
+      "points": 20,
+      "visual_evidence": "Code showing calculations for mean accuracy (before filtering) and within-subject regression (Lorch & Myers method) to find the SNARC slope for each participant."
+    },
+    {
+      "id": "compute_group_mean",
+      "description": "Agent computes the group mean SNARC slope excluding the contaminated participant.",
+      "points": 20,
+      "visual_evidence": "Code or calculations showing the aggregation (mean) of the individual SNARC slopes for valid participants only (excluding sub-99)."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent formats and saves the final JSON report.",
+      "points": 30,
+      "visual_evidence": "A file named 'snarc_report.json' in '~/pebl/analysis/' containing a 'participants' list (with id, snarc_slope_ms_per_digit, mean_accuracy) and a 'group_mean_snarc_slope' field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation",
+      "description": "Agent performed actual calculations rather than hallucinating the results.",
+      "visual_evidence": "Presence of a script (Python, R, etc.) or statistical software usage that processes the data, rather than a manually typed JSON file with guessed numbers."
+    },
+    {
+      "id": "data_driven_exclusion",
+      "description": "Agent inspected the data to find the anomaly rather than using privileged knowledge.",
+      "visual_evidence": "The agent wrote exploratory code (e.g., checking min/max/std of RTs) or viewed the CSV to discover 'sub-99', rather than hardcoding the exclusion of 'sub-99' without prior inspection."
+    },
+    {
+      "id": "file_system_interaction",
+      "description": "Agent saved the output to the correct file path.",
+      "visual_evidence": "The JSON file is genuinely saved to the file system at '~/pebl/analysis/snarc_report.json' (visible via text editor save path, file explorer, or terminal 'ls'/'cat' commands), not just printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 15 valid participants (sub-01 to sub-15) and one contaminated participant (sub-99). The contaminated participant, sub-99, has impossibly fast and invariant reaction times of exactly 45.0ms with 100% accuracy across all trials. The required analytical method is Lorch & Myers (1990) within-subject regression. The final output must be saved to /home/ga/pebl/analysis/snarc_report.json."
+}

@@ -1,0 +1,78 @@
+{
+  "dataset_id": "ba51da81",
+  "name": "Letter And Number Ocr",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 288,
+  "description": "The dataset focuses on recognizing individual letters and numbers from images. It evaluates a model's ability to perform character-level OCR on simple image crops.",
+  "card_text": "This dataset contains 288 examples for letter and number OCR. Each example consists of an image file showing a single printed or handwritten alphanumeric character (A-Z, a-z, 0-9) and a text prompt instructing the model to 'Recognize the letter or number in the image'. The target output is the recognized character as a short text string. The images are simple, typically containing one centered character, and the task is posed as a multiclass classification over the character set. The dataset is intended for evaluating visual character recognition, often a component of larger OCR pipelines. It tests fine-grained visual discrimination and the ability to map an image to its corresponding character label. The prompt is identical across all samples, so the challenge lies entirely in interpreting the visual input. No additional context or metadata is provided.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "OCR / character recognition",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The image field contains a visual crop showing a single handwritten or printed letter or digit (A-Z, a-z, 0-9). It is the primary input the model must recognize.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is a fixed instruction asking the model to recognize the letter or number in the provided image. It is identical across all samples.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The answer is the recognized character (a single letter or digit) that appears in the image. It is the target output.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image file, a text prompt instructing the model to recognize the character, and the corresponding single-character output. The image is the visual context; the prompt is a fixed instruction; the answer is the recognized character. No other components are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/letter_and_number_ocr/json/annotation.json",
+    "existing_tags": {
+      "task": "letter and number ocr",
+      "type": "comprehension",
+      "skill": "Image OCR (Img OCR)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

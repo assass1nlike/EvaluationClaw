@@ -1,0 +1,36 @@
+{
+  "id": "configurable_product@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a configurable product named 'Oxford Dress Shirt' (SKU: 'SHIRT-OXFORD-001') in the 'Clothing' category with a price of $59.99. The product must utilize a new dropdown attribute 'Shirt Color' (attribute code: 'shirt_color') added to the 'Default' attribute set, with options for 'White', 'Blue', and 'Black' configured for product variations. Generate and enable three associated simple product variants—one for each color—with a quantity of 50 each. If login is required, use admin/Admin1234!.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configurable_product/setup_task.sh",
+    "post_task": "/workspace/tasks/configurable_product/export_result.sh"
+  },
+  "metadata": {
+    "attribute_code": "shirt_color",
+    "attribute_label": "Shirt Color",
+    "options": [
+      "White",
+      "Blue",
+      "Black"
+    ],
+    "product_sku": "SHIRT-OXFORD-001",
+    "product_name": "Oxford Dress Shirt",
+    "product_price": "59.99",
+    "category_name": "Clothing",
+    "variant_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configurable_product"
+    }
+  }
+}

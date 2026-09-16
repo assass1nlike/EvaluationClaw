@@ -1,0 +1,53 @@
+{
+  "task_id": "finite_burn_gravity_loss@1",
+  "task_completion": [
+    {
+      "id": "read_specs",
+      "description": "Agent reads the orbit_raise_specs.txt file.",
+      "points": 10,
+      "visual_evidence": "Terminal output (e.g., using cat, less) or a text editor showing the contents of ~/Desktop/orbit_raise_specs.txt."
+    },
+    {
+      "id": "gmat_script_content",
+      "description": "Agent creates a GMAT script with the required thruster and orbit parameters.",
+      "points": 30,
+      "visual_evidence": "A text editor or GMAT GUI showing script code that includes a ChemicalThruster with 400 N thrust, 316 s Isp, and 80 kg fuel mass, as well as orbit parameters for 400 km and 800 km altitudes."
+    },
+    {
+      "id": "gmat_script_saved",
+      "description": "Agent saves the GMAT script to the correct path.",
+      "points": 20,
+      "visual_evidence": "Terminal command (e.g., ls, cp, mv) or file manager showing gravity_loss_mission.script located in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "report_saved",
+      "description": "Agent saves the report text file to the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal command or file manager showing gravity_loss_report.txt located in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "report_content",
+      "description": "The report contains the required lines with calculated numerical values.",
+      "points": 30,
+      "visual_evidence": "Terminal output or text editor showing the contents of gravity_loss_report.txt containing all 10 required keys (e.g., impulsive_dv1_m_s, gravity_loss_m_s) with actual numerical values instead of the <value> placeholder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution",
+      "description": "Agent actually runs GMAT to compute the results.",
+      "visual_evidence": "The GMAT GUI is open and running the mission, or a terminal shows a command executing GMAT (e.g., GMAT-R2022a or similar) with the created script."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "The agent does not hardcode fake results into the report.",
+      "visual_evidence": "The numerical values in the report appear to be precise floating-point numbers derived from a simulation, not simple integers, all zeros, or the literal string '<value>'."
+    },
+    {
+      "id": "authentic_script",
+      "description": "The GMAT script contains genuine GMAT syntax.",
+      "visual_evidence": "The script file contains valid GMAT objects and commands (e.g., Create Spacecraft, Create ChemicalThruster, Propagate, Target, Maneuver) rather than pseudocode or plain English."
+    }
+  ],
+  "privileged_info_for_vlm": "The initial SMA should be approximately 6771 km (400 km altitude) and final SMA 7171 km (800 km altitude). The impulsive total Delta-V should be between 190 and 250 m/s (theoretically ~217 m/s). The finite total Delta-V should be between 195 and 280 m/s. The gravity loss should be a positive value between 1.0 and 35.0 m/s."
+}

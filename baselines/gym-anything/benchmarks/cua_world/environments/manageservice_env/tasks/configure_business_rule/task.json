@@ -1,0 +1,34 @@
+{
+  "id": "configure_business_rule@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Create a Business Rule named 'Auto-Route Network Issues' in ManageEngine ServiceDesk Plus that triggers upon the creation of a new request. The rule must apply if the subject contains 'network' or 'connectivity' (Match Any). Configure the rule to set the Priority to 'High', Category to 'Network', Subcategory to 'Connectivity', and Group to 'Network Support'. Ensure the rule is enabled and saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_business_rule/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_business_rule/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "rule_name": "Auto-Route Network Issues",
+    "trigger_keywords": [
+      "network",
+      "connectivity"
+    ],
+    "expected_priority": "High",
+    "expected_category": "Network",
+    "expected_subcategory": "Connectivity",
+    "expected_group": "Network Support"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_business_rule"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_waf_sidecar_protection@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "The agent opens the docker-compose.yml file in the legacy-app directory.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim) or terminal showing the contents of '/home/ga/legacy-app/docker-compose.yml' being viewed or edited."
+    },
+    {
+      "id": "add_waf_service",
+      "description": "The agent adds a WAF service using the specified modsecurity image.",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file contains a new service block (e.g., 'waf:') with 'image: owasp/modsecurity-crs:3-nginx'."
+    },
+    {
+      "id": "configure_waf_backend",
+      "description": "The agent configures the BACKEND environment variable for the WAF service.",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file shows an 'environment:' section under the WAF service containing 'BACKEND' pointing to the app service (e.g., 'BACKEND: http://app:8080' or similar)."
+    },
+    {
+      "id": "update_port_mappings",
+      "description": "The agent updates port mappings to route traffic through the WAF and remove direct app access.",
+      "points": 30,
+      "visual_evidence": "The docker-compose.yml file shows the 'ports:' section removed from the 'app' service and added to the WAF service, mapping host port 8080 to the WAF container (e.g., '8080:80' or '8080:8080')."
+    },
+    {
+      "id": "apply_and_verify",
+      "description": "The agent restarts the docker services and verifies the application is accessible.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'docker-compose up' or 'docker compose up' being run, followed by a successful 'curl http://localhost:8080' or a web browser showing the HR dashboard at localhost:8080."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "file_saved",
+      "description": "The agent actually saves the modified docker-compose.yml file.",
+      "visual_evidence": "Terminal showing the file being saved in an editor, or a subsequent 'cat' command showing the updated contents on disk."
+    },
+    {
+      "id": "services_restarted",
+      "description": "The agent genuinely restarts the docker services to apply changes.",
+      "visual_evidence": "Terminal output showing docker containers being recreated, started, or updated (e.g., 'Recreating legacy-app_app_1', 'Creating legacy-app_waf_1')."
+    },
+    {
+      "id": "no_mocking",
+      "description": "The agent does not mock the verification step.",
+      "visual_evidence": "The curl command or browser interaction is genuine and shows actual HTML/UI of the HR dashboard, not a manually echoed text output."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is '/home/ga/legacy-app'. The WAF image must be exactly 'owasp/modsecurity-crs:3-nginx'. The target port to remain accessible on the host is 8080."
+}

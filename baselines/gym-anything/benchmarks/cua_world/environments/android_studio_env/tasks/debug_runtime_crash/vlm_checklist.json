@@ -1,0 +1,59 @@
+{
+  "task_id": "debug_runtime_crash@1",
+  "task_completion": [
+    {
+      "id": "fix_notepad_activity_init",
+      "description": "Fix the UninitializedPropertyAccessException in NotepadActivity.kt",
+      "points": 15,
+      "visual_evidence": "In Android Studio, NotepadActivity.kt is open and the 'formatter' and 'validator' variables are properly initialized (e.g., 'val formatter = NoteFormatter()') rather than being uninitialized 'lateinit var' declarations."
+    },
+    {
+      "id": "fix_note_formatter_substring",
+      "description": "Fix the StringIndexOutOfBoundsException in NoteFormatter.kt",
+      "points": 15,
+      "visual_evidence": "In Android Studio, NoteFormatter.kt is open and the 'formatPreview' method has been modified to safely handle string lengths, removing or guarding the unsafe 'substring(0, maxLength)' call."
+    },
+    {
+      "id": "fix_note_validator_recursion",
+      "description": "Fix the StackOverflowError in NoteValidator.kt",
+      "points": 15,
+      "visual_evidence": "In Android Studio, NoteValidator.kt is open and the 'isNoteComplete' method has been fixed to return a boolean (e.g., 'return true') instead of recursively calling 'isNoteComplete(note)'."
+    },
+    {
+      "id": "fix_note_char_count",
+      "description": "Fix the NumberFormatException in Note.kt",
+      "points": 15,
+      "visual_evidence": "In Android Studio, Note.kt is open and the 'charCount' method has been fixed to remove the unsafe 'Integer.parseInt' call that concatenates length and color."
+    },
+    {
+      "id": "successful_compilation",
+      "description": "The project compiles successfully after the fixes",
+      "points": 20,
+      "visual_evidence": "The Android Studio Build tool window shows a 'Build: completed successfully' message or a green checkmark indicating the Gradle build finished without compilation errors."
+    },
+    {
+      "id": "successful_app_launch",
+      "description": "The app runs correctly on the emulator without crashing",
+      "points": 20,
+      "visual_evidence": "The Android Emulator is visible and displays the running NotepadApp interface. There are no 'App keeps stopping' or crash dialogs visible on the emulator screen."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_android_studio",
+      "description": "The agent used Android Studio to edit the code and build the project",
+      "visual_evidence": "Code edits and build executions are visible within the Android Studio IDE interface, rather than being done exclusively via terminal commands like 'sed' or 'nano'."
+    },
+    {
+      "id": "genuine_emulator_run",
+      "description": "The agent actually ran the app on the Android Emulator",
+      "visual_evidence": "The Android Emulator window is open and actively rendering the app, rather than the agent just claiming success in a text file or terminal."
+    },
+    {
+      "id": "no_test_bypassing",
+      "description": "The agent fixed the actual application code rather than modifying tests or verifier scripts",
+      "visual_evidence": "The edits are in the main application source files (app/src/main/java/com/example/notepad/*.kt) and not in test directories or external script files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 4 specific injected bugs in the NotepadApp located at com/example/notepad: 1) NotepadActivity.kt: 'formatter' and 'validator' must be initialized. 2) NoteFormatter.kt: formatPreview() must remove or fix the unsafe substring(0, maxLength) call. 3) NoteValidator.kt: isNoteComplete() must return true instead of recursively calling itself. 4) Note.kt: charCount() must remove the unsafe Integer.parseInt() concatenation. The app must compile and run successfully on the emulator."
+}

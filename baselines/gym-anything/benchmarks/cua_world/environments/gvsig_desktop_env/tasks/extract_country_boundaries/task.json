@@ -1,0 +1,28 @@
+{
+  "id": "extract_country_boundaries@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "In the 'countries_base' project, convert the 'ne_110m_admin_0_countries' polygon layer into a line layer to extract the boundaries of the countries. Export the resulting shapefile to /home/ga/gvsig_data/exports/country_boundaries.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_country_boundaries/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_country_boundaries/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_shp": "/home/ga/gvsig_data/exports/country_boundaries.shp",
+    "expected_output_dbf": "/home/ga/gvsig_data/exports/country_boundaries.dbf",
+    "expected_geometry_type": 3,
+    "min_feature_count": 150
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_country_boundaries"
+    }
+  }
+}

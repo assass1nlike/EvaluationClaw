@@ -1,0 +1,28 @@
+{
+  "id": "near_duplicate_crawl_analysis@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a Near Duplicate Content audit on 'https://crawler-test.com/' using a 90% similarity threshold. Ensure crawl analysis is performed to calculate near duplicates. Export the near duplicates results to '~/Documents/SEO/exports/near_duplicates.csv' and create a text report at '~/Documents/SEO/reports/similarity_analysis.txt' documenting the number of duplicate groups found and the highest similarity percentage observed.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/near_duplicate_crawl_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/near_duplicate_crawl_analysis/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "expected_filename": "near_duplicates.csv",
+    "required_column": "Similarity",
+    "report_path": "~/Documents/SEO/reports/similarity_analysis.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_near_duplicate_crawl_analysis"
+    }
+  }
+}

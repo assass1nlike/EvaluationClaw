@@ -1,0 +1,53 @@
+{
+  "task_id": "encrypted_c2_dns_exfiltration@1",
+  "task_completion": [
+    {
+      "id": "c2_sni_identified",
+      "description": "Identify the Server Name Indication (SNI) of the C2 HTTPS connection.",
+      "points": 10,
+      "visual_evidence": "The final forensic_evidence.json file contains the key \"c2_server_sni\" with the value \"secure-updates.corp-cdn.net\"."
+    },
+    {
+      "id": "c2_command_extracted",
+      "description": "Extract the exact JSON string from the C2 HTTP response body.",
+      "points": 15,
+      "visual_evidence": "The final forensic_evidence.json file contains the key \"c2_command_text\" with the exact value: {\"action\": \"exfiltrate\", \"method\": \"dns_tunnel\", \"domain\": \"sync-telemetry.analytics-cdn.net\", \"xor_key\": \"k7Xm9pQ2\", \"encoding\": \"base64\"}."
+    },
+    {
+      "id": "exfil_network_params",
+      "description": "Identify the base domain used for DNS tunneling and the source IP address.",
+      "points": 15,
+      "visual_evidence": "The final forensic_evidence.json file contains \"exfil_domain\" with the value \"sync-telemetry.analytics-cdn.net\" and \"exfil_source_ip\" with the value \"10.0.1.10\"."
+    },
+    {
+      "id": "data_decoded_hash",
+      "description": "Reconstruct the DNS chunks, decode the data, decrypt it using the XOR key, and compute the SHA-256 hash.",
+      "points": 40,
+      "visual_evidence": "The final forensic_evidence.json file contains the key \"decoded_sha256\" with the value \"5d27337ca43271af60a42bf93491e63cec9714c805eb78cc02347c3a8c154baa\"."
+    },
+    {
+      "id": "data_decoded_first_line",
+      "description": "Extract the first line of the fully decoded stolen data.",
+      "points": 20,
+      "visual_evidence": "The final forensic_evidence.json file contains the key \"decoded_first_line\" with the value \"id,first_name,last_name,email,ssn,department\"."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pcap_analysis",
+      "description": "Verify the agent actually analyzed the pcap file using the provided TLS keys.",
+      "visual_evidence": "Look for terminal commands using 'tshark', 'wireshark', or Python scripts (e.g., pyshark/scapy) that explicitly reference 'corporate_traffic.pcapng' and 'tls_keys.log'."
+    },
+    {
+      "id": "actual_decoding_performed",
+      "description": "Verify the agent performed the reconstruction and decoding process rather than hallucinating the answer.",
+      "visual_evidence": "Look for a Python script, CyberChef usage, or terminal commands that extract DNS subdomains, sort them, perform URL-safe base64 decoding, and apply an XOR decryption with the key 'k7Xm9pQ2'."
+    },
+    {
+      "id": "genuine_json_output",
+      "description": "Verify the agent properly created and formatted the output JSON file.",
+      "visual_evidence": "Look for commands like 'cat', 'nano', 'vim', or Python file write operations saving the final JSON object to '~/Documents/forensic_evidence.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected values for ~/Documents/forensic_evidence.json:\n- c2_server_sni: \"secure-updates.corp-cdn.net\"\n- c2_command_text: \"{\\\"action\\\": \\\"exfiltrate\\\", \\\"method\\\": \\\"dns_tunnel\\\", \\\"domain\\\": \\\"sync-telemetry.analytics-cdn.net\\\", \\\"xor_key\\\": \\\"k7Xm9pQ2\\\", \\\"encoding\\\": \\\"base64\\\"}\"\n- exfil_domain: \"sync-telemetry.analytics-cdn.net\"\n- exfil_source_ip: \"10.0.1.10\"\n- decoded_sha256: \"5d27337ca43271af60a42bf93491e63cec9714c805eb78cc02347c3a8c154baa\"\n- decoded_first_line: \"id,first_name,last_name,email,ssn,department\"\nNote: The DNS tunneling consists of 21 queries. The chunks are URL-safe base64 encoded and XOR encrypted with the key 'k7Xm9pQ2'."
+}

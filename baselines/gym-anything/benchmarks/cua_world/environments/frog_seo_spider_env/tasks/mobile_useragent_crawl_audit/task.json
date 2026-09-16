@@ -1,0 +1,30 @@
+{
+  "id": "mobile_useragent_crawl_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a mobile-first audit of https://books.toscrape.com/ using Screaming Frog SEO Spider. The audit must use the 'Googlebot Smartphone' User-Agent and include a custom extraction for the viewport meta tag (CSS Path: `meta[name=\"viewport\"]`, extracting the 'content' attribute). After crawling at least 50 pages, export the Internal HTML data to ~/Documents/SEO/exports/mobile_internal_html.csv and the Custom Extraction data to ~/Documents/SEO/exports/mobile_custom_extraction.csv. Document the user-agent used, the total pages crawled, and the presence of viewport tags in a report at ~/Documents/SEO/reports/mobile_readiness_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mobile_useragent_crawl_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/mobile_useragent_crawl_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "target_domain": "books.toscrape.com",
+    "expected_ua_string": "Googlebot Smartphone",
+    "expected_viewport_selector": "meta[name=\"viewport\"]",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "report_path": "/home/ga/Documents/SEO/reports/mobile_readiness_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mobile_useragent_crawl_audit"
+    }
+  }
+}

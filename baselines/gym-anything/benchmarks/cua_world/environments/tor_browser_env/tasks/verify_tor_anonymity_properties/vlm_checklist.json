@@ -1,0 +1,59 @@
+{
+  "task_id": "verify_tor_anonymity_properties@1",
+  "task_completion": [
+    {
+      "id": "visit_tor_check_api",
+      "description": "Visit the Tor check API to get the exit IP address.",
+      "points": 10,
+      "visual_evidence": "A browser tab open to 'https://check.torproject.org/api/ip' displaying a JSON response with an IP address."
+    },
+    {
+      "id": "visit_tor_check_status",
+      "description": "Visit the Tor check website to verify connection status.",
+      "points": 10,
+      "visual_evidence": "A browser tab open to 'https://check.torproject.org/' showing a message indicating whether the browser is configured to use Tor."
+    },
+    {
+      "id": "check_proxy_settings",
+      "description": "Check the browser's SOCKS proxy settings.",
+      "points": 10,
+      "visual_evidence": "A browser settings page, connection settings dialog, or 'about:config' page showing 'network.proxy.socks' and 'network.proxy.socks_port' values."
+    },
+    {
+      "id": "check_browser_version",
+      "description": "Check the browser application name and version.",
+      "points": 10,
+      "visual_evidence": "An 'About' dialog box, 'about:support' page, or similar screen displaying the browser's name and version number."
+    },
+    {
+      "id": "bookmark_created",
+      "description": "Bookmark the Tor check website with the specified title.",
+      "points": 20,
+      "visual_evidence": "A bookmark dialog or bookmark manager showing 'https://check.torproject.org/' being saved with the title 'Tor Connection Verifier'."
+    },
+    {
+      "id": "report_content_correct",
+      "description": "Compile and save the structured plain-text report with all required labels and data.",
+      "points": 40,
+      "visual_evidence": "A text editor showing a file saved at '/home/ga/Documents/anonymity-verification.txt' containing the labels: 'Exit IP', 'Tor Status', 'SOCKS Proxy' (formatted as host:port), 'Browser', 'Version', and 'Verification URL' (https://check.torproject.org/), populated with the gathered data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "The agent used a graphical web browser to visit the URLs and check settings.",
+      "visual_evidence": "Screenshots show a GUI web browser (like Tor Browser or Firefox) being used, rather than terminal commands like 'curl' or 'wget'."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "The data in the report matches the information gathered from the browser.",
+      "visual_evidence": "The IP address, Tor status, proxy settings, and browser version in the text report exactly match the values seen in the browser tabs and settings screens."
+    },
+    {
+      "id": "gui_text_editor_used",
+      "description": "The agent used a text editor to create the report file.",
+      "visual_evidence": "A text editor application (like gedit, mousepad, or nano in a terminal) is visible being used to write and save the report."
+    }
+  ],
+  "privileged_info_for_vlm": "The report must be saved exactly at '/home/ga/Documents/anonymity-verification.txt'. The agent must visit both 'check.torproject.org' and 'check.torproject.org/api/ip'. A bookmark must be created for a URL containing 'check.torproject.org' with the exact title 'Tor Connection Verifier'."
+}

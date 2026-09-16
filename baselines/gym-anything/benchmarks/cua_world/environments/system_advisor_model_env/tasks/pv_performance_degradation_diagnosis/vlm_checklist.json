@@ -1,0 +1,53 @@
+{
+  "task_id": "pv_performance_degradation_diagnosis@1",
+  "task_completion": [
+    {
+      "id": "read_system_report",
+      "description": "Agent opens and reads the client system report JSON file.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal (e.g., cat, less), or Python script displaying the contents of /home/ga/client_system_report.json."
+    },
+    {
+      "id": "launch_sam_tool",
+      "description": "Agent launches the System Advisor Model (SAM) application or sets up a PySAM script.",
+      "points": 10,
+      "visual_evidence": "The SAM (System Advisor Model) GUI window is open, or a code editor shows a Python script importing and initializing PySAM modules."
+    },
+    {
+      "id": "configure_location_weather",
+      "description": "Agent configures the simulation for Las Vegas weather data.",
+      "points": 20,
+      "visual_evidence": "In the SAM GUI, the 'Location and Resource' page shows Las Vegas selected, or in a script, weather file parameters or coordinates (Lat: 36.17, Lon: -115.14) are being set."
+    },
+    {
+      "id": "execute_parameter_sweep",
+      "description": "Agent sets up and executes the parameter sweep for the 42 combinations of soiling and degradation.",
+      "points": 30,
+      "visual_evidence": "SAM's 'Parametric' simulation window showing the specific arrays of soiling [2, 4, 6, 8, 10, 12] and degradation [0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5], or a script containing nested loops iterating over these exact values and running the simulation."
+    },
+    {
+      "id": "identify_best_fit_result",
+      "description": "Agent identifies the correct combination of soiling and degradation that best matches the Year 4 production.",
+      "points": 30,
+      "visual_evidence": "A final results table, script output, or text file explicitly concluding that the best fit is 8.0% soiling loss and 0.9% annual degradation (which matches the ~35,290 kWh observed production)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Verify the agent actually ran the SAM simulation rather than just printing the expected answer.",
+      "visual_evidence": "Look for SAM simulation progress bars, a populated parametric results table in the SAM GUI, or terminal output showing the execution of the 42 simulation runs."
+    },
+    {
+      "id": "comprehensive_sweep_evidence",
+      "description": "Verify the agent evaluated multiple combinations, not just the correct one.",
+      "visual_evidence": "The results table or script output should display production values for various incorrect combinations (e.g., 2% soiling, 0.3% degradation) alongside the correct one."
+    },
+    {
+      "id": "no_hardcoded_solution",
+      "description": "Verify the agent did not hardcode the final answer without deriving it.",
+      "visual_evidence": "The final answer (8.0% soiling, 0.9% degradation) must logically follow from a comparison of the simulation outputs against the target 35,290 kWh, rather than appearing out of nowhere in a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The ground truth best-fit combination is 8.0% soiling loss and 0.9% annual degradation. The observed Year 4 production to match is 35,290 kWh. The parameter sweep must evaluate exactly 42 combinations (6 soiling rates x 7 degradation rates). The site location is Las Vegas, NV (Lat: 36.17, Lon: -115.14)."
+}

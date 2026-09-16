@@ -1,0 +1,53 @@
+{
+  "task_id": "fda_510k_clearance_research@1",
+  "task_completion": [
+    {
+      "id": "fda_database_search",
+      "description": "Verify the agent accessed and searched the FDA 510(k) database.",
+      "points": 20,
+      "visual_evidence": "A web browser showing the accessdata.fda.gov 510(k) search page or search results, specifically querying for Product Code 'DQA' and clearance dates in 2024."
+    },
+    {
+      "id": "pdfs_downloaded_to_directory",
+      "description": "Verify that exactly 3 PDF files were downloaded to the correct directory.",
+      "points": 30,
+      "visual_evidence": "A file manager or terminal window showing the directory `/home/ga/Documents/FDA_Research/` containing 3 PDF files."
+    },
+    {
+      "id": "pdfs_renamed_correctly",
+      "description": "Verify the downloaded PDFs are renamed to their respective K-Numbers.",
+      "points": 20,
+      "visual_evidence": "The 3 PDF files in the `/home/ga/Documents/FDA_Research/` directory are named with the pattern 'K' followed by 6 digits and the '.pdf' extension (e.g., K240305.pdf)."
+    },
+    {
+      "id": "log_file_created",
+      "description": "Verify the clearance log file was created in the correct location.",
+      "points": 10,
+      "visual_evidence": "A file named `clearance_log.txt` is visible in the `/home/ga/Documents/FDA_Research/` directory."
+    },
+    {
+      "id": "log_file_content_formatted",
+      "description": "Verify the log file contains the correct information in the specified format.",
+      "points": 20,
+      "visual_evidence": "The contents of `clearance_log.txt` (viewed in a text editor or terminal) show exactly 3 lines, each following the format 'K-Number | Applicant Name | Decision Date' (e.g., 'K240305 | Sibel Health Inc. | 05/28/2024')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "Check that the agent used a graphical web browser to perform the research.",
+      "visual_evidence": "Screenshots should show a web browser (like Chrome or Firefox) being used to navigate the FDA website, rather than relying solely on terminal commands (like curl) or python scripts."
+    },
+    {
+      "id": "genuine_pdf_files",
+      "description": "Check that the downloaded PDFs are actual documents and not empty dummy files.",
+      "visual_evidence": "The file manager should show realistic file sizes for the PDFs (e.g., > 10KB), or a PDF viewer should be seen open displaying an actual 510(k) Summary document."
+    },
+    {
+      "id": "authentic_log_data",
+      "description": "Check that the log file contains genuine research data, not placeholder text.",
+      "visual_evidence": "The entries in `clearance_log.txt` should contain realistic Applicant Names and Dates matching the K-Number pattern, not generic placeholders like 'Applicant A' or '01/01/2024' for all entries."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Product Code: DQA (Pulse Oximeters). Target Year: 2024. K-Number Pattern: 'K' followed by exactly 6 digits (e.g., K240305). Valid examples of 2024 DQA clearances include K240305 (Sibel Health Inc., cleared May 28, 2024) and K243049 (Hunan Accurate Bio-Medical Technology Co., Ltd., cleared September 27, 2024). The output directory must be /home/ga/Documents/FDA_Research/ and the log file must be named clearance_log.txt with the exact format: 'K-Number | Applicant Name | Decision Date'."
+}

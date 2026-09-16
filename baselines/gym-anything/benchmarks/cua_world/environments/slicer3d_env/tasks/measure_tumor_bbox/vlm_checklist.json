@@ -1,0 +1,53 @@
+{
+  "task_id": "measure_tumor_bbox@1",
+  "task_completion": [
+    {
+      "id": "segmentation_created",
+      "description": "Verify that a segmentation mask has been created for the brain tumor.",
+      "points": 20,
+      "visual_evidence": "A colored segmentation overlay (mask) is visible on the FLAIR MRI slices in the 3D Slicer 2D/3D viewers."
+    },
+    {
+      "id": "bbox_dimensions_reported",
+      "description": "Verify that the 3D bounding box dimensions (width, depth, height) are recorded.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal displays the contents of the output file, showing three numerical values representing the width, depth, and height of the bounding box in mm."
+    },
+    {
+      "id": "bbox_volume_calculated",
+      "description": "Verify that the bounding box volume is calculated and recorded.",
+      "points": 20,
+      "visual_evidence": "The same output file contains a numerical value representing the bounding volume of the tumor."
+    },
+    {
+      "id": "dimensions_accuracy",
+      "description": "Verify that the reported dimensions and volume are derived from actual measurements in the software.",
+      "points": 20,
+      "visual_evidence": "The Segment Statistics module (or similar measurement tool) is visible in 3D Slicer, and the numbers in the output text file match the calculated statistics on the screen."
+    },
+    {
+      "id": "output_file_exists",
+      "description": "Verify that the measurements are saved to the correct file path.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal, or text editor shows the file saved exactly at '/home/ga/Documents/SlicerData/BraTS/tumor_bbox_measurements.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Ensure the agent used the 3D Slicer GUI to perform the segmentation and measurements.",
+      "visual_evidence": "Screenshots show interaction with 3D Slicer's Segment Editor and Segment Statistics modules, rather than just a terminal script bypassing the UI."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "Ensure the text file contains actual numerical values and not placeholder text.",
+      "visual_evidence": "The output file contains specific numbers (e.g., '45.2 mm') rather than generic text like 'width, depth, height'."
+    },
+    {
+      "id": "ground_truth_untampered",
+      "description": "Ensure the agent did not simply copy the ground truth files.",
+      "visual_evidence": "There is no evidence of the agent opening or copying files directly from '/var/lib/slicer/ground_truth' to generate the answers."
+    }
+  ],
+  "privileged_info_for_vlm": "Data directory: /home/ga/Documents/SlicerData/BraTS. Output file: /home/ga/Documents/SlicerData/BraTS/tumor_bbox_measurements.txt. Ground truth directory: /var/lib/slicer/ground_truth. The agent must measure the 3D bounding box dimensions and volume of the tumor and save them to the output file. The dimensions should be within a 15% tolerance of the ground truth."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "measured_mile_world_creation@1",
+  "task_completion": [
+    {
+      "id": "world_assets_created",
+      "description": "Verify the creation of the MeasuredMile world directory and the required image assets.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., using 'ls', 'file', or 'identify' commands) or a file manager/image viewer showing '/opt/bridgecommand/World/MeasuredMile/' containing 'height.png' (solid black) and 'texture.png' (solid blue), both with 1024x1024 pixel dimensions."
+    },
+    {
+      "id": "world_config_files",
+      "description": "Verify the presence and correct configuration of the world initialization files.",
+      "points": 15,
+      "visual_evidence": "Text editor or terminal output (e.g., 'cat') showing 'description.ini', 'terrain.ini' (mapping the height and texture PNGs), and 'world.ini' with a start position of approximately Latitude 50.15, Longitude -1.33."
+    },
+    {
+      "id": "buoy_south_gate",
+      "description": "Verify the South Gate markers are correctly defined in buoy.ini.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal output showing 'buoy.ini' containing two 'Tower' markers at exactly Latitude 50.166667, with Longitudes -1.336667 (West) and -1.333333 (East)."
+    },
+    {
+      "id": "buoy_north_gate",
+      "description": "Verify the North Gate markers are correctly defined in buoy.ini.",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal output showing 'buoy.ini' containing two 'Tower' markers at exactly Latitude 50.183333, with Longitudes -1.336667 (West) and -1.333333 (East)."
+    },
+    {
+      "id": "scenario_environment",
+      "description": "Verify the creation of the scenario directory and environment.ini file.",
+      "points": 15,
+      "visual_evidence": "Terminal or editor showing the directory '/opt/bridgecommand/Scenarios/m) Measured Mile Trial/' containing 'environment.ini' with the exact values Setting=\"MeasuredMile\" and StartTime=12.0."
+    },
+    {
+      "id": "scenario_ownship",
+      "description": "Verify the ownship.ini configuration places the vessel correctly for the trial.",
+      "points": 10,
+      "visual_evidence": "Terminal or editor showing 'ownship.ini' with a vessel positioned south of the start gate (Latitude strictly less than 50.166667) and heading North (Heading approximately 0 or 360)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_creation",
+      "description": "Ensure the agent actually saved the files to the required system directories rather than just typing them into an unsaved text editor buffer.",
+      "visual_evidence": "File paths in editor title bars, terminal 'ls' outputs, or 'cat' commands confirm the files exist at the absolute paths under '/opt/bridgecommand/'."
+    },
+    {
+      "id": "valid_image_generation",
+      "description": "Ensure the image assets are genuine image files and not just empty text files renamed with a .png extension.",
+      "visual_evidence": "Use of actual image creation commands (e.g., ImageMagick 'convert', Python PIL scripts) or GUI image editors, rather than 'touch height.png' or 'echo > texture.png'."
+    },
+    {
+      "id": "no_hallucinated_output",
+      "description": "Ensure the agent did not fake terminal outputs or directory trees.",
+      "visual_evidence": "Standard shell prompts, realistic command outputs, and genuine interaction with the OS environment."
+    }
+  ],
+  "privileged_info_for_vlm": "Bridge Command is a real open-source ship navigation simulator. The task creates a 1.0 nautical mile course oriented north-south. 1 minute of latitude equals 1 nautical mile. The South Gate Latitude is 50.166667 (50 degrees 10 minutes N) and the North Gate Latitude is 50.183333 (50 degrees 11 minutes N), which mathematically confirms the 1.0 NM distance (0.016667 degrees difference). The West Longitude is -1.336667 and East Longitude is -1.333333. The required paths are exactly '/opt/bridgecommand/World/MeasuredMile/' and '/opt/bridgecommand/Scenarios/m) Measured Mile Trial/'."
+}

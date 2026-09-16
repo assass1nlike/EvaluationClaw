@@ -1,0 +1,42 @@
+{
+  "id": "record_diagnosis@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to Bahmni (User: superman, Pass: Admin123). Record two confirmed diagnoses for patient Priya Patel (ID: BAH000005): a primary diagnosis of Malaria and a secondary diagnosis of Anaemia.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_diagnosis/setup_task.sh",
+    "post_task": "/workspace/tasks/record_diagnosis/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "patient_identifier": "BAH000005",
+    "patient_name": "Priya Patel",
+    "diagnoses": [
+      {
+        "name": "Malaria",
+        "order": "PRIMARY",
+        "certainty": "CONFIRMED",
+        "points": 45
+      },
+      {
+        "name": "Anaemia",
+        "order": "SECONDARY",
+        "certainty": "CONFIRMED",
+        "points": 45
+      }
+    ],
+    "vlm_points": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_diagnosis"
+    }
+  }
+}

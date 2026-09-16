@@ -1,0 +1,49 @@
+{
+  "id": "add_custom_lead_fields@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Add three custom fields to Vicidial List ID 8501 ('US Senator Advocacy') using the Admin interface (User: 6666, Pass: andromeda) to capture campaign-specific data. Create a SELECT field named 'policy_position' (Label: Policy Position) with options SUPPORTS, OPPOSES, UNDECIDED, and NO_RESPONSE. Create a TEXT field named 'staff_contact_name' (Label: Staff Contact Name) with a size of 50. Create a DATE field named 'followup_date' (Label: Follow-up Date). Ensure all fields are active and the custom table is created.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_custom_lead_fields/setup_task.sh",
+    "post_task": "/workspace/tasks/add_custom_lead_fields/export_result.sh"
+  },
+  "metadata": {
+    "list_id": "8501",
+    "expected_fields": [
+      {
+        "name": "policy_position",
+        "label": "Policy Position",
+        "type": "SELECT",
+        "options": [
+          "SUPPORTS",
+          "OPPOSES",
+          "UNDECIDED",
+          "NO_RESPONSE"
+        ]
+      },
+      {
+        "name": "staff_contact_name",
+        "label": "Staff Contact Name",
+        "type": "TEXT",
+        "size": 50
+      },
+      {
+        "name": "followup_date",
+        "label": "Follow-up Date",
+        "type": "DATE"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_custom_lead_fields"
+    }
+  }
+}

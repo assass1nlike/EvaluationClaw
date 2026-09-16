@@ -1,0 +1,35 @@
+{
+  "id": "devops_postmortem_action_items@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "You are a Senior Site Reliability Engineer at a high-growth SaaS company. Log in to Rocket.Chat (Username: admin, Password: Admin1234!). Your engineering team has experienced three production incidents over the past month. Post-incident review findings were posted in team channels, but action items remain untracked, increasing the risk of repeat incidents. Catalog all unresolved postmortem action items from the relevant team channels into a tracking summary with assigned owners and deadlines, and notify the responsible engineers of their remediation tasks.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "dense"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/devops_postmortem_action_items/setup_task.sh",
+    "pre_task_timeout": 600,
+    "post_task": "/workspace/tasks/devops_postmortem_action_items/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Software Developer",
+    "industry": "Technology / SaaS",
+    "postmortem_channel": "engineering-postmortems",
+    "action_owners": [
+      "sre.lead",
+      "backend.dev",
+      "platform.eng",
+      "frontend.dev"
+    ],
+    "num_postmortems": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_devops_postmortem_action_items"
+    }
+  }
+}

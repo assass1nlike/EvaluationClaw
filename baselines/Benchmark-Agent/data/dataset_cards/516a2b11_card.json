@@ -1,0 +1,74 @@
+{
+  "dataset_id": "516a2b11",
+  "name": "Drug-Drug-Interaction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Drug-Drug-Interaction dataset contains pharmacological text snippets describing the co-administration of two drugs, with a classification label indicating the type of drug-drug interaction. It evaluates multiclass classification of interaction types among five categories: DDI-false, DDI-advise, DDI-effect, DDI-int, and DDI-mechanism.",
+  "card_text": "This dataset is a text-only collection of 200 pharmacological statements about drug-drug interactions. Each sample includes a raw text passage, often containing the placeholder @DRUG$ for one of the interacting drugs, and a prompt that asks the model to classify the interaction between the two drugs into one of five types: DDI-false, DDI-advise, DDI-effect, DDI-int, or DDI-mechanism. The raw passages are factual clinical or pharmacological observations, sometimes drawn from case reports or drug labels, and vary in length from a single sentence to a few sentences. The prompt is an explicit instruction with the possible interaction types listed, and the output is a single interaction type label. The dataset is intended to evaluate multiclass classification of drug-drug interaction mentions in biomedical text.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "pharmacology / drug-drug interactions",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "The raw text is a pharmacological statement describing the co-administration of two drugs (often with @DRUG$ placeholders) and the observed or potential interaction. It serves as the main passage to be classified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is an explicit instruction that includes a placeholder for the raw text and asks the model to classify the interaction between the two drugs into one of five interaction types. It lists the possible categories and requests only the interaction type as output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The answer is the selected drug-drug interaction type label from the five predefined categories. It directly corresponds to the classification target for the given raw text and prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw pharmacological text passage (input.raw_text) that describes a drug-drug interaction, an instruction prompt (input.prompt) that asks for classification into one of five interaction types and embeds the raw text via a placeholder, and a short categorical output label (output.text) giving the interaction type. The prompt refers directly to the raw text, and the answer is the resulting interaction class."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Drug-Drug-Interaction/annotation.json",
+    "existing_tags": {
+      "task": "drug_drug_interaction_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

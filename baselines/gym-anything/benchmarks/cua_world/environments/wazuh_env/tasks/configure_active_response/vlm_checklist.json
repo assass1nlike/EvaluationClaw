@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_active_response@1",
+  "task_completion": [
+    {
+      "id": "open_ossec_conf",
+      "description": "Open the Wazuh manager configuration file (ossec.conf).",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano or vim) or the Wazuh dashboard configuration editor is open, showing the contents of the ossec.conf file."
+    },
+    {
+      "id": "define_command_block",
+      "description": "Define the firewall-drop command in the configuration.",
+      "points": 20,
+      "visual_evidence": "A <command> XML block is visible containing <name>firewall-drop</name> and <executable>firewall-drop</executable>."
+    },
+    {
+      "id": "active_response_command",
+      "description": "Create an active-response block that triggers the firewall-drop command.",
+      "points": 15,
+      "visual_evidence": "An <active-response> XML block is visible containing <command>firewall-drop</command>."
+    },
+    {
+      "id": "active_response_location",
+      "description": "Set the active-response location to local.",
+      "points": 15,
+      "visual_evidence": "The <active-response> XML block contains <location>local</location>."
+    },
+    {
+      "id": "active_response_rule_id",
+      "description": "Configure the active-response to trigger on rule ID 5763.",
+      "points": 20,
+      "visual_evidence": "The <active-response> XML block contains <rules_id>5763</rules_id>."
+    },
+    {
+      "id": "active_response_timeout",
+      "description": "Set the active-response timeout to 600 seconds.",
+      "points": 20,
+      "visual_evidence": "The <active-response> XML block contains <timeout>600</timeout>."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_edited",
+      "description": "The agent is editing the actual ossec.conf file.",
+      "visual_evidence": "The file path shown in the editor is /var/ossec/etc/ossec.conf or the Wazuh web UI's official configuration section is being used, not a random text file."
+    },
+    {
+      "id": "valid_xml_syntax",
+      "description": "The added configuration uses valid XML syntax.",
+      "visual_evidence": "The <command> and <active-response> tags are properly opened and closed, and nested correctly within the parent <ossec_config> element."
+    },
+    {
+      "id": "no_copy_paste_prompt",
+      "description": "The agent did not simply paste the task description into the file.",
+      "visual_evidence": "The file contains proper Wazuh XML configuration blocks, not plain English text from the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The target rule ID for SSH brute force is 5763. The target command to execute is 'firewall-drop'. The timeout must be set to 600 seconds. The active-response location should be set to 'local'."
+}

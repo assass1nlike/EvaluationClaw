@@ -1,0 +1,53 @@
+{
+  "task_id": "power_down_channels_hardware@1",
+  "task_completion": [
+    {
+      "id": "start_synthetic_session",
+      "description": "Verify the agent has selected and started a SYNTHETIC (live) session in the OpenBCI GUI.",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI control panel shows 'SYNTHETIC' selected as the data source, and the session is active (e.g., 'Start Data Stream' has been clicked, or synthetic EEG data is visibly scrolling in the Time Series widget)."
+    },
+    {
+      "id": "access_hardware_settings",
+      "description": "Verify the agent has accessed the Hardware Settings or Channel Settings interface.",
+      "points": 10,
+      "visual_evidence": "The 'Hardware Settings' widget, channel control panel, or equivalent interface for toggling channel power is visible on the screen."
+    },
+    {
+      "id": "power_down_channels_1_to_3",
+      "description": "Verify Channels 1, 2, and 3 are powered down.",
+      "points": 30,
+      "visual_evidence": "In the Hardware Settings or channel control panel, the power buttons, indicators, or channel numbers for Channels 1, 2, and 3 are toggled off (often indicated by being greyed out, marked as 'OFF', or having the power icon disabled)."
+    },
+    {
+      "id": "keep_channels_4_to_8_enabled",
+      "description": "Verify Channels 4, 5, 6, 7, and 8 remain enabled.",
+      "points": 20,
+      "visual_evidence": "In the Hardware Settings or channel control panel, the power buttons, indicators, or channel numbers for Channels 4, 5, 6, 7, and 8 are toggled on (often indicated by being highlighted, colored, marked as 'ON', or having the power icon enabled)."
+    },
+    {
+      "id": "save_settings_json",
+      "description": "Verify the agent saves the hardware configuration to the specified JSON file.",
+      "points": 30,
+      "visual_evidence": "A save file dialog is visible navigating to '~/Documents/OpenBCI_GUI/Settings/' with the filename 'PartialMontage.json' entered, or there is a GUI notification/confirmation indicating the settings were successfully saved to this file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Ensure the agent used the OpenBCI GUI to configure and save the settings, rather than manually creating the JSON file via terminal.",
+      "visual_evidence": "Screenshots should show the agent interacting with the OpenBCI GUI application. There should be no terminal windows open where the agent is using commands like 'echo', 'nano', 'vim', or 'jq' to directly write the 'PartialMontage.json' file."
+    },
+    {
+      "id": "genuine_synthetic_session",
+      "description": "Ensure the agent is running a live SYNTHETIC session and not a playback recording.",
+      "visual_evidence": "The session control panel should clearly indicate 'SYNTHETIC' and must not show 'PLAYBACK' or a file path to a pre-recorded .txt/.csv file."
+    },
+    {
+      "id": "correct_save_directory",
+      "description": "Ensure the settings file is saved in the correct OpenBCI Settings directory.",
+      "visual_evidence": "The save dialog or file manager must show the path '/home/ga/Documents/OpenBCI_GUI/Settings' (or the equivalent '~/Documents/OpenBCI_GUI/Settings'). It should not be saved to the Desktop or a random folder."
+    }
+  ],
+  "privileged_info_for_vlm": "The target settings file must be named 'PartialMontage.json' and saved exactly in '/home/ga/Documents/OpenBCI_GUI/Settings'. In the OpenBCI GUI, channels are 1-indexed for the user. The agent must disable Channels 1, 2, and 3 (which corresponds to internal JSON array indices 0, 1, 2) and leave Channels 4, 5, 6, 7, and 8 enabled (internal JSON array indices 3, 4, 5, 6, 7). The session must be 'SYNTHETIC (live)'."
+}

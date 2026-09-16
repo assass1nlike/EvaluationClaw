@@ -1,0 +1,65 @@
+{
+  "task_id": "model_bess_degradation_and_warranty@1",
+  "task_completion": [
+    {
+      "id": "create_sam_project",
+      "description": "Create a Standalone Battery project with a Single Owner financial model",
+      "points": 10,
+      "visual_evidence": "Look for the SAM (System Advisor Model) application window showing a new project created with 'Standalone Battery' as the performance model and 'Single Owner' as the financial model."
+    },
+    {
+      "id": "configure_battery_specs",
+      "description": "Configure the battery chemistry to Lithium-ion NMC and size to 10 MW / 40 MWh",
+      "points": 15,
+      "visual_evidence": "Look for the 'Battery Cell and System' tab in SAM. The chemistry dropdown should be set to 'Lithium Ion NMC' and the system sizing should reflect 10 MW (10,000 kW) power and 40 MWh (40,000 kWh) capacity (or 4 hours of duration)."
+    },
+    {
+      "id": "enable_degradation_models",
+      "description": "Enable both Calendar Life and Cycle Life degradation models",
+      "points": 15,
+      "visual_evidence": "Look for the 'Battery Life' or 'Degradation' tab in SAM. Both 'Calendar life degradation' and 'Cycle life degradation' checkboxes or options must be enabled/selected."
+    },
+    {
+      "id": "configure_dispatch_schedule",
+      "description": "Configure a manual dispatch schedule for daily charging (00:00-04:00) and discharging (16:00-20:00)",
+      "points": 20,
+      "visual_evidence": "Look for the 'Battery Dispatch' tab in SAM. The 'Manual Dispatch' option should be selected. The weekday/weekend schedule matrices should show charging from hour 0 to 4 (e.g., Period 1) and discharging from hour 16 to 20 (e.g., Period 2), with resting in all other hours."
+    },
+    {
+      "id": "set_analysis_period",
+      "description": "Set the analysis period to 20 years",
+      "points": 10,
+      "visual_evidence": "Look for the 'Financial Parameters' or 'Lifetime and Degradation' tab in SAM. The 'Analysis period' field must be set to 20 years."
+    },
+    {
+      "id": "run_simulation_and_view_results",
+      "description": "Run the simulation and view the State of Health results",
+      "points": 15,
+      "visual_evidence": "Look for the SAM 'Results' page showing data tables, data viewer, or time series graphs displaying the battery's State of Health (or maximum capacity percentage) over the 20-year period."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the extracted results to battery_degradation_report.json",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal window showing the contents of '/home/ga/Documents/SAM_Projects/battery_degradation_report.json'. It must contain the keys 'project_name', 'analysis_period_years' (20), 'chemistry', 'yearly_state_of_health_pct' (an array of 20 numbers), and 'year_crossing_80_pct'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sam_interaction",
+      "description": "Agent interacted with the SAM GUI to configure and run the simulation",
+      "visual_evidence": "Look for screenshots showing the SAM application interface being actively navigated and configured, rather than just a Python script or text editor mocking the output."
+    },
+    {
+      "id": "authentic_degradation_data",
+      "description": "The JSON file contains genuine simulation data",
+      "visual_evidence": "Look at the 'yearly_state_of_health_pct' array in the JSON file. It should contain a decreasing sequence of realistic float values (e.g., 98.5, 96.2, etc.), not dummy data like [100, 99, 98] or all identical values."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The output file is saved in the correct directory",
+      "visual_evidence": "Look at the file path in the text editor or terminal. It must be exactly '/home/ga/Documents/SAM_Projects/battery_degradation_report.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is exactly 'battery_degradation_report.json' located in '/home/ga/Documents/SAM_Projects/'. The simulation analysis period must be exactly 20 years, resulting in an array of exactly 20 float values for 'yearly_state_of_health_pct'. The threshold for identifying the crossing year is exactly 80.0%."
+}

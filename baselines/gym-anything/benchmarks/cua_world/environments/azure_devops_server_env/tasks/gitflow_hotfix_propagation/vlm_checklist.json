@@ -1,0 +1,59 @@
+{
+  "task_id": "gitflow_hotfix_propagation@1",
+  "task_completion": [
+    {
+      "id": "pr_main_created",
+      "description": "Create a Pull Request to merge the hotfix into main",
+      "points": 15,
+      "visual_evidence": "Azure DevOps Pull Request creation screen or PR overview showing the source branch as 'hotfix/login-security-patch', the target branch as 'main', and the title exactly 'Fix critical login vulnerability'."
+    },
+    {
+      "id": "pr_main_completed_keep_branch",
+      "description": "Complete the PR to main without deleting the source branch",
+      "points": 20,
+      "visual_evidence": "The PR to 'main' is marked as 'Completed'. During the completion dialog, the 'Delete source branch' checkbox must be UNCHECKED, or subsequent screens must show the 'hotfix/login-security-patch' branch still exists."
+    },
+    {
+      "id": "pr_develop_created",
+      "description": "Create a Pull Request to merge the hotfix into develop",
+      "points": 15,
+      "visual_evidence": "Azure DevOps Pull Request creation screen or PR overview showing the source branch as 'hotfix/login-security-patch', the target branch as 'develop', and the title exactly 'Sync hotfix to develop'."
+    },
+    {
+      "id": "pr_develop_completed",
+      "description": "Complete the PR to develop",
+      "points": 20,
+      "visual_evidence": "The PR to 'develop' is marked as 'Completed' with a green status badge in the Azure DevOps interface."
+    },
+    {
+      "id": "source_branch_deleted",
+      "description": "Delete the hotfix branch after both merges",
+      "points": 15,
+      "visual_evidence": "The 'Delete source branch' checkbox is checked during the completion of the second PR, or the agent manually deletes 'hotfix/login-security-patch' from the Branches page (showing a deletion confirmation or the branch missing from the list)."
+    },
+    {
+      "id": "fix_verified_both_branches",
+      "description": "Verify the fix exists in both main and develop branches",
+      "points": 15,
+      "visual_evidence": "The agent navigates to the 'Commits' or 'Files' view in Azure DevOps for BOTH the 'main' and 'develop' branches to visually confirm the hotfix commits or file changes are present."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_azure_devops_gui",
+      "description": "Agent used the Azure DevOps web interface to perform the tasks",
+      "visual_evidence": "Screenshots should show interaction with the Azure DevOps web UI (http://localhost/DefaultCollection) for creating and completing PRs, rather than solely using local git CLI commands."
+    },
+    {
+      "id": "no_direct_pushes",
+      "description": "Agent used Pull Requests instead of direct pushes",
+      "visual_evidence": "Changes to 'main' and 'develop' should clearly come from completed Pull Requests in the UI, not from direct terminal 'git push' commands bypassing the PR process."
+    },
+    {
+      "id": "genuine_verification",
+      "description": "Agent genuinely verified the branches",
+      "visual_evidence": "The agent actually loaded the branch history or file contents in the browser to check for the fix, rather than just typing a verification command that does nothing or hallucinating success."
+    }
+  ],
+  "privileged_info_for_vlm": "The actual repository name in the Azure DevOps environment is 'TailwindTraders', not 'TailwindTraders-Auth' as stated in the task description. Do not penalize the agent for operating within the 'TailwindTraders' repository. The Azure DevOps instance is hosted at http://localhost/DefaultCollection/TailwindTraders."
+}

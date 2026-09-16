@@ -1,0 +1,35 @@
+{
+  "id": "purchase_to_pay_swimlane@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Management Analyst at a manufacturing firm conducting a business process improvement project. Document the company's Purchase-to-Pay (P2P) business process as a swim lane flowchart for a process audit based on the specification at ~/Desktop/p2p_process_spec.txt. \n\nCreate a complete swim lane process diagram in draw.io with exactly 5 horizontal lanes: (1) Requester, (2) Procurement, (3) Accounts Payable, (4) Supplier, (5) Finance/Treasury. The diagram must include at least 12 process steps, 3 decision diamonds (budget approval, 3-way matching, payment approval), 2 parallel flow branches, 1 exception/rejection path, data objects (Purchase Requisition, Purchase Order, Goods Receipt, Invoice), and Start/End events. \n\nAdd a second page titled 'KPI Dashboard' that lists at least 5 Key Performance Indicators for the P2P process as a table or structured diagram (e.g., cycle time, first-pass match rate, PO compliance %). Save the project as ~/Desktop/p2p_process.drawio and export it as ~/Desktop/p2p_process.pdf.\n\nLogin: username=ga, password=password123",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/purchase_to_pay_swimlane/setup_task.sh",
+    "post_task": "/workspace/tasks/purchase_to_pay_swimlane/export_result.sh"
+  },
+  "metadata": {
+    "min_shapes": 18,
+    "min_edges": 12,
+    "min_pages": 2,
+    "required_lanes": [
+      "requester",
+      "procurement",
+      "accounts payable",
+      "supplier",
+      "finance"
+    ],
+    "output_drawio": "/home/ga/Desktop/p2p_process.drawio",
+    "output_pdf": "/home/ga/Desktop/p2p_process.pdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_purchase_to_pay_swimlane"
+    }
+  }
+}

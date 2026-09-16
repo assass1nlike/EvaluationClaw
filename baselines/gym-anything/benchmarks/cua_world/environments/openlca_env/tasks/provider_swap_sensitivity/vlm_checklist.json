@@ -1,0 +1,53 @@
+{
+  "task_id": "provider_swap_sensitivity@1",
+  "task_completion": [
+    {
+      "id": "import_databases",
+      "description": "Verify that the USLCI database and LCIA methods are imported into openLCA.",
+      "points": 10,
+      "visual_evidence": "The openLCA navigation pane shows the USLCI database as active and the TRACI 2.1 LCIA methods available in the 'Indicators and parameters' or 'Methods' section."
+    },
+    {
+      "id": "initial_gwp_calculation",
+      "description": "Verify the initial LCIA calculation for a metal manufacturing process using TRACI 2.1.",
+      "points": 20,
+      "visual_evidence": "An openLCA results window showing LCIA results (specifically TRACI 2.1 Global Warming Potential) for a metal process (e.g., steel or aluminum) with its default electricity provider."
+    },
+    {
+      "id": "swap_electricity_provider",
+      "description": "Verify the electricity provider is swapped in the product system.",
+      "points": 20,
+      "visual_evidence": "The openLCA inputs/outputs tab or model graph for the metal process showing the electricity input has been changed to a different provider (e.g., WECC, RFC, Coal, Natural Gas)."
+    },
+    {
+      "id": "recalculate_gwp",
+      "description": "Verify the LCIA is recalculated after the provider swap.",
+      "points": 20,
+      "visual_evidence": "A new or updated openLCA results window showing LCIA results (TRACI 2.1 GWP) for the same metal process, but reflecting the new electricity provider."
+    },
+    {
+      "id": "export_sensitivity_results",
+      "description": "Verify the results are exported to the specified CSV file with all required data.",
+      "points": 30,
+      "visual_evidence": "A file explorer, terminal output (e.g., cat command), or text editor showing the contents of '/home/ga/LCA_Results/provider_sensitivity.csv'. The file must contain the manufacturing process name, both electricity provider names, and both corresponding GWP values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the openLCA GUI for modeling and calculations.",
+      "visual_evidence": "Screenshots must show the openLCA application interface being actively used to modify the product system and run calculations, rather than relying solely on terminal scripts or API calls to bypass the UI."
+    },
+    {
+      "id": "authentic_results",
+      "description": "Verify the exported results match the GUI calculations.",
+      "visual_evidence": "The GWP values recorded in the final CSV file should match the values displayed in the openLCA results tabs from earlier steps."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "Verify the CSV file is saved in the correct directory.",
+      "visual_evidence": "The file path visible in the terminal, text editor, or file manager must clearly be '/home/ga/LCA_Results/provider_sensitivity.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is exactly '/home/ga/LCA_Results/provider_sensitivity.csv'. The CSV must contain at least 5 distinct data elements: the manufacturing process name, the original electricity provider name, the new electricity provider name, the initial GWP value, and the recalculated GWP value."
+}

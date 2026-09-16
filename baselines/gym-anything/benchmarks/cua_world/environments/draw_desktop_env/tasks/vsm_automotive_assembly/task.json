@@ -1,0 +1,51 @@
+{
+  "id": "vsm_automotive_assembly@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Lean Consultant who has completed a gemba walk and collected process data. Create a Current State Value Stream Map (VSM) for the Acme Stamping plant in draw.io using standard Lean notation and the data provided in ~/Desktop/acme_stamping_data.txt. The diagram must include the Supplier (Michigan Steel Co.), Customer (State Street Assembly), a Production Control box, and five process steps: Stamping, Welding I, Welding II, Assembly I, and Assembly II. Incorporate data boxes for each step, inventory triangles between processes, information flow arrows (Electronic vs Manual), material flow arrows (Push), and a timeline ladder at the bottom showing Value Added vs Non-Value Added time. Calculate the Total Production Lead Time and Total Processing Time, displaying both in a summary text box on the diagram. Save the diagram as ~/Desktop/acme_vsm.drawio and export it as ~/Desktop/acme_vsm.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vsm_automotive_assembly/setup_task.sh",
+    "post_task": "/workspace/tasks/vsm_automotive_assembly/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "acme_vsm.drawio",
+    "expected_png": "acme_vsm.png",
+    "data_file": "acme_stamping_data.txt",
+    "process_names": [
+      "Stamping",
+      "Welding",
+      "Assembly"
+    ],
+    "metrics": {
+      "lead_time": 23.6,
+      "processing_time": 187,
+      "takt_time": 60
+    },
+    "inventory_counts": [
+      4600,
+      1100,
+      1600,
+      1200,
+      2700
+    ],
+    "cycle_times": [
+      1,
+      38,
+      46,
+      62,
+      40
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vsm_automotive_assembly"
+    }
+  }
+}

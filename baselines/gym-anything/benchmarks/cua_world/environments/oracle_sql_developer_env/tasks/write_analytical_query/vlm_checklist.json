@@ -1,0 +1,59 @@
+{
+  "task_id": "write_analytical_query@1",
+  "task_completion": [
+    {
+      "id": "sql_file_created",
+      "description": "The SQL script is saved to the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the file 'dept_salary_analysis.sql' located in '/home/ga/Documents/sql_scripts/'."
+    },
+    {
+      "id": "sql_columns_correct",
+      "description": "The SQL query selects the exactly 9 required columns with correct calculations.",
+      "points": 20,
+      "visual_evidence": "Read the SQL script content. It must select: EMPLOYEE_NAME, DEPARTMENT_NAME, JOB_TITLE, SALARY, DEPT_SALARY_RANK (using DENSE_RANK), DEPT_AVG_SALARY (rounded to 2), SALARY_VS_AVG (rounded to 2), MANAGER_NAME, and DEPT_CUMULATIVE_SALARY (running sum)."
+    },
+    {
+      "id": "sql_logic_correct",
+      "description": "The SQL query includes the correct filtering and ordering logic.",
+      "points": 20,
+      "visual_evidence": "Read the SQL script content. It must contain logic to filter departments with more than 3 employees (e.g., a subquery or HAVING clause with COUNT > 3) and an ORDER BY clause for DEPARTMENT_NAME ASC, DEPT_SALARY_RANK ASC."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The CSV report is exported to the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the file 'dept_salary_report.csv' located in '/home/ga/Documents/exports/'."
+    },
+    {
+      "id": "csv_headers_correct",
+      "description": "The exported CSV contains the correct 9 column headers.",
+      "points": 10,
+      "visual_evidence": "Look at the contents of the CSV file. The first row must contain the 9 exact headers specified in the prompt (EMPLOYEE_NAME, DEPARTMENT_NAME, JOB_TITLE, SALARY, DEPT_SALARY_RANK, DEPT_AVG_SALARY, SALARY_VS_AVG, MANAGER_NAME, DEPT_CUMULATIVE_SALARY)."
+    },
+    {
+      "id": "csv_data_correct",
+      "description": "The exported CSV contains the correct data rows and filtered departments.",
+      "points": 30,
+      "visual_evidence": "Look at the data rows in the CSV file or terminal output. Verify that only the departments 'Finance', 'IT', 'Purchasing', 'Sales', and 'Shipping' are present, and that the file contains exactly 96 data rows (plus the header)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_interaction",
+      "description": "The agent interacted with the actual database to execute the query.",
+      "visual_evidence": "Look for a database client (like DBeaver, SQL*Plus, or a terminal DB interface) showing a connection to XEPDB1 and the execution of the query, rather than just writing a text file."
+    },
+    {
+      "id": "genuine_query_logic",
+      "description": "The SQL script queries the actual HR schema tables rather than hardcoding the output.",
+      "visual_evidence": "Check the SQL script to ensure it uses SELECT ... FROM employees (and joins to departments/jobs) rather than a series of hardcoded SELECT 'Name', 'Dept' ... UNION ALL statements."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file was generated from the query results, not manually mocked.",
+      "visual_evidence": "Check that the CSV contains realistic Oracle HR schema data (e.g., actual names, job titles, and mathematically correct running sums/averages) rather than placeholder text like 'John Doe' or 'Test Dept'."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected SQL script path: /home/ga/Documents/sql_scripts/dept_salary_analysis.sql. Expected CSV export path: /home/ga/Documents/exports/dept_salary_report.csv. The correct query must return exactly 96 rows. The only departments that should appear in the results (having >3 employees) are: Finance, IT, Purchasing, Sales, and Shipping."
+}

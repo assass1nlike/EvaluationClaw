@@ -1,0 +1,53 @@
+{
+  "task_id": "fuse_shapes@1",
+  "task_completion": [
+    {
+      "id": "select_blocks",
+      "description": "Select both TopBox and BottomBox in the FreeCAD interface",
+      "points": 10,
+      "visual_evidence": "In the FreeCAD Tree View (usually on the left), both 'TopBox' and 'BottomBox' should be highlighted, indicating they are selected."
+    },
+    {
+      "id": "execute_boolean_union",
+      "description": "Perform a Boolean Union operation on the selected blocks",
+      "points": 40,
+      "visual_evidence": "A new object (typically named 'Fusion') appears in the Tree View, replacing or grouping the original 'TopBox' and 'BottomBox' objects. The 3D view may also show the two blocks merged without an internal boundary line."
+    },
+    {
+      "id": "open_save_dialog",
+      "description": "Open the Save As dialog",
+      "points": 10,
+      "visual_evidence": "A 'Save As' or 'Save Document' dialog box is visible on the screen over the FreeCAD interface."
+    },
+    {
+      "id": "navigate_save_directory",
+      "description": "Navigate to the correct save directory",
+      "points": 10,
+      "visual_evidence": "The Save dialog's location/address bar shows the path '/home/ga/Documents/FreeCAD/'."
+    },
+    {
+      "id": "save_fused_model",
+      "description": "Save the file with the correct filename",
+      "points": 30,
+      "visual_evidence": "The filename 'fused_model.FCStd' is typed into the Save dialog's file name field, OR the main FreeCAD window title bar updates to show 'fused_model.FCStd'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_union",
+      "description": "Agent used the FreeCAD GUI to perform the Boolean Union",
+      "visual_evidence": "The agent clicks on the Part workbench Boolean Union icon, uses the FreeCAD menu, or interacts with the Tree View, rather than executing a Python script in the background."
+    },
+    {
+      "id": "genuine_freecad_interaction",
+      "description": "Agent interacted with the actual FreeCAD application",
+      "visual_evidence": "The FreeCAD UI (Tree View, Property View, 3D View, toolbars) is visible and actively used, not a text editor or mock interface."
+    },
+    {
+      "id": "no_terminal_file_copy",
+      "description": "Agent did not bypass the CAD operation using terminal commands",
+      "visual_evidence": "The agent does not use terminal commands like 'cp' or 'mv' to simply duplicate and rename the original file to 'fused_model.FCStd' without performing the Boolean Union."
+    }
+  ],
+  "privileged_info_for_vlm": "The original file contains 'TopBox' and 'BottomBox'. A successful Boolean Union in FreeCAD's Part workbench typically creates a new object named 'Fusion' in the Tree View, which contains the original boxes as children. The final file must be saved exactly as 'fused_model.FCStd' in the '/home/ga/Documents/FreeCAD/' directory."
+}

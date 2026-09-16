@@ -1,0 +1,28 @@
+{
+  "id": "configure_product_personalization@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Urban Electronics wants to offer custom engraving on their products. Configure the Default Order Item type to include a text field labeled 'Engraving Message' and ensure this field is displayed on the 'Add to Cart' form for customers.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_product_personalization/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_product_personalization/export_result.sh"
+  },
+  "metadata": {
+    "expected_label_keyword": "Engraving",
+    "target_entity_type": "commerce_order_item",
+    "target_bundle": "default",
+    "target_form_mode": "add_to_cart"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_product_personalization"
+    }
+  }
+}

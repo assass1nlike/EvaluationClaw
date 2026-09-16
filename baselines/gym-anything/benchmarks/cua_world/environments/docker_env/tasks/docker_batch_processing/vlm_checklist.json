@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_batch_processing@1",
+  "task_completion": [
+    {
+      "id": "pipeline_script_exists",
+      "description": "The file run_pipeline.sh is created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "An icon for 'run_pipeline.sh' is visible on the Desktop, or the file is open in a text editor showing its path."
+    },
+    {
+      "id": "docker_image_setup",
+      "description": "The Docker image book-analyzer:latest is built or included in the automation script.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'docker build -t book-analyzer:latest' or the run_pipeline.sh script containing this build command."
+    },
+    {
+      "id": "parallel_execution_logic",
+      "description": "The script contains logic to run the Docker containers in parallel.",
+      "points": 20,
+      "visual_evidence": "The run_pipeline.sh script shows 'docker run' commands being executed in the background (e.g., using '&') followed by 'wait', or using parallel execution tools like 'xargs -P' or 'parallel'."
+    },
+    {
+      "id": "individual_results_generated",
+      "description": "Individual JSON result files for the 5 books are generated in the results directory.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'ls ~/projects/book-corpus/results/') or a file manager window showing 5 JSON files in the results directory."
+    },
+    {
+      "id": "merged_report_exists",
+      "description": "The merged report corpus_report.json is created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "An icon for 'corpus_report.json' is visible on the Desktop, or the file is open in a text editor/terminal."
+    },
+    {
+      "id": "merged_report_content",
+      "description": "The merged report contains the required statistics for each book and the total corpus word count.",
+      "points": 30,
+      "visual_evidence": "The contents of corpus_report.json are visible, showing JSON data with stats (word count, unique word count, top 20 words, average word length, line count, character count) for the books, and a summary field for the total word count across the entire corpus."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "docker_commands_used",
+      "description": "Check that Docker is actually used for processing.",
+      "visual_evidence": "The script contains 'docker run' commands utilizing the 'book-analyzer:latest' image, rather than just running a local Python script directly."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Check that the results are dynamically generated and not hardcoded.",
+      "visual_evidence": "The script uses commands (like jq, python, or node) to merge the individual JSON files, rather than echoing a hardcoded JSON string into corpus_report.json."
+    },
+    {
+      "id": "genuine_parallelism",
+      "description": "Check that the execution is genuinely parallel.",
+      "visual_evidence": "The script does not just run the docker containers sequentially; it must use background processes ('&') or parallel utilities."
+    }
+  ],
+  "privileged_info_for_vlm": "The corpus contains 5 books with the following approximate word counts: Pride and Prejudice (~130,415), Moby Dick (~215,845), Sherlock Holmes (~107,558), Frankenstein (~78,106), and Alice in Wonderland (~29,569). The total word count across the corpus should be approximately 561,493. The merged report must reflect these realistic values."
+}

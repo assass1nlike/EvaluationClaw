@@ -1,0 +1,25 @@
+{
+  "id": "projectile_physics_gravity@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Science' category in GCompris and open the 'Gravity' activity. Hit the target object with the projectile and save a screenshot of the success state to /home/ga/Documents/gravity_success.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/projectile_physics_gravity/setup_task.sh",
+    "post_task": "/workspace/tasks/projectile_physics_gravity/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/tmp/gravity_success.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_projectile_physics_gravity"
+    }
+  }
+}

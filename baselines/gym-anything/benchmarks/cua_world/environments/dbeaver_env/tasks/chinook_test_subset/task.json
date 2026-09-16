@@ -1,0 +1,39 @@
+{
+  "id": "chinook_test_subset@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Extract a referentially consistent data subset from the Chinook database (/home/ga/Documents/databases/chinook.db) for testing purposes. Create a new SQLite database file named 'chinook_brazil_test.db' at '/home/ga/Documents/databases/' containing only data related to customers from Brazil. The subset must include the following 9 tables with schemas matching the original: customers, employees, invoices, invoice_items, tracks, albums, artists, genres, and media_types. Maintain referential integrity by including only Brazilian customers, their invoices, their invoice_items, the tracks referenced by those items, the associated metadata (albums, artists, genres, media_types), and the employees serving as their support representatives. Save the SQL extraction script (DDL and INSERTs) to '/home/ga/Documents/scripts/brazil_subset_extraction.sql'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_test_subset/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_test_subset/export_result.sh"
+  },
+  "metadata": {
+    "source_db": "/home/ga/Documents/databases/chinook.db",
+    "target_db": "/home/ga/Documents/databases/chinook_brazil_test.db",
+    "target_script": "/home/ga/Documents/scripts/brazil_subset_extraction.sql",
+    "required_tables": [
+      "customers",
+      "employees",
+      "invoices",
+      "invoice_items",
+      "tracks",
+      "albums",
+      "artists",
+      "genres",
+      "media_types"
+    ],
+    "filter_country": "Brazil"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_test_subset"
+    }
+  }
+}

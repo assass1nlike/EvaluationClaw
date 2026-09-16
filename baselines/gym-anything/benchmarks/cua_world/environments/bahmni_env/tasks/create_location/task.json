@@ -1,0 +1,28 @@
+{
+  "id": "create_location@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Create a new hospital location named 'Pediatrics Ward' with the description 'Ward for pediatric inpatient care' using the OpenMRS Administration interface (https://localhost/openmrs/admin). Log in with username 'superman' and password 'Admin123' and ensure the location is tagged as a 'Visit Location'. The task starts from the Bahmni Home page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_location/setup_task.sh",
+    "post_task": "/workspace/tasks/create_location/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_name": "Pediatrics Ward",
+    "expected_description": "Ward for pediatric inpatient care",
+    "expected_tag": "Visit Location"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_location"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "id": "edit_stage_probabilities@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "You have been asked to update the CRM pipeline configuration to match the new sales process. Update the probabilities and requirements for the four default stages: 'New' (5% probability, requirements: 'Initial contact established. Lead source identified.'), 'Qualified' (30% probability, requirements: 'Budget confirmed. Decision maker identified. Need established. Timeline defined.'), 'Proposition' (65% probability, requirements: 'Proposal delivered. Pricing reviewed by customer. Legal or procurement involved.'), and 'Won' (100% probability, requirements: 'Contract signed. Purchase order received.').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/edit_stage_probabilities/setup_task.sh",
+    "post_task": "/workspace/tasks/edit_stage_probabilities/export_result.sh"
+  },
+  "metadata": {
+    "stages": {
+      "New": {
+        "expected_prob": 5.0,
+        "required_text": [
+          "Initial contact",
+          "Lead source"
+        ]
+      },
+      "Qualified": {
+        "expected_prob": 30.0,
+        "required_text": [
+          "Budget confirmed",
+          "Decision maker",
+          "Timeline"
+        ]
+      },
+      "Proposition": {
+        "expected_prob": 65.0,
+        "required_text": [
+          "Proposal delivered",
+          "Pricing reviewed"
+        ]
+      },
+      "Won": {
+        "expected_prob": 100.0,
+        "required_text": [
+          "Contract signed",
+          "Purchase order"
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_edit_stage_probabilities"
+    }
+  }
+}

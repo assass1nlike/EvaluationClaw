@@ -1,0 +1,59 @@
+{
+  "task_id": "posner_cueing_ior_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_dataset",
+      "description": "Agent opens or reads the dataset posner_cueing_data.csv",
+      "points": 10,
+      "visual_evidence": "A script, terminal output, or spreadsheet application showing the contents or loading of ~/pebl/data/posner_cueing_data.csv with columns like participant_id, trial, soa_ms, cue_validity, accuracy, and rt_ms."
+    },
+    {
+      "id": "calculate_condition_means",
+      "description": "Agent calculates mean reaction times for correct trials across the four conditions",
+      "points": 20,
+      "visual_evidence": "Code logic (e.g., pandas groupby/filter) or spreadsheet formulas filtering for correct trials (accuracy == 1) and calculating mean RTs for Short/Valid, Short/Invalid, Long/Valid, and Long/Invalid conditions."
+    },
+    {
+      "id": "calculate_validity_effects",
+      "description": "Agent calculates the Validity Effect for both SOAs per participant",
+      "points": 20,
+      "visual_evidence": "Code or intermediate output showing the subtraction of Mean RT Valid from Mean RT Invalid for both Short and Long SOAs."
+    },
+    {
+      "id": "exclude_fast_participants",
+      "description": "Agent excludes participants with a mean RT under 50ms",
+      "points": 20,
+      "visual_evidence": "Code logic checking for mean RT < 50ms and marking them for exclusion with a reason, or output showing 'sub-99' being excluded."
+    },
+    {
+      "id": "create_json_report",
+      "description": "Agent creates the output JSON report at the specified path",
+      "points": 10,
+      "visual_evidence": "A file manager, terminal command, or text editor showing the creation or saving of a file named posner_ior_report.json in the ~/pebl/analysis/ directory."
+    },
+    {
+      "id": "json_structure_correct",
+      "description": "JSON report contains the required 'participants' list and 'group_means' dictionary",
+      "points": 20,
+      "visual_evidence": "The contents of posner_ior_report.json visible on screen, clearly showing a top-level structure with 'participants' (containing individual stats or exclusion reasons) and 'group_means' keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "programmatic_data_processing",
+      "description": "Agent processed the data programmatically or via a data tool rather than hallucinating the output",
+      "visual_evidence": "Presence of a Python script, R script, or spreadsheet tool being actively used to compute the means and validity effects, rather than the agent just typing a JSON file from scratch."
+    },
+    {
+      "id": "dynamic_exclusion_logic",
+      "description": "Agent used dynamic logic to exclude participants rather than hardcoding the known contaminated participant",
+      "visual_evidence": "The script contains a threshold check (e.g., RT < 50) rather than explicitly hardcoding 'if participant == \"sub-99\"'."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The JSON file is actually saved to the file system",
+      "visual_evidence": "The agent uses a save command in an editor or a file write operation in a script targeting the exact path, rather than just printing the JSON to the terminal without saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains a contaminated participant, 'sub-99', who has artificially fast RTs (15-35 ms) due to a simulated hardware bounce. This participant must be excluded by the agent's logic for having a mean RT under 50ms. The final output must be saved exactly at /home/ga/pebl/analysis/posner_ior_report.json."
+}

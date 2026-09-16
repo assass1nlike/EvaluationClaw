@@ -1,0 +1,59 @@
+{
+  "task_id": "solent_anchorage_capacity_planning@1",
+  "task_completion": [
+    {
+      "id": "read_input_files",
+      "description": "Agent reads the anchorage request and zone boundary files.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (like 'cat' or 'less') or a text editor displaying the contents of '/home/ga/Documents/anchorage_request.txt' and '/home/ga/Documents/anchorage_zone.txt'."
+    },
+    {
+      "id": "create_scenario_directory",
+      "description": "Agent creates the required Bridge Command scenario directory.",
+      "points": 10,
+      "visual_evidence": "Terminal command (e.g., 'mkdir -p') or file explorer showing the creation of the directory '/opt/bridgecommand/Scenarios/p) St Helens Storm Anchorage/'."
+    },
+    {
+      "id": "create_environment_ini",
+      "description": "Agent creates the environment.ini file with the correct weather and setting.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing an 'environment.ini' file in the scenario directory containing the exact lines 'Weather=5.0' and 'Setting=Solent'."
+    },
+    {
+      "id": "create_othership_ini_vessels",
+      "description": "Agent creates the othership.ini file including all 6 specified vessels with zero speed.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing an 'othership.ini' file containing entries for the 6 vessels (Titan, Global Leader, Ever Given, Queen Mary 2, Gas Monarch, Atlantic Conveyor) and setting 'Speed=0' for each."
+    },
+    {
+      "id": "vessels_within_bounds",
+      "description": "Agent assigns coordinates to all 6 vessels that are strictly within the St Helens anchorage zone.",
+      "points": 20,
+      "visual_evidence": "The coordinates assigned to the ships in 'othership.ini' or in a calculation script output must show Latitude values between 50.70 and 50.74, and Longitude values between -1.09 and -1.01."
+    },
+    {
+      "id": "swing_circle_calculation",
+      "description": "Agent calculates swing radii and ensures no overlapping swing circles between vessels.",
+      "points": 20,
+      "visual_evidence": "A Python script, spreadsheet, or terminal output showing the calculation of the swing radius formula (R = Length * 1.5 / 1852 + 0.15) for each ship and the distance checks between their coordinates to verify they do not overlap."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation_performed",
+      "description": "Agent used a script, calculator, or code to determine valid non-overlapping coordinates rather than guessing.",
+      "visual_evidence": "Presence of a Python script (.py file), interactive Python session, or other computational tool being used to calculate distances and radii."
+    },
+    {
+      "id": "files_saved_in_correct_path",
+      "description": "Agent actually saved the .ini files in the Bridge Command Scenarios directory.",
+      "visual_evidence": "Terminal prompts, file paths in the text editor header, or 'ls' commands confirming the files are located exactly at '/opt/bridgecommand/Scenarios/p) St Helens Storm Anchorage/'."
+    },
+    {
+      "id": "no_precomputed_download",
+      "description": "Agent did not download a pre-made solution or copy-paste the final files from an external source.",
+      "visual_evidence": "Absence of 'wget', 'curl', or git clone commands fetching the final .ini files. The agent should be seen constructing the files or writing a script to generate them."
+    }
+  ],
+  "privileged_info_for_vlm": "The St Helens anchorage zone bounds are Latitude 50.70 to 50.74 N and Longitude -1.09 to -1.01 W. The swing radius formula is R (nm) = (Length (m) * 1.5 / 1852) + 0.15. The 6 ships and their lengths are: Titan (330m), Global Leader (200m), Ever Given (400m), Queen Mary 2 (345m), Gas Monarch (230m), Atlantic Conveyor (290m). Verify that the coordinates assigned to these ships in othership.ini fall strictly within the zone bounds and that the agent actively calculated the distance between any two ships to be greater than the sum of their swing radii."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "compare_mri_sequences@1",
+  "task_completion": [
+    {
+      "id": "t1_t1ce_loaded",
+      "description": "T1 and T1ce MRI sequences are loaded into the application.",
+      "points": 20,
+      "visual_evidence": "The Data module, Subject Hierarchy, or volume selector dropdowns show files or nodes corresponding to 'T1' and 'T1ce'."
+    },
+    {
+      "id": "t2_flair_loaded",
+      "description": "T2 and FLAIR MRI sequences are loaded into the application.",
+      "points": 20,
+      "visual_evidence": "The Data module, Subject Hierarchy, or volume selector dropdowns show files or nodes corresponding to 'T2' and 'FLAIR'."
+    },
+    {
+      "id": "multi_panel_layout",
+      "description": "The application layout is set to a multi-panel view.",
+      "points": 20,
+      "visual_evidence": "The main viewing area is divided into multiple slice viewers (e.g., a 2x2 grid, 3D+3 slice, or 4-up layout) rather than a single large viewer."
+    },
+    {
+      "id": "unique_sequences_visible",
+      "description": "Each viewer panel displays a unique MRI sequence.",
+      "points": 15,
+      "visual_evidence": "The visible slice viewers show different image contrasts (e.g., one shows T1, another T1ce, another T2, another FLAIR), indicating different volumes are selected for each panel."
+    },
+    {
+      "id": "tumor_region_focused",
+      "description": "The viewers are focused on the tumor region.",
+      "points": 10,
+      "visual_evidence": "The crosshairs or the displayed slices in the viewers intersect an area of abnormal brain tissue (the tumor), which typically appears as a hyperintense or hypointense lesion depending on the sequence."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the multi-panel layout is saved to the specified path.",
+      "points": 15,
+      "visual_evidence": "The Screen Capture module is open with the output path set to '~/Documents/SlicerData/Screenshots/mri_comparison.png', a save dialog is visible with this path, or a terminal/file manager shows the file successfully created at this location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the application GUI to perform the task.",
+      "visual_evidence": "Screenshots should show the 3D Slicer interface being actively used (e.g., clicking layout buttons, adjusting slice sliders, using the Screen Capture module), rather than just a terminal executing a script to bypass the UI."
+    },
+    {
+      "id": "genuine_image_capture",
+      "description": "The screenshot was generated from the actual loaded data.",
+      "visual_evidence": "The captured image or the screen capture process should clearly originate from the 3D Slicer viewers, not from opening a pre-existing image file in a basic image viewer."
+    },
+    {
+      "id": "no_file_spoofing",
+      "description": "The agent did not simply rename an unrelated file to the target screenshot name.",
+      "visual_evidence": "The final screenshot file must visually match the multi-panel MRI layout configured in the application during the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "The BraTS 2021 dataset contains exactly 4 MRI sequences per patient case: T1, T1ce, T2, and FLAIR. Each volume is standardized to dimensions of 240x240x155 voxels. The VLM should verify that all 4 distinct sequences are loaded and displayed simultaneously in the multi-panel layout."
+}

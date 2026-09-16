@@ -1,0 +1,33 @@
+{
+  "id": "property_loss_report_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are an independent insurance adjuster. Create a formal Property Loss Report in Apache OpenOffice Writer using the claim details from '/home/ga/Documents/claim_data.json' and the three images in '/home/ga/Documents/site_photos/'. The report must include a header with the Insurance Carrier, Claim Number, and Date of Loss. It should contain four main sections using 'Heading 1' style: 'Loss Information' (including Insured Name and Address), 'Cause of Loss' (containing the narrative text), 'Scope of Repairs' (featuring a table of repair items, quantities, unit costs, totals, and a Grand Total), and 'Photographic Evidence' (displaying the images with their specific captions from the JSON). Save the completed report to '/home/ga/Documents/Claim_778492_Report.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/property_loss_report_create/setup_task.sh",
+    "post_task": "/workspace/tasks/property_loss_report_create/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/Claim_778492_Report.odt",
+    "claim_number": "778492",
+    "insured_name": "Robert & Sarah Miller",
+    "carrier": "Apex Mutual Insurance",
+    "expected_image_count": 3,
+    "min_file_size_kb": 20,
+    "required_styles": [
+      "Heading 1"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_property_loss_report"
+    }
+  }
+}

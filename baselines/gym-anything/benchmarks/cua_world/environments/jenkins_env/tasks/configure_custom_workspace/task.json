@@ -1,0 +1,28 @@
+{
+  "id": "configure_custom_workspace@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Configure the 'legacy-system-build' Freestyle job to use '/tmp/legacy_ws' as its custom workspace. Verify the configuration by triggering a build. If prompted, use credentials admin/Admin123!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_custom_workspace/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_custom_workspace/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "job_name": "legacy-system-build",
+    "expected_workspace": "/tmp/legacy_ws",
+    "expected_log_pattern": "Building in workspace /tmp/legacy_ws"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_custom_workspace"
+    }
+  }
+}

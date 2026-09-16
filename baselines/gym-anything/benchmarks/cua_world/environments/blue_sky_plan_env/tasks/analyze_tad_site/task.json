@@ -1,0 +1,27 @@
+{
+  "id": "analyze_tad_site@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Evaluate the inter-radicular space between the lower right canine (#27) and first premolar (#28) in the 'Mandible_Demo.bsp' project for a potential TAD (Temporary Anchorage Device) placement. As an orthodontist planning to distalize the canine, measure the narrowest horizontal distance between the roots at the mid-root level (approximately 5mm below the crest). Capture a screenshot of the measurement view clearly showing the roots and the measurement line. Document the findings in a report at 'C:\\Users\\Docker\\Documents\\tad_safety_report.txt' using the following format:\n\nMeasurement: X.X mm\nConclusion: [Safe/Risky]\n(Safe if > 3.0mm, Risky if <= 3.0mm)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_tad_site\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_tad_site\\export_result.ps1"
+  },
+  "metadata": {
+    "project_file": "C:\\Users\\Docker\\Documents\\Mandible_Demo.bsp",
+    "report_path": "C:\\Users\\Docker\\Documents\\tad_safety_report.txt",
+    "safe_threshold_mm": 3.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_tad_site"
+    }
+  }
+}

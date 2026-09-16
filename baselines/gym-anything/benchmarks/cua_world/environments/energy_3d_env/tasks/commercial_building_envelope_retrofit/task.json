@@ -1,0 +1,32 @@
+{
+  "id": "commercial_building_envelope_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Perform an envelope retrofit on a commercial building by upgrading the roof insulation and window properties, then evaluate the new cooling load on a peak summer day.\n\nStarting State: Energy3D is launched. The baseline commercial building model is available at `~/Documents/Energy3D/office_baseline.ng3`.\n\nExpected Actions:\n1. Open the file `~/Documents/Energy3D/office_baseline.ng3`.\n2. Upgrade the roof insulation: Select the roof and change its U-value to 0.15 W/m²K.\n3. Upgrade the window glazing: Select all windows on the building and modify their properties to represent high-performance double-pane Low-E glass:\n   - Set U-value to 1.4 W/m²K\n   - Set SHGC (Solar Heat Gain Coefficient) to 0.25\n4. Set the simulation date to July 15 (a peak summer day).\n5. Run a Daily Energy Analysis for the building (Analysis > Buildings > Daily Energy Analysis for Selected Building).\n6. Review the analysis results graph and identify the total 'Cooling' energy requirement (in kWh).\n7. Save the modified project as `~/Documents/Energy3D/office_upgraded.ng3`.\n8. Create a text file at `~/Documents/Energy3D/cooling_results.txt` containing only the numerical cooling energy value you identified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/commercial_building_envelope_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/commercial_building_envelope_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "HVAC Engineer / Energy Auditor",
+    "industry": "Commercial Real Estate / Sustainability",
+    "expected_roof_u_value": 0.15,
+    "expected_window_u_value": 1.4,
+    "expected_window_shgc": 0.25,
+    "baseline_file": "/home/ga/Documents/Energy3D/office_baseline.ng3",
+    "upgraded_file": "/home/ga/Documents/Energy3D/office_upgraded.ng3",
+    "results_file": "/home/ga/Documents/Energy3D/cooling_results.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retrofit_task"
+    }
+  }
+}

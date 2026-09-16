@@ -1,0 +1,53 @@
+{
+  "task_id": "botanical_timelapse_frame_extraction@1",
+  "task_completion": [
+    {
+      "id": "png_frames_extracted",
+      "description": "Extract still frames every 5 seconds as PNGs to the specified directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a file manager or terminal (e.g., 'ls') displaying multiple .png files inside '/home/ga/Pictures/bloom_frames/'. There should be between 11 and 14 files."
+    },
+    {
+      "id": "master_clip_created",
+      "description": "Create a master clip of the peak bloom segment (0:30 to 0:45) at 1920x1080 using H.264 with audio.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the file '/home/ga/Videos/bloom_clips/peak_bloom_master.mp4'. Terminal output (like 'ffprobe') or GUI file properties should confirm it is ~15 seconds long, 1920x1080 resolution, and uses the H.264 codec."
+    },
+    {
+      "id": "web_clip_created",
+      "description": "Produce a web version of the 0:30 to 0:45 segment in a WebM container.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the file '/home/ga/Videos/bloom_clips/peak_bloom_web.webm' exists in the file manager or terminal."
+    },
+    {
+      "id": "web_clip_properties",
+      "description": "Ensure the web clip is downscaled to 640x360, uses VP8 codec, and is silent (no audio).",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'ffprobe', 'ffmpeg -i') or GUI properties window for 'peak_bloom_web.webm' confirming the resolution is 640x360, the video codec is VP8, and there is no audio stream present."
+    },
+    {
+      "id": "manifest_json_created",
+      "description": "Generate a JSON manifest with specific keys detailing the project outputs.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat') showing the contents of '/home/ga/Documents/manifest.json'. It must contain the keys 'project', 'extracted_frame_count', 'master_clip', 'web_clip', and 'web_clip_has_audio' set to false."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Verify the agent actually processed the video rather than creating empty dummy files.",
+      "visual_evidence": "Look for the use of video processing tools like 'ffmpeg' in the terminal or a GUI video editor. The resulting .mp4, .webm, and .png files should have plausible, non-zero file sizes."
+    },
+    {
+      "id": "accurate_manifest_data",
+      "description": "Verify the JSON manifest contains actual data reflecting the work done.",
+      "visual_evidence": "The 'extracted_frame_count' in the JSON should match the actual number of PNGs generated (between 11 and 14), rather than a copied placeholder."
+    },
+    {
+      "id": "no_direct_file_faking",
+      "description": "Verify the agent didn't just use 'touch' or rename commands to fake the output files.",
+      "visual_evidence": "Absence of 'touch peak_bloom_master.mp4' or similar commands in the terminal history. Video properties/ffprobe must show valid video streams, not errors about invalid data."
+    }
+  ],
+  "privileged_info_for_vlm": "The extracted PNG frames count must be strictly between 11 and 14. The master clip duration must be approximately 15.0 seconds. The web clip must have a resolution of exactly 640x360, use the 'vp8' codec, be in a 'webm' container, and have its audio stripped."
+}

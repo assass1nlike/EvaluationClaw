@@ -1,0 +1,84 @@
+{
+  "dataset_id": "2f6fc4e9",
+  "name": "Bee-Detection-Dataset",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 641,
+  "description": "The Bee-Detection-Dataset pairs images of bees with a textual prompt asking to detect the bee region. Each sample provides an image reference, an instruction, and bounding box coordinates, evaluating object detection/localization for bees.",
+  "card_text": "This dataset contains image-text samples for bee detection. Each sample consists of an image file path (e.g., frames from bee videos) and a short instruction, almost always 'Detect the bee region'. The target output is a bounding box annotation under the key 'category: bbox', mapping an index to coordinates in [x, y, width, height] format. The images are natural outdoor or close-up scenes with bees, and the task evaluates a model's ability to localize bees in images. The dataset size is 641 samples, covering moderate visual complexity with one or potentially multiple bee instances per image. It is intended for object detection and visual grounding in entomology or wildlife monitoring contexts.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "bee detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The file path or identifier of the input image, which shows bees in a natural or close-up setting. It is the visual context in which the bee region must be detected.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short textual instruction asking the model to detect the bee region in the associated image. It specifies the target object (bee) and the detection task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category: bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Bounding box coordinates for the bee region(s) in the corresponding image, provided as [x, y, width, height] under integer keys such as '0'. It is the target spatial annotation the model must predict.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference (input.image_file), a short textual instruction asking to detect the bee region (input.prompt), and a bounding box annotation (output.category: bbox) that maps integer indices to [x, y, width, height] coordinates for the detected bee(s). The image provides the visual content, the prompt conditions the detection task, and the bounding boxes specify the spatial locations of bees within that image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/bee-detection-dataset/json/annotation.json",
+    "existing_tags": {
+      "task": "bee detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

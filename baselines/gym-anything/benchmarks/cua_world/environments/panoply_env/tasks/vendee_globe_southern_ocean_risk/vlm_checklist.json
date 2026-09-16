@@ -1,0 +1,59 @@
+{
+  "task_id": "vendee_globe_southern_ocean_risk@1",
+  "task_completion": [
+    {
+      "id": "open_dataset",
+      "description": "Open the Sea Level Pressure climatology dataset.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the `slp.mon.ltm.nc` dataset opened in a data viewer (like Panoply) or referenced in a data analysis script."
+    },
+    {
+      "id": "create_january_slp_map",
+      "description": "Create a map of Sea Level Pressure for January.",
+      "points": 20,
+      "visual_evidence": "A map plot of Sea Level Pressure (slp) is visible, with the time dimension set to January (e.g., time index 0 or 'Jan')."
+    },
+    {
+      "id": "south_polar_projection",
+      "description": "Apply a South Polar projection to the map.",
+      "points": 20,
+      "visual_evidence": "The map projection is visibly centered on the South Pole (Antarctica is in the middle of the map)."
+    },
+    {
+      "id": "calculate_pressure_gradient",
+      "description": "Calculate the meridional pressure gradient between 30\u00b0S and 60\u00b0S along 20\u00b0E.",
+      "points": 20,
+      "visual_evidence": "The agent is seen extracting data values at 30\u00b0S, 20\u00b0E and 60\u00b0S, 20\u00b0E (e.g., in a data grid, script output, or text editor) and calculating their difference. The extracted values should be around 1011 and 985."
+    },
+    {
+      "id": "export_map",
+      "description": "Export the map to the specified directory.",
+      "points": 15,
+      "visual_evidence": "A save dialog, file manager, or terminal command indicates the map is being saved as `southern_ocean_slp_jan.png` in `~/Documents/VendeeGlobe/`."
+    },
+    {
+      "id": "save_report",
+      "description": "Save the structured report to the specified directory.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal shows the creation of `route_advisory.txt` in `~/Documents/VendeeGlobe/` containing the calculated gradient and structured report."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_extraction",
+      "description": "The agent extracted the values from the dataset using a tool or script, rather than hallucinating them.",
+      "visual_evidence": "Screenshots should show the agent actively querying the dataset for the specific coordinates (30\u00b0S, 20\u00b0E and 60\u00b0S, 20\u00b0E) using Panoply's array view, map clicking, or a Python script."
+    },
+    {
+      "id": "avoided_unit_trap",
+      "description": "The agent did not incorrectly divide the SLP values by 100.",
+      "visual_evidence": "The reported SLP values in the text file or terminal should be in the ~980-1025 range, not unphysical values like ~9.8-10.2."
+    },
+    {
+      "id": "map_authenticity",
+      "description": "The map was genuinely generated from the dataset.",
+      "visual_evidence": "The map should be generated within a tool like Panoply or a Python plotting library, matching the dataset's visual style, rather than being a downloaded or generic image."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset 'slp.mon.ltm.nc' contains Sea Level Pressure natively in millibars (hPa). The agent must NOT divide the values by 100. The correct SLP at 30\u00b0S, 20\u00b0E in January is approximately 1011.0 hPa (expected range: 1010.0 - 1025.0). The correct SLP at 60\u00b0S, 20\u00b0E in January is approximately 985.2 hPa (expected range: 980.0 - 1000.0). The map must use a South Polar projection."
+}

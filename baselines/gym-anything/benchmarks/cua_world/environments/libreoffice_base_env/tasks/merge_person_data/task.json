@@ -1,0 +1,28 @@
+{
+  "id": "merge_person_data@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a new table named 'Person' in the Chinook database with columns for FirstName, LastName, Email, and Role. Populate the table with a unified list of all individuals from the 'Customer' and 'Employee' tables, assigning the appropriate 'Customer' or 'Employee' value to the Role column for each record.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_person_data/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_person_data/export_result.sh"
+  },
+  "metadata": {
+    "expected_total_rows": 67,
+    "expected_customer_rows": 59,
+    "expected_employee_rows": 8,
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_person_data"
+    }
+  }
+}

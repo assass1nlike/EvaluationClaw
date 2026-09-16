@@ -1,0 +1,31 @@
+{
+  "id": "equivalence_test_toothgrowth@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform an Equivalence Independent Samples T-Test on the Tooth Growth dataset (/home/ga/Documents/JASP/ToothGrowth.csv). Filter the data to include only records where 'dose' is 2.0. Compare the dependent variable 'len' between 'supp' groups using equivalence bounds of -2.0 and 2.0. Include descriptive statistics in the analysis and save the file to /home/ga/Documents/JASP/Bioequivalence.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/equivalence_test_toothgrowth/setup_task.sh",
+    "post_task": "/workspace/tasks/equivalence_test_toothgrowth/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/Bioequivalence.jasp",
+    "dataset_path": "/home/ga/Documents/JASP/ToothGrowth.csv",
+    "expected_n_per_group": 10,
+    "total_n_filtered": 20,
+    "total_n_original": 60,
+    "lower_bound": -2.0,
+    "upper_bound": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_equivalence_test"
+    }
+  }
+}

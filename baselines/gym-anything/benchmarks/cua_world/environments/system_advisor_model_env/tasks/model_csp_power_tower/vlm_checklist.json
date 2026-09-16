@@ -1,0 +1,65 @@
+{
+  "task_id": "model_csp_power_tower@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The Python script csp_power_tower_model.py is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the file 'csp_power_tower_model.py' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "pysam_imported",
+      "description": "The script imports PySAM modules to create a molten salt power tower model.",
+      "points": 10,
+      "visual_evidence": "Look at the script content for imports like 'import PySAM.TcsmoltenSalt' or similar PySAM modules required for MSPT."
+    },
+    {
+      "id": "model_configured",
+      "description": "The script configures the model with the required capacity, storage, and solar multiple.",
+      "points": 20,
+      "visual_evidence": "Look at the script content for assignments setting the net power block capacity to 100 MW (or 100000 kW), thermal energy storage to 10 hours, and solar multiple to 2.4."
+    },
+    {
+      "id": "weather_configured",
+      "description": "The script specifies a high-DNI TMY weather file from the US Southwest.",
+      "points": 15,
+      "visual_evidence": "Look at the script content for a weather file path containing 'Tucson', 'Phoenix', or 'Daggett', which should be sourced from the SAM solar resource directory."
+    },
+    {
+      "id": "json_created",
+      "description": "The results JSON file csp_power_tower_results.json is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the file 'csp_power_tower_results.json' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "json_structure_correct",
+      "description": "The JSON file contains the required structure and keys.",
+      "points": 15,
+      "visual_evidence": "Look at the JSON file content to verify it contains 'project_name', 'weather_file', 'configuration' (with P_ref_mw, tshours, solar_multiple), and 'results' (with annual_energy_kwh, annual_energy_gwh, capacity_factor_pct, lcoe_real_cents_per_kwh)."
+    },
+    {
+      "id": "results_plausible",
+      "description": "The JSON file contains plausible simulation results.",
+      "points": 20,
+      "visual_evidence": "Look at the JSON file content to verify 'annual_energy_gwh' is between 200 and 800, 'capacity_factor_pct' is between 30 and 75, and 'lcoe_real_cents_per_kwh' is between 4 and 30."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_visible",
+      "description": "The agent actually executed the Python script to generate the results.",
+      "visual_evidence": "Look for terminal output showing the execution of the Python script (e.g., 'python csp_power_tower_model.py') without fatal errors."
+    },
+    {
+      "id": "dynamic_result_extraction",
+      "description": "The Python script extracts results dynamically from the PySAM model rather than hardcoding them.",
+      "visual_evidence": "Look at the script content to ensure the results dictionary is populated using PySAM output variables (e.g., model.Outputs.annual_energy) rather than hardcoded numbers."
+    },
+    {
+      "id": "no_hallucinated_json",
+      "description": "The JSON file is generated programmatically by the script.",
+      "visual_evidence": "Look at the script content for JSON export logic (e.g., 'json.dump'). The agent should not be manually typing the JSON file with guessed values in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Python script path: /home/ga/Documents/SAM_Projects/csp_power_tower_model.py. Expected JSON results path: /home/ga/Documents/SAM_Projects/csp_power_tower_results.json. Model configuration must include: Net power block capacity = 100 MW, Thermal energy storage = 10 hours, Solar multiple = 2.4. Plausible results bounds: Annual energy = 200-800 GWh, Capacity Factor = 30-75%, LCOE = 4-30 cents/kWh."
+}

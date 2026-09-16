@@ -1,0 +1,59 @@
+{
+  "task_id": "gas_alarm_setpoint_calculation@1",
+  "task_completion": [
+    {
+      "id": "cameo_website_accessed",
+      "description": "Access the CAMEO Chemicals website",
+      "points": 10,
+      "visual_evidence": "A web browser is open and navigated to cameochemicals.noaa.gov."
+    },
+    {
+      "id": "chemical_data_retrieved",
+      "description": "Search for and view chemical data on CAMEO Chemicals",
+      "points": 20,
+      "visual_evidence": "The browser shows the CAMEO chemical detail pages for Methane, Propane, Hydrogen, or Acetone, with evidence of looking for the Lower Explosive Limit (LEL) under the NIOSH guidelines section."
+    },
+    {
+      "id": "file_editor_opened",
+      "description": "Open a text editor or terminal to create the output file",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) or terminal is open, showing the creation or editing of a file named 'alarm_setpoints.txt' in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "header_written",
+      "description": "Write the correct pipe-delimited header",
+      "points": 10,
+      "visual_evidence": "The text file contains the exact header row: 'Chemical Name | LEL (%) | Setpoint (ppm)'."
+    },
+    {
+      "id": "methane_propane_recorded",
+      "description": "Record correct calculations for Methane and Propane",
+      "points": 25,
+      "visual_evidence": "The text file contains the rows for Methane and Propane with correct values. Look for 'Methane | 5.0 | 5000' and 'Propane | 2.1 | 2100' (minor spacing variations around pipes are acceptable)."
+    },
+    {
+      "id": "hydrogen_acetone_recorded",
+      "description": "Record correct calculations for Hydrogen and Acetone",
+      "points": 25,
+      "visual_evidence": "The text file contains the rows for Hydrogen and Acetone with correct values. Look for 'Hydrogen | 4.0 | 4000' and 'Acetone | 2.5 | 2500' (Note: 'Acetone | 2.6 | 2600' is also acceptable due to a known discrepancy)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Agent genuinely interacted with the CAMEO Chemicals website",
+      "visual_evidence": "Screenshots should show the agent typing in the search bar, clicking links, or navigating the CAMEO website GUI, rather than bypassing the UI with background scripts."
+    },
+    {
+      "id": "data_source_verification",
+      "description": "Agent retrieved data from the specified source rather than hallucinating",
+      "visual_evidence": "The agent must be seen actually viewing the chemical detail pages on CAMEO Chemicals to find the LEL values, rather than instantly generating the text file from its pre-trained knowledge."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Agent manually constructed the output file",
+      "visual_evidence": "The agent is seen typing or constructing the contents of 'alarm_setpoints.txt' in a text editor or via terminal echo/cat commands, rather than the completed file appearing instantaneously without visible creation steps."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected LEL and Setpoint values: Methane (LEL: 5.0%, Setpoint: 5000 ppm), Propane (LEL: 2.1%, Setpoint: 2100 ppm), Hydrogen (LEL: 4.0%, Setpoint: 4000 ppm), Acetone (LEL: 2.5% or 2.6%, Setpoint: 2500 or 2600 ppm). The output file must be located at /home/ga/Documents/alarm_setpoints.txt and use a pipe-delimited format with the exact header 'Chemical Name | LEL (%) | Setpoint (ppm)'."
+}

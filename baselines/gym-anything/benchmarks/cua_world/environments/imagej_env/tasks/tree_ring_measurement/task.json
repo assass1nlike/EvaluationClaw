@@ -1,0 +1,45 @@
+{
+  "id": "tree_ring_measurement@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Tree Ring Width Measurement",
+  "description": "Perform dendrochronological analysis on the 'Tree Rings' (48K) sample image. Measure the width in pixels of at least five consecutive growth rings. Save a table containing the individual ring widths and a summary (Mean, Min, Max) to ~/ImageJ_Data/results/tree_ring_measurements.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "dendrochronology",
+    "measurement",
+    "line-profile",
+    "plotting",
+    "analysis"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tree_ring_measurement/setup_task.sh",
+    "post_task": "/workspace/tasks/tree_ring_measurement/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "Tree Rings (48K)",
+    "output_file": "/home/ga/ImageJ_Data/results/tree_ring_measurements.csv",
+    "min_rings_required": 5,
+    "min_pixel_width": 2,
+    "max_pixel_width": 200,
+    "expected_content": [
+      "ring",
+      "width",
+      "distance",
+      "length",
+      "mean"
+    ],
+    "summary_stats_required": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tree_ring_measurement"
+    }
+  }
+}

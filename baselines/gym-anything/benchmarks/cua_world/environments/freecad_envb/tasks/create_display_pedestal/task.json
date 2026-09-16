@@ -1,0 +1,34 @@
+{
+  "id": "create_display_pedestal@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a tiered product display pedestal in FreeCAD as a single fused solid with a central cable routing hole. The assembly consists of a 200x200x15 mm base centered on the Z-axis (Z=0 to 15), a 40mm radius cylinder column 150mm high sitting on the base (starting at Z=15), and a 70mm radius cylinder top platform 12mm high sitting on the column (starting at Z=165). Perform a boolean union on these parts and cut a 15mm diameter hole through the entire center along the Z-axis. Save the final result to /home/ga/Documents/FreeCAD/display_pedestal.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_display_pedestal/setup_task.sh",
+    "post_task": "/workspace/tasks/create_display_pedestal/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/display_pedestal.FCStd",
+    "expected_volume_mm3": 1507429,
+    "volume_tolerance_percent": 8,
+    "expected_bbox_mm": [
+      200,
+      200,
+      177
+    ],
+    "bbox_tolerance_mm": 5,
+    "hole_radius_mm": 7.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_display_pedestal"
+    }
+  }
+}

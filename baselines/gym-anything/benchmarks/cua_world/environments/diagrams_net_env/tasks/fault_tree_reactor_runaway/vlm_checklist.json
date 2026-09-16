@@ -1,0 +1,59 @@
+{
+  "task_id": "fault_tree_reactor_runaway@1",
+  "task_completion": [
+    {
+      "id": "open_required_files",
+      "description": "The agent opened the partially started diagram and the reference text files.",
+      "points": 10,
+      "visual_evidence": "A diagramming tool (e.g., draw.io) is open displaying the 'reactor_fta.drawio' file. A text editor or viewer is open displaying 'incident_investigation_report.txt' and/or 'fta_notation_reference.txt'."
+    },
+    {
+      "id": "add_intermediate_and_basic_events",
+      "description": "The agent expanded the diagram using rectangles for intermediate events and circles for basic events.",
+      "points": 20,
+      "visual_evidence": "The diagram shows a significantly expanded tree structure with multiple new rectangle shapes and circle shapes connected by lines. A complete diagram should have at least 20 total shapes."
+    },
+    {
+      "id": "add_logic_gates",
+      "description": "The agent used appropriate logic gates to connect the events in the fault tree.",
+      "points": 15,
+      "visual_evidence": "Standard fault tree logic gate symbols (such as AND gates or OR gates) are visible in the diagram, properly connecting the intermediate and basic events."
+    },
+    {
+      "id": "label_probabilities",
+      "description": "The agent labeled the basic events (circles) with failure probabilities using scientific notation.",
+      "points": 20,
+      "visual_evidence": "Text inside or immediately adjacent to the circular basic events contains scientific notation numbers (e.g., 2.1e-3, 10^-4, etc.)."
+    },
+    {
+      "id": "color_code_subsystems",
+      "description": "The agent color-coded the events by subsystem (Blue for Cooling, Orange for Control, Red for Shutdown).",
+      "points": 20,
+      "visual_evidence": "The shapes in the diagram are filled with light blue, light orange, and light red colors, visually grouping different branches of the fault tree."
+    },
+    {
+      "id": "export_pdf",
+      "description": "The agent exported the final diagram as a PDF to the specified path.",
+      "points": 15,
+      "visual_evidence": "An 'Export as PDF' dialog is visible in the diagramming tool, or a file manager/terminal shows 'reactor_fta.pdf' successfully created in the '~/Diagrams/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_diagram_editing",
+      "description": "The agent used a graphical diagramming tool to edit the fault tree rather than directly modifying the XML code.",
+      "visual_evidence": "The draw.io (or similar) graphical user interface is visible with the diagram being actively edited on the canvas."
+    },
+    {
+      "id": "genuine_pdf_export",
+      "description": "The agent used the diagramming tool's built-in export functionality to create the PDF.",
+      "visual_evidence": "The VLM should see the tool's export menu or dialog being used, rather than terminal commands like 'touch reactor_fta.pdf' or simply renaming the .drawio extension."
+    },
+    {
+      "id": "gui_color_application",
+      "description": "The agent applied colors using the diagramming tool's styling options.",
+      "visual_evidence": "The color palette, style menu, or format panel in the diagramming tool is visible and used to change the fill colors of the shapes."
+    }
+  ],
+  "privileged_info_for_vlm": "The final diagram must be saved at '/home/ga/Diagrams/reactor_fta.drawio' and exported to '/home/ga/Diagrams/reactor_fta.pdf'. A complete diagram should contain at least 20 shapes and 19 connecting edges. The expected fill colors for the subsystems correspond to hex codes #dae8fc (Blue/Cooling), #ffe6cc (Orange/Control), and #f8cecc (Red/Shutdown). When checking probabilities on basic events, look for scientific notation (e.g., numbers containing 'e-' or '10^-') rather than strictly requiring a 'P=' prefix, as the evaluation logic accepts standard scientific notation formats."
+}

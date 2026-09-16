@@ -1,0 +1,31 @@
+{
+  "id": "solar_array_regional_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Modify the reference solar array design for Phoenix, AZ by updating the geographic location, setting the tilt to 33°, azimuth to 180°, changing the panel model to 'SunPower SPR-X21-345', and saving the new configuration. \n\n1. Energy3D is open with the 'solar-panel-tilt-angle.ng3' starter project.\n2. Change the location to Phoenix, AZ.\n3. Select the solar racks and set their Tilt angle to 33° and Azimuth to 180°.\n4. Change the Solar Panel model to 'SunPower SPR-X21-345'.\n5. Save the updated project as 'phoenix-solar-array.ng3' in the ~/Documents/Energy3D/ directory (do not overwrite the original file).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/solar_array_regional_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/solar_array_regional_optimization/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "phoenix-solar-array.ng3",
+    "expected_city": "Phoenix",
+    "expected_hardware": "SPR-X21",
+    "expected_tilt": 33,
+    "expected_azimuth": 180,
+    "occupation": "Solar Design Engineer",
+    "industry": "Renewable Energy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_array_optimization"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "12da0932",
+  "name": "Gene-Protein-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for biomedical named entity recognition, where models must extract gene/protein and other biomedical entities from scientific text and classify them into types like protein, DNA, cell_type, cell_line, and RNA.",
+  "card_text": "The Gene-Protein-Ner dataset contains 200 text samples from biomedical literature. Each sample includes a short scientific sentence as raw_text and a natural-language prompt instructing the model to extract all biomedical entities and their types. The entity types covered are protein, DNA, cell_type, cell_line, and RNA. The expected output is a comma-separated list of entities formatted as 'entity => type'. The text is factual, domain-specific, and often mentions genes, proteins, viruses, promoters, and cell lines. The dataset is monolingual (English) and text-only. It evaluates fine-grained biomedical entity recognition and typing, requiring both accurate span detection and correct type assignment. The prompts are templated and consistent across samples, making the task a straightforward instruction-following extraction benchmark in the biomedical domain.",
+  "tasks": [
+    "entity_recognition"
+  ],
+  "domain": "biomedical",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A short biomedical scientific sentence or clause that serves as the source text for entity extraction. It typically describes molecular biology findings, mentioning genes, proteins, viruses, promoters, or cell types.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract all biomedical entities and their types from the raw_text, specifying the possible entity types and the required output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A comma-separated list of extracted biomedical entities with their types, each formatted as 'entity => type'. The entities are spans from the raw_text, and the types come from the fixed set: protein, DNA, cell_type, cell_line, RNA.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three text components: a raw biomedical sentence (input.raw_text), a templated instruction prompt (input.prompt) that asks for entity extraction from that sentence, and an answer string (output.text) listing the extracted entities with their types in 'entity => type' format. The prompt references the raw_text as the source and defines the output format; the answer is a direct response to the prompt."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Gene-Protein-NER/annotation.json",
+    "existing_tags": {
+      "task": "gene_protein_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "dual_quality_surface_export@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "The CT Cranium DICOM dataset is loaded in InVesalius 3. A biomedical engineer needs two 3D skull models for different purposes: a high-resolution one for detailed planning and a lower-resolution one for rapid prototyping. Create a bone segmentation mask (226-3071 HU). Generate a high-quality 3D surface and export it as a binary STL to /home/ga/Documents/skull_best.stl. Generate a second, lower-resolution 3D surface with a significantly lower triangle count and export it as a binary STL to /home/ga/Documents/skull_lowres.stl. Both files must be created in the same session.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dual_quality_surface_export/setup_task.sh",
+    "post_task": "/workspace/tasks/dual_quality_surface_export/export_result.sh"
+  },
+  "metadata": {
+    "best_path": "/home/ga/Documents/skull_best.stl",
+    "lowres_path": "/home/ga/Documents/skull_lowres.stl",
+    "min_triangles": 5000,
+    "min_diff_ratio": 1.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dual_quality_surface_export"
+    }
+  }
+}

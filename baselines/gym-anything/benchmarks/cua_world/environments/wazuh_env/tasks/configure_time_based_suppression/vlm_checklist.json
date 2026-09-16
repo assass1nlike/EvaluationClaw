@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_time_based_suppression@1",
+  "task_completion": [
+    {
+      "id": "open_local_rules_file",
+      "description": "Open or edit the local_rules.xml file",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal or text editor (like nano or vim) with the file path /var/ossec/etc/rules/local_rules.xml visible."
+    },
+    {
+      "id": "configure_rule_id_and_level",
+      "description": "Create a new rule with ID 100250 and level 0",
+      "points": 20,
+      "visual_evidence": "The XML text `<rule id=\"100250\" level=\"0\">` visible in the local_rules.xml file."
+    },
+    {
+      "id": "configure_parent_rule",
+      "description": "Set the rule as a child of rule 5715",
+      "points": 20,
+      "visual_evidence": "The XML text `<if_sid>5715</if_sid>` visible within the rule 100250 block."
+    },
+    {
+      "id": "configure_target_user",
+      "description": "Apply the rule to the user 'backup_svc'",
+      "points": 15,
+      "visual_evidence": "The XML text `<user>backup_svc</user>` or `<match>backup_svc</match>` visible within the rule 100250 block."
+    },
+    {
+      "id": "configure_time_range",
+      "description": "Set the rule to apply between 02:55 and 03:30",
+      "points": 15,
+      "visual_evidence": "The XML text `<time>02:55-03:30</time>` visible within the rule 100250 block."
+    },
+    {
+      "id": "restart_wazuh_manager",
+      "description": "Restart the Wazuh manager to apply changes",
+      "points": 20,
+      "visual_evidence": "A terminal command such as `systemctl restart wazuh-manager` or `/var/ossec/bin/wazuh-control restart` being executed, followed by a successful prompt return."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the agent actually modified the file on the system",
+      "visual_evidence": "The file modification should happen in a real terminal text editor (nano, vim) or via valid shell commands (echo, sed), not just typed into a disconnected notepad."
+    },
+    {
+      "id": "command_execution_verified",
+      "description": "Verify the restart command was actually executed",
+      "visual_evidence": "The screenshot should show the terminal prompt returning after the restart command, indicating it was executed and not just typed."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Verify the agent didn't just echo a success message",
+      "visual_evidence": "The terminal history should show the actual configuration steps and restart command, rather than a script that simply prints 'Task completed'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /var/ossec/etc/rules/local_rules.xml. The custom rule must have ID '100250' and level '0'. It must include a parent rule reference to '5715' (e.g., <if_sid>5715</if_sid>). The rule must target the user 'backup_svc' (e.g., <user>backup_svc</user> or <match>backup_svc</match>) and specify the time range '02:55-03:30' (e.g., <time>02:55-03:30</time>). Finally, the Wazuh manager must be restarted."
+}

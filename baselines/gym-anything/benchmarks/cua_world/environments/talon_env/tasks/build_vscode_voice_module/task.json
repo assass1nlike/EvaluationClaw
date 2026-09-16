@@ -1,0 +1,31 @@
+{
+  "id": "build_vscode_voice_module@1",
+  "version": "1.0",
+  "env_id": "talon_env@0.1",
+  "description": "You are a software developer with RSI who uses Talon Voice for hands-free coding in Visual Studio Code. Create a VS Code voice module in C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\apps\\vscode\\ consisting of a context-scoped vscode.talon file with at least 10 functional voice commands for navigation, editing, and code actions that activate only when VS Code is focused, and a vscode.py file defining at least 3 custom action implementations using the Talon Module/Context API.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\build_vscode_voice_module\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\build_vscode_voice_module\\export_result.ps1"
+  },
+  "metadata": {
+    "target_dir": "C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\apps\\vscode",
+    "talon_file": "C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\apps\\vscode\\vscode.talon",
+    "python_file": "C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\community\\apps\\vscode\\vscode.py",
+    "result_file": "C:\\Users\\Docker\\build_vscode_voice_module_result.json",
+    "min_commands": 10,
+    "min_py_actions": 3,
+    "required_context_app": "vscode"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_build_vscode_voice_module"
+    }
+  }
+}

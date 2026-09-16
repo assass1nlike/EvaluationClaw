@@ -1,0 +1,53 @@
+{
+  "task_id": "initialize_antenatal_record@1",
+  "task_completion": [
+    {
+      "id": "patient_chart_accessed",
+      "description": "Access patient Diana Prince's chart in OSCAR EMR",
+      "points": 10,
+      "visual_evidence": "The OSCAR EMR eChart, master record, or demographic page is open, clearly displaying the patient name 'Diana Prince'."
+    },
+    {
+      "id": "ar1_form_opened",
+      "description": "Open the Antenatal Record 1 (AR1) form",
+      "points": 20,
+      "visual_evidence": "An 'Antenatal Record 1', 'AR1', or 'Ontario Antenatal Record' form/window is open within the EMR interface for Diana Prince."
+    },
+    {
+      "id": "lmp_entered",
+      "description": "Enter the Last Menstrual Period (LMP) date",
+      "points": 20,
+      "visual_evidence": "The 'LMP' (Last Menstrual Period) field in the Antenatal Record is filled with a date that is exactly 8 weeks prior to the system's current date."
+    },
+    {
+      "id": "edd_calculated",
+      "description": "Ensure the Estimated Date of Delivery (EDD) is calculated",
+      "points": 20,
+      "visual_evidence": "The 'EDD' (Estimated Date of Delivery) field in the Antenatal Record is populated with a calculated date (typically 280 days after the entered LMP)."
+    },
+    {
+      "id": "ar1_saved",
+      "description": "Save the Antenatal Record",
+      "points": 30,
+      "visual_evidence": "A confirmation message, a closed form returning to the updated eChart, or the saved Antenatal Record appearing in the patient's list of forms/documents, indicating the save action was successful."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_emr_used",
+      "description": "Agent interacted with the actual OSCAR EMR web interface",
+      "visual_evidence": "Screenshots show a web browser navigating the OSCAR EMR system, not a local HTML file, text editor, or mock interface."
+    },
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the GUI to complete the task",
+      "visual_evidence": "The agent is seen clicking through the EMR menus and typing into form fields, rather than executing terminal commands or API scripts to bypass the UI."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Agent did not fake the final state using browser developer tools",
+      "visual_evidence": "The browser's developer tools (Inspect Element) are not open and being used to alter the DOM text to falsely show a saved record or calculated EDD."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient Name: Diana Prince. DOB: 1995-05-15. The Last Menstrual Period (LMP) must be set to exactly 8 weeks prior to the task execution date. The Estimated Date of Delivery (EDD) should be automatically calculated (typically LMP + 280 days, following Naegele's Rule). OSCAR EMR Credentials: username 'oscardoc', password 'oscar', PIN '1117'."
+}

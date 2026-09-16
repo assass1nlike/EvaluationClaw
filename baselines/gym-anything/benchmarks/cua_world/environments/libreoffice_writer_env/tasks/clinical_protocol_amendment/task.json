@@ -1,0 +1,34 @@
+{
+  "id": "clinical_protocol_amendment@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are a senior medical writer at Heliogen Therapeutics. Following an unblinded Data Safety Monitoring Board (DSMB) review of the HELI-CARD-201 Phase II trial, update the protocol document (/home/ga/Documents/protocol_v1.docx) to Version 2.0 and save it as /home/ga/Documents/protocol_v2.docx. The update requires changing the document header on all pages to Version 2.0 dated 15 March 2024 and adding a final exclusion criterion to Section 5: 'Screening QTc interval greater than 450 ms (males) or 470 ms (females) as measured by 12-lead ECG', maintaining the existing numbering style.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clinical_protocol_amendment/setup_task.sh",
+    "post_task": "/workspace/tasks/clinical_protocol_amendment/export_result.sh"
+  },
+  "metadata": {
+    "source_doc": "/home/ga/Documents/protocol_v1.docx",
+    "output_doc": "/home/ga/Documents/protocol_v2.docx",
+    "old_version": "Version 1.0",
+    "new_version": "Version 2.0",
+    "new_exclusion_criterion_fragment": "QTc interval greater than 450 ms",
+    "old_stopping_rule_text": "two (2) or more",
+    "new_stopping_rule_text": "one (1) or more",
+    "new_section_heading": "9.4 Cardiac Safety Monitoring Plan",
+    "new_section_content_fragment": "12-lead ECG assessment",
+    "version_history_fragment": "Protocol Amendment 1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clinical_protocol_amendment"
+    }
+  }
+}

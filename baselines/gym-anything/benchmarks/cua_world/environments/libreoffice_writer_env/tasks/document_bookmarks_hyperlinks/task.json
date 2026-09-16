@@ -1,0 +1,38 @@
+{
+  "id": "document_bookmarks_hyperlinks@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Create a navigable case management manual using the document at /home/ga/Documents/case_manual_draft.docx. Insert bookmarks at the start of each of the eight chapter headings. Add a new page at the beginning of the document titled 'Quick Navigation' containing a list of the eight chapter titles. Each title on the 'Quick Navigation' page must be an internal hyperlink pointing to its corresponding chapter bookmark. Save the final document to /home/ga/Documents/case_manual_navigable.docx.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/document_bookmarks_hyperlinks/setup_task.sh",
+    "post_task": "/workspace/tasks/document_bookmarks_hyperlinks/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/Documents/case_manual_draft.docx",
+    "output_path": "/home/ga/Documents/case_manual_navigable.docx",
+    "chapter_titles": [
+      "Intake and Assessment Procedures",
+      "Service Planning and Goal Setting",
+      "Crisis Intervention Protocols",
+      "Documentation and Record Keeping",
+      "Client Rights and Confidentiality",
+      "Interagency Coordination and Referrals",
+      "Quality Assurance and Program Evaluation",
+      "Staff Training and Professional Development"
+    ],
+    "min_bookmarks": 7,
+    "min_hyperlinks": 7
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bookmarks_and_hyperlinks"
+    }
+  }
+}

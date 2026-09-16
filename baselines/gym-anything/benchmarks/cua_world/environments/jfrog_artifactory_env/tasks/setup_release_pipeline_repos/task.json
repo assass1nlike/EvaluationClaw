@@ -1,0 +1,36 @@
+{
+  "id": "setup_release_pipeline_repos@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "You are the DevOps lead at Meridian Payments, a fintech startup migrating to a microservices architecture. Configure the Artifactory instance (http://localhost:8082, credentials: admin/password) to support the new platform. Create a local Maven repository named 'ms-releases' with the description 'Microservice release artifacts - Meridian Payments' as the authoritative store for internal JARs. Set up a remote Maven repository named 'maven-central-proxy' to proxy https://repo1.maven.org/maven2. Create a virtual Maven repository named 'ms-build-virtual' aggregating both, ensuring 'ms-releases' appears before 'maven-central-proxy' in the repository order. Finally, create a group named 'build-engineers' for the CI/CD platform team and",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_release_pipeline_repos/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_release_pipeline_repos/export_result.sh"
+  },
+  "metadata": {
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082",
+    "occupation": "DevOps Engineer",
+    "industry": "Financial Technology (Fintech)",
+    "target_repos": [
+      "ms-releases",
+      "maven-central-proxy",
+      "ms-build-virtual"
+    ],
+    "target_group": "build-engineers",
+    "target_permission": "build-access"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_release_pipeline_repos"
+    }
+  }
+}

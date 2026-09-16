@@ -1,0 +1,48 @@
+{
+  "id": "record_portfolio_deposits@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Record two cash deposits in JStock's 'My Portfolio' to reflect capital contributions. The first entry is for $30,000.00 dated Jan 10, 2024, with the comment 'Initial brokerage funding'. The second entry is for $25,000.00 dated Mar 01, 2024, with the comment 'Additional capital contribution'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_portfolio_deposits/setup_task.sh",
+    "post_task": "/workspace/tasks/record_portfolio_deposits/export_result.sh"
+  },
+  "metadata": {
+    "deposit_1": {
+      "amount": 30000.0,
+      "date_substrings": [
+        "Jan",
+        "2024"
+      ],
+      "comment_keywords": [
+        "Initial",
+        "funding"
+      ]
+    },
+    "deposit_2": {
+      "amount": 25000.0,
+      "date_substrings": [
+        "Mar",
+        "2024"
+      ],
+      "comment_keywords": [
+        "Additional",
+        "capital"
+      ]
+    },
+    "expected_total": 55000.0,
+    "target_file": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/depositsummary.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_portfolio_deposits"
+    }
+  }
+}

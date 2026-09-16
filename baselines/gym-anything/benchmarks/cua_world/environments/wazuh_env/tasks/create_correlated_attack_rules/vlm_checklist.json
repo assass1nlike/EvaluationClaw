@@ -1,0 +1,59 @@
+{
+  "task_id": "create_correlated_attack_rules@1",
+  "task_completion": [
+    {
+      "id": "edit_local_rules_xml",
+      "description": "Open and edit the Wazuh local_rules.xml file",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano or vim) or a terminal command showing interaction with the file path /var/ossec/etc/rules/local_rules.xml."
+    },
+    {
+      "id": "rule_100300_created",
+      "description": "Create Rule 100300 with correct parameters",
+      "points": 20,
+      "visual_evidence": "XML block showing rule id=\"100300\", level=\"10\", frequency=\"8\", timeframe=\"120\". It must contain <if_matched_sid>5710</if_matched_sid>, <same_source_ip /> (or similar tag), and a MITRE tag for T1110.001."
+    },
+    {
+      "id": "rule_100301_created",
+      "description": "Create Rule 100301 with correct parameters",
+      "points": 20,
+      "visual_evidence": "XML block showing rule id=\"100301\", level=\"13\", timeframe=\"600\". It must contain <if_sid>5715</if_sid>, <if_matched_sid>100300</if_matched_sid>, <same_source_ip /> (or similar tag), and a MITRE tag for T1078.001."
+    },
+    {
+      "id": "rule_100302_created",
+      "description": "Create Rule 100302 with correct parameters",
+      "points": 20,
+      "visual_evidence": "XML block showing rule id=\"100302\", level=\"15\", timeframe=\"900\". It must contain <if_sid>5902</if_sid>, <if_matched_sid>100301</if_matched_sid>, and a MITRE tag for T1136.001."
+    },
+    {
+      "id": "query_wazuh_api",
+      "description": "Verify the rules are active via the Wazuh API",
+      "points": 15,
+      "visual_evidence": "Terminal showing a curl command or script making an HTTP request to the Wazuh API (typically port 55000) querying the /rules endpoint for the newly created rule IDs."
+    },
+    {
+      "id": "save_verification_json",
+      "description": "Save the API response to the specified JSON file",
+      "points": 15,
+      "visual_evidence": "Terminal showing output redirection (e.g., > /home/ga/correlated_rules_verification.json) or a command confirming the JSON response was written to /home/ga/correlated_rules_verification.json."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Ensure the agent actually queried the Wazuh API and didn't mock the response",
+      "visual_evidence": "Look for genuine API interaction commands (like curl with authentication headers/tokens) rather than echo commands manually constructing a fake JSON string."
+    },
+    {
+      "id": "correct_file_path_used",
+      "description": "Ensure the agent edited the actual Wazuh rules file, not a local copy",
+      "visual_evidence": "Check that the file being edited is exactly /var/ossec/etc/rules/local_rules.xml and not a dummy file in the user's home directory."
+    },
+    {
+      "id": "genuine_json_response",
+      "description": "Ensure the saved JSON file contains a realistic Wazuh API response structure",
+      "visual_evidence": "The contents of correlated_rules_verification.json (if visible) should show standard Wazuh API response wrappers like 'data', 'affected_items', and 'error' fields, not just a raw list of rules."
+    }
+  ],
+  "privileged_info_for_vlm": "Target rules file path: /var/ossec/etc/rules/local_rules.xml. Target verification file: /home/ga/correlated_rules_verification.json. Required Rule 100300: level 10, frequency 8, timeframe 120, if_matched_sid 5710, mitre T1110.001. Required Rule 100301: level 13, if_sid 5715, if_matched_sid 100300, timeframe 600, mitre T1078.001. Required Rule 100302: level 15, if_sid 5902, if_matched_sid 100301, timeframe 900, mitre T1136.001."
+}

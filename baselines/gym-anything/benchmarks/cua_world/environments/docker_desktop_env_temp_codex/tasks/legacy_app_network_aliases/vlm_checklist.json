@@ -1,0 +1,59 @@
+{
+  "task_id": "legacy_app_network_aliases@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file in the legacy migration directory",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE showing the 'docker-compose.yml' file located in the '/home/ga/legacy-migration' directory."
+    },
+    {
+      "id": "configure_postgres_alias",
+      "description": "Configure the network alias for the postgres service",
+      "points": 20,
+      "visual_evidence": "The 'docker-compose.yml' file shows a 'networks' section under the postgres service with 'aliases:' containing 'db.inventory.local'."
+    },
+    {
+      "id": "configure_redis_alias",
+      "description": "Configure the network alias for the redis service",
+      "points": 20,
+      "visual_evidence": "The 'docker-compose.yml' file shows a 'networks' section under the redis service with 'aliases:' containing 'cache.inventory.local'."
+    },
+    {
+      "id": "configure_auth_alias",
+      "description": "Configure the network alias for the mock-auth service",
+      "points": 20,
+      "visual_evidence": "The 'docker-compose.yml' file shows a 'networks' section under the mock-auth service with 'aliases:' containing 'auth.provider.external'."
+    },
+    {
+      "id": "start_docker_compose",
+      "description": "Start or restart the docker-compose services to apply the new configuration",
+      "points": 10,
+      "visual_evidence": "A terminal showing a command like 'docker-compose up', 'docker compose up -d', or 'docker-compose restart' being executed in the '/home/ga/legacy-migration' directory."
+    },
+    {
+      "id": "verify_success_log",
+      "description": "Verify the legacy-app container runs successfully and outputs the expected log",
+      "points": 20,
+      "visual_evidence": "A terminal showing the logs for the 'legacy-app' container (e.g., via 'docker logs legacy-app' or the docker-compose output stream) containing the text 'All systems go! Application started.'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_echo_spoofing",
+      "description": "The agent did not fake the success log using an echo command",
+      "visual_evidence": "The success log 'All systems go!' should appear as genuine output from the docker container logs, not from a standalone 'echo' command typed into the terminal."
+    },
+    {
+      "id": "source_code_immutable",
+      "description": "The agent did not modify the application source code to bypass DNS checks",
+      "visual_evidence": "The agent should only be seen editing 'docker-compose.yml'. There should be no evidence of editing application source files (e.g., Python, Node.js, or shell scripts) to remove the hardcoded hostnames."
+    },
+    {
+      "id": "genuine_docker_compose_edit",
+      "description": "The agent configured aliases via docker-compose.yml rather than manually editing /etc/hosts inside the container",
+      "visual_evidence": "The screenshots must show the 'docker-compose.yml' file being edited and saved with the 'aliases' configuration, rather than terminal commands executing 'echo ... >> /etc/hosts' inside the 'legacy-app' container."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/legacy-migration'. The application container is named 'legacy-app'. The required network aliases in docker-compose.yml are: 'db.inventory.local' for the postgres service, 'cache.inventory.local' for the redis service, and 'auth.provider.external' for the mock-auth service. The exact success log to look for in the legacy-app container output is 'All systems go! Application started.'."
+}

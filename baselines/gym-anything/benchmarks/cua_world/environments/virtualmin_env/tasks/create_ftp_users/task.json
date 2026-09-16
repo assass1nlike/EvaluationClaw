@@ -1,0 +1,49 @@
+{
+  "id": "create_ftp_users@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "Create two FTP-only user accounts for the 'acmecorp.test' virtual server. The first user, 'alice_dev', should have the real name Alice Chen, password DevAccess2024!, FTP enabled, email disabled, no shell access (/bin/false), and home directory /home/acmecorp/public_html. The second user, 'dave_uploads', should have the real name Dave Martinez, password UploaderPass99!, FTP enabled, email disabled, no shell access (/bin/false), and home directory /home/acmecorp/public_html/uploads (create if needed).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_ftp_users/setup_task.sh",
+    "post_task": "/workspace/tasks/create_ftp_users/export_result.sh"
+  },
+  "metadata": {
+    "domain": "acmecorp.test",
+    "users": [
+      {
+        "username": "alice_dev",
+        "real_name": "Alice Chen",
+        "home": "/home/acmecorp/public_html",
+        "shell_options": [
+          "/bin/false",
+          "/usr/sbin/nologin"
+        ],
+        "ftp": true,
+        "email": false
+      },
+      {
+        "username": "dave_uploads",
+        "real_name": "Dave Martinez",
+        "home": "/home/acmecorp/public_html/uploads",
+        "shell_options": [
+          "/bin/false",
+          "/usr/sbin/nologin"
+        ],
+        "ftp": true,
+        "email": false
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_ftp_users"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "napoleon_theorem_demo@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a GeoGebra demonstration of Napoleon's Theorem starting with a scalene triangle ABC with vertices A(0, 0), B(6, 0), and C(2, 5). Construct equilateral triangles external to each side of ABC and identify their centroids. Form the 'Napoleon Triangle' by connecting these centroids and include a dynamic measurement or text annotation verifying that the Napoleon Triangle is equilateral. Save the project as 'napoleon_theorem.ggb' in '~/Documents/GeoGebra/projects/'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/napoleon_theorem_demo/setup_task.sh",
+    "post_task": "/workspace/tasks/napoleon_theorem_demo/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "napoleon_theorem.ggb",
+    "base_triangle_coords": [
+      [
+        0,
+        0
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        2,
+        5
+      ]
+    ],
+    "napoleon_side_length": 4.83,
+    "tolerance": 0.1,
+    "required_commands": [
+      "RegularPolygon",
+      "Centroid",
+      "Polygon"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_napoleon_theorem"
+    }
+  }
+}

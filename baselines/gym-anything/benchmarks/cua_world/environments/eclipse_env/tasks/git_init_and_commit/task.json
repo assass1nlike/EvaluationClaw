@@ -1,0 +1,31 @@
+{
+  "id": "git_init_and_commit@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You have a Java project called 'commons-cli' (Apache Commons CLI library) located at /home/ga/eclipse-workspace/commons-cli/ open in Eclipse. This project is not currently under version control. Use Eclipse's EGit integration to initialize a local Git repository for this project. Create a .gitignore file in the project root that excludes target/, *.class, .settings/, .classpath, and .project. Stage all project files, including the .gitignore file, and make an initial local commit with the exact message: \"Initial commit: Import Apache Commons CLI library\". Ensure build artifacts are excluded from the commit and do not push to any remote.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/git_init_and_commit/setup_task.sh",
+    "post_task": "/workspace/tasks/git_init_and_commit/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/commons-cli",
+    "expected_commit_message": "Initial commit: Import Apache Commons CLI library",
+    "required_ignore_patterns": [
+      "target/",
+      "*.class",
+      ".settings/"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_git_init_and_commit"
+    }
+  }
+}

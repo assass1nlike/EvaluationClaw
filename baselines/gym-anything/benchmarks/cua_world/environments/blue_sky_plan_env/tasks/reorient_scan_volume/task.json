@@ -1,0 +1,28 @@
+{
+  "id": "reorient_scan_volume@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Blue Sky Plan 5 is open with a dental CBCT scan loaded. The patient's head was tilted during the scan, resulting in an oblique occlusal plane. Reorient the volume to correct this alignment so that the occlusal plane is horizontal in the Sagittal view, the head is symmetric and upright in the Coronal view, and the dental arch forms a symmetric horseshoe shape in the Axial view. Save the reoriented project to C:\\Users\\Docker\\Documents\\ReorientedScan\\aligned_project.bsp and save a screenshot of the corrected views to C:\\Users\\Docker\\Documents\\ReorientedScan\\reorientation_result.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\reorient_scan_volume\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\reorient_scan_volume\\export_result.ps1"
+  },
+  "metadata": {
+    "output_dir": "C:\\Users\\Docker\\Documents\\ReorientedScan",
+    "expected_screenshot": "reorientation_result.png",
+    "expected_project": "aligned_project.bsp",
+    "data_source_path": "C:\\workspace\\data\\misaligned_sample.bsp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reorient_scan_volume"
+    }
+  }
+}

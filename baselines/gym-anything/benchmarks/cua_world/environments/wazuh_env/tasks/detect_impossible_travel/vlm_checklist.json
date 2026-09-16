@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_impossible_travel@1",
+  "task_completion": [
+    {
+      "id": "edit_rules_file",
+      "description": "Open or edit the local Wazuh rules file",
+      "points": 10,
+      "visual_evidence": "Terminal showing a text editor (like nano or vim) or a command (like cat or echo) interacting with /var/ossec/etc/rules/local_rules.xml."
+    },
+    {
+      "id": "rule_definition_attributes",
+      "description": "Define the rule with the correct ID, level, timeframe, and frequency",
+      "points": 25,
+      "visual_evidence": "The XML tag for the rule includes the correct attributes, e.g., <rule id=\"100050\" level=\"12\" frequency=\"2\" timeframe=\"60\">."
+    },
+    {
+      "id": "rule_parent_sid",
+      "description": "Set the parent rule ID to the SSH success rule",
+      "points": 15,
+      "visual_evidence": "The XML tag <if_sid>5715</if_sid> is visible within the rule definition."
+    },
+    {
+      "id": "rule_correlation_options",
+      "description": "Include conditions for the same user and different source IPs",
+      "points": 15,
+      "visual_evidence": "The XML tags <same_user /> (or <same_user>) and <different_srcip /> (or <different_srcip>) are visible within the rule definition."
+    },
+    {
+      "id": "restart_wazuh",
+      "description": "Restart the Wazuh manager to apply the new rule",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command being executed to restart the service, such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart'."
+    },
+    {
+      "id": "simulate_attack_logs",
+      "description": "Simulate the impossible travel attack by injecting logs",
+      "points": 25,
+      "visual_evidence": "Terminal showing commands (e.g., using 'echo ... >>') appending at least two SSH 'Accepted password' logs for the same user ('travel_exec') but from different IP addresses to /var/log/auth.log."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Verify the agent actually modified the rules file",
+      "visual_evidence": "The agent uses a text editor or shell redirection (>, >>) to write to /var/ossec/etc/rules/local_rules.xml, rather than just printing the XML to the console."
+    },
+    {
+      "id": "actual_log_injection",
+      "description": "Verify the agent actually injected logs into the correct file",
+      "visual_evidence": "The agent uses shell redirection (>>) or a script to append the simulated log entries specifically to /var/log/auth.log."
+    },
+    {
+      "id": "wazuh_restarted",
+      "description": "Verify the agent restarted the Wazuh service after making changes",
+      "visual_evidence": "A restart command for the Wazuh manager is visibly executed in the terminal after the rules file is saved."
+    }
+  ],
+  "privileged_info_for_vlm": "The custom Wazuh rule must be added to /var/ossec/etc/rules/local_rules.xml. It strictly requires rule_id='100050', level='12', timeframe='60', and frequency='2'. The parent rule must be '5715' (SSH success). The rule must contain conditions for the same user (<same_user />) and different source IPs (<different_srcip />). The attack simulation must inject logs into /var/log/auth.log."
+}

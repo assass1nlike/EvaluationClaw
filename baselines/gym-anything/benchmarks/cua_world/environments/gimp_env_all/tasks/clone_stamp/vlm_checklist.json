@@ -1,0 +1,53 @@
+{
+  "task_id": "clone_stamp@1",
+  "task_completion": [
+    {
+      "id": "gimp_opened_with_image",
+      "description": "GIMP is opened with the target landscape image containing the red marker.",
+      "points": 10,
+      "visual_evidence": "The GIMP application window is visible, showing a landscape image with a distinct red square marker near the center."
+    },
+    {
+      "id": "clone_tool_selected",
+      "description": "The Clone Tool is selected in GIMP.",
+      "points": 20,
+      "visual_evidence": "The Clone Tool icon (which looks like a rubber stamp) is highlighted or selected in the GIMP toolbox panel."
+    },
+    {
+      "id": "source_point_established",
+      "description": "A source point for the clone tool is set on the image.",
+      "points": 20,
+      "visual_evidence": "A crosshair symbol is visible on the image, indicating the source point for the clone tool has been set, or the cursor is positioned away from the marker to set this point."
+    },
+    {
+      "id": "cloning_in_progress",
+      "description": "The clone tool is being applied to the red marker.",
+      "points": 20,
+      "visual_evidence": "The red marker is partially obscured by cloned image texture. The circular brush cursor is visible over or near the marker."
+    },
+    {
+      "id": "marker_completely_removed",
+      "description": "The red marker is completely removed from the image.",
+      "points": 30,
+      "visual_evidence": "The red marker is no longer visible. The area it occupied is now filled with texture that blends naturally with the surrounding landscape."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_tool",
+      "description": "The agent used the GIMP GUI to perform the task.",
+      "visual_evidence": "The GIMP interface is actively used in the screenshots. The marker is not removed by running a terminal command or script."
+    },
+    {
+      "id": "actual_cloning_used",
+      "description": "The marker was removed using cloned texture, not just painted over with a solid color.",
+      "visual_evidence": "The area where the marker was shows varied texture matching another part of the image, not a flat solid color from a regular paintbrush."
+    },
+    {
+      "id": "no_collateral_damage",
+      "description": "The rest of the image remains unmodified.",
+      "visual_evidence": "Only the red marker and its immediate vicinity are changed; the rest of the landscape image is intact."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using GIMP's Clone Tool (shortcut 'C', rubber stamp icon) to remove a red marker (color range [180,0,0] to [255,80,80]) from a landscape image. The clone tool requires setting a source point (Ctrl+click) before painting. The automated verifier contains a critical bug (zero-height bounding box calculation) that causes it to always fail agents even if they succeed. Therefore, visual verification is essential: check that the Clone Tool is selected, a source point is set, and the red marker is completely replaced by cloned texture that blends with the surroundings."
+}

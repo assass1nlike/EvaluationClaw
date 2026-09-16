@@ -1,0 +1,82 @@
+{
+  "dataset_id": "b308a1dd",
+  "name": "Handwriting-Component-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A dataset for detecting handwritten components in images, where the model receives an image and a prompt and must output bounding boxes around handwriting. It evaluates visual object detection and localization of handwritten regions.",
+  "card_text": "This dataset contains 200 image-text samples for handwriting component detection. Each sample pairs an input image with a short prompt, and the target output is a list of bounding boxes with the label 'Handwritting'. The images are document-like or scene images that contain handwritten regions, and the model must localize each handwriting component by predicting coordinates. The prompt is a generic placeholder for user-defined instructions. The dataset is designed to benchmark object detection and localization capabilities in the specific domain of handwriting, requiring the model to understand visual content and produce structured spatial annotations rather than free-text answers.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "handwriting detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The image file path refers to an image that contains handwritten and possibly printed content. It is the main visual context from which the model must identify and localize handwriting regions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short prompt instructing the model to perform the detection task. In this dataset the prompt is a generic placeholder for user-defined prompts rather than a specific natural-language question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of bounding-box annotations, where each item is a dictionary mapping a class label such as 'Handwritting' to four numeric coordinates that localize a handwritten region in the corresponding image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image (input.image_file), a text prompt (input.prompt), and an output annotation (output.bbox). The image is the primary visual context; the prompt is a generic instruction; the bbox field provides a list of labeled bounding boxes (class 'Handwritting' with coordinates) that localize handwritten components within the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/handwriting-component-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "handwriting-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

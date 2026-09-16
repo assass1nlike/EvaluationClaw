@@ -1,0 +1,53 @@
+{
+  "task_id": "detect_webshell_fim@1",
+  "task_completion": [
+    {
+      "id": "configure_fim_ossec_conf",
+      "description": "Configure Wazuh FIM to monitor /var/www/html in real-time with report_changes enabled.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing ossec.conf (or agent.conf) being edited or viewed, containing a syscheck block with `<directories realtime=\"yes\" report_changes=\"yes\">/var/www/html</directories>`."
+    },
+    {
+      "id": "create_custom_rule_header",
+      "description": "Implement a custom rule in local_rules.xml with ID 100050 and Level 12.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing local_rules.xml being edited or viewed, containing a rule tag exactly matching `<rule id=\"100050\" level=\"12\">`."
+    },
+    {
+      "id": "configure_custom_rule_conditions",
+      "description": "Configure the custom rule as a child of rule 554 and set it to trigger on .php files.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the contents of the custom rule in local_rules.xml, which must include `<if_sid>554</if_sid>` and a condition matching .php files (e.g., `<match>.php</match>` or a PCRE2 regex for .php)."
+    },
+    {
+      "id": "create_test_file",
+      "description": "Create a file named backdoor.php in /var/www/html to test the configuration.",
+      "points": 10,
+      "visual_evidence": "Terminal screenshot showing a command executed to create the file, such as `touch /var/www/html/backdoor.php` or `echo \"...\" > /var/www/html/backdoor.php`."
+    },
+    {
+      "id": "verify_alert_triggered",
+      "description": "Verify that the custom rule alert triggered for the creation of backdoor.php.",
+      "points": 30,
+      "visual_evidence": "Screenshot of the Wazuh dashboard (Discover/Events) or terminal output of `/var/ossec/logs/alerts/alerts.log` (or alerts.json) showing an alert for rule ID 100050 triggered by the file path `/var/www/html/backdoor.php`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_service_restart",
+      "description": "The agent restarted the Wazuh manager/agent to apply the configuration changes.",
+      "visual_evidence": "Terminal screenshot showing a command like `systemctl restart wazuh-manager` or `/var/ossec/bin/wazuh-control restart` after editing the configuration files."
+    },
+    {
+      "id": "genuine_file_editing",
+      "description": "The agent actually edited the configuration files rather than just echoing the expected text to the terminal.",
+      "visual_evidence": "Use of a text editor (nano, vim) or valid shell redirection/sed commands modifying `ossec.conf` and `local_rules.xml`."
+    },
+    {
+      "id": "genuine_alert_verification",
+      "description": "The alert verification comes from actual Wazuh logs or the dashboard, not a manually created mock log file.",
+      "visual_evidence": "The alert is viewed using commands like `tail`, `grep`, or `cat` on the actual `/var/ossec/logs/alerts/alerts.log` or `alerts.json` file, or viewed within the Wazuh web UI."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory to monitor must be exactly '/var/www/html'. The custom rule in local_rules.xml must have ID '100050', level '12', and parent SID '<if_sid>554</if_sid>'. The agent must test the detection by creating a file named 'backdoor.php' in the target directory and verifying the alert."
+}

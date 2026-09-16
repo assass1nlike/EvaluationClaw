@@ -1,0 +1,59 @@
+{
+  "task_id": "tumor_edema_index@1",
+  "task_completion": [
+    {
+      "id": "edema_volume_calculation",
+      "description": "Agent extracts or calculates the volume for the peritumoral edema (Label 2).",
+      "points": 25,
+      "visual_evidence": "3D Slicer Segment Statistics module, terminal output, or script showing the volume specifically for Label 2 (or 'edema')."
+    },
+    {
+      "id": "core_volume_calculation",
+      "description": "Agent extracts or calculates the core volume by combining Label 1 and Label 4.",
+      "points": 25,
+      "visual_evidence": "3D Slicer Segment Statistics, terminal output, or script showing the volumes for Label 1 and Label 4 being extracted and summed together."
+    },
+    {
+      "id": "pei_ratio_calculation",
+      "description": "Agent calculates the Peritumoral Edema Index (PEI) ratio.",
+      "points": 20,
+      "visual_evidence": "Calculator app, script, or terminal output showing the edema volume being divided by the core volume."
+    },
+    {
+      "id": "prognostic_classification",
+      "description": "Agent determines the prognostic category based on the calculated PEI.",
+      "points": 15,
+      "visual_evidence": "Script logic, terminal, or text editor showing the classification of the calculated PEI into the correct category (Low, Moderate, or High)."
+    },
+    {
+      "id": "report_completeness",
+      "description": "Agent saves the analysis report to the correct path with all required fields.",
+      "points": 10,
+      "visual_evidence": "Text editor or terminal showing a file saved at ~/Documents/SlicerData/BraTS/edema_analysis_report.json containing exactly these keys: edema_volume_ml, core_volume_ml, pei_ratio, prognostic_class, and patient_id."
+    },
+    {
+      "id": "valid_json_format",
+      "description": "The saved report is formatted as valid JSON.",
+      "points": 5,
+      "visual_evidence": "The contents of edema_analysis_report.json use proper JSON syntax (enclosed in curly braces, double-quoted string keys, and correct data types for numbers and strings)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "Agent derived the volumes from the provided segmentation rather than hallucinating or hardcoding pre-known values.",
+      "visual_evidence": "Screenshots showing interaction with 3D Slicer's Segment Statistics or a script actively processing the segmentation file to get the volumes."
+    },
+    {
+      "id": "correct_label_mapping",
+      "description": "Agent used the correct specific labels for edema and core.",
+      "visual_evidence": "Evidence in the script, calculator, or Slicer UI that Label 2 was explicitly used for edema and Labels 1 and 4 were explicitly used for the core."
+    },
+    {
+      "id": "actual_file_saved",
+      "description": "Agent saved the file to the correct directory instead of just displaying the text.",
+      "visual_evidence": "Terminal command (e.g., cat, ls), file explorer, or editor save path confirming the file actually exists at ~/Documents/SlicerData/BraTS/edema_analysis_report.json."
+    }
+  ],
+  "privileged_info_for_vlm": "BraTS 2021 segmentation labels: Label 1 = necrotic/non-enhancing tumor core (NCR/NET), Label 2 = peritumoral edema (ED), Label 4 = GD-enhancing tumor (ET). Core volume is the sum of Label 1 and Label 4. Edema volume is Label 2. Peritumoral Edema Index (PEI) = Edema Volume / Core Volume. Prognostic categories based on PEI: Low/Grade I (PEI < 2.0), Moderate/Grade II (2.0 <= PEI < 4.0), High/Grade III (PEI >= 4.0)."
+}

@@ -1,0 +1,84 @@
+{
+  "dataset_id": "8f3d917e",
+  "name": "Latex Code Recognition",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for recognizing LaTeX code from images of mathematical formulas. Each sample pairs an image of a formula with a prompt to transcribe it into LaTeX, evaluating image-to-text recognition of mathematical notation.",
+  "card_text": "The dataset contains 200 image-text pairs where the input is a rendered image of a mathematical expression and a fixed textual instruction ('Recognize the latex code'). The output is the corresponding LaTeX code string. Images are likely black-and-white or simply rendered formulas, possibly from academic documents. The task requires models to perform optical character recognition of mathematical symbols and layout, and to generate valid LaTeX code. The dataset assumes that the formulas are clearly legible and that there is a one-to-one mapping between the visual formula and its LaTeX representation. It can be used to evaluate multimodal models on mathematical formula transcription, a specialized form of image-to-text generation. No context beyond the image is provided; the prompt is constant across samples.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "mathematical formula recognition",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "The image contains a rendered mathematical formula or expression, which is the primary visual input to be recognized. It serves as the context for the recognition task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction ('Recognize the latex code') that directs the model to transcribe the formula in the image into LaTeX. It acts as the question or task specification.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target LaTeX code string that represents the mathematical formula shown in the image. It is the expected output of the recognition task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image showing a mathematical formula, a fixed textual instruction asking to recognize its LaTeX code, and the corresponding LaTeX code as the target output. The image is the visual context; the prompt is the question/instruction; the answer is the transcribed LaTeX code."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Latex Code Recognition/json/annotation.json",
+    "existing_tags": {
+      "task": "latex code recognition",
+      "type": "comprehension",
+      "skill": "Image Recognition",
+      "domain": [
+        "Code"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "Code"
+    ]
+  }
+}

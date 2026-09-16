@@ -1,0 +1,44 @@
+{
+  "id": "assess_diarrhea_management_safety_lapatinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Assess the safety of diarrhea management medications for a patient taking Lapatinib. Using the Liverpool Cancer iChart app, determine the interaction traffic-light colors for combining Lapatinib with Loperamide and Paracetamol. Create a safety report at /sdcard/Download/lapatinib_supportive_care_report.txt listing each drug and its corresponding interaction color.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/assess_diarrhea_management_safety_lapatinib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/assess_diarrhea_management_safety_lapatinib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Lapatinib",
+    "medications": [
+      {
+        "name": "Loperamide",
+        "category": "Antidiarrhoeals",
+        "expected_colors": [
+          "red",
+          "orange"
+        ]
+      },
+      {
+        "name": "Paracetamol",
+        "category": "Analgesics",
+        "expected_colors": [
+          "green",
+          "grey"
+        ]
+      }
+    ],
+    "output_file": "/sdcard/Download/lapatinib_supportive_care_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assess_diarrhea_management"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "build_phylogenetic_tree@1",
+  "version": "1.0",
+  "env_id": "ugene_env@0.1",
+  "description": "Generate a phylogenetic tree to visualize the evolutionary relationships between the 8 species (Human, Chicken, Bread Mold, Hemp, Yeast, Fruit Fly, Horse, and Pig) using the cytochrome c protein FASTA file at ~/UGENE_Data/cytochrome_c_multispecies.fasta. The tree should be constructed using the MUSCLE algorithm for multiple sequence alignment and the built-in phylogenetic tree builder. Save the resulting tree in Newick format to ~/UGENE_Data/results/cytochrome_c_tree.nwk.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/build_phylogenetic_tree/setup_task.sh"
+  },
+  "metadata": {
+    "data_source": "UniProt cytochrome c sequences (P99999, P67881, P00048, P00053, P00044, P04657, P00004, P62895)",
+    "expected_output": "~/UGENE_Data/results/cytochrome_c_tree.nwk"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_build_phylogenetic_tree"
+    }
+  }
+}

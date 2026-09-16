@@ -1,0 +1,39 @@
+{
+  "id": "ivr_call_flow_design@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Telephony Architect designing a new Interactive Voice Response (IVR) system for Coastal Bank. Create a call flow diagram in diagrams.net (draw.io) based on the functional specification provided in '~/Desktop/ivr_spec.txt'. The diagram must accurately model the logic including Time of Day checks, Account Validation with a retry counter (max 3 attempts), Menu Options, and Error Handling using standard flowchart symbols and labeled connectors. Save the source file to '~/Diagrams/banking_ivr.drawio' and export the final diagram as a PDF to '~/Diagrams/exports/banking_ivr.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ivr_call_flow_design/setup_task.sh",
+    "post_task": "/workspace/tasks/ivr_call_flow_design/export_result.sh"
+  },
+  "metadata": {
+    "spec_file": "/home/ga/Desktop/ivr_spec.txt",
+    "output_drawio": "/home/ga/Diagrams/banking_ivr.drawio",
+    "output_pdf": "/home/ga/Diagrams/exports/banking_ivr.pdf",
+    "required_keywords": [
+      "business hours",
+      "closed",
+      "account number",
+      "valid",
+      "retry",
+      "fraud",
+      "balance",
+      "mortgage"
+    ],
+    "min_shapes": 15,
+    "min_edges": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ivr_call_flow_design"
+    }
+  }
+}

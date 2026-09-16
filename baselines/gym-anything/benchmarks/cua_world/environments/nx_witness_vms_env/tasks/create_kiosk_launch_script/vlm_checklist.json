@@ -1,0 +1,59 @@
+{
+  "task_id": "create_kiosk_launch_script@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The script file launch_kiosk.sh is created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "Look for a file icon named 'launch_kiosk.sh' on the Desktop GUI, or a terminal window showing the file exists at /home/ga/Desktop/launch_kiosk.sh (e.g., via 'ls' command)."
+    },
+    {
+      "id": "script_made_executable",
+      "description": "The script file is made executable.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'chmod +x /home/ga/Desktop/launch_kiosk.sh', an 'ls -l' output showing 'x' permissions (e.g., -rwxr-xr-x), or a file properties dialog with the executable checkbox ticked."
+    },
+    {
+      "id": "client_executable_invoked",
+      "description": "The script contains the command to launch the Nx Witness Desktop Client.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the script (in a text editor like gedit/nano or via 'cat' in the terminal). It should invoke the client executable (e.g., a path like /opt/networkoptix/client/bin/client or similar valid command)."
+    },
+    {
+      "id": "auth_credentials_included",
+      "description": "The script includes the correct authentication arguments for the 'kiosk' user.",
+      "points": 20,
+      "visual_evidence": "Look at the script contents for the flag '--auth' followed by 'kiosk:Kiosk123!' (or a valid URL-based authentication equivalent)."
+    },
+    {
+      "id": "layout_flag_included",
+      "description": "The script includes the argument to open the 'Lobby Monitor' layout.",
+      "points": 20,
+      "visual_evidence": "Look at the script contents for the flag '--layout-name' followed by '\"Lobby Monitor\"' (quotes are necessary due to the space)."
+    },
+    {
+      "id": "fullscreen_flag_included",
+      "description": "The script includes the argument to launch in fullscreen mode.",
+      "points": 20,
+      "visual_evidence": "Look at the script contents for a fullscreen flag, such as '--full-screen', '--fullscreen', or '-fs'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "valid_bash_script_format",
+      "description": "The file is formatted as a genuine bash script, not just a text note.",
+      "visual_evidence": "The script content should ideally start with a shebang (#!/bin/bash or #!/bin/sh) and contain a single continuous command with arguments, rather than bullet points or conversational text."
+    },
+    {
+      "id": "no_placeholder_paths",
+      "description": "The agent found the actual executable path rather than writing a placeholder.",
+      "visual_evidence": "The script should not contain placeholder text like '/path/to/client' or 'nx-client-executable-here'. It must use a real system path or valid command."
+    },
+    {
+      "id": "no_literal_prompt_copy_paste",
+      "description": "The agent did not simply copy and paste the task description into the file.",
+      "visual_evidence": "The file contents must be bash syntax, not English prose copied directly from the prompt instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected script location is exactly '/home/ga/Desktop/launch_kiosk.sh'. The script must execute the Nx Witness client and include the following arguments: authentication for user 'kiosk' with password 'Kiosk123!' (e.g., using '--auth kiosk:Kiosk123!'), the layout flag '--layout-name \"Lobby Monitor\"', and a fullscreen flag (such as '--full-screen', '--fullscreen', or '-fs')."
+}

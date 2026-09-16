@@ -1,0 +1,59 @@
+{
+  "task_id": "token_driven_investigation_dashboard@1",
+  "task_completion": [
+    {
+      "id": "splunk_login_and_search_app",
+      "description": "Log in to Splunk and navigate to the Search app.",
+      "points": 10,
+      "visual_evidence": "The Splunk Web interface is visible, logged in as 'admin', and the 'Search & Reporting' app is active."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Create a new dashboard named 'IP_Investigation_Tool'.",
+      "points": 10,
+      "visual_evidence": "A dashboard with the title 'IP_Investigation_Tool' is visible in the Splunk UI (either in view mode or edit mode)."
+    },
+    {
+      "id": "target_ip_text_input",
+      "description": "Add a text input with the token 'target_ip' and default value '*'.",
+      "points": 15,
+      "visual_evidence": "The dashboard edit interface or source XML shows a text input configured with the token 'target_ip' and a default value of '*'."
+    },
+    {
+      "id": "target_index_dropdown_input",
+      "description": "Add a dropdown input with the token 'target_index', default value '*', and specific choices.",
+      "points": 20,
+      "visual_evidence": "The dashboard edit interface or source XML shows a dropdown input configured with the token 'target_index', a default value of '*', and choices for 'security_logs' and 'web_logs'."
+    },
+    {
+      "id": "first_panel_with_tokens",
+      "description": "Create a first visualization panel whose query dynamically uses the tokens.",
+      "points": 20,
+      "visual_evidence": "A visualization panel (e.g., timeline chart) is visible, and its search query (visible in edit mode or source) explicitly includes both '$target_index$' and '$target_ip$'."
+    },
+    {
+      "id": "second_panel_with_tokens",
+      "description": "Create a second visualization panel whose query dynamically uses the tokens.",
+      "points": 25,
+      "visual_evidence": "A second visualization panel (e.g., recent logs table) is visible, and its search query explicitly includes both '$target_index$' and '$target_ip$'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_gui_used",
+      "description": "The agent interacted with the Splunk Web UI to create the dashboard.",
+      "visual_evidence": "Screenshots show the Splunk web interface (http://localhost:8000) being used, rather than terminal commands executing curl requests to the Splunk API."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply write the XML in a local text editor outside of Splunk.",
+      "visual_evidence": "Dashboard configuration and XML editing occur within the Splunk Web dashboard editor (UI or Source view), not in an external text editor like nano or gedit."
+    },
+    {
+      "id": "genuine_splunk_dashboard",
+      "description": "The dashboard is a genuine Splunk dashboard and not a mocked HTML page.",
+      "visual_evidence": "The interface displays standard Splunk dashboard elements, such as the Splunk navigation bar, 'Edit' button, 'Export' options, and standard Splunk visualization panels."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named 'IP_Investigation_Tool'. It requires exactly two input tokens: a text input named 'target_ip' and a dropdown named 'target_index'. The dashboard must contain at least 2 visualization panels. Both panels must dynamically reference the tokens in their SPL queries (e.g., using '$target_index$' and '$target_ip$')."
+}

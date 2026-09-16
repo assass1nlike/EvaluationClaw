@@ -1,0 +1,32 @@
+{
+  "id": "churn_key_influencers@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a customer success manager analyzing retention. Using the dataset telco_churn.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\telco_churn.csv, create a churn driver analysis report in Power BI Desktop. The report must be saved as C:\\Users\\Docker\\Desktop\\Churn_Analysis.pbix. The report must contain a page named 'Churn Drivers' featuring a Key Influencers visual that identifies the drivers of 'Churn' (Yes) based on Contract, InternetService, tenure, and MonthlyCharges. The report must also include two DAX measures, Total_Customers (total row count) and Churn_Rate (percentage of customers where Churn is 'Yes'), displayed in Card visuals. Login: user is Docker, no password required.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\churn_key_influencers\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\churn_key_influencers\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Churn_Analysis.pbix",
+    "required_page_name": "Churn Drivers",
+    "required_visual_type": "keyDrivers",
+    "required_measures": [
+      "Total_Customers",
+      "Churn_Rate"
+    ],
+    "data_source_url": "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_churn_key_influencers"
+    }
+  }
+}

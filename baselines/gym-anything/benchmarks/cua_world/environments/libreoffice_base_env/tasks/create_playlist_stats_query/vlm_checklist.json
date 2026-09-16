@@ -1,0 +1,59 @@
+{
+  "task_id": "create_playlist_stats_query@1",
+  "task_completion": [
+    {
+      "id": "query_creation_started",
+      "description": "LibreOffice Base is open and a query creation window is active.",
+      "points": 10,
+      "visual_evidence": "A LibreOffice Base window is open, and either the Query Design View or SQL View is visible on the screen."
+    },
+    {
+      "id": "tables_joined",
+      "description": "The query includes the required tables: Playlist, PlaylistTrack, and Track.",
+      "points": 15,
+      "visual_evidence": "In Design View, the three tables (Playlist, PlaylistTrack, Track) are visible in the upper pane with relationship lines. In SQL View, the FROM or JOIN clauses explicitly list these three tables."
+    },
+    {
+      "id": "columns_and_calculations",
+      "description": "The query defines the required columns and the duration calculation.",
+      "points": 20,
+      "visual_evidence": "The query grid or SQL statement shows 'PlaylistName', 'TrackCount' (using a COUNT function), and 'DurationMinutes' (calculated using Milliseconds / 60000.0)."
+    },
+    {
+      "id": "grouping_and_ordering",
+      "description": "The query groups by Playlist Name and orders by DurationMinutes descending.",
+      "points": 20,
+      "visual_evidence": "In Design View, the 'Group' function is applied to the Playlist Name column, and 'Descending' sort is applied to the DurationMinutes column. In SQL View, 'GROUP BY' and 'ORDER BY ... DESC' clauses are present."
+    },
+    {
+      "id": "query_saved",
+      "description": "The query is saved with the exact name 'PlaylistStats'.",
+      "points": 15,
+      "visual_evidence": "The main LibreOffice Base window shows 'PlaylistStats' in the Queries list, or the query window's title bar displays 'PlaylistStats'."
+    },
+    {
+      "id": "correct_results_displayed",
+      "description": "The query is executed and displays the correct results.",
+      "points": 20,
+      "visual_evidence": "A data grid shows the query results. The top row must be 'Music' with a TrackCount of 6580 and a DurationMinutes value of approximately 29256.1. There should be 12 rows in total."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the LibreOffice Base GUI to create the query.",
+      "visual_evidence": "Screenshots show interaction with LibreOffice Base menus, dialogs, or query design windows, rather than just terminal commands."
+    },
+    {
+      "id": "no_cli_sqlite",
+      "description": "The agent did not use a command-line SQLite client to bypass LibreOffice Base.",
+      "visual_evidence": "There should be no terminal windows open running 'sqlite3' commands to create views or modify the database directly."
+    },
+    {
+      "id": "authentic_data_grid",
+      "description": "The query results are displayed within the genuine LibreOffice Base interface.",
+      "visual_evidence": "The results appear in a standard LibreOffice Base data grid window, not as plain text, terminal output, or a separate text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct query joins the Playlist, PlaylistTrack, and Track tables. It calculates DurationMinutes as Milliseconds / 60000.0 (resulting in a decimal/float). Grouping is by Playlist Name, ordered by DurationMinutes DESC. The execution should return exactly 12 rows (playlists with tracks). The top result must be the 'Music' playlist with 6580 tracks and a duration of approximately 29256.1027666667 minutes."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "migrate_stock_position@1",
+  "task_completion": [
+    {
+      "id": "portfolio_created",
+      "description": "Verify that a new portfolio named 'Semiconductor Fund' has been created.",
+      "points": 10,
+      "visual_evidence": "Look for 'Semiconductor Fund' in the portfolio dropdown menu or portfolio tabs at the top of the JStock application."
+    },
+    {
+      "id": "nvda_added_correct_units_price",
+      "description": "Verify that the NVDA position was added to the 'Semiconductor Fund' with the exact historical units and price.",
+      "points": 30,
+      "visual_evidence": "With 'Semiconductor Fund' selected, look at the main transaction table. There should be an entry for 'NVDA' showing exactly 25.0 in the 'Units' column and 615.3 in the 'Purchase Price' column."
+    },
+    {
+      "id": "nvda_added_correct_date",
+      "description": "Verify that the NVDA position in the 'Semiconductor Fund' has the exact historical date.",
+      "points": 20,
+      "visual_evidence": "With 'Semiconductor Fund' selected, check the 'Date' column for the NVDA entry in the main table. It must display 'Feb 01, 2024' (or the equivalent localized format for that exact date)."
+    },
+    {
+      "id": "nvda_deleted_old_portfolio",
+      "description": "Verify that the original NVDA transaction was deleted from 'My Portfolio'.",
+      "points": 20,
+      "visual_evidence": "With 'My Portfolio' selected, look at the main transaction table. The 'NVDA' stock entry should no longer be visible in this portfolio."
+    },
+    {
+      "id": "other_stocks_preserved",
+      "description": "Verify that the AAPL and MSFT positions in 'My Portfolio' remain untouched.",
+      "points": 20,
+      "visual_evidence": "With 'My Portfolio' selected, look at the main transaction table. Both 'AAPL' and 'MSFT' must still be listed with their respective data intact."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_jstock_gui",
+      "description": "Verify the agent used the JStock graphical user interface to perform the task.",
+      "visual_evidence": "Screenshots should show the JStock application window being interacted with (e.g., clicking menus, using the Buy/Sell dialogs, managing portfolios)."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Verify the agent did not use terminal commands or text editors to modify the underlying portfolio files directly.",
+      "visual_evidence": "There should be no terminal windows or text editors (like nano, vim, or gedit) open showing direct edits to CSV or XML files in the ~/.jstock directory."
+    },
+    {
+      "id": "genuine_transaction_entry",
+      "description": "Verify the agent used the proper application dialogs to enter the new transaction.",
+      "visual_evidence": "Look for screenshots showing the JStock 'Buy' or transaction entry dialog box being filled out with the NVDA details, rather than just a sudden appearance of the data without UI interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The target stock to move is NVDA. The exact historical details to replicate in the new portfolio are: Units = 25.0, Purchase Price = 615.3, Date = 'Feb 01, 2024'. The new portfolio must be named 'Semiconductor Fund', and the original portfolio is 'My Portfolio'. AAPL and MSFT must remain untouched in 'My Portfolio'."
+}

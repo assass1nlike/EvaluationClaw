@@ -1,0 +1,53 @@
+{
+  "task_id": "containerize_host_integration@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Checks if the agent opened the correct docker-compose.yml file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output showing the contents of 'docker-compose.yml' located in '/home/ga/Documents/docker-projects/migration-task/'."
+    },
+    {
+      "id": "configure_extra_hosts",
+      "description": "Checks if the agent configured the container to resolve the hardcoded backend hostname to the host machine.",
+      "points": 30,
+      "visual_evidence": "The 'docker-compose.yml' file is modified to include an 'extra_hosts' section mapping 'backend.legacy.internal' to 'host-gateway' (e.g., 'backend.legacy.internal:host-gateway') or the actual host IP address."
+    },
+    {
+      "id": "start_containers",
+      "description": "Checks if the agent started the containerized frontend application.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'docker compose up' or 'docker-compose up' being executed in the project directory, with logs indicating the frontend container has started."
+    },
+    {
+      "id": "access_frontend",
+      "description": "Checks if the agent accessed the frontend application on the specified port.",
+      "points": 10,
+      "visual_evidence": "A web browser navigated to 'http://localhost:8080' or a terminal showing a 'curl http://localhost:8080' command."
+    },
+    {
+      "id": "verify_backend_data",
+      "description": "Checks if the frontend successfully connected to the legacy backend and retrieved its data.",
+      "points": 30,
+      "visual_evidence": "The web browser page or terminal curl output clearly displays the text 'Legacy Core Online', confirming the frontend successfully resolved the backend hostname and fetched the data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_source_code_modification",
+      "description": "Ensures the agent did not modify the frontend source code to bypass the DNS issue.",
+      "visual_evidence": "There should be no evidence of the agent opening or editing 'app.py' or any other application source files to change the hardcoded 'backend.legacy.internal' URL."
+    },
+    {
+      "id": "genuine_response",
+      "description": "Ensures the expected response is from the actual running service.",
+      "visual_evidence": "The text 'Legacy Core Online' must appear as a web page rendering or a genuine HTTP response in the terminal, not just typed into a text editor, echoed manually, or hardcoded into a new file."
+    },
+    {
+      "id": "docker_execution",
+      "description": "Ensures the application was run via Docker as requested.",
+      "visual_evidence": "The frontend must be running inside a container (evidenced by docker compose logs or docker ps), rather than the agent running the python application script directly on the host machine."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/Documents/docker-projects/migration-task'. The target hostname that must be resolved is 'backend.legacy.internal'. The frontend application listens on port 8080. When the frontend successfully connects to the legacy backend (running on host port 4567), it will return a response containing the text 'Legacy Core Online'."
+}

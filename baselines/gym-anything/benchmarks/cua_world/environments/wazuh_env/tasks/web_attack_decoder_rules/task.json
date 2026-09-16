@@ -1,0 +1,30 @@
+{
+  "id": "web_attack_decoder_rules@1",
+  "version": "1.0",
+  "env_id": "wazuh_env@0.1",
+  "description": "You are a SOC analyst at an e-commerce company. Extend Wazuh's detection capabilities to identify web application attacks in Nginx access logs. Create a custom log decoder that extracts the requested URL, HTTP method, response code, and source IP into the local custom decoder file. Implement three custom rules targeting SQL injection (level 10+), path/directory traversal (level 10+), and command injection (level 9+), ensuring at least one rule includes a MITRE ATT&CK technique mapping. All changes must be persistent in the Wazuh configuration files on disk. Dashboard login: admin/SecretPassword at https://localhost (accept SSL certificate warning). API credentials: wazuh-wui/MyS3cr37P450r.*- at https://localhost:55000.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/web_attack_decoder_rules/setup_task.sh",
+    "post_task": "/workspace/tasks/web_attack_decoder_rules/export_result.sh"
+  },
+  "metadata": {
+    "min_web_attack_rules": 3,
+    "min_sql_injection_level": 10,
+    "min_traversal_level": 10,
+    "min_cmd_injection_level": 9,
+    "require_mitre_mapping": true,
+    "description": "Create nginx decoder and web attack detection rules with MITRE ATT&CK mapping"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_web_attack_decoder_rules"
+    }
+  }
+}

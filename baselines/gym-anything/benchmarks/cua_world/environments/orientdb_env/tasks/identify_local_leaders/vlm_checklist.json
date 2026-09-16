@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_local_leaders@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Connect to the 'demodb' database.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio showing 'demodb' as the active database, or a terminal showing a successful connection to 'demodb' via the OrientDB console or a script."
+    },
+    {
+      "id": "schema_updated",
+      "description": "Update the 'Profiles' schema to include 'FriendCount' and 'IsLocalLeader' properties.",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio Schema section for the 'Profiles' class showing 'FriendCount' (Integer) and 'IsLocalLeader' (Boolean), or terminal commands executing 'CREATE PROPERTY Profiles.FriendCount INTEGER' and 'CREATE PROPERTY Profiles.IsLocalLeader BOOLEAN'."
+    },
+    {
+      "id": "friend_count_calculated",
+      "description": "Calculate and update 'FriendCount' for every profile based on outgoing 'HasFriend' edges.",
+      "points": 20,
+      "visual_evidence": "SQL UPDATE queries calculating the count of outgoing 'HasFriend' edges (e.g., using outE() or out()), or a data view/query result showing the 'FriendCount' column populated with integer values for the profiles."
+    },
+    {
+      "id": "is_local_leader_set",
+      "description": "Set 'IsLocalLeader' to true/false based on the friend count logic.",
+      "points": 20,
+      "visual_evidence": "SQL UPDATE queries applying the local leader logic (comparing a profile's FriendCount to the FriendCount of people they follow), or a data view/query result showing the 'IsLocalLeader' column populated with boolean values."
+    },
+    {
+      "id": "export_json_file",
+      "description": "Export the list of local leaders to /home/ga/local_leaders.json.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the creation/export of '/home/ga/local_leaders.json', or the contents of the file displayed in a terminal or editor showing a JSON array of objects with Name, Surname, and FriendCount, ordered by FriendCount descending."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_used",
+      "description": "The agent actually queried or updated the OrientDB database rather than just guessing the final output.",
+      "visual_evidence": "Screenshots showing OrientDB Studio interface, OrientDB console commands, or a script interacting with the database."
+    },
+    {
+      "id": "no_manual_json_typing",
+      "description": "The agent did not manually type the final JSON output.",
+      "visual_evidence": "The JSON file should be generated via an export command, a script, or a database query output redirected to the file, rather than being manually typed in a text editor."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The agent used logic/queries to calculate the values rather than hardcoding updates for specific users.",
+      "visual_evidence": "UPDATE queries or script logic should use graph traversal or edge counting rather than specific names (e.g., it should NOT be `UPDATE Profiles SET FriendCount = 3 WHERE Name = 'John'`)."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: 'demodb'. Credentials: root / GymAnything123!. Expected output file: '/home/ga/local_leaders.json'. Ground truth: John (3 friends) is a leader; Anna (1 friend) is a leader; Luca (1 friend) is NOT a leader; others with 0 outgoing friends are NOT leaders. The final JSON must contain Name, Surname, and FriendCount, and be ordered by FriendCount descending."
+}

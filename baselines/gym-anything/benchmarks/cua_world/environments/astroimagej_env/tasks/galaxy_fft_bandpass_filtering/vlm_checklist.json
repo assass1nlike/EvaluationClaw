@@ -1,0 +1,53 @@
+{
+  "task_id": "galaxy_fft_bandpass_filtering@1",
+  "task_completion": [
+    {
+      "id": "open_target_image",
+      "description": "Open the target astronomical image.",
+      "points": 10,
+      "visual_evidence": "The file `uit_galaxy_sample.fits` is opened and visible in an image processing application (e.g., ImageJ or Fiji)."
+    },
+    {
+      "id": "configure_fft_filter",
+      "description": "Configure and apply the FFT Bandpass Filter with the specified settings.",
+      "points": 30,
+      "visual_evidence": "A 'Bandpass Filter' dialog is visible with the following settings: 'Filter large structures down to' = 40, 'Filter small structures up to' = 3, 'Suppress stripes' = None, 'Tolerance of direction' = 5%, 'Autoscale after filtering' is checked, and 'Saturate image when autoscaling' is unchecked."
+    },
+    {
+      "id": "save_filtered_image",
+      "description": "Save the resulting filtered image to the specified path.",
+      "points": 20,
+      "visual_evidence": "A 'Save' or 'Save As' dialog shows the filtered image being saved as `uit_bandpass_filtered.fits` in the `~/AstroImages/processed/` directory."
+    },
+    {
+      "id": "measure_statistics",
+      "description": "Measure the full-image statistics of the filtered image.",
+      "points": 20,
+      "visual_evidence": "A 'Results' or 'Statistics' window is visible showing the Mean, Standard Deviation, Min, and Max values for the newly filtered image."
+    },
+    {
+      "id": "save_text_report",
+      "description": "Create and save the text report containing parameters and statistics.",
+      "points": 20,
+      "visual_evidence": "A text editor is open containing the filter parameters (e.g., 40px, 3px) and the measured statistics (Mean, Std Dev, Min, Max), and is seen being saved as `filter_report.txt` in the `~/AstroImages/processed/` directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_filtering",
+      "description": "The agent used the graphical user interface of an image processing application to apply the filter.",
+      "visual_evidence": "Screenshots show the agent navigating menus (e.g., Process > FFT > Bandpass Filter) and interacting with dialog boxes, rather than just running terminal commands or a black-box script."
+    },
+    {
+      "id": "statistics_match_measurement",
+      "description": "The statistics in the report match the actual measurements.",
+      "visual_evidence": "The values typed or pasted into the text report correspond exactly to the values displayed in the application's measurement/results window."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent genuinely created the required output files.",
+      "visual_evidence": "The agent is seen using 'Save As' dialogs or a text editor to create `uit_bandpass_filtered.fits` and `filter_report.txt`, rather than using a script to bypass GUI interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "Target image: /home/ga/AstroImages/raw/uit_galaxy_sample.fits. Expected filtered image: /home/ga/AstroImages/processed/uit_bandpass_filtered.fits. Expected report: /home/ga/AstroImages/processed/filter_report.txt. Filter parameters: large structures = 40 pixels, small structures = 3 pixels. The specific filter parameters (stripe suppression, tolerance, autoscale, saturation) strongly imply the use of ImageJ/Fiji's built-in FFT Bandpass Filter."
+}

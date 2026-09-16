@@ -1,0 +1,108 @@
+{
+  "dataset_id": "e948b4ed",
+  "name": "Openset Financial Dialogue Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "An open-set multimodal question-answering dataset where each sample asks a free-form question grounded in a set of images, textual passages, an optional table image, and a history of prior Q&A turns. The model must use this mixed context to produce a short factual answer, making it a multi-turn, multi-hop visual dialogue VQA benchmark.",
+  "card_text": "This dataset contains image-and-text samples for open-ended visual question answering in a dialogue setting. Each item provides a batch of image files plus a single long prompt that bundles several components: an instruction sentence, a 'Global Table' image reference, a series of numbered history contexts (each either textual passages or image placeholders with an embedded question and answer), and a 'Current Context' image followed by the target question. The expected output is a short free-text answer (typically an entity, a year, or a yes/no phrase). The content is drawn from encyclopedic, Wikipedia-style knowledge across heterogeneous topics such as sports competitions and pop music, so the reasoning often requires chaining facts from multiple images and history turns. The dataset is small (200 samples) and 'openset' in the sense that answers are not constrained to a closed candidate list.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "multi_hop_response",
+    "question_answering"
+  ],
+  "domain": "open-domain multimodal dialogue QA (Wikipedia-style knowledge)",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of image file references (e.g. table screenshots, result tables, or illustrative pictures) that ground the prompt. Their count varies per sample (roughly 2-5) and they are referenced by the <ImageHere> placeholders inside the prompt, anchoring the global table and the individual context turns.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "The full prompt is the main input: it starts with an instruction sentence, then gives a 'Global Table' image slot, a chain of numbered 'History Context' turns (each containing textual passages or an image slot plus a small question-answer pair), and finally a 'Current Context' image slot with the question to answer. It mixes task instructions, encyclopedic factual passages, and prior dialogue turns, and it is the carrier of everything the model conditions on.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The target question appears as the trailing 'Question: ...' segment of the prompt, following the 'Current Context' image placeholder. It is a short natural-language query that must be answered using the images, the history turns, and the factual passages supplied earlier in the same prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "dialog": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "dialog",
+        "semantics": "The 'History Context N' blocks inside the prompt form a sequence of earlier question-answer turns, each paired with image placeholders or textual passages. These turns act as dialogue memory that the model must read and reuse when answering the final current question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short free-text target answer such as an entity name, a year, or a yes/no phrase, sometimes with trailing whitespace. It is the gold response to the final question posed at the end of the prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with two components: a list of image file references (input.image_file) and one long prompt string (input.prompt). The prompt interleaves a task instruction, a 'Global Table' image slot, several numbered 'History Context' turns (textual passages or image slots each containing a small Q&A pair), and a 'Current Context' image slot ending with the target 'Question:'. The output object holds a single short free-text answer (output.text). Images are referenced by filename and echoed by '<ImageHere>' placeholders inside the prompt, so text, dialogue history, tables, and images are all coupled within the same prompt-answer pair."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/FinancialDialogueVQA/openset_financial_dialogue_vqa.json",
+    "existing_tags": {
+      "task": "Financial Dialogue VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "Finance",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Finance"
+  }
+}

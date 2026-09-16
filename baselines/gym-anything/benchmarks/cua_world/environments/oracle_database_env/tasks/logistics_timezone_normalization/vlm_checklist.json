@@ -1,0 +1,59 @@
+{
+  "task_id": "logistics_timezone_normalization@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the HR database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL*Plus, SQL Developer) or terminal is open and shows an active connection to localhost:1521/XEPDB1 with the user 'hr'."
+    },
+    {
+      "id": "view_query_structure",
+      "description": "Formulate the CREATE VIEW statement with required joins",
+      "points": 20,
+      "visual_evidence": "The SQL editor shows a 'CREATE [OR REPLACE] VIEW V_FLIGHT_ANALYSIS AS' statement that includes joins between FLIGHT_LOGS and AIRPORT_REF (typically joined twice, once for source and once for destination)."
+    },
+    {
+      "id": "timezone_functions",
+      "description": "Use Oracle timezone functions to calculate true duration",
+      "points": 20,
+      "visual_evidence": "The SQL query explicitly uses 'FROM_TZ' and 'AT TIME ZONE ''UTC''' to convert the local wall-clock times to UTC using the IANA timezones from AIRPORT_REF, and calculates DURATION_MINUTES."
+    },
+    {
+      "id": "view_creation_success",
+      "description": "Successfully execute the view creation",
+      "points": 10,
+      "visual_evidence": "A success message or log in the database client indicating that the view 'V_FLIGHT_ANALYSIS' was successfully created or compiled."
+    },
+    {
+      "id": "slow_flights_query",
+      "description": "Query the view for 'Slow Flights'",
+      "points": 20,
+      "visual_evidence": "A SELECT query filtering the newly created view for flights with a duration greater than 800 minutes (e.g., 'WHERE DURATION_MINUTES > 800')."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the results to the specified CSV file",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or export dialog showing the creation or existence of 'long_haul_report.csv' on the Desktop (/home/ga/Desktop/)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Agent used a genuine database client or CLI to execute queries",
+      "visual_evidence": "The SQL commands are executed in a real database environment (like DBeaver, SQL*Plus, or a Python script connecting to Oracle), not just typed into a text editor without execution."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "Agent dynamically calculated durations rather than hardcoding answers",
+      "visual_evidence": "The SQL query uses mathematical date/timestamp differences and timezone functions rather than hardcoding specific flight IDs (like 100 or 900) with fixed duration values."
+    },
+    {
+      "id": "authentic_export",
+      "description": "Agent exported the CSV from query results",
+      "visual_evidence": "The CSV file is generated via a database export tool, script, or CLI redirection, rather than the agent manually typing the expected CSV contents into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The required view name is V_FLIGHT_ANALYSIS. The output file must be saved to /home/ga/Desktop/long_haul_report.csv. The database contains specific edge cases: Flight 100 (crosses International Date Line) and Flight 900 (DST gap week). The final exported CSV should contain flights where DURATION_MINUTES > 800."
+}

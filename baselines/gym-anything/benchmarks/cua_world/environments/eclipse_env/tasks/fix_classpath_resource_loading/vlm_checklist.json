@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_classpath_resource_loading@1",
+  "task_completion": [
+    {
+      "id": "open_climate_analyzer",
+      "description": "Open the ClimateAnalyzer.java file in an editor.",
+      "points": 10,
+      "visual_evidence": "The file 'ClimateAnalyzer.java' is visible in a text editor or IDE."
+    },
+    {
+      "id": "remove_file_reader",
+      "description": "Remove the usage of FileReader and hardcoded filesystem paths.",
+      "points": 20,
+      "visual_evidence": "In the source code of ClimateAnalyzer.java, there should be no 'new FileReader(...)' or hardcoded paths like 'src/main/resources/global_temps.csv'."
+    },
+    {
+      "id": "use_get_resource_as_stream",
+      "description": "Use a ClassLoader-based approach to load the resource.",
+      "points": 30,
+      "visual_evidence": "The source code shows 'getResourceAsStream(\"/global_temps.csv\")' or 'getResourceAsStream(\"global_temps.csv\")' being used to load the CSV file."
+    },
+    {
+      "id": "use_input_stream_reader",
+      "description": "Use an InputStreamReader to read the stream.",
+      "points": 20,
+      "visual_evidence": "The source code shows 'new InputStreamReader(...)' wrapping the input stream obtained from the resource."
+    },
+    {
+      "id": "pass_junit_test",
+      "description": "Pass the ClimateAnalyzerTest JUnit test.",
+      "points": 20,
+      "visual_evidence": "A test runner (e.g., Eclipse JUnit view with a green bar, or Maven terminal output showing 'BUILD SUCCESS' and 0 failures) indicates that ClimateAnalyzerTest passed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_modification",
+      "description": "The agent modified the actual Java source file.",
+      "visual_evidence": "The modifications are visible in an editor showing the file 'ClimateAnalyzer.java', not just in a terminal echo or standalone script."
+    },
+    {
+      "id": "no_test_modification",
+      "description": "The agent did not modify the JUnit test to bypass validation.",
+      "visual_evidence": "There is no evidence of 'ClimateAnalyzerTest.java' being modified to remove assertions or trivially pass."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The test execution output is genuine.",
+      "visual_evidence": "The test results are shown in a standard test runner interface (like Eclipse JUnit view or Maven Surefire output) and not manually printed."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/eclipse-workspace/ClimateData. Main class: com.climate.ClimateAnalyzer. Resource file: global_temps.csv. The refactoring must replace filesystem-based loading (FileReader) with classpath-based loading (getResourceAsStream) and use InputStreamReader. The test framework is JUnit 5, and the build system is Maven."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "audit_scan_resolution@1",
+  "task_completion": [
+    {
+      "id": "blue_sky_plan_active",
+      "description": "Verify Blue Sky Plan is open with the patient scan loaded.",
+      "points": 10,
+      "visual_evidence": "The Blue Sky Plan application window is visible on screen, displaying a loaded 3D or 2D medical scan."
+    },
+    {
+      "id": "locate_volume_properties",
+      "description": "Verify the technical properties or volume information panel is accessed in Blue Sky Plan.",
+      "points": 20,
+      "visual_evidence": "A panel, dialog, or information overlay in Blue Sky Plan displaying the scan's 'Voxel Size' and 'Volume Dimensions' is visible."
+    },
+    {
+      "id": "open_text_editor",
+      "description": "Verify a text editor is opened to record the audit results.",
+      "points": 10,
+      "visual_evidence": "A text editor application (e.g., Notepad) is open and visible on the screen."
+    },
+    {
+      "id": "save_file_correct_path",
+      "description": "Verify the text file is saved to the required path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing the path 'Docker\\Documents' with the filename 'scan_audit.txt', or the text editor title bar shows 'scan_audit.txt' with evidence of the correct folder location."
+    },
+    {
+      "id": "record_voxel_size",
+      "description": "Verify the exact Voxel Size is recorded in the text file.",
+      "points": 20,
+      "visual_evidence": "The text editor contains the recorded voxel size value (0.4mm) matching the actual scan properties."
+    },
+    {
+      "id": "record_volume_dimensions",
+      "description": "Verify the exact Volume Dimensions are recorded in the text file.",
+      "points": 20,
+      "visual_evidence": "The text editor contains the recorded volume dimensions (256x256x100) matching the actual scan properties."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_software_used",
+      "description": "Check that the agent interacted with the Blue Sky Plan GUI to find the information.",
+      "visual_evidence": "Screenshots must show the Blue Sky Plan interface being used to inspect the volume, rather than a terminal or script reading DICOM metadata."
+    },
+    {
+      "id": "no_hallucinated_values",
+      "description": "Check that the agent did not blindly copy the 0.3mm requirement from the prompt.",
+      "visual_evidence": "The recorded voxel size must be the actual value from the software (0.4mm), not the 0.3mm target mentioned in the task description."
+    },
+    {
+      "id": "manual_file_creation",
+      "description": "Check that the agent used a GUI text editor to create and write the audit file.",
+      "visual_evidence": "Presence of a GUI text editor being actively used to type the results, rather than terminal commands (like echo or cat) generating the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The actual DICOM dataset loaded in Blue Sky Plan contains 100 slices of 256x256 pixels with a 0.4mm isotropic voxel size. The agent must record these exact values (0.4mm, 256x256x100) and NOT the 0.3mm requirement or the false 512x512x400 dimensions mentioned in the task metadata. The data source is real public DICOM samples from rubomedical.com."
+}

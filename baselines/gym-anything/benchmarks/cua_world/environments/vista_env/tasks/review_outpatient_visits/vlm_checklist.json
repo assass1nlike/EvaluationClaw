@@ -1,0 +1,53 @@
+{
+  "task_id": "review_outpatient_visits@1",
+  "task_completion": [
+    {
+      "id": "ydbgui_accessible",
+      "description": "Verify that the YDBGui web interface is open and accessible.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and displaying the YDBGui interface."
+    },
+    {
+      "id": "global_selected",
+      "description": "Verify that the agent has searched for or selected the target global.",
+      "points": 10,
+      "visual_evidence": "The text '^AUPNVSIT' is visible in the search bar, navigation input, or global list of the YDBGui interface."
+    },
+    {
+      "id": "global_navigated",
+      "description": "Verify that the ^AUPNVSIT global has been successfully navigated to.",
+      "points": 30,
+      "visual_evidence": "The main viewing area of YDBGui displays the contents of the ^AUPNVSIT global, showing its structure or a list of entries."
+    },
+    {
+      "id": "entries_expanded",
+      "description": "Verify that at least three visit entries are being browsed.",
+      "points": 20,
+      "visual_evidence": "The interface shows at least three different numeric IENs (Internal Entry Numbers) under the ^AUPNVSIT global that have been expanded, selected, or are actively being viewed."
+    },
+    {
+      "id": "zero_node_visible",
+      "description": "Verify that the zero-node data for the visit entries is visible.",
+      "points": 30,
+      "visual_evidence": "The screen displays the zero-node data (often shown as a '0' subscript or a delimited string containing date/time, patient link, and service category) for at least three different visit entries."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent used the YDBGui web interface rather than terminal commands.",
+      "visual_evidence": "The global data is displayed within the YDBGui web interface in a browser, not in a terminal emulator using MUMPS commands."
+    },
+    {
+      "id": "genuine_data",
+      "description": "Verify that the data appears to be genuine VistA global data.",
+      "visual_evidence": "The data follows standard VistA global structures (e.g., delimited strings with care details) and is viewed within the actual application, not a text editor or mock file."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify that the agent did not simply type the expected output.",
+      "visual_evidence": "There is no evidence of the agent typing the task description or expected global names into a blank document or text file to simulate completion."
+    }
+  ],
+  "privileged_info_for_vlm": "The target interface is YDBGui. The target global is ^AUPNVSIT, which corresponds to VistA File #9000010 (VISIT). The agent must display the zero-node data for at least 3 different visit entries (IENs) under this global in the YDBGui interface."
+}

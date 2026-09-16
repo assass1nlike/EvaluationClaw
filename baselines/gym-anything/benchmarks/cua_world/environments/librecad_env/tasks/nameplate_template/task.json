@@ -1,0 +1,60 @@
+{
+  "id": "nameplate_template@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a DXF drawing of an equipment nameplate laser-engraving template for a stainless steel identification plate for agricultural machinery. The drawing must include three layers: 'BORDER' (color index 7), 'HOLES' (color index 2), and 'TEXT' (color index 4). On the 'BORDER' layer, include two rectangles: an outer border from (0,0) to (120,60) and an inner border from (5,5) to (115,55). On the 'HOLES' layer, include two circles with radius 2 centered at (10,30) and (110,30). On the 'TEXT' layer, include four labels centered horizontally near x=60: 'MODEL: AG-2024' (y=45, height 5), 'SERIAL: _______' (y=35, height 4), 'WEIGHT: 450 kg' (y=25, height 4), and 'MFG DATE: 2024' (y=15, height 4). Save the drawing as ~/Documents/LibreCAD/nameplate_template.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nameplate_template/setup_task.sh",
+    "post_task": "/workspace/tasks/nameplate_template/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/nameplate_template.dxf",
+    "layer_specs": {
+      "BORDER": 7,
+      "HOLES": 2,
+      "TEXT": 4
+    },
+    "geometry": {
+      "outer_rect": [
+        120,
+        60
+      ],
+      "inner_rect": [
+        110,
+        50
+      ],
+      "hole_radius": 2.0,
+      "hole_centers": [
+        [
+          10,
+          30
+        ],
+        [
+          110,
+          30
+        ]
+      ]
+    },
+    "required_text": [
+      "MODEL",
+      "AG-2024",
+      "SERIAL",
+      "WEIGHT",
+      "450",
+      "DATE",
+      "2024"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nameplate_template"
+    }
+  }
+}

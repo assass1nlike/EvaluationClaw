@@ -1,0 +1,23 @@
+{
+  "id": "run_bem_simulation@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Run a steady-state Blade Element Momentum (BEM) simulation using the NREL 5MW rotor project located in /home/ga/Documents/sample_projects/. Perform a tip speed ratio (TSR) sweep and export the resulting Cp vs TSR data to /home/ga/Documents/projects/bem_results.txt.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_bem_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/run_bem_simulation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output": "bem_results.txt"
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::verify_run_bem_simulation"
+    }
+  }
+}

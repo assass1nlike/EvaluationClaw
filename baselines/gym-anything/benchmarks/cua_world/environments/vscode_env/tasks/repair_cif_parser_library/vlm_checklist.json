@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_cif_parser_library@1",
+  "task_completion": [
+    {
+      "id": "modify_parser_values_and_strings",
+      "description": "Modify the parser to handle numerical values with standard uncertainties and quoted metadata strings.",
+      "points": 15,
+      "visual_evidence": "Code editor showing a Python file (e.g., parser.py) with logic or regular expressions added to parse values containing parentheses like '5.4309(4)' (e.g., stripping the uncertainty) and handling quoted strings."
+    },
+    {
+      "id": "modify_parser_columns_and_multiline",
+      "description": "Modify the parser to handle dynamic column ordering for atom coordinates and multiline metadata entries.",
+      "points": 15,
+      "visual_evidence": "Code editor showing a Python file with logic to map column headers dynamically rather than using hardcoded indices, and logic to parse multiline strings (often denoted by semicolons or specific tags in CIF files)."
+    },
+    {
+      "id": "modify_geometry_pbc",
+      "description": "Modify geometry.py to account for periodic boundary conditions in distance calculations.",
+      "points": 20,
+      "visual_evidence": "Code editor showing geometry.py with distance calculation logic that includes periodic boundary conditions (e.g., using minimum image convention, modulo arithmetic, or shifting coordinates by +/- 1 lattice vector)."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Execute the test suite to verify the fixes.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a test execution command (like `pytest`, `python -m pytest`, or `python -m unittest`) being run in the /home/ga/workspace/cif_parser/ directory."
+    },
+    {
+      "id": "parser_and_geometry_tests_pass",
+      "description": "Test suite output indicates that tests for the parser and geometry modules are passing.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing passing test cases specifically related to parsing (uncertainties, quotes, multiline, columns) and geometry (distances, periodic boundaries)."
+    },
+    {
+      "id": "all_tests_pass",
+      "description": "The entire test suite passes successfully.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the final test suite result as fully successful (e.g., a green 'passed' message, 'OK', or '100%' with no failed tests)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_modifications",
+      "description": "Verify that the agent modified the actual source code (parser and geometry) rather than modifying the test files to force them to pass.",
+      "visual_evidence": "The code editor should show edits in the main application files (e.g., parser.py, geometry.py), not deletions, `return True` bypasses, or commented-out assertions in the test files."
+    },
+    {
+      "id": "no_hardcoded_synthetic_values",
+      "description": "Verify that the agent wrote general parsing logic rather than hardcoding the specific synthetic values.",
+      "visual_evidence": "The code should use general string manipulation or regex for uncertainties rather than hardcoding specific checks like `if value == '5.4309(4)': return 5.4309`."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Verify that the test suite was actually executed and not just simulated with a print statement.",
+      "visual_evidence": "Terminal output should display standard test framework formatting (e.g., pytest headers, collected items, execution times, dots for passing tests) rather than a simple echoed string."
+    }
+  ],
+  "privileged_info_for_vlm": "The user persona is a Materials Scientist (SOC code 19-2032.00) in the Life, Physical, and Social Science major group. The CIF data used in the task is a synthetic, shortened version of COD ID 9008565 for Silicon, containing manipulated cell lengths like '5.4309(4)' and 'Si1' labels, which differs from the true COD record."
+}

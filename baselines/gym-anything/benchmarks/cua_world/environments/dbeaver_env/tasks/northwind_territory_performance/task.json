@@ -1,0 +1,30 @@
+{
+  "id": "northwind_territory_performance@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Business Intelligence Analyst. Perform a territory-level sales performance analysis using the 'Northwind' database at /home/ga/Documents/databases/northwind.db (Login: ga / password123). Generate a report containing TerritoryID, TerritoryDescription, RegionDescription, TotalRevenue (sum of Quantity * UnitPrice * (1-Discount)), OrderCount (distinct orders), AvgOrderValue, and EmployeeCount (distinct employees) for each territory, sorted by TotalRevenue descending. Export the report to /home/ga/Documents/exports/territory_report.csv and the SQL query to /home/ga/Documents/scripts/territory_analysis.sql. Use the connection name 'Northwind'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/northwind_territory_performance/setup_task.sh",
+    "post_task": "/workspace/tasks/northwind_territory_performance/export_result.sh"
+  },
+  "metadata": {
+    "target_db": "/home/ga/Documents/databases/northwind.db",
+    "connection_name": "Northwind",
+    "output_csv": "/home/ga/Documents/exports/territory_report.csv",
+    "output_sql": "/home/ga/Documents/scripts/territory_analysis.sql",
+    "expected_min_territories": 40,
+    "expected_max_territories": 60,
+    "northwind_source": "https://raw.githubusercontent.com/jpwhite3/northwind-SQLite3/main/Northwind_large.sql"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_northwind_territory_performance"
+    }
+  }
+}

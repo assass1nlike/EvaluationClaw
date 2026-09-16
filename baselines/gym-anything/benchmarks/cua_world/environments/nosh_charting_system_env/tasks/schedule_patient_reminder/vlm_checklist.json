@@ -1,0 +1,53 @@
+{
+  "task_id": "schedule_patient_reminder@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify the agent successfully logged into the NOSH ChartingSystem.",
+      "points": 10,
+      "visual_evidence": "The NOSH ChartingSystem dashboard or main interface is visible, indicating the agent is no longer on the login screen."
+    },
+    {
+      "id": "patient_record_accessed",
+      "description": "Verify the agent accessed the patient record for PID 3.",
+      "points": 20,
+      "visual_evidence": "The patient chart or demographic page is open. The VLM should look for PID 3 or the name 'Crysta Parisian' (the actual database name for PID 3) in the patient header."
+    },
+    {
+      "id": "navigate_to_reminders",
+      "description": "Verify the agent opened the clinical reminders section for the patient.",
+      "points": 20,
+      "visual_evidence": "A section, tab, or modal specifically designated for 'Reminders' or 'Clinical Reminders' is open within the patient's chart."
+    },
+    {
+      "id": "enter_reminder_details",
+      "description": "Verify the agent entered 'Mammogram' as the reminder content and 'October 1, 2025' as the due date.",
+      "points": 30,
+      "visual_evidence": "A reminder creation form is filled out with 'Mammogram' in the reminder/reason field and '10/01/2025', '2025-10-01', or 'October 1, 2025' in the date field."
+    },
+    {
+      "id": "save_reminder",
+      "description": "Verify the reminder was successfully saved or scheduled.",
+      "points": 20,
+      "visual_evidence": "A success message is displayed, or the new reminder for 'Mammogram' due on 'October 1, 2025' appears in the patient's list of active/scheduled reminders."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web GUI to schedule the reminder.",
+      "visual_evidence": "Screenshots show a web browser navigating the NOSH UI, rather than a terminal window executing backend scripts or curl commands."
+    },
+    {
+      "id": "genuine_system_usage",
+      "description": "Verify the agent interacted with the actual NOSH ChartingSystem application.",
+      "visual_evidence": "The surrounding UI elements (menus, patient headers, application styling) match a genuine web application and not a text editor or mock HTML page."
+    },
+    {
+      "id": "correct_patient_context",
+      "description": "Verify the reminder was added to the correct patient (PID 3).",
+      "visual_evidence": "The patient header or ID displayed on the screen during the reminder creation corresponds to PID 3 (or Crysta Parisian), ensuring the agent didn't just create a new patient or use a random one."
+    }
+  ],
+  "privileged_info_for_vlm": "The target patient PID is 3. Note that in the system database, PID 3 corresponds to the name 'Crysta Parisian', not 'Lucinda Haag' as stated in the task description. The VLM should accept actions performed on PID 3 / Crysta Parisian as correct."
+}

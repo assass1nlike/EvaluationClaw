@@ -1,0 +1,20 @@
+{
+  "id": "order_lab_test@1",
+  "version": "1.0",
+  "env_id": "nosh_charting_system_env@0.1",
+  "description": "Log in to NOSH ChartingSystem as demo_provider (password: Provider1234!, practice: Hillside Family Medicine). Order a 'Complete Blood Count (CBC)' lab test for patient Kent Zemlak (DOB: February 16, 2001). Note that the system requires an active encounter (including a Chief Complaint and Template) to process lab orders.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/order_lab_test/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_order_lab_test"
+    }
+  }
+}

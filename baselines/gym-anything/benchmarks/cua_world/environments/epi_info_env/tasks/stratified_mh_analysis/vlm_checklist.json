@@ -1,0 +1,53 @@
+{
+  "task_id": "stratified_mh_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Load the lowbwt.csv dataset into the Classic Analysis module of Epi Info 7.",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 'Classic Analysis' window is open. The 'Data Source' or 'Variables' pane should show 'lowbwt.csv' or list the variables SMOKE, LOW, and RACE."
+    },
+    {
+      "id": "calculate_crude_or",
+      "description": "Calculate the Crude Odds Ratio between SMOKE and LOW.",
+      "points": 20,
+      "visual_evidence": "Epi Info output pane showing a 2x2 table or statistics for SMOKE and LOW, with an Odds Ratio visible (should be approximately 2.02)."
+    },
+    {
+      "id": "calculate_adjusted_or",
+      "description": "Calculate the Mantel-Haenszel Adjusted Odds Ratio controlling for RACE.",
+      "points": 30,
+      "visual_evidence": "Epi Info output pane showing a stratified analysis (stratified by RACE) and displaying a Mantel-Haenszel Adjusted Odds Ratio (should be approximately 3.086)."
+    },
+    {
+      "id": "save_html_output",
+      "description": "Save the full analysis output to analysis_output.html in the specified directory.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog saving 'analysis_output.html' to 'C:\\Users\\Docker\\Documents\\EpiInfoProjects\\LowBirthWeight\\', or the file visible in the Windows File Explorer in that directory."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Create confounding_report.txt documenting the Crude OR, Adjusted OR, and a conclusion on confounding.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., Notepad) open with 'confounding_report.txt' containing the Crude OR, Adjusted OR, and a conclusion stating whether confounding is present based on a >10% change."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_gui",
+      "description": "The agent used the Epi Info 7 GUI to perform the analysis.",
+      "visual_evidence": "Screenshots must show interaction with the Epi Info 7 'Classic Analysis' interface (menus, dialogs, output window), rather than a Python/R script or terminal commands bypassing the software."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent manually created the summary report using a text editor.",
+      "visual_evidence": "A text editor (like Notepad) is used to write 'confounding_report.txt', rather than the file being generated via a terminal echo command with hardcoded text."
+    },
+    {
+      "id": "results_match_analysis",
+      "description": "The values in the summary report match the values generated in the Epi Info analysis output.",
+      "visual_evidence": "The Crude OR and Adjusted OR typed into 'confounding_report.txt' match the exact numbers visible in the Epi Info output screens, proving the agent didn't hallucinate or copy-paste expected answers."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Crude Odds Ratio between SMOKE and LOW is 2.02. The true Mantel-Haenszel Adjusted Odds Ratio controlling for RACE is 3.086. Because the difference between the adjusted and crude ORs is ~52% (greater than the 10% threshold), the correct conclusion is that confounding IS present."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "voip_call_quality_analysis@1",
+  "task_completion": [
+    {
+      "id": "wireshark_opened",
+      "description": "Verify that Wireshark is open and the correct PCAP file is loaded.",
+      "points": 10,
+      "visual_evidence": "The Wireshark GUI is visible and the title bar or main window indicates that 'SIP_CALL_RTP_G711' is loaded."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify that the report file is being created or edited.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, gedit, or vim) or a terminal command shows the creation or editing of 'voip_report.txt' in the ~/Documents directory."
+    },
+    {
+      "id": "packet_counts_correct",
+      "description": "Verify the total SIP and RTP packet counts in the report.",
+      "points": 20,
+      "visual_evidence": "The report text contains exactly 'Total_SIP_Packets: 14' and 'Total_RTP_Packets: 1445'."
+    },
+    {
+      "id": "sip_details_correct",
+      "description": "Verify the SIP methods and response codes in the report.",
+      "points": 20,
+      "visual_evidence": "The report text contains 'SIP_Methods:' listing ACK, INVITE, and REGISTER (order does not matter), and 'SIP_Response_Codes:' listing 100, 180, and 200."
+    },
+    {
+      "id": "caller_callee_correct",
+      "description": "Verify the caller and callee information in the report.",
+      "points": 20,
+      "visual_evidence": "The report text contains exactly 'Caller: 5514540002' and 'Callee: francisco'."
+    },
+    {
+      "id": "codec_streams_correct",
+      "description": "Verify the codec and RTP stream count in the report.",
+      "points": 20,
+      "visual_evidence": "The report text contains 'Codec:' indicating PCMA, G.711a, 8, or ITU-T G.711 PCMA, and 'Number_of_RTP_Streams: 3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "wireshark_gui_used",
+      "description": "Ensure the agent used the Wireshark GUI for analysis.",
+      "visual_evidence": "Screenshots should show the agent interacting with Wireshark features (e.g., Telephony > VoIP Calls, RTP Streams, or applying display filters) rather than solely relying on terminal commands like tshark."
+    },
+    {
+      "id": "report_saved_correctly",
+      "description": "Ensure the report is actually saved to the requested path.",
+      "visual_evidence": "The agent should save the file to ~/Documents/voip_report.txt using a text editor or redirection, rather than just printing the text to the terminal without saving."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Ensure the agent analyzed the file to get the answers.",
+      "visual_evidence": "The agent should spend time looking at the packet capture in Wireshark before writing the report, rather than immediately typing out the correct values."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct values for the voip_report.txt are:\nTotal_SIP_Packets: 14\nTotal_RTP_Packets: 1445\nSIP_Methods: ACK,INVITE,REGISTER (order does not matter)\nCaller: 5514540002\nCallee: francisco\nCodec: PCMA, G.711a, 8, or similar variations indicating G.711 A-law\nNumber_of_RTP_Streams: 3\nSIP_Response_Codes: 100,180,200 (order does not matter)"
+}

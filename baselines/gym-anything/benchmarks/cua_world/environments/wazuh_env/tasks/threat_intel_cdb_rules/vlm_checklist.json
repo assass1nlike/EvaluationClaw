@@ -1,0 +1,53 @@
+{
+  "task_id": "threat_intel_cdb_rules@1",
+  "task_completion": [
+    {
+      "id": "wazuh_dashboard_login",
+      "description": "Log into the Wazuh dashboard",
+      "points": 10,
+      "visual_evidence": "The Wazuh dashboard interface is visible in a web browser, indicating successful login."
+    },
+    {
+      "id": "cdb_list_creation",
+      "description": "Create a CDB list containing the Feodo Tracker C2 IPs",
+      "points": 30,
+      "visual_evidence": "Wazuh UI showing the 'CDB lists' management section with a newly created list (e.g., feodotracker.txt) that contains IP addresses formatted for CDB (e.g., '192.168.1.1:')."
+    },
+    {
+      "id": "wazuh_config_update",
+      "description": "Update the Wazuh configuration to include the new CDB list",
+      "points": 20,
+      "visual_evidence": "Wazuh configuration editor (ossec.conf) showing a <list> tag entry pointing to the newly created CDB list file within the <ruleset> section."
+    },
+    {
+      "id": "custom_rule_creation",
+      "description": "Create a custom detection rule that references the CDB list",
+      "points": 20,
+      "visual_evidence": "Wazuh 'Custom rules' editor showing an XML rule definition that uses the <list> tag (e.g., <list field=\"srcip\" lookup=\"address_match_key\">) to match network activity against the CDB list."
+    },
+    {
+      "id": "rule_level_verification",
+      "description": "Ensure the custom detection rule has a severity level of 9 or above",
+      "points": 20,
+      "visual_evidence": "The custom rule definition explicitly contains a level attribute of 9 or higher (e.g., <rule id=\"100001\" level=\"9\">)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_wazuh_ui",
+      "description": "Verify the agent interacted with the actual Wazuh web interface to configure the rules and lists",
+      "visual_evidence": "Screenshots should show the Wazuh dashboard UI (Management > Configuration/Rules/CDB lists), not just local text editors."
+    },
+    {
+      "id": "authentic_threat_intel",
+      "description": "Verify the agent used actual IP data from the provided file",
+      "visual_evidence": "The CDB list contents shown in the UI should contain real IP addresses extracted from the blocklist, not generic placeholders like '1.1.1.1' or 'IP_ADDRESS'."
+    },
+    {
+      "id": "rule_applied_not_drafted",
+      "description": "Verify the rule and configuration were actually saved in Wazuh",
+      "visual_evidence": "The UI should show the rule/CDB list in the saved lists/rules directory, or show a 'Restart manager' prompt/confirmation indicating the changes were applied."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires integrating at least 1 valid IP entry from the Feodo Tracker C2 blocklist into a Wazuh CDB list. The custom detection rule created must have a severity level of 9 or higher to receive full credit."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "create_multiview_radiological_summary@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "Create a 'Quad-View' radiological summary of the loaded CT Cranium dataset. Generate a 3D surface of the skull using the standard Bone threshold and set the 3D visualization panel background to white. Configure the layout to the standard 4-panel view (Axial, Sagittal, Coronal, and 3D) with the slice views centered on anatomical structures. Export a screenshot of the full interface to /home/ga/Documents/radiology_summary.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_multiview_radiological_summary/setup_task.sh",
+    "post_task": "/workspace/tasks/create_multiview_radiological_summary/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/radiology_summary.png",
+    "min_file_size_bytes": 50000,
+    "dicom_series": "ct_cranium/0051",
+    "required_background_color": "white"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_radiological_summary"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "group_citations_for_manuscript@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are writing a paper and need to organize your references. Create a collection named 'Manuscript 2024' containing these four papers from your library: Turing (1936) 'On Computable Numbers...', Shannon (1948) 'A Mathematical Theory of Communication', Vaswani et al. (2017) 'Attention Is All You Need', and Silver et al. (2016) 'Mastering the Game of Go...'. Tag all four papers in this collection with 'cited'. Ensure you select the correct versions of the papers, as your library may contain other works by the same authors.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/group_citations_for_manuscript/setup_task.sh",
+    "post_task": "/workspace/tasks/group_citations_for_manuscript/export_result.sh"
+  },
+  "metadata": {
+    "target_collection": "Manuscript 2024",
+    "target_tag": "cited",
+    "papers": [
+      {
+        "author": "Turing",
+        "year": "1936",
+        "title_fragment": "On Computable Numbers",
+        "distractor_year": "1950"
+      },
+      {
+        "author": "Shannon",
+        "year": "1948",
+        "title_fragment": "A Mathematical Theory",
+        "distractor_year": "1949"
+      },
+      {
+        "author": "Vaswani",
+        "year": "2017",
+        "title_fragment": "Attention Is All You Need"
+      },
+      {
+        "author": "Silver",
+        "year": "2016",
+        "title_fragment": "Mastering the Game of Go"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_group_citations"
+    }
+  }
+}

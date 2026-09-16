@@ -1,0 +1,59 @@
+{
+  "task_id": "create_aggregated_data_flow@1",
+  "task_completion": [
+    {
+      "id": "data_flow_source",
+      "description": "Create a Data Flow using the 'Sample Order Lines' dataset",
+      "points": 10,
+      "visual_evidence": "Oracle Analytics Desktop Data Flow canvas showing an 'Add Data' or source node using the 'Sample Order Lines' dataset."
+    },
+    {
+      "id": "data_flow_filter",
+      "description": "Filter the data for the 'Corporate' segment",
+      "points": 15,
+      "visual_evidence": "A 'Filter' node in the Data Flow canvas with settings showing 'Customer Segment' equals 'Corporate'."
+    },
+    {
+      "id": "data_flow_aggregate",
+      "description": "Aggregate by Region and Product Category to sum Sales and Profit",
+      "points": 20,
+      "visual_evidence": "An 'Aggregate' node in the Data Flow canvas showing Group By 'Region' and 'Product Category', and Aggregate 'Sales' (Sum) and 'Profit' (Sum)."
+    },
+    {
+      "id": "data_flow_save",
+      "description": "Save the result as a new dataset named 'Corporate_Summary_DS'",
+      "points": 15,
+      "visual_evidence": "A 'Save Data' node at the end of the Data Flow with the dataset name configured as 'Corporate_Summary_DS'."
+    },
+    {
+      "id": "workbook_table_visualization",
+      "description": "Create a workbook with a table visualization containing Region, Product Category, Sales, and Profit",
+      "points": 20,
+      "visual_evidence": "A Workbook canvas in Oracle Analytics Desktop displaying a Table visualization that includes the columns 'Region', 'Product Category', 'Sales', and 'Profit'."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the table as a CSV file to the specified path",
+      "points": 20,
+      "visual_evidence": "An export dialog saving the file to 'C:\\Users\\Docker\\Documents\\corporate_summary.csv', or a file explorer/terminal verifying the CSV exists at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Oracle Analytics Desktop GUI to perform the tasks",
+      "visual_evidence": "Screenshots show the agent clicking through the Oracle Analytics Desktop interface to build the Data Flow and Workbook, rather than using terminal scripts or Python to generate the CSV."
+    },
+    {
+      "id": "correct_dataset_used",
+      "description": "Agent used the built-in 'Sample Order Lines' dataset, not the distractor Excel file",
+      "visual_evidence": "The data source in Oracle Analytics Desktop should be the built-in 'Sample Order Lines'. The agent should not be seen uploading or using 'sample_order_lines2023.xlsx' from the Desktop."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Agent exported the CSV from the application",
+      "visual_evidence": "The trajectory should show the agent using the 'Export' or 'Save As' functionality within the Oracle Analytics Workbook to generate the CSV, rather than manually typing data into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The final output must be a CSV file located at 'C:\\Users\\Docker\\Documents\\corporate_summary.csv'. It must contain exactly four columns: 'Region', 'Product Category', 'Sales', and 'Profit'. The data must be filtered for the 'Corporate' Customer Segment. The final table should contain exactly 12 rows of data (excluding headers) because grouping by 4 regions and 3 product categories yields 12 combinations. The agent must use the built-in 'Sample Order Lines' dataset; the alternative 'sample_order_lines2023.xlsx' file is a distractor and lacks the required 'Region' column."
+}

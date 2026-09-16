@@ -1,0 +1,33 @@
+{
+  "id": "series_capacitance@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the equivalent capacitance of three capacitors connected in series using the Electrical Engineering Calculations app. Use the following values: C1 = 100 µF, C2 = 220 µF, and C3 = 470 µF.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/series_capacitance/setup_task.sh",
+    "post_task": "/sdcard/tasks/series_capacitance/export_result.sh"
+  },
+  "metadata": {
+    "inputs": [
+      100,
+      220,
+      470
+    ],
+    "expected_result": 59.98,
+    "tolerance": 0.5,
+    "unit": "µF",
+    "calculator_type": "Series Capacitor"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_series_capacitance"
+    }
+  }
+}

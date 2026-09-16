@@ -1,0 +1,40 @@
+{
+  "id": "add_network_security_config@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Configure network security for the WeatherApp Android project to prepare it for production. Create a Network Security Configuration file at `app/src/main/res/xml/network_security_config.xml` that disables cleartext traffic globally but allows it for the development domain `10.0.2.2`. For the production domain `api.weatherstack.com` (including subdomains), implement certificate pinning expiring `2025-12-31` with pins `sha256/wJMSn8tj/kCPBXNRsKPJFJvfMM1bFBvLFHlRFiEPbdI=` and `sha256/x9SZw6TwIqfmVLRDEmFi2yJTMlfn0CfVB3as3wSckOM=`. Include debug overrides to trust user-added CA certificates. Update `app/src/main/AndroidManifest.xml` to reference this configuration and ensure the project builds successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_network_security_config/setup_task.sh",
+    "post_task": "/workspace/tasks/add_network_security_config/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/WeatherApp",
+    "xml_path": "app/src/main/res/xml/network_security_config.xml",
+    "manifest_path": "app/src/main/AndroidManifest.xml",
+    "expected_domain": "api.weatherstack.com",
+    "expected_dev_domain": "10.0.2.2",
+    "expected_pins": [
+      "sha256/wJMSn8tj/kCPBXNRsKPJFJvfMM1bFBvLFHlRFiEPbdI=",
+      "sha256/x9SZw6TwIqfmVLRDEmFi2yJTMlfn0CfVB3as3wSckOM="
+    ],
+    "expected_expiration": "2025-12-31"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_network_security_config"
+    }
+  },
+  "tags": [
+    "android",
+    "security",
+    "xml",
+    "networking"
+  ]
+}

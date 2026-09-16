@@ -1,0 +1,75 @@
+{
+  "dataset_id": "1eef56e2",
+  "name": "Joint-Ner-And-Re",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A joint named entity recognition and relation extraction dataset built from short news sentences. It evaluates whether a model can extract typed entities and the relation between them from raw text in a constrained output format.",
+  "card_text": "This dataset is a text-only extraction resource containing 200 short news-style sentences. Each sample provides a raw sentence and an instruction prompt that asks the model to identify exactly two entities with their types and the single relation linking them. The expected output is a formatted string following the pattern 'entity1 (type1) => relation => entity2 (type2)', using relation labels such as per:stateorprovinces_of_residence or per:age. The data assumes a closed, sentence-level extraction setting where entity and relation annotation are performed jointly. Content is factual and journalistic, covering people, locations, numbers, and other named entity categories. The dataset is suitable for evaluating entity recognition and relation extraction capabilities in a joint formulation.",
+  "tasks": [
+    "entity_recognition",
+    "relation_extraction"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw news sentence or short passage from which entities and relations must be extracted. It provides the only source text for the extraction task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction that embeds the raw text via a placeholder and directs the model to output entity types and the relationship in a specified 'entity (type) => relation => entity (type)' format. It constrains the expected answer structure.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target extraction result as a formatted string containing two typed entities and the relation connecting them. It corresponds directly to the entities and relation requested by the prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample is a flat JSON object with an input object and an output object. The input contains raw_text, a short news sentence, and prompt, an extraction instruction that references the raw_text. The output contains text, a single formatted relation triple with typed entities. The prompt asks the model to read raw_text and produce the output.text string; there are no dialogs, options, tables, or visual fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Joint-NER-And-RE/annotation.json",
+    "existing_tags": {
+      "task": "joint_ner_and_re",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

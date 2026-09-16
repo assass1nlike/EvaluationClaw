@@ -1,0 +1,31 @@
+{
+  "id": "reify_stay_relationship@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Refactor the travel agency graph schema in the 'demodb' database by promoting the 'HasStayed' relationship between Profiles and Hotels to a first-class vertex. Create a new vertex class 'StaySession' and two edge classes, 'HasSession' and 'SessionAt'. Migrate all existing 'HasStayed' data so that each Profile connects to a 'StaySession' via 'HasSession', and each 'StaySession' connects to a Hotel via 'SessionAt'. Once the migration is complete, delete the original 'HasStayed' edges. Access the database via OrientDB Studio (http://localhost:2480/studio/index.html) or the Console using credentials root / GymAnything123!.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reify_stay_relationship/setup_task.sh",
+    "post_task": "/workspace/tasks/reify_stay_relationship/export_result.sh"
+  },
+  "metadata": {
+    "database": "demodb",
+    "required_classes": [
+      "StaySession",
+      "HasSession",
+      "SessionAt"
+    ],
+    "deprecated_class": "HasStayed"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reify_stay_relationship"
+    }
+  }
+}

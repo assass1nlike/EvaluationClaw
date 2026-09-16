@@ -1,0 +1,27 @@
+{
+  "id": "create_crf@1",
+  "version": "1.0",
+  "env_id": "openclinica_env@0.1",
+  "description": "Create a new Case Report Form (CRF) named 'Vital Signs' in OpenClinica (Firefox, logged in as admin) using the Excel template at /home/ga/sample_crf.xls. The CRF must be saved to the database with at least one version.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_crf/setup_task.sh",
+    "post_task": "/workspace/tasks/create_crf/export_result.sh"
+  },
+  "metadata": {
+    "expected_crf_name": "Vital Signs",
+    "expected_min_items": 5,
+    "crf_template_path": "/home/ga/sample_crf.xls"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_crf"
+    }
+  }
+}

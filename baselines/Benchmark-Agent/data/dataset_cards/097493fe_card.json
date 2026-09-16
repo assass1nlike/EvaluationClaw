@@ -1,0 +1,105 @@
+{
+  "dataset_id": "097493fe",
+  "name": "Annotation Open",
+  "modalities": [
+    "audio",
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "audio",
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 240,
+  "description": "A multimodal dataset for classifying urban environmental sounds (ambulance, firetruck, traffic) from spectrogram images and audio clips. Models must identify the sound class using the given spectrogram and instruction.",
+  "card_text": "This dataset contains 240 samples for classifying urban environmental sounds into three categories: ambulance, firetruck, and traffic. Each sample includes a spectrogram image and an audio recording of the same sound event, along with a natural-language instruction and a prompt that lists the allowed answer categories. The task is to identify the sound class using the spectrogram, with the audio provided as complementary information. The output is a single category label. The data is multimodal (audio, image, text) and the spectrogram serves as a visual representation of the audio signal. The dataset is designed to evaluate multimodal content recognition, specifically audio classification from spectrograms, and assumes the model can interpret spectrogram patterns and relate them to sound categories.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "environmental sound classification",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "diagram",
+        "semantics": "Spectrogram image of the audio clip, showing frequency content over time, used as the primary visual input for identifying the sound class.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "audio": {
+        "paths": [
+          "input.audio_file"
+        ],
+        "modality": "audio",
+        "content_extent": "short",
+        "style": "environmental",
+        "semantics": "Audio recording of an urban environmental sound (ambulance, firetruck, or traffic) that corresponds to the spectrogram image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction text asking the model to identify the sound class from the given spectrogram, specifying the task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Prompt text that constrains the answer to the allowed categories: 'ambulance', 'firetruck', or 'traffic'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Gold label indicating the correct sound class, one of the allowed categories.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a spectrogram image, an audio clip, a task instruction, a prompt listing allowed sound categories, and a gold answer label. The instruction asks the model to identify the sound class using the spectrogram; the prompt constrains the answer to 'ambulance', 'firetruck', or 'traffic'; the answer is one of these categories. The image and audio refer to the same sound event."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Spectrum_Graph_Car_Classification/annotation_open.json",
+    "existing_tags": {
+      "task": "Spectrum_Graph_Car_Classification",
+      "type": "comprehension",
+      "skill": "Graph Classification",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

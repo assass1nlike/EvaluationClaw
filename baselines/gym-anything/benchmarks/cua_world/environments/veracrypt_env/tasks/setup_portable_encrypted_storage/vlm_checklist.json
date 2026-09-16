@@ -1,0 +1,59 @@
+{
+  "task_id": "setup_portable_encrypted_storage@1",
+  "task_completion": [
+    {
+      "id": "directory_and_binary_setup",
+      "description": "Create the PortableDrive directory and copy the veracrypt binary into it.",
+      "points": 10,
+      "visual_evidence": "Terminal commands showing 'mkdir -p /home/ga/PortableDrive' and 'cp .../veracrypt /home/ga/PortableDrive/' or an 'ls' output confirming the 'veracrypt' binary is in the target directory."
+    },
+    {
+      "id": "volume_creation",
+      "description": "Create a 128MB VeraCrypt volume named 'secure_storage.hc' with the specified parameters.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a 'veracrypt -t -c' command creating 'secure_storage.hc' with size 128M, AES, SHA-512, FAT, and the password 'Tr@vel3r2024!', or an 'ls -lh' showing the file with a size of approximately 128MB."
+    },
+    {
+      "id": "scripts_and_readme_creation",
+      "description": "Create the 'mnt' directory, 'mount.sh', 'unmount.sh', and 'README.txt'.",
+      "points": 15,
+      "visual_evidence": "Terminal commands (like touch, mkdir, echo, or nano) or 'ls' output showing 'mnt', 'mount.sh', 'unmount.sh', and 'README.txt' exist in '/home/ga/PortableDrive'."
+    },
+    {
+      "id": "script_contents_verification",
+      "description": "Verify the contents of the scripts and README meet requirements.",
+      "points": 20,
+      "visual_evidence": "Visible text in the terminal (via echo, cat, or a text editor) showing 'mount.sh' uses './veracrypt' and accepts a password argument (e.g., $1), 'unmount.sh' uses './veracrypt -d', and 'README.txt' contains the phrase 'Portable Encrypted Storage'."
+    },
+    {
+      "id": "files_copied_to_volume",
+      "description": "Mount the volume and copy /etc/os-release and /etc/hostname into it.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the volume being mounted to 'mnt' and 'cp /etc/os-release /etc/hostname mnt/' (or similar), followed by an 'ls mnt' confirming the files are inside the mounted volume."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Ensure the volume is dismounted at the end.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of './unmount.sh' or './veracrypt -d' after the files have been copied, ensuring the volume is no longer mounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "The agent actually used the veracrypt binary to create the volume.",
+      "visual_evidence": "Look for the actual execution of the 'veracrypt' command with creation flags (-c). The agent should not just use 'dd', 'fallocate', or 'touch' to create a fake file named 'secure_storage.hc'."
+    },
+    {
+      "id": "genuine_file_copy",
+      "description": "The agent copied the actual system files into the volume.",
+      "visual_evidence": "Look for 'cp /etc/os-release ...' commands. The agent should not just 'touch' or 'echo' fake data into files named 'os-release' and 'hostname' inside the mount point."
+    },
+    {
+      "id": "local_binary_reference",
+      "description": "The scripts explicitly reference the local veracrypt binary.",
+      "visual_evidence": "Check the script contents for './veracrypt'. It must use the dot-slash notation to run the portable copy, not the system-wide 'veracrypt' command."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Directory: /home/ga/PortableDrive. Required files inside the directory: 'veracrypt' (binary), 'secure_storage.hc' (128MB volume), 'mnt' (directory), 'mount.sh', 'unmount.sh', and 'README.txt'. Volume password: 'Tr@vel3r2024!'. Expected files inside the mounted volume: 'os-release' and 'hostname'."
+}

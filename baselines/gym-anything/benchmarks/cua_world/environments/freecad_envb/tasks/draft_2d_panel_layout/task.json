@@ -1,0 +1,32 @@
+{
+  "id": "draft_2d_panel_layout@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a 2D control panel layout on the XY plane in FreeCAD and save it to /home/ga/Documents/FreeCAD/panel_layout.FCStd. The layout must feature a 200mm x 100mm panel outline starting at (0,0), an 80mm x 50mm display cutout centered horizontally 30mm from the top edge (X=60, Y=20), and two 10mm diameter button holes centered at (60, 15) and (140, 15). Include linear dimensions for the total width and height, and a text label 'CONTROL PANEL' located within the panel outline.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/draft_2d_panel_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/draft_2d_panel_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "/home/ga/Documents/FreeCAD/panel_layout.FCStd",
+    "panel_width": 200,
+    "panel_height": 100,
+    "cutout_width": 80,
+    "cutout_height": 50,
+    "hole_diameter": 10,
+    "hole_y_pos": 15,
+    "required_text": "CONTROL PANEL"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_draft_2d_panel_layout"
+    }
+  }
+}

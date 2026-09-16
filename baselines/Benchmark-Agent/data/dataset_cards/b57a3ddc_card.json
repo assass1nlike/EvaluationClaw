@@ -1,0 +1,82 @@
+{
+  "dataset_id": "b57a3ddc",
+  "name": "Plant-Disease-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Plant-Disease-Detection dataset contains images of plant leaves with disease symptoms, paired with a textual detection prompt. Models must localize and classify diseased regions by predicting bounding boxes with disease class labels.",
+  "card_text": "This dataset is a visual object detection benchmark for plant disease diagnosis. Each sample consists of a single image of a plant leaf (or plant part) showing disease symptoms, a short textual prompt that instructs the model to identify and localize the disease, and a target annotation in the form of bounding boxes. Each bounding box is a dictionary mapping a disease class name (such as Tomato_Blight or Strawberry_Gray_Mold) to four coordinates [x, y, width, height] specifying the affected region. The images are photographs captured under field-like conditions, focusing on a single leaf or lesion. The dataset assumes the model can interpret visual symptoms and output spatial localizations; the prompt is a generic placeholder for user-defined instructions. It is suitable for evaluating detection and localization capabilities in agricultural contexts.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "plant pathology",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Path to a photograph of a plant leaf exhibiting disease symptoms. This image is the primary visual input, and the bounding boxes in the output refer to regions within it.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A user-defined prompt that instructs the model to detect and localize plant diseases in the provided image. It provides the task instruction but contains no disease-specific content.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A list of bounding box annotations. Each item maps a plant disease category (e.g., Tomato_Blight, Strawberry_Gray_Mold) to coordinates [x, y, width, height] that localize the diseased region in the input image. This is the target output for detection and localization.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image path, a text prompt, and bounding box annotations. The image is the visual input showing a plant leaf with disease symptoms. The prompt is a generic instruction to detect and localize diseases. The output bbox is a list of dictionaries, each pairing a disease class name with four coordinates that specify the location of the diseased region in the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/plant-disease-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "plant-disease-detection",
+      "type": "comprehension",
+      "skill": "Disease Detection",
+      "domain": "Biology",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Biology"
+  }
+}

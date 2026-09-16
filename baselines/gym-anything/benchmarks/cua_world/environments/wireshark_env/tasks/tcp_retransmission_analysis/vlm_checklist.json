@@ -1,0 +1,59 @@
+{
+  "task_id": "tcp_retransmission_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the specified PCAP file in a packet analyzer like Wireshark",
+      "points": 10,
+      "visual_evidence": "Wireshark (or similar tool) window is visible with the file '200722_tcp_anon.pcapng' loaded."
+    },
+    {
+      "id": "apply_filter",
+      "description": "Apply the TCP retransmission filter",
+      "points": 20,
+      "visual_evidence": "The display filter bar shows 'tcp.analysis.retransmission' entered and applied (e.g., the bar is green or the filter is active)."
+    },
+    {
+      "id": "export_filtered_packets",
+      "description": "Export the filtered packets to the specified path",
+      "points": 20,
+      "visual_evidence": "The 'Export Specified Packets' dialog is visible with the filename 'tcp_retransmissions.pcapng', or a file manager/terminal shows the file created in '/home/ga/Documents/captures/'."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the retransmission report file",
+      "points": 20,
+      "visual_evidence": "A text editor is open showing a file named 'retransmission_report.txt' being edited or saved in the correct directory."
+    },
+    {
+      "id": "report_total_retransmissions",
+      "description": "Report the correct total number of retransmissions",
+      "points": 15,
+      "visual_evidence": "The text editor shows the exact line 'Total Retransmissions: 0' in the report file."
+    },
+    {
+      "id": "report_top_source_ip",
+      "description": "Report the top source IP address",
+      "points": 15,
+      "visual_evidence": "The text editor shows the line 'Top Source IP:' followed by nothing, an empty string, or a word like 'None' or 'N/A', reflecting that there are zero retransmissions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_tool",
+      "description": "Agent used a GUI tool (like Wireshark) to analyze the packets rather than just terminal commands",
+      "visual_evidence": "Screenshots should show interaction with the Wireshark GUI for filtering and exporting, rather than purely using tshark or bash commands."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Agent did not hallucinate fake IP addresses or packet counts",
+      "visual_evidence": "The report should strictly contain '0' for total retransmissions and no valid IP address for the top source IP. Any presence of a real IP address or non-zero count indicates hallucination."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Agent genuinely exported the packets using the application",
+      "visual_evidence": "Evidence of the 'Export Specified Packets' dialog being used in Wireshark, rather than just creating an empty file using 'touch' or a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The PCAP file '200722_tcp_anon.pcapng' contains exactly 0 TCP retransmission packets matching the filter 'tcp.analysis.retransmission'. Therefore, the exported PCAP file should contain 0 packets, and the report must state 'Total Retransmissions: 0' with an empty or 'None' value for 'Top Source IP'."
+}

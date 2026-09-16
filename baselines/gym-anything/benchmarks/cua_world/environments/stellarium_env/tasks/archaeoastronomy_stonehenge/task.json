@@ -1,0 +1,44 @@
+{
+  "id": "archaeoastronomy_stonehenge@1",
+  "version": "1.0",
+  "env_id": "stellarium_env@0.1",
+  "description": "You are an archaeoastronomer studying the astronomical alignments of Stonehenge. Document the summer solstice sunrise as it appeared from Stonehenge (51.1789°N, 1.8262°W, altitude 102m) on June 21, 2500 BCE at approximately 04:45 UTC. Capture a screenshot of the Sun centered in the pre-dawn sky with the atmosphere enabled, landscape ground disabled, and both azimuthal and equatorial coordinate grids visible. Record your research findings, including the location, date, and observations about the solstice sunrise alignment, to /home/ga/Desktop/stonehenge_alignment.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 800,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archaeoastronomy_stonehenge/setup_task.sh",
+    "post_task": "/workspace/tasks/archaeoastronomy_stonehenge/export_result.sh"
+  },
+  "metadata": {
+    "location_name": "Stonehenge, Wiltshire, UK",
+    "target_lat_deg": 51.1789,
+    "target_lon_deg": -1.8262,
+    "target_lat_rad": 0.89316,
+    "target_lon_rad": -0.03188,
+    "target_altitude_m": 102,
+    "observation_date": "June 21, 2500 BCE",
+    "observation_time_utc": "04:45:00",
+    "approx_jd": 808589,
+    "jd_min": 750000,
+    "jd_max": 870000,
+    "research_notes_path": "/home/ga/Desktop/stonehenge_alignment.txt",
+    "screenshots_dir": "/home/ga/Pictures/stellarium",
+    "min_screenshots": 2,
+    "required_display_flags": {
+      "flag_atmosphere": true,
+      "flag_landscape": false,
+      "flag_azimuthal_grid": true,
+      "flag_equatorial_grid": true
+    },
+    "data_source": "Ordnance Survey / English Heritage; Darvill et al. (2012) Antiquity 86:1021-1040"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archaeoastronomy_stonehenge"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_case_query@1",
+  "task_completion": [
+    {
+      "id": "open_libreoffice_base",
+      "description": "Open LibreOffice Base with the chinook database",
+      "points": 10,
+      "visual_evidence": "The LibreOffice Base main window is open, and the title bar or database pane indicates that 'chinook.odb' is loaded."
+    },
+    {
+      "id": "sql_query_select_case",
+      "description": "Write the SELECT statement with CASE WHEN expressions",
+      "points": 30,
+      "visual_evidence": "In the query editor (SQL view or Design view), the query includes 'TrackId', 'Name', 'Milliseconds', 'UnitPrice', and CASE WHEN statements defining 'DurationCategory' (thresholds 180000 and 360000) and 'PriceCategory' (thresholds 1.0 and 1.5)."
+    },
+    {
+      "id": "sql_query_order_by",
+      "description": "Include the ORDER BY clause",
+      "points": 10,
+      "visual_evidence": "The SQL query text includes an 'ORDER BY' clause sorting by 'Name' in ascending order (e.g., ORDER BY \"Name\" ASC)."
+    },
+    {
+      "id": "query_executed_successfully",
+      "description": "Execute the query to verify results",
+      "points": 20,
+      "visual_evidence": "A data grid displays the query results without syntax errors, showing the original columns alongside the computed 'DurationCategory' and 'PriceCategory' columns populated with the correct category labels."
+    },
+    {
+      "id": "query_saved_in_list",
+      "description": "Save the query as TrackCategories",
+      "points": 20,
+      "visual_evidence": "In the main LibreOffice Base window, under the 'Queries' section, a query named exactly 'TrackCategories' is visible in the list."
+    },
+    {
+      "id": "database_saved",
+      "description": "Save the database file to persist changes",
+      "points": 10,
+      "visual_evidence": "The agent clicks the Save icon on the main LibreOffice Base toolbar, uses File > Save, or the Save icon appears inactive/without a modified indicator, showing the .odb file has been saved to disk."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the LibreOffice Base GUI",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Base graphical interface (menus, query editor, toolbars) rather than terminal commands or scripts modifying the database directly."
+    },
+    {
+      "id": "genuine_query_creation",
+      "description": "Query was manually created or pasted into the Base editor",
+      "visual_evidence": "The query editor window is used to input the SQL, rather than bypassing the application by editing underlying files."
+    },
+    {
+      "id": "authentic_results",
+      "description": "Query results reflect the authentic Chinook database",
+      "visual_evidence": "The query results shown in the GUI match the expected Chinook database data (e.g., UnitPrice values are 0.99 or 1.99, and the 'Standard' price category is empty)."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is 'chinook.odb' containing 3503 tracks. The query must be named 'TrackCategories'. It requires CASE WHEN expressions for DurationCategory (thresholds: 180000, 360000) and PriceCategory (thresholds: 1.0, 1.5). Note: The actual database only contains prices of 0.99 and 1.99, so the 'Standard' category (1.0-1.5) will naturally be empty in the results, which is expected and correct."
+}

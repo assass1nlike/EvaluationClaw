@@ -1,0 +1,65 @@
+{
+  "task_id": "bikeshare_fleet_rebalancing@1",
+  "task_completion": [
+    {
+      "id": "import_csv_data",
+      "description": "Open or import the trip and station CSV files into a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a spreadsheet application (e.g., LibreOffice Calc) open with the data from cabi_weekend_trips.csv and station_directory.csv visible."
+    },
+    {
+      "id": "calculate_departures_arrivals",
+      "description": "Calculate total Departures and total Arrivals for each station.",
+      "points": 20,
+      "visual_evidence": "Spreadsheet shows columns or a Pivot Table aggregating the count of departures (origins) and arrivals (destinations) grouped by station."
+    },
+    {
+      "id": "calculate_net_fleet_change",
+      "description": "Calculate the Net Fleet Change (Arrivals minus Departures) for each station.",
+      "points": 20,
+      "visual_evidence": "Spreadsheet shows a specific column or Pivot Table field calculating the difference between Arrivals and Departures for the stations."
+    },
+    {
+      "id": "create_executive_summary_sheet",
+      "description": "Create an 'Executive Summary' sheet in the workbook.",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Executive Summary' (or similar) is visible at the bottom of the spreadsheet interface and is actively being worked on."
+    },
+    {
+      "id": "identify_top_5_surplus",
+      "description": "Identify the Top 5 Surplus Stations (highest positive Net Fleet Change) on the Executive Summary.",
+      "points": 15,
+      "visual_evidence": "The Executive Summary sheet displays a clear list of 5 stations with the highest positive net fleet change numbers. Based on verified data, 'Lincoln Memorial' should be among these."
+    },
+    {
+      "id": "identify_top_5_deficit",
+      "description": "Identify the Top 5 Deficit Stations (lowest negative Net Fleet Change) on the Executive Summary.",
+      "points": 15,
+      "visual_evidence": "The Executive Summary sheet displays a clear list of 5 stations with the lowest negative net fleet change numbers. Based on verified data, '14th & V St NW' should be among these."
+    },
+    {
+      "id": "save_rebalancing_plan",
+      "description": "Save the final workbook as cabi_rebalancing_plan.xlsx in the Spreadsheets folder.",
+      "points": 10,
+      "visual_evidence": "The spreadsheet application title bar shows 'cabi_rebalancing_plan.xlsx' or a save dialog confirms the file is being saved to ~/Documents/Spreadsheets/ with this exact name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_usage",
+      "description": "The agent used a GUI spreadsheet application to perform the task.",
+      "visual_evidence": "Screenshots show interaction with a spreadsheet GUI (like LibreOffice Calc) rather than a terminal running a Python/Pandas script to generate the output file."
+    },
+    {
+      "id": "dynamic_calculation_evidence",
+      "description": "The agent used dynamic formulas or Pivot Tables as requested, rather than hardcoding values.",
+      "visual_evidence": "The formula bar shows actual spreadsheet formulas (e.g., SUM, COUNTIF, cell references) or the Pivot Table configuration sidebar is visible, rather than just static typed numbers."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "The agent processed the actual 5000 rows of data rather than hallucinating the final lists.",
+      "visual_evidence": "The intermediate steps show large row counts (up to ~5000) being selected or aggregated in the pivot table/formula ranges."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 5000 trips. When calculating Net Fleet Change (Arrivals - Departures), 'Lincoln Memorial' must appear as a surplus station (positive net change) and '14th & V St NW' must appear as a deficit station (negative net change). The final file must be saved exactly as /home/ga/Documents/Spreadsheets/cabi_rebalancing_plan.xlsx."
+}

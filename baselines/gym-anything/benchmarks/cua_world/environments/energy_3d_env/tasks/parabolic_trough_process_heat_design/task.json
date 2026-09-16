@@ -1,0 +1,31 @@
+{
+  "id": "parabolic_trough_process_heat_design@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Engineer designing a Concentrated Solar Power (CSP) system for industrial process heat. Energy3D is currently open with a blank project. Do the following: 1) Set the project location to 'Phoenix, AZ'. 2) Set the simulation date to June 21 (Summer Solstice). 3) Add at least 4 Parabolic Troughs to the site. 4) Adjust each trough so its length is approximately 50 meters (acceptable range: 40m to 60m). 5) Ensure the troughs are oriented North-South (Azimuth ~0° or 180°) so they track the sun effectively. 6) Run the 'Daily Environmental Temperature and Solar Energy' analysis to calculate the thermal energy collection. 7) Save the project file to ~/Documents/Energy3D/trough_plant.ng3. 8) Create a text file at ~/Documents/Energy3D/thermal_yield.txt and write the estimated total daily thermal energy yield you observed in the analysis.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/parabolic_trough_process_heat_design/setup_task.sh",
+    "post_task": "/workspace/tasks/parabolic_trough_process_heat_design/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Engineer",
+    "industry": "Renewable Energy / Industrial Manufacturing",
+    "expected_project_file": "/home/ga/Documents/Energy3D/trough_plant.ng3",
+    "expected_yield_file": "/home/ga/Documents/Energy3D/thermal_yield.txt",
+    "expected_trough_count": 4,
+    "target_length": 50.0,
+    "length_tolerance": 10.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_trough_design"
+    }
+  }
+}

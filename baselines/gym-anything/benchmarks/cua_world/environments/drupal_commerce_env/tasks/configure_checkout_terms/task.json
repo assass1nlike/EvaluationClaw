@@ -1,0 +1,26 @@
+{
+  "id": "configure_checkout_terms@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Your legal team requires a mandatory Terms of Service agreement at checkout. Create a Basic Page titled \"Terms and Conditions\" with placeholder legal text and configure the checkout flow to enable a \"Terms of service\" pane that links to this page. The Drupal admin credentials are admin / Admin1234! and the site is at http://localhost.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_checkout_terms/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_checkout_terms/export_result.sh"
+  },
+  "metadata": {
+    "expected_page_title": "Terms and Conditions",
+    "pane_id": "commerce_checkout_terms_of_service"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_checkout_terms"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_address_parsing_view@1",
+  "task_completion": [
+    {
+      "id": "db_connection_visible",
+      "description": "The agent has opened a database client or terminal and connected to the DrTuxTest database.",
+      "points": 10,
+      "visual_evidence": "Look for a database GUI (like DBeaver, MySQL Workbench) or a terminal prompt showing an active connection to the 'DrTuxTest' database."
+    },
+    {
+      "id": "view_creation_query",
+      "description": "The agent wrote a SQL query to create the view named 'vue_adresse_parsed'.",
+      "points": 20,
+      "visual_evidence": "Look for the SQL statement 'CREATE VIEW vue_adresse_parsed AS' (or similar) in the SQL editor or terminal."
+    },
+    {
+      "id": "join_condition_visible",
+      "description": "The SQL query includes a JOIN between the 'IndexNomPrenom' and 'fchpat' tables on the patient GUID.",
+      "points": 15,
+      "visual_evidence": "Look for 'JOIN fchpat' and an 'ON' clause matching the GUID columns (e.g., FchGnrl_IDDos = FchPat_GUID_Doss) in the query text."
+    },
+    {
+      "id": "column_transformations_visible",
+      "description": "The SQL query includes the required column transformations for nom_complet, num_voie, and nom_voie.",
+      "points": 25,
+      "visual_evidence": "Look for string manipulation functions in the SELECT clause, such as UPPER() for the last name, CONCAT() for 'nom_complet', and functions like REGEXP_SUBSTR(), SUBSTRING(), or TRIM() to extract the leading digits ('num_voie') and remaining text ('nom_voie')."
+    },
+    {
+      "id": "select_limit_20",
+      "description": "The agent queries the newly created view to retrieve the first 20 rows.",
+      "points": 10,
+      "visual_evidence": "Look for a query like 'SELECT * FROM vue_adresse_parsed LIMIT 20' or a GUI action that fetches exactly 20 rows from the view."
+    },
+    {
+      "id": "csv_export_completed",
+      "description": "The first 20 rows are exported to ~/Documents/parsed_addresses.csv with headers.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager showing 'parsed_addresses.csv' in the Documents folder, a terminal command confirming the export, or the opened CSV file displaying the correct headers (guid, nom_complet, adresse_brute, num_voie, nom_voie) and data rows."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent actually executed the SQL queries against the database.",
+      "visual_evidence": "Look for execution success messages, query execution times, or populated result grids in the database client, rather than just text typed into an editor without execution."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file was generated via a database export function or query, not manually typed.",
+      "visual_evidence": "Look for the use of an export wizard in the DB GUI, an 'INTO OUTFILE' SQL command, or a command-line redirection, rather than the agent manually typing or copy-pasting data into a text editor."
+    },
+    {
+      "id": "no_mock_table_shortcut",
+      "description": "The agent created a genuine view, not a static table with hardcoded answers.",
+      "visual_evidence": "Ensure the 'CREATE VIEW' statement is used with a 'SELECT' query containing the logic, rather than a 'CREATE TABLE' statement followed by manual 'INSERT' statements of the expected output."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: DrTuxTest. View Name: vue_adresse_parsed. Output Path: /home/ga/Documents/parsed_addresses.csv. Required Columns: guid, nom_complet, adresse_brute, num_voie, nom_voie. The 'nom_complet' must have the last name in UPPERCASE followed by a space and the first name. The 'num_voie' must extract leading digits, and 'nom_voie' must contain the trimmed remaining text. If the synthetic test case is visible in the results, expect a row with nom_complet 'TESTMAN Johnny', adresse_brute '9999 Verification Boulevard', num_voie '9999', and nom_voie 'Verification Boulevard'."
+}

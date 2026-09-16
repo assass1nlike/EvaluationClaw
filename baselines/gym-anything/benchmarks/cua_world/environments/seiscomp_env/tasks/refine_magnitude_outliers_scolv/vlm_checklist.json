@@ -1,0 +1,59 @@
+{
+  "task_id": "refine_magnitude_outliers_scolv@1",
+  "task_completion": [
+    {
+      "id": "open_scolv_load_event",
+      "description": "Open the scolv application and load the M7.5 Noto Peninsula earthquake.",
+      "points": 10,
+      "visual_evidence": "The SeisComP Seismicity Analysis (scolv) application window is open, and the M7.5 Noto Peninsula earthquake is selected or visible in the event list/summary."
+    },
+    {
+      "id": "adopt_event_agency",
+      "description": "Adopt the event to the local agency 'GYM'.",
+      "points": 20,
+      "visual_evidence": "The agency field for the event changes from 'USGS' to 'GYM', or a specific 'Adopt' button/action is used to take ownership of the event in the GUI."
+    },
+    {
+      "id": "select_mb_magnitude",
+      "description": "Navigate to the Magnitudes view and select the body-wave magnitude (mb).",
+      "points": 10,
+      "visual_evidence": "The 'Magnitudes' tab or window is active, and the magnitude type 'mb' is selected from the list of available magnitudes."
+    },
+    {
+      "id": "exclude_station_sani",
+      "description": "Exclude station GE.SANI from the network magnitude calculation.",
+      "points": 30,
+      "visual_evidence": "In the station magnitude list for 'mb', the entry for station 'SANI' (or 'GE.SANI') is unchecked, its weight is set to 0, or it is otherwise visually marked as excluded (e.g., crossed out or highlighted in red)."
+    },
+    {
+      "id": "recompute_magnitude",
+      "description": "Recompute the network magnitude.",
+      "points": 10,
+      "visual_evidence": "A 'Compute', 'Recompute', or 'Calculate' button is clicked in the Magnitudes tab, or the overall network magnitude value for 'mb' is shown updating after excluding the station."
+    },
+    {
+      "id": "commit_to_database",
+      "description": "Commit the updated magnitude and event to the database.",
+      "points": 20,
+      "visual_evidence": "The 'Commit' button in the scolv interface is clicked, or a confirmation dialog showing the event and magnitude changes being saved to the database is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "The agent used the scolv GUI to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with the scolv graphical interface (buttons, tabs, lists) rather than terminal windows executing database scripts or API commands to modify the event."
+    },
+    {
+      "id": "genuine_application_check",
+      "description": "The agent interacted with the actual SeisComP application.",
+      "visual_evidence": "The application window displays the standard SeisComP/scolv layout, menus, and data visualizations (waveforms, maps, tables) rather than a mock-up or text editor."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "The agent did not bypass the application by directly editing the database.",
+      "visual_evidence": "No terminal windows showing 'sqlite3', 'mysql', or python scripts directly modifying the event or magnitude tables."
+    }
+  ],
+  "privileged_info_for_vlm": "The target application is 'scolv' (SeisComP Seismicity Analysis). The initial agency for the event is 'USGS'. The agent must change the agency to 'GYM'. The target magnitude type to refine is 'mb' (body-wave magnitude). The specific station to exclude from the 'mb' calculation is 'SANI' (Network GE). The event is the M7.5 Noto Peninsula earthquake."
+}

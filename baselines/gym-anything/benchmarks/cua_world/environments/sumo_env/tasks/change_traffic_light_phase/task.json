@@ -1,0 +1,26 @@
+{
+  "id": "change_traffic_light_phase@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "Edit a traffic light phase duration in the Bologna Acosta network (/home/ga/SUMO_Scenarios/bologna_acosta/acosta_buslanes.net.xml) using netedit. This is a real-world road network from the Acosta area in Bologna, Italy. Change the duration of the first phase (row 0) of a traffic-light-controlled junction to 45 seconds. Save the modified traffic light program to /home/ga/SUMO_Output/modified_tls.xml.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_traffic_light_phase/setup_task.sh",
+    "post_task": "/workspace/tasks/change_traffic_light_phase/export_result.sh"
+  },
+  "metadata": {
+    "network_file": "acosta_buslanes.net.xml",
+    "target_phase_duration": 45
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_traffic_light_phase"
+    }
+  }
+}

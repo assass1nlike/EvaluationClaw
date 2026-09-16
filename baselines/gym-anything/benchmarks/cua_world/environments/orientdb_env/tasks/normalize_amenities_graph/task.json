@@ -1,0 +1,33 @@
+{
+  "id": "normalize_amenities_graph@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Refactor the legacy 'Amenities' data in the 'demodb' database from an embedded list to a proper graph structure. Normalize the 'Hotels' class 'Amenities' property (EMBEDDEDLIST STRING) by creating a new Vertex class named 'Amenity' with a unique 'Name' property (String) and a new Edge class named 'HasAmenity'. Migrate the data by creating 'Amenity' vertices for every distinct string in the existing lists and linking each Hotel to its respective Amenities via 'HasAmenity' edges. Once the migration is complete, drop the legacy 'Amenities' property from the 'Hotels' class. Perform these operations using OrientDB Studio (http://localhost:2480/studio/index.html) or the Console. Credentials: root / GymAnything123! (Server), admin / admin (Database).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/normalize_amenities_graph/setup_task.sh",
+    "post_task": "/workspace/tasks/normalize_amenities_graph/export_result.sh"
+  },
+  "metadata": {
+    "expected_amenity_count": 8,
+    "expected_edge_count": 19,
+    "target_hotel": "The Plaza Hotel",
+    "expected_hotel_amenities": [
+      "WiFi",
+      "Gym",
+      "Spa",
+      "Concierge"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_normalize_amenities_graph"
+    }
+  }
+}

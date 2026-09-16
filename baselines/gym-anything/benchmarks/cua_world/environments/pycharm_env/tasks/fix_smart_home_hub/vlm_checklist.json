@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_smart_home_hub@1",
+  "task_completion": [
+    {
+      "id": "engine_bug_fixed",
+      "description": "Verify the async blocking sleep bug in core/engine.py is fixed.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot showing core/engine.py open in an editor where a blocking sleep call (like time.sleep) has been replaced with an asynchronous non-blocking call (like asyncio.sleep) in the event loop or scene execution logic."
+    },
+    {
+      "id": "rules_bug_fixed",
+      "description": "Verify the operator precedence error in core/rules.py is fixed.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot showing core/rules.py open in an editor with corrected boolean logic for the 'Cinema Mode' automation, typically involving added parentheses to enforce correct operator precedence."
+    },
+    {
+      "id": "devices_bug_fixed",
+      "description": "Verify the dictionary key schema mismatch in core/devices.py is fixed.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot showing core/devices.py open in an editor where dictionary keys related to smart bulb state updates have been corrected to match the expected schema."
+    },
+    {
+      "id": "test_suite_executed",
+      "description": "Verify the test suite is run to check the fixes.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal window or IDE test runner showing the execution of pytest or unittest for the smarthub project."
+    },
+    {
+      "id": "all_tests_passed",
+      "description": "Verify that exactly 10 tests pass successfully.",
+      "points": 30,
+      "visual_evidence": "Look for test output in the terminal or IDE test runner indicating a successful run with exactly 10 tests passing (e.g., '10 passed', a green progress bar, or 'OK')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_modifications",
+      "description": "Ensure the agent did not modify the test files to force them to pass.",
+      "visual_evidence": "Check the IDE file explorer or git status; test files (e.g., files starting with 'test_') should not be highlighted as modified, and there should be no screenshots of the agent editing test files."
+    },
+    {
+      "id": "no_hardcoded_returns",
+      "description": "Ensure the agent did not hardcode return values to bypass tests.",
+      "visual_evidence": "Review the visible code changes in engine.py, rules.py, and devices.py. They should contain genuine logic fixes (asyncio, parentheses, correct keys) rather than hardcoded 'return True' or mock state values."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Ensure the test results are from a genuine test runner execution.",
+      "visual_evidence": "The test output should display standard pytest/unittest formatting, tracebacks, or IDE UI elements, rather than a simple text echo or manually typed output in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/PycharmProjects/smarthub. To pass, the agent must fix 3 distinct bugs: an async blocking sleep bug in core/engine.py, an operator precedence error in core/rules.py, and a dictionary key schema mismatch in core/devices.py. There are exactly 10 automated tests in the suite, all of which must pass. The agent must score 100/100 points without modifying test files or hardcoding return values."
+}

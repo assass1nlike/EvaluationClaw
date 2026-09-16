@@ -1,0 +1,65 @@
+{
+  "task_id": "insider_threat_behavior_analytics@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create a dashboard named 'Insider_Threat_Analytics' in the Search & Reporting app.",
+      "points": 10,
+      "visual_evidence": "Look for the Splunk Web UI showing a dashboard with the exact title 'Insider_Threat_Analytics' within the Search & Reporting app."
+    },
+    {
+      "id": "global_time_picker",
+      "description": "Add a global Time Picker to the dashboard.",
+      "points": 10,
+      "visual_evidence": "Look for a Time Picker input control (e.g., a dropdown showing time ranges like 'Last 24 hours') located at the top of the dashboard."
+    },
+    {
+      "id": "concurrent_ip_panel",
+      "description": "Create a panel named 'Concurrent IP Usage'.",
+      "points": 15,
+      "visual_evidence": "Look for a dashboard panel with the exact title 'Concurrent IP Usage'."
+    },
+    {
+      "id": "concurrent_ip_logic",
+      "description": "Configure the 'Concurrent IP Usage' search logic for 15-minute intervals and >= 2 distinct IPs.",
+      "points": 20,
+      "visual_evidence": "Look at the search bar, panel edit view, or source code for a query containing `index=\"security_logs\"`, `Accepted password`, a 15-minute time bin (e.g., `bin _time span=15m`), and a distinct count filter for IPs (e.g., `dc(src_ip) >= 2` or `where ip_count >= 2`)."
+    },
+    {
+      "id": "off_hours_panel",
+      "description": "Create a panel named 'Off-Hours Access'.",
+      "points": 15,
+      "visual_evidence": "Look for a second dashboard panel with the exact title 'Off-Hours Access'."
+    },
+    {
+      "id": "off_hours_logic",
+      "description": "Configure the 'Off-Hours Access' search logic for hours 0 through 4.",
+      "points": 20,
+      "visual_evidence": "Look at the search bar, panel edit view, or source code for a query containing `index=\"security_logs\"`, successful authentications (e.g., `Accepted password`), and an hour filter (e.g., `date_hour>=0 date_hour<=4` or `date_hour<5`)."
+    },
+    {
+      "id": "time_picker_linked",
+      "description": "Link both panels to the global Time Picker.",
+      "points": 10,
+      "visual_evidence": "Look in the dashboard edit view or source XML to verify the panels' time ranges are set to use the shared Time Picker (often indicated by a link icon in the UI or `$time.earliest$` / `$time.latest$` tokens in the source)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_ui_used",
+      "description": "Verify the agent interacted with the Splunk Web UI to build the dashboard.",
+      "visual_evidence": "Screenshots should show the agent navigating the Splunk web interface (http://localhost:8000), using the search bar, and clicking dashboard creation buttons, rather than just writing an XML file in a terminal."
+    },
+    {
+      "id": "genuine_panels",
+      "description": "Verify the panels are actual Splunk search-driven panels.",
+      "visual_evidence": "The panels should display actual search results (tables, charts, or event lists) or a 'waiting for data' state typical of Splunk searches, not static HTML/Markdown text boxes mocking the expected output."
+    },
+    {
+      "id": "actual_searches_executed",
+      "description": "Verify the agent executed and tested the searches.",
+      "visual_evidence": "Look for screenshots showing the Splunk Search view with the query typed in the search bar, a timeline of events, and parsed fields on the left sidebar."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named exactly 'Insider_Threat_Analytics'. The target index for the searches must be 'security_logs'. The Splunk credentials are admin / SplunkAdmin1!."
+}

@@ -1,0 +1,48 @@
+{
+  "id": "dc_metro_transit_map@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are creating an editable schematic map of the Washington DC Metro (WMATA) system for a transit advocacy group's presentation. Using the station lists and hex colors provided in ~/Desktop/wmata_metro_lines.txt, draw all 6 lines (Red, Orange, Silver, Blue, Yellow, Green) in draw.io. The map must include all stations listed in the reference file as labeled shapes connected by lines following schematic conventions (horizontal, vertical, and 45-degree angles). Ensure shared tracks are clearly indicated and major interchanges (Metro Center, Gallery Place, L'Enfant Plaza, and Rosslyn) are marked with a distinctive style. Include a legend for the 6 lines and colors. Save the editable file to /home/ga/Desktop/dc_metro_map.drawio and export a PNG image to /home/ga/Desktop/dc_metro_map.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dc_metro_transit_map/setup_task.sh",
+    "post_task": "/workspace/tasks/dc_metro_transit_map/export_result.sh"
+  },
+  "metadata": {
+    "output_drawio": "/home/ga/Desktop/dc_metro_map.drawio",
+    "output_png": "/home/ga/Desktop/dc_metro_map.png",
+    "reference_file": "/home/ga/Desktop/wmata_metro_lines.txt",
+    "min_stations": 30,
+    "min_edges": 30,
+    "min_colors": 4,
+    "required_interchanges": [
+      "Metro Center",
+      "Gallery Place",
+      "L'Enfant Plaza",
+      "Rosslyn"
+    ],
+    "required_termini": [
+      "Shady Grove",
+      "Glenmont",
+      "Vienna",
+      "New Carrollton",
+      "Ashburn",
+      "Largo",
+      "Franconia",
+      "Huntington",
+      "Branch Ave",
+      "Greenbelt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dc_metro_transit_map"
+    }
+  }
+}

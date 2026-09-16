@@ -1,0 +1,29 @@
+{
+  "id": "setup_customizable_service_product@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Configure a custom product architecture for selling services. Create a 'Service' Order Item Type (machine name: service) that includes a required 'Device Serial Number' text field (machine name: field_device_serial_number) visible on the 'Add to Cart' form. Establish a 'Service' Product Type (machine name: service) that uses this Order Item Type. Create a product named 'iPhone Screen Repair' (SKU: SVC-IPHONE-SCREEN, Price: $89.99) using the new Product Type.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_customizable_service_product/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_customizable_service_product/export_result.sh"
+  },
+  "metadata": {
+    "expected_order_item_type": "service",
+    "expected_field_name": "field_device_serial_number",
+    "expected_product_type": "service",
+    "expected_product_title": "iPhone Screen Repair",
+    "expected_sku": "SVC-IPHONE-SCREEN"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_customizable_service_product"
+    }
+  }
+}

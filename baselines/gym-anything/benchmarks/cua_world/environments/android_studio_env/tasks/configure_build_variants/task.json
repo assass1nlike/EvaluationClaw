@@ -1,0 +1,35 @@
+{
+  "id": "configure_build_variants@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "The CalculatorApp project is open in Android Studio. Configure the build system to support multiple product tiers and environments by implementing a 'tier' flavor dimension with 'free' and 'premium' flavors. The 'free' flavor must have applicationIdSuffix '.free' and app name 'Calculator Free', while the 'premium' flavor must have applicationIdSuffix '.premium' and app name 'Calculator Pro'. Add a 'staging' build type based on the debug configuration with a '.staging' applicationIdSuffix. Create the required flavor-specific resource directories and strings.xml files, ensuring the project syncs and compiles for the freeDebug variant. Login credentials: user 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_build_variants/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_build_variants/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/CalculatorApp",
+    "data_source": "/workspace/data/CalculatorApp",
+    "expected_flavors": [
+      "free",
+      "premium"
+    ],
+    "expected_build_types": [
+      "debug",
+      "release",
+      "staging"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_build_variants"
+    }
+  }
+}

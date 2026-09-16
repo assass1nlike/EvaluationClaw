@@ -1,0 +1,32 @@
+{
+  "id": "incident_response_activation@1",
+  "version": "1.0",
+  "env_id": "nx_witness_vms_env@0.1",
+  "description": "A multi-site security facility has suffered a breach. The overnight security operations team has been disbanded and cameras have been left unconfigured. Restore full surveillance capability for incident response by enabling continuous 24/7 recording on all cameras that currently lack a recording schedule. Update the user account 'security.operator' with the full name 'Night Watch Commander' and email 'nightwatch@facility-security.com'. Create a new user account with login 'incident.cmdr', full name 'Incident Commander', email 'incident@facility-security.com', and role 'Viewer'. Create a layout named 'Incident Command Center' containing the Parking Lot Camera, Entrance Camera, and Server Room Camera. The facility runs Nx Witness VMS at https://localhost:7001. Login: admin / Admin1234!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/incident_response_activation/setup_task.sh",
+    "post_task": "/workspace/tasks/incident_response_activation/export_result.sh"
+  },
+  "metadata": {
+    "target_user_login": "security.operator",
+    "target_user_new_fullname": "Night Watch Commander",
+    "target_user_new_email": "nightwatch@facility-security.com",
+    "new_user_login": "incident.cmdr",
+    "new_user_fullname": "Incident Commander",
+    "new_user_email": "incident@facility-security.com",
+    "new_user_role": "Viewer",
+    "target_layout_name": "Incident Command Center",
+    "expected_camera_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_incident_response_activation"
+    }
+  }
+}

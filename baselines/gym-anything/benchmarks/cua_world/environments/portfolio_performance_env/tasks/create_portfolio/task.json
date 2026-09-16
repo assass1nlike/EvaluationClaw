@@ -1,0 +1,29 @@
+{
+  "id": "create_portfolio@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Create a new investment portfolio in Portfolio Performance with the base currency set to USD. The portfolio must include a securities account named 'Retirement Account' and a linked cash/deposit account named 'Retirement Account (USD)'. The portfolio should be empty of securities and transactions. Save the file as 'retirement_portfolio.xml' in the /home/ga/Documents/PortfolioData/ directory.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_portfolio/setup_task.sh",
+    "post_task": "/workspace/tasks/create_portfolio/export_result.sh"
+  },
+  "metadata": {
+    "expected_portfolio_name": "retirement_portfolio",
+    "expected_currency": "USD",
+    "expected_securities_account": "Retirement Account",
+    "expected_cash_account": "Retirement Account (USD)",
+    "save_directory": "/home/ga/Documents/PortfolioData"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_portfolio"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "neutral_current_calc@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the neutral current for an unbalanced three-phase system using the Electrical Engineering Calculations app with phase currents L1: 145 Amps, L2: 130 Amps, and L3: 160 Amps. Save a screenshot of the result to /sdcard/neutral_result.png and record the numerical result in /sdcard/neutral_current.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/neutral_current_calc/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/neutral_current_calc/export_result.sh"
+  },
+  "metadata": {
+    "expected_value": 25.98,
+    "tolerance": 0.5,
+    "inputs": {
+      "L1": 145,
+      "L2": 130,
+      "L3": 160
+    },
+    "output_text_path": "/sdcard/neutral_current.txt",
+    "output_image_path": "/sdcard/neutral_result.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_neutral_current"
+    }
+  }
+}

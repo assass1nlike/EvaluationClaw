@@ -1,0 +1,40 @@
+{
+  "id": "create_string_query@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a saved SQL query named 'CustomerDirectory' in the Chinook database. The query must produce a contact list from the 'Customer' table with these columns:\n1. 'CustomerId': The ID.\n2. 'FormattedName': Formatted as 'LASTNAME, Firstname' (Last Name in UPPERCASE).\n3. 'FullAddress': A single string combining Address, City, State, PostalCode, and Country separated by commas, with NULL State or PostalCode values replaced by empty strings.\n4. 'EmailDomain': The domain part of the Email (everything after the '@' symbol).\n5. 'Phone': The phone number.\n6. 'Fax': The fax number.\n\nSort the results by Country (Ascending) then LastName (Ascending).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_string_query/setup_task.sh",
+    "post_task": "/workspace/tasks/create_string_query/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "CustomerDirectory",
+    "required_functions": [
+      "UPPER",
+      "COALESCE",
+      "SUBSTRING",
+      "LOCATE"
+    ],
+    "required_columns": [
+      "CustomerId",
+      "FormattedName",
+      "FullAddress",
+      "EmailDomain",
+      "Phone",
+      "Fax"
+    ],
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_string_query"
+    }
+  }
+}

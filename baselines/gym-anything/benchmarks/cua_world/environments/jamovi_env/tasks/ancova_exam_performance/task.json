@@ -1,0 +1,30 @@
+{
+  "id": "ancova_exam_performance@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Using the loaded Exam Anxiety dataset, perform an Analysis of Covariance (ANCOVA) to determine the effect of Gender on Exam performance while controlling for Anxiety. The analysis must include a homogeneity test (Levene's), estimated marginal means for Gender, and partial eta-squared as the effect size measure. Save the completed analysis to /home/ga/Documents/Jamovi/ExamAnxiety_ANCOVA.omv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ancova_exam_performance/setup_task.sh",
+    "post_task": "/workspace/tasks/ancova_exam_performance/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/Jamovi/ExamAnxiety_ANCOVA.omv",
+    "dataset_path": "/home/ga/Documents/Jamovi/ExamAnxiety.csv",
+    "required_analysis_type": "ancova",
+    "dependent_variable": "Exam",
+    "fixed_factor": "Gender",
+    "covariate": "Anxiety"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ancova_exam_performance"
+    }
+  }
+}

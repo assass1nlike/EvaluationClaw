@@ -1,0 +1,40 @@
+{
+  "id": "hierarchical_reorganization@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Your Zotero library contains 30 papers from an unstructured bulk import in a collection called 'Unsorted Import', spanning decades of scholarship from the 1930s to the 2020s across social sciences, philosophy, and humanities. Reorganize these papers into a hierarchical structure under a top-level collection named 'Research Archive' with four subcollections: 'Pre-1960', '1960-1999', '2000-2010', and 'Post-2010'. Move all papers from 'Unsorted Import' into the appropriate subcollection based on publication year (papers from 2010 belong in '2000-2010'; papers from 2011",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hierarchical_reorganization/setup_task.sh",
+    "post_task": "/workspace/tasks/hierarchical_reorganization/export_result.sh"
+  },
+  "metadata": {
+    "source_collection": "Unsorted Import",
+    "parent_collection": "Research Archive",
+    "subcollections": [
+      "Pre-1960",
+      "1960-1999",
+      "2000-2010",
+      "Post-2010"
+    ],
+    "year_boundary_pre1960": 1960,
+    "year_boundary_1960_1999_end": 1999,
+    "year_boundary_2000_2010_end": 2010,
+    "expected_counts": {
+      "Pre-1960": 8,
+      "1960-1999": 10,
+      "2000-2010": 7,
+      "Post-2010": 5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hierarchical_reorganization"
+    }
+  }
+}

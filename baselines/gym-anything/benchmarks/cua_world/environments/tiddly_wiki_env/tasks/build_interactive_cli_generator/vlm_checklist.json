@@ -1,0 +1,53 @@
+{
+  "task_id": "build_interactive_cli_generator@1",
+  "task_completion": [
+    {
+      "id": "tiddler_title",
+      "description": "A tiddler titled 'Interactive Deployment Generator' is created.",
+      "points": 10,
+      "visual_evidence": "The title field of the tiddler in edit mode, or the tiddler title in view mode, reads exactly 'Interactive Deployment Generator'."
+    },
+    {
+      "id": "tiddler_tags",
+      "description": "The tiddler is tagged with 'DevOps' and 'Runbook'.",
+      "points": 10,
+      "visual_evidence": "Tag pills for 'DevOps' and 'Runbook' are visible just below the tiddler title."
+    },
+    {
+      "id": "input_fields_present",
+      "description": "Input fields for application name, image tag, and port number are present and bound to the correct state tiddlers.",
+      "points": 20,
+      "visual_evidence": "In edit mode, look for TiddlyWiki widget code like `<$edit-text tiddler='$:/state/deploy/app'/>` (and similarly for tag and port). In view mode, look for three text input boxes."
+    },
+    {
+      "id": "docker_command_block",
+      "description": "A code block for the Docker command is present and uses the input values.",
+      "points": 30,
+      "visual_evidence": "In edit mode, look for the Docker command text containing transclusions, e.g., `docker run -d --name {{$:/state/deploy/app}} -p {{$:/state/deploy/port}}:80 myregistry.internal/{{$:/state/deploy/app}}:{{$:/state/deploy/tag}}`. In view mode, look for a code block showing the rendered Docker command."
+    },
+    {
+      "id": "kubernetes_command_block",
+      "description": "A code block for the Kubernetes command is present and uses the input values.",
+      "points": 30,
+      "visual_evidence": "In edit mode, look for the Kubernetes command text containing transclusions, e.g., `kubectl create deployment {{$:/state/deploy/app}} --image=myregistry.internal/{{$:/state/deploy/app}}:{{$:/state/deploy/tag}} --port={{$:/state/deploy/port}}`. In view mode, look for a code block showing the rendered Kubernetes command."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the TiddlyWiki GUI to create the tiddler.",
+      "visual_evidence": "Screenshots show the TiddlyWiki interface, clicking the '+' button, or editing within the TiddlyWiki text editor, rather than using a terminal or external script."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "The agent did not bypass the UI by directly editing TiddlyWiki backend files.",
+      "visual_evidence": "The browser window with TiddlyWiki is visible and actively used throughout the trajectory."
+    },
+    {
+      "id": "genuine_tiddlywiki_syntax",
+      "description": "The agent used genuine TiddlyWiki syntax for inputs and transclusions.",
+      "visual_evidence": "The source code shows `<$edit-text>` and `{{...}}` rather than hardcoded static text that just looks like the final output."
+    }
+  ],
+  "privileged_info_for_vlm": "The tiddler must be titled 'Interactive Deployment Generator' and tagged with 'DevOps' and 'Runbook'. It must use the state tiddlers '$:/state/deploy/app', '$:/state/deploy/tag', and '$:/state/deploy/port' for the inputs and command templates."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "marketing_roi_lag_analysis@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the database using DBeaver or SQLPlus with the HR user.",
+      "points": 10,
+      "visual_evidence": "DBeaver or SQLPlus terminal is open, showing a successful connection to the database (e.g., 'hr' user visible in the connection tree or SQLPlus prompt)."
+    },
+    {
+      "id": "monthly_aggregation_logic",
+      "description": "Write SQL to aggregate daily data from RAW_AD_SPEND and RAW_SALES into monthly totals per region.",
+      "points": 15,
+      "visual_evidence": "SQL script contains logic to group by region and month (e.g., using TRUNC(date, 'MM') or EXTRACT) and sums the spend and sales."
+    },
+    {
+      "id": "lag_implementation",
+      "description": "Implement logic to align current month's spend with next month's sales (Lag 1).",
+      "points": 20,
+      "visual_evidence": "SQL script contains window functions like LAG() or LEAD() over the aggregated monthly data, or a self-join using date arithmetic (e.g., ADD_MONTHS) to shift the data by one month."
+    },
+    {
+      "id": "statistical_functions",
+      "description": "Calculate Correlation and Slope for both Lag 0 and Lag 1.",
+      "points": 20,
+      "visual_evidence": "SQL script contains the statistical functions CORR() and REGR_SLOPE() applied to both the same-month (Lag 0) and shifted-month (Lag 1) spend and sales columns."
+    },
+    {
+      "id": "best_strategy_logic",
+      "description": "Implement the BEST_STRATEGY classification logic.",
+      "points": 15,
+      "visual_evidence": "SQL script contains a CASE statement evaluating the correlations: returning 'INEFFECTIVE' if both are < 0.3, 'IMMEDIATE' if Lag 0 is higher, and 'DELAYED' if Lag 1 is higher."
+    },
+    {
+      "id": "create_view_execution",
+      "description": "Create the view CAMPAIGN_ROI_ANALYSIS returning exactly one row per region (5 rows total) with all required columns.",
+      "points": 20,
+      "visual_evidence": "A 'CREATE OR REPLACE VIEW CAMPAIGN_ROI_ANALYSIS AS' statement is executed successfully. A SELECT query on the view should show columns: REGION_ID, TOTAL_SPEND, TOTAL_SALES, CORR_LAG0, SLOPE_LAG0, CORR_LAG1, SLOPE_LAG1, BEST_STRATEGY, with exactly 5 rows (REGION_ID 1 to 5)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_tool_usage",
+      "description": "The agent used DBeaver or SQLPlus to execute the queries, rather than just writing text in a generic text editor without running it.",
+      "visual_evidence": "Execution results, success messages, or query output grids are visible in DBeaver or the SQLPlus terminal."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent computed the results using SQL queries on the RAW_AD_SPEND and RAW_SALES tables, rather than hardcoding the final output.",
+      "visual_evidence": "The CREATE VIEW statement contains actual SQL logic (aggregations, joins, math functions) rather than a series of hardcoded 'SELECT ... FROM DUAL UNION ALL' statements."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not access the hidden ground truth file to spoof the results.",
+      "visual_evidence": "No terminal commands showing 'cat /var/lib/oracle/roi_ground_truth.json' or python scripts reading this specific file."
+    }
+  ],
+  "privileged_info_for_vlm": "The required view must be exactly named 'CAMPAIGN_ROI_ANALYSIS'. The dataset contains exactly 5 regions (REGION_ID 1 to 5). The agent must calculate the metrics dynamically; ground truth metrics are stored in /var/lib/oracle/roi_ground_truth.json, which the agent should not access."
+}

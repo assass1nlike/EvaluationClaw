@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_build_dependency_resolver@1",
+  "task_completion": [
+    {
+      "id": "modify_versioning_logic",
+      "description": "Agent modifies the semantic versioning or constraint bounds logic.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal showing edits to version comparison, pre-release handling, or constraint bounds in the resolver module."
+    },
+    {
+      "id": "modify_cycle_detection",
+      "description": "Agent modifies the cycle detection logic to allow diamond dependency graphs.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal showing edits to graph traversal or cycle detection algorithms in the resolver module."
+    },
+    {
+      "id": "modify_build_ordering",
+      "description": "Agent modifies the topological sorting logic to fix the reversed build order.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal showing edits to the topological sort algorithm or list reversal in the scheduler module."
+    },
+    {
+      "id": "modify_cache_invalidation",
+      "description": "Agent modifies the cache invalidation logic to include transitive invalidation.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal showing edits to cache clearing or transitive dependency propagation in the scheduler module."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Agent executes the test suite.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the command 'python3 test_build.py' being executed."
+    },
+    {
+      "id": "test_suite_passes",
+      "description": "The test suite passes completely.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the output of 'python3 test_build.py' with all tests passing (e.g., 'OK', no assertion errors or tracebacks)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_tampering",
+      "description": "Agent did not modify the test suite to force a pass.",
+      "visual_evidence": "No evidence in the terminal or editor of the agent editing 'test_build.py' to remove tests, comment out assertions, or hardcode successes."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Agent genuinely executed the test script.",
+      "visual_evidence": "Terminal shows the actual execution of 'python3 test_build.py' with standard Python unittest/pytest output, rather than an 'echo' command or a simple text printout."
+    },
+    {
+      "id": "no_hardcoded_mocks",
+      "description": "Agent did not replace the modules with hardcoded mocks.",
+      "visual_evidence": "The edits to the resolver and scheduler modules show genuine algorithmic fixes (e.g., fixing graph logic, sorting) rather than returning hardcoded values specifically for the 18-package test graph."
+    }
+  ],
+  "privileged_info_for_vlm": "The codebase at /home/ga/workspace/buildsys/ contains 5 injected bugs: 1) Semantic versioning (comparing pre-releases), 2) Cycle detection false positives on diamond DAGs, 3) Constraint bounds, 4) Topological sorting (reversed build order), and 5) Missing transitive cache invalidation. The agent must fix these in the resolver and scheduler modules. The final goal is for 'python3 test_build.py' to pass completely. Ensure the agent does not cheat by modifying 'test_build.py'."
+}

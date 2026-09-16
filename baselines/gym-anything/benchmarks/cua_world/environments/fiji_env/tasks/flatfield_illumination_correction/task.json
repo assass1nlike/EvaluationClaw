@@ -1,0 +1,34 @@
+{
+  "id": "flatfield_illumination_correction@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Correct the vignetting in the fluorescence microscopy image '~/Fiji_Data/raw/illumination_test/test_image.tif' using a pseudo-flat-field correction method (Gaussian blur sigma=50, 32-bit division). Export the corrected image to '~/Fiji_Data/results/flatfield/corrected_image.tif' and the flat-field reference to '~/Fiji_Data/results/flatfield/flatfield_reference.tif'. Document the mean intensity comparison of the center versus corners before and after correction in '~/Fiji_Data/results/flatfield/uniformity_report.csv' and provide a summary of the uniformity improvement in '~/Fiji_Data/results/flatfield/correction_summary.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flatfield_illumination_correction/setup_task.sh",
+    "post_task": "/workspace/tasks/flatfield_illumination_correction/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/Fiji_Data/raw/illumination_test/test_image.tif",
+    "output_dir": "/home/ga/Fiji_Data/results/flatfield",
+    "expected_files": [
+      "corrected_image.tif",
+      "flatfield_reference.tif",
+      "uniformity_report.csv",
+      "correction_summary.txt"
+    ],
+    "target_improvement_ratio": 0.1,
+    "blur_sigma": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flatfield_correction"
+    }
+  }
+}

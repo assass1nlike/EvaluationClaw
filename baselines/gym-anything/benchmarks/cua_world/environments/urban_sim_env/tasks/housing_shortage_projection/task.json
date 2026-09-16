@@ -1,0 +1,43 @@
+{
+  "id": "housing_shortage_projection@1",
+  "version": "1.0",
+  "env_id": "urban_sim_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are an urban economist at the San Francisco Controller's Office. Project the 5-year housing shortage (2020–2024) using the UrbanSim orca framework and the dataset at /home/ga/urbansim_projects/data/sanfran_public.h5. Quantify the net new housing units produced each year compared to expected household growth and document the cumulative shortfall. Model annual household growth (1–2% per year) and annual housing production from underdeveloped parcels where density is below zoning maximums, applying historical development probabilities. Record the results in /home/ga/urbansim_projects/output/housing_shortage.csv with columns: year, households_start, new_households, new_units, annual_deficit,",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/housing_shortage_projection/setup_task.sh",
+    "post_task": "/workspace/tasks/housing_shortage_projection/export_result.sh"
+  },
+  "metadata": {
+    "task_name": "housing_shortage_projection",
+    "notebook_path": "/home/ga/urbansim_projects/notebooks/housing_shortage.ipynb",
+    "csv_path": "/home/ga/urbansim_projects/output/housing_shortage.csv",
+    "chart_path": "/home/ga/urbansim_projects/output/shortage_trend.png",
+    "gt_path": "/tmp/housing_shortage_gt.json",
+    "required_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "required_csv_columns": [
+      "year",
+      "households_start",
+      "new_households",
+      "new_units",
+      "annual_deficit"
+    ],
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_housing_shortage"
+    }
+  }
+}

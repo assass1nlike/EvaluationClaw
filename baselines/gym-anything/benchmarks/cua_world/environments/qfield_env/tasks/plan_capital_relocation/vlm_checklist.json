@@ -1,0 +1,59 @@
+{
+  "task_id": "plan_capital_relocation@1",
+  "task_completion": [
+    {
+      "id": "activate_edit_mode_field_observations",
+      "description": "Select the 'field_observations' layer and enable editing mode.",
+      "points": 10,
+      "visual_evidence": "The 'field_observations' layer is highlighted in the layer panel, and the app is in point-creation or edit mode (e.g., a crosshair is visible on the map or a pencil icon is active)."
+    },
+    {
+      "id": "locate_and_create_jakarta_point",
+      "description": "Navigate to Jakarta on the island of Java and initiate point creation.",
+      "points": 20,
+      "visual_evidence": "The map view is centered on the northwestern coast of Java (Jakarta), and the agent taps to add a new point feature at this location."
+    },
+    {
+      "id": "enter_jakarta_attributes",
+      "description": "Enter the required attributes for the Jakarta point.",
+      "points": 20,
+      "visual_evidence": "An attribute form is open for the new point, and the agent has typed 'Jakarta_Old' and 'Status: Decommissioned' into the available text fields."
+    },
+    {
+      "id": "locate_and_create_nusantara_point",
+      "description": "Navigate to the eastern side of Borneo (Kalimantan) and initiate point creation.",
+      "points": 20,
+      "visual_evidence": "The map view is centered on the eastern side of the island of Borneo, and the agent taps to add a new point feature at this location."
+    },
+    {
+      "id": "enter_nusantara_attributes",
+      "description": "Enter the required attributes for the Nusantara point.",
+      "points": 20,
+      "visual_evidence": "An attribute form is open for the new point, and the agent has typed 'Nusantara_New' and 'Status: Proposed' into the available text fields."
+    },
+    {
+      "id": "save_layer_edits",
+      "description": "Save the newly created points and layer edits.",
+      "points": 10,
+      "visual_evidence": "The agent taps the checkmark, save button, or toggles off edit mode to commit the changes to the 'field_observations' layer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GIS application's graphical user interface to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the mapping application (e.g., QField) rather than a terminal window executing SQLite commands."
+    },
+    {
+      "id": "map_based_placement",
+      "description": "The agent visually navigated the map to place the points.",
+      "visual_evidence": "Screenshots show the map panning and zooming to Java and Borneo, confirming spatial navigation rather than blind coordinate entry."
+    },
+    {
+      "id": "genuine_attribute_entry",
+      "description": "The agent entered the attributes into the application's feature form.",
+      "visual_evidence": "The text 'Jakarta_Old' and 'Nusantara_New' are seen inside the app's native attribute entry dialogs, not in a separate text editor or script."
+    }
+  ],
+  "privileged_info_for_vlm": "Target GPKG: /sdcard/Android/data/ch.opengis.qfield/files/world_survey.gpkg. Layer: 'field_observations'. Jakarta is located near lat -6.2088, lon 106.8456 (Java). Nusantara is located on eastern Borneo (lat -2.5 to 2.5, lon 114.0 to 119.0). CRITICAL NOTE: The 'field_observations' layer schema lacks the explicitly requested 'name' and 'notes' columns. It only has 'fid', 'geom', 'observer_name', 'species', 'location', 'obs_date', and 'quality_grade'. The agent may attempt to input the required text ('Jakarta_Old', 'Status: Decommissioned', etc.) into these alternative available fields. You must score the attribute entry steps as correct if the agent enters the requested text into ANY available text field in the form."
+}

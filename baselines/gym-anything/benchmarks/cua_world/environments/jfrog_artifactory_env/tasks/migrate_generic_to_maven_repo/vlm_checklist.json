@@ -1,0 +1,53 @@
+{
+  "task_id": "migrate_generic_to_maven_repo@1",
+  "task_completion": [
+    {
+      "id": "artifactory_login",
+      "description": "Log in to JFrog Artifactory",
+      "points": 10,
+      "visual_evidence": "Browser showing the JFrog Artifactory interface at localhost:8082, with the user logged in (typically indicated by the user profile icon or 'admin' in the top right)."
+    },
+    {
+      "id": "create_maven_repo",
+      "description": "Create a new Maven Local Repository named 'libs-commons-local'",
+      "points": 20,
+      "visual_evidence": "The Administration -> Repositories -> Local list showing a repository named 'libs-commons-local' with the Package Type set to Maven (Maven logo)."
+    },
+    {
+      "id": "initiate_move_artifact",
+      "description": "Initiate the move of the 'org' folder from 'temp-uploads'",
+      "points": 20,
+      "visual_evidence": "The Artifacts tree view showing the 'org' folder selected inside 'temp-uploads', with the 'Move' dialog open and 'libs-commons-local' selected as the target."
+    },
+    {
+      "id": "verify_target_repo_contents",
+      "description": "Verify the artifact was successfully moved to the new Maven repository",
+      "points": 30,
+      "visual_evidence": "The Artifacts tree view showing 'libs-commons-local' expanded, containing the 'org' folder hierarchy down to the 'commons-lang3-3.14.0.jar' file."
+    },
+    {
+      "id": "delete_source_repo",
+      "description": "Delete the 'temp-uploads' repository",
+      "points": 20,
+      "visual_evidence": "The Artifacts tree view or Administration Repositories list showing that the 'temp-uploads' repository has been deleted and is no longer visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction",
+      "description": "The agent used a web browser to interact with Artifactory",
+      "visual_evidence": "Screenshots show a standard web browser (e.g., Chromium, Firefox) with the address bar pointing to localhost:8082."
+    },
+    {
+      "id": "no_terminal_api_usage",
+      "description": "The agent did not use terminal commands to bypass the UI",
+      "visual_evidence": "No terminal windows showing 'curl' commands or API scripts interacting with the Artifactory REST API to create repos or move artifacts."
+    },
+    {
+      "id": "genuine_ui_interaction",
+      "description": "The agent interacted with the genuine Artifactory UI",
+      "visual_evidence": "The screenshots display the authentic JFrog Artifactory web interface with its standard menus, dialogs, and tree views, rather than a text editor or mocked interface."
+    }
+  ],
+  "privileged_info_for_vlm": "Source repository to delete: 'temp-uploads'. Target repository to create: 'libs-commons-local' (Type: Maven). Artifact path that must be moved: 'org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar'. Admin credentials: admin / password."
+}

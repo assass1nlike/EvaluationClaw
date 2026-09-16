@@ -1,0 +1,32 @@
+{
+  "id": "assess_cortical_engagement@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Perform a cortical bone assessment for the implant planned at tooth #30 (lower right first molar). Measure the buccal cortical bone thickness at three depths along the implant axis: 1mm below the bone crest (Crestal), 5mm below the bone crest (Mid-body), and 9mm below the bone crest (Apical). Record these measurements in a text file at C:\\Users\\Docker\\Documents\\cortical_assessment.txt using the following format:\n\nCortical Bone Thickness Assessment - Tooth #30\nCrestal (1mm): X.X mm\nMid-body (5mm): X.X mm\nApical (9mm): X.X mm",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\assess_cortical_engagement\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\assess_cortical_engagement\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\cortical_assessment.txt",
+    "min_valid_thickness": 0.3,
+    "max_valid_thickness": 5.0,
+    "required_measurements": [
+      "Crestal",
+      "Mid-body",
+      "Apical"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assess_cortical_engagement"
+    }
+  }
+}

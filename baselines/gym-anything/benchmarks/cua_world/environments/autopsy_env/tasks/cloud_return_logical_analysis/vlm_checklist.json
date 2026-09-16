@@ -1,0 +1,53 @@
+{
+  "task_id": "cloud_return_logical_analysis@1",
+  "task_completion": [
+    {
+      "id": "create_forensic_case",
+      "description": "Create a new Autopsy case named 'Cloud_Return_2024' with case number 'INV-CLD-001'.",
+      "points": 10,
+      "visual_evidence": "Autopsy 'New Case Information' dialog or the main Autopsy window title bar showing the case name 'Cloud_Return_2024' and case number 'INV-CLD-001'."
+    },
+    {
+      "id": "ingest_logical_evidence",
+      "description": "Add logical files from the specified evidence directory as a data source.",
+      "points": 15,
+      "visual_evidence": "Autopsy 'Add Data Source' dialog showing 'Logical Files' selected with the path '/home/ga/evidence/Cloud_Return/', or the Autopsy tree view displaying 'Cloud_Return' as a logical file set."
+    },
+    {
+      "id": "configure_ingest_modules",
+      "description": "Configure ingest modules to run ONLY 'Hash Lookup' and 'File Type Identification'.",
+      "points": 15,
+      "visual_evidence": "Autopsy 'Configure Ingest Modules' window showing checkboxes selected ONLY for 'Hash Lookup' and 'File Type Identification', with all other modules unchecked."
+    },
+    {
+      "id": "generate_catalog_file",
+      "description": "Generate a tab-delimited catalog file at /home/ga/Reports/logical_catalog.tsv with the required header.",
+      "points": 30,
+      "visual_evidence": "A terminal, text editor, or spreadsheet application showing the contents of '/home/ga/Reports/logical_catalog.tsv' starting with the header 'FILENAME\\tPATH\\tSIZE\\tMD5\\tMIME_TYPE' followed by rows of file data."
+    },
+    {
+      "id": "generate_summary_file",
+      "description": "Write a summary file at /home/ga/Reports/cloud_summary.txt with the required counts.",
+      "points": 30,
+      "visual_evidence": "A terminal or text editor showing the contents of '/home/ga/Reports/cloud_summary.txt' containing the exact lines 'TOTAL_FILES: <N>', 'JPEG_IMAGES: <N>', and 'TEXT_FILES: <N>'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "autopsy_gui_interaction",
+      "description": "The agent used the Autopsy GUI to process the evidence rather than bypassing the tool with command-line utilities.",
+      "visual_evidence": "Screenshots showing the Autopsy application open, navigating through the 'New Case' and 'Add Data Source' wizards, and displaying the processed results in the UI."
+    },
+    {
+      "id": "authentic_data_extraction",
+      "description": "The agent extracted the catalog and summary data from Autopsy rather than hallucinating the contents.",
+      "visual_evidence": "Screenshots showing the agent viewing the file list, MIME types, and MD5 hashes within Autopsy, or using Autopsy's 'Generate Report' / 'Export' features before creating the final TSV and TXT files."
+    },
+    {
+      "id": "no_hallucinated_paths",
+      "description": "The agent used the exact paths requested in the prompt without creating arbitrary directories.",
+      "visual_evidence": "Terminal commands or file editor paths explicitly showing '/home/ga/Reports/logical_catalog.tsv' and '/home/ga/Reports/cloud_summary.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "Case Name must be 'Cloud_Return_2024'. Case Number must be 'INV-CLD-001'. Evidence Directory is '/home/ga/evidence/Cloud_Return'. Catalog File must be saved to '/home/ga/Reports/logical_catalog.tsv' and include the header FILENAME, PATH, SIZE, MD5, MIME_TYPE. Summary File must be saved to '/home/ga/Reports/cloud_summary.txt' and formatted exactly with TOTAL_FILES: <N>, JPEG_IMAGES: <N>, TEXT_FILES: <N>."
+}

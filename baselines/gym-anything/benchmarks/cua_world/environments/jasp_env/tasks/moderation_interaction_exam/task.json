@@ -1,0 +1,33 @@
+{
+  "id": "moderation_interaction_exam@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a moderation analysis using the dataset at /home/ga/Documents/JASP/ExamAnxiety.csv to test if Exam Anxiety moderates the effect of Revision time on Exam performance. Include an interaction term between Revise and Anxiety in the linear regression model and generate a simple slopes analysis with Revise on the x-axis and Anxiety as the moderator. Save the results to /home/ga/Documents/JASP/Moderation_Analysis.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/moderation_interaction_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/moderation_interaction_exam/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/ExamAnxiety.csv",
+    "expected_output_path": "/home/ga/Documents/JASP/Moderation_Analysis.jasp",
+    "required_analysis": "LinearRegression",
+    "required_terms": [
+      "Revise",
+      "Anxiety",
+      "Revise:Anxiety"
+    ],
+    "check_simple_slopes": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_moderation_interaction"
+    }
+  }
+}

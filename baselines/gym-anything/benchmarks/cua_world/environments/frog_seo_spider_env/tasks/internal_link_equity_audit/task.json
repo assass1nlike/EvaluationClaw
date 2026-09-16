@@ -1,0 +1,34 @@
+{
+  "id": "internal_link_equity_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform an internal link equity audit for 'https://books.toscrape.com/'. Export the internal link data to /home/ga/Documents/SEO/exports/ and save a comprehensive text report to /home/ga/Documents/SEO/reports/internal_links_report.txt. The report must include the total number of internal links found, the top 5 most-linked pages, examples of under-linked pages, an analysis of the most common anchor text used, and at least 3 specific recommendations for improving the internal linking structure.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/internal_link_equity_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/internal_link_equity_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "target_domain": "books.toscrape.com",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "report_path": "/home/ga/Documents/SEO/reports/internal_links_report.txt",
+    "expected_csv_columns": [
+      "Source",
+      "Destination",
+      "Anchor"
+    ],
+    "min_report_length": 500
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_internal_link_equity_audit"
+    }
+  }
+}

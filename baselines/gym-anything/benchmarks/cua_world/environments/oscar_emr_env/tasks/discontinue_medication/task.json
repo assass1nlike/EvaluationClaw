@@ -1,0 +1,43 @@
+{
+  "id": "discontinue_medication@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Log in to OSCAR EMR (username: oscardoc, password: oscar, PIN: 1117) and discontinue the active METFORMIN 500 mg (metformin HCl) medication for patient Margaret Thompson (DOB: 1958-07-22). The patient has been experiencing persistent gastrointestinal side effects including nausea, diarrhea, and abdominal cramping. Record the reason for discontinuation as GI side effects (nausea, diarrhea) and save the change.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/discontinue_medication/setup_task.sh",
+    "post_task": "/workspace/tasks/discontinue_medication/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Margaret",
+    "patient_lname": "Thompson",
+    "patient_dob": "1958-07-22",
+    "target_drug_keyword": "METFORMIN",
+    "required_reason_keywords": [
+      "gi",
+      "nausea",
+      "diarrhea",
+      "vomit",
+      "stomach",
+      "abdominal",
+      "side effect",
+      "intolerance"
+    ],
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_discontinue_medication"
+    }
+  }
+}

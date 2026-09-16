@@ -1,0 +1,30 @@
+{
+  "id": "scoped_crawl_exclude_rules@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Configure Screaming Frog SEO Spider to crawl the online bookstore at https://books.toscrape.com/. Exclude all category pages using the regex pattern '.*\\/category\\/.*' and set a crawl limit of 50 URLs. Export the internal HTML results as a CSV file to ~/Documents/SEO/exports/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scoped_crawl_exclude_rules/setup_task.sh",
+    "post_task": "/workspace/tasks/scoped_crawl_exclude_rules/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "exclude_pattern": ".*/category/.*",
+    "required_path_segment": "/catalogue/",
+    "forbidden_path_segment": "/category/",
+    "max_urls": 50,
+    "min_product_urls": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scoped_crawl"
+    }
+  }
+}

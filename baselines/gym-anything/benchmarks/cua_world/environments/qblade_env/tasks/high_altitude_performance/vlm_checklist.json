@@ -1,0 +1,59 @@
+{
+  "task_id": "high_altitude_performance@1",
+  "task_completion": [
+    {
+      "id": "sim_sea_level_run",
+      "description": "Create and run the Sea Level simulation with the correct air density.",
+      "points": 20,
+      "visual_evidence": "Look for the QBlade HAWT BEM Simulation module showing a simulation named 'Sim_SeaLevel' in the simulation list or parameter setup, with the air density parameter set to 1.225 kg/m\u00b3."
+    },
+    {
+      "id": "sim_high_alt_run",
+      "description": "Create and run the High Altitude simulation with the correct air density.",
+      "points": 20,
+      "visual_evidence": "Look for the QBlade HAWT BEM Simulation module showing a simulation named 'Sim_HighAlt' in the simulation list or parameter setup, with the air density parameter set to 0.900 kg/m\u00b3."
+    },
+    {
+      "id": "project_saved",
+      "description": "Save the QBlade project to the specified path.",
+      "points": 10,
+      "visual_evidence": "Look for the QBlade window title displaying 'altitude_study.wpa' or a file manager/terminal showing the file 'altitude_study.wpa' inside the /home/ga/Documents/projects/ directory."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Create the altitude report text file.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or terminal window showing a file named 'altitude_report.txt' open or listed in the /home/ga/Documents/projects/ directory."
+    },
+    {
+      "id": "report_power_values",
+      "description": "Record the maximum power for both simulations in the report.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'altitude_report.txt' file for the exact lines 'Sea Level Max Power: [Value] kW' and 'High Altitude Max Power: [Value] kW', where [Value] are non-zero numbers."
+    },
+    {
+      "id": "report_ratio_value",
+      "description": "Calculate and record the power ratio in the report.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'altitude_report.txt' file for the line 'Ratio: [Value]'. The value should be approximately 0.7347 (acceptable range is 0.68 to 0.78)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the QBlade GUI to perform the simulations.",
+      "visual_evidence": "Screenshots should show the QBlade graphical user interface open and being interacted with, rather than just terminal commands or scripts generating fake project files."
+    },
+    {
+      "id": "genuine_results",
+      "description": "Reported power values match the actual simulation outputs.",
+      "visual_evidence": "The maximum power values typed into the text report should correspond to the peaks of the power curves or data tables visible in the QBlade HAWT BEM Simulation results."
+    },
+    {
+      "id": "no_hardcoded_ratio",
+      "description": "Agent calculated the ratio based on actual simulation results rather than copying the expected theoretical value.",
+      "visual_evidence": "The ratio in the text file should be the mathematical result of dividing the reported High Altitude Max Power by the reported Sea Level Max Power. It should not be magically typed as 0.7347 if the recorded power values do not yield exactly that number."
+    }
+  ],
+  "privileged_info_for_vlm": "QBlade is the expected software for the HAWT BEM Simulation. The expected power ratio (High Altitude Power / Sea Level Power) is approximately 0.7347 (0.900 / 1.225), because wind turbine power scales linearly with air density according to the fundamental wind power equation. The acceptable ratio tolerance is \u00b10.05 (0.6847 to 0.7847). The project must be saved as 'altitude_study.wpa' and the report as 'altitude_report.txt'."
+}

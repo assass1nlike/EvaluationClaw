@@ -1,0 +1,53 @@
+{
+  "task_id": "geographic_catchment_analysis@1",
+  "task_completion": [
+    {
+      "id": "database_access",
+      "description": "Agent connects to the DrTuxTest database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful MySQL connection to the 'DrTuxTest' database using the 'root' user, or a script containing the connection string for this database."
+    },
+    {
+      "id": "age_bracket_logic",
+      "description": "Agent implements logic to calculate age and assign age brackets.",
+      "points": 20,
+      "visual_evidence": "A SQL query or script showing age calculation from 'FchPat_Nee' relative to the current date, and conditional logic (e.g., SQL CASE statement) assigning the exact brackets: '0-17', '18-39', '40-59', '60-79', '80+'."
+    },
+    {
+      "id": "cross_tabulation_logic",
+      "description": "Agent implements grouping and counting by postal code, age bracket, and sex.",
+      "points": 20,
+      "visual_evidence": "A SQL query or script showing a GROUP BY clause for 'FchPat_CP' (postal code), the calculated age bracket, and 'FchPat_Sexe' (sex), along with an aggregation function like COUNT() to get the patient count."
+    },
+    {
+      "id": "csv_export_execution",
+      "description": "Agent exports the results to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "Terminal command (like INTO OUTFILE) or script execution that explicitly writes the output to '/home/ga/reports/catchment_analysis.csv'."
+    },
+    {
+      "id": "csv_content_verification",
+      "description": "The final CSV file contains the correct headers and formatted data.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the contents of the CSV (e.g., via 'cat', 'head', or an editor) with the exact comma-separated headers 'postal_code,age_bracket,sex,patient_count' and data rows matching the expected format (e.g., '75001,18-39,F,5')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "The agent actually queried the database to get the data.",
+      "visual_evidence": "Screenshots should show the agent executing a SQL query in the MySQL CLI or running a script that connects to the database, rather than just creating a file with fabricated data."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not hardcode the CSV output.",
+      "visual_evidence": "The agent's commands or scripts should dynamically generate the CSV content from the database query results, not by echoing a static, pre-written multi-line string into the file."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The agent saved the file to the exact requested path.",
+      "visual_evidence": "The file path '/home/ga/reports/catchment_analysis.csv' must be explicitly visible in the export command or script, not just a generic 'output.csv' in the current directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/reports/catchment_analysis.csv'. The CSV must contain the headers 'postal_code,age_bracket,sex,patient_count'. Valid age brackets are '0-17', '18-39', '40-59', '60-79', '80+'. Valid sexes are 'F' and 'H'. The database is MySQL, named 'DrTuxTest', accessible via user 'root' with no password."
+}

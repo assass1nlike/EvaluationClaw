@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_pgv_amplitudes@1",
+  "task_completion": [
+    {
+      "id": "seiscomp_pgv_reconfiguration",
+      "description": "Verify that the SeisComP system is reconfigured to compute PGV amplitudes.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SeisComP configuration (e.g., scconfig GUI or terminal editing config files) where 'PGV' is being added or enabled in the amplitude calculation settings."
+    },
+    {
+      "id": "event_reprocessing_started",
+      "description": "Verify that the Noto Peninsula earthquake event is being reprocessed using the specified archive and database.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 2024-01-01 Noto Peninsula earthquake loaded in a SeisComP interface (like scolv) or a terminal command executing reprocessing (e.g., using scamp) with the provided sdsarchive and mysql database URIs."
+    },
+    {
+      "id": "pgv_amplitudes_visible",
+      "description": "Verify that PGV amplitudes are successfully computed for the event.",
+      "points": 30,
+      "visual_evidence": "A SeisComP interface (such as the amplitude view in scolv) or terminal output displaying calculated 'PGV' amplitude values for various stations."
+    },
+    {
+      "id": "csv_content_correct",
+      "description": "Verify that a CSV report is created containing the required columns.",
+      "points": 15,
+      "visual_evidence": "A spreadsheet application, text editor, or terminal output showing a CSV file with 'Station' and 'Amplitude' columns populated with the computed PGV data."
+    },
+    {
+      "id": "csv_path_correct",
+      "description": "Verify that the CSV report is saved to the correct directory.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal (e.g., ls command), or save dialog confirming the file is named 'pgv_report.csv' and is located in the '~/Documents/' (/home/ga/Documents/) directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_seiscomp_usage",
+      "description": "Ensure the agent actually used SeisComP to compute the amplitudes.",
+      "visual_evidence": "Look for genuine interaction with SeisComP tools (GUI or CLI). The agent should not bypass the software and just create a mock CSV file."
+    },
+    {
+      "id": "authentic_csv_generation",
+      "description": "Ensure the CSV data is derived from the actual SeisComP output.",
+      "visual_evidence": "The values in the CSV should correspond to the amplitudes seen in the SeisComP interface, rather than being manually typed out from external knowledge or hardcoded."
+    },
+    {
+      "id": "correct_earthquake_event",
+      "description": "Ensure the agent processed the correct earthquake event.",
+      "visual_evidence": "The date (2024-01-01) or location (Noto Peninsula) should be visible in the SeisComP event list or reprocessing commands, confirming the correct event was used."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected amplitude type to be computed is 'PGV'. The final CSV report must be saved exactly at '/home/ga/Documents/pgv_report.csv'."
+}

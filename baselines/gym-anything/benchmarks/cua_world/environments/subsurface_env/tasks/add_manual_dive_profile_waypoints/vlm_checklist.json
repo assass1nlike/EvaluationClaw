@@ -1,0 +1,59 @@
+{
+  "task_id": "add_manual_dive_profile_waypoints@1",
+  "task_completion": [
+    {
+      "id": "add_dive_mode",
+      "description": "Verify the agent initiated the process to add a new dive manually.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Add dive' interface, a blank new dive entry form, or the manual dive profile editing mode active in the Subsurface application."
+    },
+    {
+      "id": "set_target_date",
+      "description": "Verify the date of the new dive is set to August 14, 2005.",
+      "points": 15,
+      "visual_evidence": "Look for '2005-08-14' or 'Aug 14, 2005' in the Date input field of the dive details panel."
+    },
+    {
+      "id": "waypoints_18m",
+      "description": "Verify the first set of waypoints at 18m depth.",
+      "points": 20,
+      "visual_evidence": "Look at the dive profile graph or waypoint data table. There should be points plotted at approximately 18m depth at the 5-minute and 10-minute marks."
+    },
+    {
+      "id": "waypoints_12m",
+      "description": "Verify the second set of waypoints at 12m depth.",
+      "points": 20,
+      "visual_evidence": "Look at the dive profile graph or waypoint data table. There should be points plotted at approximately 12m depth at the 15-minute and 20-minute marks."
+    },
+    {
+      "id": "waypoints_5m_and_0m",
+      "description": "Verify the final set of waypoints at 5m and 0m depth.",
+      "points": 20,
+      "visual_evidence": "Look at the dive profile graph or waypoint data table. There should be points plotted at approximately 5m depth at the 25-minute and 30-minute marks, and a final point at 0m (surface) at the 32-minute mark."
+    },
+    {
+      "id": "save_dive_log",
+      "description": "Verify the dive log was saved.",
+      "points": 15,
+      "visual_evidence": "Look for the newly created dive appearing in the main dive list on the left side of the screen with the correct date, or the agent clicking a 'Save' button to commit the manual dive entry."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Ensure the agent used the Subsurface GUI to create the dive.",
+      "visual_evidence": "Check that the Subsurface application is open and being interacted with. The agent should not be editing the dives.ssrf XML file directly in a text editor (like nano, vim, or gedit)."
+    },
+    {
+      "id": "no_terminal_scripting",
+      "description": "Ensure the agent did not use terminal commands to bypass the GUI.",
+      "visual_evidence": "Check that there are no terminal windows open running Python scripts, sed, awk, or echo commands to inject the dive data directly into the log file."
+    },
+    {
+      "id": "genuine_profile_graph",
+      "description": "Ensure the profile graph is genuinely rendered by the application.",
+      "visual_evidence": "The dive profile graph should look like a native Subsurface rendering with standard axes, grids, and UI elements, not a pasted image or external plot."
+    }
+  ],
+  "privileged_info_for_vlm": "The target date for the new dive must be exactly 2005-08-14. The required waypoints are: 5 min at 18.0m, 10 min at 18.0m, 15 min at 12.0m, 20 min at 12.0m, 25 min at 5.0m, 30 min at 5.0m, and 32 min at 0.0m. When visually verifying the graph or table, allow for a tolerance of +/- 60 seconds for time and +/- 1.5 meters for depth."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "generate_hurricane_track_line@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Reconstruct the path of Hurricane Katrina in gvSIG using the raw GPS data provided in /home/ga/Documents/katrina_waypoints.csv. The data rows are shuffled and must be ordered using the SEQ field to create a chronological track. Generate a Polyline shapefile representing the storm's path and save it to /home/ga/gvsig_data/exports/katrina_track.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_hurricane_track_line/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_hurricane_track_line/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/katrina_track.shp",
+    "min_points": 30,
+    "max_valid_length": 50.0,
+    "csv_path": "/home/ga/Documents/katrina_waypoints.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hurricane_track"
+    }
+  }
+}

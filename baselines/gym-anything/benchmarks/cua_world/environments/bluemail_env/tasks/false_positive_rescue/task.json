@@ -1,0 +1,35 @@
+{
+  "id": "false_positive_rescue@1",
+  "version": "1.0",
+  "env_id": "bluemail_env@0.1",
+  "description": "You are working as an IT Helpdesk operator. Several users have reported that legitimate mailing list emails are landing in their Junk folder due to a recent spam filter update. Identify the legitimate emails (false positives) in the Junk folder and move them to a new folder named 'False-Positives'. Draft an email to 'helpdesk-admin@techcorp.org' with the subject 'Spam Filter Incident Report' reporting the number of legitimate emails rescued. Login credentials: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/false_positive_rescue/setup_task.sh",
+    "post_task": "/workspace/tasks/false_positive_rescue/export_result.sh"
+  },
+  "metadata": {
+    "target_folder": "False-Positives",
+    "report_recipient": "helpdesk-admin@techcorp.org",
+    "false_positive_count": 5,
+    "spam_count": 10,
+    "false_positive_indices": [
+      "ham_046",
+      "ham_047",
+      "ham_048",
+      "ham_049",
+      "ham_050"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_false_positive_rescue"
+    }
+  }
+}

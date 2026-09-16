@@ -1,0 +1,59 @@
+{
+  "task_id": "ez_diffusion_modeling_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_ldt_data",
+      "description": "Load the Lexical Decision Task dataset",
+      "points": 10,
+      "visual_evidence": "Code (e.g., Python/pandas, R) or a data processing tool opening or reading the file '~/pebl/data/ldt_data.csv'."
+    },
+    {
+      "id": "filter_exclusions",
+      "description": "Exclude sub-999 and NonWord trials",
+      "points": 15,
+      "visual_evidence": "Code or queries explicitly filtering out 'sub-999' (or checking for zero variance) and removing trials where condition is 'NonWord'."
+    },
+    {
+      "id": "calculate_summary_stats",
+      "description": "Calculate Pc, MRT, and VRT in seconds",
+      "points": 20,
+      "visual_evidence": "Code calculating accuracy (Pc), mean correct RT (MRT) converted to seconds, and sample variance of correct RTs (VRT) converted to seconds squared for Word_HighFreq and Word_LowFreq conditions."
+    },
+    {
+      "id": "apply_edge_correction",
+      "description": "Apply edge correction for 100% accuracy",
+      "points": 20,
+      "visual_evidence": "Code containing a conditional check for Pc == 1.0 and applying the formula Pc = 1 - 1/(2N) (specifically relevant for sub-01)."
+    },
+    {
+      "id": "compute_ez_parameters",
+      "description": "Compute EZ-diffusion parameters (v, a, Ter)",
+      "points": 20,
+      "visual_evidence": "Code implementing the mathematical formulas for drift rate (v), boundary separation (a), and non-decision time (Ter) using the calculated Pc, MRT, and VRT."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the results to the specified JSON file",
+      "points": 15,
+      "visual_evidence": "Code or terminal output showing the final computed parameters being written to '/home/ga/pebl/analysis/ez_diffusion_report.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_parameters",
+      "description": "Ensure the agent calculates the parameters rather than hardcoding the final output",
+      "visual_evidence": "The script should contain the actual mathematical formulas for EZ-diffusion and edge correction, rather than a hardcoded JSON string of the final answers."
+    },
+    {
+      "id": "actual_data_processing",
+      "description": "Ensure the agent processes the actual CSV file",
+      "visual_evidence": "The agent must read from '~/pebl/data/ldt_data.csv' and not a mocked or truncated version of the dataset."
+    },
+    {
+      "id": "script_execution_verified",
+      "description": "Ensure the analysis script was actually executed",
+      "visual_evidence": "Terminal output showing the execution of the script (e.g., 'python analyze.py') or the creation of the output JSON file, rather than just an open text editor with unrun code."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be saved exactly to '/home/ga/pebl/analysis/ez_diffusion_report.json'. The participant 'sub-999' must be explicitly excluded from the analysis. The participant 'sub-01' has exactly 100% accuracy in the 'Word_HighFreq' condition, so the agent's code MUST trigger the edge correction formula (Pc = 1 - 1/(2N)) for this participant."
+}

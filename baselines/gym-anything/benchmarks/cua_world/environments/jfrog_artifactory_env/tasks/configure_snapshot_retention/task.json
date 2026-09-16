@@ -1,0 +1,30 @@
+{
+  "id": "configure_snapshot_retention@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Log in to Artifactory at http://localhost:8082 (admin/password). Create a new local Maven repository with the key 'project-alpha-snapshots'. Configure the repository to handle snapshots and set the snapshot retention policy to keep exactly the 5 most recent unique versions.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_snapshot_retention/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_snapshot_retention/export_result.sh"
+  },
+  "metadata": {
+    "target_repo_key": "project-alpha-snapshots",
+    "target_package_type": "maven",
+    "expected_max_unique_snapshots": 5,
+    "expected_handle_snapshots": true,
+    "admin_user": "admin",
+    "admin_pass": "password"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_snapshot_retention"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "forensic_peer_review_audit@1",
+  "task_completion": [
+    {
+      "id": "create_autopsy_case",
+      "description": "Create a new case in Autopsy with the specified name and number.",
+      "points": 15,
+      "visual_evidence": "Autopsy GUI showing the active case name 'Peer_Review_Audit_2024' and case number 'INV-PRA-006' in the title bar or case properties."
+    },
+    {
+      "id": "add_data_source",
+      "description": "Add the target disk image to the Autopsy case.",
+      "points": 15,
+      "visual_evidence": "The data source 'ntfs_undel.dd' is visible in the Autopsy tree view under 'Data Sources'."
+    },
+    {
+      "id": "run_ingest_modules",
+      "description": "Run the File Type Identification and Hash Lookup ingest modules.",
+      "points": 15,
+      "visual_evidence": "Autopsy ingest module configuration screen showing 'File Type Identification' and 'Hash Lookup' selected, or results in the tree view (e.g., 'Views -> File Types') indicating these modules were run."
+    },
+    {
+      "id": "create_peer_review_report",
+      "description": "Generate the corrected peer review report with the required format.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the creation/content of '/home/ga/Reports/peer_review_report.txt' containing the exact headers requested (PEER REVIEW REPORT, CASE, CASE_NUMBER, IMAGE, REVIEWER, FILESYSTEM_TYPE, etc.) and the identified errors."
+    },
+    {
+      "id": "create_error_summary",
+      "description": "Generate the error summary file with the required pipe-separated format.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the creation/content of '/home/ga/Reports/error_summary.txt' with lines formatted as 'FIELD|PRELIMINARY_VALUE|CORRECT_VALUE|DISCREPANCY_TYPE'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_autopsy_gui",
+      "description": "Agent used the Autopsy GUI to analyze the disk image as instructed, rather than relying solely on CLI tools.",
+      "visual_evidence": "Screenshots must show the Autopsy application open and being interacted with to find the file counts and largest file."
+    },
+    {
+      "id": "read_preliminary_findings",
+      "description": "Agent actually read the preliminary findings to perform the comparison.",
+      "visual_evidence": "A text editor, terminal (cat/less), or file viewer showing the contents of '/home/ga/evidence/preliminary_findings.txt'."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Agent saved the reports to the correct file paths rather than just printing them to the console.",
+      "visual_evidence": "The file paths '/home/ga/Reports/peer_review_report.txt' and '/home/ga/Reports/error_summary.txt' are visible in the text editor's save dialog, title bar, or terminal commands (e.g., nano, vim, or echo redirects)."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified Case Name: Peer_Review_Audit_2024. Verified Case Number: INV-PRA-006. Disk Image: /home/ga/evidence/ntfs_undel.dd. Target Reports: /home/ga/Reports/peer_review_report.txt and /home/ga/Reports/error_summary.txt. CRITICAL EVALUATION NOTE: The automated verifier has known bugs. It expects TOTAL_FILES = 8 and DELETED_FILES = 3 (due to a parsing bug skipping root files), while true counts are ~27 and 8+. It also expects LARGEST_FILE_NAME to be 'tracking.log' (ignoring NTFS system files like $BadClus:$Bad). Do not penalize the agent if it reports the true Autopsy counts/files instead of the buggy verifier's expected values. Accept either as long as they are derived from the tool."
+}

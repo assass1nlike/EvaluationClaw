@@ -1,0 +1,25 @@
+{
+  "id": "change_chart_type@1",
+  "env_id": "example.avare_env@0.1",
+  "difficulty": "easy",
+  "description": "The Avare aviation GPS app is open on the main map screen with the default Sectional chart type selected. Change the chart type to 'IFR Low'.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/change_chart_type/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/change_chart_type/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_change_chart_type"
+    }
+  },
+  "metadata": {
+    "target_chart": "IFR Low",
+    "default_chart": "Sectional"
+  }
+}

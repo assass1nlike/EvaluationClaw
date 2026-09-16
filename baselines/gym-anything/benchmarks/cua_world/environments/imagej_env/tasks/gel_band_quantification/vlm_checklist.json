@@ -1,0 +1,53 @@
+{
+  "task_id": "gel_band_quantification@1",
+  "task_completion": [
+    {
+      "id": "open_gel_sample",
+      "description": "Open the built-in 'Gel' sample image in Fiji.",
+      "points": 10,
+      "visual_evidence": "Fiji application window is open, displaying an image window titled 'Gel' (or 'gel.gif') showing a gel electrophoresis image."
+    },
+    {
+      "id": "define_gel_lanes",
+      "description": "Define the lanes on the gel image for analysis.",
+      "points": 20,
+      "visual_evidence": "The 'Gel' image window shows rectangular Region of Interest (ROI) boxes drawn over the vertical lanes, indicating the use of Fiji's 1D gel analysis tool."
+    },
+    {
+      "id": "plot_lane_profiles",
+      "description": "Generate lane profile plots to quantify bands.",
+      "points": 20,
+      "visual_evidence": "A plot window is visible showing lane profiles (line graphs with peaks corresponding to the gel bands), typically with lines drawn at the base of the peaks for background subtraction."
+    },
+    {
+      "id": "calculate_required_metrics",
+      "description": "Calculate background-corrected integrated optical density and relative intensity percentage for each band.",
+      "points": 30,
+      "visual_evidence": "A results table or spreadsheet is visible containing columns for lane number, band position (pixels from top), integrated intensity (IntDen/Area), and a calculated relative intensity percentage (relative to the strongest band in that lane)."
+    },
+    {
+      "id": "save_results_csv",
+      "description": "Save the final results table to ~/ImageJ_Data/results/gel_quantification.csv.",
+      "points": 20,
+      "visual_evidence": "A save dialog, file manager, or terminal window showing the file 'gel_quantification.csv' located in the '/home/ga/ImageJ_Data/results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_fiji_gui",
+      "description": "The agent used the Fiji graphical user interface to perform the analysis.",
+      "visual_evidence": "Screenshots show interaction with Fiji menus (e.g., Analyze > Gel), toolbars, and plot windows, rather than just terminal commands or Python scripts bypassing the UI."
+    },
+    {
+      "id": "genuine_gel_analysis",
+      "description": "The lane profile plots and measurements are genuinely generated from the image.",
+      "visual_evidence": "The profile plots match the visual bands in the 'Gel' image, and the results table is populated with ImageJ's standard measurement outputs before any custom percentage calculations."
+    },
+    {
+      "id": "no_fabricated_csv",
+      "description": "The agent did not simply create a text file with fabricated data.",
+      "visual_evidence": "The final CSV is the result of exporting the Fiji results table or processing it in a spreadsheet/script, not manually typed out in a text editor with guessed values."
+    }
+  ],
+  "privileged_info_for_vlm": "The target image is the built-in 'Gel' sample in Fiji, accessible via File > Open Samples > Gel. The standard ImageJ gel analysis workflow involves drawing rectangular ROIs over lanes, plotting lane profiles, and measuring the area under the peaks (which corresponds to background-corrected integrated density). The final results must be saved to /home/ga/ImageJ_Data/results/gel_quantification.csv."
+}

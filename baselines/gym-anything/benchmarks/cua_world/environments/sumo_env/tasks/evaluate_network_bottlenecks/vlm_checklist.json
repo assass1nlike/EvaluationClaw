@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_network_bottlenecks@1",
+  "task_completion": [
+    {
+      "id": "run_sumo_simulation",
+      "description": "Run the SUMO simulation using the provided configuration file.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of the 'sumo' command with the configuration file '/home/ga/SUMO_Scenarios/bologna_acosta/run.sumocfg'."
+    },
+    {
+      "id": "generate_xml_outputs",
+      "description": "Generate the required queues.xml and stats.xml output files.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the 'sumo' command with '--queue-output' and '--statistic-output' flags, or an 'ls' command showing 'queues.xml' and 'stats.xml' present in the '/home/ga/SUMO_Output/' directory."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the bottleneck_report.txt file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A text editor open with '/home/ga/SUMO_Output/bottleneck_report.txt' or a terminal command (like 'cat' or 'echo') writing to this specific file path."
+    },
+    {
+      "id": "report_format_correct",
+      "description": "Format the report with the exact required keys.",
+      "points": 10,
+      "visual_evidence": "The contents of bottleneck_report.txt must show the exact keys: 'max_queue_lane:', 'max_queue_length:', 'max_queue_time:', 'total_vehicles_completed:', and 'average_vehicle_speed:'."
+    },
+    {
+      "id": "report_queue_values_correct",
+      "description": "Extract and document the correct maximum queue metrics.",
+      "points": 25,
+      "visual_evidence": "The report shows 'max_queue_lane: 114_0', 'max_queue_length: 507.37', and 'max_queue_time: 1189.0' (or 1189)."
+    },
+    {
+      "id": "report_vehicle_values_correct",
+      "description": "Extract and document the correct vehicle completion and speed metrics.",
+      "points": 25,
+      "visual_evidence": "The report shows 'total_vehicles_completed: 0' and 'average_vehicle_speed: 6.47'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_forbidden_file_modifications",
+      "description": "Ensure the underlying network and route files were not modified.",
+      "visual_evidence": "No terminal commands showing the opening or editing (e.g., nano, vim, sed) of any '.net.xml' or '.rou.xml' files."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "Ensure the agent actually analyzed the XML files to get the answers.",
+      "visual_evidence": "Terminal commands showing the agent parsing the XML files (e.g., using grep, awk, python scripts, or opening them in a text editor) rather than just magically outputting the final values."
+    },
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Ensure the agent actually ran the SUMO simulation to generate the files.",
+      "visual_evidence": "The presence of the 'sumo' command execution in the terminal history, rather than the agent manually creating mock XML files."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct ground truth values for the report are: max_queue_lane: 114_0, max_queue_length: 507.37, max_queue_time: 1189.0, total_vehicles_completed: 0, average_vehicle_speed: 6.47. The report must be saved exactly at /home/ga/SUMO_Output/bottleneck_report.txt."
+}

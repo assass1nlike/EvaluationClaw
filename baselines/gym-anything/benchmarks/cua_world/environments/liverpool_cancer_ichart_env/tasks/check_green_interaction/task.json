@@ -1,0 +1,27 @@
+{
+  "id": "check_green_interaction@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "easy",
+  "description": "Using the Cancer iChart Archive app, check the drug interaction between 'Abiraterone' and 'Acenocoumarol' and identify the interaction status.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_green_interaction/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_green_interaction/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_green_interaction"
+    }
+  },
+  "metadata": {
+    "cancer_drug": "Abiraterone",
+    "co_medication": "Acenocoumarol",
+    "expected_result": "No Interaction Expected",
+    "expected_color": "green"
+  }
+}

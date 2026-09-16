@@ -1,0 +1,59 @@
+{
+  "task_id": "dashboard_drilldown_routing@1",
+  "task_completion": [
+    {
+      "id": "summary_dashboard_created",
+      "description": "Create the summary dashboard named 'Global_Threat_Overview'",
+      "points": 10,
+      "visual_evidence": "Look for a Splunk dashboard with the title 'Global_Threat_Overview' at the top of the page."
+    },
+    {
+      "id": "summary_dashboard_table_panel",
+      "description": "Add a table panel aggregating top source IPs from the 'security_logs' index",
+      "points": 20,
+      "visual_evidence": "Look for a table panel within 'Global_Threat_Overview' displaying IP addresses and their counts/aggregations. In edit mode or the search inspector, the query should include 'index=security_logs'."
+    },
+    {
+      "id": "detailed_dashboard_created",
+      "description": "Create the detailed dashboard named 'Detailed_IP_Investigation'",
+      "points": 10,
+      "visual_evidence": "Look for a Splunk dashboard with the title 'Detailed_IP_Investigation' at the top of the page."
+    },
+    {
+      "id": "detailed_dashboard_text_input",
+      "description": "Add a text input using the token 'target_ip' to the detailed dashboard",
+      "points": 15,
+      "visual_evidence": "Look for a text input field on the 'Detailed_IP_Investigation' dashboard. In edit mode, the token name for this input should be explicitly set to 'target_ip'."
+    },
+    {
+      "id": "detailed_dashboard_filtered_panel",
+      "description": "Add a panel filtering 'security_logs' by the 'target_ip' token",
+      "points": 20,
+      "visual_evidence": "Look for a panel in 'Detailed_IP_Investigation' showing logs or statistics. In edit mode, the search string for this panel must include 'index=security_logs' and the token '$target_ip$'."
+    },
+    {
+      "id": "drilldown_routing_configured",
+      "description": "Configure a drilldown from the summary table to the detailed dashboard passing the IP to 'form.target_ip'",
+      "points": 25,
+      "visual_evidence": "Look for the Splunk Drilldown Editor modal showing 'Link to dashboard', with 'Detailed_IP_Investigation' selected, and a parameter named 'form.target_ip' being set (e.g., to $click.value2$ or $row.src_ip$). Alternatively, look for a screenshot showing the detailed dashboard successfully opened with an IP address automatically populated in the text input after a click."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web UI to create and configure the dashboards",
+      "visual_evidence": "Screenshots should show the Splunk web interface (http://localhost:8000) with standard UI elements like the 'Edit' button, 'Add Panel', and 'Drilldown Editor', rather than a terminal window editing SimpleXML files directly."
+    },
+    {
+      "id": "genuine_splunk_elements",
+      "description": "Agent interacted with the actual Splunk application",
+      "visual_evidence": "The dashboards must display genuine Splunk UI components (menus, search bars, visualization formatting menus) and not mocked HTML pages or text editors."
+    },
+    {
+      "id": "real_data_queried",
+      "description": "Agent queried actual data rather than hardcoding results",
+      "visual_evidence": "The table panel should show realistic IP addresses and event counts indicating a real search against the 'security_logs' index, rather than static, manually typed text panels."
+    }
+  ],
+  "privileged_info_for_vlm": "The summary dashboard must be named exactly 'Global_Threat_Overview'. The detailed dashboard must be named exactly 'Detailed_IP_Investigation'. The text input token in the detailed dashboard must be 'target_ip'. The drilldown must pass the clicked value to the parameter 'form.target_ip'."
+}

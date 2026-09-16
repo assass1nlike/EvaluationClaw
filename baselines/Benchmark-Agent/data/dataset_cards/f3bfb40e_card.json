@@ -1,0 +1,85 @@
+{
+  "dataset_id": "f3bfb40e",
+  "name": "Tile Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 33,
+  "description": "Dataset for tile anomaly detection, evaluating segmentation of anomalous regions in industrial tile images based on a text prompt.",
+  "card_text": "This dataset contains 33 samples of industrial tile images paired with textual prompts instructing the model to detect the anomaly region. Each sample includes an input image of a tile surface and a corresponding output binary mask that highlights the anomalous area. The task is formulated as image-conditioned segmentation: given an image and a short instruction, the model must produce a pixel-level mask localizing defects. The images are photographs of tiles, and the masks are co-registered with the input images. The dataset is designed for industrial visual inspection, specifically for quality control in tile manufacturing.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A photograph of a tile surface, potentially containing anomalies such as cracks, stains, or irregularities. This image is the primary visual input that the model examines to identify defect regions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short textual instruction that asks the model to detect and localize the anomaly region in the accompanying tile image. It specifies the task without providing additional details about the defect type.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary segmentation mask image that marks the anomalous region within the tile. The mask is aligned with the input image and indicates the exact pixels belonging to the defect, providing the ground-truth target for the segmentation task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image of a tile, a short text prompt instructing anomaly region detection, and an output mask image that localizes the anomaly. The mask is spatially aligned with the input image. No other contextual or auxiliary fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/TileAnomalyDetection/tile_anomaly_detection.json",
+    "existing_tags": {
+      "task": "tile anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

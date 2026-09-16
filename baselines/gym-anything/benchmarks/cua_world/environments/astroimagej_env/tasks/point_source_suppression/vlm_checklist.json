@@ -1,0 +1,59 @@
+{
+  "task_id": "point_source_suppression@1",
+  "task_completion": [
+    {
+      "id": "load_original_image",
+      "description": "The agent opened AstroImageJ and loaded the eagle_ha_656nmos.fits image.",
+      "points": 10,
+      "visual_evidence": "AstroImageJ interface is visible with an image window displaying 'eagle_ha_656nmos.fits'."
+    },
+    {
+      "id": "measure_original_max",
+      "description": "The agent measured the maximum pixel intensity of the original image.",
+      "points": 15,
+      "visual_evidence": "AstroImageJ 'Results' window, histogram, or status bar showing the 'Max' value for the original image."
+    },
+    {
+      "id": "apply_median_filter",
+      "description": "The agent applied a spatial Median filter to the image.",
+      "points": 20,
+      "visual_evidence": "A 'Median' filter dialog box is open, or the image window shows a visibly smoothed version of the nebula with stars erased/blurred."
+    },
+    {
+      "id": "measure_filtered_max",
+      "description": "The agent measured the maximum pixel intensity of the filtered image.",
+      "points": 15,
+      "visual_evidence": "AstroImageJ 'Results' window, histogram, or status bar showing the 'Max' value for the newly filtered image."
+    },
+    {
+      "id": "save_filtered_image",
+      "description": "The agent saved the filtered image as starless_ha.fits.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog box showing the filename 'starless_ha.fits' or a file manager/terminal showing the file exists in the nebula_analysis directory."
+    },
+    {
+      "id": "create_stats_file",
+      "description": "The agent created suppression_stats.txt with the three required lines.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window showing the creation of 'suppression_stats.txt' containing exactly 'Original_Max:', 'Filtered_Max:', and 'Median_Radius_Used:' with their corresponding values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage_verification",
+      "description": "The agent used the AstroImageJ GUI for all processing as requested, rather than external scripts.",
+      "visual_evidence": "Screenshots show active interaction with AstroImageJ menus, dialogs, and windows. There should be no evidence of Python scripts, ImageMagick, or other CLI image processing tools being executed in a terminal."
+    },
+    {
+      "id": "authentic_measurements",
+      "description": "The values recorded in the text file match the actual measurements obtained in AstroImageJ.",
+      "visual_evidence": "The numerical values for Original_Max and Filtered_Max in the text file visually match the numbers displayed in the AstroImageJ Results or Histogram windows in earlier screenshots."
+    },
+    {
+      "id": "authentic_radius_recording",
+      "description": "The median radius recorded in the text file matches the radius used in the AstroImageJ Median filter dialog.",
+      "visual_evidence": "The value for 'Median_Radius_Used' in the text file matches the radius value entered in the AstroImageJ Median filter configuration dialog."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output FITS file must be saved at /home/ga/AstroImages/nebula_analysis/starless_ha.fits. The expected text file must be saved at /home/ga/AstroImages/nebula_analysis/suppression_stats.txt. The original image is of the Eagle Nebula (M16) in H-alpha from the Hubble Space Telescope."
+}

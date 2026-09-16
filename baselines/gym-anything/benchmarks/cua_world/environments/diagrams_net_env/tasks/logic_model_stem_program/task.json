@@ -1,0 +1,65 @@
+{
+  "id": "logic_model_stem_program@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Program Director creating a Logic Model for a grant proposal based on the program details in '~/Desktop/grant_narrative.txt'. Create a Logic Model diagram saved as '~/Diagrams/stem_logic_model.drawio' and exported as '~/Diagrams/stem_logic_model.pdf'. The diagram must feature five distinct columns labeled 'Inputs', 'Activities', 'Outputs', 'Outcomes', and 'Impact', with items from the narrative categorized accordingly and arrows showing the flow from left to right.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/logic_model_stem_program/setup_task.sh",
+    "post_task": "/workspace/tasks/logic_model_stem_program/export_result.sh"
+  },
+  "metadata": {
+    "narrative_path": "/home/ga/Desktop/grant_narrative.txt",
+    "expected_drawio_path": "/home/ga/Diagrams/stem_logic_model.drawio",
+    "expected_pdf_path": "/home/ga/Diagrams/stem_logic_model.pdf",
+    "required_headers": [
+      "Inputs",
+      "Activities",
+      "Outputs",
+      "Outcomes",
+      "Impact"
+    ],
+    "key_terms": {
+      "inputs": [
+        "$500,000",
+        "$500k",
+        "500,000",
+        "TechFoundation",
+        "12 staff",
+        "Library"
+      ],
+      "activities": [
+        "Python curriculum",
+        "bootcamps",
+        "hackathons"
+      ],
+      "outputs": [
+        "200 students",
+        "50 instructors",
+        "5,000 hours",
+        "5000 hours"
+      ],
+      "outcomes": [
+        "math scores",
+        "logic scores",
+        "confidence"
+      ],
+      "impact": [
+        "diverse workforce",
+        "unemployment",
+        "reduce unemployment"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_logic_model_stem_program"
+    }
+  }
+}

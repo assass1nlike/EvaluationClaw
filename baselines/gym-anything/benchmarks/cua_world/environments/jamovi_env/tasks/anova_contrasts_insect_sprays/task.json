@@ -1,0 +1,27 @@
+{
+  "id": "anova_contrasts_insect_sprays@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "The 'InsectSprays.csv' dataset is open in Jamovi, containing insect counts for six spray types (A-F). Compare Spray 'C' against Spray 'F' by setting 'F' as the reference level and performing an ANOVA with simple contrasts. Save the project as '~/Documents/Jamovi/Spray_Contrasts.omv' and record the resulting t-statistic for the C vs F comparison in '~/Documents/Jamovi/contrast_report.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/anova_contrasts_insect_sprays/setup_task.sh",
+    "post_task": "/workspace/tasks/anova_contrasts_insect_sprays/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "Spray_Contrasts.omv",
+    "report_filename": "contrast_report.txt",
+    "dataset_path": "/home/ga/Documents/Jamovi/InsectSprays.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anova_contrasts"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "manufacturer_data_cleanup@1",
+  "task_completion": [
+    {
+      "id": "dell_consolidation",
+      "description": "Verify that Dell models (Optiplex, Latitude) are reassigned to the canonical 'Dell' manufacturer and the duplicate 'Dell Inc.' is deleted.",
+      "points": 32,
+      "visual_evidence": "Look for the Asset Models page showing 'Optiplex' and 'Latitude' associated with 'Dell'. Check the Manufacturers list to ensure 'Dell Inc.' is no longer present."
+    },
+    {
+      "id": "hp_consolidation",
+      "description": "Verify that HP models (Probook, EliteDisplay) are reassigned to the canonical 'HP Inc.' manufacturer and the duplicate 'Hewlett-Packard' is deleted.",
+      "points": 28,
+      "visual_evidence": "Look for the Asset Models page showing 'Probook' and 'EliteDisplay' associated with 'HP Inc.'. Check the Manufacturers list to ensure 'Hewlett-Packard' is no longer present."
+    },
+    {
+      "id": "lenovo_consolidation",
+      "description": "Verify that Lenovo models (Thinkpad) are reassigned to the canonical 'Lenovo' manufacturer and the duplicate 'Lenovo Group' is deleted.",
+      "points": 16,
+      "visual_evidence": "Look for the Asset Models page showing 'Thinkpad' associated with 'Lenovo'. Check the Manufacturers list to ensure 'Lenovo Group' is no longer present."
+    },
+    {
+      "id": "cisco_manufacturer_created",
+      "description": "Verify that 'Cisco Systems' is registered as a new manufacturer with the correct contact details.",
+      "points": 8,
+      "visual_evidence": "Look for 'Cisco Systems' in the Manufacturers list or its details page. It should display URL: https://www.cisco.com, Support URL: https://www.cisco.com/c/en/us/support/index.html, Phone: 1-800-553-2447, and Email: tac@cisco.com."
+    },
+    {
+      "id": "cisco_model_created",
+      "description": "Verify that the 'Catalyst 9300' asset model is created under the 'Cisco Systems' manufacturer and 'Networking' category.",
+      "points": 8,
+      "visual_evidence": "Look for 'Catalyst 9300' in the Asset Models list, showing 'Cisco Systems' as the manufacturer and 'Networking' as the category."
+    },
+    {
+      "id": "assets_intact",
+      "description": "Verify that no existing assets were deleted or orphaned during the manufacturer consolidation process.",
+      "points": 8,
+      "visual_evidence": "Look at the All Assets page or Dashboard to ensure the total number of assets is preserved and there are no error messages indicating missing or orphaned assets."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "web_ui_used",
+      "description": "Verify the agent used the Snipe-IT web interface to perform the tasks.",
+      "visual_evidence": "Look for browser windows navigating the Snipe-IT application. The agent should not be using terminal windows to execute raw SQL queries or API scripts to manipulate the database directly."
+    },
+    {
+      "id": "genuine_form_interaction",
+      "description": "Verify the agent interacted with the actual application forms to make changes.",
+      "visual_evidence": "Look for screenshots showing the agent actively filling out the 'Create Manufacturer' form, 'Edit Asset Model' form, or clicking the delete buttons in the UI."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Verify the agent did not use browser developer tools to fake the UI.",
+      "visual_evidence": "Ensure the browser developer tools (Inspect Element) are not open and being used to alter text on the page to make it look like the task was completed."
+    }
+  ],
+  "privileged_info_for_vlm": "Canonical manufacturers to keep: 'Dell', 'HP Inc.', 'Lenovo'. Duplicate manufacturers to delete: 'Dell Inc.', 'Hewlett-Packard', 'Lenovo Group'. Cisco Systems details: URL (https://www.cisco.com), Support URL (https://www.cisco.com/c/en/us/support/index.html), Phone (1-800-553-2447), Email (tac@cisco.com). Cisco model: 'Catalyst 9300' in 'Networking' category."
+}

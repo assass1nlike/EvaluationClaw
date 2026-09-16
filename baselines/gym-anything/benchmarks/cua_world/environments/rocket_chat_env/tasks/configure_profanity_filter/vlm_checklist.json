@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_profanity_filter@1",
+  "task_completion": [
+    {
+      "id": "login_rocketchat",
+      "description": "The agent logged into Rocket.Chat.",
+      "points": 10,
+      "visual_evidence": "The Rocket.Chat main interface is visible in the browser, indicating successful login as the admin user."
+    },
+    {
+      "id": "navigate_message_settings",
+      "description": "The agent navigated to the Message settings in the Administration panel.",
+      "points": 10,
+      "visual_evidence": "The Administration workspace is open, and the 'Message' settings section is selected and visible."
+    },
+    {
+      "id": "enable_bad_words_filter",
+      "description": "The agent enabled the bad words filter.",
+      "points": 20,
+      "visual_evidence": "A toggle switch or checkbox for the bad words filter (often labeled 'Allow Bad Words Filter') is in the enabled/on position."
+    },
+    {
+      "id": "add_restricted_words",
+      "description": "The agent added the required restricted words to the filter list.",
+      "points": 30,
+      "visual_evidence": "The text input field for the bad words filter list contains exactly the words 'classified', 'confidential', 'proprietary', and 'restricted' (typically comma-separated or newline-separated)."
+    },
+    {
+      "id": "save_configuration",
+      "description": "The agent saved the settings configuration.",
+      "points": 10,
+      "visual_evidence": "A 'Save changes' button is clicked, or a success toast/notification indicating that the settings were updated successfully is visible."
+    },
+    {
+      "id": "test_filter_general_channel",
+      "description": "The agent verified the filter by posting a test message in the #general channel.",
+      "points": 20,
+      "visual_evidence": "The #general channel is open, and a message sent by the user is visible in the chat history. The message must contain the word 'classified' or its censored equivalent (e.g., asterisks like '**********') demonstrating the filter is active."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Rocket.Chat web interface to configure the settings.",
+      "visual_evidence": "Screenshots show the web browser with the Rocket.Chat UI being interacted with, rather than a terminal window executing API curl commands or database scripts."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Rocket.Chat application.",
+      "visual_evidence": "The browser address bar shows 'localhost:3000' and the standard Rocket.Chat interface is present, not a text editor or a mock UI."
+    },
+    {
+      "id": "message_actually_sent",
+      "description": "The test message was actually posted to the channel, not just typed.",
+      "visual_evidence": "The test message appears in the main chat history area of the #general channel, rather than just sitting unsent in the message composer input box."
+    }
+  ],
+  "privileged_info_for_vlm": "The required words to be added to the bad words filter list are exactly: 'classified', 'confidential', 'proprietary', and 'restricted'. The test channel must be '#general'. The internal setting IDs are 'Message_AllowBadWordsFilter' and 'Message_BadWordsFilterList', which correspond to the profanity filter toggle and word list in the UI."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "build_genomic_voice_search@1",
+  "task_completion": [
+    {
+      "id": "files_created",
+      "description": "Verify that the genomics package directory and required files are created.",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer or code editor showing the directory 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\genomics\\' containing two files: 'genomics.py' and 'genomics.talon'."
+    },
+    {
+      "id": "parse_nucleotides_action",
+      "description": "Verify the 'user.parse_nucleotides' action is defined to map nucleotide names to single-letter codes.",
+      "points": 15,
+      "visual_evidence": "In 'genomics.py', look for a function 'parse_nucleotides' that takes a text input, ignores non-nucleotide words, and maps 'adenine', 'cytosine', 'guanine', 'thymine', and 'uracil' to 'A', 'C', 'G', 'T', and 'U' respectively."
+    },
+    {
+      "id": "type_sequence_action",
+      "description": "Verify the 'user.type_sequence' action is defined to parse and insert the sequence.",
+      "points": 15,
+      "visual_evidence": "In 'genomics.py', look for a function 'type_sequence' that calls the nucleotide parsing logic and inserts the resulting string (e.g., using 'actions.insert()')."
+    },
+    {
+      "id": "search_motif_action",
+      "description": "Verify the 'user.search_motif' action is defined with the correct file reading, length checking, and insertion logic.",
+      "points": 40,
+      "visual_evidence": "In 'genomics.py', look for a function 'search_motif' that: 1) Checks if the parsed sequence length is < 4 and triggers a 'Motif too short' notification (e.g., using 'app.notify'). 2) Opens 'C:\\workspace\\data\\reference.fasta'. 3) Ignores header lines (e.g., lines starting with '>') and strips line breaks. 4) Searches for the sequence and inserts it followed by '[FOUND]' if present, or '[MISSING]' if not."
+    },
+    {
+      "id": "talon_commands",
+      "description": "Verify the voice commands are correctly defined in the Talon file.",
+      "points": 20,
+      "visual_evidence": "In 'genomics.talon', look for the exact voice commands 'dictate sequence <user.text>:' and 'search motif <user.text>:' mapped to call 'user.type_sequence(text)' and 'user.search_motif(text)' respectively."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_directory",
+      "description": "Verify the files are created in the correct Talon user directory.",
+      "visual_evidence": "Check the file path in the editor or terminal to ensure it is exactly 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\genomics\\' and not a mock or temporary workspace folder."
+    },
+    {
+      "id": "dynamic_search_logic",
+      "description": "Verify the search logic dynamically reads the FASTA file.",
+      "visual_evidence": "Ensure the Python code actually opens and reads the contents of 'reference.fasta' to perform a string search, rather than hardcoding specific sequences to return '[FOUND]' or '[MISSING]'."
+    },
+    {
+      "id": "proper_talon_syntax",
+      "description": "Verify the Talon file uses correct syntax.",
+      "visual_evidence": "Ensure 'genomics.talon' uses proper Talon syntax (e.g., command followed by a colon, with indented action calls on the next lines) rather than plain text descriptions."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "annotate_wells_with_elevation@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Enrich the 'monitoring_wells' point layer with surface elevation data from the 'SRTM_Elevation' raster layer. Sample the raster values using the prefix 'elevation' for the new field and export the resulting layer to /home/ga/GIS_Data/exports/wells_with_elevation.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/annotate_wells_with_elevation/setup_task.sh",
+    "post_task": "/workspace/tasks/annotate_wells_with_elevation/export_result.sh"
+  },
+  "metadata": {
+    "raster_path": "/home/ga/GIS_Data/rasters/SRTM_Elevation.tif",
+    "vector_path": "/home/ga/GIS_Data/vectors/monitoring_wells.geojson",
+    "expected_output_path": "/home/ga/GIS_Data/exports/wells_with_elevation.geojson",
+    "expected_field_name": "elevation"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annotate_wells_with_elevation"
+    }
+  }
+}

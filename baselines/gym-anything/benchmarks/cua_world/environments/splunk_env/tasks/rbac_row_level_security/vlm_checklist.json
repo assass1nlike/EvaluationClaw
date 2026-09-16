@@ -1,0 +1,53 @@
+{
+  "task_id": "rbac_row_level_security@1",
+  "task_completion": [
+    {
+      "id": "create_role_compliance_auditor",
+      "description": "Create a new role named 'compliance_auditor' that inherits from the 'user' role.",
+      "points": 20,
+      "visual_evidence": "In the Splunk Settings > Roles page or role creation screen, the role name 'compliance_auditor' is visible, and the 'user' role is selected under the inheritance settings."
+    },
+    {
+      "id": "restrict_role_index",
+      "description": "Restrict the 'compliance_auditor' role's access exclusively to the 'security_logs' index for both allowed and default indexes.",
+      "points": 20,
+      "visual_evidence": "In the role configuration screen (Indexes tab), 'security_logs' is selected as both an Included (allowed) and Default index, and no other indexes are selected."
+    },
+    {
+      "id": "apply_search_filter",
+      "description": "Apply a search filter to the 'compliance_auditor' role that limits results to events containing the keyword 'Accepted'.",
+      "points": 20,
+      "visual_evidence": "In the role configuration screen (Restrictions or Search filter section), the keyword 'Accepted' is entered into the search filter field."
+    },
+    {
+      "id": "create_user_auditor_joe",
+      "description": "Create a new user named 'auditor_joe'.",
+      "points": 20,
+      "visual_evidence": "In the Splunk Settings > Users page or user creation screen, the username 'auditor_joe' is visible."
+    },
+    {
+      "id": "assign_user_role",
+      "description": "Assign the user 'auditor_joe' exclusively to the 'compliance_auditor' role.",
+      "points": 20,
+      "visual_evidence": "In the user configuration screen or the Users list, 'compliance_auditor' is shown as the ONLY role assigned to 'auditor_joe' (the default 'user' role should not be directly assigned if 'compliance_auditor' is the only one requested)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web GUI to configure roles and users rather than executing terminal commands.",
+      "visual_evidence": "Screenshots show navigation through the Splunk Web interface (Settings > Roles, Settings > Users) rather than a terminal window running curl or REST API commands."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Agent interacted with the actual Splunk application.",
+      "visual_evidence": "The standard Splunk interface elements (black navigation bar, Splunk logo, settings menus) are clearly visible."
+    },
+    {
+      "id": "correct_field_input",
+      "description": "Agent entered the required values into the correct configuration fields rather than just typing them into a search bar or text editor.",
+      "visual_evidence": "Values like 'compliance_auditor', 'security_logs', and 'Accepted' are typed into their respective dedicated form fields in the Splunk settings menus."
+    }
+  ],
+  "privileged_info_for_vlm": "The role must be named exactly 'compliance_auditor'. The user must be named exactly 'auditor_joe'. The allowed and default index must be restricted to 'security_logs'. The search filter applied to the role must contain the keyword 'Accepted'."
+}

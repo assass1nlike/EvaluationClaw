@@ -1,0 +1,53 @@
+{
+  "task_id": "credit_card_rewards_fifo_liability@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database as rewards_admin",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., SQL Developer, DBeaver, or SQL*Plus terminal) showing an active connection as 'rewards_admin' to 'XEPDB1' at localhost:1521."
+    },
+    {
+      "id": "create_vw_fifo_point_balances",
+      "description": "Create the VW_FIFO_POINT_BALANCES view",
+      "points": 20,
+      "visual_evidence": "SQL script or execution output showing the creation of 'VW_FIFO_POINT_BALANCES' with the required columns: cust_id, earn_id, transaction_date, points_amount, expire_date, and remaining_points."
+    },
+    {
+      "id": "create_proc_expire_points",
+      "description": "Create the PROC_EXPIRE_POINTS PL/SQL procedure",
+      "points": 25,
+      "visual_evidence": "SQL script or compilation output showing the 'PROC_EXPIRE_POINTS' procedure being created, with a DATE parameter and logic inserting into 'EXPIRED_POINTS_LOG' using 'EXPIRE_LOG_SEQ'."
+    },
+    {
+      "id": "execute_proc_expire_points",
+      "description": "Execute the expiration procedure for 2024-12-31",
+      "points": 15,
+      "visual_evidence": "Execution command (e.g., EXEC PROC_EXPIRE_POINTS('2024-12-31')) and a success message indicating the procedure completed successfully."
+    },
+    {
+      "id": "create_rewards_liability_mv",
+      "description": "Create the REWARDS_LIABILITY_MV materialized view",
+      "points": 30,
+      "visual_evidence": "SQL script or execution output showing the creation of materialized view 'REWARDS_LIABILITY_MV' with columns cust_id, tier_level, active_points, and financial_liability, including the calculation multiplying points by 0.0125."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacted with a real database client or terminal",
+      "visual_evidence": "Screenshots show a genuine database client interface (like Oracle SQL Developer, DBeaver) or a terminal running SQL*Plus, not just a text editor with SQL code."
+    },
+    {
+      "id": "authentic_execution_output",
+      "description": "Agent actually executed the SQL commands",
+      "visual_evidence": "Presence of database execution feedback such as 'View created', 'Procedure compiled', or 'Materialized view created' in the output console."
+    },
+    {
+      "id": "no_hardcoded_mocking",
+      "description": "Agent did not hardcode the final results",
+      "visual_evidence": "The SQL commands show actual algorithmic logic (window functions, joins, math operations) rather than simple INSERT statements with hardcoded mock data."
+    }
+  ],
+  "privileged_info_for_vlm": "The liability rate to be used in the materialized view is exactly $0.0125 per point. The expected output file path is /tmp/rewards_liability_result.json. The database connection must be rewards_admin/Rewards2024 to XEPDB1 at localhost:1521."
+}

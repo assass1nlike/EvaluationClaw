@@ -1,0 +1,32 @@
+{
+  "id": "deploy_exploded_archive@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Deploy the Javadoc archive 'commons-lang3-javadoc.jar' from the Desktop to the 'example-repo-local' repository. The deployment must use the target path 'javadocs/commons-lang3' and the archive must be exploded so that the extracted HTML files (e.g., index.html) are available at that location.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deploy_exploded_archive/setup_task.sh",
+    "post_task": "/workspace/tasks/deploy_exploded_archive/export_result.sh"
+  },
+  "metadata": {
+    "artifact_path": "/home/ga/Desktop/commons-lang3-javadoc.jar",
+    "repo_key": "example-repo-local",
+    "target_folder": "javadocs/commons-lang3",
+    "expected_files": [
+      "index.html",
+      "element-list",
+      "help-doc.html"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deploy_exploded_archive"
+    }
+  }
+}

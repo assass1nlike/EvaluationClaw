@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_authorized_ssh_whitelist@1",
+  "task_completion": [
+    {
+      "id": "create_cdb_list",
+      "description": "Create the CDB list file containing the authorized user 'ga'.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the creation or content of '/var/ossec/etc/lists/authorized_users' (e.g., via cat, nano, or echo) containing the user 'ga' (often in key:value format like 'ga:')."
+    },
+    {
+      "id": "register_list_ossec_conf",
+      "description": "Register the CDB list in the Wazuh manager configuration.",
+      "points": 15,
+      "visual_evidence": "Terminal showing 'ossec.conf' being edited or viewed, with an XML tag like '<list>/var/ossec/etc/lists/authorized_users</list>' added to the <ruleset> section."
+    },
+    {
+      "id": "create_custom_rule",
+      "description": "Configure the custom rule with the correct ID, level, and parent SID in local_rules.xml.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'local_rules.xml' being edited or viewed, containing a rule definition with '<rule id=\"100500\" level=\"12\">' and a child tag '<if_sid>5715</if_sid>'."
+    },
+    {
+      "id": "configure_rule_logic_and_desc",
+      "description": "Configure the rule to check the authorized_users list and set the correct description.",
+      "points": 20,
+      "visual_evidence": "Inside the rule 100500 definition in 'local_rules.xml', look for a list check (e.g., '<list field=\"dstuser\" lookup=\"not_match_key\">etc/lists/authorized_users</list>') and the exact description tag '<description>Unauthorized SSH user login detected</description>'."
+    },
+    {
+      "id": "apply_changes",
+      "description": "Apply all changes by restarting the Wazuh manager.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command executed to restart the service, such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart'."
+    },
+    {
+      "id": "verify_with_logtest",
+      "description": "Verify the logic using the provided sample logs.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the Wazuh logtest tool (e.g., '/var/ossec/bin/wazuh-logtest') processing the file '/home/ga/ssh_test_logs.txt', with the output clearly showing rule 100500 triggering an alert for the unauthorized user."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "The agent genuinely modified the Wazuh configuration files.",
+      "visual_evidence": "Look for the use of standard text editors (nano, vim) or shell redirection (>, >>) to modify ossec.conf and local_rules.xml, rather than just printing the expected XML to the console."
+    },
+    {
+      "id": "genuine_log_testing",
+      "description": "The agent used the actual Wazuh logtest utility to verify the logs.",
+      "visual_evidence": "The terminal should show the authentic output format of 'wazuh-logtest' (showing phases like 'Phase 1: Completed pre-decoding', 'Phase 2: Completed decoding', 'Phase 3: Completed filtering (rules)'), not a mocked or manually typed output."
+    },
+    {
+      "id": "no_fake_success_scripts",
+      "description": "The agent did not create fake scripts to simulate the restart or logtest process.",
+      "visual_evidence": "Commands executed should be standard system commands and Wazuh binaries located in their proper directories (e.g., /var/ossec/bin/), without suspicious wrapper scripts being created or executed."
+    }
+  ],
+  "privileged_info_for_vlm": "Authorized user is 'ga'. Unauthorized user is 'intruder'. The custom rule ID must be 100500, with parent SID 5715. The CDB list path is '/var/ossec/etc/lists/authorized_users'."
+}

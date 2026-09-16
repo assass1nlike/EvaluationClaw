@@ -1,0 +1,53 @@
+{
+  "task_id": "neutralize_css_fingerprinting@1",
+  "task_completion": [
+    {
+      "id": "configure_fonts",
+      "description": "Verify that the agent configures Tor Browser to strictly enforce local fonts.",
+      "points": 20,
+      "visual_evidence": "In Tor Browser Settings -> General -> Fonts -> Advanced, the checkbox 'Allow pages to choose their own fonts, instead of your selections above' is unchecked. Alternatively, in about:config, the preference 'browser.display.use_document_fonts' is set to 0."
+    },
+    {
+      "id": "configure_colors",
+      "description": "Verify that the agent configures Tor Browser to override all page colors.",
+      "points": 20,
+      "visual_evidence": "In Tor Browser Settings -> General -> Colors, the dropdown for 'Override the colors specified by the page with your selections above' is set to 'Always'. Alternatively, in about:config, the preference 'browser.display.document_color_use' is set to 2."
+    },
+    {
+      "id": "configure_smooth_scrolling",
+      "description": "Verify that the agent disables smooth scrolling in Tor Browser.",
+      "points": 20,
+      "visual_evidence": "In Tor Browser Settings -> General -> Browsing, the checkbox 'Use smooth scrolling' is unchecked. Alternatively, in about:config, the preference 'general.smoothScroll' is set to false."
+    },
+    {
+      "id": "navigate_to_honeypot",
+      "description": "Verify that the agent navigates to the local tracking payload.",
+      "points": 20,
+      "visual_evidence": "The Tor Browser address bar displays exactly 'file:///home/ga/Documents/css_tracking_honeypot.html' and the page content is rendered in the viewport."
+    },
+    {
+      "id": "save_safe_render_screenshot",
+      "description": "Verify that the agent saves a screenshot of the neutralized page to the specified path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog, screenshot utility interface, or file manager showing an image file named 'safe_render.png' being saved to or existing in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "security_level_unchanged",
+      "description": "Ensure the agent did not change the Tor Browser security level slider to bypass the task.",
+      "visual_evidence": "The Tor Browser security shield icon in the toolbar does not indicate a heightened security level (it should remain at the default 'Standard' state), and there are no screenshots showing the Security Level settings being changed to 'Safer' or 'Safest'."
+    },
+    {
+      "id": "genuine_browser_used",
+      "description": "Ensure the agent used Tor Browser to render the page.",
+      "visual_evidence": "The application rendering the HTML file is clearly Tor Browser (identifiable by its UI, onion logo, or window title), not a text editor or a different web browser."
+    },
+    {
+      "id": "gui_interaction_for_screenshot",
+      "description": "Ensure the screenshot was captured genuinely and not faked via terminal commands.",
+      "visual_evidence": "Evidence of a screenshot tool (like GNOME Screenshot, Firefox's built-in screenshot tool, or a valid CLI screenshot command like 'import' or 'scrot' capturing the screen) being used, rather than just creating a dummy file with 'touch /home/ga/Documents/safe_render.png'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output screenshot path is exactly '/home/ga/Documents/safe_render.png'. The required browser configurations map to the following Mozilla Firefox preferences: 'browser.display.use_document_fonts' must be 0 (completely disables page-specified fonts), 'browser.display.document_color_use' must be 2 (forces custom color overrides always), and 'general.smoothScroll' must be false (disables smooth scrolling)."
+}

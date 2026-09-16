@@ -1,0 +1,53 @@
+{
+  "task_id": "process_contra_entry@1",
+  "task_completion": [
+    {
+      "id": "create_customer_record",
+      "description": "Verify that a new Customer record has been created for 'Exotic Liquids'.",
+      "points": 20,
+      "visual_evidence": "Look for a screen showing the 'Customers' list with 'Exotic Liquids' present, or a completed Customer creation form for 'Exotic Liquids'."
+    },
+    {
+      "id": "initiate_journal_entry",
+      "description": "Verify that a Journal Entry form has been opened and dated today.",
+      "points": 10,
+      "visual_evidence": "Look for a Journal Entry creation or edit screen with the 'Date' field populated with the current date."
+    },
+    {
+      "id": "journal_entry_narration",
+      "description": "Verify that the narration 'Contra entry offset' is entered.",
+      "points": 10,
+      "visual_evidence": "Look for the exact text 'Contra entry offset' visible in the 'Narration' or 'Description' field of the Journal Entry."
+    },
+    {
+      "id": "debit_accounts_payable",
+      "description": "Verify that the Journal Entry debits Accounts Payable for 'Exotic Liquids' by $200.00.",
+      "points": 30,
+      "visual_evidence": "Look for a line item in the Journal Entry with the Account set to 'Accounts Payable', the sub-account/supplier set to 'Exotic Liquids', and '200.00' in the Debit column."
+    },
+    {
+      "id": "credit_accounts_receivable",
+      "description": "Verify that the Journal Entry credits Accounts Receivable for 'Exotic Liquids' by $200.00.",
+      "points": 30,
+      "visual_evidence": "Look for a line item in the Journal Entry with the Account set to 'Accounts Receivable', the sub-account/customer set to 'Exotic Liquids', and '200.00' in the Credit column."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_manager_gui",
+      "description": "Verify the agent interacted with the Manager.io web interface.",
+      "visual_evidence": "The browser should be open to http://localhost:8080 showing the Manager.io interface, not a terminal or text editor making API calls."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Verify the agent actually filled out the forms in the application.",
+      "visual_evidence": "Screenshots should show the agent navigating through the Manager.io menus (e.g., Customers, Journal Entries) and typing into the form fields."
+    },
+    {
+      "id": "no_script_execution",
+      "description": "Verify the agent did not use a script or terminal command to bypass the UI.",
+      "visual_evidence": "Absence of terminal windows running scripts (like curl or python) to directly inject the journal entry into the database."
+    }
+  ],
+  "privileged_info_for_vlm": "The application is Manager.io running at http://localhost:8080. The target entity is 'Exotic Liquids'. The offset amount is exactly 200.00. The journal entry must debit 'Accounts Payable' and credit 'Accounts Receivable' for the 'Exotic Liquids' sub-accounts."
+}

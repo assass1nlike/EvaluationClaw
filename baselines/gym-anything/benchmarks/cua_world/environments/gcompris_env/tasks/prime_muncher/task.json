@@ -1,0 +1,49 @@
+{
+  "id": "prime_muncher@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Number Munchers' activity in GCompris and play the 'Primes' level. Eat only prime numbers while avoiding enemies to achieve a score of at least 20 points. Save a screenshot of the high score to ~/Documents/high_score.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/prime_muncher/setup_task.sh",
+    "post_task": "/workspace/tasks/prime_muncher/export_result.sh"
+  },
+  "metadata": {
+    "target_score": 20,
+    "activity_name": "Number Munchers",
+    "internal_name": "gnumch",
+    "category_path": [
+      "Math",
+      "Calculation"
+    ],
+    "prime_examples": [
+      2,
+      3,
+      5,
+      7,
+      11,
+      13,
+      17,
+      19,
+      23,
+      29,
+      31,
+      37,
+      41,
+      43,
+      47,
+      53
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_prime_muncher"
+    }
+  }
+}

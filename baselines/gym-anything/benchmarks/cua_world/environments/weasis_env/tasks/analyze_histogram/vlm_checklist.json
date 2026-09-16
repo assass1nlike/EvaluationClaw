@@ -1,0 +1,59 @@
+{
+  "task_id": "analyze_histogram@1",
+  "task_completion": [
+    {
+      "id": "dicom_viewer_active",
+      "description": "Verify the DICOM viewer is open and displaying the loaded image.",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application is visible on the screen with a medical image loaded."
+    },
+    {
+      "id": "statistics_tool_opened",
+      "description": "Verify the histogram or pixel statistics tool has been opened in the DICOM viewer.",
+      "points": 20,
+      "visual_evidence": "A dialog, panel, or window showing image statistics, ROI statistics, or a histogram is visible within the DICOM viewer."
+    },
+    {
+      "id": "statistics_visible",
+      "description": "Verify the min, max, and mean pixel intensity values are displayed on the screen.",
+      "points": 20,
+      "visual_evidence": "The statistics panel clearly shows numerical values for minimum, maximum, and mean pixel intensities (often in HU)."
+    },
+    {
+      "id": "text_editor_opened",
+      "description": "Verify a text editor is opened to create the report.",
+      "points": 10,
+      "visual_evidence": "A text editor application (like Gedit, Nano, or VS Code) is visible on the screen."
+    },
+    {
+      "id": "report_formatted_correctly",
+      "description": "Verify the report contains the min, max, and mean values in the exact required format.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the text 'min: <value>', 'max: <value>', and 'mean: <value>' on separate lines."
+    },
+    {
+      "id": "file_saved_correct_path",
+      "description": "Verify the report is saved to the correct directory with the correct filename.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog or the text editor's title bar/file explorer shows the file being saved as 'histogram_report.txt' in the '~/DICOM/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_stats",
+      "description": "Verify the agent used the DICOM viewer GUI to obtain the statistics.",
+      "visual_evidence": "The statistics should be visible in the DICOM viewer's graphical interface, not extracted via terminal commands or scripts."
+    },
+    {
+      "id": "values_match_gui",
+      "description": "Verify the values entered in the report match the values displayed in the DICOM viewer.",
+      "visual_evidence": "The numbers typed into the text editor for min, max, and mean should correspond to the numbers shown in the DICOM viewer's statistics panel."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the agent manually created the file rather than using terminal shortcuts.",
+      "visual_evidence": "The agent should be seen interacting with a text editor GUI to type and save the file, rather than using 'echo' or 'cat' commands in the terminal to bypass GUI interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file: /home/ga/DICOM/exports/histogram_report.txt. The system evaluates the final values against a hidden ground truth with specific tolerances: +/- 50 HU for min and max, and +/- 100 HU for mean. The VLM should verify that the values entered in the text file match the statistics displayed in the DICOM viewer, allowing for minor rounding within these tolerances."
+}

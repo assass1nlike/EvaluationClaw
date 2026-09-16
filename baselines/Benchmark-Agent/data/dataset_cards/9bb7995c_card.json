@@ -1,0 +1,78 @@
+{
+  "dataset_id": "9bb7995c",
+  "name": "Garbage Classification",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 199,
+  "description": "The Garbage Classification dataset evaluates image-based recognition of waste types. Each sample provides a photograph of a garbage item and a prompt asking to identify its category, with the correct class label as the target.",
+  "card_text": "The Garbage Classification dataset is a multimodal benchmark consisting of 199 image–text–label triples. Each item includes a photograph (input.image_file) showing a single garbage object or small pile, a short textual prompt (input.prompt) that asks the model to recognize the type of garbage in the image, and a categorical label (output.prediction) such as 'organic' or 'paper'. The images are everyday objects photographed against simple backgrounds, and the labels come from a closed set of waste categories. The dataset tests fine-grained visual classification of common refuse items, where the textual prompt is a fixed instruction rather than a variable question. It assumes a single dominant object per image and a discrete, mutually exclusive set of classes.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "waste management",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Photograph of a garbage item or small cluster of waste, serving as the visual input to be classified. It typically shows one dominant object in a simple scene.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Short imperative prompt asking the model to recognize the type of garbage in the image. It provides the task instruction and links the visual input to the expected label.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.prediction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Single-word categorical label (e.g., organic, paper) that indicates the correct garbage type for the image. It is the target output for the classification task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference (input.image_file) that points to a photograph of a garbage item, a short text prompt (input.prompt) instructing the model to recognize the garbage type, and a categorical label (output.prediction) specifying the correct class. The prompt is a fixed instruction that directs the model to classify the image, and the label serves as the target answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/garbage_classification/json/annotation.json",
+    "existing_tags": {
+      "task": "Garbage Classification",
+      "type": "comprehension",
+      "skill": "Object Recognition(Object Recog)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

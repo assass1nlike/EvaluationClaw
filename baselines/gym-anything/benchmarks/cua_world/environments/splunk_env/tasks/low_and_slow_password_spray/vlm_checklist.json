@@ -1,0 +1,59 @@
+{
+  "task_id": "low_and_slow_password_spray@1",
+  "task_completion": [
+    {
+      "id": "search_security_logs",
+      "description": "Search the security_logs index in Splunk",
+      "points": 10,
+      "visual_evidence": "Look for the Splunk Search & Reporting interface with a query starting with or including 'index=\"security_logs\"' or 'index=security_logs'."
+    },
+    {
+      "id": "password_spray_query_logic",
+      "description": "Formulate the SPL query with distinct user and ratio thresholds",
+      "points": 20,
+      "visual_evidence": "Look for a Splunk search query containing statistical functions for distinct users (e.g., 'dc(user)') and failed attempts, along with filtering logic checking for >= 5 users and a ratio of < 3."
+    },
+    {
+      "id": "create_scheduled_alert",
+      "description": "Create a scheduled alert named 'Password_Spray_Detection'",
+      "points": 20,
+      "visual_evidence": "Look for the 'Save As Alert' configuration modal or the Splunk Alerts page showing an alert explicitly named 'Password_Spray_Detection'."
+    },
+    {
+      "id": "create_dashboard",
+      "description": "Create a dashboard named 'Password_Spray_Dashboard'",
+      "points": 10,
+      "visual_evidence": "Look for the Splunk Dashboards page or a dashboard view with the title 'Password_Spray_Dashboard'."
+    },
+    {
+      "id": "dashboard_panel_one",
+      "description": "Add a first visualization panel to the dashboard",
+      "points": 20,
+      "visual_evidence": "Look for at least one visualization panel (e.g., table, bar chart, timechart, or single value) rendered within the 'Password_Spray_Dashboard' depicting password spray activity."
+    },
+    {
+      "id": "dashboard_panel_two",
+      "description": "Add a second visualization panel to the dashboard",
+      "points": 20,
+      "visual_evidence": "Look for a second, distinct visualization panel rendered within the 'Password_Spray_Dashboard', confirming that at least two panels are present on the dashboard."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_gui",
+      "description": "The agent interacted with the Splunk Web GUI rather than bypassing it with terminal scripts",
+      "visual_evidence": "Look for screenshots showing the Splunk Web interface in a browser (http://localhost:8000), rather than just terminal windows executing curl commands or Python scripts."
+    },
+    {
+      "id": "genuine_dashboard_creation",
+      "description": "The dashboard was created within Splunk, not mocked up externally",
+      "visual_evidence": "Look for the standard Splunk dashboard UI elements (e.g., 'Edit', 'Export', Splunk navigation bar) surrounding the dashboard panels."
+    },
+    {
+      "id": "actual_data_rendered",
+      "description": "The visualizations render actual Splunk data or valid configurations",
+      "visual_evidence": "Look for panels that show actual data results, axes, or valid Splunk search configurations, rather than empty placeholders or static text files."
+    }
+  ],
+  "privileged_info_for_vlm": "The alert must be named exactly 'Password_Spray_Detection'. The detection logic must check for a minimum of 5 distinct users (min_users: 5) and a maximum attempt ratio of 3 (max_ratio: 3). The dashboard must be named exactly 'Password_Spray_Dashboard' and contain at least 2 visualization panels (min_panels: 2)."
+}

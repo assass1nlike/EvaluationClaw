@@ -1,0 +1,59 @@
+{
+  "task_id": "channel_watchdog_autostarter@1",
+  "task_completion": [
+    {
+      "id": "target_channel_created",
+      "description": "Verify the target channel 'Unstable_Service' is created",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect (Mirth Connect) Administrator dashboard or channels list shows a channel named 'Unstable_Service'."
+    },
+    {
+      "id": "target_channel_configured",
+      "description": "Verify 'Unstable_Service' is configured as a TCP Listener on port 7000",
+      "points": 15,
+      "visual_evidence": "The Source settings for 'Unstable_Service' show the connector type as 'TCP Listener' and the port set to '7000'."
+    },
+    {
+      "id": "watchdog_channel_created",
+      "description": "Verify the watchdog channel 'System_Watchdog' is created",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect Administrator dashboard or channels list shows a channel named 'System_Watchdog'."
+    },
+    {
+      "id": "watchdog_channel_configured",
+      "description": "Verify 'System_Watchdog' is configured as a JavaScript Reader with a 10-second interval",
+      "points": 15,
+      "visual_evidence": "The Source settings for 'System_Watchdog' show the connector type as 'JavaScript Reader' and the polling frequency/interval set to 10000 ms (or 10 seconds)."
+    },
+    {
+      "id": "watchdog_script_logic",
+      "description": "Verify the watchdog script uses ChannelUtil to monitor, restart, and log",
+      "points": 30,
+      "visual_evidence": "The JavaScript code in the 'System_Watchdog' reader source contains logic using 'ChannelUtil' to check the state of 'Unstable_Service', a command to start/restart it, and code to append the message 'Restarted Unstable_Service' to '/home/ga/watchdog.log'."
+    },
+    {
+      "id": "watchdog_log_output",
+      "description": "Verify the watchdog successfully writes to the log file",
+      "points": 20,
+      "visual_evidence": "A terminal window or text editor displaying the contents of '/home/ga/watchdog.log', showing timestamped entries containing the exact text 'Restarted Unstable_Service'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI",
+      "visual_evidence": "Screenshots should show the actual NextGen Connect Administrator Java application being used to configure the channels, rather than just editing backend XML files directly."
+    },
+    {
+      "id": "genuine_scripting",
+      "description": "Verify the watchdog script contains actual conditional logic",
+      "visual_evidence": "The JavaScript code should show an IF statement checking the channel state (e.g., checking if it is NOT 'STARTED') before writing to the log, rather than a script that blindly writes to the log file every 10 seconds."
+    },
+    {
+      "id": "genuine_log_output",
+      "description": "Verify the log file output appears genuine",
+      "visual_evidence": "The timestamps in '/home/ga/watchdog.log' should look realistic and sequential, not manually typed or copy-pasted identical strings in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The target channel must be named 'Unstable_Service' and configured as a TCP Listener on port 7000. The watchdog channel must be named 'System_Watchdog' and configured as a JavaScript Reader with a polling interval of 10000 ms (10 seconds). The watchdog script must use the ChannelUtil API to monitor 'Unstable_Service', restart it if it is not in a STARTED state, and append 'Restarted Unstable_Service' to '/home/ga/watchdog.log'."
+}

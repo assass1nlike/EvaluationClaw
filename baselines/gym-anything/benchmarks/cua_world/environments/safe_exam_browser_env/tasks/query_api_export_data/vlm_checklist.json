@@ -1,0 +1,59 @@
+{
+  "task_id": "query_api_export_data@1",
+  "task_completion": [
+    {
+      "id": "read_credentials",
+      "description": "Read the OAuth2 credentials from the provided text file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat ~/api_credentials.txt' or a text editor open displaying the contents of the credentials file."
+    },
+    {
+      "id": "authenticate_oauth",
+      "description": "Authenticate with the SEB Server REST API token endpoint.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'curl' command, a Python script, or an API client making a POST request to 'http://localhost:8080/oauth/token' and receiving an access token in the response."
+    },
+    {
+      "id": "query_institutions",
+      "description": "Query the institution endpoint and save the response.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a request to 'http://localhost:8080/admin-api/v1/institution' with output redirected to '~/api_export/institutions.json', or a script performing this action."
+    },
+    {
+      "id": "query_users",
+      "description": "Query the useraccount endpoint and save the response.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a request to 'http://localhost:8080/admin-api/v1/useraccount' with output redirected to '~/api_export/users.json', or a script performing this action."
+    },
+    {
+      "id": "query_configurations",
+      "description": "Query the configuration_node endpoint and save the response.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a request to 'http://localhost:8080/admin-api/v1/configuration_node' with output redirected to '~/api_export/configurations.json', or a script performing this action."
+    },
+    {
+      "id": "verify_output_files",
+      "description": "Verify that all three required JSON files exist in the export directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing an 'ls ~/api_export' command listing 'institutions.json', 'users.json', and 'configurations.json', or a file manager showing these files in the directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Verify the agent actually interacted with the API to get the data.",
+      "visual_evidence": "Screenshots should show HTTP requests being constructed and executed (e.g., via curl, wget, Python requests, or Postman) rather than the agent manually typing or pasting mock JSON data into files."
+    },
+    {
+      "id": "authentic_token_usage",
+      "description": "Verify the agent used the retrieved OAuth2 token for the API queries.",
+      "visual_evidence": "The API requests to the admin endpoints should include an Authorization header (e.g., 'Authorization: Bearer <token>') using the token obtained from the /oauth/token endpoint."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the output files were generated programmatically or via command redirection.",
+      "visual_evidence": "Look for output redirection operators ('>') in terminal commands or file write operations in scripts targeting the ~/api_export directory, ensuring the files weren't just created as empty dummies."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output directory is exactly '/home/ga/api_export'. The required exported JSON files are 'institutions.json', 'users.json', and 'configurations.json'."
+}

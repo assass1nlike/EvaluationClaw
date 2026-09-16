@@ -1,0 +1,34 @@
+{
+  "id": "export_registry_backup@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "A drone operations manager needs to create a backup of the Aerobridge aircraft registry before a scheduled system migration. Export all data from the Aerobridge registry app to a pretty-printed JSON fixture file with an indent of 2 spaces. Save the output to /home/ga/Documents/registry_backup.json.\n\nSystem Information:\n- Aerobridge path: /opt/aerobridge\n- Virtual environment: /opt/aerobridge_venv\n- Environment configuration: /opt/aerobridge/.env\n- Django settings: aerobridge.settings\n\nThe backup must be a valid Django fixture containing all registry models, including Aircraft, Person, Operator, Manufacturer, FlightPlan, FlightOperation, and FlightLog.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_registry_backup/setup_task.sh",
+    "post_task": "/workspace/tasks/export_registry_backup/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/registry_backup.json",
+    "required_app": "registry",
+    "min_file_size_bytes": 1024
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_registry_backup"
+    }
+  },
+  "tags": [
+    "django",
+    "terminal",
+    "backup",
+    "json",
+    "cli"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "write_off_bad_debt@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "A customer, 'Alfreds Futterkiste', has gone into liquidation and their outstanding invoice 'INV-BAD-001' for 500.00 is uncollectible. Write off this bad debt by creating a new Expense account named 'Bad Debts' and issuing a credit note for 'Alfreds Futterkiste' dated today. Allocate the 500.00 amount to the 'Bad Debts' expense account using the description 'Write off uncollectible invoice'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/write_off_bad_debt/setup_task.sh",
+    "post_task": "/workspace/tasks/write_off_bad_debt/export_result.sh"
+  },
+  "metadata": {
+    "customer_name": "Alfreds Futterkiste",
+    "invoice_ref": "INV-BAD-001",
+    "write_off_amount": 500.0,
+    "expense_account_name": "Bad Debts",
+    "manager_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_write_off_bad_debt"
+    }
+  }
+}

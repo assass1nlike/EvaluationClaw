@@ -1,0 +1,28 @@
+{
+  "id": "export_crawl_report@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Crawl https://crawler-test.com/ and export the internal crawl results to a CSV file at /home/ga/Documents/SEO/exports/. The exported CSV must contain at least 5 rows of data from the crawl.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_crawl_report/setup_task.sh",
+    "post_task": "/workspace/tasks/export_crawl_report/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "export_directory": "/home/ga/Documents/SEO/exports",
+    "expected_export_format": "csv",
+    "expected_min_rows": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_crawl_report"
+    }
+  }
+}

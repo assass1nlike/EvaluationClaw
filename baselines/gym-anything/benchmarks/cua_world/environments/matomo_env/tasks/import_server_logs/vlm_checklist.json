@@ -1,0 +1,53 @@
+{
+  "task_id": "import_server_logs@1",
+  "task_completion": [
+    {
+      "id": "import_script_executed",
+      "description": "Verify that the agent executed the Matomo log import script with the correct log file, URL, and auth token.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of 'python3 /home/ga/tools/import_logs.py' (or similar) with arguments pointing to '--url=http://localhost/', the log file '/home/ga/Documents/access_logs/apache_access.log', and the auth token."
+    },
+    {
+      "id": "errors_redirects_included",
+      "description": "Verify that the import command included flags to record HTTP errors and redirects.",
+      "points": 15,
+      "visual_evidence": "Terminal command includes flags such as '--enable-http-errors' and '--enable-http-redirects' when running the import_logs.py script."
+    },
+    {
+      "id": "archiving_triggered",
+      "description": "Verify that the agent triggered the Matomo archiving process after the import.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of the Matomo console archiving command (e.g., 'php /var/www/html/console core:archive' or similar) or a dashboard notification indicating archiving was completed."
+    },
+    {
+      "id": "dashboard_data_visible",
+      "description": "Verify that the imported traffic data is visible in the Matomo dashboard for Site ID 1.",
+      "points": 30,
+      "visual_evidence": "A web browser showing the Matomo dashboard (http://localhost/) with a traffic graph or summary indicating a significant number of visits (at least 100, up to ~250) over the last week, along with actions and visitor metadata."
+    },
+    {
+      "id": "result_file_accurate",
+      "description": "Verify that the total number of successfully imported visits was recorded in the specified result file.",
+      "points": 20,
+      "visual_evidence": "A terminal command (like 'cat') or a text editor showing the contents of '/home/ga/Documents/access_logs/import_result.txt' containing a numeric value representing the imported visits (expected to be around 250)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Ensure the agent actually ran the import and archive commands in a real terminal emulator.",
+      "visual_evidence": "Look for standard terminal prompts, command execution times, and authentic script output logs rather than manually typed text in an editor."
+    },
+    {
+      "id": "genuine_dashboard_interaction",
+      "description": "Ensure the Matomo dashboard is genuinely loaded in a web browser.",
+      "visual_evidence": "Look for a real browser window with the address bar showing 'localhost' or '127.0.0.1', standard Matomo UI elements, and interactive charts, rather than a static image or edited HTML."
+    },
+    {
+      "id": "authentic_result_file",
+      "description": "Ensure the result file contains a number derived from the actual import process.",
+      "visual_evidence": "The number in import_result.txt should match the summary output from the import_logs.py script shown in the terminal. It should not be a random guess or a placeholder."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The log file is located at /home/ga/Documents/access_logs/apache_access.log and contains approximately 250 synthetic visits spanning the last 7 days. The import script is /home/ga/tools/import_logs.py. The target Matomo site is Site ID 1 (http://localhost/). To succeed, the agent must import at least 100 visits (ideally all ~250), trigger the archiving process so they appear in the dashboard, and write the final imported count to /home/ga/Documents/access_logs/import_result.txt."
+}

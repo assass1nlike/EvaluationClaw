@@ -1,0 +1,59 @@
+{
+  "task_id": "land_value_capture_levy_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_notebook",
+      "description": "Open or create the specified Jupyter notebook for the analysis.",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook or code editor is open with the filename 'lvc_analysis.ipynb' in the '/home/ga/urbansim_projects/notebooks/' directory."
+    },
+    {
+      "id": "load_dataset",
+      "description": "Load the San Francisco UrbanSim dataset.",
+      "points": 10,
+      "visual_evidence": "A code cell contains code to read the HDF5 file from '/home/ga/urbansim_projects/data/sanfran_public.h5' (e.g., using pandas.HDFStore or read_hdf)."
+    },
+    {
+      "id": "identify_top_zones",
+      "description": "Identify the top 5 zones with the highest employment.",
+      "points": 15,
+      "visual_evidence": "Code cells showing data aggregation by zone, sorting by employment, and selecting the top 5 records (e.g., using `.nlargest(5)` or `.head(5)` after sorting)."
+    },
+    {
+      "id": "calculate_uplift_and_levy",
+      "description": "Calculate the real estate value uplift and project the betterment levy revenue.",
+      "points": 25,
+      "visual_evidence": "Code cells showing mathematical operations applying a 2.5 Max FAR upzone, filling missing baseline Max FAR with 1.0, calculating uplift based on residential sales prices, and multiplying the uplift by 0.25 (25%) to get the levy revenue."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the aggregated results to a CSV file with the required columns.",
+      "points": 20,
+      "visual_evidence": "A code cell showing a DataFrame being saved to '/home/ga/urbansim_projects/output/lvc_revenue_by_zone.csv' using `.to_csv()`. The DataFrame or code should explicitly reference the columns: 'zone_id', 'total_parcels_assessed', 'total_value_uplift', and 'projected_levy_revenue'."
+    },
+    {
+      "id": "export_chart",
+      "description": "Save a bar chart of the projected levy revenue by zone.",
+      "points": 20,
+      "visual_evidence": "A code cell generating a bar chart (e.g., using matplotlib or seaborn) and saving it to '/home/ga/urbansim_projects/output/lvc_revenue_chart.png' using `savefig()`. The plot itself may also be visible in the notebook output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "executed_code",
+      "description": "The notebook cells were actually executed to produce the results.",
+      "visual_evidence": "The Jupyter notebook shows execution numbers (e.g., In [1], In [2]) and corresponding outputs for the data processing steps, rather than just unexecuted code."
+    },
+    {
+      "id": "no_hardcoded_data",
+      "description": "The agent processed the actual dataset rather than hardcoding fake results.",
+      "visual_evidence": "The code relies on variables derived from the loaded 'sanfran_public.h5' dataset to generate the CSV and plot, rather than manually defining a small array of fake numbers."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The bar chart was generated programmatically.",
+      "visual_evidence": "The notebook contains the plotting code (e.g., `plt.bar()`, `df.plot.bar()`) that directly corresponds to the saved 'lvc_revenue_chart.png' image."
+    }
+  ],
+  "privileged_info_for_vlm": "The analysis must be done in '/home/ga/urbansim_projects/notebooks/lvc_analysis.ipynb' using data from '/home/ga/urbansim_projects/data/sanfran_public.h5'. The calculations must include an upzone FAR of 2.5 and a levy rate of 0.25 (25%). The output CSV must be saved to '/home/ga/urbansim_projects/output/lvc_revenue_by_zone.csv' and contain exactly these columns: 'zone_id', 'total_parcels_assessed', 'total_value_uplift', 'projected_levy_revenue'. The bar chart must be saved to '/home/ga/urbansim_projects/output/lvc_revenue_chart.png'."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "siu_to_adt_bridge@1",
+  "version": "1.0",
+  "env_id": "nextgen_connect_integration_engine_env@0.1",
+  "description": "You are a Clinical Systems Integration Engineer at a multi-site health system. Build a two-channel HL7 bridge in NextGen Connect to pre-register patients as ADT^A04 encounters based on SIU^S12 appointment booking messages.\n\nThe 'SIU Intake Channel' must listen on TCP port 6666 (MLLP) for SIU^S12 messages and transform them into ADT^A04 messages. This transformation requires mapping patient demographics (PID-3 MRN, PID-5 name, PID-7 DOB, PID-8 gender) and the appointment start datetime (SCH-11). The resulting ADT message must be stored in the channel map variable 'transformedADT' and forwarded to the 'ADT Pre-Registration Processor' channel.\n\nThe 'ADT Pre-Registration Processor' channel must receive the messages and use a Database Writer to insert the appointment ID, MRN, name, and appointment datetime into the 'scheduling_preregistrations' table in the PostgreSQL database (jdbc:postgresql://nextgen-postgres:5432/mirthdb, user: postgres, password: postgres). The target table 'scheduling_preregistrations' must include columns for appt_id (VARCHAR(50)), patient_mrn (VARCHAR(50)), patient_name (VARCHAR(200)), appt_datetime (VARCHAR(50)), and registered_at (TIMESTAMP DEFAULT NOW()).\n\nA sample SIU S12 message is located at /home/ga/sample_siu_s12.hl7. The NextGen Connect REST API is available at https://localhost:8443/api (admin/admin) and requires the header 'X-Requested-With: OpenAPI'. Both channels must be fully configured and deployed.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/siu_to_adt_bridge/setup_task.sh",
+    "post_task": "/workspace/tasks/siu_to_adt_bridge/export_result.sh"
+  },
+  "metadata": {
+    "siu_channel_name": "SIU Intake Channel",
+    "adt_channel_name": "ADT Pre-Registration Processor",
+    "siu_port": "6666",
+    "db_table": "scheduling_preregistrations",
+    "occupation": "Clinical Systems Integration Engineer",
+    "soc_code": "15-1299.09"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_siu_to_adt_bridge"
+    }
+  }
+}

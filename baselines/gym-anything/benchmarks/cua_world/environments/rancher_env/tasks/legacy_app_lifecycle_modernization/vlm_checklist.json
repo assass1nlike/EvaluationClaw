@@ -1,0 +1,65 @@
+{
+  "task_id": "legacy_app_lifecycle_modernization@1",
+  "task_completion": [
+    {
+      "id": "read_spec_file",
+      "description": "Open and read the lifecycle specification file.",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor window displaying the contents of '/home/ga/Desktop/lifecycle_spec.yaml'."
+    },
+    {
+      "id": "access_rancher_target",
+      "description": "Log into Rancher and navigate to the target deployment.",
+      "points": 10,
+      "visual_evidence": "The Rancher UI is open in a web browser, showing the 'payment-processor' deployment within the 'finance' namespace."
+    },
+    {
+      "id": "configure_startup_probe",
+      "description": "Implement the startupProbe for the deployment.",
+      "points": 15,
+      "visual_evidence": "The Rancher UI 'Edit Deployment' screen showing the 'Health Checks' section with a 'Startup Check' (startupProbe) actively configured."
+    },
+    {
+      "id": "configure_liveness_probe",
+      "description": "Update the livenessProbe for the deployment.",
+      "points": 15,
+      "visual_evidence": "The Rancher UI 'Edit Deployment' screen showing the 'Health Checks' section with a 'Liveness Check' (livenessProbe) actively configured or modified."
+    },
+    {
+      "id": "configure_readiness_probe",
+      "description": "Implement the readinessProbe for the deployment.",
+      "points": 15,
+      "visual_evidence": "The Rancher UI 'Edit Deployment' screen showing the 'Health Checks' section with a 'Readiness Check' (readinessProbe) actively configured."
+    },
+    {
+      "id": "configure_prestop_hook",
+      "description": "Implement the preStop hook for the deployment.",
+      "points": 15,
+      "visual_evidence": "The Rancher UI 'Edit Deployment' screen showing the 'Lifecycle Hooks' or 'Command' section with a 'Pre-Stop' hook actively configured."
+    },
+    {
+      "id": "verify_deployment_stabilized",
+      "description": "Verify the deployment has stabilized and is no longer in CrashLoopBackOff.",
+      "points": 20,
+      "visual_evidence": "The Rancher UI showing the 'payment-processor' deployment with an 'Active' status (typically green), indicating the pods are running successfully without crashing."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_ui",
+      "description": "The agent used the Rancher UI to make modifications rather than relying solely on terminal commands.",
+      "visual_evidence": "Screenshots show interaction with the Rancher web interface forms (e.g., clicking 'Edit Config', filling out probe fields) rather than using 'kubectl edit' or 'kubectl apply' in the terminal."
+    },
+    {
+      "id": "command_args_unmodified",
+      "description": "The agent did not modify the container's command or args.",
+      "visual_evidence": "The 'Command' and 'Args' fields in the Rancher UI container configuration remain unchanged, and no terminal commands are seen altering these specific fields."
+    },
+    {
+      "id": "genuine_spec_interaction",
+      "description": "The agent genuinely opened the spec file to read the requirements.",
+      "visual_evidence": "A screenshot clearly shows the agent opening '/home/ga/Desktop/lifecycle_spec.yaml' using a tool like cat, less, nano, or a GUI text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'finance'. Target deployment: 'payment-processor'. Specification file: '/home/ga/Desktop/lifecycle_spec.yaml'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "pvc_data_migration_workflow@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log into the Rancher interface",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible in the browser at https://localhost, indicating successful login."
+    },
+    {
+      "id": "create_new_pvc",
+      "description": "Create the new 5Gi PersistentVolumeClaim",
+      "points": 20,
+      "visual_evidence": "Rancher UI (Storage -> PersistentVolumeClaims) or terminal output showing a new PVC named 'catalog-data-v2' with a capacity of 5Gi in the 'catalog' namespace."
+    },
+    {
+      "id": "migrate_data",
+      "description": "Migrate the live database to the new PVC",
+      "points": 20,
+      "visual_evidence": "Terminal or Rancher pod shell showing commands used to copy data (e.g., cp, rsync, tar) from the legacy volume to the new volume, or the creation of a temporary migration pod."
+    },
+    {
+      "id": "reconfigure_deployment_mounts",
+      "description": "Reconfigure the catalog-service deployment to use the new PVC",
+      "points": 30,
+      "visual_evidence": "Rancher UI deployment edit screen or terminal output (kubectl describe/edit) showing 'catalog-data-v2' mounted at '/usr/share/nginx/html/data' and the complete removal of 'catalog-data-legacy' from the volumes list."
+    },
+    {
+      "id": "deployment_running",
+      "description": "Ensure the deployment returns to a Running state",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the 'catalog-service' deployment in an 'Active' state, or terminal output showing the pod status as 'Running' and 'Ready' (e.g., 1/1) after the reconfiguration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_cluster_interaction",
+      "description": "Agent interacted with the actual Kubernetes cluster",
+      "visual_evidence": "The agent is seen using the Rancher UI in a web browser at https://localhost or running actual 'kubectl' commands in a terminal, rather than just typing answers into a text editor."
+    },
+    {
+      "id": "genuine_data_migration",
+      "description": "Agent genuinely copied the database files instead of just swapping empty volumes",
+      "visual_evidence": "Screenshots show actual file transfer commands being executed or a migration pod running, confirming the Chinook SQLite database and metadata files were moved."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Rancher UI state is genuine",
+      "visual_evidence": "Browser developer tools (Inspect Element) are not open to artificially modify the DOM to show a 'Running' state or fake PVC names."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires migrating data from 'catalog-data-legacy' to 'catalog-data-v2' in the 'catalog' namespace. The new PVC must be mounted at '/usr/share/nginx/html/data'. The data consists of a Chinook SQLite sample database and a synthetic metadata file. The passing threshold for this task is 80 points."
+}

@@ -1,0 +1,41 @@
+{
+  "id": "fix_single_field_author_errors@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Three classic papers in your library have a metadata error: the primary authors were imported as 'Single Field' names (like organizations) rather than 'Two Field' names (Person). This causes citations to format incorrectly. Fix the author formatting for the following papers so that the authors are stored as People (two fields) rather than Single Fields:\n\n1. 'A Mathematical Theory of Communication' (Shannon, Claude E.)\n2. 'Computing Machinery and Intelligence' (Turing, Alan)\n3. 'A Method for the Construction of Minimum-Redundancy Codes' (Huffman, David A.)",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_single_field_author_errors/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_single_field_author_errors/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title": "A Mathematical Theory of Communication",
+        "expected_last": "Shannon",
+        "expected_first": "Claude E."
+      },
+      {
+        "title": "Computing Machinery and Intelligence",
+        "expected_last": "Turing",
+        "expected_first": "Alan"
+      },
+      {
+        "title": "A Method for the Construction of Minimum-Redundancy Codes",
+        "expected_last": "Huffman",
+        "expected_first": "David A."
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_single_field_author_errors"
+    }
+  }
+}

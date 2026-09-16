@@ -1,0 +1,59 @@
+{
+  "task_id": "photometric_standard_calibration@1",
+  "task_completion": [
+    {
+      "id": "read_specification",
+      "description": "Agent opens and reads the photometric calibration specification file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit, nano) or terminal (using cat/less) showing the contents of 'phot_cal_spec.txt'."
+    },
+    {
+      "id": "connect_observatory_simulator",
+      "description": "Agent opens KStars and connects to the simulated observatory equipment via Ekos.",
+      "points": 10,
+      "visual_evidence": "The KStars application is open, and the Ekos module is active with the equipment profile (simulator) started and showing as connected."
+    },
+    {
+      "id": "slew_to_target",
+      "description": "Agent slews the telescope to the standard field SA 98.",
+      "points": 20,
+      "visual_evidence": "The Ekos Mount module or KStars sky map shows the telescope crosshairs pointing at or tracking SA 98, with coordinates near RA 06h 51m and Dec -00d 17m."
+    },
+    {
+      "id": "configure_capture_sequence",
+      "description": "Agent configures the capture sequence with the required filters and frame counts.",
+      "points": 20,
+      "visual_evidence": "The Ekos Capture module shows a sequence queue containing jobs for filters B, V, and R (or slots 3, 2, and 4), with a 'Count' of at least 5 frames for each filter."
+    },
+    {
+      "id": "execute_capture_sequence",
+      "description": "Agent executes the capture sequence to acquire the FITS images.",
+      "points": 20,
+      "visual_evidence": "The Ekos Capture module shows the sequence jobs as 'Complete' or actively capturing, with progress bars indicating successful image acquisition."
+    },
+    {
+      "id": "deliver_output_files",
+      "description": "Agent saves the captured FITS files and the required calibration catalog to the specified directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window showing the contents of '/home/ga/Images/photcal/sa98', containing multiple '.fits' files and the 'calibration_catalog.txt' file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_kstars_gui",
+      "description": "Verify the agent used the KStars/Ekos GUI to capture the images.",
+      "visual_evidence": "Screenshots should show the KStars and Ekos interfaces being actively used to configure and run the capture sequence, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_fits_capture",
+      "description": "Verify the FITS files were genuinely captured by the simulator and not spoofed.",
+      "visual_evidence": "The Ekos Capture module should show actual capture progress, or a FITS viewer tool should be seen displaying the captured star field images."
+    },
+    {
+      "id": "no_dummy_files",
+      "description": "Verify the output files are not empty dummy files.",
+      "visual_evidence": "In the file manager or terminal (e.g., via 'ls -l'), the '.fits' files and 'calibration_catalog.txt' should have file sizes greater than zero."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: SA 98 (Landolt standard field). Coordinates: RA 6.86h (06h 51m 36s), Dec -0.283 deg (-00d 17m 00s) with a 30 arcmin tolerance. Required filters: B (slot 3), V (slot 2), R (slot 4). Minimum frames per filter: 5. Output directory: /home/ga/Images/photcal/sa98. Required catalog path: /home/ga/Images/photcal/sa98/calibration_catalog.txt."
+}

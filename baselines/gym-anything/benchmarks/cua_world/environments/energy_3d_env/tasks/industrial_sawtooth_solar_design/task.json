@@ -1,0 +1,28 @@
+{
+  "id": "industrial_sawtooth_solar_design@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Sustainability Engineer retrofitting a factory roof in Energy3D. Open the existing project at '~/Documents/Energy3D/factory_base.ng3'. Select the main building roof and change its design to a 'Sawtooth' roof to optimize for solar capture. Add Solar Panels exclusively to the south-facing angled slopes of this new sawtooth roof. Next, change the environment location to Detroit, MI (via the map/location settings). Run the 'Annual Energy Analysis' for the building to calculate its 12-month performance. Export the resulting analysis data as a CSV file to '~/Documents/Energy3D/factory_annual_energy.csv'. Finally, save the modified project as '~/Documents/Energy3D/factory_sawtooth_solar.ng3'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/industrial_sawtooth_solar_design/setup_task.sh",
+    "post_task": "/workspace/tasks/industrial_sawtooth_solar_design/export_result.sh"
+  },
+  "metadata": {
+    "expected_location": "Detroit, MI",
+    "output_ng3": "/home/ga/Documents/Energy3D/factory_sawtooth_solar.ng3",
+    "output_csv": "/home/ga/Documents/Energy3D/factory_annual_energy.csv",
+    "base_project": "factory_base.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sawtooth_solar_design"
+    }
+  }
+}

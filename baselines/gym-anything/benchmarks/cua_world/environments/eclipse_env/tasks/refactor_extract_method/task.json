@@ -1,0 +1,31 @@
+{
+  "id": "refactor_extract_method@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the 'ReportService' class in 'src/main/java/com/corp/reporting/ReportService.java' to remove duplicated code. Extract the common header generation logic from 'generateDailyReport' and 'generateWeeklyReport' into a new method named 'appendReportHeader', ensuring all occurrences are updated. Verify the changes by running the project's JUnit tests.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_extract_method/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_extract_method/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/CorporateReporting",
+    "target_file": "src/main/java/com/corp/reporting/ReportService.java",
+    "expected_method_name": "appendReportHeader",
+    "required_strings": [
+      "ACME CORP - INTERNAL REPORT",
+      "Confidentiality: RESTRICTED ACCESS"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_extract_method"
+    }
+  }
+}

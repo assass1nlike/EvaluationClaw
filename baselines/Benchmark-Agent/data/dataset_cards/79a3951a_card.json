@@ -1,0 +1,80 @@
+{
+  "dataset_id": "79a3951a",
+  "name": "Multi-Page Poster Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 128,
+  "description": "The Multi-Page Poster Document Visual Question Answering dataset contains questions about multi-page poster documents, where models must extract answers from one or more poster page images. It evaluates visual document understanding and information extraction from designed poster layouts.",
+  "card_text": "This dataset focuses on visual question answering over multi-page poster documents. Each sample pairs a natural language question with one or more poster page images that serve as the visual context. The questions ask for specific information contained in the posters, such as colors, IDs, or other extracted values. Answers are provided as short text strings, often a single value or phrase, and may be empty when no answer is found. The data combines image and text modalities: the model reads the poster images and produces a text answer. Poster content is typically designed with mixed text and graphics, reflecting informational or public-facing documents. The dataset tests the ability to locate and extract precise information from complex, multi-page visual documents.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "document visual question answering",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "List of file paths to page images of a multi-page poster document. These images form the visual context that the question refers to, and the model must read them to find the answer.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question asking for specific information contained in the poster document images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A list of short answer strings extracted from the poster document; the list may be empty if no answer is present.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a natural language question (input.prompt), a list of one or more poster page images (input.image_files) that serve as the visual context, and a list of answer strings (output.text) that may be empty. The question asks for specific information found in the poster images, and the answer lists the extracted text spans or values."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PagePosterDocumentVisualQuestionAnswering/multi-page_poster_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Poster Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

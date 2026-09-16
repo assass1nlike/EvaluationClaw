@@ -1,0 +1,29 @@
+{
+  "id": "qc_xbar_r_chart@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Quality Control analysis on the 'E1' item from the Big Five Personality Traits dataset (/home/ga/Documents/JASP/BigFivePersonalityTraits.csv) already open in JASP. Generate an X-bar & R control chart using 'E1' as the measurement variable with a subgroup size of 10 defined by observation number. Determine if the process is 'In Control' or 'Out of Control' based on whether any data points fall outside the control limits on the X-bar chart. Save the JASP project to /home/ga/Documents/JASP/qc_analysis.jasp and create a report at /home/ga/Documents/JASP/qc_report.txt containing the status in the format 'Status: In Control' or 'Status: Out of Control'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/qc_xbar_r_chart/setup_task.sh",
+    "post_task": "/workspace/tasks/qc_xbar_r_chart/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/qc_analysis.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/qc_report.txt",
+    "target_variable": "E1",
+    "subgroup_size": 10,
+    "dataset_path": "/home/ga/Documents/JASP/BigFivePersonalityTraits.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_qc_xbar_r_chart"
+    }
+  }
+}

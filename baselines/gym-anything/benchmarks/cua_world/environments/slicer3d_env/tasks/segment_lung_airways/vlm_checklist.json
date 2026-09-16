@@ -1,0 +1,59 @@
+{
+  "task_id": "segment_lung_airways@1",
+  "task_completion": [
+    {
+      "id": "workflow_ct_loaded",
+      "description": "Verify that the chest CT scan is loaded into the medical imaging application.",
+      "points": 5,
+      "visual_evidence": "The 2D slice viewers (axial, sagittal, coronal) should display a chest CT scan."
+    },
+    {
+      "id": "segment_named_airways",
+      "description": "Verify that a segment has been created and specifically named 'Airways'.",
+      "points": 15,
+      "visual_evidence": "In the Segment Editor or Segmentations module, there should be a segment explicitly labeled 'Airways' in the segment list."
+    },
+    {
+      "id": "airway_tree_segmented",
+      "description": "Verify that the tracheobronchial airway tree (trachea and major bronchi) is segmented.",
+      "points": 25,
+      "visual_evidence": "The segmentation should be visible in the center of the chest, covering the main windpipe (trachea) and branching into the left and right major bronchi. This can be seen as an overlay in the 2D views or as a 3D model."
+    },
+    {
+      "id": "external_air_excluded",
+      "description": "Verify that the segmentation strictly excludes external air outside the patient.",
+      "points": 15,
+      "visual_evidence": "The colored segmentation overlay must be confined to the inside of the patient's body and must not spill over into the black background space surrounding the patient."
+    },
+    {
+      "id": "airway_density_and_volume",
+      "description": "Verify that the segmentation targets the correct anatomical density (air) and is of an appropriate volume.",
+      "points": 20,
+      "visual_evidence": "The segmentation should perfectly overlap the dark, air-filled regions of the airway. If Segment Statistics are visible, the volume should be between 50-300 mL and the mean HU should be <= -800."
+    },
+    {
+      "id": "segmentation_saved",
+      "description": "Verify that the segmentation is saved to the specified export path.",
+      "points": 20,
+      "visual_evidence": "A 'Save Data' dialog or terminal command should be visible showing the segmentation being saved exactly to '~/Documents/SlicerData/Exports/airways_segmentation.seg.nrrd'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_segmentation",
+      "description": "Ensure the agent used the application's GUI tools to perform the segmentation.",
+      "visual_evidence": "Look for active use of segmentation tools (e.g., thresholding, region growing, or paint tools in the Segment Editor) rather than just running a background script to generate the output."
+    },
+    {
+      "id": "genuine_anatomical_segmentation",
+      "description": "Ensure the segmentation genuinely follows the patient's anatomy.",
+      "visual_evidence": "The segmentation should organically match the branching structure of the airway. It should not be a generic geometric shape (like a perfect sphere or cylinder) drawn just to satisfy volume requirements."
+    },
+    {
+      "id": "actual_file_save_process",
+      "description": "Ensure the agent saved the file through the application's export/save functionality.",
+      "visual_evidence": "Look for the application's 'Save Data' window with the correct path configured, rather than a terminal window using commands like 'touch' or 'echo' to create a fake file."
+    }
+  ],
+  "privileged_info_for_vlm": "The CT scan belongs to patient LIDC-IDRI-0001. A successful segmentation of the tracheobronchial tree should have a volume between 50 mL and 300 mL. The mean Hounsfield Unit (HU) value of the segmented airway lumen should be no greater than -800 HU. The segmentation should ideally be a single connected component representing the trachea and major bronchi."
+}

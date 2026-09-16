@@ -1,0 +1,28 @@
+{
+  "id": "explode_multipart_landmasses@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "A maritime logistics analyst needs to separate countries stored as MultiPolygon features into individual landmass polygons for independent analysis. Convert the MultiPolygon features from '/home/ga/GIS_Data/ne_110m_countries/ne_110m_admin_0_countries.shp' into singlepart Polygon features. Export the resulting GeoJSON FeatureCollection to '/home/ga/GIS_Data/exports/countries_singlepart.geojson', ensuring all original attributes are preserved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/explode_multipart_landmasses/setup_task.sh",
+    "post_task": "/workspace/tasks/explode_multipart_landmasses/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/GIS_Data/ne_110m_countries/ne_110m_admin_0_countries.shp",
+    "expected_output_path": "/home/ga/GIS_Data/exports/countries_singlepart.geojson",
+    "min_feature_count": 250,
+    "expected_geometry_type": "Polygon"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_explode_multipart_landmasses"
+    }
+  }
+}

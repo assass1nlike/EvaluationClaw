@@ -1,0 +1,53 @@
+{
+  "task_id": "export_to_dxf@1",
+  "task_completion": [
+    {
+      "id": "topocal_spanish_interface",
+      "description": "Verify TopoCal is used with the Spanish interface",
+      "points": 10,
+      "visual_evidence": "Screenshots show the TopoCal application open with Spanish menu items (e.g., 'Archivo' instead of 'File', 'Edici\u00f3n', 'Ver')."
+    },
+    {
+      "id": "initiate_export_dxf",
+      "description": "Verify the agent initiates the DXF export process",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent navigating the TopoCal menu to export the file, specifically selecting the DXF format option (e.g., clicking 'Archivo' -> 'Exportar' -> 'DXF' or similar Spanish UI path)."
+    },
+    {
+      "id": "select_desktop_location",
+      "description": "Verify the save location is set to the Desktop",
+      "points": 20,
+      "visual_evidence": "In the Save As (Guardar como) dialog, the directory path or selected folder clearly indicates the 'Desktop' (/home/ga/Desktop)."
+    },
+    {
+      "id": "input_filename",
+      "description": "Verify the correct filename is entered",
+      "points": 20,
+      "visual_evidence": "In the Save As dialog, the filename input field contains exactly 'denver_survey.dxf'."
+    },
+    {
+      "id": "confirm_export_save",
+      "description": "Verify the export is finalized and saved",
+      "points": 30,
+      "visual_evidence": "Screenshots show the agent clicking the 'Guardar' (Save) button to finalize the export, or a subsequent screenshot shows the 'denver_survey.dxf' file successfully created on the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_usage",
+      "description": "Verify the agent used the TopoCal GUI to export the file",
+      "visual_evidence": "The agent must interact with the TopoCal graphical interface and its export menus. It should not use terminal commands (like 'touch denver_survey.dxf') to bypass the application."
+    },
+    {
+      "id": "genuine_save_dialog",
+      "description": "Verify the save dialog is genuine",
+      "visual_evidence": "The save dialog shown must be the actual system or TopoCal file dialog, not a text editor or a mocked window."
+    },
+    {
+      "id": "no_file_renaming",
+      "description": "Verify the agent didn't just rename an existing file",
+      "visual_evidence": "The agent should not be seen right-clicking an existing unrelated file on the Desktop and renaming it to 'denver_survey.dxf'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: 'denver_survey.dxf' on the 'Desktop' in 'DXF' format. TopoCal's menu UI is verified to be locked in Spanish. CRITICAL DEFECT: The source project file containing the survey points is missing from the environment, causing TopoCal to open an empty drawing. The agent cannot export the 204 points as requested unless it manually creates them. Do not penalize the agent if the exported DXF is empty or lacks points; award full points if the agent successfully executes the DXF export process on the current (empty) project using the correct filename and location."
+}

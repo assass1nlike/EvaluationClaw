@@ -1,0 +1,53 @@
+{
+  "task_id": "recover_lost_password_fragment@1",
+  "task_completion": [
+    {
+      "id": "script_or_command_creation",
+      "description": "The agent writes a script or command-line loop to iterate through the password range.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor showing a bash script, python script, or shell one-liner containing a loop over the range 450 to 499 and constructing the password pattern 'DevBuild_XXX!'."
+    },
+    {
+      "id": "execution_of_brute_force",
+      "description": "The agent executes the brute-force script or command against the encrypted volume.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the script running, with evidence of VeraCrypt CLI commands (e.g., 'veracrypt --non-interactive') or repeated decryption attempts on '/home/ga/Volumes/project_archive.hc'."
+    },
+    {
+      "id": "successful_mount",
+      "description": "The volume is successfully mounted to the target directory.",
+      "points": 30,
+      "visual_evidence": "Terminal output from commands like 'mount', 'df -h', 'lsblk', or VeraCrypt CLI/GUI showing that '/home/ga/Volumes/project_archive.hc' is mounted at '/home/ga/MountPoints/recovered'."
+    },
+    {
+      "id": "output_file_creation",
+      "description": "The agent creates the required output file for the recovered ID.",
+      "points": 10,
+      "visual_evidence": "Terminal commands like 'echo', 'cat', or a text editor saving to the path '/home/ga/Documents/recovered_id.txt'."
+    },
+    {
+      "id": "correct_id_saved",
+      "description": "The output file contains the correct 3-digit recovered number.",
+      "points": 20,
+      "visual_evidence": "The contents of '/home/ga/Documents/recovered_id.txt' are displayed (e.g., via 'cat') and show a single 3-digit number between 450 and 499."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_iteration",
+      "description": "The agent genuinely iterated through the range rather than magically guessing the exact password on the first try.",
+      "visual_evidence": "Look for a loop structure in the script or multiple failed attempts in the terminal before the successful mount. The agent should not just run a single hardcoded mount command with the correct password."
+    },
+    {
+      "id": "genuine_mount",
+      "description": "The agent actually mounted the volume rather than just creating a fake directory.",
+      "visual_evidence": "The mount point '/home/ga/MountPoints/recovered' should appear in system mount lists (like 'df' or 'mount') or VeraCrypt output, rather than just being a standard directory created with 'mkdir'."
+    },
+    {
+      "id": "correct_output_format",
+      "description": "The agent saved only the 3-digit number, not the full password.",
+      "visual_evidence": "The file '/home/ga/Documents/recovered_id.txt' must contain exactly the 3-digit number (e.g., '473'), not the full string (e.g., 'DevBuild_473!')."
+    }
+  ],
+  "privileged_info_for_vlm": "The encrypted VeraCrypt volume is located at '/home/ga/Volumes/project_archive.hc'. The password follows the exact pattern 'DevBuild_XXX!' where XXX is a 3-digit number between 450 and 499 inclusive. The target mount point is '/home/ga/MountPoints/recovered'. The final recovered 3-digit number must be saved in '/home/ga/Documents/recovered_id.txt'."
+}

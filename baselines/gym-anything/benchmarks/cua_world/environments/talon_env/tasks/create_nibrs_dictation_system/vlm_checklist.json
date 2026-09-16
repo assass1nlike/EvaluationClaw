@@ -1,0 +1,65 @@
+{
+  "task_id": "create_nibrs_dictation_system@1",
+  "task_completion": [
+    {
+      "id": "create_target_directory",
+      "description": "Create the nibrs_dictation directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "File explorer or terminal showing the creation or existence of the directory '%APPDATA%\\Talon\\user\\nibrs_dictation'."
+    },
+    {
+      "id": "create_python_file",
+      "description": "Create the nibrs.py file in the target directory.",
+      "points": 10,
+      "visual_evidence": "An editor or terminal showing a file named 'nibrs.py' located in the 'nibrs_dictation' directory."
+    },
+    {
+      "id": "create_talon_file",
+      "description": "Create the nibrs.talon file in the target directory.",
+      "points": 10,
+      "visual_evidence": "An editor or terminal showing a file named 'nibrs.talon' located in the 'nibrs_dictation' directory."
+    },
+    {
+      "id": "python_csv_and_normalization_logic",
+      "description": "Implement logic in nibrs.py to read the CSV and normalize the offense names.",
+      "points": 25,
+      "visual_evidence": "Code in 'nibrs.py' showing file reading operations for 'C:\\workspace\\data\\nibrs_offenses.csv' and string manipulation methods such as '.lower()', '.replace(\"/\", \" \")', '.replace(\"&\", \" \")', and regex/filtering for removing special characters."
+    },
+    {
+      "id": "python_talon_definitions",
+      "description": "Define the Talon list and the custom action get_nibrs_name in nibrs.py.",
+      "points": 20,
+      "visual_evidence": "Code in 'nibrs.py' showing Talon API usage like 'mod.list(\"nibrs_offense\")' and a function definition 'def get_nibrs_name(code: str)' that returns the original unmodified name."
+    },
+    {
+      "id": "talon_charge_command",
+      "description": "Implement the basic 'charge' command in nibrs.talon.",
+      "points": 10,
+      "visual_evidence": "Code in 'nibrs.talon' showing the command syntax 'charge {user.nibrs_offense}:' followed by an action to insert the code."
+    },
+    {
+      "id": "talon_charge_full_command",
+      "description": "Implement the 'charge full' command in nibrs.talon.",
+      "points": 15,
+      "visual_evidence": "Code in 'nibrs.talon' showing the command syntax 'charge full {user.nibrs_offense}:' followed by an action that inserts the code, a hyphen, and calls the custom action 'user.get_nibrs_name()' to insert the original name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_csv_reading",
+      "description": "Ensure the agent wrote code to dynamically read the CSV rather than hardcoding a static dictionary of offenses.",
+      "visual_evidence": "The code in nibrs.py should contain standard file I/O operations (e.g., 'open()', 'csv.reader', or 'csv.DictReader') targeting the CSV path, rather than a large hardcoded Python dictionary of offenses."
+    },
+    {
+      "id": "files_saved_to_disk",
+      "description": "Ensure the created files are actually saved to the correct %APPDATA% directory.",
+      "visual_evidence": "The text editor tabs should not show 'unsaved' indicators (like a dot or asterisk next to the filename), or there should be terminal output confirming the files were written to disk."
+    },
+    {
+      "id": "authentic_editor_usage",
+      "description": "Ensure the agent used a genuine text editor, IDE, or standard terminal commands to write the code.",
+      "visual_evidence": "Screenshots should show a real code editor (like VS Code, Notepad++, or Notepad) or standard terminal commands (like echo or Out-File) being used to construct the files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output files are 'nibrs.py' and 'nibrs.talon'. Note: The underlying data file 'C:\\workspace\\data\\nibrs_offenses.csv' is actually missing from the environment. The agent's code may fail to run or test successfully due to this missing file, but the agent should still be scored based on correctly writing the requested code logic and saving the files to the specified directory."
+}

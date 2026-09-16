@@ -1,0 +1,29 @@
+{
+  "id": "create_refurbished_product@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Create a published product listing for 'Refurbished Wireless Bluetooth Headphones' using the description, categories, and image from the existing 'Wireless Bluetooth Headphones' (SKU: WBH-001). Set the SKU to 'WBH-001-REF', the regular price to $49.99, and the stock quantity to 50.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_refurbished_product/setup_task.sh",
+    "post_task": "/workspace/tasks/create_refurbished_product/export_result.sh"
+  },
+  "metadata": {
+    "source_sku": "WBH-001",
+    "target_name": "Refurbished Wireless Bluetooth Headphones",
+    "target_sku": "WBH-001-REF",
+    "target_price": "49.99",
+    "target_stock": "50"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_refurbished_product"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "kymograph_velocity_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a medical scientist analyzing cancer cell migration in a time-lapse microscopy dataset of HeLa cells (nuclei labeled with H2B-GFP) in Fiji. Measure the migration velocity of at least three moving nuclei using kymograph analysis, ensuring the migration path used is at least 200 pixels long. Use a calibration of 0.645 µm per pixel and a time interval of 0.5 hours per frame. Calculate velocity using the formula: Velocity (µm/hr) = (dx_pixels * 0.645) / (dy_frames * 0.5). Save the generated kymograph to ~/Fiji_Data/results/kymograph/kymograph_main.png. Export a CSV file to ~/Fiji_Data/results/kymograph/velocity_measurements.csv with columns 'track_id' and 'velocity_um_per_hr' for at least three measurements. Save a summary report including the number of tracks and mean velocity to ~/Fiji_Data/results/kymograph/kymograph_report.txt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/kymograph_velocity_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/kymograph_velocity_analysis/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "dataset": "Fluo-N2DL-HeLa (Cell Tracking Challenge)",
+    "pixel_size_um": 0.645,
+    "frame_interval_min": 30,
+    "biological_range_min": 1.0,
+    "biological_range_max": 150.0,
+    "expected_mean_range": [
+      5.0,
+      80.0
+    ],
+    "min_tracks": 3,
+    "output_dir": "/home/ga/Fiji_Data/results/kymograph"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_kymograph_analysis"
+    }
+  },
+  "tags": [
+    "microscopy",
+    "kymograph",
+    "motility",
+    "time-lapse",
+    "quantitative-analysis",
+    "fiji"
+  ]
+}

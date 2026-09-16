@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_cross_section_summary@1",
+  "task_completion": [
+    {
+      "id": "access_hdf5_file",
+      "description": "Access or read the Muncie.p04.hdf file",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a script (e.g., Python using h5py/pandas), terminal command, or HDF viewer opening or reading the 'Muncie.p04.hdf' file from '~/Documents/hec_ras_projects/Muncie/'."
+    },
+    {
+      "id": "extract_variables",
+      "description": "Extract the required geometry and hydraulic variables",
+      "points": 20,
+      "visual_evidence": "Code or data views showing the extraction of River Station, minimum channel elevation, peak water surface elevation, peak flow, and peak velocity from the HDF5 file structure."
+    },
+    {
+      "id": "calculate_max_depth",
+      "description": "Calculate Max_Depth_ft as Peak_WSE - Min_Ch_El",
+      "points": 20,
+      "visual_evidence": "Code (e.g., a subtraction operation in Python) or spreadsheet formula explicitly calculating the maximum depth by subtracting the minimum channel elevation from the peak water surface elevation."
+    },
+    {
+      "id": "sort_descending",
+      "description": "Sort the data by River Station in descending order",
+      "points": 20,
+      "visual_evidence": "Code (e.g., sort_values(ascending=False)) or spreadsheet actions showing the data being sorted by the River Station column in descending order."
+    },
+    {
+      "id": "save_csv_file",
+      "description": "Create the cross_section_summary.csv file in the correct directory",
+      "points": 15,
+      "visual_evidence": "Code saving the output to '~/Documents/hec_ras_results/cross_section_summary.csv' or a terminal/file manager showing the file exists in this exact path."
+    },
+    {
+      "id": "verify_csv_columns",
+      "description": "Verify the CSV contains the exact required columns",
+      "points": 15,
+      "visual_evidence": "A view of the CSV content (via terminal like 'head', a script output, or a CSV viewer) showing the headers: River_Station, Min_Ch_El_ft, Peak_WSE_ft, Max_Depth_ft, Peak_Flow_cfs, and Peak_Vel_fps."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_extraction",
+      "description": "The agent extracted data from the actual HDF5 file rather than hallucinating or hardcoding the results.",
+      "visual_evidence": "Look for actual file reading operations (e.g., h5py.File, pandas.read_hdf) applied to 'Muncie.p04.hdf' rather than a hardcoded list of values."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The agent calculated Max_Depth_ft programmatically rather than hardcoding the answers.",
+      "visual_evidence": "Look for a mathematical operation (subtraction) in the script or spreadsheet rather than manually typed depth values."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually created the CSV file on the filesystem.",
+      "visual_evidence": "Look for a file save operation (e.g., to_csv) or a terminal command (like 'ls' or 'cat') confirming the file exists at the target path, not just printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The target HDF5 file is 'Muncie.p04.hdf' located in '/home/ga/Documents/hec_ras_projects/Muncie'. The output CSV must be saved to '/home/ga/Documents/hec_ras_results/cross_section_summary.csv'. The exact required columns in the CSV are: 'River_Station', 'Min_Ch_El_ft', 'Peak_WSE_ft', 'Max_Depth_ft', 'Peak_Flow_cfs', and 'Peak_Vel_fps'."
+}

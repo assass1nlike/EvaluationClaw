@@ -1,0 +1,34 @@
+{
+  "id": "kmeans_clustering_bigfive@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "The dataset '/home/ga/Documents/JASP/BigFivePersonalityTraits.csv' contains Big Five personality trait scores for 231 participants. Perform a K-Means Clustering analysis to identify 3 distinct personality profiles using Agreeableness, Conscientiousness, Extraversion, Neuroticism, and Openness as predictors. Ensure the predicted cluster labels are added to the dataset and include cluster means plots in the output. Save the analysis to '/home/ga/Documents/JASP/BigFive_KMeans.jasp'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/kmeans_clustering_bigfive/setup_task.sh",
+    "post_task": "/workspace/tasks/kmeans_clustering_bigfive/export_result.sh"
+  },
+  "metadata": {
+    "expected_file_path": "/home/ga/Documents/JASP/BigFive_KMeans.jasp",
+    "dataset_path": "/home/ga/Documents/JASP/BigFivePersonalityTraits.csv",
+    "required_variables": [
+      "Agreeableness",
+      "Conscientiousness",
+      "Extraversion",
+      "Neuroticism",
+      "Openness"
+    ],
+    "cluster_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_kmeans_clustering"
+    }
+  }
+}

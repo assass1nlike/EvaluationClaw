@@ -1,0 +1,59 @@
+{
+  "task_id": "suborbital_splashdown_dispersion@1",
+  "task_completion": [
+    {
+      "id": "gmat_spacecraft_config",
+      "description": "Configure the spacecraft state type and coordinate system in GMAT.",
+      "points": 15,
+      "visual_evidence": "GMAT GUI showing the Spacecraft properties window with the State Type set to 'SphericalAZFPA' and the Coordinate System set to 'EarthFixed' (or a script showing these configurations)."
+    },
+    {
+      "id": "gmat_force_model_config",
+      "description": "Configure the force model to include Earth gravity and atmospheric drag.",
+      "points": 15,
+      "visual_evidence": "GMAT Force Model dialog showing Earth gravity (e.g., JGM-2 or similar) and an atmospheric drag model enabled, or script lines configuring the ForceModel with GravityField and Drag."
+    },
+    {
+      "id": "gmat_propagate_config",
+      "description": "Set the simulation stopping condition to Earth impact (Altitude = 0 km).",
+      "points": 15,
+      "visual_evidence": "GMAT Propagate command dialog or script showing the stopping condition set to 'Spacecraft.Earth.Altitude = 0' (or similar syntax for 0 km altitude)."
+    },
+    {
+      "id": "gmat_simulation_runs",
+      "description": "Evaluate the three required drag coefficient scenarios.",
+      "points": 20,
+      "visual_evidence": "Evidence of the agent modifying the Drag Coefficient (Cd) to 2.2 (Nominal), 1.2 (Low Drag), and 3.2 (High Drag) and running the simulation for each, visible via GMAT GUI runs, script loops, or multiple output reports/plots."
+    },
+    {
+      "id": "save_simulation_script",
+      "description": "Save the GMAT simulation script to the specified path.",
+      "points": 10,
+      "visual_evidence": "File manager, terminal (e.g., ls command), or text editor showing the file 'splashdown_sim.script' saved in the '~/GMAT_output/' directory."
+    },
+    {
+      "id": "generate_dispersion_report",
+      "description": "Generate the final dispersion results report with the correct format and physically valid values.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the contents of '~/GMAT_output/dispersion_results.txt'. It must contain 'CASE 1', 'CASE 2', and 'CASE 3' with Impact Latitude, Impact Longitude, and Time of Flight for each. The values must be within the expected physical bounds (Lat: 25 to 36 deg, Lon: -73 to -60 deg or 287 to 300 deg East, TOF: 5 to 25 min)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution",
+      "description": "Verify that the agent actually used GMAT to compute the trajectories.",
+      "visual_evidence": "Screenshots should show the GMAT application open, running the simulation, or terminal commands executing the GMAT headless engine. The agent must not just write a text file without running a physics simulation."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "Verify that the results in the report are derived from the GMAT output.",
+      "visual_evidence": "The values in the final dispersion_results.txt should match the outputs seen in GMAT's message window, report files, or plots. They should not be arbitrarily guessed."
+    },
+    {
+      "id": "no_hardcoded_pi",
+      "description": "Verify the agent did not cheat by hardcoding the exact expected values from the prompt's hidden privileged info.",
+      "visual_evidence": "The agent should not instantly type ~31.7 latitude, ~-69.4 longitude, and ~18 minutes TOF without first running the GMAT simulation to obtain the exact decimal values."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected physical bounds for the splashdown are: Impact Latitude between 25.0 and 36.0 degrees (approx 31.7 deg), Impact Longitude between -73.0 and -60.0 degrees (approx -69.4 deg) OR between 287.0 and 300.0 degrees East (approx 290.6 deg East), and Time of Flight (TOF) between 5.0 and 25.0 minutes (approx 18 minutes). The simulation script must be at /home/ga/GMAT_output/splashdown_sim.script and the report at /home/ga/GMAT_output/dispersion_results.txt."
+}

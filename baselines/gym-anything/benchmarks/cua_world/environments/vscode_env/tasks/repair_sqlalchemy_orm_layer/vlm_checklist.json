@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_sqlalchemy_orm_layer@1",
+  "task_completion": [
+    {
+      "id": "resolve_n_plus_1",
+      "description": "Resolve N+1 queries in the artist endpoint",
+      "points": 15,
+      "visual_evidence": "Code editor showing the artist endpoint query updated to use eager loading (e.g., `joinedload`, `selectinload`, or `subqueryload`), or terminal showing the specific test for the artist endpoint passing."
+    },
+    {
+      "id": "resolve_cascade_deletions",
+      "description": "Resolve missing cascade deletions",
+      "points": 15,
+      "visual_evidence": "Code editor showing SQLAlchemy relationship definitions updated with cascade options (e.g., `cascade=\"all, delete-orphan\"`), or terminal showing the cascade deletion test passing."
+    },
+    {
+      "id": "resolve_self_referential",
+      "description": "Resolve self-referential model mapping errors for employees",
+      "points": 20,
+      "visual_evidence": "Code editor showing the Employee model relationship updated with `remote_side` (e.g., `remote_side=[id]`) to correctly map manager-to-employee relationships, or terminal showing the employee mapping test passing."
+    },
+    {
+      "id": "resolve_float_precision",
+      "description": "Resolve float precision bugs in revenue calculation",
+      "points": 15,
+      "visual_evidence": "Code editor showing revenue columns or calculations updated to use `Numeric(asdecimal=True)`, `Decimal`, or casting to exact numeric types instead of standard floats, or terminal showing the revenue calculation test passing."
+    },
+    {
+      "id": "resolve_in_memory_aggregations",
+      "description": "Resolve inefficient in-memory aggregations",
+      "points": 15,
+      "visual_evidence": "Code editor showing database-side aggregation functions (e.g., `func.sum()`, `func.count()`, `func.avg()`) replacing Python-side loops or `sum()` functions, or terminal showing the aggregation test passing."
+    },
+    {
+      "id": "all_tests_pass",
+      "description": "Ensure all tests in pytest tests/ pass",
+      "points": 20,
+      "visual_evidence": "Terminal window showing the execution of `pytest tests/` with a successful outcome (e.g., green 'PASSED' text, '100%', or 'X passed' indicating no failures)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_edits",
+      "description": "Agent modified the actual application/ORM files, not the test files",
+      "visual_evidence": "Code editor shows modifications in the application source code (e.g., `models.py`, `crud.py`, `main.py`). The `tests/` directory files should not be modified to force a passing result."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Agent genuinely executed pytest in the terminal",
+      "visual_evidence": "Terminal shows standard pytest output including test collection, execution time, and summary, rather than a simple echo command or printed text file."
+    },
+    {
+      "id": "no_hardcoded_responses",
+      "description": "Agent did not hardcode expected answers to bypass database queries",
+      "visual_evidence": "Code editor shows endpoints and functions returning results from SQLAlchemy queries (e.g., `db.query(...)`), not hardcoded dictionaries, lists, or static numeric values."
+    }
+  ],
+  "privileged_info_for_vlm": "The pass threshold for this task is 60 out of 100 possible points across the 5 distinct SQLAlchemy bug checks. The database being queried is a synthetically generated subset of the Chinook SQLite database."
+}

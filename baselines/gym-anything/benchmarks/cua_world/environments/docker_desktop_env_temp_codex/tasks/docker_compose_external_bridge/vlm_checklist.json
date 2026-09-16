@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_compose_external_bridge@1",
+  "task_completion": [
+    {
+      "id": "networks_created",
+      "description": "Verify that the external Docker networks 'infra-db-net' and 'infra-cache-net' have been created.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'docker network create' commands, 'docker network ls' output listing both networks, or Docker Desktop GUI displaying both 'infra-db-net' and 'infra-cache-net'."
+    },
+    {
+      "id": "shared_infra_compose_modified",
+      "description": "Verify that the shared-infra docker-compose.yml file connects Postgres to 'infra-db-net' and Redis to 'infra-cache-net', declaring them as external.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the contents of '/home/ga/Documents/docker-projects/shared-infra/docker-compose.yml'. The 'shared-postgres' service should be assigned to 'infra-db-net', the 'shared-redis' service to 'infra-cache-net', and both networks must be declared with 'external: true' at the bottom."
+    },
+    {
+      "id": "flask_api_compose_modified",
+      "description": "Verify that the flask-api docker-compose.yml file connects the API service to both 'infra-db-net' and 'infra-cache-net', declaring them as external.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the contents of '/home/ga/Documents/docker-projects/flask-api/docker-compose.yml'. The 'flask-api' service should be assigned to both 'infra-db-net' and 'infra-cache-net', and both networks must be declared with 'external: true' at the bottom."
+    },
+    {
+      "id": "health_checks_verified",
+      "description": "Verify that the Flask app's health checks for DB and Redis were accessed to confirm connectivity.",
+      "points": 20,
+      "visual_evidence": "A web browser or terminal (e.g., using curl) showing successful responses from 'http://localhost:5050/health/db' and 'http://localhost:5050/health/redis'."
+    },
+    {
+      "id": "report_saved",
+      "description": "Verify that the connectivity report was saved to the correct path with the required content.",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal, or file manager showing 'connectivity-report.txt' located in '/home/ga/Documents/docker-projects/' containing confirmation of the network configuration and connection status."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_compose_modification",
+      "description": "Ensure the docker-compose.yml files were genuinely modified and saved.",
+      "visual_evidence": "Look for evidence of file editing in a text editor (like nano, vim, or VS Code) or via echo/sed commands in the terminal, rather than just creating the final report."
+    },
+    {
+      "id": "genuine_health_check",
+      "description": "Ensure the health checks were actually performed against the running containers.",
+      "visual_evidence": "Look for actual execution of curl commands or browser navigation to localhost:5050, showing real HTTP responses, rather than just typing the expected output into a text file."
+    },
+    {
+      "id": "report_not_hardcoded",
+      "description": "Ensure the connectivity report reflects actual testing results.",
+      "visual_evidence": "The report should appear to be written by the agent based on the health check results, not just a copy-paste of the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Project root: /home/ga/Documents/docker-projects. Network names: infra-db-net, infra-cache-net. Services: shared-postgres, shared-redis, flask-api. API Port: 5050. Expected report path: /home/ga/Documents/docker-projects/connectivity-report.txt."
+}

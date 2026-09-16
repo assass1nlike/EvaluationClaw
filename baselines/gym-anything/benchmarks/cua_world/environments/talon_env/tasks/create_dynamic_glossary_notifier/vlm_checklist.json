@@ -1,0 +1,53 @@
+{
+  "task_id": "create_dynamic_glossary_notifier@1",
+  "task_completion": [
+    {
+      "id": "target_directory_created",
+      "description": "Verify that the target directory for the Talon module has been created.",
+      "points": 10,
+      "visual_evidence": "A file explorer window or text editor tree view showing the 'legal_glossary' folder inside 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\'."
+    },
+    {
+      "id": "glossary_py_list_registration",
+      "description": "Verify that glossary.py registers a Talon list named 'user.legal_term' with the correct description and key-value mapping.",
+      "points": 20,
+      "visual_evidence": "Code in glossary.py showing `mod.list('legal_term', desc='Law enforcement glossary')` and logic to populate it where keys are lowercase spoken forms and values are exact uppercase keys from the JSON."
+    },
+    {
+      "id": "glossary_py_action_implementation",
+      "description": "Verify that glossary.py implements the custom action 'user.notify_legal_definition(term_key: str)'.",
+      "points": 30,
+      "visual_evidence": "Code in glossary.py defining `@mod.action_class` with a method `notify_legal_definition(term_key: str)` that opens 'C:\\workspace\\data\\legal_glossary.json' and calls `actions.app.notify()` using the term key as the title and the definition as the body."
+    },
+    {
+      "id": "glossary_talon_command",
+      "description": "Verify that glossary.talon implements the voice command to call the custom action.",
+      "points": 30,
+      "visual_evidence": "Code in glossary.talon showing the exact command `define term {user.legal_term}:` followed by a call to `user.notify_legal_definition(legal_term)`."
+    },
+    {
+      "id": "files_saved_in_target",
+      "description": "Verify that both glossary.py and glossary.talon are saved in the correct target directory.",
+      "points": 10,
+      "visual_evidence": "The text editor tabs or file explorer showing both files exist and are saved (e.g., no unsaved indicators like a dot on the tab) in the 'legal_glossary' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "editor_used",
+      "description": "The agent used a text editor to write the code rather than terminal commands.",
+      "visual_evidence": "A text editor (e.g., VS Code, Notepad) is visible with the code, rather than just terminal output echoing text into files."
+    },
+    {
+      "id": "dynamic_json_loading",
+      "description": "The agent dynamically loads the JSON file instead of hardcoding the definitions.",
+      "visual_evidence": "The code contains file reading operations (e.g., `json.load()`) for the JSON file, not a hardcoded dictionary of terms."
+    },
+    {
+      "id": "correct_talon_syntax",
+      "description": "The agent used proper Talon syntax for the .talon file, not Python syntax.",
+      "visual_evidence": "The .talon file uses Talon's declarative syntax (e.g., `command: action()`) and not Python `def` statements."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\legal_glossary. Python file: glossary.py. Talon file: glossary.talon. Data file: C:\\workspace\\data\\legal_glossary.json. Note: The task is defective due to missing environment scripts, so evaluate only the agent's attempts to create the files and write the code as requested."
+}

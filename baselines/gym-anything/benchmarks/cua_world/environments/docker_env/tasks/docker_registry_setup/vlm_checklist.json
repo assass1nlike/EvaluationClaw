@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_registry_setup@1",
+  "task_completion": [
+    {
+      "id": "tls_auth_files_created",
+      "description": "Verify that the TLS certificates and htpasswd files were created in the correct directories.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the creation or listing (e.g., via 'ls' or 'tree') of a .crt and .key file in '~/projects/registry-setup/certs/' and an htpasswd file in '~/projects/registry-setup/auth/'."
+    },
+    {
+      "id": "registry_container_running",
+      "description": "Verify the 'acme-registry' container is running with the correct port mapping.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker ps' showing a container named 'acme-registry' using the 'registry:2' image, with port 5443 mapped to 443 (e.g., '0.0.0.0:5443->443/tcp' or similar)."
+    },
+    {
+      "id": "docker_daemon_trust",
+      "description": "Verify the local Docker daemon is configured to trust the new registry.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing either the editing of '/etc/docker/daemon.json' to include 'registry.acme.local:5443' in 'insecure-registries', OR the copying of the CA certificate to '/etc/docker/certs.d/registry.acme.local:5443/'."
+    },
+    {
+      "id": "images_migrated",
+      "description": "Verify the three application images were tagged and pushed to the new registry.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing 'docker push' commands succeeding for 'registry.acme.local:5443/acme/api-service:v1.2.0', 'registry.acme.local:5443/acme/web-frontend:v3.0.1', and 'registry.acme.local:5443/acme/reverse-proxy:v1.0.0', OR 'docker images' showing these specific tags."
+    },
+    {
+      "id": "catalog_script_created",
+      "description": "Verify the catalog.sh script was created to query the registry API.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the contents of '~/projects/registry-setup/catalog.sh' containing a 'curl' command with basic auth (-u admin:RegistryAdmin2024) hitting the '/v2/_catalog' endpoint, or the execution of this script returning the list of repositories."
+    },
+    {
+      "id": "verification_pull_successful",
+      "description": "Verify the api-service image can be successfully pulled from the local registry.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing 'docker pull registry.acme.local:5443/acme/api-service:v1.2.0' executing and successfully downloading/verifying layers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_commands",
+      "description": "Ensure the agent actually executed Docker commands rather than just printing expected text.",
+      "visual_evidence": "Look for genuine Docker CLI output formatting (e.g., layer hashes, progress bars during push/pull, standard 'docker ps' table formatting) rather than simple echo statements."
+    },
+    {
+      "id": "genuine_script_execution",
+      "description": "Ensure catalog.sh actually queries the API and doesn't just echo a hardcoded JSON string.",
+      "visual_evidence": "Check the script contents (if visible via cat/nano/vim) to ensure it uses a real HTTP client like 'curl' or 'wget' against 'https://registry.acme.local:5443/v2/_catalog'."
+    },
+    {
+      "id": "no_mocked_pull",
+      "description": "Ensure the verification pull was genuine.",
+      "visual_evidence": "The 'docker pull' command should show the standard Docker daemon response for pulling an image (e.g., 'Status: Downloaded newer image for...'), not a mocked shell alias or echo."
+    }
+  ],
+  "privileged_info_for_vlm": "Registry Domain: registry.acme.local\nRegistry Port: 5443\nAdmin Credentials: admin / RegistryAdmin2024\nProject Dir: /home/ga/projects/registry-setup\nRequired Image Migrations:\n1. acme-api:latest -> registry.acme.local:5443/acme/api-service:v1.2.0\n2. acme-frontend:latest -> registry.acme.local:5443/acme/web-frontend:v3.0.1\n3. acme-proxy:latest -> registry.acme.local:5443/acme/reverse-proxy:v1.0.0"
+}

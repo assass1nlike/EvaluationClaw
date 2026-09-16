@@ -1,0 +1,38 @@
+{
+  "id": "northwind_fraud_detection_benford@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Perform a forensic accounting analysis on the Northwind SQLite database (/home/ga/Documents/databases/northwind.db) using Benford's Law to identify potential fraud in order details. Connect to the database using the name 'Northwind' and analyze the 'OrderDetails' table by calculating the Line Total (UnitPrice * Quantity * (1 - Discount)) for each row. Extract the leading first non-zero digit (1-9) and aggregate the data to show the Digit, Actual Count, Actual Proportion, Benford's Expected Proportion, and Absolute Difference. Export the results to a 9-row CSV file at /home/ga/Documents/exports/benford_analysis.csv with columns Digit, ActualCount, ActualProp, BenfordProp, and AbsDiff. Save the SQL query script used for the analysis to /home/ga/Documents/scripts/benford_query.sql.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/northwind_fraud_detection_benford/setup_task.sh",
+    "post_task": "/workspace/tasks/northwind_fraud_detection_benford/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/northwind.db",
+    "output_csv": "/home/ga/Documents/exports/benford_analysis.csv",
+    "output_sql": "/home/ga/Documents/scripts/benford_query.sql",
+    "benford_probs": {
+      "1": 0.301,
+      "2": 0.176,
+      "3": 0.125,
+      "4": 0.097,
+      "5": 0.079,
+      "6": 0.067,
+      "7": 0.058,
+      "8": 0.051,
+      "9": 0.046
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_northwind_fraud_detection_benford"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_formatted_label_field@1",
+  "task_completion": [
+    {
+      "id": "layer_loaded",
+      "description": "Verify that the target countries layer is loaded into the GIS software.",
+      "points": 10,
+      "visual_evidence": "Look for 'ne_110m_admin_0_countries' listed in the layers panel or table of contents of the GIS application."
+    },
+    {
+      "id": "attribute_table_opened",
+      "description": "Verify that the attribute table for the countries layer has been opened.",
+      "points": 10,
+      "visual_evidence": "Look for a tabular window displaying the attributes (columns like NAME, ADM0_A3) of the 'ne_110m_admin_0_countries' layer."
+    },
+    {
+      "id": "new_field_created",
+      "description": "Verify that a new field named 'FULL_LABEL' is being created or has been created.",
+      "points": 20,
+      "visual_evidence": "Look for a 'New Field' or 'Add Column' dialog specifying the name 'FULL_LABEL' and type String/Text, OR look for a new column header named 'FULL_LABEL' in the attribute table."
+    },
+    {
+      "id": "field_calculator_configured",
+      "description": "Verify that the field calculator or expression builder is used to populate the field.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Field Calculator' or 'Expression' dialog open, targeting the 'FULL_LABEL' field for updates."
+    },
+    {
+      "id": "correct_concatenation_applied",
+      "description": "Verify that the correct concatenation logic is applied to format the string as 'Country Name (ISO_CODE)'.",
+      "points": 30,
+      "visual_evidence": "Look for an expression combining the 'NAME' and 'ADM0_A3' fields with parentheses (e.g., using || or + operators) in the calculator dialog, OR look at the attribute table to see the 'FULL_LABEL' column populated with correctly formatted values like 'Argentina (ARG)'."
+    },
+    {
+      "id": "edits_saved",
+      "description": "Verify that the changes to the layer are saved.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Save Edits' button being clicked, the editing mode being toggled off with a save confirmation, or a save dialog for the layer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the GIS software's graphical user interface.",
+      "visual_evidence": "Look for interactions within the GIS application window (e.g., gvSIG or QGIS) rather than terminal commands (like ogrinfo or python scripts in a standalone terminal) to modify the shapefile."
+    },
+    {
+      "id": "genuine_software",
+      "description": "Ensure the agent interacted with the actual GIS application.",
+      "visual_evidence": "The screenshots must show the genuine GIS software interface with map canvases and toolbars, not a text editor, spreadsheet program, or mock interface."
+    },
+    {
+      "id": "automated_calculation",
+      "description": "Ensure the agent used a formula/calculator rather than manual data entry.",
+      "visual_evidence": "Look for evidence of a batch calculation (like the Field Calculator dialog) rather than the agent manually typing 'Argentina (ARG)' into a single cell of the attribute table."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Layer: /home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp. The task requires creating a new String field named 'FULL_LABEL'. The field must be populated using the existing source fields 'NAME' and 'ADM0_A3'. The expected output format in the FULL_LABEL column is 'Country Name (ISO_CODE)', for example, 'Argentina (ARG)'."
+}

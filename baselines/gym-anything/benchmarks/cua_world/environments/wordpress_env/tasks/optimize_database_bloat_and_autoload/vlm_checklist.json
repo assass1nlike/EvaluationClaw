@@ -1,0 +1,59 @@
+{
+  "task_id": "optimize_database_bloat_and_autoload@1",
+  "task_completion": [
+    {
+      "id": "remove_orphaned_postmeta",
+      "description": "Verify the agent removed orphaned post metadata from the wp_postmeta table.",
+      "points": 20,
+      "visual_evidence": "Look for a MySQL query (e.g., 'DELETE FROM wp_postmeta WHERE post_id NOT IN (SELECT ID FROM wp_posts);') or an equivalent wp-cli command in the terminal, followed by a success message indicating rows were affected/deleted."
+    },
+    {
+      "id": "clear_transients",
+      "description": "Verify the agent cleared all transient options from the wp_options table.",
+      "points": 15,
+      "visual_evidence": "Look for the command 'wp transient delete --all' or a MySQL DELETE query targeting option_names containing '_transient' in the terminal, along with a success confirmation."
+    },
+    {
+      "id": "delete_post_revisions",
+      "description": "Verify the agent deleted all post revisions from the wp_posts table.",
+      "points": 15,
+      "visual_evidence": "Look for a wp-cli command deleting revisions (e.g., 'wp post delete $(wp post list --post_type=revision --format=ids)') or a MySQL query like 'DELETE FROM wp_posts WHERE post_type = \"revision\";' with a success message."
+    },
+    {
+      "id": "update_autoload_value",
+      "description": "Verify the agent changed the autoload value of the '_legacy_theme_cache_data' option to 'no' or 'off'.",
+      "points": 25,
+      "visual_evidence": "Look for a MySQL UPDATE query (e.g., 'UPDATE wp_options SET autoload = \"no\" WHERE option_name = \"_legacy_theme_cache_data\";') or a wp-cli command updating this specific option's autoload value to 'no', 'off', or '0'."
+    },
+    {
+      "id": "drop_abandoned_table",
+      "description": "Verify the agent dropped the unused 'wp_abandoned_plugin_logs' table.",
+      "points": 15,
+      "visual_evidence": "Look for the MySQL command 'DROP TABLE wp_abandoned_plugin_logs;' or an equivalent wp-cli db query, followed by a 'Query OK' or success response."
+    },
+    {
+      "id": "verify_frontend_functional",
+      "description": "Verify the agent checked that the front-end website remains fully functional.",
+      "points": 10,
+      "visual_evidence": "Look for a browser window displaying the WordPress front-end homepage without any database or PHP errors, or a successful HTTP request (e.g., curl) to the site URL returning HTML content."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Ensure the agent actually interacted with the database via MySQL shell, wp-cli, or a GUI tool.",
+      "visual_evidence": "Look for actual terminal prompts, MySQL shell interfaces, or WordPress admin screens showing command execution and system responses, rather than just typing SQL commands into a text editor."
+    },
+    {
+      "id": "no_destructive_shortcuts",
+      "description": "Ensure the agent did not delete the '_legacy_theme_cache_data' option entirely.",
+      "visual_evidence": "Verify that the command used for '_legacy_theme_cache_data' was an UPDATE command (or wp option update) and NOT a DELETE command."
+    },
+    {
+      "id": "actual_frontend_verification",
+      "description": "Ensure the agent actively verified the front-end functionality.",
+      "visual_evidence": "Look for a screenshot where the agent navigates to the public-facing WordPress site in a browser or uses a network tool like curl to fetch the page, proving they didn't just assume it worked."
+    }
+  ],
+  "privileged_info_for_vlm": "The target table to drop is exactly 'wp_abandoned_plugin_logs'. The target option to modify is exactly '_legacy_theme_cache_data'. The expected autoload value for this option must be changed to 'no', 'off', or '0'. The option must NOT be deleted."
+}

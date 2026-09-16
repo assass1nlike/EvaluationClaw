@@ -1,0 +1,36 @@
+{
+  "id": "turbine_performance_evaluation@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "You are a wind energy analyst evaluating the aerodynamic performance of the NREL 5MW reference wind turbine. Using the sample project file at /home/ga/Documents/sample_projects/, perform a steady-state BEM simulation in QBlade with a tip-speed-ratio (TSR) sweep from 1 to 15 to generate the turbine's power coefficient (Cp) curve. Export the Cp vs TSR simulation results to /home/ga/Documents/projects/nrel5mw_bem_results.txt. Create a text report at /home/ga/Documents/projects/nrel5mw_report.txt documenting the optimal TSR, the maximum Cp value, and a one-sentence interpretation of the result. You are logged in as user 'ga'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 55
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/turbine_performance_evaluation/setup_task.sh",
+    "post_task": "/workspace/tasks/turbine_performance_evaluation/export_result.sh"
+  },
+  "metadata": {
+    "turbine": "NREL_5MW",
+    "tsr_min": 1,
+    "tsr_max": 15,
+    "expected_bem_output": "nrel5mw_bem_results.txt",
+    "expected_report": "nrel5mw_report.txt",
+    "optimal_tsr_range": [
+      5,
+      12
+    ],
+    "max_cp_range": [
+      0.3,
+      0.55
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_turbine_performance_evaluation"
+    }
+  }
+}

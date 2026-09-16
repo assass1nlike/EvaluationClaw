@@ -1,0 +1,43 @@
+{
+  "id": "srs_appointment_module@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Marcus Chen, a Senior Systems Analyst at Pinnacle Health Systems. Your goal is to create a formal IEEE 830-compliant Software Requirements Specification (SRS) document for the 'Appointment Scheduling Module' (ASM) using Apache OpenOffice Writer, based on the requirements structured in /home/ga/Documents/requirements_data.json. The document must include a Title Page with Document ID PHS-SRS-APT-2024-001, a Table of Contents, and page numbers. Ensure the document incorporates all 12 functional requirements, 4 use cases, 3 interfaces, and 8 data entities from the JSON source, formatted into relevant tables for functional requirements, use case descriptions, external interfaces, and the data dictionary. Save the completed document to /home/ga/Documents/SRS_Appointment_Module_v1.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/srs_appointment_module/setup_task.sh",
+    "post_task": "/workspace/tasks/srs_appointment_module/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/requirements_data.json",
+    "output_file": "/home/ga/Documents/SRS_Appointment_Module_v1.odt",
+    "min_h1": 7,
+    "min_h2": 10,
+    "min_h3": 4,
+    "min_tables": 4,
+    "min_table_rows": 20,
+    "required_ids": [
+      "REQ-F-001",
+      "REQ-F-012",
+      "UC-001",
+      "IF-001"
+    ],
+    "required_terms": [
+      "HIPAA",
+      "FHIR",
+      "Appointment",
+      "Pinnacle"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_srs_creation"
+    }
+  }
+}

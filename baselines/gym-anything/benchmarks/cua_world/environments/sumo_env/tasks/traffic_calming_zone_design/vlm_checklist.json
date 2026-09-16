@@ -1,0 +1,53 @@
+{
+  "task_id": "traffic_calming_zone_design@1",
+  "task_completion": [
+    {
+      "id": "generate_baseline_tripinfos",
+      "description": "Generate the baseline simulation metrics file.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing SUMO execution that outputs to /home/ga/SUMO_Output/baseline_tripinfos.xml, or the file visible in a directory listing or text editor."
+    },
+    {
+      "id": "modify_network_speed_limits",
+      "description": "Modify at least 8 residential edges to have a 30 km/h (8.33 m/s) speed limit.",
+      "points": 25,
+      "visual_evidence": "SUMO Netedit GUI showing edge properties being changed to a speed of 8.33 m/s, or terminal/editor showing a script or manual XML edits applying this speed limit to multiple edges in the network file."
+    },
+    {
+      "id": "generate_calming_tripinfos",
+      "description": "Generate the modified (calming) simulation metrics file.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing SUMO execution with the modified network that outputs to /home/ga/SUMO_Output/calming_tripinfos.xml, or the file visible in a directory listing or text editor."
+    },
+    {
+      "id": "create_comparison_report",
+      "description": "Produce a CSV comparison report with the required metrics and columns.",
+      "points": 25,
+      "visual_evidence": "A file named traffic_calming_report.csv open in a text editor or displayed in the terminal via 'cat', showing columns 'metric', 'baseline_value', 'calming_value', and 'change_pct', and rows for 'zone_avg_speed', 'corridor_avg_travel_time', 'total_throughput', 'zone_85th_percentile_speed', and 'corridor_avg_speed'."
+    },
+    {
+      "id": "write_engineering_summary",
+      "description": "Document the zone design and impacts in a professional engineering summary.",
+      "points": 20,
+      "visual_evidence": "A text file named traffic_calming_summary.txt open in a text editor or displayed in the terminal, containing a written summary of the traffic calming design and its impacts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify the agent actually ran SUMO simulations to generate the XML files.",
+      "visual_evidence": "Look for terminal commands invoking 'sumo' or 'sumo-gui' rather than the agent manually creating or echoing fake XML content into the tripinfo files."
+    },
+    {
+      "id": "authentic_network_modification",
+      "description": "Verify the agent genuinely modified the SUMO network file.",
+      "visual_evidence": "Look for interaction with SUMO Netedit, a Python script using xml.etree/sumolib, or manual edits in a text editor altering the .net.xml file, rather than just hallucinating the final output files."
+    },
+    {
+      "id": "data_extraction_evidence",
+      "description": "Verify the agent extracted data from the simulation outputs to create the CSV report.",
+      "visual_evidence": "Look for a Python/bash script parsing the XML files or the agent manually opening the XML files to read the values, rather than generating a CSV with fabricated numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying at least 8 edges to a speed limit of 30 km/h, which is exactly 8.33 m/s in SUMO. The required output paths are: /home/ga/SUMO_Output/baseline_tripinfos.xml, /home/ga/SUMO_Output/calming_tripinfos.xml, /home/ga/SUMO_Output/traffic_calming_report.csv, and /home/ga/SUMO_Output/traffic_calming_summary.txt. The CSV report must contain exactly these columns: metric, baseline_value, calming_value, change_pct. The CSV must cover these specific metrics: zone_avg_speed, corridor_avg_travel_time, total_throughput, zone_85th_percentile_speed, and corridor_avg_speed."
+}

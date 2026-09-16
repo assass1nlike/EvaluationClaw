@@ -1,0 +1,53 @@
+{
+  "task_id": "productionize_pm2_services@1",
+  "task_completion": [
+    {
+      "id": "configure_pm2_startup",
+      "description": "Configure PM2 to start automatically on system boot for the root user.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a command like 'pm2 startup' and the resulting success message indicating that the startup script was successfully generated and configured (e.g., 'systemctl enable pm2-root')."
+    },
+    {
+      "id": "save_pm2_process_list",
+      "description": "Save the current PM2 process list so microservices are restored upon reboot.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'pm2 save' and a success message confirming that the process list was saved, specifically mentioning the dump file path '/root/.pm2/dump.pm2'."
+    },
+    {
+      "id": "install_pm2_logrotate",
+      "description": "Install a PM2 log rotation module.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'pm2 install pm2-logrotate' (or similar) and the PM2 module installation success output, usually displaying a table with the 'pm2-logrotate' module listed."
+    },
+    {
+      "id": "configure_log_retention",
+      "description": "Configure the log rotation to retain exactly 14 backups.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a command like 'pm2 set pm2-logrotate:retain 14' and a success message confirming the configuration has been updated."
+    },
+    {
+      "id": "configure_log_compression",
+      "description": "Configure the log rotation to enable compression.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a command like 'pm2 set pm2-logrotate:compress true' and a success message confirming the configuration has been updated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Verify the agent actually executed the commands in a terminal environment.",
+      "visual_evidence": "Look for standard terminal prompts (e.g., 'root@...#'), command execution outputs, and PM2's distinct ASCII tables and formatting, rather than just text written in a text editor."
+    },
+    {
+      "id": "root_user_context",
+      "description": "Verify the commands were executed under the 'root' user context as requested.",
+      "visual_evidence": "The terminal prompt should show the user as 'root' (e.g., ending in '#' or explicitly stating 'root@'), or commands should be executed with appropriate root privileges."
+    },
+    {
+      "id": "no_script_mocking",
+      "description": "Ensure the agent did not just echo or print the expected success messages.",
+      "visual_evidence": "The outputs should match genuine PM2 CLI behavior, including the PM2 daemon status tables, module installation progress bars, or standard PM2 logging formats."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected log retention is exactly 14 backups. Compression must be enabled (true). The PM2 process list must be saved to the standard root dump file location: /root/.pm2/dump.pm2. Look for the agent using the PM2 CLI (e.g., 'pm2 startup', 'pm2 save', 'pm2 install pm2-logrotate', 'pm2 set pm2-logrotate:retain 14', and 'pm2 set pm2-logrotate:compress true')."
+}

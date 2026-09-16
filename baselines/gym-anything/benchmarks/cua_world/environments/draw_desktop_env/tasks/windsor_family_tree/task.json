@@ -1,0 +1,51 @@
+{
+  "id": "windsor_family_tree@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a five-generation family tree diagram of the British House of Windsor in draw.io using the data provided in 'windsor_genealogy.txt' on the Desktop. The diagram must include at least 20 family members, organized hierarchically from King George V (Generation 1) down to the fifth generation. Each person should be represented by a shape containing their name and birth/death years, with deceased members visually distinguished (e.g., via fill color or border style). Use solid lines for parent-child relationships and dashed lines for marriage relationships. Include a second page in the diagram titled 'Legend' that explains the line styles and color coding used. Save the editable diagram to /home/ga/Desktop/windsor_family_tree.drawio and export the first page as a PNG image to /home/ga/Desktop/windsor_family_tree.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/windsor_family_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/windsor_family_tree/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "windsor_family_tree.drawio",
+    "expected_png": "windsor_family_tree.png",
+    "min_shapes": 20,
+    "min_edges": 15,
+    "key_names": [
+      "George V",
+      "Mary of Teck",
+      "Edward VIII",
+      "George VI",
+      "Elizabeth Bowes-Lyon",
+      "Elizabeth II",
+      "Philip",
+      "Charles",
+      "Diana",
+      "Camilla",
+      "Anne",
+      "Andrew",
+      "Edward",
+      "William",
+      "Catherine",
+      "Harry",
+      "Meghan",
+      "George",
+      "Charlotte",
+      "Louis",
+      "Archie"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_windsor_family_tree"
+    }
+  }
+}

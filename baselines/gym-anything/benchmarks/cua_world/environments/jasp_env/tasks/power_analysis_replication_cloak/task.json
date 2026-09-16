@@ -1,0 +1,31 @@
+{
+  "id": "power_analysis_replication_cloak@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a replication power analysis in JASP using the dataset '/home/ga/Documents/JASP/InvisibilityCloak.csv'. Determine the observed Cohen's d from an Independent Samples T-Test (Mischief by Cloak). Calculate the total sample size required for a two-sided replication with a power of 0.90 and an alpha of 0.05 based on the observed effect size. Save the JASP project to '/home/ga/Documents/JASP/PowerAnalysis.jasp' and record both the observed Cohen's d and the calculated Total Sample Size in '/home/ga/Documents/JASP/power_report.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/power_analysis_replication_cloak/setup_task.sh",
+    "post_task": "/workspace/tasks/power_analysis_replication_cloak/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/InvisibilityCloak.csv",
+    "expected_output_jasp": "/home/ga/Documents/JASP/PowerAnalysis.jasp",
+    "expected_output_report": "/home/ga/Documents/JASP/power_report.txt",
+    "target_cohens_d": 1.71,
+    "target_cohens_d_tolerance": 0.1,
+    "target_sample_size": 18,
+    "target_sample_size_tolerance": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_power_analysis_replication_cloak"
+    }
+  }
+}

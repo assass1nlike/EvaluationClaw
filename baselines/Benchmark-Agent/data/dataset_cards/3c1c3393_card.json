@@ -1,0 +1,82 @@
+{
+  "dataset_id": "3c1c3393",
+  "name": "Openset Embodied Navigating Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates embodied navigation visual question answering, where an agent must predict the next navigation action given a goal, previous step descriptions, and corresponding images. It tests multimodal reasoning and instruction following in household environments.",
+  "card_text": "The dataset consists of embodied navigation episodes in household settings. Each sample includes a textual prompt that specifies the main goal, describes previous steps with embedded <ImageHere> placeholders, and indicates the current step. The associated image files correspond to the visual observations at each step. The target output is a natural language instruction for the agent's next move, such as 'Turn left and walk to the wall then turn left and walk to the night stand.' The data is designed for open-ended visual question answering and sequential decision making, requiring the model to integrate visual scene understanding, previous actions, and the overall objective. The style is instructional, and the domain is indoor navigation. Samples are drawn from a simulated environment and are used for evaluating multimodal dialogue and interactive capability.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "embodied navigation",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt contains the main goal, step-by-step previous actions with <ImageHere> placeholders, and the current step, forming the context for the agent to predict the next move.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language instruction describing the agent's next navigation action, such as turning or walking to a location.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of image filenames corresponding to the visual observations at each step (including the current step) in the navigation episode; these images are referenced by <ImageHere> placeholders in the prompt.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a text prompt (input.prompt) that serves as the context and instruction, an image file list (input.image_file) providing visual observations for each step, and a text answer (output.text) specifying the next navigation action. The <ImageHere> placeholders in the prompt refer to the images in order, linking the textual step descriptions with the visual scene. There are no separate question, options, or rationale fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/EmbodiedNavigatingVisualQuestionAnswering/openset_embodied_navigating_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Embodied Navigating Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Multimodal Dialogue",
+      "domain": "General",
+      "general_capability": [
+        "Interactive Capability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

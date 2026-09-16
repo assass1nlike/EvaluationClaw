@@ -1,0 +1,44 @@
+{
+  "id": "labeled_particle_map@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Indexed Particle Map Generation",
+  "description": "Create a publication-quality indexed segmentation map of the 'Blobs (25K)' sample image. Identify particles with a size range of 10 to infinity, excluding those on the edges. Measure the Area, Circularity, and Feret's Diameter for each particle. Generate a flattened RGB map where every particle is outlined and numbered. Save the measurements to ~/ImageJ_Data/results/particle_data.csv and the labeled map to ~/ImageJ_Data/results/labeled_map.png.",
+  "difficulty": "medium",
+  "tags": [
+    "imagej",
+    "segmentation",
+    "visualization",
+    "particle-analysis",
+    "reporting"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/labeled_particle_map/setup_task.sh",
+    "post_task": "/workspace/tasks/labeled_particle_map/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "Blobs (25K)",
+    "expected_map_path": "/home/ga/ImageJ_Data/results/labeled_map.png",
+    "expected_csv_path": "/home/ga/ImageJ_Data/results/particle_data.csv",
+    "required_columns": [
+      "Area",
+      "Circ",
+      "Feret"
+    ],
+    "expected_count_min": 40,
+    "expected_count_max": 65,
+    "original_width": 256,
+    "original_height": 254
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_labeled_particle_map"
+    }
+  }
+}

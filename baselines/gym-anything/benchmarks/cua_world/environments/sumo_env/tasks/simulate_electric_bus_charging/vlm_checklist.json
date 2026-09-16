@@ -1,0 +1,53 @@
+{
+  "task_id": "simulate_electric_bus_charging@1",
+  "task_completion": [
+    {
+      "id": "charging_station_configured",
+      "description": "Verify the fast-charging station is correctly configured in an XML file.",
+      "points": 25,
+      "visual_evidence": "Look for an open XML file or terminal output showing a <chargingStation> element with id='fast_charger', power='250000', efficiency='0.95', lane='2[1][1][1]b_0', startPos='35', and endPos='55'."
+    },
+    {
+      "id": "bus_battery_configured",
+      "description": "Verify the bus vType is equipped with the correct battery parameters.",
+      "points": 20,
+      "visual_evidence": "Look for an open XML file or terminal output showing the bus <vType> configuration with battery device parameters, specifically maximumBatteryCapacity='300000' and actualBatteryCapacity='150000'."
+    },
+    {
+      "id": "battery_output_generated",
+      "description": "Verify the SUMO simulation was run and generated the battery output file.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output showing a successful SUMO execution (e.g., 'sumo -c ...') and the creation or existence of the file '/home/ga/SUMO_Output/battery.xml'."
+    },
+    {
+      "id": "report_charging_lane",
+      "description": "Verify the report file contains the correct charging lane ID.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of '/home/ga/SUMO_Output/ev_report.txt' (via text editor or terminal command like 'cat') showing 'charging_lane=2[1][1][1]b_0'."
+    },
+    {
+      "id": "report_min_battery",
+      "description": "Verify the report file contains the correct minimum battery level.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of '/home/ga/SUMO_Output/ev_report.txt' showing 'min_battery_wh=150000.00'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "Verify the agent actually ran the SUMO simulation to generate the battery output.",
+      "visual_evidence": "Look for terminal commands invoking 'sumo' or 'sumo-gui' and the corresponding simulation progress/completion logs, rather than just creating a mock battery.xml file."
+    },
+    {
+      "id": "genuine_file_inspection",
+      "description": "Verify the agent inspected the bus stops file to find the correct location.",
+      "visual_evidence": "Look for terminal commands (like 'cat', 'grep', or opening in an editor) targeting 'pasubio_bus_stops.add.xml' to extract the lane and position data before configuring the charging station."
+    },
+    {
+      "id": "correct_directories_used",
+      "description": "Verify the agent used the specified directories for scenarios and outputs.",
+      "visual_evidence": "Look for file paths in the terminal or editor confirming the use of '/home/ga/SUMO_Scenarios/bologna_pasubio/' for configuration and '/home/ga/SUMO_Output/' for the battery.xml and ev_report.txt files."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct first bus stop location is on lane '2[1][1][1]b_0' with startPos 35 and endPos 55. Running the SUMO simulation correctly with the requested battery parameters results in a minimum actualBatteryCapacity of exactly 150000.00 Wh, because the buses' default emissionClass does not consume electric energy. A successful agent report at /home/ga/SUMO_Output/ev_report.txt must indicate 'charging_lane=2[1][1][1]b_0' and 'min_battery_wh=150000.00'."
+}

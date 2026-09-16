@@ -1,0 +1,46 @@
+{
+  "id": "insurance_archimate_landscape@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create an ArchiMate 3.1 Enterprise Architecture diagram for an Insurance Claims Handling system based on the definition file at ~/Desktop/archisurance_definition.txt. Using official ArchiMate shapes in draw.io, model a three-layer architecture including the Business Layer (Customer, Submit Claim, Damage Report), Application Layer (Claims Intake Service, Policy Administration System, Document Management System), and Technology Layer (Mainframe, DB2 Database, Claim PDF). Ensure all relationships (assignment, serving, realization, flow, access) are correctly represented as described in the text file. Save the editable diagram to ~/Desktop/claims_architecture.drawio and export a PNG image to ~/Desktop/claims_architecture.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/insurance_archimate_landscape/setup_task.sh",
+    "post_task": "/workspace/tasks/insurance_archimate_landscape/export_result.sh"
+  },
+  "metadata": {
+    "definition_file": "/home/ga/Desktop/archisurance_definition.txt",
+    "output_drawio": "/home/ga/Desktop/claims_architecture.drawio",
+    "output_png": "/home/ga/Desktop/claims_architecture.png",
+    "required_elements": {
+      "business": [
+        "customer",
+        "submit claim",
+        "damage report"
+      ],
+      "application": [
+        "claims intake",
+        "policy administration",
+        "document management"
+      ],
+      "technology": [
+        "mainframe",
+        "db2",
+        "claim pdf"
+      ]
+    },
+    "min_archimate_shapes": 9,
+    "min_relationships": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_insurance_archimate_landscape"
+    }
+  }
+}

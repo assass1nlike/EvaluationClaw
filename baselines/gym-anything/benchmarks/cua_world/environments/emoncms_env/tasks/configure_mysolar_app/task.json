@@ -1,0 +1,31 @@
+{
+  "id": "configure_mysolar_app@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Configure the MySolar application in Emoncms to visualize solar PV system performance. Assign the 'solar_power' feed to Solar Power (W), 'house_power' to House Power (W), 'solar_energy_kwh' to Solar Energy (kWh), and 'house_energy_kwh' to House Energy (kWh). Save the configuration to enable the solar monitoring dashboard.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_mysolar_app/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_mysolar_app/export_result.sh"
+  },
+  "metadata": {
+    "app_name": "mysolar",
+    "feed_names": {
+      "solar_power": "solar_power",
+      "house_power": "house_power",
+      "solar_kwh": "solar_energy_kwh",
+      "house_kwh": "house_energy_kwh"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_mysolar_app"
+    }
+  }
+}

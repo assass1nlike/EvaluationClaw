@@ -1,0 +1,79 @@
+{
+  "id": "hud_housing_market_rent_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a property manager auditing compliance for Section 8 housing vouchers. Verify the Fiscal Year 2024 (FY 2024) Fair Market Rent (FMR) limits for Miami-Dade County (FL), King County (WA), and Suffolk County (MA) using the HUD User website (huduser.gov). Create a Firefox bookmark folder named 'HUD FMR Audit' containing the direct result pages for these three counties. Generate a JSON report at ~/Documents/fmr_audit_2024.json containing the efficiency, one-bedroom, and two-bedroom rent amounts for each county using the following structure:\n{\n  \"fiscal_year\": 2024,\n  \"miami_dade_fl\": { \"efficiency\": 0, \"one_bedroom\": 0, \"two_bedroom\": 0 },\n  \"king_wa\": { \"efficiency\": 0, \"one_bedroom\": 0, \"two_bedroom\": 0 },\n  \"suffolk_ma\": { \"efficiency\": 0, \"one_bedroom\": 0, \"two_bedroom\": 0 }\n}",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "real-estate",
+    "research",
+    "compliance",
+    "government-data",
+    "hud"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hud_housing_market_rent_research/setup_task.sh",
+    "post_task": "/workspace/tasks/hud_housing_market_rent_research/export_result.sh"
+  },
+  "metadata": {
+    "expected_fiscal_year": 2024,
+    "required_bookmark_folder": "HUD FMR Audit",
+    "required_output_file": "/home/ga/Documents/fmr_audit_2024.json",
+    "ranges": {
+      "miami_dade_fl": {
+        "efficiency": [
+          1300,
+          2000
+        ],
+        "one_bedroom": [
+          1400,
+          2200
+        ],
+        "two_bedroom": [
+          1800,
+          2600
+        ]
+      },
+      "king_wa": {
+        "efficiency": [
+          1800,
+          2500
+        ],
+        "one_bedroom": [
+          1900,
+          2600
+        ],
+        "two_bedroom": [
+          2200,
+          3000
+        ]
+      },
+      "suffolk_ma": {
+        "efficiency": [
+          1900,
+          2600
+        ],
+        "one_bedroom": [
+          2100,
+          2800
+        ],
+        "two_bedroom": [
+          2500,
+          3200
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hud_housing_market_rent_research"
+    }
+  }
+}

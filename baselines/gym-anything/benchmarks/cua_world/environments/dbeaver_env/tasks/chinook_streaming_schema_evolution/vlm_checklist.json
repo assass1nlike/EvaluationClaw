@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_streaming_schema_evolution@1",
+  "task_completion": [
+    {
+      "id": "dbeaver_connection_created",
+      "description": "Create a DBeaver connection named 'ChinookStreaming' for the specified database",
+      "points": 10,
+      "visual_evidence": "In DBeaver's Database Navigator pane, there should be a connection explicitly named 'ChinookStreaming' pointing to the SQLite database."
+    },
+    {
+      "id": "subscription_plans_table_created",
+      "description": "Create and populate the 'subscription_plans' table",
+      "points": 20,
+      "visual_evidence": "A new table named 'subscription_plans' is visible in DBeaver or the SQL script, containing columns PlanId, PlanName, MonthlyPrice, MaxDevices, and OfflineAccess. The data view or script should show the insertion of the 3 required records: Free, Premium, and Family."
+    },
+    {
+      "id": "existing_tables_modified",
+      "description": "Modify 'customers' and 'tracks' tables with new columns",
+      "points": 20,
+      "visual_evidence": "The 'customers' table properties or SQL script shows a new 'SubscriptionPlanId' column (DEFAULT 1), and the 'tracks' table shows a new 'PlayCount' column (DEFAULT 0)."
+    },
+    {
+      "id": "listening_history_table_and_indexes_created",
+      "description": "Create 'listening_history' table and its indexes",
+      "points": 30,
+      "visual_evidence": "A new table named 'listening_history' is visible with columns ListenId, CustomerId, TrackId, ListenDate, and DurationMs. Additionally, indexes 'idx_listening_customer' and 'idx_listening_track' should be visible in DBeaver's index view for this table or explicitly written in the SQL script."
+    },
+    {
+      "id": "migration_script_saved",
+      "description": "Save the SQL migration script to the specified path",
+      "points": 20,
+      "visual_evidence": "A text editor, IDE, or file manager shows a file named 'streaming_migration.sql' saved in the '/home/ga/Documents/scripts/' directory containing the SQL commands used for the schema evolution."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_dbeaver_usage",
+      "description": "Verify the agent used DBeaver to interact with the database",
+      "visual_evidence": "Screenshots should show the DBeaver application open and actively used to view or modify the database, rather than just using the sqlite3 CLI in the terminal."
+    },
+    {
+      "id": "genuine_script_creation",
+      "description": "Verify the SQL script was genuinely authored or exported",
+      "visual_evidence": "The script 'streaming_migration.sql' should be visible in a text editor (like VS Code, gedit, or nano) or exported via DBeaver's tools, rather than just being echoed into a file without proper formatting or verification."
+    },
+    {
+      "id": "actual_database_modification",
+      "description": "Verify the database schema was actually changed",
+      "visual_evidence": "DBeaver's Database Navigator or table properties should reflect the newly created tables and columns, proving the SQL commands were actually executed against the database, not just written to a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/Documents/databases/chinook_streaming.db. The DBeaver connection must be named exactly 'ChinookStreaming'. The expected new tables are 'subscription_plans' and 'listening_history'. The 'customers' table must have a new 'SubscriptionPlanId' column, and the 'tracks' table must have a new 'PlayCount' column. The 'listening_history' table must have indexes 'idx_listening_customer' and 'idx_listening_track'. The final migration script must be saved to /home/ga/Documents/scripts/streaming_migration.sql."
+}

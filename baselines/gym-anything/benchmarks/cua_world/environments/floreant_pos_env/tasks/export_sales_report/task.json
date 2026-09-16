@@ -1,0 +1,27 @@
+{
+  "id": "export_sales_report@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Generate a Sales Report for the current day in Floreant POS (Back Office PIN: 1111) and export it as a PDF to /home/ga/Desktop/sales_report.pdf. It is acceptable if the report contains zero sales if no transactions have occurred today.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_sales_report/setup_task.sh",
+    "post_task": "/workspace/tasks/export_sales_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "sales_report.pdf",
+    "expected_path": "/home/ga/Desktop/sales_report.pdf",
+    "min_file_size_bytes": 500
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_sales_report"
+    }
+  }
+}

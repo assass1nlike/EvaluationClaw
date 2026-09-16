@@ -1,0 +1,53 @@
+{
+  "task_id": "model_linear_fresnel_iph@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Create the Python script at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing the creation or existence of the file '/home/ga/Documents/SAM_Projects/linear_fresnel_iph.py'."
+    },
+    {
+      "id": "pysam_module_import",
+      "description": "Import and initialize the PySAM LinearFresnelDsgIph module.",
+      "points": 20,
+      "visual_evidence": "Code in the script showing 'import PySAM.LinearFresnelDsgIph' (or similar) and the initialization of the model (e.g., using 'default(\"DSGLIPHLCOHCalculator\")')."
+    },
+    {
+      "id": "model_configuration",
+      "description": "Configure the model with the requested parameters (Phoenix weather, area, inlet temp, pressure).",
+      "points": 20,
+      "visual_evidence": "Code setting the solar resource file to a Phoenix weather file, aperture area to ~10000, inlet temperature to 150, and operating pressure to 25 bar (or 2500 kPa)."
+    },
+    {
+      "id": "model_execution",
+      "description": "Execute the PySAM simulation and extract the required metrics.",
+      "points": 20,
+      "visual_evidence": "Code calling the '.execute()' method on the model and retrieving outputs like annual energy and capacity factor."
+    },
+    {
+      "id": "results_json_creation",
+      "description": "Save the resulting metrics to the specified JSON file.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the contents of '/home/ga/Documents/SAM_Projects/linear_fresnel_iph_results.json' containing the keys: annual_energy_kwh, capacity_factor_percent, solar_field_aperture_m2, design_outlet_temp_c (set to 250), design_inlet_temp_c, operating_pressure_bar, latitude, longitude, and weather_file_used."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_check",
+      "description": "Verify the agent actually ran the Python script to generate the results.",
+      "visual_evidence": "Terminal output showing the execution of the script (e.g., 'python linear_fresnel_iph.py') rather than the agent just manually typing the JSON file."
+    },
+    {
+      "id": "realistic_simulation_outputs",
+      "description": "Verify the energy and capacity factor are genuine simulation results, not fabricated numbers.",
+      "visual_evidence": "The JSON file should show 'annual_energy_kwh' around 10,600,000 and 'capacity_factor_percent' around 24.2, matching the empirical PySAM outputs for Phoenix."
+    },
+    {
+      "id": "hardcoded_outlet_temp",
+      "description": "Verify the agent hardcoded the design outlet temperature to 250 in the JSON.",
+      "visual_evidence": "Because PySAM's LinearFresnelDsgIph cannot physically achieve 250 C at 25 bar (saturation is ~224 C), the Python script must explicitly set or hardcode 'design_outlet_temp_c': 250 in the dictionary before saving to JSON."
+    }
+  ],
+  "privileged_info_for_vlm": "A correct PySAM simulation for a 10,000 m2 linear Fresnel field in Phoenix yields ~10.6 GWh (10,600,000 kWh) annual energy and ~24.2% capacity factor. Note: PySAM's LinearFresnelDsgIph model physically cannot achieve the requested 250 \u00b0C outlet temperature at 25 bar (saturation is ~224 \u00b0C), and lacks a T_out_des parameter. The agent must manually write 250 \u00b0C into the JSON output to satisfy the prompt's requirements."
+}

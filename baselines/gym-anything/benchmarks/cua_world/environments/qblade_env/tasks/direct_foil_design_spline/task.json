@@ -1,0 +1,28 @@
+{
+  "id": "direct_foil_design_spline@1",
+  "version": "1.0",
+  "env_id": "qblade_env@0.1",
+  "description": "Create a custom symmetric airfoil named 'SymCustom15' with a maximum thickness of 15% of the chord using the Direct Foil Design module. Save the project to /home/ga/Documents/projects/custom_spline_foil.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/direct_foil_design_spline/setup_task.sh",
+    "post_task": "/workspace/tasks/direct_foil_design_spline/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "custom_spline_foil.wpa",
+    "expected_airfoil_name": "SymCustom15",
+    "target_thickness_percent": 15,
+    "min_file_size_bytes": 500
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_direct_foil_design_spline"
+    }
+  }
+}

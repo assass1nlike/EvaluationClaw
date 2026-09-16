@@ -1,0 +1,53 @@
+{
+  "task_id": "broken_leo_mission_diagnosis@1",
+  "task_completion": [
+    {
+      "id": "script_edited",
+      "description": "Agent opens and edits the GMAT mission script to correct orbital parameters and set propagation to 7 days.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) is open showing the file /home/ga/Documents/missions/leo_comms_mission.script. The script should show modifications to SMA, ECC, INC, DragArea, and a propagation stopping condition of 7 days."
+    },
+    {
+      "id": "script_executed",
+      "description": "Agent successfully executes the corrected GMAT script using GmatConsole.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the script using a command like 'GmatConsole /home/ga/Documents/missions/leo_comms_mission.script' (or similar) with output indicating a successful run without errors."
+    },
+    {
+      "id": "report_created",
+      "description": "Agent creates the diagnosis report file at the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor showing the creation, editing, or viewing (e.g., via 'cat') of the file /home/ga/GMAT_output/leo_diagnosis_report.txt."
+    },
+    {
+      "id": "report_orbital_params",
+      "description": "The diagnosis report contains the corrected orbital parameters within the physically valid ranges.",
+      "points": 30,
+      "visual_evidence": "The report shows exact lines for 'SMA_corrected_km:', 'ECC_corrected:', 'INC_corrected_deg:', and 'DragArea_corrected_m2:'. The values must fall within the valid ranges: SMA between 6880.0 and 6970.0, ECC <= 0.015, INC between 97.0 and 99.5, and DragArea between 1.0 and 100.0."
+    },
+    {
+      "id": "report_raan_drift",
+      "description": "The diagnosis report contains the correct theoretical RAAN drift value.",
+      "points": 20,
+      "visual_evidence": "The report shows a line for 'RAAN_drift' with a value between 0.9 and 1.1 (deg/day)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_console_used",
+      "description": "Ensure the agent actually executed the script using GMAT.",
+      "visual_evidence": "Look for terminal output showing GmatConsole running. The agent should not just guess the parameters and write the report without verifying the script runs successfully."
+    },
+    {
+      "id": "no_hardcoded_fake_output",
+      "description": "Ensure the agent did not just echo random values into the text file without editing the script.",
+      "visual_evidence": "The agent must have opened and modified the .script file before generating the final report."
+    },
+    {
+      "id": "correct_paths_used",
+      "description": "Ensure the agent used the exact file paths requested.",
+      "visual_evidence": "Check that the script edited is exactly /home/ga/Documents/missions/leo_comms_mission.script and the report is exactly /home/ga/GMAT_output/leo_diagnosis_report.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "Valid ranges for the corrected parameters: SMA (6880.0 - 6970.0 km), ECC (0.0 - 0.015), INC (97.0 - 99.5 deg), DragArea (1.0 - 100.0 m^2), RAAN drift (0.9 - 1.1 deg/day). The mission script is located at /home/ga/Documents/missions/leo_comms_mission.script and the diagnosis report must be at /home/ga/GMAT_output/leo_diagnosis_report.txt. The script must be propagated for 7 days."
+}

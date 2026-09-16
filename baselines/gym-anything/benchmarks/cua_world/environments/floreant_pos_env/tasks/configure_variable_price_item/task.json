@@ -1,0 +1,27 @@
+{
+  "id": "configure_variable_price_item@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Configure a new menu item named 'Fresh Catch' in the Back Office (PIN: 1111) that allows for manual price entry. Process a DINE IN order for 'Fresh Catch' at a price of $42.50 and settle the transaction using Cash.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_variable_price_item/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_variable_price_item/export_result.sh"
+  },
+  "metadata": {
+    "expected_item_name": "Fresh Catch",
+    "expected_transaction_price": 42.5,
+    "forbidden_base_price": 42.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_variable_price_item"
+    }
+  }
+}

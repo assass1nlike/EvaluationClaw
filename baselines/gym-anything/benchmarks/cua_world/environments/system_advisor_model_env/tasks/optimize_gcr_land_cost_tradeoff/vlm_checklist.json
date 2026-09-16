@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_gcr_land_cost_tradeoff@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_created",
+      "description": "Agent created a Python script that imports and uses PySAM.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing a Python script with `import PySAM` or similar PySAM module imports (e.g., `import PySAM.Pvwattsv8`)."
+    },
+    {
+      "id": "system_configuration",
+      "description": "Agent configured the PySAM model with the specified system parameters.",
+      "points": 20,
+      "visual_evidence": "Code showing the setup of the PySAM model with parameters like weather file path (`phoenix_az_tmy.csv`), system capacity (`50000`), array type (`2`), DC-to-AC ratio (`1.2`), inverter efficiency (`96.0`), and system losses (`14.08`)."
+    },
+    {
+      "id": "lcoe_calculation_logic",
+      "description": "Agent implemented the LCOE calculation using the provided formulas and constants.",
+      "points": 20,
+      "visual_evidence": "Code showing calculations for land area (using `333333.33` and `4046.86`), total capital cost (adding base `50000000` and land cost at `60000`/acre), annualized cost (using `0.08` and `750000`), and LCOE."
+    },
+    {
+      "id": "gcr_iteration",
+      "description": "Agent set up a loop or sequence to test the five required GCR values.",
+      "points": 20,
+      "visual_evidence": "Code showing a loop iterating over `[0.3, 0.4, 0.5, 0.6, 0.7]` and updating the GCR parameter in the PySAM model for each iteration."
+    },
+    {
+      "id": "json_export",
+      "description": "Agent exported the final results to the specified JSON file.",
+      "points": 30,
+      "visual_evidence": "Code showing the results being written to `/home/ga/Documents/SAM_Projects/gcr_optimization.json` using `json.dump`, or a terminal output showing the contents of the generated JSON file with keys for project location, system capacity, optimal GCR, and a results array."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "Agent executed the Python script to generate the results.",
+      "visual_evidence": "Terminal showing the execution of the Python script (e.g., `python script.py`) without errors, or the presence of the generated JSON file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent calculated the annual energy and LCOE dynamically rather than hardcoding the final answers.",
+      "visual_evidence": "The Python script contains the actual PySAM execution (`model.execute()`) and math formulas, without hardcoded annual energy values or the optimal GCR (0.5) pre-written in the JSON output."
+    },
+    {
+      "id": "correct_pysam_usage",
+      "description": "Agent used PySAM to simulate the energy output.",
+      "visual_evidence": "The script extracts the annual energy from the PySAM model's outputs (e.g., `model.Outputs.annual_energy`) to use in the LCOE calculation."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/Documents/SAM_Projects/gcr_optimization.json. The required GCRs to test are 0.3, 0.4, 0.5, 0.6, and 0.7. The optimal GCR is 0.5. The module area is 333333.33 m2, land cost is $60000/acre, base capital cost is $50000000, annual O&M is $750000, and FCR is 0.08. 1 acre = 4046.86 m2."
+}

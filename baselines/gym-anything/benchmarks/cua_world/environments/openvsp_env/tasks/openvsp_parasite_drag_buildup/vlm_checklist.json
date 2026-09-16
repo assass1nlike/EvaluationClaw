@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_parasite_drag_buildup@1",
+  "task_completion": [
+    {
+      "id": "open_parasite_drag_tool",
+      "description": "Navigate to and open the Parasite Drag analysis tool in OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The 'Parasite Drag' dialog window is open and visible within the OpenVSP interface."
+    },
+    {
+      "id": "configure_flight_conditions",
+      "description": "Configure the flight conditions to Altitude = 35,000 ft, Mach = 0.78, and select a fully turbulent flow assumption.",
+      "points": 20,
+      "visual_evidence": "In the Parasite Drag dialog, the Altitude field shows '35000', the Mach field shows '0.78', and a fully turbulent option (e.g., 'Schlichting Turbulent') is selected for the flow assumption."
+    },
+    {
+      "id": "run_computation",
+      "description": "Run the Parasite Drag computation.",
+      "points": 10,
+      "visual_evidence": "A results window or populated table within OpenVSP is visible, displaying the calculated drag buildup values for the aircraft components."
+    },
+    {
+      "id": "export_csv_results",
+      "description": "Export or save the tabular component drag results to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "A save dialog, file manager, or terminal confirms that a file named 'eCRM001_parasite_drag.csv' is saved in the '/home/ga/Documents/OpenVSP/exports/' directory."
+    },
+    {
+      "id": "write_report_cd0_and_table",
+      "description": "Write a summary report containing the total zero-lift drag coefficient (CD0) and a component-by-component breakdown table.",
+      "points": 20,
+      "visual_evidence": "A text editor is open showing 'drag_report.txt' saved on the Desktop. The document contains a total CD0 value (between 0.008 and 0.050) and a list/table showing individual components (e.g., Wing, Fuselage) with their respective CD0 contributions."
+    },
+    {
+      "id": "identify_largest_contributor",
+      "description": "Explicitly identify the single largest drag contributor component by name in the report.",
+      "points": 20,
+      "visual_evidence": "The text report includes a clear statement or label explicitly naming the component that contributes the most to the total drag (e.g., 'Largest contributor: Fuselage')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenVSP GUI to perform the analysis.",
+      "visual_evidence": "Screenshots show the OpenVSP graphical interface being manipulated (menus opened, dialogs filled), rather than the agent bypassing the GUI using terminal scripts."
+    },
+    {
+      "id": "authentic_results",
+      "description": "The results in the report match the actual computation.",
+      "visual_evidence": "The CD0 values typed into the 'drag_report.txt' text file match the values displayed in the OpenVSP Parasite Drag results window."
+    },
+    {
+      "id": "no_hallucinated_components",
+      "description": "The components listed in the report are genuine to the loaded model.",
+      "visual_evidence": "The report lists actual components from the eCRM-001 model (e.g., Wing, FuselageUpdated, Tail, VerticalTail) rather than generic placeholders or hallucinated names."
+    }
+  ],
+  "privileged_info_for_vlm": "The CSV must be saved exactly to /home/ga/Documents/OpenVSP/exports/eCRM001_parasite_drag.csv. The report must be saved exactly to /home/ga/Desktop/drag_report.txt. A physically plausible total CD0 for this configuration at M0.78 and 35,000 ft is strictly between 0.008 and 0.050. The model geometry contains components that match the following substrings: 'wing', 'fuse', 'body', 'tail', 'horiz', 'vert'."
+}

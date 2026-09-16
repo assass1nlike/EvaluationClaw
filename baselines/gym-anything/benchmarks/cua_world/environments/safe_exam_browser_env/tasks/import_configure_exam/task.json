@@ -1,0 +1,30 @@
+{
+  "id": "import_configure_exam@1",
+  "version": "1.0",
+  "env_id": "safe_exam_browser_env@0.1",
+  "name": "Import and Configure an Exam",
+  "description": "Import an exam from the Testing assessment tool (Mock LMS) into the SEB Server (http://localhost:8080) using the credentials super-admin / admin. Configure the exam with a name, description, and a 'Last Ping Time' monitoring indicator named 'Network Latency', ensuring all changes are saved.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_configure_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/import_configure_exam/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_configure_exam"
+    }
+  },
+  "tags": [
+    "seb-server",
+    "exam-import",
+    "lms-integration",
+    "web-ui",
+    "hard"
+  ]
+}

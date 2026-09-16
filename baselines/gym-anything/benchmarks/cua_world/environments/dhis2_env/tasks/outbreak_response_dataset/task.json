@@ -1,0 +1,38 @@
+{
+  "id": "outbreak_response_dataset@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "A cholera outbreak has been reported in Kenema District. As the HMIS Administrator, you need to configure a new Data Set in DHIS2 (admin/district) to track the outbreak. Create a Data Set named 'Cholera Outbreak Surveillance - Kenema' (Short name: 'Cholera Surv Kenema') with a Weekly period type. Assign at least 3 existing data elements related to the outbreak (such as Cholera, Diarrhoea, Dysentery, or ORS) and assign the Data Set to the 'Kenema' district organisation unit.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/outbreak_response_dataset/setup_task.sh",
+    "post_task": "/workspace/tasks/outbreak_response_dataset/export_result.sh"
+  },
+  "metadata": {
+    "target_name_keyword": "Cholera",
+    "target_period_type": "Weekly",
+    "min_data_elements": 3,
+    "target_org_unit_keyword": "Kenema",
+    "data_element_keywords": [
+      "cholera",
+      "diarrhoea",
+      "dysentery",
+      "ors",
+      "dehydration",
+      "death",
+      "cases"
+    ],
+    "task_focus": "metadata configuration"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_outbreak_response_dataset"
+    }
+  }
+}

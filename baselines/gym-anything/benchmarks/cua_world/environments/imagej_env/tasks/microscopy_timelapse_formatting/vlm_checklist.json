@@ -1,0 +1,59 @@
+{
+  "task_id": "microscopy_timelapse_formatting@1",
+  "task_completion": [
+    {
+      "id": "open_mitosis_sample",
+      "description": "Open the 'Mitosis' sample dataset in ImageJ/Fiji",
+      "points": 10,
+      "visual_evidence": "ImageJ/Fiji interface showing the 'Mitosis' image window. The image status bar should indicate it is a hyperstack (e.g., 171x196 pixels, 2 channels, 5 slices, 51 frames)."
+    },
+    {
+      "id": "z_projection",
+      "description": "Perform a Maximum Intensity Z-Projection",
+      "points": 15,
+      "visual_evidence": "A new image window titled 'MAX_Mitosis' or similar, indicating a Z-projection was created. The Z-slice slider (usually labeled 'z') should no longer be present or should indicate 1 slice."
+    },
+    {
+      "id": "isolate_red_channel",
+      "description": "Isolate the Red channel (Channel 1, Chromatin)",
+      "points": 15,
+      "visual_evidence": "The active image window shows only the red channel (often titled 'C1-MAX_Mitosis' if channels were split). The green channel should be closed or inactive."
+    },
+    {
+      "id": "create_substack",
+      "description": "Create a sub-stack containing only the first 20 timepoints",
+      "points": 20,
+      "visual_evidence": "The image window's time slider (labeled 't' or 'frame') shows exactly 20 frames total (e.g., '1/20' or '20/20' in the status bar) instead of the original 51."
+    },
+    {
+      "id": "add_timestamp",
+      "description": "Add a timestamp starting at 00:00 with a 15.00-second interval in the top-left corner",
+      "points": 20,
+      "visual_evidence": "A visible timestamp in the top-left corner of the image frames (e.g., '00:00', '00:15', '00:30') rendered in a font size of approximately 20-25."
+    },
+    {
+      "id": "save_final_output",
+      "description": "Save the final TIFF stack to the specified processed directory",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog box or file explorer/terminal confirming the file is saved exactly as 'mitosis_movie_formatted.tif' in the '/home/ga/ImageJ_Data/processed/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the ImageJ/Fiji GUI to perform the image processing tasks",
+      "visual_evidence": "Screenshots show the agent clicking through ImageJ menus (e.g., Image > Stacks > Z Project, Image > Color > Split Channels, Image > Stacks > Tools > Make Substack) rather than executing a single terminal command."
+    },
+    {
+      "id": "authentic_intermediate_steps",
+      "description": "Agent generated intermediate image windows during processing",
+      "visual_evidence": "Presence of intermediate windows like 'MAX_Mitosis' or 'C1-MAX_Mitosis' proving the agent actually performed the projection and channel splitting steps manually."
+    },
+    {
+      "id": "no_external_tools",
+      "description": "Agent did not use external command-line tools (like ImageMagick or FFmpeg) to bypass ImageJ",
+      "visual_evidence": "The terminal is not used to run image processing commands; all visual modifications (cropping frames, adding timestamps) happen within the ImageJ environment."
+    }
+  ],
+  "privileged_info_for_vlm": "The original Mitosis sample is a 171x196 pixel 5D hyperstack with 51 frames, 5 Z-slices, and 2 channels. The final expected output must be saved to '/home/ga/ImageJ_Data/processed/mitosis_movie_formatted.tif'. It should have exactly 20 frames, 1 channel (Red), and a timestamp in the top-left corner incrementing by 15 seconds per frame."
+}

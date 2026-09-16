@@ -1,0 +1,94 @@
+{
+  "dataset_id": "1fded00b",
+  "name": "Microorganism Image Classification",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 201,
+  "description": "A microbiology image classification dataset where each sample pairs a microscopic image of a microorganism with a textual instruction listing eight candidate classes. The dataset evaluates a model's ability to assign the correct microorganism category to the image.",
+  "card_text": "The Microorganism Image Classification dataset contains 201 image-text samples for evaluating visual recognition of microscopic organisms. Each sample includes an image file showing a microorganism, a natural-language instruction that asks the model to classify the image into one of eight categories: Paramecium, Rod_bacteria, Yeast, Hydra, Spiral_bacteria, Spherical_bacteria, Amoeba, and Euglena. A short prompt ('Analyze the image and classify it') reinforces the task, and the gold output is a single class label. The dataset is intended for multiclass image classification in a biology education context, where models must identify the correct microorganism from visual cues. Images are likely simple microscopic views with a single dominant organism, and the text is limited to task instructions and category options.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "microbiology",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "File path to a microscopic image of a microorganism. It is the primary visual input that the model must analyze and classify.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.instruction",
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A directive that asks the model to classify the image, with the main instruction explicitly listing the candidate categories. The short prompt reinforces the classification request.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The bracketed list of eight microorganism classes embedded in the instruction. It defines the closed set of possible category labels for the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.class"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Gold class label for the image, selected from the eight microorganism categories. It is the target output for the classification task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference (input.image_files), a textual instruction and a short prompt (input.instruction, input.prompt) that ask the model to classify the image and provide the candidate categories, and a gold class label (output.class). The image is the object to be classified; the instruction defines the task and embeds the closed set of eight microorganism categories; the output is the correct category."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/microorganism_image_classification/json/annotation.json",
+    "existing_tags": {
+      "task": "microorganism classification",
+      "type": "comprehension",
+      "skill": "Object Recognition",
+      "domain": "Biology",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Biology"
+  }
+}

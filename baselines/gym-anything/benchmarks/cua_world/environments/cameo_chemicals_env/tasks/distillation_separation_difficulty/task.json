@@ -1,0 +1,44 @@
+{
+  "id": "distillation_separation_difficulty@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Research boiling points for the solvents listed below on CAMEO Chemicals (https://cameochemicals.noaa.gov/), determine their distillation recovery order (lowest to highest boiling point), and identify the 'critical pair' (the two adjacent chemicals with the smallest temperature difference). \n\nChemicals to analyze:\n- Acetone\n- Toluene\n- Methyl Ethyl Ketone (2-Butanone)\n- Isopropyl Alcohol (2-Propanol)\n- Xylene (mixed isomers)\n\nCreate a report at /home/ga/Documents/distillation_schedule.txt formatted as follows, converting all temperatures to Celsius:\n\nDISTILLATION RECOVERY SCHEDULE\n================================\n\n1. [Chemical Name] ([BP] C)\n2. [Chemical Name] ([BP] C)",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "chemistry",
+    "process-engineering",
+    "distillation",
+    "data-analysis"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/distillation_separation_difficulty/setup_task.sh",
+    "post_task": "/workspace/tasks/distillation_separation_difficulty/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/distillation_schedule.txt",
+    "ground_truth": {
+      "acetone": 56,
+      "mek": 80,
+      "ipa": 82,
+      "toluene": 111,
+      "xylene": 139
+    },
+    "tolerance_c": 5,
+    "expected_critical_pair": [
+      "Methyl Ethyl Ketone",
+      "Isopropyl Alcohol"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_distillation_separation_difficulty"
+    }
+  }
+}

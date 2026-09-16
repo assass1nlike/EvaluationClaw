@@ -1,0 +1,59 @@
+{
+  "task_id": "integrate_security_webhook@1",
+  "task_completion": [
+    {
+      "id": "storage_failure_trigger_configured",
+      "description": "Configure the trigger for the Automated Storage Health Alert.",
+      "points": 15,
+      "visual_evidence": "In the Nx Witness Event Rules dialog, there should be a rule where the 'Event' is set to 'Storage Failure' (or 'Storage Issue') and the 'Source' or 'Server' field is set to 'Any Server'."
+    },
+    {
+      "id": "storage_failure_action_configured",
+      "description": "Configure the HTTP POST action and URL for the Storage Health Alert.",
+      "points": 20,
+      "visual_evidence": "For the Storage Failure rule, the 'Action' must be set to 'Do HTTP request'. The 'HTTP Method' must be 'POST' and the 'URL' field must exactly match 'https://ops-api.internal/webhooks/health'."
+    },
+    {
+      "id": "storage_failure_body_configured",
+      "description": "Configure the JSON payload body for the Storage Health Alert.",
+      "points": 15,
+      "visual_evidence": "The 'HTTP Content' or 'Body' field for the Storage Failure rule contains the required JSON: {\"type\": \"CRITICAL_FAILURE\", \"component\": \"Storage\", ...}. Note: Accept either {event.sourceName} or {event.source} for the server field."
+    },
+    {
+      "id": "panic_alert_trigger_configured",
+      "description": "Configure the Soft Trigger for the Operator Panic Button.",
+      "points": 15,
+      "visual_evidence": "In the Event Rules dialog, there should be a rule where 'Event' is 'Soft Trigger'. The 'Name' field must be 'Panic Alert', the icon selected should be a Bell, and it should be configured to be available to all users and cameras."
+    },
+    {
+      "id": "panic_alert_action_configured",
+      "description": "Configure the HTTP POST action and URL for the Panic Alert.",
+      "points": 20,
+      "visual_evidence": "For the Panic Alert rule, the 'Action' must be set to 'Do HTTP request'. The 'HTTP Method' must be 'POST' and the 'URL' field must exactly match 'https://ops-api.internal/webhooks/panic'."
+    },
+    {
+      "id": "panic_alert_body_configured",
+      "description": "Configure the JSON payload body for the Panic Alert.",
+      "points": 15,
+      "visual_evidence": "The 'HTTP Content' or 'Body' field for the Panic Alert rule contains the required JSON: {\"priority\": \"HIGH\", \"alert_type\": \"PANIC_BUTTON\", ...}. Note: Soft triggers do not support macros, so accept the payload even if {user.name} or {event.cameraId} are omitted, left literal, or modified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_vms_gui",
+      "description": "The agent used the Nx Witness VMS graphical user interface to configure the rules.",
+      "visual_evidence": "Screenshots should show the actual Nx Witness desktop client and its 'Event Rules' configuration dialog, not a terminal or script."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply type the expected JSON payloads into a text editor.",
+      "visual_evidence": "The JSON payloads and URLs must be entered into the specific input fields within the Nx Witness Event Rules dialog, not in Notepad, a terminal, or a web browser."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "The configuration appears to be genuinely applied in the software.",
+      "visual_evidence": "The 'Apply' or 'OK' buttons in the Event Rules dialog should be visible and interacted with, showing the rules are actually being saved to the system."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Health URL is verified as 'https://ops-api.internal/webhooks/health'. Target Panic URL is verified as 'https://ops-api.internal/webhooks/panic'. The Soft Trigger name is 'Panic Alert'. Note: The task description asks for macros like {event.sourceName}, {user.name}, and {event.cameraId}. However, Nx Witness uses {event.source} instead of {event.sourceName}, and Soft Triggers do not support variable macros at all. Do not penalize the agent if it uses {event.source} for the health alert, or if it omits/modifies the unsupported macros in the Soft Trigger body, as long as the base JSON structure is present."
+}

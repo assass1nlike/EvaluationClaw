@@ -1,0 +1,39 @@
+{
+  "id": "insecure_form_security_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a security audit on https://crawler-test.com/ using Screaming Frog SEO Spider to identify insecure form implementations, including forms on HTTP, password fields on HTTP, and insecure form actions. Export the identified URLs with these security vulnerabilities to a CSV file in ~/Documents/SEO/exports/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/insecure_form_security_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/insecure_form_security_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "security_keywords": [
+      "non_secure",
+      "password",
+      "form",
+      "insecure",
+      "http"
+    ],
+    "expected_urls": [
+      "non_secure_form",
+      "password_field",
+      "text_field"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_insecure_form_security_audit"
+    }
+  }
+}

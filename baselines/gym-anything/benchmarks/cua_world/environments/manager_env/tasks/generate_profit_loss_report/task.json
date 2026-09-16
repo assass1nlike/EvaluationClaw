@@ -1,0 +1,31 @@
+{
+  "id": "generate_profit_loss_report@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Generate a Profit and Loss Statement for Northwind Traders for the period from 2024-03-01 to 2024-03-31. Record the Total Income, Total Expenses, and Net Profit in a file at /home/ga/Documents/pnl_report.txt using the following exact format (numeric values only, no currency symbols):\n\nTotal Income: <amount>\nTotal Expenses: <amount>\nNet Profit: <amount>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_profit_loss_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_profit_loss_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_income": 11300.0,
+    "expected_expenses": 3200.0,
+    "expected_net_profit": 8100.0,
+    "tolerance_percent": 5,
+    "report_path": "/home/ga/Documents/pnl_report.txt",
+    "period_start": "2024-03-01",
+    "period_end": "2024-03-31"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_profit_loss_report"
+    }
+  }
+}

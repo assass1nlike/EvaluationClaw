@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_encoding_corruption@1",
+  "task_completion": [
+    {
+      "id": "database_accessed",
+      "description": "Agent accessed the DrTuxTest database",
+      "points": 10,
+      "visual_evidence": "Terminal showing a MySQL session connected to the 'DrTuxTest' database (e.g., 'mysql -u root DrTuxTest' or 'USE DrTuxTest;'), or a database GUI connected to it."
+    },
+    {
+      "id": "corruption_identified",
+      "description": "Agent identified the corrupted records in the database",
+      "points": 10,
+      "visual_evidence": "A SELECT query result in the terminal or GUI showing patient records with double-encoded characters like '\u00c3\u00a9', '\u00c3\u00a8', '\u00c3\u00aa', '\u00c3\u00a7', or '\u00c3\u00a2' in the IndexNomPrenom or fchpat tables."
+    },
+    {
+      "id": "sql_updates_executed",
+      "description": "Agent executed SQL UPDATE statements to fix the encoding",
+      "points": 30,
+      "visual_evidence": "Terminal or GUI showing UPDATE queries being executed on 'IndexNomPrenom' and 'fchpat' tables to replace the corrupted characters with correct French accents, followed by a success message (e.g., 'Query OK, X rows affected')."
+    },
+    {
+      "id": "records_fixed_verified",
+      "description": "Agent verified the records were successfully fixed",
+      "points": 30,
+      "visual_evidence": "A SELECT query result showing the corrected patient records with proper French accents (e.g., 'L\u00e9a', 'H\u00e9l\u00e8ne', 'GON\u00c7ALVES', 'Fran\u00e7oise', 'Ch\u00e2teauroux')."
+    },
+    {
+      "id": "report_created",
+      "description": "Agent created the required report file listing the fixed patients",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (like 'cat' or 'echo') showing the creation and content of '/home/ga/Documents/encoding_fix_report.txt' containing the names of the fixed patients."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_db_modification",
+      "description": "Agent actually modified the database rather than just printing text",
+      "visual_evidence": "Look for genuine MySQL client output showing 'Rows matched: X  Changed: Y  Warnings: 0' after UPDATE commands, rather than just echo statements."
+    },
+    {
+      "id": "correct_report_path",
+      "description": "Report file is saved to the exact requested path",
+      "visual_evidence": "The file path '/home/ga/Documents/encoding_fix_report.txt' must be visible in the terminal command, text editor title bar, or file manager."
+    },
+    {
+      "id": "no_mocked_selects",
+      "description": "Agent did not mock the SELECT query results",
+      "visual_evidence": "The SELECT query results should appear in the standard MySQL tabular format with ASCII borders, consistent with a real database query."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is 'DrTuxTest' and the tables to update are 'IndexNomPrenom' and 'fchpat'. The expected corrected values for the corrupted records are:\n- BERENGER: L\u00e9a (prenom), Ch\u00e2teauroux (ville)\n- LEFEVRE: H\u00e9l\u00e8ne (prenom), 14 rue des P\u00eacheurs (adresse)\n- GON\u00c7ALVES: GON\u00c7ALVES (nom), Maria (prenom)\n- PREVOST: Ren\u00e9e (prenom)\n- FORTIER: Fran\u00e7oise (prenom), Orl\u00e9ans (ville)\n- BEAUPR\u00c9: BEAUPR\u00c9 (nom), Th\u00e9r\u00e8se (prenom), 3 rue Fran\u00e7ois Rabelais (adresse)\nThe report must be saved exactly at '/home/ga/Documents/encoding_fix_report.txt'."
+}

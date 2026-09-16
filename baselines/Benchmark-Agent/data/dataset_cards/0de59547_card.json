@@ -1,0 +1,93 @@
+{
+  "dataset_id": "0de59547",
+  "name": "Openset Subtle Difference Description",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Subtle Difference Description dataset consists of paired images (primarily birds) accompanied by a natural language prompt that asks the model to identify and describe subtle differences between the two images. The model must generate free-text descriptions of the differences, or state that the images are identical. It evaluates fine-grained visual comparison and open-ended visual question answering.",
+  "card_text": "This dataset is a multimodal collection of 200 samples, each containing two images and a text prompt. The images typically show a pair of birds (or other animals) in a side-by-side comparison setup, and the prompt asks for modifications or variations between them. The expected output is one or more sentences describing observed differences in attributes such as plumage, color, tail size, eye shape, beak size, or overall appearance; if no differences exist, the output may simply state that the animals appear identical. The dataset emphasizes subtle visual differences and requires the model to perform open-ended, descriptive comparison rather than classification. It assumes the model can parse image placeholders within the prompt and align visual features across two images.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "biology",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The pair of images provides the visual content being compared. Each sample contains two image files showing birds or similar subjects, and the subtle differences between them form the core of the task.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language prompt that asks the model to identify and describe differences between the two images. It often includes image placeholders (<ImageHere>) and ends with a cue like 'Difference:' to signal the expected answer format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "One or more sentences describing the observed differences between the two images, or stating that no differences exist. The text references specific visual attributes such as plumage color, tail size, eye shape, and beak size.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "File references (filenames) for the two images being compared. Each sample contains exactly two image files, typically named with the sample id followed by _0 and _1.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image pair (two image file references), a textual prompt that asks for differences between the images, and a textual answer consisting of one or more sentences that describe the differences or confirm similarity. The images serve as the visual context, the prompt acts as the question/instruction, and the answer is the target output. The prompt may include placeholders indicating where the images are inserted."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/SubtleDifferenceDescription/openset_subtle_difference_description.json",
+    "existing_tags": {
+      "task": "Subtle Difference Description",
+      "type": "image comprehension",
+      "skill": "Visual Relation Inference",
+      "domain": "Biology",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Biology"
+  }
+}

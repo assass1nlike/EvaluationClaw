@@ -1,0 +1,29 @@
+{
+  "id": "aviation_hangar_solar_yield_pruning@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Run an annual solar radiation analysis on the fully-covered hangar/canopy in Energy3D. Open 'hangar_baseline.ng3' from ~/Documents/Energy3D/. Set the location to Seattle, WA. Run the Annual Solar Radiation analysis (via Analysis menu). Identify and delete all solar panels that generate less than 250 kWh/year (primarily on the shaded side). Finally, export the optimized array's yield data as a CSV to '~/Documents/Energy3D/optimized_yield.csv' (Right-click a panel -> Export or via Analysis menu), and save the modified building model to '~/Documents/Energy3D/hangar_optimized.ng3'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/aviation_hangar_solar_yield_pruning/setup_task.sh",
+    "post_task": "/workspace/tasks/aviation_hangar_solar_yield_pruning/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Renewable Energy / Aviation",
+    "baseline_file": "hangar_baseline.ng3",
+    "target_ng3": "hangar_optimized.ng3",
+    "target_csv": "optimized_yield.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hangar_pruning"
+    }
+  }
+}

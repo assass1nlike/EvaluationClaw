@@ -1,0 +1,44 @@
+{
+  "id": "legal_memo_footnotes@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are a paralegal preparing a legal memorandum for filing. Using the draft at /home/ga/Documents/legal_memo_draft.docx, convert the six inline case citations in square brackets (Hadley v. Baxendale, Jacob & Youngs v. Kent, Groves v. John Wunder Co., Peevyhouse v. Garland Coal & Mining Co., Sullivan v. O'Connor, and Hawkins v. McGee) into footnotes. Reformat the document to legal brief standards: set body text to 12pt Liberation Serif or Times New Roman, apply double line spacing, and set all margins to 1.0 inch. The title 'MEMORANDUM OF LAW' must be centered and bold. Save the formatted document to /home/ga/Documents/legal_memo_formatted.docx without modifying the original draft.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/legal_memo_footnotes/setup_task.sh",
+    "post_task": "/workspace/tasks/legal_memo_footnotes/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/legal_memo_draft.docx",
+    "expected_output_path": "/home/ga/Documents/legal_memo_formatted.docx",
+    "expected_footnote_count": 6,
+    "expected_case_names": [
+      "Hadley",
+      "Jacob",
+      "Groves",
+      "Peevyhouse",
+      "Sullivan",
+      "Hawkins"
+    ],
+    "formatting_requirements": {
+      "font_family": [
+        "Liberation Serif",
+        "Times New Roman"
+      ],
+      "font_size_pt": 12,
+      "line_spacing": 2.0,
+      "margin_inches": 1.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_legal_memo"
+    }
+  }
+}

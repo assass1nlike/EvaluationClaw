@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_macrs_depreciation_benefit@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Create the PySAM modeling script at the specified path.",
+      "points": 10,
+      "visual_evidence": "Look for a code editor or terminal showing a file named 'depreciation_model.py' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "pysam_system_setup",
+      "description": "Configure the PySAM model with the correct weather file and system size.",
+      "points": 20,
+      "visual_evidence": "Look for code in the script referencing the weather file path '/home/ga/SAM_Weather_Data/phoenix_az_tmy.csv' and setting the system capacity to 10000 (kW) or 10 (MW)."
+    },
+    {
+      "id": "financial_parameters",
+      "description": "Set the correct financial parameters for the Single Owner PV system.",
+      "points": 20,
+      "visual_evidence": "Look for code assigning the following values: total installed cost of 12000000, analysis period of 25, federal income tax rate of 21 (or 0.21), ITC of 30 (or 0.30), and nominal discount rate of 8 (or 0.08)."
+    },
+    {
+      "id": "depreciation_scenarios",
+      "description": "Implement logic to compare 100% MACRS 5-year and 100% Straight-Line 20-year depreciation.",
+      "points": 20,
+      "visual_evidence": "Look for code that configures and executes the PySAM model twice (or modifies the depreciation arrays/settings), explicitly setting up one scenario for 5-year MACRS and another for 20-year Straight-Line depreciation."
+    },
+    {
+      "id": "json_export_logic",
+      "description": "Format the results into a dictionary or JSON object with the required keys.",
+      "points": 15,
+      "visual_evidence": "Look for code preparing a dictionary with the exact keys: 'system_size_kw', 'total_installed_cost', 'npv_macrs_usd', 'npv_straight_line_usd', and 'macrs_value_add_usd', and saving it using the json module."
+    },
+    {
+      "id": "results_file_generated",
+      "description": "Execute the script and generate the final JSON results file.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal showing the execution of the Python script (e.g., 'python depreciation_model.py') with no errors, or the contents of 'depreciation_results.json' displayed in an editor or terminal (cat/less) showing the calculated NPV values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pysam_execution",
+      "description": "Verify the agent actually runs the PySAM simulation script.",
+      "visual_evidence": "Look for terminal commands executing the Python script. The agent should not just write the script and stop; it must run it to generate the JSON file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent calculates the NPVs dynamically rather than hardcoding the expected answers.",
+      "visual_evidence": "Check the script code to ensure the values for 'npv_macrs_usd', 'npv_straight_line_usd', and 'macrs_value_add_usd' are assigned from PySAM execution outputs (e.g., model.Outputs.project_return_aftertax_npv) and not typed in as static numbers."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Verify the agent uses the exact file paths requested.",
+      "visual_evidence": "Ensure the script is saved exactly to '/home/ga/Documents/SAM_Projects/depreciation_model.py' and the output is exactly '/home/ga/Documents/SAM_Projects/depreciation_results.json' without using alternative directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output filename is exactly 'depreciation_results.json'. The system size must be 10000 kW and total installed cost $12,000,000. A correct PySAM simulation will yield an NPV for MACRS of approximately $1.67M and a MACRS Value Add of approximately $5.07M. The NPV values in the JSON must fall between $100,000 and $20,000,000."
+}

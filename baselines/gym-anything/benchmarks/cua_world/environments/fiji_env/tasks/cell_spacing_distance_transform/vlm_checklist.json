@@ -1,0 +1,53 @@
+{
+  "task_id": "cell_spacing_distance_transform@1",
+  "task_completion": [
+    {
+      "id": "segmentation_and_edm_generation",
+      "description": "Segment the cells and generate a Euclidean Distance Map (EDM) of the intercellular space.",
+      "points": 20,
+      "visual_evidence": "Fiji/ImageJ interface showing the loaded 'cell_image.tif', a segmented binary mask of the cells, and/or a generated Euclidean Distance Map (EDM) showing distance gradients in the background space."
+    },
+    {
+      "id": "distance_map_saved",
+      "description": "Save the Euclidean Distance Map to distance_map.tif.",
+      "points": 15,
+      "visual_evidence": "File explorer, terminal command (e.g., ls), or Fiji save dialog confirming 'distance_map.tif' is saved in '~/Fiji_Data/results/spacing/'."
+    },
+    {
+      "id": "measurements_csv_saved",
+      "description": "Extract cell measurements and save to cell_measurements.csv.",
+      "points": 20,
+      "visual_evidence": "A file named 'cell_measurements.csv' visible in a text editor, terminal output, or Fiji Results table, containing the required columns: cell_id, centroid_x, centroid_y, area_px, and nn_dist."
+    },
+    {
+      "id": "summary_report_saved",
+      "description": "Generate a summary report with specific spatial metrics.",
+      "points": 25,
+      "visual_evidence": "A text file named 'spacing_report.txt' visible in an editor or terminal output, containing the keys: num_cells, cell_coverage_percent, mean_nn_distance_px, edm_mean_px, and edm_max_px."
+    },
+    {
+      "id": "qc_overlay_saved",
+      "description": "Save a visual QC overlay showing the original image with cell outlines.",
+      "points": 20,
+      "visual_evidence": "An image named 'qc_overlay.png' visible in an image viewer, Fiji, or file explorer, clearly showing the original microscopy image with outlines or borders drawn around the segmented cells."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fiji_gui_or_script_used",
+      "description": "Verify the agent used Fiji/ImageJ to perform the analysis.",
+      "visual_evidence": "Screenshots should show interaction with the Fiji GUI (menus, toolbars, image windows) or a Fiji macro/Python script being written and executed, rather than using unrelated tools."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent did not hardcode the output files.",
+      "visual_evidence": "Absence of terminal commands like 'echo' being used to write fake, hardcoded numbers directly into 'spacing_report.txt' or 'cell_measurements.csv' without prior calculation."
+    },
+    {
+      "id": "authentic_qc_overlay",
+      "description": "Verify the QC overlay is genuinely generated from the input image.",
+      "visual_evidence": "The 'qc_overlay.png' should visually match the cell structures seen in the original 'cell_image.tif', confirming it is a real overlay and not a copied placeholder image."
+    }
+  ],
+  "privileged_info_for_vlm": "The input image is a synthetic fluorescence microscopy image from the BBBC005 dataset. The pixel scale is 0.65 \u00b5m/pixel. Expected output files are: distance_map.tif, cell_measurements.csv, spacing_report.txt, and qc_overlay.png, all located in ~/Fiji_Data/results/spacing/."
+}

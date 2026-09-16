@@ -1,0 +1,53 @@
+{
+  "task_id": "insert_record@1",
+  "task_completion": [
+    {
+      "id": "access_orientdb_studio",
+      "description": "Verify the agent accessed the OrientDB Studio web interface.",
+      "points": 10,
+      "visual_evidence": "Browser window open with the address bar showing 'localhost:2480/studio/index.html' or the OrientDB Studio login screen."
+    },
+    {
+      "id": "connect_demodb",
+      "description": "Verify the agent connected to the 'demodb' database.",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio interface showing 'demodb' as the active connected database in the header or sidebar."
+    },
+    {
+      "id": "navigate_countries_class",
+      "description": "Verify the agent accessed the 'Countries' class.",
+      "points": 20,
+      "visual_evidence": "The 'Countries' class is selected in the Schema tab, or a query targeting the 'Countries' class (e.g., SELECT FROM Countries) is visible in the Browse tab."
+    },
+    {
+      "id": "enter_record_details",
+      "description": "Verify the agent entered the new record details for Portugal.",
+      "points": 20,
+      "visual_evidence": "A new document form or an SQL INSERT query editor showing the fields Name='Portugal' and Type='European'."
+    },
+    {
+      "id": "verify_record_insertion",
+      "description": "Verify the new record was successfully inserted into the database.",
+      "points": 30,
+      "visual_evidence": "A success notification in the UI, the executed query result showing the inserted record, or the 'Countries' data table displaying the new row with Name='Portugal' and Type='European'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "Verify the agent used the OrientDB Studio web interface rather than terminal commands.",
+      "visual_evidence": "The actions take place within a web browser showing the OrientDB Studio UI, not via curl or OrientDB console commands in a terminal."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Verify the agent interacted with the actual application.",
+      "visual_evidence": "Visible interaction with the browser UI (clicking tabs, typing in query boxes or forms) rather than editing a text file or mock interface."
+    },
+    {
+      "id": "no_script_bypass",
+      "description": "Verify the agent did not use a background script to insert the record.",
+      "visual_evidence": "The insertion process (filling out the document form or typing the INSERT query) is visibly performed within the OrientDB Studio browser window."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires UI automation within OrientDB Studio. The 'demodb' database contains a pre-seeded 'Countries' class with real countries (e.g., Italy, Germany, France). The VLM should look for the explicit addition of 'Portugal' with Type 'European' via the OrientDB Studio web interface."
+}

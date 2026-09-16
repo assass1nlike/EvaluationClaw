@@ -1,0 +1,34 @@
+{
+  "id": "interactive_troubleshooting_guide@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Technical Writer for Sentinel Smart Home Devices. Transform the 'Sentinel Eye Pro' camera troubleshooting data from /home/ga/Documents/troubleshooting_data.json into a user-friendly, interactive guide in Apache OpenOffice Writer. The document must be titled 'Sentinel Eye Pro Troubleshooting' and feature a 'Quick Diagnostic Menu' at the top listing the four symptoms. Each symptom in the menu must function as a hyperlink that jumps to its respective detailed section within the document. Use Heading 1 styles for the section titles. Save the completed guide to /home/ga/Documents/Sentinel_Guide_Interactive.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/interactive_troubleshooting_guide/setup_task.sh",
+    "post_task": "/workspace/tasks/interactive_troubleshooting_guide/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/troubleshooting_data.json",
+    "output_file": "/home/ga/Documents/Sentinel_Guide_Interactive.odt",
+    "min_bookmarks": 4,
+    "min_hyperlinks": 4,
+    "required_topics": [
+      "Power",
+      "Wi-Fi",
+      "Image",
+      "Motion"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interactive_guide"
+    }
+  }
+}

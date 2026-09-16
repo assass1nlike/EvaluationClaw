@@ -1,0 +1,74 @@
+{
+  "dataset_id": "72f44469",
+  "name": "Part-Of-Speech-Tagging",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 202,
+  "description": "This dataset evaluates part-of-speech-based word extraction from English news sentences. Each example provides a raw sentence and a prompt asking to extract all words with specified adjective POS tags (JJ, JJR, JJS), and the target is a comma-separated list of the matching words.",
+  "card_text": "The dataset contains 202 text-only examples drawn from news-style sentences, likely financial or general news. Each sample has an input object with a short raw text sentence and an instruction prompt that asks the model to identify all adjectives (POS tags JJ, JJR, JJS) in that sentence and return them as a comma-separated string. The output is a short list of extracted words. The task requires basic part-of-speech recognition and precise span extraction from context without any additional annotation. The data is monolingual English and uses a simple template-based prompting format.",
+  "tasks": [
+    "span_extraction"
+  ],
+  "domain": "financial news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The main input sentence is a short news-style statement that provides the text from which adjectives must be extracted. It is the source context for the extraction task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is an explicit instruction that tells the model to extract words with adjective POS tags (JJ, JJR, JJS) from the raw_text and separate them with commas. It references the context via the <<<raw_text>>> placeholder.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output is a comma-separated list of adjectives extracted from the context sentence, e.g. 'old, executive'. It directly answers the extraction instruction.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object and an output object. The input contains raw_text, a short news sentence serving as the context, and prompt, an instruction asking to extract adjective words from that context. The output contains text, a comma-separated list of the extracted adjectives. No other components such as options, dialogs, or visual data are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Part-Of-Speech-Tagging/annotation.json",
+    "existing_tags": {
+      "task": "pos_word_extraction",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_lesion_aspect_ratio@1",
+  "task_completion": [
+    {
+      "id": "open_dicom_file",
+      "description": "Open the specified synthetic CT scan in the DICOM viewer.",
+      "points": 10,
+      "visual_evidence": "The DICOM viewer (e.g., Weasis) is open and displays the file 'CT_slice_001.dcm' in its interface."
+    },
+    {
+      "id": "adjust_window_level",
+      "description": "Adjust the window and level settings to visualize the background gradient and central circular structure.",
+      "points": 20,
+      "visual_evidence": "The image in the viewport is no longer washed out; a distinct central circular structure and a background gradient are clearly visible."
+    },
+    {
+      "id": "measure_diameters",
+      "description": "Measure the horizontal and vertical diameters of the central circle.",
+      "points": 30,
+      "visual_evidence": "Two measurement lines (one horizontal, one vertical) are drawn across the central circular structure in the viewport, displaying length values (expected to be around 128.0 pixels)."
+    },
+    {
+      "id": "export_viewport_image",
+      "description": "Export the viewport showing the visible structure and measurements to the specified path.",
+      "points": 20,
+      "visual_evidence": "An export dialog, file manager, or terminal shows the image 'aspect_ratio_view.jpg' being saved or existing in '~/DICOM/exports/'."
+    },
+    {
+      "id": "create_aspect_ratio_report",
+      "description": "Create a text report containing the Horizontal Length, Vertical Length, and calculated Aspect Ratio.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal displays the contents of 'aspect_ratio_report.txt' in '~/DICOM/exports/', showing the horizontal length, vertical length, and the aspect ratio (Vertical / Horizontal, expected to be ~1.0)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verification",
+      "description": "Verify the agent used the DICOM viewer GUI to adjust settings and measure, rather than using scripts or terminal commands to bypass the viewer.",
+      "visual_evidence": "Screenshots show the DICOM viewer interface with active measurement tools and adjusted image contrast."
+    },
+    {
+      "id": "measurement_consistency",
+      "description": "Verify the values in the report match the actual measurements taken in the viewer.",
+      "visual_evidence": "The horizontal and vertical lengths written in the text report exactly match the numbers displayed on the measurement lines in the DICOM viewer viewport."
+    },
+    {
+      "id": "authentic_image_export",
+      "description": "Verify the exported image is a genuine capture of the viewport.",
+      "visual_evidence": "The exported 'aspect_ratio_view.jpg' matches the visual state of the DICOM viewer's viewport, including the specific placement and color of the measurement lines."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected horizontal and vertical diameters of the central circle are exactly 128.0 pixels. The report must be saved to /home/ga/DICOM/exports/aspect_ratio_report.txt and the viewport image exported to /home/ga/DICOM/exports/aspect_ratio_view.jpg."
+}

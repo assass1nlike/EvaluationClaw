@@ -1,0 +1,48 @@
+{
+  "task_id": "configure_multi_metric_pipeline@1",
+  "task_completion": [
+    {
+      "id": "read_utility_rates",
+      "description": "Read the utility rates from the provided text file.",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor showing the contents of '~/Documents/utility_rates.txt', revealing the cost and carbon rates."
+    },
+    {
+      "id": "access_input_processing",
+      "description": "Access the input processing configuration for the 'main_incomer' sensor.",
+      "points": 10,
+      "visual_evidence": "The Emoncms Inputs page is visible with the configuration modal (spanner icon) open for the 'main_incomer' input under the 'facility_meter' node."
+    },
+    {
+      "id": "configure_power_feed",
+      "description": "Configure the pipeline to log raw power to 'facility_power_W'.",
+      "points": 20,
+      "visual_evidence": "In the input processing list, there is a 'Log to feed' step for 'facility_power_W' without any prior multiplication, ensuring it logs the raw power in Watts. The feed should be configured as PHPFina with a 10s interval."
+    },
+    {
+      "id": "configure_carbon_feed",
+      "description": "Configure the pipeline to calculate and log the Carbon Emission Rate.",
+      "points": 30,
+      "visual_evidence": "In the input processing list, there is a multiplication step by 0.00042 (or equivalent, such as multiplying by 0.42 then 0.001), followed by a 'Log to feed' step for 'facility_carbon_kgph' (PHPFina, 10s interval)."
+    },
+    {
+      "id": "configure_cost_feed",
+      "description": "Configure the pipeline to calculate and log the Cost Burn Rate.",
+      "points": 30,
+      "visual_evidence": "In the input processing list, there is a step to reset the value to the original input (e.g., 'Reset to Original'), followed by a multiplication step by 0.00024 (or equivalent), and a 'Log to feed' step for 'facility_cost_dollarsph' (PHPFina, 10s interval)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "The agent used the Emoncms web interface to configure the feeds.",
+      "visual_evidence": "Screenshots show interaction with the Emoncms web UI in a browser, rather than just running backend scripts or API commands."
+    },
+    {
+      "id": "actual_pipeline_configured",
+      "description": "The processing pipeline was genuinely configured in the application.",
+      "visual_evidence": "The Emoncms Input processing modal shows the actual sequence of operations (Log to feed, Multiply, Reset to Original, etc.) added to the list."
+    }
+  ],
+  "privileged_info_for_vlm": "The utility rates in '~/Documents/utility_rates.txt' are 0.24 $/kWh for cost and 0.42 kgCO2/kWh for carbon. Since the input is in Watts, the conversion factor to get the hourly rate is to multiply by the rate and divide by 1000. Therefore, the multiplier for the carbon feed should be 0.00042, and the multiplier for the cost feed should be 0.00024. The pipeline should use 'Reset to Original' between calculating different metrics to ensure the correct base value (Watts) is used for each calculation. The expected feeds are 'facility_power_W', 'facility_carbon_kgph', and 'facility_cost_dollarsph'."
+}

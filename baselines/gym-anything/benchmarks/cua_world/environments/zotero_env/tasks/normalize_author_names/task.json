@@ -1,0 +1,51 @@
+{
+  "id": "normalize_author_names@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A research librarian has noticed inconsistent author names in the library. Standardize the author names for the following researchers across their specified papers: For Alan Turing, normalize the author of 'On Computable Numbers...' and 'Computing Machinery and Intelligence' to First Name: 'Alan M.', Last Name: 'Turing'. For Claude Shannon, normalize 'A Mathematical Theory of Communication' and 'The Mathematical Theory of Communication' to First Name: 'Claude E.', Last Name: 'Shannon'. For Geoffrey Hinton, normalize 'ImageNet Classification...' to First Name: 'Geoffrey E.', Last Name: 'Hinton'. Ensure the names are identical across the specified papers.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/normalize_author_names/setup_task.sh",
+    "post_task": "/workspace/tasks/normalize_author_names/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "paper_substring": "Computable Numbers",
+        "target_first": "Alan M.",
+        "target_last": "Turing"
+      },
+      {
+        "paper_substring": "Computing Machinery",
+        "target_first": "Alan M.",
+        "target_last": "Turing"
+      },
+      {
+        "paper_substring": "A Mathematical Theory",
+        "target_first": "Claude E.",
+        "target_last": "Shannon"
+      },
+      {
+        "paper_substring": "The Mathematical Theory",
+        "target_first": "Claude E.",
+        "target_last": "Shannon"
+      },
+      {
+        "paper_substring": "ImageNet Classification",
+        "target_first": "Geoffrey E.",
+        "target_last": "Hinton"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_normalize_author_names"
+    }
+  }
+}

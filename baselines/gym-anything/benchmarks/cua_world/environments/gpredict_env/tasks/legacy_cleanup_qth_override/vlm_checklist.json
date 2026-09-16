@@ -1,0 +1,59 @@
+{
+  "task_id": "legacy_cleanup_qth_override@1",
+  "task_completion": [
+    {
+      "id": "delete_legacy_modules",
+      "description": "Verify that the leftover modules TestModule1 and TestModule2 have been deleted.",
+      "points": 10,
+      "visual_evidence": "Look at the main GPredict window tabs or the module list. There should be no tabs or windows named 'TestModule1' or 'TestModule2'."
+    },
+    {
+      "id": "add_white_sands_qth",
+      "description": "Verify the addition of the White Sands ground station with correct coordinates.",
+      "points": 15,
+      "visual_evidence": "Look for a Ground Station configuration window or list showing 'White Sands' with Latitude ~32.5007, Longitude ~106.6086 W (or -106.6086), and Altitude 1219m."
+    },
+    {
+      "id": "add_wallops_island_qth",
+      "description": "Verify the addition of the Wallops Island ground station with correct coordinates.",
+      "points": 15,
+      "visual_evidence": "Look for a Ground Station configuration window or list showing 'Wallops Island' with Latitude ~37.9402, Longitude ~75.4664 W (or -75.4664), and Altitude 12m."
+    },
+    {
+      "id": "create_leo_comms_module",
+      "description": "Verify the creation of the LEO_Comms module containing the specified satellites.",
+      "points": 25,
+      "visual_evidence": "Look for a module tab or window named 'LEO_Comms'. The list or radar view within this module must include ISS (ZARYA), SO-50, AO-91, AO-92, CAS-4A, and CAS-4B."
+    },
+    {
+      "id": "set_module_qth_override",
+      "description": "Verify that the White Sands ground station is set as the module-specific QTH for LEO_Comms.",
+      "points": 15,
+      "visual_evidence": "Look at the module properties/configuration window for 'LEO_Comms'. The 'Ground Station' or 'QTH' dropdown/setting should be explicitly set to 'White Sands'."
+    },
+    {
+      "id": "set_global_default_qth",
+      "description": "Verify that the global default ground station is updated to White Sands.",
+      "points": 20,
+      "visual_evidence": "Look at the GPredict Preferences window under the 'Ground Stations' section. 'White Sands' should be selected or listed as the default ground station."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Ensure the agent used the GPredict graphical user interface to make changes.",
+      "visual_evidence": "Screenshots should show GPredict dialog boxes (Preferences, Edit Ground Station, Module Properties) rather than terminal windows editing configuration files directly."
+    },
+    {
+      "id": "genuine_software_usage",
+      "description": "Ensure the agent interacted with the actual GPredict application.",
+      "visual_evidence": "The GPredict application window should be visible with its standard layout, menus, and map/radar views, not a mocked-up text file or script output."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "Check that the agent did not bypass the UI by using command-line text editors.",
+      "visual_evidence": "There should be no terminal windows open showing 'nano', 'vim', or 'echo' commands writing directly to the '~/.config/Gpredict/' directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Satellites required in LEO_Comms: ISS (25544), SO-50 (27607), AO-91 (43017), AO-92 (43137), CAS-4A (42761), CAS-4B (42759). White Sands coordinates: 32.5007 N, 106.6086 W (or -106.6086), Altitude: 1219m. Wallops Island coordinates: 37.9402 N, 75.4664 W (or -75.4664), Altitude: 12m."
+}

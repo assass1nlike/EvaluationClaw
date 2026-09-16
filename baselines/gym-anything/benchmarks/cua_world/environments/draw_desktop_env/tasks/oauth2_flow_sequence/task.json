@@ -1,0 +1,37 @@
+{
+  "id": "oauth2_flow_sequence@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are an Information Security Engineer documenting authentication flows for a compliance audit. Create a formal UML sequence diagram of the OAuth 2.0 Authorization Code Flow with PKCE (RFC 7636) for a Single-Page Application, using the reference document at ~/Desktop/oauth2_rfc_reference.txt. The diagram must include seven lifelines (End User, Browser/SPA, Authorization Server, Token Endpoint, Resource Server, Session Store, and JWKS Endpoint) and model the full interaction from initial login to token refresh. Ensure the diagram captures PKCE challenge/verification, authorization code redirects, token exchange, JWT validation, and resource requests. Use UML fragments to represent alternative credential outcomes and optional refresh flows. Include a second page titled 'Threat Model' listing five security threats to this flow in a structured format. Save the project to ~/Desktop/oauth2_sequence.drawio and export the result to ~/Desktop/oauth2_sequence.png. Login: username=ga, password=password123.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/oauth2_flow_sequence/setup_task.sh",
+    "post_task": "/workspace/tasks/oauth2_flow_sequence/export_result.sh"
+  },
+  "metadata": {
+    "min_shapes": 20,
+    "min_edges": 15,
+    "min_pages": 2,
+    "required_participants": [
+      "user",
+      "browser",
+      "authorization server",
+      "token",
+      "resource",
+      "jwks",
+      "session"
+    ],
+    "output_drawio": "/home/ga/Desktop/oauth2_sequence.drawio",
+    "output_png": "/home/ga/Desktop/oauth2_sequence.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_oauth2_flow_sequence"
+    }
+  }
+}

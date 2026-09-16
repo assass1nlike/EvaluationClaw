@@ -1,0 +1,36 @@
+{
+  "id": "land_cover_stats_calculation@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Calculate land cover statistics for management zones using the vector layer at /home/ga/GIS_Data/sample_polygon.geojson and the land cover raster at /home/ga/GIS_Data/rasters/landcover.tif (where 1=Water, 2=Forest, 3=Urban). Calculate the percentage of Water pixels (Class 1) relative to the total sum of all classes (1+2+3) and store it in a new decimal field named 'pct_water'. Export the final result, including the histogram counts and the new percentage field, to /home/ga/GIS_Data/exports/zone_composition.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/land_cover_stats_calculation/setup_task.sh",
+    "post_task": "/workspace/tasks/land_cover_stats_calculation/export_result.sh"
+  },
+  "metadata": {
+    "vector_source": "/home/ga/GIS_Data/sample_polygon.geojson",
+    "raster_source": "/home/ga/GIS_Data/rasters/landcover.tif",
+    "expected_output": "/home/ga/GIS_Data/exports/zone_composition.geojson",
+    "expected_feature_count": 2,
+    "required_fields": [
+      "HIST_1",
+      "pct_water"
+    ],
+    "ground_truth_logic": {
+      "Area A": "High Water (>80%)",
+      "Area B": "Low Water (<20%)"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_land_cover_stats_calculation"
+    }
+  }
+}

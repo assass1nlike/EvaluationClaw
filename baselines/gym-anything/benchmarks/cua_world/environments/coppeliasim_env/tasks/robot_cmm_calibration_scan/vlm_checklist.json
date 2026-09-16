@@ -1,0 +1,53 @@
+{
+  "task_id": "robot_cmm_calibration_scan@1",
+  "task_completion": [
+    {
+      "id": "gauge_block_constructed",
+      "description": "Verify the 4-step calibration gauge block is constructed in CoppeliaSim.",
+      "points": 20,
+      "visual_evidence": "Look at the CoppeliaSim 3D scene. There should be four adjoining cuboids forming a staircase pattern (increasing heights) along the X-axis, located near the robot."
+    },
+    {
+      "id": "sensor_sweep_executed",
+      "description": "Verify a script was executed to perform the linear sweep with the proximity sensor.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal or IDE window showing a script running (likely Python using ZMQ Remote API) that controls the robot, or visual evidence in CoppeliaSim of the robot's end-effector moving over the gauge blocks."
+    },
+    {
+      "id": "scan_data_csv_exported",
+      "description": "Verify scan_data.csv is exported with the correct columns and at least 40 rows.",
+      "points": 20,
+      "visual_evidence": "Look for a file explorer or terminal showing 'scan_data.csv' in /home/ga/Documents/CoppeliaSim/exports/, or the file opened in an editor showing columns: timestamp, ee_x, ee_y, ee_z, sensor_dist, and surface_z, with multiple rows of data."
+    },
+    {
+      "id": "calibration_metrics_json_exported",
+      "description": "Verify calibration_metrics.json is exported with the required keys.",
+      "points": 20,
+      "visual_evidence": "Look for 'calibration_metrics.json' in the exports folder, or opened in an editor showing keys: total_samples, steps_detected, max_surface_z_m, and min_surface_z_m."
+    },
+    {
+      "id": "scene_ttt_saved",
+      "description": "Verify the modified scene is saved as calibration_setup.ttt.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'calibration_setup.ttt' in the /home/ga/Documents/CoppeliaSim/exports/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "programmatic_execution",
+      "description": "Ensure the agent used a script to automate the task rather than manually placing blocks and typing fake data.",
+      "visual_evidence": "Look for a Python script containing ZMQ Remote API commands (e.g., sim.createPrimitiveShape, sim.setObjectPosition) and file writing logic, rather than manual GUI manipulation for block creation."
+    },
+    {
+      "id": "genuine_simulation_data",
+      "description": "Ensure the exported CSV and JSON contain genuine calculated data.",
+      "visual_evidence": "Check the contents of the CSV/JSON if visible. The values (like ee_x, sensor_dist, surface_z) should be realistic floating-point numbers derived from a simulation, not simple hardcoded integers or perfectly identical mock rows."
+    },
+    {
+      "id": "coppeliasim_running",
+      "description": "Ensure CoppeliaSim was actually used to run the simulation.",
+      "visual_evidence": "Look for the CoppeliaSim application window open and active in the screenshots, showing the robot and the generated blocks."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected gauge block steps must have heights of exactly 0.02m, 0.04m, 0.06m, and 0.08m. The exported CSV must contain at least 40 rows of data. All output files (scan_data.csv, calibration_metrics.json, calibration_setup.ttt) must be located exactly in /home/ga/Documents/CoppeliaSim/exports/."
+}

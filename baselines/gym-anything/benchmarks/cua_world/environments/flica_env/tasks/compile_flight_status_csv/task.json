@@ -1,0 +1,34 @@
+{
+  "id": "compile_flight_status_csv@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Act as a flight operations assistant. Look up the status of three specific flights for today: American Airlines flight 1 (AA 1), United Airlines flight 1 (UA 1), and Delta Air Lines flight 1 (DL 1). For each flight, identify the Origin Airport Code, Destination Airport Code, and current Status. Create a CSV file at '/sdcard/flight_report.csv' with the header 'Flight,Origin,Destination,Status'. If a flight is not found, record 'Not Found' in the respective data fields.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/compile_flight_status_csv/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/compile_flight_status_csv/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/sdcard/flight_report.csv",
+    "required_flights": [
+      "AA",
+      "UA",
+      "DL"
+    ],
+    "required_numbers": [
+      "1"
+    ],
+    "csv_header": "Flight,Origin,Destination,Status"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flight_csv"
+    }
+  }
+}

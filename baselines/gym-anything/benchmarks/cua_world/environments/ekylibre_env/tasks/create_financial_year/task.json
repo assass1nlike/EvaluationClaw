@@ -1,0 +1,27 @@
+{
+  "id": "create_financial_year@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "You are managing the accounting for GAEC JOULIN farm. Create a new financial year in Ekylibre for the calendar year 2017 with a start date of January 1, 2017, and an end date of December 31, 2017, using EUR (Euro) as the currency. The Ekylibre interface is in French. \n\nLogin credentials:\n- Email: admin@ekylibre.org\n- Password: 12345678",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_financial_year/setup_task.sh",
+    "post_task": "/workspace/tasks/create_financial_year/export_result.sh"
+  },
+  "metadata": {
+    "expected_start_date": "2017-01-01",
+    "expected_end_date": "2017-12-31",
+    "expected_currency": "EUR"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_financial_year"
+    }
+  }
+}

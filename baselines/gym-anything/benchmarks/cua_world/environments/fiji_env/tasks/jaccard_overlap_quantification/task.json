@@ -1,0 +1,39 @@
+{
+  "id": "jaccard_overlap_quantification@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Calculate the Jaccard Index (Intersection over Union) for simulated microscopy images `channel_1.tif` (nuclear stain) and `channel_2.tif` (cytoplasmic stain) located at `~/Fiji_Data/raw/jaccard/` to quantify their spatial overlap. Use the Otsu auto-threshold method to create binary masks for both images. Produce an intersection mask and a union mask, saving them to `~/Fiji_Data/results/jaccard/intersection_mask.tif` and `~/Fiji_Data/results/jaccard/union_mask.tif` respectively. Record the calculated Jaccard Index, intersection area, and union area in `~/Fiji_Data/results/jaccard/results.csv` using the format: `jaccard_index,intersection_area,union_area`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/jaccard_overlap_quantification/setup_task.sh",
+    "post_task": "/workspace/tasks/jaccard_overlap_quantification/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "BBBC005 (Simulated)",
+    "threshold_method": "Otsu",
+    "output_dir": "~/Fiji_Data/results/jaccard/",
+    "expected_files": [
+      "intersection_mask.tif",
+      "union_mask.tif",
+      "results.csv"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_jaccard_overlap"
+    }
+  },
+  "tags": [
+    "image-analysis",
+    "binary-morphology",
+    "quantification",
+    "fiji",
+    "scientific"
+  ]
+}

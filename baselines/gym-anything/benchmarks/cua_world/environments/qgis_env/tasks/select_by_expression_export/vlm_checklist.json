@@ -1,0 +1,59 @@
+{
+  "task_id": "select_by_expression_export@1",
+  "task_completion": [
+    {
+      "id": "layer_loaded",
+      "description": "Verify the source shapefile is loaded into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The layer 'ne_110m_populated_places_simple' should be visible in the Layers panel."
+    },
+    {
+      "id": "select_by_expression_opened",
+      "description": "Verify the agent opens the tool to select features by expression.",
+      "points": 10,
+      "visual_evidence": "A 'Select by Expression' dialog or similar filtering window is open on the screen."
+    },
+    {
+      "id": "expression_entered",
+      "description": "Verify the correct population threshold expression is entered.",
+      "points": 20,
+      "visual_evidence": "The expression box contains a formula checking for population greater than 10,000,000 (e.g., \"pop_max\" > 10000000)."
+    },
+    {
+      "id": "features_selected",
+      "description": "Verify the features are successfully selected.",
+      "points": 20,
+      "visual_evidence": "Features are highlighted on the map canvas (usually in yellow), or the status bar/attribute table indicates that 17 features are selected."
+    },
+    {
+      "id": "export_dialog_configured",
+      "description": "Verify the export dialog is correctly configured for GeoJSON and selected features.",
+      "points": 20,
+      "visual_evidence": "The 'Save Vector Layer as...' or Export dialog is open with Format set to 'GeoJSON', File name pointing to 'major_megacities.geojson', and the 'Save only selected features' checkbox is checked."
+    },
+    {
+      "id": "export_completed",
+      "description": "Verify the export process is completed.",
+      "points": 20,
+      "visual_evidence": "A success message banner appears indicating the layer was saved, or a new layer named 'major_megacities' appears in the Layers panel."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the GIS graphical user interface to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with QGIS or a similar GIS application, not just terminal commands like ogr2ogr."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Ensure the agent did not manually create the output file using a text editor.",
+      "visual_evidence": "No text editors (like nano, vim, or gedit) should be seen creating or pasting content into a file named 'major_megacities.geojson'."
+    },
+    {
+      "id": "genuine_selection",
+      "description": "Ensure the agent actually performed the selection rather than just exporting the whole dataset.",
+      "visual_evidence": "The 'Save only selected features' checkbox must be visibly checked during the export step, or the selection must be visible on the map prior to export."
+    }
+  ],
+  "privileged_info_for_vlm": "The source dataset is 'ne_110m_populated_places_simple.shp'. The population threshold expression must check for 'pop_max' > 10000000. When correctly filtered, exactly 17 features should be selected. The expected output format is GeoJSON, saved to '/home/ga/GIS_Data/exports/major_megacities.geojson'."
+}

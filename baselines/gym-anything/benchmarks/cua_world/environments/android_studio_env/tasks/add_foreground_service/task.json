@@ -1,0 +1,30 @@
+{
+  "id": "add_foreground_service@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "In the SyncApp project, implement a foreground service for background data synchronization. Create a Kotlin class DataSyncService in app/src/main/java/com/example/syncapp/service/DataSyncService.kt that extends android.app.Service. The service must initialize a NotificationChannel named 'Data Sync' (ID: 'data_sync_channel', Importance: LOW) and call startForeground in onStartCommand using a notification with ID 1, title 'Syncing Data', and icon android.R.drawable.ic_popup_sync. Ensure onStartCommand returns START_STICKY and onBind returns null. Update app/src/main/AndroidManifest.xml to include FOREGROUND_SERVICE and FOREGROUND_SERVICE_DATA_SYNC permissions and declare the service with foregroundServiceType=\"dataSync\" and exported=\"false\". The project must build successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_foreground_service/setup_task.sh",
+    "post_task": "/workspace/tasks/add_foreground_service/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/SyncApp",
+    "service_path": "app/src/main/java/com/example/syncapp/service/DataSyncService.kt",
+    "manifest_path": "app/src/main/AndroidManifest.xml",
+    "channel_id": "data_sync_channel",
+    "notification_title": "Syncing Data",
+    "service_type": "dataSync"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_foreground_service"
+    }
+  }
+}

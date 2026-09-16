@@ -1,0 +1,79 @@
+{
+  "dataset_id": "5291a0b4",
+  "name": "Deepfish Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Deepfish Detection is an object detection dataset of underwater images annotated with bounding boxes for deepfish. It evaluates a model's ability to locate and count fish in natural underwater scenes given a detection prompt.",
+  "card_text": "The dataset contains 200 samples pairing an underwater photograph with a short text instruction: 'Detect the deepfish in the given image'. The output is a dictionary keyed by 'deepfish' whose value is a list of bounding boxes, each specified as [x, y, width, height] coordinates. Images are real underwater scenes of varying complexity, containing from one to many fish. The task is open-set detection for a single fish class ('deepfish'). Annotations are provided as coordinates, not as textual descriptions. The dataset is intended for evaluating visual object detection models on marine imagery.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "underwater fish detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "Underwater photograph of deepfish in their natural habitat; serves as the visual context for the detection task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short imperative prompt asking the model to detect deepfish in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.text.deepfish"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A list of bounding boxes around each detected deepfish, each box represented as [x, y, width, height] coordinates in the image.",
+        "path_types": [
+          "list<list>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image file and a text prompt instructing the model to detect deepfish, plus an output dictionary keyed by 'deepfish' containing a list of bounding boxes (x, y, width, height) for each detected fish in the image. There is no additional text context beyond the instruction."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/DeepfishDetection/deepfish_detection.json",
+    "existing_tags": {
+      "task": "Deepfish Detection",
+      "type": "image comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

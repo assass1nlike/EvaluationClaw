@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_update_corrections@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "Open the chinook.odb database file",
+      "points": 10,
+      "visual_evidence": "A graphical database application (such as LibreOffice Base) is open, displaying the tables of the Chinook database (Employee, Customer, Track, etc.)."
+    },
+    {
+      "id": "update_employee_title",
+      "description": "Update 'Sales Support Agent' to 'Customer Service Representative' in the Employee table",
+      "points": 25,
+      "visual_evidence": "Look for an executed SQL UPDATE statement in the GUI's SQL tool (e.g., UPDATE Employee SET Title = 'Customer Service Representative' WHERE Title = 'Sales Support Agent') OR the Employee table open in edit/data view showing 'Customer Service Representative' in the Title column."
+    },
+    {
+      "id": "update_customer_country",
+      "description": "Update 'USA' to 'United States' in the Customer table",
+      "points": 25,
+      "visual_evidence": "Look for an executed SQL UPDATE statement in the GUI's SQL tool (e.g., UPDATE Customer SET Country = 'United States' WHERE Country = 'USA') OR the Customer table open in edit/data view showing 'United States' in the Country column."
+    },
+    {
+      "id": "update_track_price",
+      "description": "Update UnitPrice to 1.19 for all tracks with GenreId 1 in the Track table",
+      "points": 30,
+      "visual_evidence": "Look for an executed SQL UPDATE statement in the GUI's SQL tool (e.g., UPDATE Track SET UnitPrice = 1.19 WHERE GenreId = 1) OR the Track table open in edit/data view showing '1.19' in the UnitPrice column specifically for rows where GenreId is '1'."
+    },
+    {
+      "id": "save_database_changes",
+      "description": "Save all changes to the database file",
+      "points": 10,
+      "visual_evidence": "Look for the agent clicking the 'Save' icon (floppy disk) in the main database window, using File -> Save, or a status indicating the database file has been successfully saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_database_tool",
+      "description": "The agent used a graphical database tool (like LibreOffice Base) to perform the task rather than a terminal SQLite prompt.",
+      "visual_evidence": "Screenshots should show a GUI application like LibreOffice Base being used to view tables or execute SQL, not a terminal window running the 'sqlite3' command-line interface."
+    },
+    {
+      "id": "actual_data_modification",
+      "description": "The agent actually modified the database tables rather than just viewing them or writing the answers in a text file.",
+      "visual_evidence": "Evidence of SQL execution success messages or visible edits within the database table data view, rather than just a text editor open with notes."
+    },
+    {
+      "id": "no_script_bypass",
+      "description": "The agent did not write and run an external script to bypass interacting with the database tool.",
+      "visual_evidence": "No terminal windows showing execution of external Python, Bash, or SQL scripts (e.g., 'python update.py') to perform the updates."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. In the Employee table, there are exactly 3 instances of 'Sales Support Agent' in the Title column (index 3) that must become 'Customer Service Representative'. In the Customer table, there are exactly 13 instances of 'USA' in the Country column (index 7) that must become 'United States'. In the Track table, there are 1,297 tracks with GenreId 1 (index 4) whose UnitPrice (index 8) must be updated from 0.99 to 1.19. The agent will likely accomplish this via the 'Tools -> SQL' execution window in LibreOffice Base, or by manually editing the tables."
+}

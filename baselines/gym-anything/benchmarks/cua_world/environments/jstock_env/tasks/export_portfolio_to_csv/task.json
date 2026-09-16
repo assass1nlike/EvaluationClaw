@@ -1,0 +1,31 @@
+{
+  "id": "export_portfolio_to_csv@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Export the buy transactions from 'My Portfolio' (containing AAPL, MSFT, and NVDA) to a CSV file at /home/ga/Documents/portfolio_export.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_portfolio_to_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/export_portfolio_to_csv/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "/home/ga/Documents/portfolio_export.csv",
+    "expected_symbols": [
+      "AAPL",
+      "MSFT",
+      "NVDA"
+    ],
+    "min_size_bytes": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_portfolio_to_csv"
+    }
+  }
+}

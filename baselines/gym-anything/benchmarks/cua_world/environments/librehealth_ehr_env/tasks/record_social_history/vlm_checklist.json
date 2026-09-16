@@ -1,0 +1,65 @@
+{
+  "task_id": "record_social_history@1",
+  "task_completion": [
+    {
+      "id": "read_patient_info",
+      "description": "Read the patient information from /tmp/task_patient_info.txt",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor displaying the contents of /tmp/task_patient_info.txt to identify the target patient."
+    },
+    {
+      "id": "login_librehealth",
+      "description": "Log in to LibreHealth EHR",
+      "points": 10,
+      "visual_evidence": "LibreHealth EHR login screen with credentials (admin/password) entered, or the main dashboard visible after a successful login."
+    },
+    {
+      "id": "access_patient_record",
+      "description": "Search for and access the correct patient's record",
+      "points": 20,
+      "visual_evidence": "The patient dashboard or summary screen is open for the specific patient identified in the text file."
+    },
+    {
+      "id": "navigate_social_history",
+      "description": "Navigate to the Social History section",
+      "points": 10,
+      "visual_evidence": "The 'History' or 'Social History' edit form is open for the patient."
+    },
+    {
+      "id": "enter_tobacco_alcohol",
+      "description": "Enter the specified Tobacco and Alcohol details",
+      "points": 20,
+      "visual_evidence": "The Social History form shows 'Current every day smoker' for Tobacco Use and 'Beer and wine, 4-5 drinks per week' for Alcohol."
+    },
+    {
+      "id": "enter_drugs_counseling_exercise",
+      "description": "Enter the specified Drugs, Counseling, and Exercise details",
+      "points": 20,
+      "visual_evidence": "The Social History form shows 'None' for Recreational Drugs, 'N/A' for Counseling, and 'Sedentary lifestyle, no regular exercise' for Exercise Patterns."
+    },
+    {
+      "id": "save_social_history",
+      "description": "Save the updated Social History",
+      "points": 10,
+      "visual_evidence": "Clicking a 'Save' button on the Social History form, or a confirmation screen/message showing the history was successfully updated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the LibreHealth EHR web interface.",
+      "visual_evidence": "Screenshots show a web browser navigating the LibreHealth EHR system, rather than terminal commands executing SQL queries to update the database directly."
+    },
+    {
+      "id": "correct_patient_target",
+      "description": "The agent updated the specific patient assigned in the task.",
+      "visual_evidence": "The patient name in the EHR matches the name retrieved from /tmp/task_patient_info.txt, rather than a random or newly created patient."
+    },
+    {
+      "id": "genuine_form_entry",
+      "description": "The agent entered the data into the actual EHR form.",
+      "visual_evidence": "The text is typed into the appropriate input fields within the LibreHealth EHR Social History page, not just written into a text file or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The target patient is specified in /tmp/task_patient_info.txt. The agent must update the LibreHealth EHR Social History form with the following values: Tobacco Use: 'Current every day smoker', Alcohol: 'Beer and wine, 4-5 drinks per week' (keywords: beer, wine, 4-5, drinks), Recreational Drugs: 'None' or 'N/A', Counseling: 'N/A' or 'None', Exercise Patterns: 'Sedentary lifestyle, no regular exercise' (keywords: sedentary, no regular)."
+}

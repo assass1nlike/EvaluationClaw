@@ -1,0 +1,29 @@
+{
+  "id": "visualize_flight_trends@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "The Operations Director needs a visual report of flight planning activity. Generate a bar chart showing the number of Flight Plans created per day using 'FlightPlan' records from the Aerobridge Django database (located at /opt/aerobridge with DJANGO_SETTINGS_MODULE 'aerobridge.settings'). The chart must aggregate counts by creation date and be saved to /home/ga/flight_activity.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/visualize_flight_trends/setup_task.sh",
+    "post_task": "/workspace/tasks/visualize_flight_trends/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/generate_chart.py",
+    "image_path": "/home/ga/flight_activity.png",
+    "required_library": "matplotlib",
+    "django_model": "FlightPlan",
+    "min_image_size_bytes": 5000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_visualize_flight_trends"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "setup_institutional_users@1",
+  "version": "1.0",
+  "env_id": "safe_exam_browser_env@0.1",
+  "name": "Set Up Institutional User Accounts",
+  "description": "Create three active user accounts in the SEB Server (http://localhost:8080, login: super-admin / admin) for a computer science department. Set the password for all accounts to 'SecurePass2024!' and the timezone to 'UTC'. The required accounts are: 'prof.martinez' (Elena Martinez, elena.martinez@university.edu, role: Exam Administrator), 'ta.chen' (Wei Chen, wei.chen@university.edu, role: Exam Supporter), and 'admin.thompson' (James Thompson, james.thompson@university.edu, role: Institutional Administrator).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_institutional_users/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_institutional_users/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_institutional_users"
+    }
+  },
+  "tags": [
+    "seb-server",
+    "user-management",
+    "web-ui",
+    "hard"
+  ]
+}

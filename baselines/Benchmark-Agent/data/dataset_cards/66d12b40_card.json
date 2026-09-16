@@ -1,0 +1,84 @@
+{
+  "dataset_id": "66d12b40",
+  "name": "Report Docvqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 259,
+  "description": "Report Docvqa is a document visual question answering dataset containing 259 examples. Each example pairs one or more document page images with a natural-language question and a short text answer extracted from the document. It evaluates reading comprehension and information extraction from report-style visual documents.",
+  "card_text": "Report Docvqa consists of 259 question-answer pairs over document images. Each example includes a variable number of scanned or report-style page images and a natural-language question about their contents, together with one or more short text answers. The documents appear to be report pages containing text, links, numbers, and tabular content. Questions often refer to a specific page and ask for a precise fact, such as a website link or a dividend amount. The task evaluates visual document understanding: the model must read text from images and produce a short factual answer. No multiple-choice options, bounding boxes, or rationales are provided.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "document VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of one or more image filenames representing pages of a report or document. These images provide the visual document content that the model must read and reason over to answer the question. The number of pages varies across samples.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language question about information contained in the document page images. It may explicitly reference a page number and asks for a specific fact, link, amount, or other detail.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of one or more short text strings giving the answer extracted from the document images. Answers are typically brief factual strings such as URLs, numbers, dates, or names.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of document page images (input.image_file) that serve as the visual context, a natural-language question (input.prompt) about that context, and a list of short answer strings (output.text). The question asks for a specific fact found in the document images, and the answer is the corresponding extracted text. No options, bounding boxes, masks, or dialogs are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/report_docvqa/json/annotation.json",
+    "existing_tags": {
+      "task": "document vqa",
+      "type": "comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "remote_debug_attach_inspect@1",
+  "task_completion": [
+    {
+      "id": "open_project_and_class",
+      "description": "The PaymentGateway project is open in the IDE and the TransactionProcessor class is viewed.",
+      "points": 10,
+      "visual_evidence": "An IDE (like IntelliJ IDEA) is open with the PaymentGateway project in the file explorer, and the TransactionProcessor.java file is open in the editor."
+    },
+    {
+      "id": "configure_remote_debugger",
+      "description": "A remote debugging configuration is set up for port 5005.",
+      "points": 20,
+      "visual_evidence": "The Run/Debug Configurations dialog shows a 'Remote JVM Debug' setup with port 5005, or the top-right run widget shows a remote debug configuration selected."
+    },
+    {
+      "id": "attach_debugger_and_pause",
+      "description": "The debugger is attached to the process and execution is paused inside the processTransaction method.",
+      "points": 30,
+      "visual_evidence": "The Debug tool window is active, showing a connection to port 5005, and the execution is paused (highlighted line) at a breakpoint within the `processTransaction` method."
+    },
+    {
+      "id": "inspect_variable",
+      "description": "The value of the transactionToken variable is inspected in the debugger.",
+      "points": 20,
+      "visual_evidence": "The Variables pane in the Debug tool window shows the `transactionToken` variable with its corresponding string value (format TOKEN-XXXXXXXX)."
+    },
+    {
+      "id": "save_token",
+      "description": "The identified token is saved to token_found.txt in the project directory.",
+      "points": 20,
+      "visual_evidence": "A file named `token_found.txt` is visible in the project directory, and its contents show the exact token value identified in the debugger."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not cheat by reading the ground truth file directly.",
+      "visual_evidence": "There should be no terminal commands like `cat /tmp/.ground_truth_token` or editor tabs showing the `.ground_truth_token` file."
+    },
+    {
+      "id": "genuine_debug_session",
+      "description": "The token was obtained via a genuine debugging session.",
+      "visual_evidence": "The token value in `token_found.txt` must match the value seen in the debugger's Variables pane. The agent should not just use a script to extract the token from memory or files."
+    },
+    {
+      "id": "correct_output_file",
+      "description": "The output file is created in the exact requested location.",
+      "visual_evidence": "The file path for `token_found.txt` is explicitly `/home/ga/IdeaProjects/PaymentGateway/token_found.txt` as seen in the IDE file tree or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/IdeaProjects/PaymentGateway. The remote debugger must connect to localhost port 5005. The main class being debugged is com.example.gateway.TransactionProcessor. The token is a string starting with 'TOKEN-' followed by 8 uppercase hex characters. The agent must save this token to /home/ga/IdeaProjects/PaymentGateway/token_found.txt. The ground truth token is stored in /tmp/.ground_truth_token, which the agent should not access directly."
+}

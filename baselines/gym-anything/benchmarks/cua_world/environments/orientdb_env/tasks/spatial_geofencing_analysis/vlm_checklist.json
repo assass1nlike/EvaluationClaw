@@ -1,0 +1,53 @@
+{
+  "task_id": "spatial_geofencing_analysis@1",
+  "task_completion": [
+    {
+      "id": "connect_demodb",
+      "description": "Connect to the 'demodb' database in OrientDB Studio",
+      "points": 10,
+      "visual_evidence": "The OrientDB Studio web interface is open in a browser, and 'demodb' is visible as the currently connected database (usually in the top navigation bar or database selection screen)."
+    },
+    {
+      "id": "create_spatial_index",
+      "description": "Create a LUCENE spatial index named 'Hotels.Location' on the 'Hotels' class for 'Latitude' and 'Longitude'",
+      "points": 20,
+      "visual_evidence": "In the OrientDB Studio Query tab, a successful execution of a CREATE INDEX query for 'Hotels.Location' using SPATIAL ENGINE LUCENE on Latitude and Longitude, OR the index is listed in the Schema -> Indexes tab for the Hotels class."
+    },
+    {
+      "id": "add_marketing_zone_property",
+      "description": "Add a string property named 'MarketingZone' to the 'Hotels' class",
+      "points": 20,
+      "visual_evidence": "A successful execution of a CREATE PROPERTY query for 'Hotels.MarketingZone' of type STRING, OR the 'MarketingZone' property is visible in the Schema -> Properties tab for the Hotels class."
+    },
+    {
+      "id": "execute_update_query",
+      "description": "Execute an UPDATE query to set 'MarketingZone' to 'HistoricCenter' for hotels within the specified polygon",
+      "points": 30,
+      "visual_evidence": "The Query tab shows an UPDATE query setting 'MarketingZone' to 'HistoricCenter' with a spatial condition (e.g., ST_WITHIN) containing the exact polygon coordinates: POLYGON ((12.48 41.89, 12.51 41.89, 12.51 41.91, 12.48 41.91, 12.48 41.89))."
+    },
+    {
+      "id": "verify_updated_records",
+      "description": "Verify that the update was successful and affected the correct records",
+      "points": 20,
+      "visual_evidence": "A success message in the Query tab indicating records were updated, OR a SELECT query result showing that a hotel within the polygon (e.g., 'Hotel Artemide') now has 'HistoricCenter' in its 'MarketingZone' field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "The agent interacted with the OrientDB Studio web interface",
+      "visual_evidence": "Screenshots show the OrientDB Studio UI in a web browser, not just terminal commands or API scripts."
+    },
+    {
+      "id": "actual_query_execution",
+      "description": "The agent actually executed the queries in the database",
+      "visual_evidence": "The query results or schema changes are visible in the OrientDB Studio interface, showing server responses (e.g., execution time, updated record counts)."
+    },
+    {
+      "id": "no_hardcoded_updates",
+      "description": "The agent used a spatial query to update the records, rather than manually updating specific hotel names",
+      "visual_evidence": "The UPDATE query uses spatial functions and the provided polygon coordinates, rather than a WHERE clause targeting specific hotel names like 'Hotel Artemide'."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: 'demodb'. Index: 'Hotels.Location' (LUCENE spatial index on Latitude and Longitude). Property: 'MarketingZone' (String). Target value: 'HistoricCenter'. Polygon WKT: POLYGON ((12.48 41.89, 12.51 41.89, 12.51 41.91, 12.48 41.91, 12.48 41.89)). Hotel Artemide (Rome) is inside the polygon and should be updated. Hotel Adlon Kempinski (Berlin) is outside and should not be updated."
+}

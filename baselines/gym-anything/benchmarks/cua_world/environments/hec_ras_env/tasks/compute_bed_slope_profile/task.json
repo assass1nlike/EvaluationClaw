@@ -1,0 +1,33 @@
+{
+  "id": "compute_bed_slope_profile@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Extract the channel bed slope profile for the White River from the HEC-RAS Muncie project geometry using the data in Muncie.p04.tmp.hdf. Determine the thalweg elevation (minimum elevation point) for each cross section and the downstream distance between consecutive sections. Calculate the bed slope as the difference between upstream and downstream thalweg elevations divided by the distance. Save the results, sorted from upstream to downstream, to /home/ga/Documents/hec_ras_results/bed_slope_profile.csv with columns for river_station, thalweg_elevation (ft), downstream_distance (ft), and bed_slope.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_bed_slope_profile/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_bed_slope_profile/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "hdf_file": "Muncie.p04.tmp.hdf",
+    "output_path": "/home/ga/Documents/hec_ras_results/bed_slope_profile.csv",
+    "required_columns": [
+      "river_station",
+      "thalweg_elevation",
+      "downstream_distance",
+      "bed_slope"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_bed_slope_profile"
+    }
+  }
+}

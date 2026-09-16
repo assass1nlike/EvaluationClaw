@@ -1,0 +1,53 @@
+{
+  "task_id": "retime_animation_breakdown@1",
+  "task_completion": [
+    {
+      "id": "open_scene",
+      "description": "Open the 'dwanko_run.tnz' scene in OpenToonz.",
+      "points": 10,
+      "visual_evidence": "The OpenToonz application is open, and the title bar or scene browser indicates that 'dwanko_run.tnz' is the active loaded scene."
+    },
+    {
+      "id": "read_timing_chart",
+      "description": "Access the timing chart to determine the required rhythm.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit) or terminal window is visible displaying the contents of '/home/ga/Desktop/timing_chart.txt'."
+    },
+    {
+      "id": "modify_xsheet",
+      "description": "Modify the Xsheet exposures to match the timing chart.",
+      "points": 30,
+      "visual_evidence": "The Xsheet (timeline) panel in OpenToonz shows modified cell exposures. Specifically, look for Column 5 (the character animation) having cells stretched or arranged to match the hold pattern: 4 frames, 2 frames, 2 frames, 2 frames, 10 frames, and 4 frames."
+    },
+    {
+      "id": "configure_render_settings",
+      "description": "Configure the render settings for a 24-frame PNG sequence to the correct output directory.",
+      "points": 30,
+      "visual_evidence": "The 'Output Settings' dialog in OpenToonz is open. The 'Save In' path is set to '/home/ga/OpenToonz/output/retimed/', the file format is set to 'png', and the frame range (From/To) is set to 1 to 24."
+    },
+    {
+      "id": "execute_render",
+      "description": "Render the modified animation as a PNG sequence.",
+      "points": 20,
+      "visual_evidence": "A rendering progress bar in OpenToonz is visible, OR a file manager/terminal window shows the newly generated PNG files (e.g., 0001.png to 0024.png) in the '/home/ga/OpenToonz/output/retimed/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_render_usage",
+      "description": "The agent used OpenToonz to render the sequence rather than using terminal commands to fake the output.",
+      "visual_evidence": "Screenshots should show interaction with the OpenToonz 'Render' menu or Output Settings, rather than ImageMagick/ffmpeg commands in the terminal generating the PNGs."
+    },
+    {
+      "id": "genuine_xsheet_modification",
+      "description": "The agent actually modified the Xsheet in OpenToonz.",
+      "visual_evidence": "The OpenToonz Xsheet must visibly reflect the new timing holds (e.g., blocks of 4, 2, 2, 2, 10, 4 frames) rather than the agent just copying and renaming files in the file explorer."
+    },
+    {
+      "id": "correct_column_interaction",
+      "description": "The agent interacted with the actual character animation column.",
+      "visual_evidence": "Modifications should be visible in Column 5 of the Xsheet (where the character is), not just Column 1 (which contains the sky background)."
+    }
+  ],
+  "privileged_info_for_vlm": "The timing chart specifies 24 frames with holds at frames 1-4, 5-6, 7-8, 9-10, 11-20, and 21-24. The character animation is located in Column 5 of the Xsheet, not Column 1 (which is the sky). Drawings 7 and 9 do not physically exist in the original file. Therefore, a visual change at frame 11 (transitioning from drawing 7 to 9) is impossible and will result in blank frames; do not penalize the agent if frames 11-20 appear blank or lack a visual change, as long as the Xsheet exposure holds are set correctly. The final output must be a 24-frame PNG sequence saved to '/home/ga/OpenToonz/output/retimed/'."
+}

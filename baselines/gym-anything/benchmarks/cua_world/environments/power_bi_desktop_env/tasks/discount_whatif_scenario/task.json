@@ -1,0 +1,36 @@
+{
+  "id": "discount_whatif_scenario@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a pricing analyst. Using the file sales_data.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv, build a dynamic discount scenario model in Power BI Desktop to simulate a global discount rate (0-50%) and compare revenue against the baseline. Create a parameter named Discount_Rate (Decimal, 0 to 50, increment 1) and two DAX measures: Baseline_Revenue (Sum of Quantity_Sold * Unit_Price * (1 - Discount)) and Projected_Revenue (Sum of Quantity_Sold * Unit_Price * (1 - [Discount_Rate Value] / 100)). On a page named Scenario Analysis, include a slicer for the Discount_Rate, a card showing Projected_Revenue, and a clustered column chart showing Projected_Revenue by Product_Category. Save the report as C:\\Users\\Docker\\Desktop\\Discount_Scenario.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\discount_whatif_scenario\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\discount_whatif_scenario\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Discount_Scenario.pbix",
+    "required_measures": [
+      "Baseline_Revenue",
+      "Projected_Revenue"
+    ],
+    "required_parameter": "Discount_Rate",
+    "required_visuals": [
+      "slicer",
+      "card",
+      "clusteredColumnChart"
+    ],
+    "required_page": "Scenario Analysis"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_discount_whatif_scenario"
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "dataset_id": "2f67c8f5",
+  "name": "Openset Multi-Turn Interactive Dialogue",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visually grounded, multi-turn knowledge QA dataset in which a model must answer a final question using a current context, a history of prior Q&A turns, and image inputs (including a global table image). It evaluates open-set, multi-hop reasoning that combines textual encyclopedic passages with visual evidence across dialogue turns.",
+  "card_text": "The dataset contains 200 samples of 'Openset Multi-Turn Interactive Dialogue'. Each sample pairs one or more images (referenced by filename and frequently re-inserted into the text as '<ImageHere>' placeholders for a global table or visual history turns) with a single long natural-language prompt. That prompt is a template that opens with a task instruction, then provides a 'Global Table' slot, several numbered 'History Context' blocks (each a passage plus a previously asked question and its answer), and finally a 'Current Context' block ending with 'Question: ... Answer:'. Supervision is a short free-text answer string such as a film title, a person's name, or 'yes'. The dominant content is English Wikipedia-style factual text about films, television and actors, so the task requires multi-hop entity linking across turns and, when images appear, reading visual evidence (posters, tables) to resolve the query.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "multi_hop_response"
+  ],
+  "domain": "general knowledge (film/TV) multi-turn visual QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "The single long prompt string that carries the whole task: an instruction sentence, a 'Global Table' image slot, several 'History Context' blocks (each with a passage, a question and an answer), and a 'Current Context' block of encyclopedic passages, terminating in 'Question: ... Answer:'. It is the main input the model must read and reason over.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The query is embedded at the very end of input.prompt after the literal marker 'Question:' and immediately before 'Answer:'. It is a short natural-language question about an entity mentioned in the current or history context (e.g. 'Elias Koteas had a role in what supernatural detective thriller film?') and defines what the output answer must satisfy.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "dialog": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "mixed",
+        "semantics": "The numbered 'History Context' blocks inside input.prompt form a flattened record of earlier dialogue turns, each pairing an evidence passage with a past Question/Answer exchange. These prior turns supply entities and facts that must be carried forward to resolve the current question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of image file references associated with the sample. Some correspond to the 'Global Table: <ImageHere>' slot (a rendered table to be parsed visually), and others replace earlier history passages that appear as '<ImageHere>' in the prompt, usually movie/show posters or screenshots that must be read to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The gold response: a very short free-text string, typically an entity name, a title, or a yes/no word (e.g. 'Fallen. ', 'yes. '), corresponding to the question posed at the end of input.prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has an id, an input object and an output object. input.image_file holds a list of image filenames used as visual evidence (a global table image and/or poster-like images referenced as '<ImageHere>' inside the text). input.prompt is one long templated text that bundles everything else: a task instruction, the global table slot, several 'History Context' turns (passage + prior Question + prior Answer) acting as dialogue history, and a 'Current Context' with the final 'Question:' whose answer is to be produced. output.text is the single short free-text answer. The components relate as a multi-turn evidence chain: history turns and images provide supporting facts, the current context and final question define the target, and the answer must be consistent with all of them."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-TurnInteractiveDialogue/openset_multi-turn_interactive_dialogue.json",
+    "existing_tags": {
+      "task": "Multi-Turn Interactive Dialogue",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

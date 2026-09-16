@@ -1,0 +1,42 @@
+{
+  "id": "cnn_neural_network_viz@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are an AI researcher creating a figure for a conference paper. Create a visual architecture diagram of the 'SimpleNet-V2' Convolutional Neural Network described in '~/Desktop/model_summary.txt'. Use 'Cube' or 'Box' 3D shapes for 4D tensors (Conv2D, MaxPooling2D outputs) and standard 'Rectangle' shapes for 1D vectors (Flatten, Dense outputs). Label each shape clearly with its dimensions (e.g., '28x28x32' or '128'), ignoring the 'None' batch dimension, and connect layers with arrows showing data flow. Apply strict color coding based on layer type: Convolutional Layers (Blue, Fill: #dae8fc), Pooling Layers (Red, Fill: #f8cecc), and Dense/Linear Layers (Green, Fill: #d5e8d4). Save the editable file to '~/Diagrams/cnn_architecture.drawio' and export the final figure as '~/Diagrams/cnn_architecture.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cnn_neural_network_viz/setup_task.sh",
+    "post_task": "/workspace/tasks/cnn_neural_network_viz/export_result.sh"
+  },
+  "metadata": {
+    "model_summary_path": "/home/ga/Desktop/model_summary.txt",
+    "output_drawio": "/home/ga/Diagrams/cnn_architecture.drawio",
+    "output_pdf": "/home/ga/Diagrams/cnn_architecture.pdf",
+    "required_labels": [
+      "32x32x3",
+      "28x28x32",
+      "14x14x32",
+      "12x12x64",
+      "6x6x64",
+      "2304",
+      "128",
+      "10"
+    ],
+    "layer_colors": {
+      "conv": "#dae8fc",
+      "pool": "#f8cecc",
+      "dense": "#d5e8d4"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cnn_neural_network_viz"
+    }
+  }
+}

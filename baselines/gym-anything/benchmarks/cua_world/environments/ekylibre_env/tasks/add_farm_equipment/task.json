@@ -1,0 +1,36 @@
+{
+  "id": "add_farm_equipment@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "You are a farmer at GAEC JOULIN, a cereal farm in Charente-Maritime, France. You have just purchased a used Massey Ferguson 7720 tractor and need to register it in Ekylibre (http://demo.ekylibre.farm:3000) to track its operating costs. Create a new equipment record with the name 'Massey Ferguson 7720', work number 'MF-7720-01', and the most appropriate tractor variant available in the system. Use the login credentials admin@ekylibre.org / 12345678 if prompted.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_farm_equipment/setup_task.sh",
+    "post_task": "/workspace/tasks/add_farm_equipment/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Massey Ferguson 7720",
+    "expected_work_number": "MF-7720-01",
+    "expected_nature_keywords": [
+      "tractor",
+      "tracteur",
+      "equipment",
+      "équipement"
+    ],
+    "credentials": {
+      "user": "admin@ekylibre.org",
+      "pass": "12345678"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_farm_equipment"
+    }
+  }
+}

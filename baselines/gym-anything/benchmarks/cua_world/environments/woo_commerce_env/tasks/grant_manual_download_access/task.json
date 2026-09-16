@@ -1,0 +1,28 @@
+{
+  "id": "grant_manual_download_access@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Grant a customer access to a digital file through a manual order for a physical product in WooCommerce. Create a virtual and downloadable simple product named 'Exclusive Digital Supplement' ($0.00, dummy file URL) and a physical simple product named 'Physical Training Manual' ($50.00). Generate a completed manual order containing only the 'Physical Training Manual'. Manually grant this order permissions for the 'Exclusive Digital Supplement' with the downloads remaining set to 5.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/grant_manual_download_access/setup_task.sh",
+    "post_task": "/workspace/tasks/grant_manual_download_access/export_result.sh"
+  },
+  "metadata": {
+    "digital_product_name": "Exclusive Digital Supplement",
+    "physical_product_name": "Physical Training Manual",
+    "expected_downloads_remaining": "5",
+    "dummy_file_url": "http://example.com/file.pdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_grant_manual_download_access"
+    }
+  }
+}

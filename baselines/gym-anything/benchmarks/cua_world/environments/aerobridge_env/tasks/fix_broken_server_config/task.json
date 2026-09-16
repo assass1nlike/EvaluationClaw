@@ -1,0 +1,29 @@
+{
+  "id": "fix_broken_server_config@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "The Aerobridge drone management server has stopped responding after a configuration change. A corrupted encryption key was written to the server's environment configuration, causing the Django application to crash on startup. Diagnose the issue using the logs at /var/log/aerobridge_server.log and restore the service by providing a valid Fernet encryption key for the CRYPTOGRAPHY_SALT setting in /opt/aerobridge/.env. After restoring access to the admin panel at http://localhost:8000/admin/, record the total number of 'Aircraft' records in the registry as a single integer in /home/ga/repair_verification.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_broken_server_config/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_broken_server_config/export_result.sh"
+  },
+  "metadata": {
+    "log_file": "/var/log/aerobridge_server.log",
+    "env_file": "/opt/aerobridge/.env",
+    "service_name": "aerobridge",
+    "verification_file": "/home/ga/repair_verification.txt",
+    "admin_url": "http://localhost:8000/admin/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_server_config"
+    }
+  }
+}

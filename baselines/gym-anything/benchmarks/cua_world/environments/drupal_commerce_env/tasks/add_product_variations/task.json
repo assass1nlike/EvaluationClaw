@@ -1,0 +1,37 @@
+{
+  "id": "add_product_variations@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "The store is expanding its inventory for the 'Dell XPS 13 Laptop'. Add two new enabled product variations to the existing 'Dell XPS 13 Laptop' product without modifying the base model. The first variation is 'Dell XPS 13 - 16GB/512GB' (SKU: 'DELL-XPS13-16-512', Price: $1,249.99) and the second is 'Dell XPS 13 - 32GB/1TB' (SKU: 'DELL-XPS13-32-1TB', Price: $1,599.99). Both variations must be published.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_product_variations/setup_task.sh",
+    "post_task": "/workspace/tasks/add_product_variations/export_result.sh"
+  },
+  "metadata": {
+    "parent_product_title": "Dell XPS 13 Laptop",
+    "variations": [
+      {
+        "sku": "DELL-XPS13-16-512",
+        "price": "1249.99",
+        "title_fragment": "16GB/512GB"
+      },
+      {
+        "sku": "DELL-XPS13-32-1TB",
+        "price": "1599.99",
+        "title_fragment": "32GB/1TB"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_product_variations"
+    }
+  }
+}

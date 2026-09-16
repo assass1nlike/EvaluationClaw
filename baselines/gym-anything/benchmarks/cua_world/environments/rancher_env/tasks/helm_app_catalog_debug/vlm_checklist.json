@@ -1,0 +1,59 @@
+{
+  "task_id": "helm_app_catalog_debug@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent successfully logs into the Rancher dashboard.",
+      "points": 10,
+      "visual_evidence": "The Rancher UI dashboard is visible, indicating the agent has logged in using the provided credentials."
+    },
+    {
+      "id": "helm_repo_added",
+      "description": "The Bitnami Helm repository is added.",
+      "points": 10,
+      "visual_evidence": "The Bitnami repository (https://charts.bitnami.com/bitnami) is visible in Rancher's Repositories/Apps section, or terminal output shows successful 'helm repo add'."
+    },
+    {
+      "id": "app_deployed",
+      "description": "The 'nginx' chart is deployed with the release name 'corp-proxy' in the 'dmz' namespace.",
+      "points": 20,
+      "visual_evidence": "The Rancher UI or kubectl terminal output shows an application or deployment named 'corp-proxy' located specifically in the 'dmz' namespace."
+    },
+    {
+      "id": "proxy_started_debugged",
+      "description": "The proxy successfully starts and is running, indicating the agent fixed the intentional ImagePullBackOff issue in the provided values file.",
+      "points": 30,
+      "visual_evidence": "The pods for the 'corp-proxy' deployment are shown in a 'Running' or 'Active' state. There should be no 'ImagePullBackOff' or 'ErrImagePull' errors visible for this deployment."
+    },
+    {
+      "id": "replicas_configured",
+      "description": "The deployment runs with exactly 2 replicas.",
+      "points": 15,
+      "visual_evidence": "The Rancher UI or kubectl output shows '2/2' ready pods or explicitly lists 2 replicas for the 'corp-proxy' deployment."
+    },
+    {
+      "id": "nodeport_configured",
+      "description": "The service exposes HTTP on NodePort 30080.",
+      "points": 15,
+      "visual_evidence": "The service details for 'corp-proxy' in Rancher or terminal show port 30080 configured as a NodePort (e.g., 80:30080/TCP)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_rancher_or_cli_usage",
+      "description": "The agent interacted with the actual Rancher GUI or used genuine helm/kubectl terminal commands.",
+      "visual_evidence": "Screenshots show genuine Rancher interface navigation or authentic terminal command execution, rather than a text editor with typed out success messages."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "The agent did not use browser developer tools to fake the Rancher UI state.",
+      "visual_evidence": "The browser's developer tools (Elements/Console tab) are not open and actively being used to modify the DOM to show 'Active' or 'Running' states."
+    },
+    {
+      "id": "genuine_deployment_state",
+      "description": "The deployment status reflects a genuine Kubernetes cluster state.",
+      "visual_evidence": "The UI elements, pod names (with random generated suffixes), and timestamps look consistent with a real Kubernetes deployment, not manually mocked text."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires deploying an NGINX proxy using a provided values file (/home/ga/Desktop/proxy_values.yaml) that intentionally contains a broken image tag ('1.25.99-debian-11'). This causes an ImagePullBackOff error. To satisfy the 'Ensure the proxy successfully starts' requirement, the agent must have debugged and fixed this image tag. Verify that the 'corp-proxy' deployment in the 'dmz' namespace is actually in a Running/Active state (not failing to pull the image), has exactly 2 replicas, and exposes NodePort 30080."
+}

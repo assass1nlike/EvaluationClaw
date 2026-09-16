@@ -1,0 +1,27 @@
+{
+  "id": "add_vehicle_detector@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "Add an induction loop (E1) detector to the Bologna Acosta road network. Configure the detector with ID 'new_detector_1', a frequency of '300', and an output file attribute of 'new_detector_output.xml'. Place the detector on any lane in the network and save the additional elements file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_vehicle_detector/setup_task.sh",
+    "post_task": "/workspace/tasks/add_vehicle_detector/export_result.sh"
+  },
+  "metadata": {
+    "detector_id": "new_detector_1",
+    "detector_freq": "300",
+    "output_file": "new_detector_output.xml"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_vehicle_detector"
+    }
+  }
+}

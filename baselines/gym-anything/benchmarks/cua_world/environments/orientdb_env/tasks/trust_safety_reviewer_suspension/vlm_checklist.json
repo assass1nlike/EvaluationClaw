@@ -1,0 +1,65 @@
+{
+  "task_id": "trust_safety_reviewer_suspension@1",
+  "task_completion": [
+    {
+      "id": "schema_update_profiles",
+      "description": "Verify that the Profiles class schema was updated to include the AccountStatus property.",
+      "points": 10,
+      "visual_evidence": "Look for the OrientDB Studio Schema tab for the 'Profiles' class showing a new property named 'AccountStatus' of type STRING, or a successful SQL command execution like 'CREATE PROPERTY Profiles.AccountStatus STRING'."
+    },
+    {
+      "id": "create_vertex_class",
+      "description": "Verify the creation of the SuspensionLog vertex class.",
+      "points": 10,
+      "visual_evidence": "Look for 'SuspensionLog' in the OrientDB Studio Schema/Classes list with the superclass 'V' (Vertex), or a successful SQL command execution creating the class."
+    },
+    {
+      "id": "create_edge_class",
+      "description": "Verify the creation of the HasSuspensionLog edge class.",
+      "points": 10,
+      "visual_evidence": "Look for 'HasSuspensionLog' in the OrientDB Studio Schema/Classes list with the superclass 'E' (Edge), or a successful SQL command execution creating the class."
+    },
+    {
+      "id": "suspend_bot_profiles",
+      "description": "Verify that the bot accounts were correctly identified and marked as Suspended.",
+      "points": 20,
+      "visual_evidence": "Look for query results in the Browse tab showing the Profiles for 'bot.alpha@spamnet.com' and 'bot.beta@spamnet.com' with their 'AccountStatus' field set to 'Suspended'."
+    },
+    {
+      "id": "protect_innocent_profile",
+      "description": "Verify that the innocent user (below the 3-review threshold) was NOT suspended.",
+      "points": 15,
+      "visual_evidence": "Look for query results showing the Profile for 'innocent.user@normal.com' where the 'AccountStatus' is either null, empty, or explicitly NOT 'Suspended'."
+    },
+    {
+      "id": "create_suspension_logs",
+      "description": "Verify that SuspensionLog vertices were created with the correct reason.",
+      "points": 15,
+      "visual_evidence": "Look for query results or record views of the 'SuspensionLog' class showing records with the 'Reason' property set to 'Review Bombing'."
+    },
+    {
+      "id": "link_profiles_to_logs",
+      "description": "Verify that the suspended profiles are linked to their suspension logs via the HasSuspensionLog edge.",
+      "points": 20,
+      "visual_evidence": "Look for the Graph view or edge query results in OrientDB Studio showing 'HasSuspensionLog' edges connecting the suspended Profile vertices to the SuspensionLog vertices."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "The agent used the OrientDB Studio web interface to complete the task.",
+      "visual_evidence": "Screenshots should show a web browser navigating to http://localhost:2480 and interacting with the OrientDB Studio UI (Browse, Schema, or Graph tabs)."
+    },
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent actually executed queries or modified the schema within the database.",
+      "visual_evidence": "Look for executed SQL queries in the query editor, success notification banners, or populated data tables in the OrientDB Studio interface."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not simply type the expected answers into a text editor.",
+      "visual_evidence": "The screen should show the database management interface, not a text editor (like nano, vim, or VSCode) containing the task description or hardcoded JSON answers."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: demodb. Bot accounts to suspend: bot.alpha@spamnet.com (3 reviews) and bot.beta@spamnet.com (4 reviews). Innocent account NOT to suspend: innocent.user@normal.com (2 reviews). Target status: 'Suspended'. Log class: 'SuspensionLog'. Edge class: 'HasSuspensionLog'. Reason text: 'Review Bombing'."
+}

@@ -1,0 +1,97 @@
+{
+  "dataset_id": "d4dc04ca",
+  "name": "Skin Disease Diagnosis Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 120,
+  "description": "A visual question answering dataset for skin disease diagnosis, where models must determine whether a skin lesion shown in an image is benign or malignant based on a natural language question. It evaluates binary classification of dermatological images through VQA.",
+  "card_text": "This dataset contains 120 image-text samples for dermatological visual question answering. Each sample pairs a skin lesion photograph with a natural language question asking whether a skin disease is present and whether it is benign or malignant. A generic instruction prompt frames the task, and the expected output is a single word: 'benign' or 'malignant'. The images are clinical or dermoscopic close-ups of skin lesions, and the questions are phrased in a fixed template. The dataset assumes the image is the sole visual evidence and that the diagnosis is binary. It is designed to test medical image understanding, visual reasoning, and fine-grained classification in a VQA format.",
+  "tasks": [
+    "visual_question_answering",
+    "classification_binary"
+  ],
+  "domain": "medical image VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic instruction that tells the model to answer the question based on the given image. It provides the task framing but does not contain any image-specific information.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question asking whether the given image shows a skin disease and whether it is benign or malignant. It directly queries the visual content and expects a binary answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target output, a single word 'benign' or 'malignant' indicating the diagnosis of the skin lesion shown in the image. It is the label the model must predict.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A clinical or dermoscopic photograph of a skin lesion. The image is the visual evidence the model must analyze to determine whether the lesion is benign or malignant.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image file reference, a natural language question about skin disease, and a generic instruction prompt; and an output object with a short text answer. The image is the primary visual context, the question asks for a benign/malignant diagnosis, the prompt frames the task, and the answer is the binary label. No dialog, options, bounding boxes, or rationales are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/skin_disease_diagnosis_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "skin disease vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Medicine"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Medicine"
+    ]
+  }
+}

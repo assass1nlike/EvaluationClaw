@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_command_wodle_port_audit@1",
+  "task_completion": [
+    {
+      "id": "open_config_file",
+      "description": "Agent opens the Wazuh manager configuration file for editing.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a text editor (e.g., nano, vim) editing '/var/ossec/etc/ossec.conf' inside the 'wazuh-wazuh.manager-1' container."
+    },
+    {
+      "id": "add_command_wodle_block",
+      "description": "Agent adds a Command Monitoring Wodle block to the configuration.",
+      "points": 15,
+      "visual_evidence": "The text editor shows an XML block starting with '<wodle name=\"command\">' being added to the ossec.conf file."
+    },
+    {
+      "id": "configure_command_and_tag",
+      "description": "Agent configures the specific command and tag required by the task.",
+      "points": 25,
+      "visual_evidence": "The text editor shows '<command>ss -tlnp</command>' and '<tag>port-audit</tag>' inside the command wodle block."
+    },
+    {
+      "id": "configure_interval_and_timeout",
+      "description": "Agent sets the execution interval and timeout.",
+      "points": 20,
+      "visual_evidence": "The text editor shows '<interval>300</interval>' (or 300s) and '<timeout>30</timeout>' inside the command wodle block."
+    },
+    {
+      "id": "configure_run_on_start_and_ignore_output",
+      "description": "Agent configures the module to run on start and not ignore output.",
+      "points": 10,
+      "visual_evidence": "The text editor shows '<run_on_start>yes</run_on_start>' and '<ignore_output>no</ignore_output>' inside the command wodle block."
+    },
+    {
+      "id": "restart_manager_service",
+      "description": "Agent restarts the Wazuh manager service to apply changes.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a restart command such as '/var/ossec/bin/wazuh-control restart' inside the container, or 'docker restart wazuh-wazuh.manager-1' on the host, followed by successful execution output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_container_interaction",
+      "description": "Agent interacts with the actual wazuh.manager container rather than a local mock file.",
+      "visual_evidence": "Terminal prompt should indicate the agent is either exec'd into 'wazuh-wazuh.manager-1' or running docker exec commands targeting it."
+    },
+    {
+      "id": "valid_xml_modification",
+      "description": "Agent properly inserts the XML block without breaking the existing configuration structure.",
+      "visual_evidence": "The added <wodle> block is placed correctly within the <ossec_config> root element and all tags are properly closed."
+    },
+    {
+      "id": "actual_service_restart",
+      "description": "Agent genuinely restarts the service rather than just echoing a success message.",
+      "visual_evidence": "Standard output from the Wazuh control script showing the stopping and starting of various Wazuh daemons (e.g., wazuh-modulesd, wazuh-analysisd)."
+    }
+  ],
+  "privileged_info_for_vlm": "Target container: wazuh-wazuh.manager-1. Config path: /var/ossec/etc/ossec.conf. Expected command: 'ss -tlnp'. Expected tag: 'port-audit'. Expected interval: '300'. Note: If the agent checks logs to verify execution, the correct log pattern for command wodles in Wazuh is 'wazuh-modulesd:command', not 'wmodules-command'."
+}

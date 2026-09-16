@@ -1,0 +1,87 @@
+{
+  "dataset_id": "51a8f546",
+  "name": "Event-Coreference-Resolution",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for event coreference resolution in news articles. Given a document, the model must identify which pair of event mentions refer to the same event by selecting from four multiple-choice options. It evaluates fine-grained event coreference understanding and mention disambiguation.",
+  "card_text": "Event-Coreference-Resolution is a text-only multiple-choice dataset of 200 samples. Each sample contains a news article or post (input.raw_text) and a prompt (input.prompt) that asks which pair of event mentions are coreferential. The prompt embeds four candidate pairs labeled A-D, where each event mention is described by its surface word, character offset, sentence index, and event type. The correct answer is a single letter stored in output.text. The data comes from news documents with varied topics, and samples include XML-like metadata such as doc id, headline, author, and datetime. The benchmark tests the model's ability to recognize event coreference and distinguish between similar event mentions in context.",
+  "tasks": [
+    "coreference_resolution",
+    "multiple_choice_qa"
+  ],
+  "domain": "news event coreference",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "narrative",
+        "semantics": "The main input document, a news article or post. It contains raw text with optional XML-like tags for doc id, headline, author, datetime, and post content. It provides the narrative context for resolving event mentions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "A prompt that instructs the model to identify which pair of event mentions in the context are coreferential. It references the context via a placeholder and lists four multiple-choice candidate pairs labeled A-D, each describing two event mentions with word, character offset, sentence index, and event type. It ends by asking to choose A, B, C, or D.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The four candidate event-pair options embedded in the prompt text, labeled A through D. Each option contains two event mentions in bracket notation with attributes: event word, character offset, sentence index, and event type.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The letter of the correct option (A, B, C, or D) indicating which pair of event mentions are coreferential.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three components: a context field (input.raw_text) holding a news document with optional doc, headline, author, and datetime metadata; a question field (input.prompt) that poses a multiple-choice event coreference question and embeds four options labeled A-D, each listing two event mentions with their word, character offset, sentence index, and event type; and an answer field (output.text) containing the selected option letter. Options are not stored as a separate JSON field but are embedded in the prompt text."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Event-Coreference-Resolution/annotation.json",
+    "existing_tags": {
+      "task": "event_coreference_mcq",
+      "type": "multiple choice",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

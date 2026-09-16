@@ -1,0 +1,31 @@
+{
+  "id": "rank_antifungal_safety_with_axitinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Using the Liverpool Cancer iChart Archive app, identify the safest and most dangerous antifungal co-medications for a patient taking Axitinib. Determine the interaction traffic light colors for Fluconazole, Itraconazole, and Voriconazole. Create a file at /sdcard/antifungal_ranking.txt containing the interaction color for each drug, a statement identifying the safest drug (where Green/Yellow are safer than Orange/Red), and a statement identifying the most dangerous drug.\n\nUse the following format for the file:\nFluconazole: [Color]\nItraconazole: [Color]\nVoriconazole: [Color]\nSafest: [Drug Name]\nMost Dangerous: [Drug Name]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/rank_antifungal_safety_with_axitinib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/rank_antifungal_safety_with_axitinib/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/sdcard/antifungal_ranking.txt",
+    "target_cancer_drug": "Axitinib",
+    "target_comedications": [
+      "Fluconazole",
+      "Itraconazole",
+      "Voriconazole"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rank_antifungal_safety"
+    }
+  }
+}

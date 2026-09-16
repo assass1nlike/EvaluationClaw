@@ -1,0 +1,42 @@
+{
+  "task_id": "fleet_dashcam_pip_synchronization@1",
+  "task_completion": [
+    {
+      "id": "inspect_input_videos",
+      "description": "Agent inspects the input videos to find the synchronization flash timestamps.",
+      "points": 20,
+      "visual_evidence": "Terminal commands (e.g., ffprobe, mpv), a video player, or a Python script analyzing front_camera.mp4 and cabin_camera.mp4 to locate the 0.5s color flash."
+    },
+    {
+      "id": "configure_pip_overlay",
+      "description": "Agent configures the Picture-in-Picture overlay with correct dimensions and margins.",
+      "points": 30,
+      "visual_evidence": "Terminal showing an FFmpeg command, Python script, or video editor GUI with settings for scaling the cabin camera to 640x360 and positioning the overlay with 20px margins (e.g., W-w-20:H-h-20 or x=1260:y=700)."
+    },
+    {
+      "id": "configure_sync_and_trim",
+      "description": "Agent configures the synchronization, 15-second duration, and audio mapping.",
+      "points": 30,
+      "visual_evidence": "Terminal showing an FFmpeg command, Python script, or video editor timeline configuring time offsets for synchronization, a 15-second duration (e.g., -t 15), and audio mapping to use only the cabin camera audio."
+    },
+    {
+      "id": "generate_final_output",
+      "description": "Agent generates the final composite video at the specified path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing FFmpeg executing and writing to '/home/ga/Videos/incident_composite.mp4', or a script/GUI rendering to this exact file path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Verify the agent actually processed the video rather than creating a dummy file.",
+      "visual_evidence": "Terminal showing FFmpeg frame processing output (frame=..., fps=..., time=...) or a video editor rendering progress bar, proving the video was actually generated."
+    },
+    {
+      "id": "no_pre_made_script",
+      "description": "Verify the agent constructed the command or edited the video manually.",
+      "visual_evidence": "Agent types the FFmpeg command, writes the script, or interacts with the GUI manually, without downloading a pre-made solution script using curl or wget."
+    }
+  ],
+  "privileged_info_for_vlm": "The final video must be saved at '/home/ga/Videos/incident_composite.mp4' with a resolution of 1920x1080 and duration of 15.0 seconds. The PiP overlay must be exactly 640x360 pixels, positioned with 20px margins from the right and bottom edges (placing its top-left corner at X=1260, Y=700). The synchronization flash must occur exactly 5.0 seconds into the final video. The task requires video synchronization, picture-in-picture, video trimming, audio mapping, and ffmpeg filters."
+}

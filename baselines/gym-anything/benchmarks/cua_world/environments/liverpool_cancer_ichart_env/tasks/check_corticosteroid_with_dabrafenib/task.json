@@ -1,0 +1,37 @@
+{
+  "id": "check_corticosteroid_with_dabrafenib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Use the Liverpool Cancer iChart app to check the interaction between the cancer drug 'Dabrafenib' and the co-medication 'Dexamethasone' (Corticosteroids). Create a report file at /sdcard/dabrafenib_dexamethasone_report.txt using the following format:\n\nCancer Drug: Dabrafenib\nCo-medication: Dexamethasone\nColor: [Interaction color]\nRecommendation: [Summary of recommendation]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_corticosteroid_with_dabrafenib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_corticosteroid_with_dabrafenib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Dabrafenib",
+    "co_medication": "Dexamethasone",
+    "category": "Corticosteroids",
+    "report_path": "/sdcard/dabrafenib_dexamethasone_report.txt",
+    "valid_colors": [
+      "red",
+      "orange",
+      "amber",
+      "yellow",
+      "green",
+      "grey",
+      "gray"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_check_corticosteroid_with_dabrafenib"
+    }
+  }
+}

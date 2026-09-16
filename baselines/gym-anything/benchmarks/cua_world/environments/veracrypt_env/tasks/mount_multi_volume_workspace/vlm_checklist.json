@@ -1,0 +1,65 @@
+{
+  "task_id": "mount_multi_volume_workspace@1",
+  "task_completion": [
+    {
+      "id": "volume_alpha_mounted",
+      "description": "Verify that test_volume.hc is mounted to project_alpha.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt GUI showing 'test_volume.hc' in the volume list mapped to the mount directory '/home/ga/Workspace/project_alpha', or a terminal showing a successful mount command/output for this volume."
+    },
+    {
+      "id": "volume_beta_mounted",
+      "description": "Verify that data_volume.hc is mounted to project_beta.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt GUI showing 'data_volume.hc' mapped to the mount directory '/home/ga/Workspace/project_beta', or terminal output confirming this mount."
+    },
+    {
+      "id": "volume_gamma_mounted",
+      "description": "Verify that mounted_volume.hc is mounted to project_gamma.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt GUI showing 'mounted_volume.hc' mapped to the mount directory '/home/ga/Workspace/project_gamma', or terminal output confirming this mount."
+    },
+    {
+      "id": "manifest_file_created",
+      "description": "Verify the creation of the mount_manifest.txt file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or terminal window showing a file named 'mount_manifest.txt' located in '/home/ga/Workspace/'."
+    },
+    {
+      "id": "manifest_paths_documented",
+      "description": "Verify the manifest documents the volume paths and mount points.",
+      "points": 15,
+      "visual_evidence": "Read the contents of 'mount_manifest.txt'. It must explicitly list the three volume paths (test_volume.hc, data_volume.hc, mounted_volume.hc) and their corresponding mount points (project_alpha, project_beta, project_gamma)."
+    },
+    {
+      "id": "manifest_files_documented",
+      "description": "Verify the manifest lists the correct filenames found inside each mounted volume.",
+      "points": 15,
+      "visual_evidence": "Read the contents of 'mount_manifest.txt'. It must list the specific files found in each project folder (e.g., 'incident_report_2024.txt' for alpha, 'network_topology.txt' for gamma, and the three files for beta)."
+    },
+    {
+      "id": "manifest_total_files",
+      "description": "Verify the manifest contains the correct final total files count.",
+      "points": 15,
+      "visual_evidence": "Look at the final line of 'mount_manifest.txt'. It must state exactly 'Total files: 5'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_actually_used",
+      "description": "Ensure the agent actually used VeraCrypt to mount the volumes rather than just creating empty directories.",
+      "visual_evidence": "Look for the VeraCrypt application window being open and interacted with, or 'veracrypt' commands being executed in the terminal."
+    },
+    {
+      "id": "genuine_file_discovery",
+      "description": "Ensure the agent explored the mounted directories to find the files.",
+      "visual_evidence": "Look for terminal commands like 'ls' or a file manager window opened to the project_alpha, project_beta, and project_gamma directories to read their contents."
+    },
+    {
+      "id": "manifest_not_hallucinated",
+      "description": "Ensure the agent did not hallucinate the file contents in the manifest.",
+      "visual_evidence": "The manifest must contain the exact filenames specified in the Privileged Information (e.g., 'SF312_Nondisclosure_Agreement.txt'). If it contains generic placeholder names like 'file1.txt', the agent hallucinated the contents."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected total number of files across all volumes is exactly 5. The specific contents are: 1) project_alpha (test_volume.hc) contains 'incident_report_2024.txt'. 2) project_beta (data_volume.hc) contains 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'. 3) project_gamma (mounted_volume.hc) contains 'network_topology.txt'. The manifest must be saved at '/home/ga/Workspace/mount_manifest.txt'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "soc_executive_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify that a custom dashboard has been created and saved in Splunk.",
+      "points": 20,
+      "visual_evidence": "The Splunk 'Dashboards' page showing a newly created dashboard in the list, or the active view of a newly created dashboard in the Splunk Web UI."
+    },
+    {
+      "id": "dashboard_references_security_logs",
+      "description": "Verify that the dashboard queries the 'security_logs' index.",
+      "points": 20,
+      "visual_evidence": "SPL queries visible in the dashboard's panel edit mode, inline search bar, or source XML showing 'index=security_logs'."
+    },
+    {
+      "id": "dashboard_has_3plus_panels",
+      "description": "Verify that the dashboard contains at least 3 distinct visualization panels.",
+      "points": 20,
+      "visual_evidence": "The dashboard view displaying 3 or more separate panels (which should correspond to failed login trends, top attacking source IPs, and most targeted user accounts)."
+    },
+    {
+      "id": "scheduled_threshold_alert_created",
+      "description": "Verify that a scheduled alert has been created for high-volume attacks.",
+      "points": 20,
+      "visual_evidence": "The Splunk 'Alerts' page showing a newly created alert, or the 'Save As Alert' dialog with the 'Schedule' option selected (e.g., Run on Cron Schedule or Run every X minutes)."
+    },
+    {
+      "id": "alert_has_threshold_condition",
+      "description": "Verify that the alert is configured with a threshold-based trigger condition.",
+      "points": 20,
+      "visual_evidence": "Alert configuration settings showing a trigger condition based on volume, such as 'Trigger alert when' set to 'Number of Results' 'is greater than' a specific numeric value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_gui",
+      "description": "Verify the agent interacted with the Splunk Web UI rather than just writing configuration files in a terminal.",
+      "visual_evidence": "A web browser open to http://localhost:8000 displaying the genuine Splunk interface."
+    },
+    {
+      "id": "genuine_dashboard_panels",
+      "description": "Verify the dashboard panels are genuine Splunk visualizations and not mocked up text.",
+      "visual_evidence": "Standard Splunk UI elements for panels (e.g., charts, tables, or single value displays) with Splunk's native formatting and editing controls."
+    },
+    {
+      "id": "genuine_alert_creation",
+      "description": "Verify the alert was created using the actual Splunk interface.",
+      "visual_evidence": "The native Splunk 'Save As Alert' modal or the Splunk Alert settings page, rather than a text editor modifying conf files."
+    }
+  ],
+  "privileged_info_for_vlm": "The target index for all dashboard queries must be exactly 'security_logs'. The dashboard must contain a minimum of 3 panels. The alert must be a scheduled alert (not real-time) and must explicitly include a numeric threshold condition (e.g., trigger if number of events > X)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "portable_case_generation@1",
+  "task_completion": [
+    {
+      "id": "case_created",
+      "description": "Verify that a new case named 'Evidence_Handover_2024' was created in Autopsy.",
+      "points": 10,
+      "visual_evidence": "The Autopsy main window should be open with 'Evidence_Handover_2024' visible in the title bar, case dashboard, or the root of the tree view on the left."
+    },
+    {
+      "id": "data_source_added",
+      "description": "Verify that the disk image 'jpeg_search.dd' was added as a data source to the case.",
+      "points": 10,
+      "visual_evidence": "In the Autopsy left-hand tree view, under 'Data Sources', there should be an entry for 'jpeg_search.dd'."
+    },
+    {
+      "id": "files_tagged",
+      "description": "Verify that at least 10 JPEG images were tagged with the custom tag 'Investigator_Review'.",
+      "points": 30,
+      "visual_evidence": "In the Autopsy tree view under 'Tags', there should be a tag named 'Investigator_Review'. The number next to it should be 10 or greater (e.g., 'Investigator_Review (10)'). Alternatively, the result viewer table should show at least 10 JPEG files with this tag applied."
+    },
+    {
+      "id": "portable_case_generated",
+      "description": "Verify that an Autopsy Portable Case was generated.",
+      "points": 30,
+      "visual_evidence": "A 'Generate Portable Case' dialog showing successful completion, or a file explorer/terminal window showing the newly created portable case directory (typically inside the case's 'Export' folder)."
+    },
+    {
+      "id": "handover_memo_created",
+      "description": "Verify the creation of the handover memo with the required information.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/Reports/handover_memo.txt'. It must contain 'CASE_NAME: Evidence_Handover_2024', 'TAG_APPLIED: Investigator_Review', 'TAGGED_COUNT: <number >= 10>', and 'PORTABLE_CASE_DIR: <path>'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "autopsy_gui_used",
+      "description": "Verify that the agent used the Autopsy GUI to perform the forensic tasks.",
+      "visual_evidence": "Screenshots should show interaction with the Autopsy graphical user interface (menus, tree view, tagging dialogs, portable case wizard) rather than just terminal commands attempting to mock sqlite databases."
+    },
+    {
+      "id": "actual_jpegs_tagged",
+      "description": "Verify that the files tagged are actually JPEG images.",
+      "visual_evidence": "In the Autopsy result viewer, the files associated with the 'Investigator_Review' tag should have .jpg or .jpeg extensions, or display image thumbnails."
+    },
+    {
+      "id": "memo_matches_reality",
+      "description": "Verify that the handover memo reflects genuine task outputs.",
+      "visual_evidence": "The TAGGED_COUNT in the memo should match the number of files actually tagged in the Autopsy screenshots, and the PORTABLE_CASE_DIR should be a realistic absolute path (e.g., /home/ga/Cases/Evidence_Handover_2024/Export/...) rather than a placeholder."
+    }
+  ],
+  "privileged_info_for_vlm": "Case Name: Evidence_Handover_2024. Case Number: INV-PC-001. Disk Image: /home/ga/evidence/jpeg_search.dd. Target Tag: Investigator_Review. Minimum Tagged Items: 10. Handover Memo Path: /home/ga/Reports/handover_memo.txt. The memo must contain exactly: 'CASE_NAME: Evidence_Handover_2024', 'TAG_APPLIED: Investigator_Review', 'TAGGED_COUNT: <number >= 10>', and 'PORTABLE_CASE_DIR: <valid absolute path>'."
+}

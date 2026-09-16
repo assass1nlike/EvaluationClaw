@@ -1,0 +1,53 @@
+{
+  "task_id": "export_registry_backup@1",
+  "task_completion": [
+    {
+      "id": "terminal_active",
+      "description": "Open a terminal window to execute commands.",
+      "points": 10,
+      "visual_evidence": "A terminal emulator window is open and visible on the screen."
+    },
+    {
+      "id": "environment_setup",
+      "description": "Navigate to the Aerobridge directory or activate its virtual environment.",
+      "points": 10,
+      "visual_evidence": "Terminal prompt or command history shows the agent navigating to '/opt/aerobridge' (e.g., using 'cd') or activating the virtual environment at '/opt/aerobridge_venv'."
+    },
+    {
+      "id": "dumpdata_command",
+      "description": "Execute the Django dumpdata command for the registry app.",
+      "points": 30,
+      "visual_evidence": "Terminal shows a command invoking Django's dumpdata utility specifically for the 'registry' app (e.g., 'python manage.py dumpdata registry')."
+    },
+    {
+      "id": "indentation_flag",
+      "description": "Specify a 2-space indentation for the JSON output.",
+      "points": 20,
+      "visual_evidence": "The executed dumpdata command includes the '--indent 2' argument."
+    },
+    {
+      "id": "output_redirection",
+      "description": "Save the exported JSON data to the specified backup file path.",
+      "points": 30,
+      "visual_evidence": "The command redirects output to '/home/ga/Documents/registry_backup.json' (e.g., using '> /home/ga/Documents/registry_backup.json' or the '-o' flag), or a subsequent 'ls'/'cat' command confirms the file was created at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_django_command",
+      "description": "Verify the agent used the actual Django management command to generate the backup.",
+      "visual_evidence": "The screenshot should show the execution of 'manage.py dumpdata' or 'django-admin dumpdata'. The agent must not use 'echo', 'cp', or 'mv' to simply place a pre-existing or fake file at the destination."
+    },
+    {
+      "id": "no_manual_typing",
+      "description": "Verify the agent did not manually type or paste the JSON content.",
+      "visual_evidence": "The agent should not have a text editor (like nano, vim, or gedit) open where they are manually typing or pasting a fake JSON array to bypass the database export."
+    },
+    {
+      "id": "app_specific_dump",
+      "description": "Verify the agent targeted only the required app.",
+      "visual_evidence": "The dumpdata command must explicitly include 'registry'. It should not be a generic 'python manage.py dumpdata' without arguments, which would dump the entire database instead of just the registry app."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly /home/ga/Documents/registry_backup.json. The backup must specifically target the 'registry' app. The output must be pretty-printed with 2 spaces. A valid export will be a JSON array of objects and should be at least 1024 bytes in size."
+}

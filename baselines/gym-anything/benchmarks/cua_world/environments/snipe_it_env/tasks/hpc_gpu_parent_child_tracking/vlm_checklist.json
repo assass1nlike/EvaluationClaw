@@ -1,0 +1,53 @@
+{
+  "task_id": "hpc_gpu_parent_child_tracking@1",
+  "task_completion": [
+    {
+      "id": "chassis_created",
+      "description": "Verify the parent chassis 'Compute Node Alpha' exists with the correct tag, model, and status.",
+      "points": 15,
+      "visual_evidence": "Look for an asset record or list in the Snipe-IT interface showing Asset Name 'Compute Node Alpha', Asset Tag 'AI-CHASSIS-01', Model 'Dell PowerEdge XE9680', and Status 'Ready to Deploy'."
+    },
+    {
+      "id": "new_gpus_created",
+      "description": "Verify the two new GPU assets have been created.",
+      "points": 20,
+      "visual_evidence": "Look for asset records or a list showing the new GPUs with Asset Tags 'GPU-H100-101' and 'GPU-H100-102', both with the status 'Ready to Deploy'."
+    },
+    {
+      "id": "legacy_gpus_checked_in",
+      "description": "Verify the legacy GPUs were checked in from their previous assignment.",
+      "points": 15,
+      "visual_evidence": "Look for the asset history or status of 'GPU-H100-001' and 'GPU-H100-002' showing a 'Checkin' action, or verify they are no longer checked out to 'AI-CHASSIS-LEGACY'."
+    },
+    {
+      "id": "gpus_assigned_to_chassis",
+      "description": "Verify all four GPUs are checked out to the parent chassis.",
+      "points": 30,
+      "visual_evidence": "Look for the 'Assets' or 'Components' tab under the 'AI-CHASSIS-01' asset page showing all four GPUs ('GPU-H100-101', 'GPU-H100-102', 'GPU-H100-001', 'GPU-H100-002') as assigned/checked out to it, or check the individual GPU pages showing their target as 'AI-CHASSIS-01'."
+    },
+    {
+      "id": "chassis_deployed_to_location",
+      "description": "Verify the parent chassis is deployed to the correct location.",
+      "points": 20,
+      "visual_evidence": "Look for the 'AI-CHASSIS-01' asset page or asset list showing its Location or 'Checked Out To' status as 'Data Center - Rack 42'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the Snipe-IT web interface to complete the task.",
+      "visual_evidence": "Look for screenshots showing the Snipe-IT web application in a browser, rather than terminal windows executing curl commands or API scripts."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Ensure the agent actually filled out the forms in Snipe-IT.",
+      "visual_evidence": "Look for intermediate screenshots showing the agent typing into form fields (e.g., Asset Tag, Asset Name, Checkout target) rather than just a final screen that might have been manipulated via browser developer tools."
+    },
+    {
+      "id": "no_direct_database_manipulation",
+      "description": "Verify there is no direct database manipulation.",
+      "visual_evidence": "Ensure there are no terminal windows open showing MySQL/SQLite prompts or database update commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Target Chassis Tag: 'AI-CHASSIS-01'. Expected New GPU Tags: 'GPU-H100-101' and 'GPU-H100-102'. Expected Legacy GPU Tags: 'GPU-H100-001' and 'GPU-H100-002'. Expected Target Location: 'Data Center - Rack 42'."
+}

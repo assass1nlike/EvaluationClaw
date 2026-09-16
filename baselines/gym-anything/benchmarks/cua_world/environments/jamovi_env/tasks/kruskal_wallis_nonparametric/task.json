@@ -1,0 +1,35 @@
+{
+  "id": "kruskal_wallis_nonparametric@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform a non-parametric Kruskal-Wallis One-Way ANOVA on the Insect Sprays dataset (/home/ga/Documents/Jamovi/InsectSprays.csv). Use 'count' as the Continuous Dependent Variable and 'spray' as the Nominal Grouping Variable. The analysis must include DSCF pairwise comparisons and epsilon-squared effect size. Save the Jamovi project to /home/ga/Documents/Jamovi/InsectSprays_KruskalWallis.omv and create a text report at /home/ga/Documents/Jamovi/kruskal_wallis_report.txt documenting the Chi-squared value, p-value, epsilon-squared effect size, and an identification of the most effective sprays based on the lowest counts.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/kruskal_wallis_nonparametric/setup_task.sh",
+    "post_task": "/workspace/tasks/kruskal_wallis_nonparametric/export_result.sh"
+  },
+  "metadata": {
+    "data_path": "/home/ga/Documents/Jamovi/InsectSprays.csv",
+    "expected_omv": "/home/ga/Documents/Jamovi/InsectSprays_KruskalWallis.omv",
+    "expected_report": "/home/ga/Documents/Jamovi/kruskal_wallis_report.txt",
+    "expected_stats": {
+      "chi_squared": 54.69,
+      "chi_squared_tolerance": 2.0,
+      "df": 5,
+      "p_value_max": 0.001,
+      "epsilon_squared": 0.77,
+      "epsilon_squared_tolerance": 0.1
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_kruskal_wallis"
+    }
+  }
+}

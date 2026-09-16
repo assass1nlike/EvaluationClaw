@@ -1,0 +1,28 @@
+{
+  "id": "restore_patient@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "A patient record for 'Deleted Patient' (Identifier: BAH999999) was accidentally voided and needs to be recovered. Log in to the OpenMRS Administration interface (https://localhost/openmrs/admin) using username 'superman' and password 'Admin123'. Locate the voided record and restore it to active status.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/restore_patient/setup_task.sh",
+    "post_task": "/workspace/tasks/restore_patient/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_identifier": "BAH999999",
+    "target_name": "Deleted Patient",
+    "admin_url": "https://localhost/openmrs/admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restore_patient"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "setup_variable_product_with_inventory@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are a product catalog manager for an online retail store. Create and publish a new variable product named 'Premium Merino Wool Scarf' with SKU 'PMWS-001' in the 'Clothing' category. Configure the product with 'Color' (Burgundy, Charcoal, Navy) and 'Size' (Standard, Oversized) attributes to generate six variations. Set the price for all Standard variations to $45.99 and Oversized variations to $55.99. Enable stock management for all variations with these specific quantities: Burgundy/Standard: 25, Burgundy/Oversized: 15, Charcoal/Standard: 30, Charcoal/Oversized: 20, Navy/Standard: 35, and Navy/Oversized: 10. Add 'Merino Wool Sweater' as a cross-sell for this product.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_variable_product_with_inventory/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_variable_product_with_inventory/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Premium Merino Wool Scarf",
+    "expected_sku": "PMWS-001",
+    "expected_type": "variable",
+    "expected_category": "Clothing",
+    "attributes": {
+      "Color": [
+        "Burgundy",
+        "Charcoal",
+        "Navy"
+      ],
+      "Size": [
+        "Standard",
+        "Oversized"
+      ]
+    },
+    "expected_variations": 6,
+    "price_by_size": {
+      "Standard": "45.99",
+      "Oversized": "55.99"
+    },
+    "stock_by_combination": {
+      "Burgundy-Standard": 25,
+      "Burgundy-Oversized": 15,
+      "Charcoal-Standard": 30,
+      "Charcoal-Oversized": 20,
+      "Navy-Standard": 35,
+      "Navy-Oversized": 10
+    },
+    "cross_sell_product_sku": "MWS-GRY-L",
+    "cross_sell_product_name": "Merino Wool Sweater"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_variable_product_with_inventory"
+    }
+  }
+}

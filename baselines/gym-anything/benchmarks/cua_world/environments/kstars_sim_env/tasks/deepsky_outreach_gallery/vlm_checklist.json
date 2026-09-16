@@ -1,0 +1,53 @@
+{
+  "task_id": "deepsky_outreach_gallery@1",
+  "task_completion": [
+    {
+      "id": "kstars_indi_capture",
+      "description": "Agent uses KStars/INDI to capture LIGHT frames for the targets.",
+      "points": 20,
+      "visual_evidence": "Look for the KStars application and Ekos capture module open, showing a capture sequence queue, telescope control, or FITS viewer for the specified Messier objects."
+    },
+    {
+      "id": "sky_view_script_execution",
+      "description": "Agent executes the sky view capture script with the correct palettes.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window showing the execution of 'bash ~/capture_sky_view.sh' with the correct output paths (e.g., /home/ga/Outreach/M42/sky_view.png) and the specified '--palette' arguments (hubble, enhanced, narrowband, vibrant, cool)."
+    },
+    {
+      "id": "directory_structure_created",
+      "description": "Agent organizes the captured files into the correct target directories.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager or terminal 'ls' output showing the directories M42, M31, M1, M57, and M51 inside '/home/ga/Outreach/'. These directories should contain .fits files and a sky_view.png file."
+    },
+    {
+      "id": "html_gallery_created",
+      "description": "Agent creates the HTML gallery file with the correct title.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or web browser showing the file '/home/ga/Outreach/gallery.html'. The HTML code or the rendered page must include the title 'Jewels of the Night Sky'."
+    },
+    {
+      "id": "html_gallery_content",
+      "description": "Agent populates the HTML gallery with the required object details and images.",
+      "points": 25,
+      "visual_evidence": "Look for the HTML source code or rendered web page displaying the 5 Messier designations (M42, M31, M1, M57, M51), their corresponding common names (Orion Nebula, Andromeda Galaxy, etc.), and image elements (<img> tags) referencing the 'sky_view.png' files for each object."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "kstars_actual_usage",
+      "description": "Verify the agent actually used the KStars/Ekos GUI to capture the FITS images.",
+      "visual_evidence": "Check that the KStars GUI is visible in screenshots and used to interact with the simulated CCD/telescope, rather than the agent using 'touch' or other terminal commands to create fake .fits files."
+    },
+    {
+      "id": "script_actual_execution",
+      "description": "Verify the agent ran the provided bash script to generate the PNGs.",
+      "visual_evidence": "Check the terminal history for the actual execution of 'capture_sky_view.sh', ensuring the agent didn't manually download images from a web browser to bypass the script."
+    },
+    {
+      "id": "genuine_html_editing",
+      "description": "Verify the agent manually constructed the HTML gallery.",
+      "visual_evidence": "Look for a text editor (like nano, vim, gedit) or terminal echo/cat commands being used to write the HTML code, showing genuine interaction to build the gallery."
+    }
+  ],
+  "privileged_info_for_vlm": "Targets: M42, M31, M1, M57, M51. Required FITS per target: 3 (min size 1024 bytes). PNG min size: 50000 bytes. Gallery path: /home/ga/Outreach/gallery.html. The sky_view.png files must be generated using the capture_sky_view.sh script with specific palettes (M42: hubble, M31: enhanced, M1: narrowband, M57: vibrant, M51: cool)."
+}

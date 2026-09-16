@@ -1,0 +1,53 @@
+{
+  "task_id": "top_floor_thermal_mass_update@1",
+  "task_completion": [
+    {
+      "id": "locate_top_floor_spaces",
+      "description": "Navigate to the space properties for the Top Floor spaces in eQUEST.",
+      "points": 10,
+      "visual_evidence": "The eQUEST interface shows the building tree or spreadsheet view with spaces starting with 'T.' (e.g., T. South, T. East, T. North, T. West, T. Core) selected or visible."
+    },
+    {
+      "id": "modify_floor_weight_parameter",
+      "description": "Locate and edit the 'FLOOR-WEIGHT' parameter for a Top Floor space.",
+      "points": 30,
+      "visual_evidence": "The 'FLOOR-WEIGHT' parameter field or spreadsheet cell is visible in the eQUEST interface and is being changed to 120."
+    },
+    {
+      "id": "verify_all_top_spaces_updated",
+      "description": "Ensure the 'FLOOR-WEIGHT' parameter is updated to 120 for all 5 Top Floor spaces.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet view, component tree, or multiple screenshots showing the 'FLOOR-WEIGHT' value set to 120 (or within 115-125) for all 5 spaces starting with 'T.'."
+    },
+    {
+      "id": "run_doe2_simulation",
+      "description": "Run the full annual DOE-2.2 simulation.",
+      "points": 20,
+      "visual_evidence": "The eQUEST simulation dialog box is open, showing a running progress bar or a 'Simulation Complete' message indicating the DOE-2.2 simulation was executed."
+    },
+    {
+      "id": "save_equest_project",
+      "description": "Save the eQUEST project.",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Save' icon (floppy disk) in the toolbar, uses File > Save in the menu, or a 'Project Saved' confirmation is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_equest_gui",
+      "description": "The agent used the eQUEST GUI to make changes instead of editing text files.",
+      "visual_evidence": "All parameter modifications occur within eQUEST's dialog boxes or spreadsheet views, not in Notepad, VSCode, or another text editor modifying the .inp file directly."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "The simulation was actually run through the eQUEST interface.",
+      "visual_evidence": "The simulation progress or completion dialog is the native eQUEST window, not a terminal script or mocked output."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent did not use terminal commands to bypass GUI interaction.",
+      "visual_evidence": "There are no terminal windows open where the agent is using commands like 'sed' or Python scripts to mass-replace 'FLOOR-WEIGHT' values."
+    }
+  ],
+  "privileged_info_for_vlm": "Target building model is '4StoreyBuilding'. The target spaces to update start with the prefix 'T.' (exactly 5 spaces: South, East, North, West, Core). The target parameter to update is 'FLOOR-WEIGHT'. The target value is 120 (acceptable tolerance is +/- 5, i.e., 115-125)."
+}

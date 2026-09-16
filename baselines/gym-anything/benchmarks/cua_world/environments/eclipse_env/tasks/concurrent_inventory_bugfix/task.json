@@ -1,0 +1,29 @@
+{
+  "id": "concurrent_inventory_bugfix@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You are a backend engineer at a high-traffic e-commerce platform. The inventory-service project at /home/ga/inventory-service is experiencing data corruption under concurrent load during peak sales events, resulting in negative stock levels, double-booked reservations, and incorrect counters. Identify and resolve all thread-safety violations in the StockCounter, ProductCatalog, InventoryManager, and ReservationService components using appropriate java.util.concurrent primitives. Verify the fixes with JUnit 5 tests using concurrent threads and ensure 'mvn clean test' passes.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 2700,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/concurrent_inventory_bugfix/setup_task.sh",
+    "post_task": "/workspace/tasks/concurrent_inventory_bugfix/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "inventory-service",
+    "workspace_path": "/home/ga/inventory-service",
+    "bug_1": "StockCounter — plain int fields need AtomicInteger",
+    "bug_2": "ProductCatalog — HashMap needs ConcurrentHashMap",
+    "bug_3": "InventoryManager — HashMap + non-atomic check-then-act in removeStock()",
+    "bug_4": "ReservationService — unsynchronized compound operations on two maps"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_concurrent_inventory_bugfix"
+    }
+  }
+}

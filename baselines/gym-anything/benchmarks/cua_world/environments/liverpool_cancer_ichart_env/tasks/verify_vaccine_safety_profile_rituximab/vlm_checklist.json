@@ -1,0 +1,48 @@
+{
+  "task_id": "verify_vaccine_safety_profile_rituximab@1",
+  "task_completion": [
+    {
+      "id": "select_rituximab",
+      "description": "Agent selects Rituximab in the Liverpool Cancer iChart app.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the Liverpool Cancer iChart app with 'Rituximab' selected or searched in the cancer drugs section."
+    },
+    {
+      "id": "select_vaccines",
+      "description": "Agent navigates to the Vaccines category.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the co-medications section with the 'Vaccines' category selected or specific vaccines being searched."
+    },
+    {
+      "id": "view_live_vaccine_interaction",
+      "description": "Agent checks the interaction for a Live Vaccine.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the interaction result between Rituximab and a live vaccine (e.g., Yellow Fever, MMR), which should display a RED indicator."
+    },
+    {
+      "id": "view_inactivated_vaccine_interaction",
+      "description": "Agent checks the interaction for an Inactivated Vaccine.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the interaction result between Rituximab and an inactivated vaccine (e.g., Influenza, Pneumococcal), which should display a YELLOW, AMBER, or ORANGE indicator."
+    },
+    {
+      "id": "report_file_content",
+      "description": "Agent creates the report file with the correct interaction colors and safety assessment.",
+      "points": 40,
+      "visual_evidence": "Screenshot of a terminal or text editor showing the creation or content of '/sdcard/rituximab_vaccine_report.txt'. The content must include 'Live Vaccine: RED', 'Inactivated Vaccine: YELLOW' (or AMBER/ORANGE), and 'Safe to give live vaccines: NO'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ichart_app",
+      "description": "The agent used the actual Liverpool Cancer iChart app to find the interaction information.",
+      "visual_evidence": "Screenshots must show the agent navigating the Liverpool Cancer iChart app interface, rather than using a web browser or guessing."
+    },
+    {
+      "id": "actual_file_created",
+      "description": "The agent created the report file in the Android environment.",
+      "visual_evidence": "Screenshots must show a terminal command (like echo or cat) or a text editor saving the file to '/sdcard/rituximab_vaccine_report.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "1. Live vaccines (e.g., Yellow Fever, MMR) are contraindicated with Rituximab and show as RED in the app. 2. Inactivated vaccines (e.g., Influenza, Pneumococcal) are safe but have reduced efficacy, showing as YELLOW or AMBER/ORANGE. 3. The final report must correctly identify these colors and state that it is NOT safe to give live vaccines (Safe to give live vaccines: NO)."
+}

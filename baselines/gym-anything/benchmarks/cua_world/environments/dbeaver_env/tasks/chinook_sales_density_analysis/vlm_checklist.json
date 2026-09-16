@@ -1,0 +1,59 @@
+{
+  "task_id": "chinook_sales_density_analysis@1",
+  "task_completion": [
+    {
+      "id": "db_connection_established",
+      "description": "Connect to the Chinook SQLite database.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, DB Browser for SQLite, or terminal) is open and shows a connection to '/home/ga/Documents/databases/chinook.db'."
+    },
+    {
+      "id": "dim_date_table_created",
+      "description": "Create the dim_date table with the required columns.",
+      "points": 20,
+      "visual_evidence": "A SQL script or table schema view showing 'CREATE TABLE dim_date' with columns: DateValue, Year, Month, MonthName, DayOfWeek, and IsWeekend."
+    },
+    {
+      "id": "dim_date_populated",
+      "description": "Populate the dim_date table with a continuous daily sequence from 2009-01-01 to 2013-12-31.",
+      "points": 15,
+      "visual_evidence": "SQL execution logs, recursive CTE queries, or result grids showing the date range 2009-01-01 to 2013-12-31, or a row count indicating 1826 rows were inserted/selected."
+    },
+    {
+      "id": "v_monthly_density_created",
+      "description": "Create the v_monthly_density view joining dim_date and invoices.",
+      "points": 25,
+      "visual_evidence": "A SQL script showing 'CREATE VIEW v_monthly_density' that joins dim_date with the invoices table, groups by Year-Month, and includes columns: MonthKey, TotalDays, ZeroSalesDays, and TotalRevenue."
+    },
+    {
+      "id": "view_results_verified",
+      "description": "Execute the view to verify the aggregated monthly sales density data.",
+      "points": 15,
+      "visual_evidence": "A data grid or query result showing the output of v_monthly_density, with MonthKey values (e.g., '2009-01') and corresponding TotalDays, ZeroSalesDays, and TotalRevenue."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the results of the view to sales_density.csv.",
+      "points": 15,
+      "visual_evidence": "An export dialog, success message, or file manager window showing 'sales_density.csv' being saved to or existing in '/home/ga/Documents/exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "The agent actually executed the SQL commands in a database client or terminal.",
+      "visual_evidence": "Look for execution times, success messages, or populated result grids in the database tool, rather than just SQL text typed into a plain text editor without execution."
+    },
+    {
+      "id": "authentic_export_process",
+      "description": "The CSV file was generated through a genuine database export process.",
+      "visual_evidence": "Look for the use of a database tool's export wizard or a valid SQL/CLI export command, rather than the agent manually typing or copy-pasting data into a text file named .csv."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent dynamically calculated the date dimension and zero sales days rather than hardcoding the expected results.",
+      "visual_evidence": "The SQL queries should contain logic (like recursive CTEs for dates, and COUNT/SUM for aggregations) rather than INSERT statements with hardcoded final values."
+    }
+  ],
+  "privileged_info_for_vlm": "The dim_date table must contain exactly 1,826 rows spanning 2009-01-01 to 2013-12-31. When querying the final v_monthly_density view, the first month (2009-01) should display 31 TotalDays and exactly 25 ZeroSalesDays. The database is located at /home/ga/Documents/databases/chinook.db."
+}

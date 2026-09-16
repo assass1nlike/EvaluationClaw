@@ -1,0 +1,53 @@
+{
+  "task_id": "cross_case_event_timeline_database@1",
+  "task_completion": [
+    {
+      "id": "load_vital_files",
+      "description": "Open Vital Recorder and load the .vital case files",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the Vital Recorder application open with at least one of the target files (0001.vital, 0002.vital, or 0003.vital) loaded into the interface."
+    },
+    {
+      "id": "access_event_markers",
+      "description": "Locate and view the event markers for the loaded cases",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the event list, timeline, or event markers (e.g., 'Case started', 'Surgery started', 'Surgery finished', 'Case finished') visible within the Vital Recorder application."
+    },
+    {
+      "id": "export_csv_data",
+      "description": "Export the vital signs data to the required CSV files",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the export dialog in Vital Recorder saving files as 'case_0001_events.csv', 'case_0002_events.csv', and 'case_0003_events.csv', or these three CSV files visible on the Desktop."
+    },
+    {
+      "id": "create_timeline_db",
+      "description": "Create the event timeline database text file",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a text editor (like Notepad) open with a new file, or a file named 'event_timeline_db.txt' visible on the Desktop."
+    },
+    {
+      "id": "format_timeline_db",
+      "description": "Structure the database with the correct columns, events, and phases",
+      "points": 30,
+      "visual_evidence": "Screenshots of the open 'event_timeline_db.txt' file showing tabular data with columns for Case_ID, Event_Name, Time_from_Start_min, and Phase (pre-operative, intraoperative, post-operative), populated with the extracted events."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_vital_recorder_gui",
+      "description": "Verify the agent used the Vital Recorder GUI to extract data",
+      "visual_evidence": "Screenshots should show active interaction with the Vital Recorder application windows, menus, and export dialogs, rather than bypassing the UI using terminal scripts to parse the binary files."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify the CSV files were genuinely exported from the application",
+      "visual_evidence": "Screenshots should show the application's export progress or save dialogs, ensuring the CSVs were not just created as empty dummy files via terminal commands (e.g., 'touch case_0001_events.csv')."
+    },
+    {
+      "id": "genuine_database_content",
+      "description": "Verify the database was manually constructed or genuinely populated",
+      "visual_evidence": "Screenshots should show the agent typing, pasting, or formatting the extracted data into the text editor, rather than using a single terminal command to echo a hardcoded string of the expected final answer."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires extracting exactly 12 events across the three cases (4 standard events per case: 'Case started', 'Surgery started', 'Surgery finished', and 'Case finished'). The expected outputs are three CSV files ('case_0001_events.csv', 'case_0002_events.csv', 'case_0003_events.csv') on the Desktop containing exported vital signs data, and one text file ('event_timeline_db.txt') on the Desktop. The text database must be tabular and contain four specific columns: Case_ID, Event_Name, Time_from_Start_min, and Phase (which must classify the event as pre-operative, intraoperative, or post-operative)."
+}

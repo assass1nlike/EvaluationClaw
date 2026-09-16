@@ -1,0 +1,53 @@
+{
+  "task_id": "color_coded_annotation_export@1",
+  "task_completion": [
+    {
+      "id": "dicom_image_displayed",
+      "description": "The DICOM image is opened and displayed in a viewer application.",
+      "points": 10,
+      "visual_evidence": "A medical image viewer or image editor is open, displaying a grayscale image with a bright spot in the lower right center."
+    },
+    {
+      "id": "lesion_encircled",
+      "description": "The bright lesion in the lower right center is encircled.",
+      "points": 20,
+      "visual_evidence": "A drawn circle or ellipse surrounds the bright, distinct lesion in the lower right center of the image."
+    },
+    {
+      "id": "urgent_label_added",
+      "description": "A label reading 'URGENT' is added to the image.",
+      "points": 20,
+      "visual_evidence": "The text 'URGENT' is visible on the image, typically near the encircled lesion."
+    },
+    {
+      "id": "annotations_are_red",
+      "description": "Both the encircling annotation and the text label are colored red.",
+      "points": 20,
+      "visual_evidence": "The drawn shape and the text 'URGENT' are distinctly red against the grayscale image background."
+    },
+    {
+      "id": "export_dialog_path",
+      "description": "The annotated image is exported as a JPEG to the specified path.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' or 'Export' dialog shows the file being saved as 'urgent_finding.jpg' in the directory '/home/ga/DICOM/exports' or '~/DICOM/exports', or a terminal/file manager confirms the file exists at this path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_annotation_tool_used",
+      "description": "The agent used a graphical application to view and annotate the image.",
+      "visual_evidence": "Screenshots show the agent interacting with the UI of an image viewer or editor (e.g., selecting drawing tools, color palettes)."
+    },
+    {
+      "id": "actual_export_performed",
+      "description": "The agent used the application's export or save feature rather than a terminal command to generate the final image.",
+      "visual_evidence": "The presence of a save/export dialog from the GUI application, rather than terminal commands like 'convert' or Python scripts."
+    },
+    {
+      "id": "no_fake_image_generation",
+      "description": "The agent did not generate a synthetic image from scratch using a script.",
+      "visual_evidence": "The underlying image being annotated is the actual DICOM image provided, viewed in a standard application, rather than a script being written to generate an image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is /home/ga/DICOM/exports/urgent_finding.jpg. The text label must exactly read 'URGENT'. Both the text and the encircling annotation must be RED. The output file must be a valid image (size > 5000 bytes)."
+}

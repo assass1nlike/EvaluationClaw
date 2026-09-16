@@ -1,0 +1,59 @@
+{
+  "task_id": "audit_va_drug_classifications@1",
+  "task_completion": [
+    {
+      "id": "ydbgui_running",
+      "description": "Verify the YDBGui web interface is open and running.",
+      "points": 10,
+      "visual_evidence": "A web browser window is open displaying the YDBGui interface."
+    },
+    {
+      "id": "global_navigated",
+      "description": "Verify the agent navigated to the VA Drug Class global ^PS(50.605).",
+      "points": 30,
+      "visual_evidence": "The YDBGui interface shows the global ^PS(50.605) or 'VA DRUG CLASS' data being viewed or queried."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify the text file report is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal shows a file named 'drug_class_audit.txt' being edited or saved in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "data_count",
+      "description": "Verify the report contains at least 5 distinct drug classifications.",
+      "points": 20,
+      "visual_evidence": "The text file contains 5 or more distinct lines/entries representing different drug classifications."
+    },
+    {
+      "id": "target_category_found",
+      "description": "Verify the report includes at least one target category (CN or CV).",
+      "points": 20,
+      "visual_evidence": "At least one entry in the text file has a code that starts with 'CN' (Central Nervous System) or 'CV' (Cardiovascular)."
+    },
+    {
+      "id": "data_validity",
+      "description": "Verify the entries follow the required formatting.",
+      "points": 10,
+      "visual_evidence": "The entries in the text file strictly follow the format 'Code: [CODE] - Description: [DESCRIPTION]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the YDBGui web interface to find the data.",
+      "visual_evidence": "Screenshots should show the agent actively browsing or querying the database within the YDBGui web interface, rather than extracting data purely via terminal MUMPS commands."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "Verify the data in the report comes from the database and is not hallucinated.",
+      "visual_evidence": "The drug codes and descriptions in the text file should match the data visible in the YDBGui screenshots."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the agent actually created and saved the file.",
+      "visual_evidence": "The agent uses a text editor (like nano, gedit, or vim) or standard file redirection to create the file, rather than just printing the expected output to the terminal screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The target VistA global is ^PS(50.605), which corresponds to the 'VA DRUG CLASS' FileMan file. The agent must use the YDBGui web interface to view this global. The output must be saved to '/home/ga/Documents/drug_class_audit.txt' and contain at least 5 entries. At least one entry must have a code starting with 'CN' or 'CV'. The required format for each entry is exactly 'Code: [CODE] - Description: [DESCRIPTION]'."
+}

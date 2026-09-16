@@ -1,0 +1,32 @@
+{
+  "id": "deployment_health_audit@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Perform a comprehensive health audit of the Jitsi Meet Docker deployment. Audit the container status, the accessibility of the Web UI at http://localhost:8080, the status of the JVB, Prosody, and Jicofo services, the Docker network configuration, and the meeting functionality of the room 'http://localhost:8080/health-check-test'. Produce a report at ~/jitsi_audit_report.txt with the following EXACT sections:\n\n=== JITSI MEET DEPLOYMENT AUDIT REPORT ===\n\n--- CONTAINER STATUS ---\n[List: container name, image, status, uptime]\n\n--- SERVICE CONNECTIVITY ---\nWeb UI: [accessible/not accessible]\nJVB: [running/not running]\nProsody: [running/not running]\nJicofo: [running/not running]\n\n--- NETWORK CONFIGURATION ---\n[Network name and subnet]\n\n--- MEETING FUNCTIONALITY ---\nTest room \"health-check-test\": [functional/not functional]\n\n--- SUMMARY ---\nTotal containers: [number]\nHealthy services: [number]/4\nDeployment status: [HEALTHY/DEGRADED/FAILED]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deployment_health_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/deployment_health_audit/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/jitsi_audit_report.txt",
+    "required_sections": [
+      "CONTAINER STATUS",
+      "SERVICE CONNECTIVITY",
+      "NETWORK CONFIGURATION",
+      "MEETING FUNCTIONALITY",
+      "SUMMARY"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deployment_health_audit"
+    }
+  }
+}

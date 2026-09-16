@@ -1,0 +1,29 @@
+{
+  "id": "return_medication@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Process a medication return for patient Marcus Williams (P01087) who was discharged early. Create and save a return record for 12 unused capsules of 'Amoxicillin 500mg Capsule' (from an original prescription of 21) with the reason: 'Patient discharged early - medication no longer needed'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/return_medication/setup_task.sh",
+    "post_task": "/workspace/tasks/return_medication/export_result.sh"
+  },
+  "metadata": {
+    "patient_name": "Marcus Williams",
+    "patient_id": "P01087",
+    "medication_name": "Amoxicillin 500mg Capsule",
+    "return_quantity": 12,
+    "return_reason": "Patient discharged early - medication no longer needed"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_return_medication"
+    }
+  }
+}

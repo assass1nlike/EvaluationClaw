@@ -1,0 +1,78 @@
+{
+  "dataset_id": "128a3e06",
+  "name": "Damaged Egg Recognition",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 164,
+  "description": "The Damaged Egg Recognition dataset contains 164 image-text samples where the model must determine whether eggs shown in an image are damaged. Each sample pairs a photograph of eggs with a short instruction prompt and a binary text label.",
+  "card_text": "This dataset is designed for visual inspection of egg quality. It consists of image-text pairs: each item includes a photograph of one or more eggs (image_file), a natural-language prompt asking the model to recognize if the eggs are damaged, and a ground-truth prediction label indicating 'Damaged' or 'Not Damaged'. The images are close-up product-style photos of eggs, often showing cracked or intact shells. The prompt is a fixed instruction, so the task is a binary visual classification problem. The dataset is small (164 samples) and assumes the model can interpret visual damage cues. No bounding boxes, masks, or rationales are provided; only the final binary decision is annotated. It evaluates object recognition and fine-grained damage detection in an everyday food context.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "food quality inspection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Points to a photograph of eggs that may or may not be damaged. The image is the primary visual input used to judge the condition of the eggshells.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction asking the model to recognize whether the eggs in the image are damaged. It specifies the binary decision task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.prediction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth binary label for the egg condition, either 'Damaged' or 'Not Damaged'. It is the target output the model should predict.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three components: an image reference pointing to a photo of eggs, a short text prompt that asks whether the eggs are damaged, and a short text prediction label that gives the binary answer ('Damaged' or 'Not Damaged'). The image is the visual context, the prompt is the instruction, and the prediction is the classification target. No other structural elements such as bounding boxes, masks, or rationales are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/damaged_egg_recognition/json/annotation.json",
+    "existing_tags": {
+      "task": "Damaged Egg Recognition",
+      "type": "comprehension",
+      "skill": "Object Recognition(Object Recog)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_stl_reverse_engineering@1",
+  "task_completion": [
+    {
+      "id": "import_stl",
+      "description": "Import the scanned UAV wing STL file into OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The OpenVSP workspace or Geometry Browser shows an imported mesh (typically named 'MeshGeom' or similar), and the 3D viewport displays the scanned wing mesh."
+    },
+    {
+      "id": "add_wing_component",
+      "description": "Add a new standard Wing component to the model.",
+      "points": 10,
+      "visual_evidence": "The Geometry Browser lists a new 'WingGeom' component alongside the imported mesh, and a default wing appears in the 3D viewport."
+    },
+    {
+      "id": "match_span_and_chord",
+      "description": "Adjust the Wing component's Span, Root Chord, and Tip Chord to match the imported mesh.",
+      "points": 20,
+      "visual_evidence": "The WingGeom parameter window (Plan tab) shows Span ~10.0, Root Chord ~2.0, and Tip Chord ~1.0, OR the 3D viewport shows the new wing's width and chord lengths closely matching the underlying mesh."
+    },
+    {
+      "id": "match_sweep_and_dihedral",
+      "description": "Adjust the Wing component's Sweep and Dihedral to match the imported mesh.",
+      "points": 20,
+      "visual_evidence": "The WingGeom parameter window shows Sweep ~5.0 degrees and Dihedral ~3.0 degrees, OR the 3D viewport shows the new wing angled backward and upward to perfectly align with the mesh."
+    },
+    {
+      "id": "verify_visual_alignment",
+      "description": "Ensure the 3D outline of the new Wing component closely overlaps and aligns with the imported STL mesh.",
+      "points": 20,
+      "visual_evidence": "In the 3D viewport, the parametric WingGeom and the imported MeshGeom are visually superimposed, showing a tight geometric match in shape, size, and orientation."
+    },
+    {
+      "id": "save_reconstructed_model",
+      "description": "Save the reconstructed model to the specified path.",
+      "points": 20,
+      "visual_evidence": "A save dialog or the OpenVSP main window title bar shows the file being saved as 'reconstructed_wing.vsp3' in the '/home/ga/Documents/OpenVSP/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenVSP graphical user interface to perform the reverse engineering.",
+      "visual_evidence": "Screenshots show the OpenVSP application open with the agent clicking through menus (File > Import, Geom > Wing) and adjusting sliders/values in the parameter windows."
+    },
+    {
+      "id": "both_geometries_present",
+      "description": "The final model contains both the original STL mesh and the new Wing component.",
+      "visual_evidence": "The OpenVSP Geometry Browser explicitly lists both the 'MeshGeom' (or imported STL) and the 'WingGeom' at the time of saving."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not bypass the GUI by manually writing or editing the .vsp3 XML file in a text editor.",
+      "visual_evidence": "There are no screenshots of the agent opening 'reconstructed_wing.vsp3' in nano, vim, gedit, or VSCode to manually type in the expected parameters."
+    }
+  ],
+  "privileged_info_for_vlm": "The exact target parameters for the wing are: Span = 10.0, Root Chord = 2.0, Tip Chord = 1.0, Sweep = 5.0 degrees, and Dihedral = 3.0 degrees. A 10% tolerance is acceptable for all values. The final saved file must be named 'reconstructed_wing.vsp3' and must contain both the original mesh and the newly created wing geometry."
+}

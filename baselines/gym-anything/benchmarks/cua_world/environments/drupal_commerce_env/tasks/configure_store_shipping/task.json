@@ -1,0 +1,29 @@
+{
+  "id": "configure_store_shipping@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "You are the store administrator for Urban Electronics. Configure the shipping options for the store by creating two new 'Flat rate' shipping methods. Create 'Standard Ground Shipping' with a rate of $7.99 USD and 'Express Overnight Shipping' with a rate of $19.99 USD. Both methods must be assigned to the Urban Electronics store and set to an enabled status.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_store_shipping/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_store_shipping/export_result.sh"
+  },
+  "metadata": {
+    "standard_name_pattern": "Standard Ground",
+    "standard_rate": "7.99",
+    "express_name_pattern": "Express Overnight",
+    "express_rate": "19.99",
+    "target_store_id": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_store_shipping"
+    }
+  }
+}

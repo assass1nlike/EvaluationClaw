@@ -1,0 +1,53 @@
+{
+  "task_id": "forensic_video_timeline_reconstruction@1",
+  "task_completion": [
+    {
+      "id": "review_source_materials",
+      "description": "Agent opens the incident log and the dashcam video to begin the investigation.",
+      "points": 10,
+      "visual_evidence": "A text editor open showing the contents of 'incident_log.txt' and a video player or video editor open showing 'dashcam_footage.mp4'."
+    },
+    {
+      "id": "create_evidence_directory",
+      "description": "Agent creates the required directory to store the extracted evidence.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window showing the creation or existence of the '/home/ga/Videos/evidence_clips/' directory."
+    },
+    {
+      "id": "capture_snapshots",
+      "description": "Agent captures forensic-quality snapshots for each of the 5 events.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal listing showing 5 image files (e.g., .png, .jpg) saved inside the 'evidence_clips' directory."
+    },
+    {
+      "id": "extract_video_clips",
+      "description": "Agent extracts 5-second video clips centered on each of the 5 events.",
+      "points": 30,
+      "visual_evidence": "A file manager or terminal listing showing 5 new short video files (e.g., .mp4, .mkv) saved inside the 'evidence_clips' directory."
+    },
+    {
+      "id": "save_corrected_timeline",
+      "description": "Agent creates and saves the corrected timeline JSON with accurate timestamps.",
+      "points": 30,
+      "visual_evidence": "A text editor showing the contents of 'corrected_timeline.json' containing the 5 events with the correct timestamps (15s, 42s, 78s, 121s, 156s)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "video_player_interaction",
+      "description": "Verify the agent actually reviewed the video to find the timestamps.",
+      "visual_evidence": "The agent is seen actively using a GUI video player or video editor to scrub through the timeline of 'dashcam_footage.mp4', rather than instantly knowing the timestamps or running a pre-existing oracle script."
+    },
+    {
+      "id": "genuine_extraction_process",
+      "description": "Verify the agent used legitimate tools to extract the clips and snapshots.",
+      "visual_evidence": "The agent uses a video editor GUI or types legitimate extraction commands (e.g., using ffmpeg) in the terminal, rather than just renaming or copying the original video file."
+    },
+    {
+      "id": "manual_json_creation",
+      "description": "Verify the agent manually constructed the corrected timeline.",
+      "visual_evidence": "The agent is seen editing 'corrected_timeline.json' in a text editor or IDE, actively typing or formatting the JSON structure, rather than copy-pasting the entire final output from an external or hidden source."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct ground truth event timestamps are 15s (IMPACT), 42s (SWERVE), 78s (DEBRIS), 121s (STOP), and 156s (REVERSE). The VLM should verify that these exact timestamps are present in the final corrected_timeline.json."
+}

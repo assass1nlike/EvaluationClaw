@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_wake_downwash_penalty@1",
+  "task_completion": [
+    {
+      "id": "save_tandem_wake_model",
+      "description": "Save the baseline model as tandem_wake.vsp3",
+      "points": 10,
+      "visual_evidence": "The OpenVSP window title bar or a file explorer window shows the current file is named 'tandem_wake.vsp3'."
+    },
+    {
+      "id": "isolate_main_wing",
+      "description": "Delete the fuselage and tail components to isolate the main wing",
+      "points": 10,
+      "visual_evidence": "The OpenVSP Geometry Browser shows only wing components. The fuselage and tail components (named FuselageUpdated, Tail, and VerticalTail) are no longer present in the list."
+    },
+    {
+      "id": "create_lead_and_trail_wings",
+      "description": "Rename the wing to Lead_Wing and duplicate it to create Trail_Wing",
+      "points": 20,
+      "visual_evidence": "The OpenVSP Geometry Browser lists exactly two components, explicitly named 'Lead_Wing' and 'Trail_Wing'."
+    },
+    {
+      "id": "position_trail_wing",
+      "description": "Position the Trail_Wing directly behind and slightly below the lead wing",
+      "points": 20,
+      "visual_evidence": "The XForm tab for the Trail_Wing shows X Location = 75.0, Y Location = 0.0, and Z Location = -2.5. Alternatively, the 3D view clearly shows two wings in a tandem configuration with one behind and slightly below the other."
+    },
+    {
+      "id": "run_vspaero_analysis",
+      "description": "Run a VSPAero analysis on the tandem configuration with Alpha: 2.0 and Mach: 0.75",
+      "points": 20,
+      "visual_evidence": "The VSPAero setup or solver window is visible, showing the Mach number set to 0.75 and Alpha (Angle of Attack) set to 2.0 degrees, with evidence that the analysis was executed (e.g., solver log or results dialog)."
+    },
+    {
+      "id": "write_summary_report",
+      "description": "Write a summary report containing the total combined system CL and CD",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal is open showing a file named 'wake_penalty_report.txt' on the Desktop, and its contents include values for total combined system CL (Lift Coefficient) and CD (Drag Coefficient)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the OpenVSP GUI to modify the model",
+      "visual_evidence": "Screenshots show the OpenVSP application interface being actively used (Geometry Browser, XForm tab), rather than the agent just editing the .vsp3 XML file in a text editor."
+    },
+    {
+      "id": "genuine_vspaero_run",
+      "description": "The agent actually executed the VSPAero analysis",
+      "visual_evidence": "The VSPAero solver window, command-line execution, or results viewer is visible showing actual computed aerodynamic data, proving the agent didn't just skip the analysis."
+    },
+    {
+      "id": "genuine_report_values",
+      "description": "The CL and CD values in the report are derived from the analysis",
+      "visual_evidence": "The values typed into 'wake_penalty_report.txt' match the outputs seen in the VSPAero results window or solver log, indicating they were not hallucinated or copied from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "Note on component names: The task description asks the agent to delete 'Fuselage', 'Horiz_Tail', and 'Vert_Tail'. However, the baseline model actually uses the names 'FuselageUpdated', 'Tail', and 'VerticalTail'. Do not penalize the agent for deleting these actual components to isolate the wing. The programmatic verifier for this task is broken due to an XML tag mismatch (<TypeName>Wing</TypeName> vs <Type>Wing</Type>), making your visual verification of the 'Lead_Wing' and 'Trail_Wing' duplication the definitive source of truth."
+}

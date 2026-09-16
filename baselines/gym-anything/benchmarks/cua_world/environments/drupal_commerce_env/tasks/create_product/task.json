@@ -1,0 +1,28 @@
+{
+  "id": "create_product@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a published product in the Drupal Commerce store titled 'Organic Bamboo Wireless Charger' with SKU 'OBW-CHR-01' and a price of $39.99 USD. The product description should highlight its eco-friendly bamboo construction and Qi-compatible wireless charging capability.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_product/setup_task.sh",
+    "post_task": "/workspace/tasks/create_product/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Organic Bamboo Wireless Charger",
+    "expected_sku": "OBW-CHR-01",
+    "expected_price": "39.99",
+    "expected_status": "published"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_product"
+    }
+  }
+}

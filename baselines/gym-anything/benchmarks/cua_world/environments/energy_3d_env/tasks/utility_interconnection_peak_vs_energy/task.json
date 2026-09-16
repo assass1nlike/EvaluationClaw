@@ -1,0 +1,32 @@
+{
+  "id": "utility_interconnection_peak_vs_energy@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Simulate a solar array on the summer solstice in Phoenix, AZ, to compare the Peak Power (kW) and Total Daily Energy (kWh) of a fixed-tilt system versus a dual-axis tracking system.\n\nStarting State: Energy3D is open with the `solar-rack-array.ng3` project loaded.\n\nExpected Actions:\n1. Set the project location to 'Phoenix, AZ'.\n2. Set the simulation date to June 21 (Summer Solstice).\n3. Run a 'Daily Yield Analysis' for the existing array (which is currently fixed-tilt).\n4. Identify the Peak Power (kW) (highest point on the graph) and the Total Energy (kWh) for the day.\n5. Select all solar racks in the project and change their Tracker property to 'Dual Axis'.\n6. Run the 'Daily Yield Analysis' again for the updated array.\n7. Identify the new Peak Power (kW) and Total Energy (kWh).\n8. Create a text file at `~/Documents/Energy3D/interconnection_report.txt` containing exactly these four lines (replace the brackets with your numeric findings):\n   Fixed Peak Power: [value] kW\n   Fixed Total Energy: [value] kWh\n   Dual-Axis Peak Power: [value] kW\n   Dual-Axis Total Energy: [value] kWh",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/utility_interconnection_peak_vs_energy/setup_task.sh",
+    "post_task": "/workspace/tasks/utility_interconnection_peak_vs_energy/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/Documents/Energy3D/interconnection_report.txt",
+    "tolerance_pct": 20.0,
+    "ground_truth": {
+      "fixed_peak_kw": 16.5,
+      "fixed_total_kwh": 135.0,
+      "dual_peak_kw": 16.5,
+      "dual_total_kwh": 195.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interconnection_study"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_invoice_alert@1",
+  "task_completion": [
+    {
+      "id": "alert_name_configured",
+      "description": "Verify the Alert Name is set correctly",
+      "points": 10,
+      "visual_evidence": "Look for an input field labeled 'Name' in the iDempiere Alert window containing the exact text 'High Value Purchase'."
+    },
+    {
+      "id": "alert_subject_configured",
+      "description": "Verify the Alert Subject is set correctly",
+      "points": 15,
+      "visual_evidence": "Look for an input field labeled 'Alert Subject' containing the exact text 'Review Invoice > 1000'."
+    },
+    {
+      "id": "enforce_client_security_checked",
+      "description": "Verify Client Security is enforced",
+      "points": 15,
+      "visual_evidence": "Look for a checkbox labeled 'Enforce Client Security' and ensure it is checked/ticked."
+    },
+    {
+      "id": "alert_sql_configured",
+      "description": "Verify the Alert Rule SQL clause is configured",
+      "points": 35,
+      "visual_evidence": "Look for a text area (likely under an 'Alert Rule' tab or section) containing the SQL statement: SELECT * FROM C_Invoice WHERE IsSOTrx='N' AND DocStatus='CO' AND GrandTotal > 1000."
+    },
+    {
+      "id": "alert_recipient_configured",
+      "description": "Verify the Alert Recipient is set to GardenAdmin",
+      "points": 25,
+      "visual_evidence": "Look for a user or contact selection field (likely under an 'Alert Recipient' tab) showing 'GardenAdmin' as the selected recipient."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the iDempiere graphical user interface",
+      "visual_evidence": "Screenshots should show the iDempiere web interface with its standard menus, toolbars, and window tabs, rather than a terminal, database client (like pgAdmin), or API testing tool."
+    },
+    {
+      "id": "no_text_editor_mockup",
+      "description": "Verify the SQL was not just typed into a text editor",
+      "visual_evidence": "The SQL clause must be entered into the actual iDempiere application text field, not a notepad, text editor, or standalone browser search bar."
+    },
+    {
+      "id": "genuine_record_creation",
+      "description": "Verify the agent is actually creating or saving a record",
+      "visual_evidence": "Look for active iDempiere UI elements like a highlighted 'Save' button, active tabs for 'Alert Rule' and 'Alert Recipient', or a status bar indicating a record was saved."
+    }
+  ],
+  "privileged_info_for_vlm": "The alert must be named 'High Value Purchase' with the subject 'Review Invoice > 1000'. The SQL clause must contain the exact fragments: \"IsSOTrx='N'\", \"DocStatus='CO'\", and \"GrandTotal > 1000\" to correctly filter for completed vendor invoices over $1000. The recipient must be explicitly set to the user 'GardenAdmin'."
+}

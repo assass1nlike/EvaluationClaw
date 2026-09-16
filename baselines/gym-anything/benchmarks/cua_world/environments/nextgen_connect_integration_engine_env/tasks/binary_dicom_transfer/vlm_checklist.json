@@ -1,0 +1,65 @@
+{
+  "task_id": "binary_dicom_transfer@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a NextGen Connect channel named 'DICOM_Migration'",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect Administrator interface shows a channel named 'DICOM_Migration' in the Channels list or Channel Summary."
+    },
+    {
+      "id": "source_configured",
+      "description": "Configure the source to read from the input directory",
+      "points": 15,
+      "visual_evidence": "The Source tab for the channel shows the connector type as 'File Reader' with the Directory set to '/home/ga/dicom_input' (or '/home/ga/dicom_input/')."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Configure the destination to write to the output directory",
+      "points": 15,
+      "visual_evidence": "The Destinations tab shows a connector (e.g., 'File Writer') with the Directory set to '/home/ga/dicom_output' (or '/home/ga/dicom_output/')."
+    },
+    {
+      "id": "binary_handling_configured",
+      "description": "Configure the channel to treat files as binary data",
+      "points": 15,
+      "visual_evidence": "The channel's Data Types are set to 'Raw' for inbound/outbound, OR the File Reader/Writer settings explicitly show 'Binary' or 'Byte Stream' selected for file reading/writing."
+    },
+    {
+      "id": "file_renaming_configured",
+      "description": "Configure the destination to append the '_migrated' suffix to the filename",
+      "points": 15,
+      "visual_evidence": "The File Name field in the Destination (File Writer) settings contains a pattern that adds '_migrated' before the extension, such as '${originalFilename}_migrated.dcm' or a similar JavaScript/variable expression."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Deploy the DICOM_Migration channel",
+      "points": 10,
+      "visual_evidence": "The Dashboard tab in NextGen Connect shows the 'DICOM_Migration' channel with a status of 'Started' or 'Deployed'."
+    },
+    {
+      "id": "file_migrated",
+      "description": "Verify the file was successfully migrated and renamed",
+      "points": 20,
+      "visual_evidence": "A terminal window or file explorer shows the file 'CT_small_migrated.dcm' present in the '/home/ga/dicom_output/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_nextgen_connect",
+      "description": "The agent used the NextGen Connect Administrator GUI to configure the migration",
+      "visual_evidence": "Screenshots must show interaction with the NextGen Connect Administrator interface (Java Web Start or Web Dashboard), not just a text editor writing an external script."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not bypass the application by manually copying the file",
+      "visual_evidence": "The terminal should not show commands like 'cp /home/ga/dicom_input/CT_small.dcm /home/ga/dicom_output/CT_small_migrated.dcm' being used to fake the final output."
+    },
+    {
+      "id": "channel_statistics_present",
+      "description": "The NextGen Connect dashboard shows message processing statistics",
+      "visual_evidence": "The Dashboard should show non-zero counts (e.g., Received: 1, Sent: 1) for the 'DICOM_Migration' channel, proving the application actually processed the file."
+    }
+  ],
+  "privileged_info_for_vlm": "Task requires creating a NextGen Connect channel named 'DICOM_Migration'. Input directory is '/home/ga/dicom_input' and output directory is '/home/ga/dicom_output'. The sample file is 'CT_small.dcm' and the expected output file is 'CT_small_migrated.dcm'. Note: The sample file is actually a synthetic binary file (not a real DICOM file with PHI) due to a fallback in the setup script, but it must still be processed as binary data (e.g., 'Raw' data type) to preserve integrity."
+}

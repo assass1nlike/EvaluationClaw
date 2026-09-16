@@ -1,0 +1,59 @@
+{
+  "task_id": "a11y_compliance_audit@1",
+  "task_completion": [
+    {
+      "id": "firefox_accessibility_inspector_open",
+      "description": "Agent opens Firefox and accesses the Accessibility Inspector in Developer Tools.",
+      "points": 10,
+      "visual_evidence": "Firefox browser is open with the Developer Tools panel visible, and the 'Accessibility' tab is selected."
+    },
+    {
+      "id": "wikipedia_audited",
+      "description": "Agent audits the Wikipedia Main Page using the Accessibility Inspector.",
+      "points": 10,
+      "visual_evidence": "Firefox address bar shows 'en.wikipedia.org' (or similar Wikipedia Main Page URL) and the Accessibility Inspector is actively showing the accessibility tree or issues for the page."
+    },
+    {
+      "id": "craigslist_audited",
+      "description": "Agent audits Craigslist using the Accessibility Inspector.",
+      "points": 10,
+      "visual_evidence": "Firefox address bar shows 'craigslist.org' and the Accessibility Inspector is actively showing the accessibility tree or issues for the page."
+    },
+    {
+      "id": "archive_audited",
+      "description": "Agent audits the Internet Archive using the Accessibility Inspector.",
+      "points": 10,
+      "visual_evidence": "Firefox address bar shows 'archive.org' and the Accessibility Inspector is actively showing the accessibility tree or issues for the page."
+    },
+    {
+      "id": "json_file_created",
+      "description": "Agent creates the accessibility_audit.json file in the Documents directory.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., VS Code, gedit, nano, vim) or terminal window shows a file named 'accessibility_audit.json' being edited or saved in the '~/Documents/' (or '/home/ga/Documents/') directory."
+    },
+    {
+      "id": "json_content_correct",
+      "description": "The JSON file contains the correct structure, metadata, and at least two issues per site with valid WCAG criteria.",
+      "points": 40,
+      "visual_evidence": "The visible content of the JSON file shows the 'audit_metadata' key, a 'sites' key containing 'en.wikipedia.org', 'craigslist.org', and 'archive.org', and 'issues' arrays for each site containing at least two distinct entries with a 'wcag_criterion' field formatted like '1.1.1' or '1.4.3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_usage",
+      "description": "Verify that the agent actually used Firefox to inspect the websites rather than hallucinating the accessibility issues from pre-training data.",
+      "visual_evidence": "Screenshots must show the Firefox Accessibility Inspector open and interacting with the DOM/accessibility tree of the target websites."
+    },
+    {
+      "id": "genuine_web_navigation",
+      "description": "Verify that the agent navigated to the live, real websites.",
+      "visual_evidence": "The Firefox address bar should display the actual 'https://' URLs for Wikipedia, Craigslist, and Internet Archive, not local 'file://' paths or synthetic mockups."
+    },
+    {
+      "id": "no_hallucinated_template",
+      "description": "Verify that the agent filled out the JSON with real findings rather than copying the literal placeholder text from the prompt.",
+      "visual_evidence": "The JSON file's 'type', 'description', and 'severity' fields must contain actual text describing accessibility issues, not the literal '...' strings shown in the task description's example."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be located exactly at `/home/ga/Documents/accessibility_audit.json`. The JSON must contain data for exactly three domains: `en.wikipedia.org`, `craigslist.org`, and `archive.org`. There must be a minimum of 2 issues documented per site (6 total issues minimum). Each issue must include a valid WCAG 2.1 criterion matching the regex `^[1-4]\\.\\d+(\\.\\d+)?$` (e.g., 1.1.1, 1.4.3, 4.1.2)."
+}

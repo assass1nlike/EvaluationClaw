@@ -1,0 +1,27 @@
+{
+  "id": "check_red_interaction@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "easy",
+  "description": "The Cancer iChart Archive app is open on the Welcome screen. Determine the drug interaction result between 'Crizotinib' and 'Ketoconazole' and report the interaction recommendation provided by the app.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_red_interaction/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_red_interaction/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_red_interaction"
+    }
+  },
+  "metadata": {
+    "cancer_drug": "Crizotinib",
+    "co_medication": "Ketoconazole",
+    "expected_result": "Do Not Coadminister",
+    "expected_color": "red"
+  }
+}

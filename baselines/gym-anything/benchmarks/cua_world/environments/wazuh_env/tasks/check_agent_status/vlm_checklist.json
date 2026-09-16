@@ -1,0 +1,53 @@
+{
+  "task_id": "check_agent_status@1",
+  "task_completion": [
+    {
+      "id": "access_wazuh_dashboard",
+      "description": "Verify the Wazuh web dashboard is accessed.",
+      "points": 10,
+      "visual_evidence": "The Wazuh dashboard UI is visible in the web browser."
+    },
+    {
+      "id": "navigate_to_configuration_assessment",
+      "description": "Verify navigation to the Configuration Assessment module.",
+      "points": 20,
+      "visual_evidence": "The Configuration Assessment (or Security Configuration Assessment / SCA) module is open and active in the Wazuh UI."
+    },
+    {
+      "id": "view_security_checks_list",
+      "description": "Verify a list of security checks is displayed.",
+      "points": 20,
+      "visual_evidence": "A table or list showing various configuration assessment checks is visible on the screen."
+    },
+    {
+      "id": "select_failed_check",
+      "description": "Verify a failed security check is selected.",
+      "points": 20,
+      "visual_evidence": "The agent clicks on or highlights a specific security check that explicitly has a 'Failed' status."
+    },
+    {
+      "id": "display_full_details",
+      "description": "Verify the full details of the failed check are displayed, including title, status, description, and rationale.",
+      "points": 30,
+      "visual_evidence": "A detail panel, modal, or dedicated page for the failed check is open, clearly showing its title, a 'failed' result status, a description of the check, and the rationale."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the Wazuh web GUI to find the information.",
+      "visual_evidence": "The screenshots show interaction with the Wazuh web interface in a browser, not terminal commands (like curl), API scripts, or raw log files."
+    },
+    {
+      "id": "genuine_wazuh_data",
+      "description": "Ensure the data is displayed within the actual Wazuh application.",
+      "visual_evidence": "The details are shown in the standard Wazuh dashboard UI components, not in a text editor, notes app, or a manually created page."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Ensure the result wasn't faked using browser developer tools.",
+      "visual_evidence": "There is no evidence of the browser's developer console or 'Inspect Element' being used to alter the text of the status, description, or rationale."
+    }
+  ],
+  "privileged_info_for_vlm": "The Wazuh environment is deployed as a single node, meaning the manager (agent 000) is the sole active agent. The agent must interact with the Configuration Assessment module. The compliance data should reflect real CIS Benchmark data for an Ubuntu container."
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "5c75773d",
+  "name": "Spam-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for binary spam detection in emails. Each sample contains an email body and an instruction to classify it as spam or non_spam, with the label as output.",
+  "card_text": "The Spam-Detection dataset comprises 200 text samples for binary email classification. Each sample includes a raw email body, often with headers, subject lines, and forwarded content, and a prompt instructing the model to classify the email as spam or non_spam. The target label is provided in the output as a category string. The dataset is designed to evaluate text classification models on real-world email spam filtering. Emails vary in length and style, including business correspondence, personal messages, and promotional content. The task requires understanding email semantics and identifying spam indicators. No additional metadata or annotations are provided.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "email spam detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "The raw email body, including headers, subject lines, and message content. It is the primary input for classification and determines whether the email is spam or non_spam.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated instruction that asks the model to classify the email as spam or non_spam, providing only the category name as output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target classification label, either 'spam' or 'non_spam', indicating the correct category for the email.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an email raw_text context, a prompt instruction asking for spam/non_spam classification, and the output category label. The input contains the email text and a templated prompt; the output contains the target classification category."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Spam-Detection/annotation.json",
+    "existing_tags": {
+      "task": "spam_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "hl7_canonical_xml_transformer@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel is created with the correct name.",
+      "points": 10,
+      "visual_evidence": "NextGen Connect Administrator GUI shows a channel named 'Canonical_XML_Transformer' in the Channels list."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the source connector is configured to listen on the correct port.",
+      "points": 20,
+      "visual_evidence": "The Source tab for the channel shows the connector type as 'TCP Listener' (or similar MLLP listener) with the port set to '6661'."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the destination connector is configured to write to the correct directory.",
+      "points": 20,
+      "visual_evidence": "The Destinations tab shows a 'File Writer' connector with the Directory set to '/home/ga/xml_out/' or '/home/ga/xml_out'."
+    },
+    {
+      "id": "transformation_logic",
+      "description": "Verify the XML transformation and mapping logic is configured.",
+      "points": 30,
+      "visual_evidence": "The Transformers or Scripts section shows mapping logic extracting PID-3.1, PID-5.1, PID-5.2, EVN-2, and gender, OR an XML template matching the required <PatientEvent> structure with variable substitutions."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Verify the channel has been deployed.",
+      "points": 20,
+      "visual_evidence": "The NextGen Connect Dashboard shows the 'Canonical_XML_Transformer' channel in a 'Deployed' or 'Started' state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI.",
+      "visual_evidence": "Screenshots show interaction with the actual NextGen Connect Java GUI (Mirth Connect), not just terminal commands or text editors."
+    },
+    {
+      "id": "no_hardcoded_test_data",
+      "description": "Verify the agent did not hardcode the test MRNs.",
+      "visual_evidence": "Transformation scripts or templates use HL7 message variables (e.g., msg['PID']) rather than hardcoded strings like 'TEST_M_999' or 'TEST_F_888'."
+    },
+    {
+      "id": "genuine_xml_template",
+      "description": "Verify the XML template is properly constructed in the destination settings.",
+      "visual_evidence": "The File Writer template field contains the actual XML structure with variable substitutions, rather than a static pre-written file path."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel Name: Canonical_XML_Transformer. Listen Port: 6661 (TCP/MLLP). Output Directory: /home/ga/xml_out. Test MRNs used for verification: TEST_M_999 (male) and TEST_F_888 (female)."
+}

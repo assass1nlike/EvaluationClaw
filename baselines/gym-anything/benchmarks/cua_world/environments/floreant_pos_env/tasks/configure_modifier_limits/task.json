@@ -1,0 +1,27 @@
+{
+  "id": "configure_modifier_limits@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Access the Floreant POS Back Office (PIN: 1111) and configure the 'Omelet Fillings' modifier group. If the group does not exist, create it. Set the selection limits to require a minimum of 2 and a maximum of 4 items.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_modifier_limits/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_modifier_limits/export_result.sh"
+  },
+  "metadata": {
+    "target_group_name": "Omelet Fillings",
+    "expected_min": 2,
+    "expected_max": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_modifier_limits"
+    }
+  }
+}

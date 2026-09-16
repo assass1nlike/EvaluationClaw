@@ -1,0 +1,40 @@
+{
+  "id": "create_hvac_plan@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create an HVAC ductwork plan for a server room in Wondershare EdrawMax. The diagram must feature a rectangular room containing an Air Handling Unit (AHU) labeled \"AHU-1\", two Supply Diffusers connected to the AHU with the duct path labeled \"Supply Air\", and one Return Grille labeled \"Return Air\". Save the project to ~/Documents/server_room_hvac.eddx and export the diagram as an image to ~/Documents/server_room_hvac.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_hvac_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_hvac_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/server_room_hvac.eddx",
+    "expected_png_path": "/home/ga/Documents/server_room_hvac.png",
+    "required_labels": [
+      "AHU-1",
+      "Supply Air",
+      "Return Air"
+    ],
+    "required_keywords": [
+      "Duct",
+      "Diffuser",
+      "Grille",
+      "AHU",
+      "Fan",
+      "Terminal",
+      "Pipe"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_hvac_plan"
+    }
+  }
+}

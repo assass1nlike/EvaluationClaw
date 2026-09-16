@@ -1,0 +1,86 @@
+{
+  "dataset_id": "0bd3d000",
+  "name": "Stance-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Stance-Detection dataset consists of Twitter-style posts paired with a target entity or topic, and the task is to classify whether the tweet expresses a stance of 'AGAINST' or 'FAVOR' toward that target. It evaluates binary stance classification on short, noisy social-media text.",
+  "card_text": "This dataset is a text-only stance classification resource containing short social-media posts (tweets), each annotated with a stance label relative to a specified target such as 'Climate Change is a Real Concern' or 'Atheism'. Every sample provides three input components: a target phrase, the raw tweet text, and a templated natural-language prompt that instructs the model to classify the stance and output only the label. The single output is a categorical stance value drawn from a binary set, namely 'AGAINST' or 'FAVOR'. Text is informal, hashtag-laden, and sometimes rhetorical or sarcastic, reflecting real Twitter discourse. With 200 samples, the dataset is compact and suits evaluation of binary classification and prompt-following behavior on short, noisy, opinion-bearing texts.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "social media (Twitter) stance detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.tweets"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The raw tweet text that the model must judge. It is informal social-media content, often containing hashtags such as #SemST, and expresses an opinion whose stance toward the given target has to be inferred.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated instruction that references the target and tweet via placeholders ('<<<target>>>', '<<<tweets>>>') and asks the model to output only the stance label ('AGAINST' or 'FAVOR'). It defines the classification task and the allowed output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.stance"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold stance label for the tweet with respect to the target, taking one of two categorical values, 'AGAINST' or 'FAVOR'. It is the direct target of the classification instruction in the prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "target": {
+        "paths": [
+          "input.target"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The entity, topic, or claim towards which the tweet's stance is evaluated, e.g. 'Atheism' or 'Climate Change is a Real Concern'. It is inserted into the prompt template and anchors the meaning of the answer label.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a target phrase (input.target), a short tweet (input.tweets) acting as the main content to judge, and a templated instruction (input.prompt) that combines the target and the tweet and asks for a single stance label. The output object holds the annotated categorical stance (output.stance), which is either 'AGAINST' or 'FAVOR' and must be justified by the tweet relative to the target."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Stance-Detection/annotation.json",
+    "existing_tags": {
+      "task": "stance_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

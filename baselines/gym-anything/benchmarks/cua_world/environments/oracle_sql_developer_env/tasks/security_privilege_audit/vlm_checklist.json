@@ -1,0 +1,59 @@
+{
+  "task_id": "security_privilege_audit@1",
+  "task_completion": [
+    {
+      "id": "revoke_dev_report_privileges",
+      "description": "Revoke excessive privileges from DEV_USER and REPORT_USER2.",
+      "points": 15,
+      "visual_evidence": "Look for SQL execution in a database client (like SQL Developer or SQL*Plus) showing 'REVOKE DBA FROM DEV_USER;' and 'REVOKE CREATE TABLE, SELECT ANY TABLE FROM REPORT_USER2;' with a success message."
+    },
+    {
+      "id": "remediate_app_legacy_users",
+      "description": "Revoke privileges from APP_USER and lock the LEGACY_USER account.",
+      "points": 15,
+      "visual_evidence": "Look for SQL execution showing 'REVOKE RESOURCE, UNLIMITED TABLESPACE FROM APP_USER;' and 'ALTER USER LEGACY_USER ACCOUNT LOCK;' with a success message."
+    },
+    {
+      "id": "remediate_analyst_user",
+      "description": "Ensure ANALYST_USER has only CREATE SESSION and CREATE VIEW privileges.",
+      "points": 10,
+      "visual_evidence": "Look for SQL execution that revokes excess privileges from ANALYST_USER, leaving only CREATE SESSION and CREATE VIEW, or explicitly granting only those two privileges after a full revoke."
+    },
+    {
+      "id": "create_audit_policy",
+      "description": "Create the Oracle Unified Audit policy named PRIVILEGE_ESCALATION_AUDIT.",
+      "points": 20,
+      "visual_evidence": "Look for the execution of a CREATE AUDIT POLICY statement for 'PRIVILEGE_ESCALATION_AUDIT' covering the exact privileges: GRANT ANY PRIVILEGE, CREATE USER, DROP USER, ALTER USER, and CREATE ROLE."
+    },
+    {
+      "id": "enable_audit_policy",
+      "description": "Enable the newly created audit policy.",
+      "points": 15,
+      "visual_evidence": "Look for the execution of the SQL command 'AUDIT POLICY PRIVILEGE_ESCALATION_AUDIT;' with a success message indicating the policy was enabled."
+    },
+    {
+      "id": "export_remediation_report",
+      "description": "Export the security remediation report documenting the findings and fixes.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal showing a file being saved to the exact path '/home/ga/Documents/exports/security_remediation.txt'. The file contents should document the 5 accounts and the remediation actions taken."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent actually interacted with the Oracle database to apply the changes.",
+      "visual_evidence": "Screenshots should show a real database client (e.g., Oracle SQL Developer, SQL*Plus in terminal) with successful execution outputs (e.g., 'Revoke succeeded', 'User altered', 'Audit policy created'), rather than just typing commands into a text file without running them."
+    },
+    {
+      "id": "authentic_report_content",
+      "description": "Verify the remediation report is genuinely written and not just a copy-paste of the task prompt.",
+      "visual_evidence": "The text in '/home/ga/Documents/exports/security_remediation.txt' should be formatted as a report detailing the findings and fixes, rather than an exact verbatim copy of the prompt instructions."
+    },
+    {
+      "id": "no_simulated_outputs",
+      "description": "Verify the agent did not just echo success messages to the terminal to simulate completion.",
+      "visual_evidence": "Look for actual SQL client prompts (like 'SQL>') or GUI execution results, rather than basic shell 'echo' commands printing fake success messages."
+    }
+  ],
+  "privileged_info_for_vlm": "Target users to remediate: DEV_USER, REPORT_USER2, ANALYST_USER, APP_USER, LEGACY_USER. The audit policy must be exactly named 'PRIVILEGE_ESCALATION_AUDIT'. The final report must be saved to '/home/ga/Documents/exports/security_remediation.txt'. The agent should use the system database credentials (user: 'system', password: 'OraclePassword123') to execute the database changes."
+}

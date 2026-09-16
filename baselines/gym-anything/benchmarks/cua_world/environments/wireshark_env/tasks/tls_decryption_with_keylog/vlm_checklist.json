@@ -1,0 +1,53 @@
+{
+  "task_id": "tls_decryption_with_keylog@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_wireshark",
+      "description": "Open the target PCAP file in Wireshark",
+      "points": 10,
+      "visual_evidence": "Wireshark GUI is open and the window title or packet list indicates that 'secure_api.pcap' has been loaded."
+    },
+    {
+      "id": "configure_tls_keylog",
+      "description": "Configure Wireshark to use the session keys log file",
+      "points": 20,
+      "visual_evidence": "The Wireshark Preferences dialog is open on the Protocols -> TLS (or SSL) page, and the '(Pre)-Master-Secret log filename' field is set to '/home/ga/Documents/captures/session_keys.log'."
+    },
+    {
+      "id": "view_decrypted_traffic",
+      "description": "View the decrypted HTTPS traffic",
+      "points": 20,
+      "visual_evidence": "The Wireshark packet list or details pane shows decrypted HTTP traffic (e.g., HTTP GET/POST requests or HTTP/2 streams) that was previously encrypted as TLS."
+    },
+    {
+      "id": "locate_secret_flag",
+      "description": "Find the UUID associated with the 'SECRET_FLAG:' label",
+      "points": 20,
+      "visual_evidence": "The packet details pane, packet bytes pane, or a 'Follow HTTP/TLS Stream' window displays the decrypted payload containing the text 'SECRET_FLAG:' followed by a UUID string."
+    },
+    {
+      "id": "save_uuid_output",
+      "description": "Save only the extracted UUID to the output file",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal command is visible writing the extracted UUID to '/home/ga/Documents/decrypted_flag.txt'. The VLM must verify that ONLY the UUID is saved, without the 'SECRET_FLAG:' label or other extraneous text."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "wireshark_gui_used",
+      "description": "The agent used the Wireshark GUI for analysis",
+      "visual_evidence": "Check that the agent actually interacted with the Wireshark GUI to configure the keylog and view the traffic, rather than bypassing the GUI using terminal tools like tshark."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not cheat by accessing the ground truth file",
+      "visual_evidence": "Ensure there is no terminal command or file manager window showing the agent reading '/var/lib/app/ground_truth/secret_uuid.txt'."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "The saved UUID matches the one found in the traffic",
+      "visual_evidence": "The UUID being saved to 'decrypted_flag.txt' must visually match the UUID seen in the decrypted Wireshark packet payload, proving it was genuinely extracted."
+    }
+  ],
+  "privileged_info_for_vlm": "The PCAP file is located at /home/ga/Documents/captures/secure_api.pcap and the session keys are at /home/ga/Documents/captures/session_keys.log. The target output file is /home/ga/Documents/decrypted_flag.txt. The secret flag is a randomly generated UUID. The agent must configure Wireshark's TLS/SSL preferences to use the session keys log file to decrypt the traffic. The ground truth UUID is stored in /var/lib/app/ground_truth/secret_uuid.txt, which the agent must not access."
+}

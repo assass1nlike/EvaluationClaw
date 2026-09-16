@@ -1,0 +1,65 @@
+{
+  "task_id": "sakila_schema_drift_remediation@1",
+  "task_completion": [
+    {
+      "id": "connect_and_inspect",
+      "description": "Connect to the MySQL server and inspect the schemas of sakila_prod and sakila_gold.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful MySQL connection (e.g., 'mysql -u ga -p') and commands comparing the databases, such as 'DESCRIBE', 'SHOW CREATE TABLE', or the use of a diff tool like 'mysqldbcompare'."
+    },
+    {
+      "id": "revert_customer_table_drift",
+      "description": "Generate SQL to revert the customer.last_name column drift.",
+      "points": 15,
+      "visual_evidence": "The synchronization script or terminal output shows an 'ALTER TABLE customer MODIFY last_name' statement to fix the varchar length mismatch."
+    },
+    {
+      "id": "revert_address_table_drift",
+      "description": "Generate SQL to recreate the missing idx_fk_city_id index on the address table.",
+      "points": 15,
+      "visual_evidence": "The synchronization script or terminal output shows a 'CREATE INDEX idx_fk_city_id ON address' or 'ALTER TABLE address ADD INDEX' statement."
+    },
+    {
+      "id": "revert_store_table_drift",
+      "description": "Generate SQL to drop the unauthorized internal_notes column from the store table.",
+      "points": 15,
+      "visual_evidence": "The synchronization script or terminal output shows an 'ALTER TABLE store DROP COLUMN internal_notes' statement."
+    },
+    {
+      "id": "revert_customer_list_view_drift",
+      "description": "Generate SQL to fix the customer_list view by including the missing country column.",
+      "points": 15,
+      "visual_evidence": "The synchronization script or terminal output shows a 'CREATE OR REPLACE VIEW customer_list' statement that includes the country column in its SELECT definition."
+    },
+    {
+      "id": "save_synchronization_script",
+      "description": "Save the generated SQL script to the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim) or terminal command (like echo or cat) showing the SQL script being saved exactly to '/home/ga/Documents/sql_scripts/revert_drift.sql'."
+    },
+    {
+      "id": "execute_synchronization_script",
+      "description": "Execute the synchronization script to apply the fixes to sakila_prod.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the script against the sakila_prod database, such as 'mysql -u ga -p sakila_prod < /home/ga/Documents/sql_scripts/revert_drift.sql' or using the 'source' command inside the MySQL prompt."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_database_drop",
+      "description": "Ensure the agent did not drop and recreate the sakila_prod database.",
+      "visual_evidence": "There should be NO 'DROP DATABASE sakila_prod' or full database restoration commands visible in the terminal or the SQL script."
+    },
+    {
+      "id": "specific_alterations_used",
+      "description": "Ensure the agent used targeted ALTER/CREATE/DROP statements rather than a full schema dump and load.",
+      "visual_evidence": "The SQL script should consist of specific DDL statements (ALTER TABLE, CREATE INDEX, CREATE VIEW) rather than a massive mysqldump output."
+    },
+    {
+      "id": "genuine_script_creation",
+      "description": "Ensure the agent actually created and saved the file in the environment.",
+      "visual_evidence": "Visible use of a text editor or shell redirection to create '/home/ga/Documents/sql_scripts/revert_drift.sql', rather than just printing the SQL to the standard output without saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'sakila_prod' and the reference is 'sakila_gold'. Four specific schema drifts exist in 'sakila_prod' that must be reverted: 1) 'customer.last_name' varchar length mismatch (needs ALTER TABLE), 2) 'address.idx_fk_city_id' index is missing (needs CREATE INDEX), 3) 'store.internal_notes' has an extra column (needs ALTER TABLE DROP COLUMN), and 4) 'customer_list' view is missing the country column (needs CREATE OR REPLACE VIEW). The remediation script must be saved exactly at '/home/ga/Documents/sql_scripts/revert_drift.sql'. The 'sakila_prod' database must NOT be dropped and recreated, as it contains live tracer data in the 'rental' table."
+}

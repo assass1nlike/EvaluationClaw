@@ -1,0 +1,59 @@
+{
+  "task_id": "morphological_mask_cleaning@1",
+  "task_completion": [
+    {
+      "id": "open_landsat_image",
+      "description": "Open the Landsat multi-spectral image in the application.",
+      "points": 10,
+      "visual_evidence": "The Product Explorer or main application window shows the loaded product 'landsat_multispectral'."
+    },
+    {
+      "id": "create_initial_mask",
+      "description": "Create a binary mask band named 'initial_mask' using the specified expression.",
+      "points": 20,
+      "visual_evidence": "A Band Maths dialog shows the new band name 'initial_mask' and the expression 'if band_2 > band_4 then 1 else 0', or the Product Explorer shows 'initial_mask' listed under the product's bands."
+    },
+    {
+      "id": "apply_minimum_filter",
+      "description": "Apply a Minimum 3x3 spatial filter to 'initial_mask' to produce 'eroded_mask'.",
+      "points": 20,
+      "visual_evidence": "A spatial filter dialog shows a Minimum 3x3 filter being applied to 'initial_mask' with the target band name 'eroded_mask', or the Product Explorer shows 'eroded_mask'."
+    },
+    {
+      "id": "apply_maximum_filter",
+      "description": "Apply a Maximum 3x3 spatial filter to 'eroded_mask' to produce 'cleaned_mask'.",
+      "points": 20,
+      "visual_evidence": "A spatial filter dialog shows a Maximum 3x3 filter being applied to 'eroded_mask' with the target band name 'cleaned_mask', or the Product Explorer shows 'cleaned_mask'."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Save the resulting product in BEAM-DIMAP format to the specified path.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product As' dialog or file explorer shows the product being saved as 'morphological_mask.dim' in the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "export_geotiff_product",
+      "description": "Export the product as a GeoTIFF to the specified path.",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog or file explorer shows the product being exported as 'morphological_mask.tif' in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the graphical user interface of the geospatial software to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with dialogs, menus, and the Product Explorer in the geospatial software (e.g., ESA SNAP), rather than just terminal commands or scripts."
+    },
+    {
+      "id": "actual_software_used",
+      "description": "The agent interacted with the actual geospatial analysis application.",
+      "visual_evidence": "The application window is visible and active, not just a text editor or mock interface."
+    },
+    {
+      "id": "no_direct_file_copying",
+      "description": "The agent performed the required band math and filtering steps rather than just copying an existing file.",
+      "visual_evidence": "There is visual evidence of the Band Maths and Spatial Filter dialogs being used, rather than just file manager copy-paste operations."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires processing the input file '/home/ga/snap_data/landsat_multispectral.tif'. The expected bands to be created are 'initial_mask', 'eroded_mask', and 'cleaned_mask'. The final outputs must be saved to '/home/ga/snap_exports/morphological_mask.dim' (BEAM-DIMAP format) and '/home/ga/snap_exports/morphological_mask.tif' (GeoTIFF format)."
+}

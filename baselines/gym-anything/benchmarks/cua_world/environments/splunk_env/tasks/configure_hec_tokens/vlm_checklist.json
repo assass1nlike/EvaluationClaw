@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_hec_tokens@1",
+  "task_completion": [
+    {
+      "id": "splunk_login_success",
+      "description": "Log into the Splunk web interface",
+      "points": 10,
+      "visual_evidence": "The Splunk web interface dashboard is visible, indicating successful login (typically showing the 'admin' user profile)."
+    },
+    {
+      "id": "hec_globally_enabled",
+      "description": "Globally enable the HTTP Event Collector",
+      "points": 15,
+      "visual_evidence": "In Settings > Data Inputs > HTTP Event Collector, the Global Settings dialog or status indicator shows 'All Tokens' as Enabled."
+    },
+    {
+      "id": "index_created",
+      "description": "Create a new index named 'cloud_apps'",
+      "points": 15,
+      "visual_evidence": "In Settings > Indexes, the list of indexes contains an entry specifically named 'cloud_apps'."
+    },
+    {
+      "id": "frontend_token_created",
+      "description": "Create and configure the 'webapp_frontend' HEC token",
+      "points": 15,
+      "visual_evidence": "In the HTTP Event Collector tokens list, 'webapp_frontend' is present, its Status is 'Enabled', and its Default Index is set to 'cloud_apps'."
+    },
+    {
+      "id": "backend_token_created",
+      "description": "Create and configure the 'webapp_backend' HEC token",
+      "points": 15,
+      "visual_evidence": "In the HTTP Event Collector tokens list, 'webapp_backend' is present, its Status is 'Enabled', and its Default Index is set to 'cloud_apps'."
+    },
+    {
+      "id": "test_event_sent",
+      "description": "Send a test JSON event to the HEC endpoint",
+      "points": 15,
+      "visual_evidence": "A terminal showing a 'curl' POST command or an API client (like Postman) sending a JSON payload to http://localhost:8088/services/collector/event using one of the token values, and receiving a success response (e.g., {\"text\":\"Success\",\"code\":0})."
+    },
+    {
+      "id": "event_verified_in_splunk",
+      "description": "Verify the event is successfully ingested into the 'cloud_apps' index",
+      "points": 15,
+      "visual_evidence": "The Splunk Search & Reporting app shows a search query (e.g., index=\"cloud_apps\") returning at least one matching JSON event in the results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Agent used the Splunk Web UI for configuration rather than bypassing it with CLI commands or modifying .conf files directly.",
+      "visual_evidence": "Screenshots show the agent navigating the Splunk web interface (Settings, Data Inputs, Indexes) to create the configurations."
+    },
+    {
+      "id": "genuine_event_submission",
+      "description": "The test event was actually sent via HTTP request and not mocked.",
+      "visual_evidence": "A genuine HTTP client (curl, wget, Postman, or Python script) is visible executing the request to port 8088, rather than just typing a JSON string into a text editor."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The Splunk UI was not manipulated using browser developer tools.",
+      "visual_evidence": "No browser developer console is open modifying the DOM to fake the presence of tokens or indexes."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected index name is 'cloud_apps'. The expected HEC token names are 'webapp_frontend' and 'webapp_backend'. The Splunk credentials are user 'admin' and password 'SplunkAdmin1!'."
+}

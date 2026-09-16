@@ -1,0 +1,29 @@
+{
+  "id": "exploratory_factor_analysis@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform an Exploratory Factor Analysis (EFA) on the Big Five Inventory dataset located at /home/ga/Documents/Jamovi/BFI25.csv. Include all 25 personality item variables (A1-A5, C1-C5, E1-E5, N1-N5, O1-O5) in the analysis, excluding gender and age. Configure the analysis using minimum residuals extraction, Oblimin rotation, and a fixed number of 5 factors. Ensure the output includes the factor summary and factor correlations. Save the results to /home/ga/Documents/Jamovi/BFI25_EFA.omv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/exploratory_factor_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/exploratory_factor_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/Jamovi/BFI25_EFA.omv",
+    "dataset_path": "/home/ga/Documents/Jamovi/BFI25.csv",
+    "required_vars_count": 25,
+    "required_factors": 5,
+    "required_rotation": "oblimin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_exploratory_factor_analysis"
+    }
+  }
+}

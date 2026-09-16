@@ -1,0 +1,59 @@
+{
+  "task_id": "industrial_exposure_ej_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened",
+      "description": "Open the specified Jupyter notebook for the EJ analysis.",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook or IDE is open showing the file '/home/ga/urbansim_projects/notebooks/industrial_exposure_ej.ipynb'."
+    },
+    {
+      "id": "data_loading_and_filtering",
+      "description": "Load the UrbanSim dataset and filter for zones with at least 50 households.",
+      "points": 15,
+      "visual_evidence": "Code cells show pandas/HDFStore reading '/home/ga/urbansim_projects/data/sanfran_public.h5' and a filtering operation ensuring households >= 50 per zone."
+    },
+    {
+      "id": "quartile_calculation",
+      "description": "Calculate industrial square footage per household and rank into four exposure quartiles.",
+      "points": 20,
+      "visual_evidence": "Code cells show filtering for building_type_id == 3 (industrial), aggregating square footage by zone, dividing by total households, and using a function like pd.qcut to assign quartiles 1 through 4."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the zone-level data to a CSV file with the required columns.",
+      "points": 15,
+      "visual_evidence": "Code cell showing a DataFrame being saved to '/home/ga/urbansim_projects/output/zone_industrial_exposure.csv' containing columns: zone_id, total_households, median_income, total_industrial_sqft, industrial_sqft_per_hh, and exposure_quartile."
+    },
+    {
+      "id": "json_export",
+      "description": "Export the summary JSON with the required keys and correct ground truth values.",
+      "points": 20,
+      "visual_evidence": "Code cell showing a dictionary being saved to '/home/ga/urbansim_projects/output/ej_summary.json' with keys: total_zones_analyzed, q1_median_zone_income, q2_median_zone_income, q3_median_zone_income, q4_median_zone_income, and highest_exposure_zone_id. The VLM should look for outputs or variable inspections showing total_zones_analyzed = 185 and highest_exposure_zone_id = 110."
+    },
+    {
+      "id": "plot_and_execution",
+      "description": "Save the visualization and ensure the notebook is fully executed.",
+      "points": 20,
+      "visual_evidence": "Code cell showing a plotting library (e.g., matplotlib, seaborn) plotting exposure_quartile vs median_income and saving it to '/home/ga/urbansim_projects/output/income_vs_exposure.png'. The notebook must show execution numbers (e.g., 'In [1]', 'In [2]') indicating the cells were actually run."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_execution",
+      "description": "The agent executed the code in a real Python/Jupyter environment.",
+      "visual_evidence": "The screenshots show a Jupyter interface (like JupyterLab, classic Notebook, or VSCode Jupyter extension) with execution counts and cell outputs, rather than just a plain text editor with no execution."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent computed the JSON summary values programmatically.",
+      "visual_evidence": "The code calculates the total zones and highest exposure zone ID using DataFrame operations (e.g., len(df), df['industrial_sqft_per_hh'].idxmax()) rather than hardcoding the values 185 and 110."
+    },
+    {
+      "id": "genuine_data_usage",
+      "description": "The agent used the provided HDF5 dataset.",
+      "visual_evidence": "The code explicitly references and loads 'sanfran_public.h5' rather than creating a mock dataset or downloading external pre-computed data."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct ground truth value for 'total_zones_analyzed' is 185, and the 'highest_exposure_zone_id' is 110. The expected CSV columns are: zone_id, total_households, median_income, total_industrial_sqft, industrial_sqft_per_hh, and exposure_quartile. The expected JSON keys are: total_zones_analyzed, q1_median_zone_income, q2_median_zone_income, q3_median_zone_income, q4_median_zone_income, and highest_exposure_zone_id."
+}

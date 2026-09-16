@@ -1,0 +1,53 @@
+{
+  "task_id": "raster_polygonize_forest_extraction@1",
+  "task_completion": [
+    {
+      "id": "load_raster",
+      "description": "Verify the input land cover raster is loaded into the GIS software.",
+      "points": 10,
+      "visual_evidence": "The layers panel shows 'landcover_classification' loaded as a raster layer."
+    },
+    {
+      "id": "polygonize_raster",
+      "description": "Verify the raster has been converted to a vector polygon layer.",
+      "points": 20,
+      "visual_evidence": "A new vector polygon layer appears in the layers panel, or the 'Polygonize (Raster to Vector)' tool dialog is visible and being executed."
+    },
+    {
+      "id": "filter_forest_features",
+      "description": "Verify the vector layer is filtered or selected to include only Forest features (DN=1).",
+      "points": 30,
+      "visual_evidence": "A filter dialog, query builder, or 'Select by Expression' window showing a query like 'DN = 1' or 'DN' = 1, or an attribute table filtered to only show features with a value of 1."
+    },
+    {
+      "id": "verify_feature_count",
+      "description": "Verify that exactly 4 Forest features are present after filtering.",
+      "points": 20,
+      "visual_evidence": "The attribute table shows exactly 4 rows, or the map canvas clearly displays exactly 4 distinct square polygons (located in the corners of the extent)."
+    },
+    {
+      "id": "export_geojson",
+      "description": "Verify the filtered features are exported to the specified GeoJSON file.",
+      "points": 20,
+      "visual_evidence": "A 'Save Vector Layer as...' or 'Export' dialog showing the format as GeoJSON and the file path as '/home/ga/GIS_Data/exports/forest_zones.geojson', or a success message confirming the export."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "The agent used the GIS software's graphical user interface to perform the tasks.",
+      "visual_evidence": "Screenshots show QGIS (or similar GIS software) interface being used with active dialogs, rather than just a terminal window running GDAL commands."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The agent exported the file using the GIS software rather than creating a dummy file.",
+      "visual_evidence": "The export dialog or progress bar in the GIS software is visible, rather than a text editor or terminal creating a mock .geojson file."
+    },
+    {
+      "id": "actual_filtering",
+      "description": "The agent performed actual filtering/selection rather than manually deleting features or faking the output.",
+      "visual_evidence": "Use of the 'Filter', 'Select by Expression', or 'Extract by Attribute' tools in the GIS software is visible."
+    }
+  ],
+  "privileged_info_for_vlm": "Input raster: /home/ga/GIS_Data/landcover_classification.tif. Expected output file: /home/ga/GIS_Data/exports/forest_zones.geojson. Target class value for Forest is 1. When correctly polygonized and filtered for DN=1, the resulting vector layer must contain exactly 4 distinct polygon features (located in the four corners of the raster)."
+}

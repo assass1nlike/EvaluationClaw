@@ -1,0 +1,29 @@
+{
+  "id": "audit_conveyance_change_ratios@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a hydraulic stability audit on the Muncie HEC-RAS model (~/Documents/hec_ras_projects/Muncie/) by analyzing conveyance change ratios to identify cross-sections where channel capacity changes abruptly. Using the unsteady flow simulation results (Plan 04, Muncie.p04.hdf), calculate the effective conveyance (K) at the moment of peak flow for every cross-section and the ratio between adjacent sections. Use the formula K = Q / sqrt(Sf), where Q is Total Flow and Sf is Friction Slope at the time step of maximum flow for that specific cross-section (if Sf < 0.0001, set K = 0). Calculate the ratio R = K_upstream / K_downstream for all adjacent pairs. Generate a CSV report at ~/Documents/hec_ras_results/conveyance_audit.csv with columns: Upstream_River_Station, Downstream_River_Station, K_Upstream, K_Downstream, Ratio, and Status. The Status column must be 'Warning' if the ratio is < 0.7 or > 1.4, 'Skipped' if K is 0, and 'OK' otherwise. Sort the report by River Station from upstream to downstream.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_conveyance_change_ratios/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_conveyance_change_ratios/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/hec_ras_results/conveyance_audit.csv",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "ground_truth_path": "/var/lib/hec-ras/ground_truth_conveyance.csv",
+    "threshold_min": 0.7,
+    "threshold_max": 1.4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_conveyance"
+    }
+  }
+}

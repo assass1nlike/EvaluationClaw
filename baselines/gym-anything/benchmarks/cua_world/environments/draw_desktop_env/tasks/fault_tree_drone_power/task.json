@@ -1,0 +1,30 @@
+{
+  "id": "fault_tree_drone_power@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a Fault Tree Analysis (FTA) diagram for a drone's power system based on the specification in '~/Desktop/drone_system_spec.txt'. Model 'Total Loss of Power' as the Top Event using standard FTA symbols. The diagram must accurately reflect the system logic: the drone requires at least one functional battery, while the Power Distribution Board (PDB) represents a single point of failure. Save the diagram to '~/Desktop/fault_tree.drawio' and export it to '~/Desktop/fault_tree.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fault_tree_drone_power/setup_task.sh",
+    "post_task": "/workspace/tasks/fault_tree_drone_power/export_result.sh"
+  },
+  "metadata": {
+    "spec_file": "/home/ga/Desktop/drone_system_spec.txt",
+    "output_drawio": "/home/ga/Desktop/fault_tree.drawio",
+    "output_png": "/home/ga/Desktop/fault_tree.png",
+    "min_or_gates": 2,
+    "min_and_gates": 1,
+    "min_basic_events": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fault_tree_drone_power"
+    }
+  }
+}

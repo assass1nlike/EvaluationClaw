@@ -1,0 +1,53 @@
+{
+  "task_id": "create_regex_builder@1",
+  "task_completion": [
+    {
+      "id": "regex_setup_py_created",
+      "description": "Create regex_setup.py defining the forensic_regex module and registering regex_class",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the contents of `regex_setup.py` in `C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\forensic_regex\\`, containing Python code that defines a 'forensic_regex' module and registers a 'regex_class' list."
+    },
+    {
+      "id": "regex_talon_list_created",
+      "description": "Create regex.talon-list with spoken-to-written regex mappings",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing `regex.talon-list` in the Talon module directory, declaring `user.regex_class` with mappings for digit (\\d), word char (\\w), whitespace (\\s), boundary (\\b), any char (.), start (^), and end ($)."
+    },
+    {
+      "id": "regex_talon_created",
+      "description": "Create regex.talon defining the global command to insert the character class",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing `regex.talon` in the Talon module directory, containing the global command `rx <user.regex_class>` configured to insert the chosen character class."
+    },
+    {
+      "id": "extract_ips_script_created",
+      "description": "Create extract_ips.py to parse auth.log for IPv4 addresses",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing `extract_ips.py` in `C:\\Users\\Docker\\Desktop\\Forensics\\`, containing Python code to read `auth.log`, extract IPv4 addresses using regular expressions, and write unique addresses to `ips.txt`."
+    },
+    {
+      "id": "ips_txt_generated",
+      "description": "Execute the script to generate ips.txt with unique IPv4 addresses",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of `extract_ips.py` and/or a file explorer/editor showing `ips.txt` in the Forensics directory containing a list of IPv4 addresses (one per line)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_parsing_logic",
+      "description": "The extraction script must actually parse the log file and not use hardcoded outputs",
+      "visual_evidence": "Check the code of `extract_ips.py` to ensure it contains file reading and regex extraction logic, rather than just writing a hardcoded list of IP addresses to the output file."
+    },
+    {
+      "id": "correct_talon_directory",
+      "description": "Talon module files must be in the correct AppData directory",
+      "visual_evidence": "File paths in the editor or terminal must show the files are located exactly in `C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\forensic_regex\\`."
+    },
+    {
+      "id": "script_executed",
+      "description": "The Python extraction script must be executed by the agent",
+      "visual_evidence": "A terminal window showing the command `python extract_ips.py` (or similar) being run in the `C:\\Users\\Docker\\Desktop\\Forensics\\` directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Work directory: C:\\Users\\Docker\\Desktop\\Forensics. Talon module directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\forensic_regex. Note: The target data file auth.log might be missing from the environment due to a defective setup, so the agent may have had to create a dummy auth.log or the script execution might show a FileNotFoundError."
+}

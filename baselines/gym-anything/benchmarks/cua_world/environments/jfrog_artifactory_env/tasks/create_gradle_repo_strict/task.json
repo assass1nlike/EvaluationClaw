@@ -1,0 +1,30 @@
+{
+  "id": "create_gradle_repo_strict@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Create a local Gradle repository in JFrog Artifactory at http://localhost:8082 (admin/password). The repository must use the key 'gradle-libs-local' and have the checksum policy set to 'Verify against client'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_gradle_repo_strict/setup_task.sh",
+    "post_task": "/workspace/tasks/create_gradle_repo_strict/export_result.sh"
+  },
+  "metadata": {
+    "expected_key": "gradle-libs-local",
+    "expected_type": "gradle",
+    "expected_policy": "client-checksums",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_gradle_repo_strict"
+    }
+  }
+}

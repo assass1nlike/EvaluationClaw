@@ -1,0 +1,114 @@
+---
+title: Environments
+description: The main object you use when running Gym Anything from Python.
+---
+
+The main object in Gym Anything is `GymAnythingEnv`.
+
+This is what you use when you want to:
+
+- start an environment
+- take actions
+- get screenshots and other observations
+- finish the run cleanly
+
+## The Main Methods
+
+Most code uses these methods:
+
+- `reset()`
+- `step(...)`
+- `capture_observation()`
+- `close()`
+
+## Typical Flow
+
+```python
+from gym_anything import from_config
+
+env = from_config(
+    "benchmarks/cua_world/environments/moodle_env",
+    task_id="enroll_student",
+)
+
+obs = env.reset(seed=42)
+obs, reward, done, info = env.step([])
+env.close()
+```
+
+## Fast I/O Observations
+
+Runners with a native fast-I/O backend can opt into in-memory screenshot capture
+at environment creation time:
+
+```python
+env = from_config(
+    "benchmarks/cua_world/environments/google_earth_env",
+    task_id="take_screenshot",
+    fast_io=True,
+)
+```
+
+With `fast_io=True`, screen observations return an in-process image object:
+
+```python
+obs = env.capture_observation()
+image = obs["screen"]["image"]
+```
+
+The same observation shape is returned by `step(...)`. In fast mode,
+`obs["screen"]["image"]` is a PIL image and the library does not write a
+`frame_XXXXX.png` file for every observation. QEMU also routes mouse and
+keyboard actions through QMP and returns immediately after the action plus
+observation capture, without the legacy fixed post-action sleep. Non-fast mode
+keeps the existing file-backed `obs["screen"]["path"]` behavior.
+
+For QEMU, the default fast backend is QMP screendump. To use the lower-latency
+D-Bus display backend, set:
+
+```bash
+export GYM_ANYTHING_QEMU_FAST_IO_BACKEND=dbus
+```
+
+See [Runners](/core/runners) for runner-specific runtime requirements.
+
+Modal Native uses a separate in-VM X11 backend: XDamage and MIT-SHM maintain
+the latest RGB frame, while XTest injects each keyboard or mouse action as one
+acknowledged batch. VNC remains available for interactive viewing but is not on
+the fast-mode screenshot or input path.
+
+## What `step(...)` Does
+
+`step(...)` sends actions to the environment and returns:
+
+- the new observation
+- the reward
+- whether the run is done
+- extra information in `info`
+
+If you want to finish a task and run its checker, call:
+
+```python
+obs, reward, done, info = env.step([], mark_done=True)
+```
+
+An integration that controls its own observation schedule can apply actions
+without the normal post-action delay or screenshot:
+
+```python
+obs, reward, done, info = env.step(
+    actions,
+    capture_observation=False,
+    settle_after_actions=False,
+)
+```
+
+The returned observation is `{}` in this case. Call `capture_observation()` or
+provide the integration's own observation before the next model turn. The same
+keyword arguments are supported by `RemoteGymEnv.step(...)`.
+
+## When To Use `capture_observation()`
+
+<Callout type="info">
+Use `capture_observation()` when you want the current screenshot or other observation data without taking another action. This is useful for inspection, debugging, or custom loops.
+</Callout>

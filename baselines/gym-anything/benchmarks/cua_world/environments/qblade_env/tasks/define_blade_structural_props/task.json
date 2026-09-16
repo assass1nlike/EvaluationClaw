@@ -1,0 +1,41 @@
+{
+  "id": "define_blade_structural_props@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Define the structural properties of a wind turbine blade named 'StructBlade10' in QBlade. Use a NACA 0012 airfoil (100 panels) with an XFoil polar analysis (Re=1,000,000, NCrit=9, AoA -5 to 20). The blade must have three sections at 0m, 5m, and 10m, all using the NACA 0012 airfoil with a Chord of 1.0m and 0 Twist. Assign the following distributed structural properties: at 0m (Mass: 40 kg/m, Stiffness EI: 1.0e7), at 5m (Mass: 20 kg/m, Stiffness EI: 0.5e7), and at 10m (Mass: 5 kg/m, Stiffness EI: 0.1e7). Record the resulting Total Blade Mass in kg as a numeric value in /home/ga/Documents/blade_mass.txt and save the project file to /home/ga/Documents/projects/structural_design.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/define_blade_structural_props/setup_task.sh",
+    "post_task": "/workspace/tasks/define_blade_structural_props/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/Documents/projects/structural_design.wpa",
+    "expected_report_path": "/home/ga/Documents/blade_mass.txt",
+    "target_mass_kg": 212.5,
+    "mass_tolerance": 2.5,
+    "blade_name": "StructBlade10",
+    "structural_values": {
+      "mass": [
+        40,
+        20,
+        5
+      ],
+      "stiffness": [
+        10000000,
+        5000000,
+        1000000
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_blade_structural_props"
+    }
+  }
+}

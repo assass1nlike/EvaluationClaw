@@ -1,0 +1,87 @@
+{
+  "dataset_id": "a2347131",
+  "name": "Dependency-Parsing",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for evaluating dependency parsing through multiple-choice questions. Each item provides a sentence and asks the model to select the correct dependency relation from four options.",
+  "card_text": "The dataset contains 200 text-only samples for dependency parsing. Each sample includes a raw English sentence (input.raw_text) and a prompt (input.prompt) that instructs the model to identify the correct dependency relation for that sentence. The prompt lists four candidate options in the format 'head_word -> dependent_word (relation_type)' and asks the model to choose A, B, C, or D. The correct answer is stored as a single letter in output.text. Sentences vary in topic and style, coming from various sources. The task evaluates syntactic knowledge and the ability to match dependency relations to a given sentence. The multiple-choice format makes it a classification task over four options.",
+  "tasks": [
+    "multiple_choice_qa",
+    "relation_extraction"
+  ],
+  "domain": "linguistics/dependency parsing",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "mixed",
+        "semantics": "A single English sentence that serves as the input for dependency analysis. It is the text for which a dependency relation must be identified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The instruction prompt asking the model to choose the correct dependency relation for the raw_text sentence. It includes formatting instructions and four multiple-choice options labeled A through D.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The four candidate dependency relations embedded in the prompt. Each option specifies a head word, a dependent word, and a relation type, and is labeled A, B, C, or D.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct option letter (A, B, C, or D) indicating which dependency relation is correct for the given sentence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw English sentence (input.raw_text) and a prompt (input.prompt) that combines an instruction with four multiple-choice options for dependency parsing. The prompt asks to choose the correct head_word -> dependent_word (relation_type) relation from the sentence. The answer is a single letter (output.text) corresponding to the chosen option. Options are not stored separately; they are embedded within the prompt text."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Dependency-Parsing/annotation.json",
+    "existing_tags": {
+      "task": "dependency_parsing_mcq",
+      "type": "multiple choice",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

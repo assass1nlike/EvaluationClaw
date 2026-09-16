@@ -1,0 +1,53 @@
+{
+  "task_id": "tool_library_overdue@1",
+  "task_completion": [
+    {
+      "id": "days_overdue_formula",
+      "description": "Verify the Days Overdue formula uses TODAY() and checks for empty Return Dates.",
+      "points": 25,
+      "visual_evidence": "Look at the formula bar when a cell in the 'Days Overdue' column (Column F) is selected. The formula must contain the 'TODAY()' function and a condition checking if the 'Return Date' cell (Column E) is empty (e.g., E2=\"\")."
+    },
+    {
+      "id": "days_overdue_values",
+      "description": "Verify the Days Overdue values are calculated correctly.",
+      "points": 20,
+      "visual_evidence": "Look at Column F (Days Overdue). It should contain numerical values. For any row where Column E (Return Date) has a date filled in, the Days Overdue must be 0."
+    },
+    {
+      "id": "late_fee_values",
+      "description": "Verify the Late Fee values are calculated correctly at $1 per day.",
+      "points": 20,
+      "visual_evidence": "Look at Column G (Late Fee). It should contain numerical or monetary values. The value in Column G must exactly match the number in Column F (since the fee is $1/day). Returned items must show 0 or $0.00."
+    },
+    {
+      "id": "status_values",
+      "description": "Verify the Status column correctly identifies URGENT items.",
+      "points": 20,
+      "visual_evidence": "Look at Column H (Status). It should contain text statuses. Any row where the Days Overdue (Column F) is 7 or greater MUST have the status 'URGENT'."
+    },
+    {
+      "id": "all_rows_completed",
+      "description": "Verify all 13 items have been processed.",
+      "points": 15,
+      "visual_evidence": "Look at rows 2 through 14 in the spreadsheet. Columns F, G, and H must be fully populated for all 13 tools with no empty cells."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "Verify the agent used LibreOffice Calc to perform the task.",
+      "visual_evidence": "The LibreOffice Calc application window should be visible in the screenshots, showing the spreadsheet interface rather than a text editor or terminal."
+    },
+    {
+      "id": "used_formulas_not_hardcoded",
+      "description": "Verify the agent used spreadsheet formulas rather than manually typing answers.",
+      "visual_evidence": "When a cell in Column F, G, or H is selected, the formula bar at the top should show a spreadsheet formula (e.g., starting with '=IF(' or '=') rather than a hardcoded number or text string."
+    },
+    {
+      "id": "no_terminal_scripting_bypass",
+      "description": "Verify the agent did not use a Python script in the terminal to bypass spreadsheet interaction.",
+      "visual_evidence": "There should be no terminal windows visible where the agent wrote and executed a script (like Python or bash) to directly modify the spreadsheet file."
+    }
+  ],
+  "privileged_info_for_vlm": "The spreadsheet contains 13 items in rows 2-14. Columns are A-H: Item Name, Borrower, Checkout Date, Due Date, Return Date, Days Overdue, Late Fee, Status. Late fees are exactly $1.00 per day overdue. URGENT status applies to items 7 or more days overdue. Returned items (where Return Date is not empty) must show 0 days overdue and $0.00 late fee. The Days Overdue formula must use the TODAY() function and check for an empty Return Date cell (e.g., E2=\"\"). Allow a \u00b11 day tolerance for date calculations."
+}

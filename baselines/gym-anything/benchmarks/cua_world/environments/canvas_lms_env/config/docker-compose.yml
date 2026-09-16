@@ -1,0 +1,25 @@
+version: '3.8'
+
+# Canvas LMS Fat Container Setup
+# Uses lbjay/canvas-docker which includes all services pre-configured
+# Admin credentials: canvas@example.edu / canvas-docker
+
+services:
+  canvas:
+    image: lbjay/canvas-docker
+    container_name: canvas-lms
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - RAILS_ENV=development
+    volumes:
+      - canvas_data:/var/canvas/files
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+volumes:
+  canvas_data:

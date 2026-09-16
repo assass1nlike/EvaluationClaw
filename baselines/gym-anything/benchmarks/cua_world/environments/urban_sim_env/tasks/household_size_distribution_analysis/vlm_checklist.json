@@ -1,0 +1,59 @@
+{
+  "task_id": "household_size_distribution_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_and_data_loading",
+      "description": "Open the correct Jupyter notebook and load the UrbanSim HDF5 dataset.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook open with the title 'household_size_analysis.ipynb'. Code cells should show pandas or similar libraries reading the '/home/ga/urbansim_projects/data/sanfran_public.h5' file."
+    },
+    {
+      "id": "data_merging_categorization",
+      "description": "Merge tables to map households to zones and categorize household sizes.",
+      "points": 15,
+      "visual_evidence": "Code cells showing merge/join operations between households, buildings, and parcels tables to obtain 'zone_id'. Code should also show logic categorizing the 'persons' column into '1-person', '2-person', and '3+ person' brackets."
+    },
+    {
+      "id": "aggregation_and_filtering",
+      "description": "Group by zone, filter by minimum households, and calculate required metrics.",
+      "points": 15,
+      "visual_evidence": "Code showing a groupby operation on 'zone_id', a filter for zones with >= 50 households, and calculations for 'total_households', 'avg_persons_per_household', counts, and percentages for the size brackets."
+    },
+    {
+      "id": "top_zones_identification",
+      "description": "Identify the top 5 zones for 1-person and top 5 zones for 3+ person households.",
+      "points": 15,
+      "visual_evidence": "Code showing sorting or nlargest/head operations to extract the 5 zones with the highest percentage of 1-person households and the 5 zones with the highest percentage of 3+ person households."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the aggregated zone data to a CSV file.",
+      "points": 20,
+      "visual_evidence": "Code executing a CSV export (e.g., `to_csv`) to '/home/ga/urbansim_projects/output/zone_household_sizes.csv'. Alternatively, a file explorer or terminal showing this file exists in the output directory."
+    },
+    {
+      "id": "plot_generation",
+      "description": "Generate and save a bar chart comparing the 10 identified zones.",
+      "points": 25,
+      "visual_evidence": "A bar chart visible in the notebook output comparing household size distributions for the 10 selected zones, and code saving the figure to '/home/ga/urbansim_projects/output/family_vs_single_zones.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_notebook_execution",
+      "description": "The notebook was actually executed by the agent.",
+      "visual_evidence": "Code cells have sequential execution numbers (e.g., [1], [2], [3]) next to them, and outputs/plots are rendered directly below the executed cells."
+    },
+    {
+      "id": "real_data_usage",
+      "description": "The agent processed the actual dataset rather than hardcoding answers.",
+      "visual_evidence": "The code explicitly references the 'sanfran_public.h5' file and performs programmatic pandas operations (groupby, merge) rather than defining static arrays or hardcoded strings for the final output."
+    },
+    {
+      "id": "authentic_plot_generation",
+      "description": "The plot was generated programmatically within the notebook.",
+      "visual_evidence": "The plot is rendered as an output of a matplotlib/seaborn/plotly code cell, matching the styling and data of the code written, rather than being an imported image."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/household_size_analysis.ipynb. The dataset must be loaded from /home/ga/urbansim_projects/data/sanfran_public.h5. The expected CSV output path is /home/ga/urbansim_projects/output/zone_household_sizes.csv and must contain exactly these columns: total_households, avg_persons_per_household, count_1_person, count_2_person, count_3plus_person, pct_1_person, pct_3plus_person. The expected plot output path is /home/ga/urbansim_projects/output/family_vs_single_zones.png."
+}

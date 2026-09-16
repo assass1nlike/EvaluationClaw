@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_qa_data_validation_suite@1",
+  "task_completion": [
+    {
+      "id": "table_created",
+      "description": "Create the qa_test_results table in the sakila database",
+      "points": 10,
+      "visual_evidence": "Look for 'CREATE TABLE qa_test_results' executed successfully with a green checkmark in the Action Output panel, or the 'qa_test_results' table visible in the Navigator pane under the 'sakila' schema."
+    },
+    {
+      "id": "procedure_created",
+      "description": "Create the sp_run_qa_suite stored procedure",
+      "points": 30,
+      "visual_evidence": "Look for 'CREATE PROCEDURE sp_run_qa_suite' executed successfully in the Action Output panel, or the procedure listed under 'Stored Procedures' in the Navigator pane. The SQL editor should show the procedure containing INSERT statements with subqueries for the 5 specific checks."
+    },
+    {
+      "id": "procedure_executed",
+      "description": "Execute the stored procedure to populate the results table",
+      "points": 10,
+      "visual_evidence": "Look for 'CALL sp_run_qa_suite()' executed successfully with a green checkmark in the Action Output panel."
+    },
+    {
+      "id": "results_verified",
+      "description": "Verify the qa_test_results table contains the correct test results",
+      "points": 30,
+      "visual_evidence": "Look for a Result Grid showing the contents of 'qa_test_results'. It must contain 5 rows with the correct test_name, records_found, and status ('FAIL'). Expected counts: temporal_violation_check (5), negative_payment_check (4), invalid_email_check (3), zero_rental_duration_check (3), zero_replacement_cost_check (2)."
+    },
+    {
+      "id": "results_exported",
+      "description": "Export the qa_test_results table to a CSV file",
+      "points": 20,
+      "visual_evidence": "Look for the MySQL Workbench export dialog saving the result grid to '/home/ga/Documents/exports/qa_test_results.csv', an export success message in the Action Output, or a file manager/terminal window showing the file exists at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_mysql_workbench",
+      "description": "The agent used MySQL Workbench as requested",
+      "visual_evidence": "Screenshots should show the MySQL Workbench GUI being used to write and execute the SQL queries, rather than a terminal-based MySQL client or a Python script."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "The SQL commands were actually executed against the database",
+      "visual_evidence": "Look for genuine execution timestamps, row counts, and server responses in the MySQL Workbench Action Output panel at the bottom of the screen."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The stored procedure calculates the results dynamically rather than hardcoding the expected answers",
+      "visual_evidence": "In the SQL editor showing the procedure definition, look for actual aggregate queries (e.g., COUNT(*)) against the rental, payment, and customer tables, rather than hardcoded INSERT statements like 'INSERT INTO qa_test_results VALUES (..., 5, 'FAIL')'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database: 'sakila'. Expected table: 'qa_test_results'. Expected procedure: 'sp_run_qa_suite'. Expected output file: '/home/ga/Documents/exports/qa_test_results.csv'. The database contains exactly these injected errors, so the 'records_found' column must show: temporal_violation_check = 5, negative_payment_check = 4, invalid_email_check = 3, zero_rental_duration_check = 3, zero_replacement_cost_check = 2. Because records are found for all checks, the 'status' column for all 5 rows must be 'FAIL'."
+}

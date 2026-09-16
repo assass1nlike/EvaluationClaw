@@ -1,0 +1,53 @@
+{
+  "task_id": "session_hijacking_detection@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Access the Splunk system at localhost:8000",
+      "points": 10,
+      "visual_evidence": "The Splunk Enterprise web interface is visible in the browser, indicating successful login (likely as 'admin')."
+    },
+    {
+      "id": "search_tutorial_index",
+      "description": "Investigate web access logs in the 'tutorial' index",
+      "points": 20,
+      "visual_evidence": "The Splunk Search & Reporting app is open, and the search bar contains an SPL query referencing the 'tutorial' index (e.g., 'index=tutorial' or keywords like 'web', 'access')."
+    },
+    {
+      "id": "session_hijacking_query",
+      "description": "Formulate a query to detect a single session ID associated with multiple distinct IP addresses",
+      "points": 30,
+      "visual_evidence": "The SPL query includes a session identifier (e.g., 'jsessionid', 'session', or 'cookie') and logic to count distinct IPs (e.g., 'stats dc(clientip)' or 'distinct_count') with a filter for greater than 1."
+    },
+    {
+      "id": "open_alert_dialog",
+      "description": "Initiate the creation of an alert from the search results",
+      "points": 10,
+      "visual_evidence": "The 'Save As' -> 'Alert' dialog box or modal is open in the Splunk interface."
+    },
+    {
+      "id": "save_scheduled_alert",
+      "description": "Create a scheduled alert named 'Session_Hijacking_Alert'",
+      "points": 30,
+      "visual_evidence": "The alert configuration modal shows the Title exactly as 'Session_Hijacking_Alert' and the Alert Type is set to 'Scheduled' (not Real-time)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_splunk_ui",
+      "description": "Agent interacted with the actual Splunk Web UI",
+      "visual_evidence": "Screenshots show the genuine Splunk Enterprise interface in a web browser at localhost:8000, rather than a mock-up or text editor."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "Agent did not use terminal scripts to bypass UI interaction",
+      "visual_evidence": "The alert creation and search process should be visible in the browser GUI, not executed via hidden curl commands or scripts in the terminal."
+    },
+    {
+      "id": "no_copy_paste_text_file",
+      "description": "Agent did not just write the expected answers into a text file",
+      "visual_evidence": "The query and alert name are entered into the actual Splunk input fields, not just typed into a generic text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected scheduled alert name must be exactly 'Session_Hijacking_Alert'. The Splunk search query should target the 'tutorial' index (look for keywords: 'tutorial', 'web', 'access') and group by a session identifier (look for keywords: 'jsessionid', 'session', 'cookie'). The Splunk credentials are admin / SplunkAdmin1!."
+}

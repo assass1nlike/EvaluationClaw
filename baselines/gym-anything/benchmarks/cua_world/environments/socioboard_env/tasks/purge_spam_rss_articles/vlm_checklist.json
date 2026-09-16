@@ -1,0 +1,53 @@
+{
+  "task_id": "purge_spam_rss_articles@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Connect to the socioboard database",
+      "points": 10,
+      "visual_evidence": "Screenshots should show a database client (GUI like MongoDB Compass or CLI like mongosh) connected to the 'socioboard' database."
+    },
+    {
+      "id": "access_collection",
+      "description": "Open the rss_articles collection",
+      "points": 10,
+      "visual_evidence": "Screenshots should show the 'rss_articles' collection selected in the GUI navigation pane or being queried in the CLI (e.g., db.rss_articles)."
+    },
+    {
+      "id": "formulate_spam_filter",
+      "description": "Create a query to identify the spam articles",
+      "points": 20,
+      "visual_evidence": "Screenshots should show a filter or query targeting the phrase 'crypto-giveaway' (case-insensitive) in either the 'title' or 'description' fields (e.g., using $or and $regex)."
+    },
+    {
+      "id": "execute_deletion",
+      "description": "Delete the identified spam documents",
+      "points": 30,
+      "visual_evidence": "Screenshots should show the execution of a delete operation, such as a 'deleteMany' command in the shell, clicking a 'Delete' button in a GUI after filtering, or a confirmation message indicating documents were deleted."
+    },
+    {
+      "id": "verify_remaining_count",
+      "description": "Verify the correct number of legitimate articles remain",
+      "points": 30,
+      "visual_evidence": "Screenshots should show a document count of exactly 150 remaining in the 'rss_articles' collection, or a deletion confirmation specifically stating that 42 documents were deleted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Verify the agent used a real database client",
+      "visual_evidence": "The interface shown must be a genuine database management tool (like MongoDB Compass) or a terminal running a real database shell/script, not a text editor where the agent is just typing out expected outputs."
+    },
+    {
+      "id": "no_collection_drop",
+      "description": "Verify the agent did not drop the entire collection",
+      "visual_evidence": "Ensure there is no evidence of the agent using a 'drop()' command on the 'rss_articles' collection, which would destroy the legitimate articles along with the spam."
+    },
+    {
+      "id": "authentic_results",
+      "description": "Verify the document counts and success messages are authentic",
+      "visual_evidence": "Any display of '150 documents' or '42 deleted' must appear as standard output from the database software's interface, not as a manually typed echo or print statement designed to fake completion."
+    }
+  ],
+  "privileged_info_for_vlm": "Database name: 'socioboard'. Collection name: 'rss_articles'. Target spam keyword: 'crypto-giveaway' (case-insensitive). There are exactly 42 spam documents that must be deleted. There are exactly 150 legitimate documents that must remain intact. The final document count in the collection should be 150."
+}

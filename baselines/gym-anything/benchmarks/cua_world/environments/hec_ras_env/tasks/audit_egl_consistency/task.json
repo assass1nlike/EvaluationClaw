@@ -1,0 +1,28 @@
+{
+  "id": "audit_egl_consistency@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform a hydraulic consistency audit on the Muncie HEC-RAS model results using the unsteady simulation file Muncie.p04.hdf. Identify the simulation time step where flow is maximized at the most upstream cross-section and calculate the Energy Grade Line (EGL = WSE + Velocity^2 / 64.348) for all cross-sections at that specific time. Export the data to ~/Documents/hec_ras_results/egl_profile_audit.csv with columns 'RiverStation', 'WSE_ft', 'Velocity_fps', 'EGL_ft', and 'Energy_Gain_Flag' (True if EGL is higher than the immediate upstream neighbor). Additionally, create a summary file at ~/Documents/hec_ras_results/audit_summary.txt recording the peak flow time index, the upstream river station ID, and the total count of violations found.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_egl_consistency/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_egl_consistency/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "hdf_file": "Muncie.p04.hdf",
+    "csv_file": "egl_profile_audit.csv",
+    "txt_file": "audit_summary.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_egl_consistency"
+    }
+  }
+}

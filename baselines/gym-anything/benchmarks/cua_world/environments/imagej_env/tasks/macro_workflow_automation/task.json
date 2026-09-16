@@ -1,0 +1,43 @@
+{
+  "id": "macro_workflow_automation@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "description": "Automate a standard image analysis protocol by creating a reusable Fiji macro for the 'Blobs' sample image. The macro must perform a Gaussian Blur with Sigma 2.0, apply Otsu thresholding, and run Analyze Particles with a size range of 20-Infinity showing outlines. Save the resulting script as 'standard_protocol.ijm' to '/home/ga/ImageJ_Data/macros/'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/macro_workflow_automation/setup_task.sh",
+    "post_task": "/workspace/tasks/macro_workflow_automation/export_result.sh"
+  },
+  "metadata": {
+    "macro_path": "/home/ga/ImageJ_Data/macros/standard_protocol.ijm",
+    "expected_commands": [
+      "Gaussian Blur",
+      "Threshold",
+      "Analyze Particles"
+    ],
+    "expected_parameters": {
+      "sigma": "2",
+      "threshold_method": "Otsu",
+      "min_size": "20"
+    },
+    "expected_particle_count_min": 40,
+    "expected_particle_count_max": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_macro_workflow"
+    }
+  },
+  "tags": [
+    "automation",
+    "macro-recording",
+    "image-processing",
+    "reproducibility"
+  ]
+}

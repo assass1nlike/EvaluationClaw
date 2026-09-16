@@ -1,0 +1,36 @@
+{
+  "id": "market_research_screener_config@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "A media consultancy needs a robust screener question for their 'Streaming Media Consumption 2025' survey to ensure data quality. Log in to LimeSurvey (admin/Admin123!) and create an active survey titled 'Streaming Media Consumption 2025' containing a question group named 'Screener'. Within this group, create a mandatory Multiple Choice question asking 'Which of the following video streaming services do you currently subscribe to?' with an enabled 'Other' option and randomized answer order. Use the following answer codes and options: S01: Netflix, S02: Hulu, S03: Disney+, S04: Amazon Prime Video, S05: HBO Max, and NONE: None of the above. The 'None of the above' option (NONE) must be configured as an exclusive selection.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/market_research_screener_config/setup_task.sh",
+    "post_task": "/workspace/tasks/market_research_screener_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "Streaming",
+    "expected_codes": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "NONE"
+    ],
+    "expected_type": "M",
+    "expected_attribute_random": "random_order",
+    "expected_attribute_exclusive": "exclusive_option"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_market_research_screener_config"
+    }
+  }
+}

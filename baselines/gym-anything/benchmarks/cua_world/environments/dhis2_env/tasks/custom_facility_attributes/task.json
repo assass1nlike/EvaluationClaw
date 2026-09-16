@@ -1,0 +1,31 @@
+{
+  "id": "custom_facility_attributes@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "As a DHIS2 Administrator, extend the data model to capture infrastructure details for health facilities. Create a 'Yes/No' attribute for Organisation units named 'Generator Functional' and a 'Positive Integer' attribute for Organisation units named 'Distance to District Office (km)'. Update the 'Bo Govt Hospital' organisation unit by setting 'Generator Functional' to 'Yes' and 'Distance to District Office (km)' to '15'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/custom_facility_attributes/setup_task.sh",
+    "post_task": "/workspace/tasks/custom_facility_attributes/export_result.sh"
+  },
+  "metadata": {
+    "attr1_name": "Generator Functional",
+    "attr1_type": "BOOLEAN",
+    "attr2_name": "Distance to District Office (km)",
+    "attr2_type": "INTEGER_POSITIVE",
+    "facility_name": "Bo Govt Hospital",
+    "expected_val1": "true",
+    "expected_val2": "15"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_custom_facility_attributes"
+    }
+  }
+}

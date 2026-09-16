@@ -1,0 +1,29 @@
+{
+  "id": "generate_admissions_report@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Generate an 'Admissions Detail' (or 'Admissions') report in HospitalRun for the date range January 1, 2015, to December 31, 2025. Save a screenshot of the resulting report data to ~/Desktop/admissions_report.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_admissions_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_admissions_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Desktop/admissions_report.png",
+    "report_type": "Admissions",
+    "start_date": "01/01/2015",
+    "end_date": "12/31/2025",
+    "min_file_size_kb": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_admissions_report"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_flood_hazard_index@1",
+  "task_completion": [
+    {
+      "id": "access_hdf5_results",
+      "description": "Access the HEC-RAS simulation results (HDF5 file) for the Muncie project.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the agent opening the HDF5 file using a viewer (like HDFView) or writing a script (e.g., Python with h5py/pandas) that references the HDF5 file path in the Muncie project directory."
+    },
+    {
+      "id": "calculate_dv_product",
+      "description": "Extract Hydraulic Depth and Channel Velocity at Peak Flow, and calculate the Depth-Velocity (DV) Product.",
+      "points": 20,
+      "visual_evidence": "Code or spreadsheet formulas showing the extraction of depth and velocity variables and a multiplication operation (Depth * Velocity) to compute the DV product."
+    },
+    {
+      "id": "implement_classification",
+      "description": "Classify each cross section into the specified hazard categories based on the DV product.",
+      "points": 20,
+      "visual_evidence": "Code (if/elif/else statements) or spreadsheet logic applying the exact thresholds: Low (< 4), Medium (4 to <12), High (12 to <25), and Extreme (>= 25)."
+    },
+    {
+      "id": "generate_csv_report",
+      "description": "Save the results to a CSV file with the required columns.",
+      "points": 25,
+      "visual_evidence": "A script saving to or a file explorer/editor showing 'flood_hazard_index.csv' at '/home/ga/Documents/hec_ras_results/' with headers: river_station, depth_ft, velocity_fps, dv_product, hazard_category."
+    },
+    {
+      "id": "generate_summary_report",
+      "description": "Save a summary text file containing category counts and the stations with the maximum and minimum DV products.",
+      "points": 20,
+      "visual_evidence": "A script saving to or a text editor showing 'flood_hazard_summary.txt' at '/home/ga/Documents/hec_ras_results/' containing the count of cross sections per category and the specific stations for max/min DV products."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_extraction",
+      "description": "The agent actually extracts data from the HDF5 file rather than hallucinating or hardcoding the cross-section data.",
+      "visual_evidence": "Look for a script importing libraries like 'h5py' or 'h5pyd' and reading datasets, or the use of an HDF viewer tool, rather than a script with a hardcoded list of stations and values."
+    },
+    {
+      "id": "programmatic_calculation",
+      "description": "The agent calculates the DV product and hazard categories programmatically.",
+      "visual_evidence": "Look for mathematical operations (*) and conditional logic (if/else) in the agent's code, ensuring the agent didn't just copy-paste a pre-computed text block."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "The output files are saved in the exact requested directory.",
+      "visual_evidence": "Check terminal commands, script save paths, or the file manager to ensure the files are placed exactly in '/home/ga/Documents/hec_ras_results/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The HEC-RAS project is located at '/home/ga/Documents/hec_ras_projects/Muncie'. The output CSV must be saved to '/home/ga/Documents/hec_ras_results/flood_hazard_index.csv' and contain exactly these columns: 'river_station', 'depth_ft', 'velocity_fps', 'dv_product', 'hazard_category'. The summary text file must be saved to '/home/ga/Documents/hec_ras_results/flood_hazard_summary.txt'. The hazard thresholds are: Low (DV < 4), Medium (4 <= DV < 12), High (12 <= DV < 25), and Extreme (DV >= 25)."
+}

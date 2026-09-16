@@ -1,0 +1,28 @@
+{
+  "id": "block_spam_domain@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the Security Manager at a financial firm. A phishing email with the subject 'CRITICAL: Server Access Expiring' has been found in the 'Security' mailbox. Identify the sender's domain and create a global blacklist rule to block the entire domain (using the format *@domain.com) with the note 'Phishing campaign March 2026'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/block_spam_domain/setup_task.sh",
+    "post_task": "/workspace/tasks/block_spam_domain/export_result.sh"
+  },
+  "metadata": {
+    "target_domain": "network-security-update.io",
+    "expected_rule_value": "*@network-security-update.io",
+    "expected_note_content": "Phishing campaign",
+    "sender_email": "alert@network-security-update.io"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_block_spam_domain"
+    }
+  }
+}

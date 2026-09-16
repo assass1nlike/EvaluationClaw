@@ -1,0 +1,33 @@
+{
+  "id": "set_bandpass_filter@1",
+  "name": "Change Bandpass Filter to 1-50 Hz in OpenBCI GUI",
+  "description": "The OpenBCI GUI is running an active Synthetic EEG session with the bandpass filter currently set to 5-50 Hz. Change the bandpass filter to a 1-50 Hz range to preserve low-frequency drift and delta waves below 5 Hz while still rejecting high-frequency noise.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "application": "OpenBCI GUI v5.2.2",
+    "feature": "Bandpass filter",
+    "default_filter": "5-50 Hz",
+    "target_filter": "1-50 Hz",
+    "difficulty": "medium"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/set_bandpass_filter/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_set_bandpass_filter"
+    }
+  },
+  "tags": [
+    "openbci",
+    "filter",
+    "bandpass",
+    "signal-processing",
+    "eeg"
+  ]
+}

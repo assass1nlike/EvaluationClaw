@@ -1,0 +1,59 @@
+{
+  "task_id": "hillshade_relief_map@1",
+  "task_completion": [
+    {
+      "id": "open_dem_file",
+      "description": "Open the SRTM DEM file",
+      "points": 10,
+      "visual_evidence": "Look for 'srtm_dem.tif' loaded in the application's product explorer or a file open dialog."
+    },
+    {
+      "id": "compute_gradients",
+      "description": "Compute horizontal and vertical gradient bands",
+      "points": 15,
+      "visual_evidence": "Look for Band Maths dialogs creating new bands for dx and dy, or these bands appearing in the product tree."
+    },
+    {
+      "id": "compute_slope_aspect",
+      "description": "Compute slope and aspect bands",
+      "points": 20,
+      "visual_evidence": "Look for Band Maths dialogs showing expressions with 'atan' and 'atan2' for slope and aspect, or the new slope and aspect bands in the product tree."
+    },
+    {
+      "id": "compute_hillshade",
+      "description": "Compute the hillshade band using the specified formula",
+      "points": 25,
+      "visual_evidence": "Look for a Band Maths dialog showing the hillshade formula involving cos, sin, slope, aspect, and the radian equivalents of 45 degrees (zenith) and 315 degrees (azimuth), or the resulting hillshade band in the product tree."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Save the product in BEAM-DIMAP format",
+      "points": 15,
+      "visual_evidence": "Look for a save dialog or file manager showing 'hillshade_product.dim' being saved to '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the hillshade relief as a GeoTIFF",
+      "points": 15,
+      "visual_evidence": "Look for an export dialog or file manager showing 'hillshade_relief.tif' being exported to '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the GIS software GUI to perform the tasks",
+      "visual_evidence": "Look for interaction with the SNAP (or similar GIS) graphical user interface, rather than just terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "Agent actually entered the formulas to compute the bands",
+      "visual_evidence": "Look for the Band Maths dialog being actively used with the correct mathematical expressions, not just renaming files or creating empty bands."
+    },
+    {
+      "id": "actual_export",
+      "description": "Agent used the application's export functionality",
+      "visual_evidence": "Look for the application's 'Save Product' or 'Export' dialogs being used, rather than terminal commands like 'touch' or 'cp' to create the output files."
+    }
+  ],
+  "privileged_info_for_vlm": "The input DEM is located at /home/ga/snap_data/srtm_dem.tif. The expected BEAM-DIMAP output is /home/ga/snap_exports/hillshade_product.dim. The expected GeoTIFF output is /home/ga/snap_exports/hillshade_relief.tif."
+}

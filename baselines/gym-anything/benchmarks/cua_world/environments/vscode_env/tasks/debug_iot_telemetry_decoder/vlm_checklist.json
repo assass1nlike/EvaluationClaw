@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_iot_telemetry_decoder@1",
+  "task_completion": [
+    {
+      "id": "fix_struct_format",
+      "description": "Fix the binary struct format parsing to match the 12-byte Little Endian specification.",
+      "points": 20,
+      "visual_evidence": "Code editor or diff showing the struct format string updated to '<IHhHBB' (or equivalent Little Endian format for UInt32, UInt16, Int16, UInt16, UInt8, UInt8)."
+    },
+    {
+      "id": "fix_checksum_loop",
+      "description": "Fix the XOR checksum calculation to only include bytes 0-10.",
+      "points": 20,
+      "visual_evidence": "Code editor or diff showing the checksum loop or calculation iterating over the first 11 bytes (e.g., `payload[:11]` or indices 0 to 10)."
+    },
+    {
+      "id": "fix_temperature_scaling",
+      "description": "Fix the temperature scaling to correctly apply the 0.01 scale factor.",
+      "points": 20,
+      "visual_evidence": "Code editor or diff showing the parsed temperature value being multiplied by 0.01 or divided by 100."
+    },
+    {
+      "id": "fix_rh_scaling",
+      "description": "Fix the relative humidity scaling to correctly apply the 0.01 scale factor for dew point calculations.",
+      "points": 20,
+      "visual_evidence": "Code editor or diff showing the parsed relative humidity (RH) value being multiplied by 0.01 or divided by 100 (e.g., `rh / 100.0`)."
+    },
+    {
+      "id": "fix_temporal_mapping",
+      "description": "Fix the database manager to use the payload's timestamp instead of the current system time.",
+      "points": 20,
+      "visual_evidence": "Code editor or diff showing the database insertion logic using the parsed `TS` (timestamp) variable rather than `datetime.now()`, `time.time()`, or similar current-time functions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the agent actually modified the existing files in /home/ga/workspace/.",
+      "visual_evidence": "Screenshots show an editor (like VS Code, vim, nano) or terminal commands (like sed) modifying the original decoder and database manager scripts, rather than creating new mock files."
+    },
+    {
+      "id": "no_hardcoded_pass",
+      "description": "Verify the agent did not hardcode the expected outputs or bypass the validation logic.",
+      "visual_evidence": "The code modifications contain actual mathematical and logical fixes (e.g., struct formats, division by 100) rather than hardcoded return values or commented-out validation checks."
+    },
+    {
+      "id": "execution_verification",
+      "description": "Verify the agent ran the decoder to test the fixes.",
+      "visual_evidence": "Terminal output showing the execution of the Python scripts with logs indicating successful payload processing, no checksum errors, and realistic temperatures."
+    }
+  ],
+  "privileged_info_for_vlm": "The binary protocol requires Little Endian parsing with struct format '<IHhHBB'. The XOR checksum must be calculated over bytes 0-10 (e.g., `payload[:11]`). Temperature and Relative Humidity must be scaled by 0.01 (divided by 100). The database manager must use the parsed timestamp from the payload (event-time) rather than the current system time to avoid clustering all data into the current hour. Pass threshold is 60 points."
+}

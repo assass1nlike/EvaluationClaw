@@ -1,0 +1,59 @@
+{
+  "task_id": "viewshed_fire_lookout_siting@1",
+  "task_completion": [
+    {
+      "id": "load_source_dem",
+      "description": "Load the original SRTM DEM file into the GIS software.",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel (or similar GIS software) shows 'srtm_41_19' loaded as a raster layer."
+    },
+    {
+      "id": "reproject_dem",
+      "description": "Reproject the DEM to WGS 84 / UTM zone 34S (EPSG:32734).",
+      "points": 15,
+      "visual_evidence": "A reprojection tool dialog (like 'Warp (Reproject)') is visible with the Target CRS explicitly set to EPSG:32734 (WGS 84 / UTM zone 34S)."
+    },
+    {
+      "id": "save_reprojected_dem",
+      "description": "Save the reprojected DEM to the specified path.",
+      "points": 10,
+      "visual_evidence": "The reprojection output path is set to '/home/ga/GIS_Data/rasters/dem_reprojected.tif' in the tool dialog, or this file is visible in the file manager/Layers panel."
+    },
+    {
+      "id": "identify_highest_point",
+      "description": "Identify the highest elevation point in the reprojected DEM to use as the observer location.",
+      "points": 25,
+      "visual_evidence": "Evidence of the agent querying raster statistics to find the maximum elevation (expected around 1699m) and using a tool (like Value Tool, Raster Calculator, or coordinate capture) to locate this pixel. The coordinates of this highest point should be entered as the observer location in the viewshed tool."
+    },
+    {
+      "id": "configure_viewshed_parameters",
+      "description": "Configure the viewshed analysis with the correct observer height, target height, and radius.",
+      "points": 20,
+      "visual_evidence": "The Viewshed Analysis tool dialog is open with the following parameters entered: Observer height = 10, Target height = 0, and Search radius = 20000 (if in meters) or 20 (if in kilometers)."
+    },
+    {
+      "id": "save_viewshed_output",
+      "description": "Save the final viewshed raster to the specified exports folder.",
+      "points": 20,
+      "visual_evidence": "The output file path in the Viewshed tool is set to '/home/ga/GIS_Data/exports/fire_lookout_viewshed.tif', and/or the resulting visibility map is successfully generated and displayed on the map canvas."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the GIS graphical user interface rather than exclusively relying on terminal commands.",
+      "visual_evidence": "Screenshots show QGIS (or similar GIS software) open with tool dialogs (Warp, Viewshed) being actively used, rather than just a terminal window running GDAL commands."
+    },
+    {
+      "id": "genuine_viewshed_generation",
+      "description": "The viewshed output is a genuine calculated raster, not a dummy file.",
+      "visual_evidence": "The map canvas displays a realistic viewshed pattern (typically a binary or continuous radial spread of visible areas originating from the highest point), rather than a blank canvas or a solid block of color."
+    },
+    {
+      "id": "no_bypassing_highest_point_search",
+      "description": "The agent actively searched for the highest point rather than hardcoding a pre-known coordinate.",
+      "visual_evidence": "Screenshots show intermediate steps of finding the maximum elevation (e.g., opening layer properties, statistics panel, or using an identify tool) before entering the coordinates into the viewshed tool."
+    }
+  ],
+  "privileged_info_for_vlm": "The source DEM (srtm_41_19.tif) has an elevation range of 0-1699m. The agent must find the coordinate of the maximum elevation (~1699m) to use as the observer point. The target CRS is EPSG:32734. The viewshed parameters must be exactly: observer height = 10m, target height = 0m, and radius = 20000m (or 20km)."
+}

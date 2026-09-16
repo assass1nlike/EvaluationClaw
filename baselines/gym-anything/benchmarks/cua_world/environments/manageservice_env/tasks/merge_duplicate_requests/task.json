@@ -1,0 +1,39 @@
+{
+  "id": "merge_duplicate_requests@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Merge the four duplicate service requests regarding the email server outage submitted by Sarah Johnson, Mike Chen, Lisa Rodriguez, and David Thompson. Sarah Johnson's ticket ('Email server completely down...') must be the parent request.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_duplicate_requests/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_duplicate_requests/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "parent_subject": "Email server completely down - cannot send or receive",
+    "child_subjects": [
+      "Outlook keeps showing disconnected from server since 7 AM",
+      "Unable to access email since this morning - urgent",
+      "Exchange server error - email not working for entire Sales team"
+    ],
+    "requesters": {
+      "parent": "Sarah Johnson",
+      "children": [
+        "Mike Chen",
+        "Lisa Rodriguez",
+        "David Thompson"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_duplicate_requests"
+    }
+  }
+}

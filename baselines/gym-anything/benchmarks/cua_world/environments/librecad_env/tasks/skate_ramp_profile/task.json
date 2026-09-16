@@ -1,0 +1,44 @@
+{
+  "id": "skate_ramp_profile@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a side-view profile drawing of a skatepark quarter pipe ramp in LibreCAD. The drawing must include three layers: 'TEMPLATE' (Color: White/7), 'COPING' (Color: Red/1), and 'DIMENSIONS' (Color: Cyan/4). The 'TEMPLATE' layer should contain a 90-degree transition arc (Radius: 1800mm, Center: 0,1800, Start: 0,0, End: 1800,1800), a horizontal deck line from (1800, 1800) to (2400, 1800), and enclosure lines from (2400, 1800) to (2400, 0) and back to (0, 0). The 'COPING' layer must feature a circle (Center: 1800,1800, Radius: 30mm). The 'DIMENSIONS' layer must include a vertical dimension for the 1800mm height, a horizontal dimension for the 600mm deck width, and a radial dimension for the 1800mm radius. Save the drawing as a DXF file to /home/ga/Documents/LibreCAD/quarter_pipe.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/skate_ramp_profile/setup_task.sh",
+    "post_task": "/workspace/tasks/skate_ramp_profile/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/LibreCAD/quarter_pipe.dxf",
+    "geometry": {
+      "arc_radius": 1800,
+      "arc_center": [
+        0,
+        1800
+      ],
+      "coping_radius": 30,
+      "coping_center": [
+        1800,
+        1800
+      ],
+      "deck_width": 600,
+      "tolerance": 1.0
+    },
+    "layers": {
+      "TEMPLATE": 7,
+      "COPING": 1,
+      "DIMENSIONS": 4
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_skate_ramp_profile"
+    }
+  }
+}

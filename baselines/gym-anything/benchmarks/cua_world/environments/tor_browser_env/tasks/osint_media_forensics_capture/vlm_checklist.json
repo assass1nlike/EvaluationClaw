@@ -1,0 +1,53 @@
+{
+  "task_id": "osint_media_forensics_capture@1",
+  "task_completion": [
+    {
+      "id": "tor_security_safer",
+      "description": "Set Tor Browser security level to 'Safer'",
+      "points": 15,
+      "visual_evidence": "Look for the Tor Browser shield icon menu or settings page showing the security level explicitly set to 'Safer'."
+    },
+    {
+      "id": "navigate_target_url",
+      "description": "Navigate to the target Wikimedia Commons URL",
+      "points": 15,
+      "visual_evidence": "Look for Tor Browser with the address bar showing 'https://commons.wikimedia.org/wiki/File:Macaca_nigra_self-portrait_large.jpg' or the Macaca nigra monkey selfie page loaded."
+    },
+    {
+      "id": "download_image",
+      "description": "Download the image to /home/ga/Documents/evidence_media.jpg",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window showing 'evidence_media.jpg' in the Documents folder, or a 'Save Image As' dialog saving to this exact path."
+    },
+    {
+      "id": "create_metadata_report",
+      "description": "Create a report at /home/ga/Documents/forensic_metadata.txt containing Camera model and Exposure time",
+      "points": 30,
+      "visual_evidence": "Look for a text editor showing a file named 'forensic_metadata.txt' saved in Documents. The content should mention Camera model and Exposure time (likely noting they are missing/not found)."
+    },
+    {
+      "id": "bookmark_page",
+      "description": "Bookmark the page with the exact title 'OSINT Evidence Source'",
+      "points": 20,
+      "visual_evidence": "Look for the Tor Browser bookmark menu, sidebar, or 'Edit Bookmark' dialog showing a bookmark for the page with the name 'OSINT Evidence Source'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_usage",
+      "description": "The agent used the Tor Browser GUI to navigate and bookmark the page.",
+      "visual_evidence": "Screenshots should show the Tor Browser interface being interacted with, not just terminal commands like curl or wget."
+    },
+    {
+      "id": "no_hallucinated_metadata",
+      "description": "The agent did not hallucinate EXIF data that doesn't exist.",
+      "visual_evidence": "The forensic_metadata.txt file should NOT contain hallucinated values like 'Canon', '5D', or '1/250', since the actual image lacks this metadata."
+    },
+    {
+      "id": "genuine_metadata_inspection",
+      "description": "The agent attempted to genuinely inspect the image metadata.",
+      "visual_evidence": "Look for terminal windows running 'exiftool', an image viewer's properties/metadata tab, or an online EXIF viewer being used on the downloaded image."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://commons.wikimedia.org/wiki/File:Macaca_nigra_self-portrait_large.jpg. Expected media path: /home/ga/Documents/evidence_media.jpg. Expected report path: /home/ga/Documents/forensic_metadata.txt. Expected bookmark title: 'OSINT Evidence Source'. CRITICAL NOTE: The actual image on Wikimedia Commons does NOT contain Camera model or Exposure time EXIF data (it was historically stripped). The agent's report should reflect that this metadata is missing/not found, and must NOT hallucinate values."
+}

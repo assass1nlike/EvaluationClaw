@@ -1,0 +1,59 @@
+{
+  "task_id": "import_csv_data@1",
+  "task_completion": [
+    {
+      "id": "access_demodb",
+      "description": "Verify the agent accessed the 'demodb' database in OrientDB.",
+      "points": 10,
+      "visual_evidence": "Look for the OrientDB Studio interface (or OrientDB console) showing an active connection to the 'demodb' database."
+    },
+    {
+      "id": "create_airports_class",
+      "description": "Verify the creation of the 'Airports' vertex class.",
+      "points": 10,
+      "visual_evidence": "Look for 'Airports' listed under the Vertex classes in the Schema manager, or a successful execution message for 'CREATE CLASS Airports EXTENDS V'."
+    },
+    {
+      "id": "configure_properties_and_index",
+      "description": "Verify the 'Airports' class has the correct properties and a UNIQUE index on IataCode.",
+      "points": 20,
+      "visual_evidence": "Look at the Schema view for the 'Airports' class. It should list properties: IataCode (STRING), Name (STRING), City (STRING), Country (STRING), Latitude (DOUBLE), Longitude (DOUBLE), and Altitude (INTEGER). There must also be an 'Indexes' section showing a UNIQUE index for 'IataCode'."
+    },
+    {
+      "id": "create_edge_class",
+      "description": "Verify the creation of the 'IsInCountry' edge class.",
+      "points": 10,
+      "visual_evidence": "Look for 'IsInCountry' listed under the Edge classes in the Schema manager, or a successful execution message for 'CREATE CLASS IsInCountry EXTENDS E'."
+    },
+    {
+      "id": "verify_imported_data",
+      "description": "Verify the CSV data was successfully imported into the 'Airports' class.",
+      "points": 20,
+      "visual_evidence": "Look for query results (e.g., 'SELECT * FROM Airports') showing exactly 20 records with valid IATA codes (like FCO, TXL, CDG, LHR, JFK) and populated geographic coordinates."
+    },
+    {
+      "id": "verify_created_edges",
+      "description": "Verify that 'IsInCountry' edges link Airport vertices to Country vertices.",
+      "points": 30,
+      "visual_evidence": "Look for a Graph visualization showing Airport vertices connected to Country vertices via 'IsInCountry' edges, or query results (e.g., 'SELECT * FROM IsInCountry' or 'MATCH') showing populated edge records linking the two classes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "real_db_interaction",
+      "description": "Ensure the agent interacted with the actual OrientDB database interface or console.",
+      "visual_evidence": "The screenshots must show OrientDB Studio (web interface) or the OrientDB terminal console, not just a text editor with SQL commands written down."
+    },
+    {
+      "id": "no_mocked_data",
+      "description": "Ensure the agent imported the actual CSV data rather than manually inserting a few fake records.",
+      "visual_evidence": "The query results should show multiple distinct real-world airports (e.g., FCO, TXL, CDG) matching the 20 expected records, not just one or two manually typed test entries."
+    },
+    {
+      "id": "actual_edge_creation",
+      "description": "Ensure the edges were actually created in the database.",
+      "visual_evidence": "Look for system confirmation of edge creation (e.g., 'Created X edges') or actual query/graph results displaying the edges, rather than just the command being typed without execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'demodb' (credentials: admin/admin). The CSV file is located at '/home/ga/airports.csv' and contains exactly 20 real-world airport records (e.g., FCO, TXL, CDG, LHR, JFK, NRT, SYD, GIG, YYZ, MAD, ATH, AMS, MXP, MUC, ORY, LGW, LAX, KIX, MEL, GRU). The 'Airports' class must have properties: IataCode (STRING), Name (STRING), City (STRING), Country (STRING), Latitude (DOUBLE), Longitude (DOUBLE), Altitude (INTEGER), and a UNIQUE index on IataCode. The edge class must be named 'IsInCountry'."
+}

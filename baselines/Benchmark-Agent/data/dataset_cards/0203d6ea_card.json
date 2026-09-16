@@ -1,0 +1,74 @@
+{
+  "dataset_id": "0203d6ea",
+  "name": "Sentence-Similarity-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates binary sentence similarity detection: given two short texts, predict whether they are duplicates or not. Each sample contains a pair of texts and a prompt asking for the duplicate/not_duplicate label, with the output being the category.",
+  "card_text": "The dataset consists of 200 text-only samples for binary duplicate detection. Each sample's input includes a raw_text field that concatenates two short texts (Text 1 and Text 2) and a prompt instructing the model to determine if the two texts are duplicates. The output is a single category label: duplicate or not_duplicate. The texts are generally short questions or sentences, often from everyday or general knowledge domains, and the task requires semantic equivalence judgment rather than surface matching. The prompt explicitly restricts the output to the category name, making this a closed-set binary classification problem. Assumptions: the two texts are the only context, and the label reflects semantic duplication, not just lexical overlap.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "sentence similarity detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Concatenated pair of short texts labeled 'Text 1' and 'Text 2', representing the two sentences whose semantic similarity or duplication is to be judged; it acts as the main input context for the task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Templated instruction that embeds the raw_text and asks whether the two texts are duplicates, specifying that only the category name ('duplicate' or 'not_duplicate') should be output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Binary label indicating whether the two texts in raw_text are semantically duplicates ('duplicate') or not ('not_duplicate').",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with two fields: raw_text, which concatenates two short texts labeled Text 1 and Text 2 as the context, and prompt, an instruction that asks whether those two texts are duplicates. The output object contains a single category field holding the answer label, either duplicate or not_duplicate. The prompt references the raw_text, linking the context and question, and the answer is a discrete binary category."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Sentence-Similarity-Detection/annotation.json",
+    "existing_tags": {
+      "task": "sentence_similarity_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

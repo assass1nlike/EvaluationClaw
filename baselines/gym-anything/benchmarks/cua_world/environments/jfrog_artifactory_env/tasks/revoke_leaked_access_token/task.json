@@ -1,0 +1,29 @@
+{
+  "id": "revoke_leaked_access_token@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "A security incident has occurred: an access token named 'Jenkins-Staging' was leaked. Revoke this specific token in Artifactory (admin/password) to prevent unauthorized access, ensuring the 'Jenkins-Production' token remains active. A file at /home/ga/leaked_token_info.txt contains the Token ID of the compromised credential for your reference.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/revoke_leaked_access_token/setup_task.sh",
+    "post_task": "/workspace/tasks/revoke_leaked_access_token/export_result.sh"
+  },
+  "metadata": {
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082",
+    "leaked_token_desc": "Jenkins-Staging",
+    "safe_token_desc": "Jenkins-Production"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_revoke_leaked_access_token"
+    }
+  }
+}

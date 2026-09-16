@@ -1,0 +1,53 @@
+{
+  "task_id": "nested_archive_forensic_triage@1",
+  "task_completion": [
+    {
+      "id": "case_created",
+      "description": "Case 'Archive_Triage_2024' is created in Autopsy.",
+      "points": 10,
+      "visual_evidence": "Autopsy main window is open with 'Archive_Triage_2024' visible in the title bar or the tree view on the left."
+    },
+    {
+      "id": "logical_file_added",
+      "description": "server_backup.dat is added as a Logical File data source.",
+      "points": 20,
+      "visual_evidence": "'server_backup.dat' is visible under the 'Data Sources' node in the Autopsy tree view."
+    },
+    {
+      "id": "files_exported",
+      "description": "vm_disk_01.dd and usb_clone.dd are exported to the Export directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window or terminal shows 'vm_disk_01.dd' and 'usb_clone.dd' located in /home/ga/Cases/Archive_Triage_2024/Export/."
+    },
+    {
+      "id": "disk_image_added",
+      "description": "vm_disk_01.dd is added as a Disk Image data source.",
+      "points": 20,
+      "visual_evidence": "'vm_disk_01.dd' is visible under the 'Data Sources' node in the Autopsy tree view alongside server_backup.dat."
+    },
+    {
+      "id": "hash_report_created",
+      "description": "MD5 hashes of the four files are documented in archive_provenance.txt.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal displays the contents of /home/ga/Reports/archive_provenance.txt, showing the header 'FILE|MD5' and four lines containing the filenames (server_backup.dat, payloads.zip, vm_disk_01.dd, usb_clone.dd) and their corresponding MD5 hashes."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "autopsy_used",
+      "description": "Autopsy GUI was used for forensic triage.",
+      "visual_evidence": "Screenshots show interaction with the Autopsy application, such as the Add Data Source wizard or the main interface."
+    },
+    {
+      "id": "actual_extraction",
+      "description": "Files were extracted using Autopsy's interface.",
+      "visual_evidence": "Screenshots show the agent right-clicking files in Autopsy to extract them, rather than using terminal commands like `tar` or `unzip` on the original file."
+    },
+    {
+      "id": "report_genuine",
+      "description": "The hash report was genuinely created by the agent.",
+      "visual_evidence": "The agent is seen typing or pasting hashes into a text editor or using shell commands to generate the report, rather than a pre-existing script doing it automatically."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected case name is 'Archive_Triage_2024'. The task involves nested archives: server_backup.dat contains payloads.zip, which contains vm_disk_01.dd and usb_clone.dd."
+}

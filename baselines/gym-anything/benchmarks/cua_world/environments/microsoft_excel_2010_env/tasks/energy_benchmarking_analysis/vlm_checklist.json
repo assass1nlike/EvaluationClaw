@@ -1,0 +1,59 @@
+{
+  "task_id": "energy_benchmarking_analysis@1",
+  "task_completion": [
+    {
+      "id": "energy_analysis_basic_metrics",
+      "description": "Calculate Total Site Energy, Site EUI, Source Energy, and Source EUI in the 'Energy_Analysis' sheet.",
+      "points": 20,
+      "visual_evidence": "In the 'Energy_Analysis' sheet, columns for Total Site Energy, Site EUI, Source Energy, and Source EUI should be populated with numerical values. The formula bar should ideally show formulas summing fuel types and applying the specified EPA multipliers (2.80, 1.05, 1.01, 1.20)."
+    },
+    {
+      "id": "energy_analysis_categorization",
+      "description": "Calculate Energy Cost Intensity, EUI Category, and ESTAR Eligibility in the 'Energy_Analysis' sheet.",
+      "points": 20,
+      "visual_evidence": "Columns for Energy Cost Intensity, EUI Category (containing text like 'Low', 'Moderate', 'High', or 'Very High'), and ESTAR Eligibility (indicating eligible/not eligible) are populated for the 25 buildings."
+    },
+    {
+      "id": "energy_analysis_ranking",
+      "description": "Calculate Site EUI Rank and Percent Above Portfolio Average in the 'Energy_Analysis' sheet.",
+      "points": 15,
+      "visual_evidence": "Columns for Site EUI Rank (showing integer rankings 1-25) and Percent Above Portfolio Average (showing percentages) are populated."
+    },
+    {
+      "id": "portfolio_summary_totals_averages",
+      "description": "Calculate portfolio totals and weighted averages in the 'Portfolio_Summary' sheet.",
+      "points": 20,
+      "visual_evidence": "The 'Portfolio_Summary' sheet is active and shows calculated numerical values for portfolio totals (e.g., total energy, total cost) and weighted averages for EUIs and cost intensity."
+    },
+    {
+      "id": "portfolio_summary_counts_extremes",
+      "description": "Calculate counts for eligibility and categories, and identify best/worst performing buildings in the 'Portfolio_Summary' sheet.",
+      "points": 15,
+      "visual_evidence": "The 'Portfolio_Summary' sheet displays aggregate counts for ESTAR eligibility and EUI categories, along with specific identifiers (e.g., building names or IDs) for the best and worst performing buildings by Site EUI."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the updated workbook.",
+      "points": 10,
+      "visual_evidence": "The agent clicks the save icon, uses a save shortcut (Ctrl+S), or there is no 'unsaved changes' indicator (like an asterisk next to the filename) in the spreadsheet application title bar."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_usage",
+      "description": "The agent interacted with a spreadsheet GUI application (e.g., Excel, LibreOffice Calc) rather than using a terminal script to bypass the UI.",
+      "visual_evidence": "Screenshots show the Excel/spreadsheet application interface open with the 'energy_benchmarking.xlsx' file loaded."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "The agent used spreadsheet formulas to calculate the values rather than hardcoding the answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar shows a spreadsheet formula (e.g., =SUM(...), =IF(...), =RANK(...)) instead of a static number or text string."
+    },
+    {
+      "id": "no_external_scripting",
+      "description": "The agent did not use a Python script or terminal to generate the answers and paste them in.",
+      "visual_evidence": "No terminal windows or code editors (like VS Code) are shown executing scripts to process the Excel file behind the scenes."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected filename is 'energy_benchmarking.xlsx'. When calculating Source Energy, the agent must use the EPA ratios specified in the prompt: Electricity 2.80, Gas 1.05, Oil 1.01, Steam 1.20. For ESTAR Eligibility, the threshold is Source EUI <= 148.1. EUI Categories must be: Low <=50, Moderate <=100, High <=150, else Very High."
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "7e618eed",
+  "name": "Natural-Language-Inference",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 196,
+  "description": "The Natural-Language-Inference dataset contains premise–hypothesis pairs drawn from everyday scene descriptions. It evaluates whether a model can classify the relationship between the two sentences as entailment, contradiction, or neutral.",
+  "card_text": "This text-only dataset is a small collection of 196 natural language inference (NLI) instances. Each sample provides a premise and a hypothesis concatenated in a raw_text field, typically one or two short descriptive sentences about everyday situations or image captions. A prompt field wraps the raw_text with an instruction asking for the relationship between premise and hypothesis and listing the three possible categories: entailment, contradiction, or neutral. The target output is stored as a single category label. The data style is factual and descriptive, and the task is a three-way classification of logical relationships. No explicit multiple-choice option list or rationale is provided beyond the prompt text.",
+  "tasks": [
+    "entailment_judgment"
+  ],
+  "domain": "natural language inference over everyday scene descriptions",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw_text field contains a premise and a hypothesis concatenated with explicit 'Premise:' and 'Hypothesis:' prefixes. The premise describes an everyday scene or situation, and the hypothesis makes a related claim; together they form the textual input for the NLI judgment.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt is an instruction template that includes the raw_text placeholder and asks the model to determine the relationship between the premise and hypothesis. It lists the three allowed categories (entailment, contradiction, neutral) and requests only the category name as output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output category is the gold NLI label for the premise–hypothesis pair. It is one of entailment, contradiction, or neutral, indicating the logical relationship the model should predict.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a text input object and an output object. The input contains raw_text, a concatenation of a 'Premise:' sentence and a 'Hypothesis:' sentence, and a prompt that instructs the model to classify their relationship and embeds the three category choices. The output contains a single category label, which is the gold relation (entailment, contradiction, or neutral). Thus the context is the premise–hypothesis pair, the question is the prompt instruction, and the answer is the category label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Natural-Language-Inference/annotation.json",
+    "existing_tags": {
+      "task": "natural_language_inference",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

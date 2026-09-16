@@ -1,0 +1,81 @@
+{
+  "dataset_id": "3676e565",
+  "name": "Radio-Spectrogram-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for detecting and localizing target and stray signals in radio spectrogram images. Given a spectrogram image and a generic prompt, the model must output bounding boxes with class labels for relevant signal regions.",
+  "card_text": "This dataset consists of 200 samples pairing radio spectrogram images with a short textual prompt. The images are spectrograms showing signal energy across time and frequency, and the annotation targets are regions marked as 'target' or 'stray' signals. Each output is a list of bounding boxes, where each box is a single-key object mapping the class label to four coordinates [x, y, width, height]. The text prompt is a generic instruction placeholder, indicating that model-specific prompts may be used. The dataset is designed for object detection in a specialized scientific domain, requiring recognition of relevant patterns in spectrogram imagery and precise spatial localization. It assumes the model can interpret technical visualizations and output structured bounding box coordinates.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "radio spectrogram analysis",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "A spectrogram image representing radio signal energy over time and frequency. It is the visual input that the model must analyze to locate and classify target or stray signal regions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A textual prompt that instructs the model to respond according to user-defined prompts. It serves as the task instruction paired with the image, though in this dataset it is a fixed generic phrase.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of bounding box annotations for detected signals. Each entry is a single-key object where the key is a class label ('target' or 'stray') and the value is a four-number coordinate array [x, y, width, height] specifying the box location and size.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image_file referencing a spectrogram image, an input prompt text (a generic instruction), and an output bbox list. The bbox list contains one or more objects, each mapping a class label ('target' or 'stray') to a four-value bounding box [x, y, width, height]. The image is the main visual context, the prompt provides the task instruction, and the bbox list is the structured answer annotation."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/radio-spectrogram-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "radio-spectrogram-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

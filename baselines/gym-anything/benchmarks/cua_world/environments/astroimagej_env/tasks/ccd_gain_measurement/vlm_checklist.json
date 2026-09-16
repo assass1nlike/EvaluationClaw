@@ -1,0 +1,59 @@
+{
+  "task_id": "ccd_gain_measurement@1",
+  "task_completion": [
+    {
+      "id": "read_fits_data",
+      "description": "Agent loads the required FITS files.",
+      "points": 10,
+      "visual_evidence": "Look for Python code (e.g., using astropy.io.fits) or an astronomy GUI (like AstroImageJ) opening 'master_bias.fits', 'flat_1.fits', and 'flat_2.fits'."
+    },
+    {
+      "id": "apply_roi",
+      "description": "Agent restricts the analysis to a central 500x500 pixel region of interest.",
+      "points": 10,
+      "visual_evidence": "Look for code slicing the image arrays to a 500x500 shape (e.g., array[y1:y2, x1:x2] where the difference is 500) or a 500x500 bounding box defined in a GUI."
+    },
+    {
+      "id": "compute_mean_signal",
+      "description": "Agent calculates the mean signal (S) of the region of interest.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output, print statements, or a final results file showing a mean signal value of approximately 20759.16 ADU."
+    },
+    {
+      "id": "compute_variance",
+      "description": "Agent calculates the variance (or standard deviation) of the difference image.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output, print statements, or a final results file showing a difference standard deviation of approximately 135.65 ADU or a difference variance of approximately 18401.18 ADU^2."
+    },
+    {
+      "id": "compute_gain",
+      "description": "Agent calculates the CCD gain using the formula: 2 * S / variance.",
+      "points": 20,
+      "visual_evidence": "Look for code implementing the formula '2 * S / variance' and output showing a calculated gain of approximately 2.256 e-/ADU."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Agent saves the results to ccd_gain_results.txt in the specified format.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor, terminal output (e.g., cat command), or file explorer showing 'ccd_gain_results.txt' containing the keys 'mean_signal_adu', 'difference_stddev_adu', and 'difference_variance_adu' with their corresponding computed values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "Verify that the agent actually computed the values using a script or tool.",
+      "visual_evidence": "Look for execution of a Python script, interactive shell commands, or GUI operations that process the FITS files. The agent should not simply echo or type the final numbers into a file without evidence of computation."
+    },
+    {
+      "id": "correct_working_directory",
+      "description": "Verify that the agent operates in the correct directory.",
+      "visual_evidence": "Look at the terminal prompt or file paths in the code to ensure the agent is working within '/home/ga/AstroImages/gain_measurement'."
+    },
+    {
+      "id": "no_hardcoded_math",
+      "description": "Verify that the agent's code performs the actual mathematical operations.",
+      "visual_evidence": "Look at the script or commands to ensure functions like np.mean(), np.var(), or np.std() are used on the image data, rather than hardcoding the expected numerical results."
+    }
+  ],
+  "privileged_info_for_vlm": "Ground truth values for the central 500x500 ROI: mean signal = 20759.16 ADU, difference standard deviation = 135.65 ADU, difference variance = 18401.18 ADU^2, gain = 2.256 e-/ADU. The working directory must be /home/ga/AstroImages/gain_measurement and the output file is ccd_gain_results.txt."
+}

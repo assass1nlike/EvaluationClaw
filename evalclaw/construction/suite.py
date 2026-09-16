@@ -219,7 +219,16 @@ def _preflight_builder_environments(
         environment = None
         item_trace_dir = trace_dir / _debug_slug(task.id) if trace_dir is not None else None
         try:
+            from ..runners.harness import preflight_harness_environments
+
+            harness_outcomes = preflight_harness_environments(item, config, artifact_dir=item_trace_dir)
+            if harness_outcomes and all(target.harness for target in config.targets):
+                if item_trace_dir is not None:
+                    write_json(item_trace_dir / "result.json", {"harnesses": harness_outcomes})
+                continue
             environment = build_agent_environment(item, config)
+            if getattr(environment, "judge_evaluator", None) is not None and item_trace_dir:
+                environment.judge_artifact_dir = item_trace_dir / "judge"
             preflight = getattr(environment, "preflight", None)
             if not callable(preflight):
                 raise RuntimeError("environment does not implement evaluator preflight")
@@ -498,7 +507,8 @@ def _task_builder_payload(
                 "Do not require native workspace_tools or browser tools that an external shell "
                 "harness cannot enforce.",
                 "Do not use workflow stages.",
-                "Environment actors are compatible only when every selected external harness is openclaw.",
+                "Environment actors use the same terminal contact service across external harnesses; "
+                "include Python 3 in actor task images. The framework supplies contact instructions.",
             ],
         }
     if blueprint.requires_environment:
@@ -1394,7 +1404,9 @@ def build_task_suite(
         last_failure_is_output = False
         last_failure_is_call_error = False
         last_truncation_error: LLMOutputTruncatedError | None = None
-        best_partial_result: _ParsedBuilderResponse | None = None
+        retained_tasks: dict[str, TaskDefinition] = {}
+        retained_resources: dict[str, TaskResource] = {}
+        retained_notes: list[str] = []
         structural_repair_path: Path | None = None
 
         def prepare_structural_repair_file() -> Path:
@@ -1617,11 +1629,22 @@ def build_task_suite(
                     tasks=attempt_result.tasks,
                     notes=result_notes + attempt_result.notes,
                 ))
-            if job_revision and attempt_result.valid_tasks and (
-                best_partial_result is None
-                or len(attempt_result.valid_tasks) > len(best_partial_result.valid_tasks)
-            ):
-                best_partial_result = attempt_result
+            # Keep valid items independently, even if a later repair regresses a sibling.
+            # Resource aliases can refer to different sources in different attempts.
+            resource_by_id = {resource.id: resource for resource in attempt_result.resources}
+            for task in attempt_result.valid_tasks:
+                resource_ids = []
+                for resource_id in task.resource_ids:
+                    resource = resource_by_id[resource_id]
+                    digest = hashlib.sha256(
+                        resource.model_dump_json().encode("utf-8")
+                    ).hexdigest()[:16]
+                    retained_id = f"{resource.id}_{digest}"
+                    retained_resources[retained_id] = resource.model_copy(update={"id": retained_id})
+                    resource_ids.append(retained_id)
+                retained_tasks[task.id] = task.model_copy(update={"resource_ids": resource_ids})
+            if attempt_result.valid_tasks:
+                retained_notes.extend(attempt_result.notes)
             last_failure_is_output = True
             last_validation_issues = attempt_result.validation_issues
             persist_builder_debug(
@@ -1658,25 +1681,43 @@ def build_task_suite(
                 "structural validation failed after "
                 f"{repair_attempts} repair attempt(s): {'; '.join(last_validation_issues[:6])}"
             )
-        if job_revision is not None and best_partial_result is not None:
+        if retained_tasks:
+            # Repair tools share the asset directory. Recheck the retained environments
+            # against the final files rather than trusting an earlier successful preflight.
+            environment_issues, failed_task_ids = _preflight_builder_environments(
+                list(retained_tasks.values()),
+                dimension=dimension,
+                blueprint=blueprint,
+                resources=list(retained_resources.values()),
+                config=config,
+                trace_dir=debug_job_dir / "environment-preflight" / "retained" if debug_job_dir else None,
+            )
+            for task_id in failed_task_ids:
+                retained_tasks.pop(task_id, None)
+            result_notes.extend(environment_issues)
+        if retained_tasks:
             retained_resource_ids = {
                 resource_id
-                for task in best_partial_result.valid_tasks
+                for task in retained_tasks.values()
                 for resource_id in task.resource_ids
             }
+            disposition = (
+                "replacement(s); its other previous tasks remain unchanged"
+                if job_revision else "task(s) for QC; unfinished tasks are excluded"
+            )
             emit(
-                f"  Task builder: keeping {len(best_partial_result.valid_tasks)} structurally valid "
-                f"replacement(s) from {label}; its other previous tasks remain unchanged."
+                f"  Task builder: keeping {len(retained_tasks)} structurally valid "
+                f"{disposition} from {label}."
             )
             return finish_result(_BlueprintBuildResult(
                 order=job.order,
                 resources=[
                     resource
-                    for resource in best_partial_result.resources
+                    for resource in retained_resources.values()
                     if resource.id in retained_resource_ids
                 ],
-                tasks=best_partial_result.valid_tasks,
-                notes=result_notes + best_partial_result.notes,
+                tasks=list(retained_tasks.values()),
+                notes=result_notes + retained_notes + [f"{blueprint.id}: {failure_message}"],
             ))
         if job_revision is not None and last_failure_is_output:
             emit(

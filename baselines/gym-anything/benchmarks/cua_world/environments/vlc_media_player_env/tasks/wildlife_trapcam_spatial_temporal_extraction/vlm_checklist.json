@@ -1,0 +1,59 @@
+{
+  "task_id": "wildlife_trapcam_spatial_temporal_extraction@1",
+  "task_completion": [
+    {
+      "id": "processed_events_directory",
+      "description": "Verify the creation of the output directory for processed events.",
+      "points": 5,
+      "visual_evidence": "Look for a terminal command (e.g., 'mkdir -p /home/ga/Videos/processed_events/') or a file manager window showing the 'processed_events' folder inside '/home/ga/Videos/'."
+    },
+    {
+      "id": "event_a_exported",
+      "description": "Verify that Event A was extracted, cropped, slowed down, and exported correctly.",
+      "points": 20,
+      "visual_evidence": "Look for 'event_A_slow.mp4' in the processed_events directory. Check terminal output (like 'ffprobe' or 'ffmpeg' logs) or media player properties showing a resolution of 960x540 and a duration of approximately 20 seconds."
+    },
+    {
+      "id": "event_b_exported",
+      "description": "Verify that Event B was extracted, cropped, slowed down, and exported correctly.",
+      "points": 20,
+      "visual_evidence": "Look for 'event_B_slow.mp4' in the processed_events directory. Check terminal output or media player properties showing a resolution of 960x540 and a duration of approximately 20 seconds."
+    },
+    {
+      "id": "processing_log_created",
+      "description": "Verify the creation of the JSON manifest file.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'processing_log.json' in the '/home/ga/Documents/' directory via terminal ('ls') or a file manager."
+    },
+    {
+      "id": "processing_log_event_a",
+      "description": "Verify the JSON manifest contains the correct documentation for Event A.",
+      "points": 22,
+      "visual_evidence": "Look at the contents of 'processing_log.json' (via a text editor or terminal 'cat' command). It must include Event A with keys: 'original_start' (e.g., 15s or 0:15), 'original_end' (e.g., 25s or 0:25), 'crop_x': 0, 'crop_y': 0, 'crop_width': 960, 'crop_height': 540, and 'final_duration': 20."
+    },
+    {
+      "id": "processing_log_event_b",
+      "description": "Verify the JSON manifest contains the correct documentation for Event B.",
+      "points": 23,
+      "visual_evidence": "Look at the contents of 'processing_log.json'. It must include Event B with keys: 'original_start' (e.g., 100s or 1:40), 'original_end' (e.g., 110s or 1:50), 'crop_x': 960, 'crop_y': 540, 'crop_width': 960, 'crop_height': 540, and 'final_duration': 20."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Ensure the agent actually processed the video using valid tools (like FFmpeg or VLC) rather than creating mock files.",
+      "visual_evidence": "Look for complex FFmpeg commands in the terminal (e.g., using '-filter_complex', 'crop', 'setpts') or interaction with VLC's convert/save GUI to perform the spatial crop and temporal slowdown."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Ensure the agent manually created or scripted the JSON file based on findings.",
+      "visual_evidence": "Look for the agent typing the JSON content in a text editor (like nano, vim, or gedit) or using a script/echo commands to construct it, rather than copying a pre-existing answer file."
+    },
+    {
+      "id": "information_gathering",
+      "description": "Ensure the agent read the field notes to identify the events before processing.",
+      "visual_evidence": "Look for the agent opening '/home/ga/Documents/field_notes.txt' in a text editor or printing it to the terminal using 'cat' or 'less' early in the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "Event A occurs from 0:15-0:25 (10s duration) in the upper-left quadrant. Expected crop coordinates for Event A: x=0, y=0, w=960, h=540. Event B occurs from 1:40-1:50 (10s duration) in the lower-right quadrant. Expected crop coordinates for Event B: x=960, y=540, w=960, h=540. Both exported videos must be slowed to 0.5x speed, resulting in a final duration of 20.0 seconds each (tolerance of 1.5s). The JSON log must contain the exact keys: 'original_start', 'original_end', 'crop_x', 'crop_y', 'crop_width', 'crop_height', and 'final_duration'."
+}

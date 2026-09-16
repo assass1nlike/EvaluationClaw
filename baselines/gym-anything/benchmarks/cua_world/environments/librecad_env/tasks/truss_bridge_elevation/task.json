@@ -1,0 +1,36 @@
+{
+  "id": "truss_bridge_elevation@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a Warren truss elevation drawing for a 12-meter span pedestrian bridge in LibreCAD. The truss must feature a 12000 mm span and 2000 mm height with 6 panels in a 'W' pattern. Organize the drawing using the following layers: 'Chords' (Red/Color 1), 'Webs' (Green/Color 3), 'Dimensions' (Cyan/Color 4), and 'Labels' (White/Color 7). Include dimensions for the span and height, the title 'WARREN TRUSS ELEVATION', scale 'SCALE 1:100', and support labels 'PIN' (left) and 'ROLLER' (right). Draw a triangle symbol for a Pin support at (0,0) and a triangle with a circle for a Roller support at (12000,0) on the 'Webs' layer. Save the completed drawing to /home/ga/Documents/LibreCAD/truss_elevation.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/truss_bridge_elevation/setup_task.sh",
+    "post_task": "/workspace/tasks/truss_bridge_elevation/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/Documents/LibreCAD/truss_elevation.dxf",
+    "geometry": {
+      "span": 12000,
+      "height": 2000,
+      "panels": 6
+    },
+    "required_layers": [
+      "Chords",
+      "Webs",
+      "Dimensions",
+      "Labels"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_truss_bridge_elevation"
+    }
+  }
+}

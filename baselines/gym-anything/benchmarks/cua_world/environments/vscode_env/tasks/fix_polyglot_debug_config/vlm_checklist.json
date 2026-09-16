@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_polyglot_debug_config@1",
+  "task_completion": [
+    {
+      "id": "tasks_json_redis",
+      "description": "Create a background task named 'Start Redis' in .vscode/tasks.json",
+      "points": 15,
+      "visual_evidence": "Look for an open editor tab for '.vscode/tasks.json' showing a task configuration with '\"label\": \"Start Redis\"' and '\"command\": \"redis-server\"'."
+    },
+    {
+      "id": "launch_json_python",
+      "description": "Configure 'Python API' launch settings in .vscode/launch.json",
+      "points": 15,
+      "visual_evidence": "Look for an open editor tab for '.vscode/launch.json' showing a configuration block with '\"name\": \"Python API\"' that targets or launches 'api/main.py'."
+    },
+    {
+      "id": "launch_json_node",
+      "description": "Configure 'Node Worker' launch settings in .vscode/launch.json",
+      "points": 15,
+      "visual_evidence": "Look for an open editor tab for '.vscode/launch.json' showing a configuration block with '\"name\": \"Node Worker\"' that targets or launches 'worker/processor.js'."
+    },
+    {
+      "id": "launch_json_compound",
+      "description": "Create a 'Full Stack' compound configuration in .vscode/launch.json",
+      "points": 15,
+      "visual_evidence": "Look for a 'compounds' array in '.vscode/launch.json' containing an object with '\"name\": \"Full Stack\"', referencing both the Python and Node configurations, and including '\"preLaunchTask\": \"Start Redis\"'."
+    },
+    {
+      "id": "fix_python_race_condition",
+      "description": "Fix the race condition in api/main.py",
+      "points": 20,
+      "visual_evidence": "Look for an open editor tab for 'api/main.py' and verify that the database 'commit()' method is called BEFORE the 'redis.publish(...)' method."
+    },
+    {
+      "id": "fix_node_null_bug",
+      "description": "Fix the null reference bug in worker/processor.js",
+      "points": 20,
+      "visual_evidence": "Look for an open editor tab for 'worker/processor.js' and verify there is a null/undefined check for 'row.description' before its '.length' property is accessed (e.g., 'row.description && row.description.length', 'row.description?.length', or an explicit if-statement)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_vs_code_gui",
+      "description": "The agent used the VS Code GUI to edit the files",
+      "visual_evidence": "Verify that the screenshots show the VS Code editor interface with the files open in tabs, rather than just terminal commands (like echo or sed) being used to modify the files."
+    },
+    {
+      "id": "correct_workspace_dir",
+      "description": "The agent is working in the correct workspace directory",
+      "visual_evidence": "Check the VS Code file explorer sidebar or the integrated terminal prompt to ensure the working directory is '/home/ga/workspace/media_pipeline'."
+    },
+    {
+      "id": "genuine_code_edits",
+      "description": "The agent genuinely modified the existing code rather than replacing it with stubs",
+      "visual_evidence": "Verify that the bug fixes in api/main.py and worker/processor.js are integrated into the existing application logic (e.g., surrounding database and processing code is still present), not just isolated snippets."
+    }
+  ],
+  "privileged_info_for_vlm": "The workspace directory is strictly located at '/home/ga/workspace/media_pipeline'. The task operates on synthetically generated podcast episode data."
+}

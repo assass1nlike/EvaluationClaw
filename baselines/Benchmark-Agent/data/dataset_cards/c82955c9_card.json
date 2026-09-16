@@ -1,0 +1,106 @@
+{
+  "dataset_id": "c82955c9",
+  "name": "Openset Driving Recording Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates multimodal reasoning on street-view driving scenes. Each sample presents six camera images from a street view car and a multiple-choice question about the scene, requiring the model to select the correct answer from a provided list. It tests visual comprehension and reasoning in an open-set driving context.",
+  "card_text": "The Openset Driving Recording Reasoning dataset consists of 200 samples, each containing six JPEG images from different cameras on a street view car. The images show urban or suburban street scenes. A text prompt provides task instructions, embeds the images via placeholders, asks a question about the scene, and lists multiple-choice options. The model must output the chosen option as a short text answer. The dataset targets visual question answering in driving scenarios, covering diverse objects, signage, vehicles, and scene attributes. Questions are typically yes/no/maybe or factual queries about visible elements. The open-set nature means questions are not limited to a predefined set of categories, and the image sequences may represent multiple simultaneous camera views or sequential frames. The data is intended for evaluating multimodal models on real-world, street-level visual reasoning.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "driving scene visual QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The full textual prompt given to the model, which includes task instructions, a question about the street-view scene, and a multiple-choice answer list. It acts as the primary textual context and instruction for the multimodal reasoning task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The question about the driving scene is embedded within the prompt (e.g., 'does the truck say salmon on it?'). It specifies the visual information to look for in the provided images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The list of candidate answers embedded in the prompt as a Python-style list (e.g., ['maybe', 'no information provided', 'no', 'yes']). The model must select one option.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The short textual answer selected from the choice list, representing the correct response to the question based on the images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "A list of six image filenames corresponding to different camera views from a street view car. These images provide the visual scene for answering the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a set of six image file references from a street view car, a textual prompt that includes task instructions, an embedded question about the scene, and a multiple-choice list, and a short textual answer chosen from that list. The images provide the visual context, the prompt delivers the query and options, and the answer is the selected option. The question and options are not separate fields but are embedded within the prompt string."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/DrivingRecordingReasoning/openset_driving_recording_reasoning.json",
+    "existing_tags": {
+      "task": "Driving Recording Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "Geography",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Geography"
+  }
+}

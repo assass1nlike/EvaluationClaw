@@ -1,0 +1,92 @@
+{
+  "dataset_id": "039b9fab",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates multi-image visual question answering for car model recognition. Each sample presents two car photos, a question asking whether they are the same model, and requires a binary yes/no answer. It tests fine-grained visual comparison and classification.",
+  "card_text": "Annotation Open is a small-scale multimodal dataset (200 samples) for car model matching. Each sample contains two images of cars drawn from the Stanford Cars dataset, a natural language question ('Are these two photos of the same type of car?'), an instruction prompt, and a binary answer ('yes' or 'no'). The images are object-centric photographs of vehicles under various viewpoints, lighting, and backgrounds. The task requires comparing fine-grained visual features across two images to judge whether they depict the same car model. The dataset assumes access to both images simultaneously and expects a short textual answer. It is designed to evaluate visual question answering and binary classification capabilities in the automotive domain.",
+  "tasks": [
+    "visual_question_answering",
+    "classification_binary"
+  ],
+  "domain": "car model recognition",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "Two photographs of cars that the model must compare. They serve as the visual context for determining whether the vehicles are the same model.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A binary question asking whether the two photos show the same type of car. The answer should be 'yes' or 'no'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target label indicating whether the two cars are the same model. It is either 'yes' or 'no'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An explicit instruction that specifies the comparison task and the expected output format. It reinforces the question and guides the model to return 'yes' or 'no'.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of two image file paths (visual context), a short natural language question asking if the cars are the same model, an instruction prompt, and a binary answer label (yes/no). The images are the primary content to analyze; the question and prompt define the task; the answer is the ground truth."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Car_Model_Matching/annotation_open.json",
+    "existing_tags": {
+      "task": "Car_Model_Matching",
+      "type": "comprehension",
+      "skill": "Multi-image Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

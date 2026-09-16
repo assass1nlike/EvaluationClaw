@@ -1,0 +1,34 @@
+{
+  "id": "spatial_trend_ellipse_japan@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Calculate the directional trend of urbanization in Japan using the Standard Deviational Ellipse algorithm. Using the populated places dataset at /home/ga/GIS_Data/natural_earth/ne_110m_populated_places_simple.shp, analyze cities where the country ('adm0name') is 'Japan'. Apply 1 standard deviation and use the 'pop_max' field for weighting to account for city size. Export the result as a GeoJSON file to /home/ga/GIS_Data/exports/japan_urban_trend.geojson in WGS 84 (EPSG:4326) format.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spatial_trend_ellipse_japan/setup_task.sh",
+    "post_task": "/workspace/tasks/spatial_trend_ellipse_japan/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/natural_earth/ne_110m_populated_places_simple.shp",
+    "output_file": "/home/ga/GIS_Data/exports/japan_urban_trend.geojson",
+    "expected_crs": "EPSG:4326",
+    "target_country": "Japan",
+    "bounds": {
+      "min_lon": 128.0,
+      "max_lon": 147.0,
+      "min_lat": 30.0,
+      "max_lat": 46.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spatial_trend_ellipse_japan"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "restore_patient_from_backup@1",
+  "task_completion": [
+    {
+      "id": "backup_file_accessed",
+      "description": "The agent accesses the database backup file.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal command (e.g., cat, grep, less), or file viewer showing the contents of '~/Documents/medintux_backup.sql'."
+    },
+    {
+      "id": "patient_record_located",
+      "description": "The agent locates the specific patient's records in the backup.",
+      "points": 15,
+      "visual_evidence": "The screen shows the agent finding or filtering the SQL lines containing 'SOUBIROUS' and 'Bernadette' within the backup file."
+    },
+    {
+      "id": "restore_command_prepared",
+      "description": "The agent prepares the targeted SQL INSERT statements to restore the patient.",
+      "points": 20,
+      "visual_evidence": "A text editor or SQL client showing the extracted 'INSERT INTO IndexNomPrenom' and 'INSERT INTO fchpat' statements specifically for Bernadette SOUBIROUS, including her original GUIDs."
+    },
+    {
+      "id": "selective_restore_executed",
+      "description": "The agent executes the SQL commands to restore only the target patient into the DrTuxTest database.",
+      "points": 25,
+      "visual_evidence": "A terminal (mysql CLI) or database GUI (like DBeaver, phpMyAdmin) showing the successful execution of the specific INSERT statements into the 'DrTuxTest' database."
+    },
+    {
+      "id": "patient_restored_successfully",
+      "description": "The patient record is verified as restored in the database or application.",
+      "points": 30,
+      "visual_evidence": "A database SELECT query result or the MedinTux application interface displaying 'Bernadette SOUBIROUS' with the date of birth '1954-02-18'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_full_database_restore",
+      "description": "The agent must not restore the entire backup file, which would overwrite other patient data.",
+      "visual_evidence": "Ensure there is no command executed like 'mysql DrTuxTest < medintux_backup.sql' or a full import via GUI, which would restore the whole database instead of just the specific patient."
+    },
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent must actually interact with the database to insert the records.",
+      "visual_evidence": "Look for genuine SQL client interfaces (CLI or GUI) showing query execution and success messages, rather than just typing commands in a text file without running them."
+    },
+    {
+      "id": "no_fake_success_screens",
+      "description": "The agent did not mock the final verification screen.",
+      "visual_evidence": "The verification of the restored patient should be in a genuine database client or the MedinTux application, not a manually edited text file or echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "Target patient: Bernadette SOUBIROUS. Backup file location: /home/ga/Documents/medintux_backup.sql. Required tables to restore: IndexNomPrenom (search index) and fchpat (patient details). The agent must extract the specific INSERT statements for this patient from the backup and execute them in the DrTuxTest database. A full database restore is incorrect as it would overwrite other data."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "dual_gps_yaw_config@1",
+  "task_completion": [
+    {
+      "id": "read_specs_document",
+      "description": "Open and read the dual GPS specifications document.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Documents/QGC/dual_gps_specs.txt'."
+    },
+    {
+      "id": "open_qgroundcontrol",
+      "description": "Launch the QGroundControl application.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl (QGC) application window is visible on the screen."
+    },
+    {
+      "id": "navigate_to_parameters",
+      "description": "Navigate to the Parameters setup screen in QGroundControl.",
+      "points": 10,
+      "visual_evidence": "The QGC interface shows the 'Vehicle Setup' menu with the 'Parameters' section selected, displaying a list of parameters or a search bar."
+    },
+    {
+      "id": "configure_gps_type_and_switch",
+      "description": "Set the secondary GPS type and auto-switch parameters.",
+      "points": 20,
+      "visual_evidence": "In the QGC parameter list or editor dialog, 'GPS_TYPE2' is set to 1 (or 'Auto') and 'GPS_AUTO_SWITCH' is set to 2 (or 'Blend')."
+    },
+    {
+      "id": "configure_yaw_and_compass",
+      "description": "Set the EK3 yaw source and disable the compass.",
+      "points": 20,
+      "visual_evidence": "In the QGC parameter list or editor dialog, 'EK3_SRC1_YAW' is set to 2 (or 'GPS') and 'COMPASS_ENABLE' is set to 0."
+    },
+    {
+      "id": "configure_antenna_offsets",
+      "description": "Set the GPS antenna offsets using the ArduPilot NED coordinate system.",
+      "points": 30,
+      "visual_evidence": "In the QGC parameter list, the offsets are set as follows: 'GPS_POS1_X' = -0.35, 'GPS_POS2_X' = 0.35, 'GPS_POS1_Z' = -0.2, and 'GPS_POS2_Z' = -0.2."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the QGroundControl GUI to configure parameters.",
+      "visual_evidence": "Screenshots should show the agent clicking through the QGC menus, using the parameter search bar, and interacting with the parameter editor dialogs, rather than using a terminal script to bypass the UI."
+    },
+    {
+      "id": "no_direct_result_manipulation",
+      "description": "The agent did not manually create or edit the backend result JSON file.",
+      "visual_evidence": "No text editor or terminal should be shown manually writing JSON data to '/tmp/task_result.json'."
+    },
+    {
+      "id": "genuine_parameter_modification",
+      "description": "The agent modified the parameters within the actual QGC application.",
+      "visual_evidence": "Parameter changes must be visible inside the QGroundControl application window, not in a mock text file or unrelated application."
+    }
+  ],
+  "privileged_info_for_vlm": "The specifications document is located at /home/ga/Documents/QGC/dual_gps_specs.txt. The expected parameter values to be set in QGroundControl are: GPS_TYPE2 = 1, GPS_AUTO_SWITCH = 2, EK3_SRC1_YAW = 2, COMPASS_ENABLE = 0. For the antenna offsets in the NED coordinate system (where Down is +Z and North is +X), the values must be: GPS_POS1_X = -0.35, GPS_POS2_X = 0.35, GPS_POS1_Z = -0.2, and GPS_POS2_Z = -0.2."
+}

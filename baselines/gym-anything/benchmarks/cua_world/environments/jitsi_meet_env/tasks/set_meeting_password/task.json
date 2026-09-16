@@ -1,0 +1,28 @@
+{
+  "id": "set_meeting_password@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "You are a group fitness instructor preparing to host a premium virtual yoga session on Jitsi Meet. Only paying clients should be able to access this class, so you need to set a room password. You are already in the Jitsi Meet room 'premium-yoga-class' in Firefox. Set the room password to 'FlowState24' and leave the Security Options panel open.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/set_meeting_password/setup_task.sh",
+    "post_task": "/workspace/tasks/set_meeting_password/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "room_name": "premium-yoga-class",
+    "expected_password": "FlowState24",
+    "jitsi_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_set_meeting_password"
+    }
+  }
+}

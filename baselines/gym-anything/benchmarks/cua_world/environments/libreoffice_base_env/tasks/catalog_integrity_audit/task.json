@@ -1,0 +1,26 @@
+{
+  "id": "catalog_integrity_audit@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Perform a data integrity audit on the Chinook music store database by creating and populating several audit tables. Create 'AuditOrphanArtists' (ArtistId, Name) for artists without albums, 'AuditEmptyAlbums' (AlbumId, Title, ArtistId) for albums without tracks, 'AuditUnusedGenres' (GenreId, Name) for genres not assigned to any tracks, and 'AuditInactiveCustomers' (CustomerId, FirstName, LastName, Email) for customers without invoices. Finally, create a summary table named 'CatalogAuditSummary' with columns 'CheckName' (VARCHAR) and 'IssueCount' (INTEGER) containing four rows recording the counts for 'OrphanArtists', 'EmptyAlbums', 'UnusedGenres', and 'InactiveCustomers'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/catalog_integrity_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/catalog_integrity_audit/export_result.sh"
+  },
+  "metadata": {
+    "chinook_sqlite_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite",
+    "odb_path": "/home/ga/chinook.odb"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_catalog_integrity_audit"
+    }
+  }
+}

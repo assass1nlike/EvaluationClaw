@@ -1,0 +1,41 @@
+{
+  "task_id": "identify_top_talkers@1",
+  "task_completion": [
+    {
+      "id": "access_capture_file",
+      "description": "Access the specified pcapng capture file.",
+      "points": 20,
+      "visual_evidence": "Wireshark application window displaying the loaded file '200722_tcp_anon.pcapng', or a terminal window showing a command like 'tshark' or 'tcpdump' reading the file."
+    },
+    {
+      "id": "analyze_bytes_sent",
+      "description": "Analyze the capture file to determine which IPv4 endpoint sent the most bytes.",
+      "points": 30,
+      "visual_evidence": "Wireshark 'Endpoints' window (Statistics -> Endpoints) open to the IPv4 tab, showing the 'Tx Bytes' column, or terminal output listing the IP addresses and their transmitted byte counts."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Save only the IP address of the top sender to the specified text file.",
+      "points": 50,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) or a terminal command (e.g., echo '192.168.200.135' > top_talker.txt) showing the IP address '192.168.200.135' being written to '/home/ga/Documents/captures/top_talker.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_analysis_performed",
+      "description": "The agent must perform actual network analysis rather than relying on prior knowledge.",
+      "visual_evidence": "Screenshots must show the agent interacting with Wireshark or using network analysis CLI tools to view the endpoint statistics before writing the answer."
+    },
+    {
+      "id": "correct_file_path_used",
+      "description": "The output file must be saved in the exact directory requested.",
+      "visual_evidence": "The file path '/home/ga/Documents/captures/top_talker.txt' should be visible in the text editor's save dialog, title bar, or the terminal command."
+    },
+    {
+      "id": "only_ip_in_file",
+      "description": "The output file must contain only the IP address.",
+      "visual_evidence": "The content being written to the file should be exactly '192.168.200.135' with no additional text, labels, or formatting."
+    }
+  ],
+  "privileged_info_for_vlm": "The capture file '200722_tcp_anon.pcapng' contains traffic between two IPv4 endpoints. The top sender is 192.168.200.135 (10,629 Tx Bytes), and the minor sender is 192.168.200.21 (894 Tx Bytes). The correct answer to be saved in 'top_talker.txt' is exactly '192.168.200.135'."
+}

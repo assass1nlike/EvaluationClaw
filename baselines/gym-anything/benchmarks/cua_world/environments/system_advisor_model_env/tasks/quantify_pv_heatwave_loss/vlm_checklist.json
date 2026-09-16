@@ -1,0 +1,59 @@
+{
+  "task_id": "quantify_pv_heatwave_loss@1",
+  "task_completion": [
+    {
+      "id": "modify_weather_data",
+      "description": "Modify the baseline weather data by increasing the dry bulb temperature by 10\u00b0C for July.",
+      "points": 15,
+      "visual_evidence": "Look for a Python script (e.g., using pandas) or a spreadsheet editor where the agent filters for Month 7 (July) and adds 10 to the dry bulb temperature ('Tdry' or similar column)."
+    },
+    {
+      "id": "save_heatwave_csv",
+      "description": "Save the modified weather dataset to the specified heatwave CSV path while preserving the SAM header.",
+      "points": 15,
+      "visual_evidence": "Look for code saving the modified data to '/home/ga/SAM_Weather_Data/phoenix_heatwave.csv' or a terminal/file explorer showing this file has been created. The code should show logic to preserve the first 3 rows (SAM header)."
+    },
+    {
+      "id": "setup_pysam_model",
+      "description": "Configure the PySAM Pvwattsv8 module with the specified system parameters.",
+      "points": 20,
+      "visual_evidence": "Look for a Python script importing 'pysam.Pvwattsv8' and setting parameters: system_capacity to 10000 (kW) or 10 (MW), module_type=0, array_type=0, tilt=20, azimuth=180, and losses=14.08."
+    },
+    {
+      "id": "run_simulations",
+      "description": "Run the PySAM simulation for both the baseline and heatwave weather datasets.",
+      "points": 15,
+      "visual_evidence": "Look for script logic assigning the 'solar_resource_file' to both the baseline and heatwave CSVs and calling the execute() method on the PySAM model for each."
+    },
+    {
+      "id": "calculate_july_metrics",
+      "description": "Calculate the July AC energy production and the absolute and percentage energy loss.",
+      "points": 15,
+      "visual_evidence": "Look for code extracting the AC energy output ('ac' or 'gen'), filtering or summing specifically for July (e.g., hours 4344 to 5087, or using a monthly aggregation), and calculating the difference and percentage loss between the baseline and heatwave results."
+    },
+    {
+      "id": "export_json_results",
+      "description": "Export the final calculated metrics to the specified JSON file with the correct keys.",
+      "points": 20,
+      "visual_evidence": "Look for code writing a dictionary to '/home/ga/Documents/SAM_Projects/heatwave_impact.json' or the file itself containing keys: 'baseline_weather_file', 'heatwave_weather_file', 'system_capacity_kw', 'baseline_july_energy_kwh', 'heatwave_july_energy_kwh', 'july_absolute_loss_kwh', and 'july_yield_loss_percent'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pysam_execution",
+      "description": "Verify the agent actually executed the PySAM simulation script.",
+      "visual_evidence": "Look for terminal output showing the execution of the Python script (e.g., 'python script.py') or cell execution in a Jupyter notebook, rather than just writing a JSON file with fabricated numbers."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "Verify the percentage loss is a genuinely calculated value within the expected range.",
+      "visual_evidence": "Check the final JSON output or printed terminal results. The 'july_yield_loss_percent' should be approximately 4.4% (between 3.0 and 6.0). It should not be a placeholder or a wildly incorrect guess."
+    },
+    {
+      "id": "header_preservation",
+      "description": "Verify the agent accounted for the 3-row SAM CSV header.",
+      "visual_evidence": "Look at the Python script modifying the CSV. Standard pandas 'read_csv' without 'skiprows' will mangle the SAM header. Look for logic that explicitly reads/writes the first 3 rows separately or uses a method to preserve them."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected percentage yield loss for July due to the 10-degree heatwave is approximately 4.4% (acceptable range: 3.0% to 6.0%). The SAM CSV format requires exactly three header rows before the data (row 0: metadata names, row 1: metadata values, row 2: column headings). The agent must preserve these headers in the new 'phoenix_heatwave.csv' file. The PySAM system capacity should be 10000 kW (10 MW)."
+}

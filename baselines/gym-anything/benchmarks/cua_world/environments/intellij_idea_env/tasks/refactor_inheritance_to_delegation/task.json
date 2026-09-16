@@ -1,0 +1,36 @@
+{
+  "id": "refactor_inheritance_to_delegation@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Refactor the 'SecureDataTransmitter' class in the 'network-module' project to use delegation instead of inheritance from 'LegacySocket'. The class should no longer extend 'LegacySocket'. Implement a delegate field for 'LegacySocket' and delegate only the 'sendData' and 'close' methods. Ensure that unsafe methods 'connectInsecure' and 'getRawStream' are no longer exposed by 'SecureDataTransmitter'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_inheritance_to_delegation/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_inheritance_to_delegation/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/network-module",
+    "target_file": "src/main/java/com/network/SecureDataTransmitter.java",
+    "legacy_file": "src/main/java/com/network/LegacySocket.java",
+    "forbidden_methods": [
+      "connectInsecure",
+      "getRawStream"
+    ],
+    "required_methods": [
+      "sendData",
+      "close"
+    ],
+    "required_field_type": "LegacySocket"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_inheritance"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "model_bifacial_pv_gain@1",
+  "task_completion": [
+    {
+      "id": "read_weather_file",
+      "description": "Agent reads the weather file path from the specified text file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat /home/ga/.SAM/weather_file_path.txt' or Python code opening and reading this specific file path."
+    },
+    {
+      "id": "setup_pvwattsv8_model",
+      "description": "Agent writes Python code to configure the PySAM PVWattsv8 model with the specified system parameters.",
+      "points": 20,
+      "visual_evidence": "A code editor showing PySAM imports and parameter assignments for system_capacity (10000), dc_ac_ratio (1.2), array_type (2), gcr (0.35), losses (14), tilt (0), and azimuth (180)."
+    },
+    {
+      "id": "setup_bifacial_scenarios",
+      "description": "Agent writes Python code to simulate both monofacial and bifacial configurations.",
+      "points": 20,
+      "visual_evidence": "Code showing parameter updates and execution for two scenarios: monofacial (bifaciality=0, albedo=0.2) and bifacial (bifaciality=0.7, albedo=0.3)."
+    },
+    {
+      "id": "export_json_code",
+      "description": "Agent writes Python code to calculate the bifacial gain and export the results to the specified JSON file.",
+      "points": 10,
+      "visual_evidence": "Code showing the calculation of gain percentage and writing the output to '/home/ga/Documents/SAM_Projects/bifacial_comparison.json' using the requested JSON structure."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Agent executes the Python script to perform the simulation.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of the Python script (e.g., 'python script.py') without errors."
+    },
+    {
+      "id": "json_output_generated",
+      "description": "The final JSON file is generated with the correct structure and valid computed values.",
+      "points": 30,
+      "visual_evidence": "Terminal or editor showing the contents of 'bifacial_comparison.json'. It must contain all specified keys, with energy values between 15,000,000 and 25,000,000 kWh, and a gain percentage between 2.0 and 20.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_not_mocked",
+      "description": "The agent actually runs a PySAM simulation script rather than manually creating the JSON file with guessed values.",
+      "visual_evidence": "Presence of a Python script being executed in the terminal that imports PySAM and performs the simulation."
+    },
+    {
+      "id": "no_hardcoded_energy_values",
+      "description": "The script calculates the annual energy and bifacial gain dynamically from the PySAM output.",
+      "visual_evidence": "The Python script assigns the results of the PySAM execution to variables and uses them for the JSON output, rather than hardcoding values like 21000000 or 3.6."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The JSON file is saved exactly to the requested directory and filename.",
+      "visual_evidence": "The file path '/home/ga/Documents/SAM_Projects/bifacial_comparison.json' is explicitly used in the script or terminal commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected monofacial and bifacial annual energy should be between 15,000,000 and 25,000,000 kWh (approximately 21.0 GWh and 21.7 GWh respectively). The expected bifacial gain should be between 2.0% and 20.0% (approximately 3.6%). The JSON file must be saved to /home/ga/Documents/SAM_Projects/bifacial_comparison.json with the exact keys specified in the prompt."
+}

@@ -1,0 +1,75 @@
+{
+  "dataset_id": "d912e548",
+  "name": "Earth-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 198,
+  "description": "The Earth-Question-Answering dataset evaluates multiple-choice question answering about remote sensing and Earth observation topics. Each sample presents a single question with four answer options, and the model must select the correct option.",
+  "card_text": "Earth-Question-Answering is a text-only multiple-choice QA dataset containing 198 samples. Each item consists of a natural-language question about remote sensing, Earth science, or geospatial concepts, accompanied by four candidate answers, only one of which is correct. The answer is given as a single letter (A–D). Questions are factual and concise, targeting knowledge such as vegetation indices, mapping terminology, and image interpretation. The dataset assumes the model has domain knowledge in Earth observation and does not provide supporting context passages. It is designed to test multiple-choice reasoning and factual recall within this specialized domain.",
+  "tasks": [
+    "multiple_choice_qa",
+    "question_answering"
+  ],
+  "domain": "remote sensing / Earth science",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A single-sentence question about remote sensing or Earth observation concepts, asking the model to identify the correct answer among the provided options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of four distinct candidate answers (short phrases or terms) from which exactly one is correct. The options are directly tied to the question and represent plausible alternatives.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single letter (A, B, C, or D) indicating the correct option from the list. It is the target label for the multiple-choice question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with a question string and a list of four multiple-choice options, and an output object with a single-letter answer identifying the correct option. There is no supporting context passage, dialog, or additional annotation; the task is to select the correct answer based solely on the question and options."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Earth-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Earth Question Answering",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

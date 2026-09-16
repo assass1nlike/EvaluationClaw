@@ -1,0 +1,32 @@
+{
+  "id": "create_data_asset@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "Create a Data Asset record in Eramba for the 'Customer Loyalty Program Database'. \nDescription: 'Contains personal data collected through the customer loyalty rewards program, including full names, email addresses, phone numbers, purchase history, loyalty point balances, and date of birth. Data is stored in the EU-West-1 region PostgreSQL cluster and replicated to a disaster recovery site.' \nAssociate the asset with an available business unit (e.g., Information Technology) and set the status to Active/Operational.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_data_asset/setup_task.sh",
+    "post_task": "/workspace/tasks/create_data_asset/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Customer Loyalty Program Database",
+    "required_terms": [
+      "personal data",
+      "loyalty",
+      "PostgreSQL",
+      "EU-West-1"
+    ],
+    "target_table": "data_assets"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_data_asset"
+    }
+  }
+}

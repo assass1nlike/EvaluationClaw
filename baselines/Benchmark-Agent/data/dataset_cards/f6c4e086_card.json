@@ -1,0 +1,95 @@
+{
+  "dataset_id": "f6c4e086",
+  "name": "Openset Egocentric Daily Tasks Action Planning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Egocentric Daily Tasks Action Planning dataset contains 200 examples of first-person visual action planning. Each example pairs an egocentric image of an indoor daily environment with a text prompt that states a main goal and current step, and requires generating the next navigation or manipulation action to achieve the goal.",
+  "card_text": "This dataset evaluates multimodal action planning in egocentric daily tasks. Each sample provides a single first-person image (e.g., kitchen or bedroom) and a text prompt that includes the main goal (e.g., 'clean a ladle') and current step, framed as an instruction to decide the next action. The expected output is a short text describing the next low-level action, such as turning, walking, or reaching. The data is open-set: goals and scenes vary widely, and no fixed answer choices are provided. Assumptions include that the agent has a history of past actions and perceives the environment from its own viewpoint. The benchmark tests visual scene understanding, goal tracking, and sequential planning in everyday environments.",
+  "tasks": [
+    "open_ended_qa",
+    "visual_question_answering"
+  ],
+  "domain": "egocentric action planning",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list containing a single egocentric image filename that shows the current indoor environment from the agent's viewpoint. The image provides the visual scene needed to determine the next action.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt combines an instruction to analyze the current environment with the main goal and current step details. It serves as the primary textual context and task specification for the model.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The same prompt acts as the query, asking the model to decide the next action step after considering past actions, the main goal, and the current visual environment.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The target text describes the next low-level action (e.g., turn, walk, take) that the agent should perform to make progress toward the main goal, based on the image and current state.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an egocentric image (input.image_file), a text prompt (input.prompt) that embeds the main goal, current step, and an instruction to decide the next action, and a text answer (output.text) specifying the next action step. The prompt references the image via a placeholder, and the answer is generated conditioned on the image and prompt. No dialog, options, bounding boxes, or other annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/EgocentricDailyTasksActionPlanning/openset_egocentric_daily_tasks_action_planning.json",
+    "existing_tags": {
+      "task": "Egocentric Daily Tasks Action Planning",
+      "type": "image comprehension",
+      "skill": "Multimodal Dialogue",
+      "domain": "General",
+      "general_capability": [
+        "Planning Ability",
+        "Interactive Capability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

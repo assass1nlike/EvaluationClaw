@@ -1,0 +1,33 @@
+{
+  "id": "create_virtual_repo@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Create a virtual Generic repository in JFrog Artifactory (http://localhost:8082) using username 'admin' and password 'password'. Configure the repository with the key 'generic-virtual', the description 'Virtual repository aggregating generic repositories', and include 'example-repo-local' as an aggregated repository.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_virtual_repo/setup_task.sh"
+  },
+  "metadata": {
+    "target_repo_key": "generic-virtual",
+    "target_repo_type": "virtual",
+    "target_package_type": "generic",
+    "target_description": "Virtual repository aggregating generic repositories",
+    "target_included_repos": [
+      "example-repo-local"
+    ],
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_virtual_repo"
+    }
+  }
+}

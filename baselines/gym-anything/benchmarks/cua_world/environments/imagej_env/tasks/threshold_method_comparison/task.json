@@ -1,0 +1,52 @@
+{
+  "id": "threshold_method_comparison@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Multi-Threshold Segmentation Comparison",
+  "description": "You are a bioimage analyst benchmarking segmentation methods. Compare at least 4 different automatic thresholding algorithms on the 'Blobs' sample image. For each algorithm, record the method name, the threshold value selected, the number of particles detected, and the total area. Export this data to a CSV file at ~/ImageJ_Data/results/threshold_comparison.csv with a header and columns for Method, Threshold, Count, and Total_Area.",
+  "difficulty": "medium",
+  "tags": [
+    "imagej",
+    "segmentation",
+    "thresholding",
+    "benchmark",
+    "analysis"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/threshold_method_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/threshold_method_comparison/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/ImageJ_Data/results/threshold_comparison.csv",
+    "min_methods": 4,
+    "known_methods": [
+      "default",
+      "huang",
+      "intermodes",
+      "isodata",
+      "li",
+      "maxentropy",
+      "mean",
+      "minerror",
+      "minimum",
+      "moments",
+      "otsu",
+      "percentile",
+      "renyientropy",
+      "shanbhag",
+      "triangle",
+      "yen"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_threshold_comparison"
+    }
+  }
+}

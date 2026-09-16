@@ -1,0 +1,28 @@
+{
+  "id": "configure_notification_recipients@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure WooCommerce email notifications to route specific alerts to different departments. Update the recipients for 'New order' to fulfillment@example.com, 'Cancelled order' to accounting@example.com, and 'Failed order' to sysadmin@example.com, ensuring the default admin address is removed from each.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_notification_recipients/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_notification_recipients/export_result.sh"
+  },
+  "metadata": {
+    "expected_new_order": "fulfillment@example.com",
+    "expected_cancelled_order": "accounting@example.com",
+    "expected_failed_order": "sysadmin@example.com",
+    "forbidden_recipient": "admin@example.com"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_notification_recipients"
+    }
+  }
+}

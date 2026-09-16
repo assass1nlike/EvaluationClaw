@@ -1,0 +1,53 @@
+{
+  "task_id": "reproject_and_measure_distances@1",
+  "task_completion": [
+    {
+      "id": "load_source_layer",
+      "description": "Load the source GeoJSON layer into the GIS software",
+      "points": 10,
+      "visual_evidence": "The Layers panel in QGIS shows 'sample_lines' loaded."
+    },
+    {
+      "id": "reproject_and_save_geojson",
+      "description": "Reproject the layer to EPSG:32610 and save as GeoJSON",
+      "points": 25,
+      "visual_evidence": "A dialog (such as 'Save Vector Layer As' or 'Reproject Layer') showing the target CRS set to EPSG:32610 and the output file path ending in 'roads_utm.geojson'."
+    },
+    {
+      "id": "configure_length_field",
+      "description": "Use the Field Calculator to create a new decimal field for length in kilometers",
+      "points": 20,
+      "visual_evidence": "The Field Calculator dialog is open, configuring a new decimal field named 'length_km' with an expression to calculate length (e.g., '$length / 1000')."
+    },
+    {
+      "id": "verify_calculated_lengths",
+      "description": "Verify the calculated lengths in the attribute table",
+      "points": 25,
+      "visual_evidence": "The attribute table is visible, showing the 'length_km' field populated with values of approximately 41.67 for Road 1 and 33.36 for Road 2."
+    },
+    {
+      "id": "export_to_csv",
+      "description": "Export the resulting data to a CSV file",
+      "points": 20,
+      "visual_evidence": "A save or export dialog showing the output format set to CSV and the file path ending in 'road_measurements.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the QGIS graphical interface to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with QGIS menus, dialogs, and tools rather than terminal commands (like ogr2ogr) or Python scripts."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "The agent calculated the lengths using GIS tools rather than typing them manually.",
+      "visual_evidence": "The Field Calculator or similar GIS tool was used to compute the lengths, rather than the agent manually typing '41.67' and '33.36' into a text editor or spreadsheet."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The output files were created via the GIS software's export functionality.",
+      "visual_evidence": "The agent used QGIS 'Save As' or 'Export' dialogs to generate the GeoJSON and CSV files, rather than creating them manually in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Source file: /home/ga/GIS_Data/sample_lines.geojson. Target CRS: EPSG:32610. Expected GeoJSON output: /home/ga/GIS_Data/exports/roads_utm.geojson. Expected CSV output: /home/ga/GIS_Data/exports/road_measurements.csv. The layer contains 2 roads: 'Road 1' (length ~41.67 km) and 'Road 2' (length ~33.36 km). The new field must be named 'length_km'."
+}

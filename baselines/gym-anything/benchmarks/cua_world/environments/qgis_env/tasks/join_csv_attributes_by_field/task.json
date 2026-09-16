@@ -1,0 +1,44 @@
+{
+  "id": "join_csv_attributes_by_field@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Enrich the country boundary layer /home/ga/GIS_Data/ne_countries_geometry.geojson with economic and demographic data from /home/ga/GIS_Data/country_statistics.csv. Perform an attribute join using the ISO_A3 field as the common key. Ensure the resulting layer includes the POP_EST and GDP_MD fields. Export the joined layer to /home/ga/GIS_Data/exports/countries_with_statistics.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/join_csv_attributes_by_field/setup_task.sh",
+    "post_task": "/workspace/tasks/join_csv_attributes_by_field/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "vector_source": "/home/ga/GIS_Data/ne_countries_geometry.geojson",
+    "csv_source": "/home/ga/GIS_Data/country_statistics.csv",
+    "expected_output": "/home/ga/GIS_Data/exports/countries_with_statistics.geojson",
+    "join_key": "ISO_A3",
+    "required_fields": [
+      "POP_EST",
+      "GDP_MD"
+    ],
+    "min_feature_count": 150,
+    "spot_check": {
+      "USA": {
+        "field": "POP_EST",
+        "min_value": 300000000
+      },
+      "CHN": {
+        "field": "POP_EST",
+        "min_value": 1000000000
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_join_csv_attributes_by_field"
+    }
+  }
+}

@@ -311,6 +311,18 @@ def build_task_builder_prompt(
             "and evaluator material private. If the TaskDesign requests environment actors, implement "
             "their public ids, role system prompts, and reusable actor toolsets in the environment; "
             "do not duplicate them with a scripted-agent service or use runtime_files."
+            " For single-stage Docker tasks, choose deterministic test_command scoring, or "
+            "environment.judge when semantic assessment needs an exploring judge. Only use a judge "
+            "when available_models lists a task model, selected with metadata.task_model_id. "
+            "Define judge.instructions and criteria [{id, rubric, weight}]; each rubric must give "
+            "concrete 0-to-1 anchors and evidence requirements. judge.mode='judge' needs no test_command; "
+            "mode='hybrid' requires test_command and an explicit script_weight in [0,1]. "
+            "The final score is script_weight*script_score+(1-script_weight)*weighted_criterion_score; "
+            "script_gate=true additionally forces zero if script_score<1. The judge reviews a private "
+            "copy of the actual final filesystem plus recorded execution evidence. The copy has no "
+            "original processes, memory, or external network. Optional judge.setup_commands may restart "
+            "local services without resetting or repairing the submitted work. Missing historical "
+            "evidence cannot be reconstructed; arrange required audit logs in the task environment."
         )
     scoring_guidance = (
         "\nWhen scoring is present, set allows_partial_credit only for a real middle band and describe "
@@ -422,6 +434,16 @@ def build_task_builder_tool_prompt(
     parts = [
         "Use supplied tools only when they materially improve construction. run_python operates in "
         "the fixed Builder directory; save files needed by the task there.",
+        "Python runs in a persistent, memory/process-limited Docker sandbox, with private /tmp "
+        "and only this Builder directory mounted. It has no host Docker socket or model credentials. "
+        "Use build_image and inspection tools for Docker operations; inspection containers also "
+        "mount the Builder directory at its original absolute path. You can install packages using "
+        "python -m pip install --user. Background subprocesses can persist between calls if their "
+        "stdin/stdout/stderr are redirected to DEVNULL or files; record their PIDs to manage them. "
+        "Each Python call has a 60-second deadline. A timeout stops the whole sandbox, including "
+        "its background processes; only files in the Builder directory survive. Recreate services "
+        "after a timeout. All construction containers are removed when the Builder finishes. "
+        "An inspection command timeout also stops that container; start a new one to continue.",
         "Use read_document for local UTF-8 text or PDFs, including a named ZIP/TAR member. "
         "Use list_archive to find members, then extract_archive to unpack selected files or the whole "
         "archive (up to 64 files and 1 GiB per call). Extraction preserves directory structure and "

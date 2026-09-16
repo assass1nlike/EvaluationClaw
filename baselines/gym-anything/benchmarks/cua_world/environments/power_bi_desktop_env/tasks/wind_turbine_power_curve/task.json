@@ -1,0 +1,36 @@
+{
+  "id": "wind_turbine_power_curve@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "A Wind Energy Operations Manager needs to validate the performance of a 1.5MW turbine following a gearbox maintenance event. Using the high-frequency SCADA logs in 'C:\\Users\\Docker\\Desktop\\PowerBITasks\\turbine_scada.csv', create a Power BI report named 'Turbine_Performance.pbix' that constructs an IEC 61400-12 Power Curve. The report must filter the data for records where 'Status_Code' is 'OK' and include a calculated column named 'Wind_Bin' that rounds 'Wind_Speed_ms' down to the nearest integer. Define a DAX measure named 'Avg_Power' for the average of 'Power_kW'. The final report should feature a line chart showing 'Avg_Power' by 'Wind_Bin' and a scatter chart showing 'Power_kW' by 'Wind_Speed_ms'. Save the completed report to C:\\Users\\Docker\\Desktop\\Turbine_Performance.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\wind_turbine_power_curve\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\wind_turbine_power_curve\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_file": "C:\\Users\\Docker\\Desktop\\Turbine_Performance.pbix",
+    "data_path": "C:\\Users\\Docker\\Desktop\\PowerBITasks\\turbine_scada.csv",
+    "required_measures": [
+      "Avg_Power"
+    ],
+    "required_columns": [
+      "Wind_Bin"
+    ],
+    "required_visuals": [
+      "lineChart",
+      "scatterChart"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wind_turbine_power_curve"
+    }
+  }
+}

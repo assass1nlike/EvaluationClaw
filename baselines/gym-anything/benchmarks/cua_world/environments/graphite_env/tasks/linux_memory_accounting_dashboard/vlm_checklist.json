@@ -1,0 +1,59 @@
+{
+  "task_id": "linux_memory_accounting_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_named",
+      "description": "Dashboard is saved with the correct name",
+      "points": 10,
+      "visual_evidence": "The Graphite web interface shows the dashboard title as 'Linux Memory Accounting' at the top of the screen."
+    },
+    {
+      "id": "graph1_title",
+      "description": "First graph is created with the correct title",
+      "points": 10,
+      "visual_evidence": "A graph panel titled 'Absolute Memory Breakdown' is visible in the dashboard."
+    },
+    {
+      "id": "graph1_stacked_alias",
+      "description": "First graph uses stacked() and aliasByNode() functions",
+      "points": 25,
+      "visual_evidence": "The 'Absolute Memory Breakdown' graph displays a stacked area chart. The legend below the graph shows shortened metric names (e.g., 'memory-used', 'memory-cached') instead of full paths like 'collectd.*.memory.*'."
+    },
+    {
+      "id": "graph2_title",
+      "description": "Second graph is created with the correct title",
+      "points": 10,
+      "visual_evidence": "A graph panel titled 'True Application Memory Percent' is visible in the dashboard."
+    },
+    {
+      "id": "graph2_percent",
+      "description": "Second graph uses asPercent() to show utilization",
+      "points": 25,
+      "visual_evidence": "The 'True Application Memory Percent' graph has a Y-axis scaled for percentages (e.g., 0 to 100) and plots the memory-used metric as a percentage of the total."
+    },
+    {
+      "id": "graph3_title",
+      "description": "Third graph is created with the correct title",
+      "points": 20,
+      "visual_evidence": "A graph panel titled 'Available Memory' is visible in the dashboard."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Graphite web interface to build the dashboard",
+      "visual_evidence": "Screenshots show the agent navigating the Graphite composer tree, clicking on metrics, and applying functions via the UI, rather than just writing a script or editing a JSON file."
+    },
+    {
+      "id": "genuine_metrics",
+      "description": "Graphs display actual live data",
+      "visual_evidence": "The graphs show plotted data lines or colored areas, indicating that live metrics from the 'collectd' namespace are successfully being queried and rendered, not just empty graph panels."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Agent did not use browser developer tools to fake titles",
+      "visual_evidence": "The dashboard titles and graph titles appear naturally within the Graphite UI layout without signs of HTML manipulation via the browser's Inspect Element tool."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Linux Memory Accounting'. There must be exactly three graphs with the titles: 'Absolute Memory Breakdown', 'True Application Memory Percent', and 'Available Memory'. The metrics must be sourced from the 'collectd' namespace, not 'servers'. Graph 1 must visually reflect a stacked area chart with aliased node names (short names). Graph 2 must visually reflect a percentage scale."
+}

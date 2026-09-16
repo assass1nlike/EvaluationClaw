@@ -1,0 +1,78 @@
+{
+  "dataset_id": "c1b0111b",
+  "name": "Road Semantic Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A road scene semantic segmentation dataset where the model must segment the road from an input image based on a text prompt. It evaluates segmentation capabilities on urban driving scenes.",
+  "card_text": "The dataset contains 200 samples of road scene images paired with text prompts and corresponding segmentation masks. Each sample includes an input RGB image (e.g., Cityscapes leftImg8bit PNG), a short instruction asking to segment the road, and an output labelIds mask (e.g., Cityscapes gtFine_labelIds PNG). The images depict complex urban driving scenes with roads, vehicles, pedestrians, and buildings. The task is to produce a pixel-level segmentation of the road, requiring the model to understand both the visual scene and the textual instruction. The dataset is intended for evaluating semantic segmentation models in the context of autonomous driving. The masks provide ground-truth labels for evaluation.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "autonomous driving",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "Input RGB road-scene image (e.g., Cityscapes leftImg8bit format) that the model must segment. The image is the main visual context for the task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Text instruction asking the model to segment the road from the input image. It is a short, explicit command.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Ground-truth segmentation mask (labelIds) corresponding to the input image. It provides per-pixel class labels used as the target output for segmentation.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image file (input.image_file), a short text prompt (input.prompt) instructing the model to segment the road, and an output segmentation mask file (output.map_file). The image is the visual context, the prompt is the instruction, and the mask is the target annotation. No other components are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Road_Semantic_Segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "Road Semantic Segmentation",
+      "type": "comprehension",
+      "skill": "Panoptic Segmentation (Panoptic Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

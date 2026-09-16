@@ -1,0 +1,37 @@
+{
+  "id": "flood_risk_assessment_spatial_query@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform a flood risk assessment for Liechtenstein using OpenStreetMap data. Using the waterways (gis_osm_waterways_free_1.shp) and populated places (gis_osm_places_free_1.shp) layers located in /home/ga/GIS_Data/liechtenstein/, identify all populated places within a 1 kilometer dissolved buffer of the 'Rhein' (or 'Rhine') river. Export the identified features to /home/ga/GIS_Data/exports/at_risk_towns.geojson using EPSG:4326.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/flood_risk_assessment_spatial_query/setup_task.sh",
+    "post_task": "/workspace/tasks/flood_risk_assessment_spatial_query/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "data_dir": "/home/ga/GIS_Data/liechtenstein",
+    "expected_output_path": "/home/ga/GIS_Data/exports/at_risk_towns.geojson",
+    "must_include_towns": [
+      "Vaduz",
+      "Balzers",
+      "Schaan"
+    ],
+    "must_exclude_towns": [
+      "Malbun",
+      "Steg"
+    ],
+    "buffer_distance_meters": 1000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_flood_risk_assessment"
+    }
+  }
+}

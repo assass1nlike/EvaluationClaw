@@ -1,0 +1,53 @@
+{
+  "task_id": "create_custom_rule@1",
+  "task_completion": [
+    {
+      "id": "open_local_rules_editor",
+      "description": "Open the local_rules.xml file for editing",
+      "points": 10,
+      "visual_evidence": "The Wazuh Dashboard UI showing the 'local_rules.xml' file open in the built-in XML editor, or a terminal showing the file open in a text editor."
+    },
+    {
+      "id": "rule_id_and_level_added",
+      "description": "Add the rule block with the correct ID and severity level",
+      "points": 20,
+      "visual_evidence": "XML code visible in the editor showing the opening tag: <rule id=\"100010\" level=\"9\">."
+    },
+    {
+      "id": "parent_sid_added",
+      "description": "Add the condition to trigger when rule 5710 fires",
+      "points": 20,
+      "visual_evidence": "XML code visible inside the new rule block showing the tag: <if_sid>5710</if_sid>."
+    },
+    {
+      "id": "rule_description_added",
+      "description": "Add the required rule description",
+      "points": 20,
+      "visual_evidence": "XML code visible inside the new rule block showing the tag: <description>Invalid SSH user detected - potential unauthorized access attempt</description>."
+    },
+    {
+      "id": "rule_saved_successfully",
+      "description": "Save the rule and verify it is in the custom rules list",
+      "points": 30,
+      "visual_evidence": "A success notification in the Wazuh UI (e.g., 'File saved successfully' or a prompt to restart the manager), OR rule 100010 visibly listed in the Wazuh 'Custom rules' data table."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_wazuh_interface",
+      "description": "Ensure the agent interacted with the actual Wazuh Dashboard or a legitimate terminal session",
+      "visual_evidence": "The screenshots should show the Wazuh web interface (Kibana/OpenSearch Dashboards) or a standard terminal window connected to the Wazuh manager, not a local desktop text editor like Notepad."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "Ensure the rule was written with proper XML syntax",
+      "visual_evidence": "The added rule must be properly enclosed in <rule>...</rule> tags and placed correctly within the parent <group>...</group> tags of the local_rules.xml file."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Ensure the success message or rule list was not faked using browser developer tools",
+      "visual_evidence": "No browser developer tools (Elements tab, Console) should be open and actively modifying the DOM to fake the presence of the rule in the UI."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Rule ID: 100010. Target Severity Level: 9. Parent SID (if_sid): 5710. Target Description: 'Invalid SSH user detected - potential unauthorized access attempt'."
+}

@@ -1,0 +1,81 @@
+{
+  "dataset_id": "ad7a8033",
+  "name": "Openset Sequential Story Completion",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Sequential Story Completion dataset evaluates a model's ability to complete a visual story by generating a caption for the final image in a sequence, given the preceding images and their captions. It combines image comprehension with open-ended text generation in a sequential narrative context.",
+  "card_text": "The dataset consists of 200 samples, each containing a sequence of images (typically three) and a text prompt. The prompt includes an instruction to write a fitting ending for the story and provides captions for the first few images, with the last caption left blank. The model must generate a concise caption for the final image that logically continues the sequence. The images are real-world scenes depicting everyday events, and the captions are short descriptive phrases. The task requires understanding the visual progression and the narrative flow to predict a coherent ending. This is an openset generation task with no multiple-choice options.",
+  "tasks": [
+    "captioning"
+  ],
+  "domain": "visual storytelling",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "mixed",
+        "semantics": "The prompt is the main text input. It contains an instruction to complete the story by writing a caption for the final image, along with the captions for the preceding images. It provides the narrative context and the explicit task description.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "A list of image file references that depict the sequential story. The images show the progression of events, and the last image is the one to be captioned, while earlier images provide visual context.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "The generated caption for the final image, which serves as the story ending. It is a short descriptive phrase that continues the narrative.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object containing a list of image files and a text prompt. The prompt embeds an instruction and captions for the initial images (with a blank for the final caption), serving as the main context. The output is a single text caption for the last image. The images and the prompt together provide the sequential story context needed to generate the answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/SequentialStoryCompletion/openset_sequential_story_completion.json",
+    "existing_tags": {
+      "task": "Sequential Story Completion",
+      "type": "image comprehension",
+      "skill": "Visual Storytelling Generation",
+      "domain": "Humanities",
+      "general_capability": [
+        "Commense Understanding"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Humanities"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "migrate_log_to_git_backup@1",
+  "task_completion": [
+    {
+      "id": "open_subsurface",
+      "description": "Open the Subsurface application containing the current dive log",
+      "points": 10,
+      "visual_evidence": "The Subsurface application window is visible on the screen, displaying dive log data."
+    },
+    {
+      "id": "open_save_dialog",
+      "description": "Open the Save As or Export dialog to migrate the log",
+      "points": 10,
+      "visual_evidence": "A 'Save As' or 'Export' file dialog window is open within the Subsurface application."
+    },
+    {
+      "id": "navigate_to_backup_directory",
+      "description": "Create and navigate to the new SubsurfaceBackup folder in Documents",
+      "points": 20,
+      "visual_evidence": "The file dialog's current directory path shows 'Documents/SubsurfaceBackup' (or the absolute path /home/ga/Documents/SubsurfaceBackup)."
+    },
+    {
+      "id": "input_git_filename",
+      "description": "Enter the required git filename for the backup",
+      "points": 30,
+      "visual_evidence": "The text 'dives.git' (or a valid git path ending in dives.git) is typed into the 'Name' or 'File name' input field of the save dialog."
+    },
+    {
+      "id": "execute_save",
+      "description": "Confirm and execute the save operation",
+      "points": 30,
+      "visual_evidence": "The agent clicks the 'Save' button in the dialog, and subsequent screenshots show the dialog closed or the application title bar updated to reflect the new 'dives.git' file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Subsurface GUI to perform the migration",
+      "visual_evidence": "Screenshots show interaction with the Subsurface application and its file dialogs, rather than using a terminal to copy files or run git commands."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Agent interacted with the actual Subsurface application",
+      "visual_evidence": "The application being used is clearly Subsurface (showing dive profiles, dive lists, etc.), not a generic text editor or file manager creating empty files."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Agent did not bypass the UI using terminal commands",
+      "visual_evidence": "There are no terminal windows open where the agent is running 'mkdir' or 'cp' commands to create the backup directory and file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected backup directory: /home/ga/Documents/SubsurfaceBackup. Expected filename: dives.git. Note: The Subsurface 'Save As' dialog does not have a 'Local Git repository' file format option (it only shows 'Subsurface files'). The agent is expected to manually type 'dives.git' into the filename field within the correct directory to fulfill the prompt's instructions."
+}

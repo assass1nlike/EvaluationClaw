@@ -1,0 +1,59 @@
+{
+  "task_id": "tumor_sir_quantification@1",
+  "task_completion": [
+    {
+      "id": "tumor_roi_placement",
+      "description": "Verify that an ROI (Region of Interest) markup is placed over the enhancing tumor.",
+      "points": 20,
+      "visual_evidence": "A markup ROI (e.g., bounding box, sphere, or segmentation label) is visible on the MRI scan, specifically targeting the enhancing tumor region (which appears hyperintense on T1ce)."
+    },
+    {
+      "id": "wm_roi_placement",
+      "description": "Verify that a reference ROI markup is placed in the contralateral normal white matter.",
+      "points": 20,
+      "visual_evidence": "A second markup ROI is visible on the opposite hemisphere of the brain in an area of normal-appearing white matter."
+    },
+    {
+      "id": "t1ce_t1_sir_calculation",
+      "description": "Verify that the agent extracts mean signal intensities and calculates the Signal Intensity Ratio (SIR) for T1ce and T1 sequences.",
+      "points": 20,
+      "visual_evidence": "The agent's screen shows the extracted mean signal intensities and calculated SIR for T1ce and T1 modalities, either in a quantitative reporting module, a terminal, or the final JSON report."
+    },
+    {
+      "id": "t2_flair_sir_calculation",
+      "description": "Verify that the agent extracts mean signal intensities and calculates the Signal Intensity Ratio (SIR) for T2 and FLAIR sequences.",
+      "points": 20,
+      "visual_evidence": "The agent's screen shows the extracted mean signal intensities and calculated SIR for T2 and FLAIR modalities, either in a quantitative reporting module, a terminal, or the final JSON report."
+    },
+    {
+      "id": "roi_files_saved",
+      "description": "Verify that the ROI markups are saved to the specified path.",
+      "points": 10,
+      "visual_evidence": "A file save dialog, terminal command, or file explorer showing the creation/saving of 'sir_rois.mrk.json' in the '~/Documents/SlicerData/BraTS/' directory."
+    },
+    {
+      "id": "report_completeness",
+      "description": "Verify that the SIR report is saved with all required fields.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal, or save dialog showing the 'sir_report.json' file being saved to '~/Documents/SlicerData/BraTS/'. The visible JSON content must include keys for 'tumor_roi', 'wm_roi', 'signal_intensities', 'sir_values', and 'interpretation'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_roi_interaction",
+      "description": "The agent used the medical imaging software's GUI to place the ROIs and extract intensities.",
+      "visual_evidence": "Screenshots show the agent actively using the mouse/tools in the imaging software (e.g., 3D Slicer) to draw or place ROIs on the MRI slices, rather than just running a pre-written script to bypass visual interaction."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "The agent generated the report based on actual extracted values rather than hallucinating or copy-pasting a pre-made template.",
+      "visual_evidence": "The numerical values in the 'sir_report.json' logically match the measurements seen in the imaging software's quantification modules or tables during the trajectory."
+    },
+    {
+      "id": "authentic_file_saving",
+      "description": "The agent actually saved the files to the specified directories.",
+      "visual_evidence": "The file paths '~/Documents/SlicerData/BraTS/sir_rois.mrk.json' and '~/Documents/SlicerData/BraTS/sir_report.json' are visible in a genuine save dialog, file explorer, or terminal confirmation, not just echoed as text."
+    }
+  ],
+  "privileged_info_for_vlm": "The BraTS 2021 dataset uses specific label indices for tumor segmentation: Label 1 for necrotic/non-enhancing tumor core (NCR), Label 2 for peritumoral edema (ED), and Label 4 for GD-enhancing tumor (ET). The enhancing tumor ROI should specifically target areas corresponding to Label 4 (typically hyperintense on T1ce)."
+}

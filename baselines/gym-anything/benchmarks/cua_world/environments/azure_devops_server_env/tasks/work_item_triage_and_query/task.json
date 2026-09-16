@@ -1,0 +1,31 @@
+{
+  "id": "work_item_triage_and_query@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are a Computer Systems Analyst at TailwindTraders responsible for tracking software quality. A recent project audit revealed that several critical bugs are unassigned, misrouted, and there is no saved query for leadership to track the bug backlog. At http://localhost/DefaultCollection (Username: Docker, Password: GymAnything123!), identify all unassigned Priority 1 bugs, assign them to 'Docker', and add the tag 'needs-owner'. Move all Priority 1 bugs from the 'TailwindTraders\\Uncategorized' area path to 'TailwindTraders\\Backend API'. Create a shared team query named 'Critical Bug Backlog' under Shared Queries that returns all Active bugs with Priority 1.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\work_item_triage_and_query\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\work_item_triage_and_query\\export_result.ps1"
+  },
+  "metadata": {
+    "target_project": "TailwindTraders",
+    "target_area_path": "TailwindTraders\\Backend API",
+    "wrong_area_path": "TailwindTraders\\Uncategorized",
+    "required_query_name": "Critical Bug Backlog",
+    "query_saved_under": "Shared Queries",
+    "target_priority": 1,
+    "target_work_item_type": "Bug"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_work_item_triage_and_query"
+    }
+  }
+}

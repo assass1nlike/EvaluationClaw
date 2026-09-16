@@ -1,0 +1,36 @@
+{
+  "id": "batch_import_customers@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Import 4 new potential clients into the Northwind Traders business using the Batch Create feature. The client data (Name, BillingAddress, and Email) is located in a tab-separated values (TSV) file at /home/ga/Documents/new_leads.tsv. Ensure all customers are imported simultaneously rather than individually.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/batch_import_customers/setup_task.sh",
+    "post_task": "/workspace/tasks/batch_import_customers/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/Documents/new_leads.tsv",
+    "expected_count_increase": 4,
+    "expected_names": [
+      "Bon app'",
+      "Bottom-Dollar Markets",
+      "Cactus Comidas para llevar",
+      "Die Wandernde Kuh"
+    ],
+    "verification_target": {
+      "name": "Die Wandernde Kuh",
+      "email": "orders@wanderndekuh.de"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_batch_import_customers"
+    }
+  }
+}

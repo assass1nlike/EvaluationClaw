@@ -1,0 +1,34 @@
+{
+  "id": "token_participant_management@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "As an I-O psychologist for an organizational consulting firm, convert the 'Leadership Competency Assessment 360' survey at http://localhost/index.php/admin (admin/Admin123!) from open-access to closed-access using unique tokens. Add Marcus Thompson (m.thompson@acmecorp.com), Sarah Chen (s.chen@acmecorp.com), David Okafor (d.okafor@acmecorp.com), and Priya Sharma (p.sharma@acmecorp.com) to the participant list. Set the invitation email subject to 'Your 360-Degree Leadership Feedback Request - Action Required' and generate unique access tokens for all participants.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/token_participant_management/setup_task.sh",
+    "post_task": "/workspace/tasks/token_participant_management/export_result.sh"
+  },
+  "metadata": {
+    "survey_title": "Leadership Competency Assessment 360",
+    "expected_participant_count": 4,
+    "participant_emails": [
+      "m.thompson@acmecorp.com",
+      "s.chen@acmecorp.com",
+      "d.okafor@acmecorp.com",
+      "p.sharma@acmecorp.com"
+    ],
+    "expected_invite_subject_keyword": "360-Degree Leadership Feedback",
+    "occupation_context": "Industrial-Organizational Psychologists",
+    "instrument_source": "Adapted from Korn Ferry Lominger Leadership Architect competency framework"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_token_participant_management"
+    }
+  }
+}

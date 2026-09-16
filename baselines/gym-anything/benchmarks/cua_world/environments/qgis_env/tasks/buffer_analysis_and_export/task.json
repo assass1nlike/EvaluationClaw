@@ -1,0 +1,28 @@
+{
+  "id": "buffer_analysis_and_export@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform a buffer analysis on the point data located at /home/ga/GIS_Data/sample_points.geojson. Create a 500-meter buffer around each point using 16 segments. Export the resulting buffer polygons as a GeoJSON file to /home/ga/GIS_Data/exports/point_buffers.geojson using the EPSG:4326 (WGS84) coordinate reference system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 360,
+    "max_steps": 50
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/buffer_analysis_and_export/setup_task.sh",
+    "post_task": "/workspace/tasks/buffer_analysis_and_export/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/GIS_Data/sample_points.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/point_buffers.geojson",
+    "expected_feature_count": 3,
+    "buffer_distance_m": 500,
+    "source_point_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_buffer_analysis_and_export"
+    }
+  }
+}

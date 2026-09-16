@@ -1,0 +1,36 @@
+{
+  "id": "save_diagnostic_views@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Create a diagnostic image set for a case presentation using Blue Sky Plan with the patient DICOM data located at C:\\workspace\\data\\SamplePatient. Export the following four views as PNG images to C:\\Users\\Docker\\Documents\\CasePresentation\\: a Panoramic View showing the full panoramic curve of the jaw (panoramic_view.png), an Axial View showing the teeth roots or alveolar ridge (axial_view.png), a 3D Rendering showing an oblique lateral view of the mandible (3d_rendering_view.png), and a Cross-sectional View at the lower right first molar (Tooth #30) region (cross_section_view.png).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\save_diagnostic_views\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\save_diagnostic_views\\export_result.ps1"
+  },
+  "metadata": {
+    "output_dir": "C:\\Users\\Docker\\Documents\\CasePresentation",
+    "expected_files": [
+      "panoramic_view.png",
+      "axial_view.png",
+      "3d_rendering_view.png",
+      "cross_section_view.png"
+    ],
+    "min_resolution": [
+      400,
+      300
+    ],
+    "min_size_kb": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_save_diagnostic_views"
+    }
+  }
+}

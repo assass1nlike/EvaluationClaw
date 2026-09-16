@@ -1,0 +1,53 @@
+{
+  "task_id": "build_earthquake_catalog_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "The agent opened the earthquake_catalog.xlsx file in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open, and the window title or active document indicates 'earthquake_catalog.xlsx'."
+    },
+    {
+      "id": "mag_category_column",
+      "description": "The agent added a 'Mag_Category' column to the 'EarthquakeData' sheet and populated it based on magnitude.",
+      "points": 20,
+      "visual_evidence": "A column header 'Mag_Category' is visible in the 'EarthquakeData' sheet. The cells below it contain text such as 'Minor', 'Light', 'Moderate', 'Strong', or 'Major', corresponding to the numerical values in the magnitude column (Column E)."
+    },
+    {
+      "id": "depth_category_column",
+      "description": "The agent added a 'Depth_Category' column to the 'EarthquakeData' sheet and populated it based on depth.",
+      "points": 20,
+      "visual_evidence": "A column header 'Depth_Category' is visible in the 'EarthquakeData' sheet. The cells below it contain text such as 'Shallow', 'Intermediate', or 'Deep', corresponding to the numerical values in the depth column (Column D)."
+    },
+    {
+      "id": "summary_sheet_labels",
+      "description": "The agent created a 'Summary' sheet with the required labels in Column A.",
+      "points": 20,
+      "visual_evidence": "A sheet tab named 'Summary' is active. Column A contains the exact labels: 'Total Events', 'Average Magnitude', 'Maximum Magnitude', 'Minimum Magnitude', 'Minor', 'Light', 'Moderate', 'Strong', 'Major', 'Shallow', 'Intermediate', and 'Deep'."
+    },
+    {
+      "id": "summary_sheet_values",
+      "description": "The agent calculated the summary statistics in Column B of the 'Summary' sheet.",
+      "points": 30,
+      "visual_evidence": "Column B in the 'Summary' sheet contains numerical values next to each label in Column A. The 'Total Events' should be approximately 150, and the category counts should sum up to the total events."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent interacted with the spreadsheet application GUI to complete the task.",
+      "visual_evidence": "Screenshots show the agent clicking on cells, using the formula bar, or navigating spreadsheet menus, rather than writing a Python script or using terminal commands to modify the file."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used formulas to calculate values rather than hardcoding the answers.",
+      "visual_evidence": "When a cell in the 'Mag_Category', 'Depth_Category', or 'Summary' sheet is selected, the formula bar shows spreadsheet functions (e.g., =IF(...), =COUNTIF(...), =AVERAGE(...)) instead of plain text or numbers."
+    },
+    {
+      "id": "authentic_data_present",
+      "description": "The agent manipulated the genuine dataset rather than creating a mock file.",
+      "visual_evidence": "The 'EarthquakeData' sheet shows a large number of rows (around 150) with realistic, varied earthquake data, not just a few manually typed rows."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is located at /home/ga/Documents/earthquake_catalog.xlsx and contains exactly 150 real earthquake records from the USGS API. The agent is expected to use formulas such as IF, COUNTIF, AVERAGE, MAX, MIN, and COUNTA. When verifying the 'Summary' sheet, 'Total Events' should evaluate to 150. The VLM should verify that the evaluated values in Column B of the Summary sheet are plausible based on a 150-record dataset."
+}

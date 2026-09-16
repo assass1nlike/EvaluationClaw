@@ -1,0 +1,29 @@
+{
+  "id": "historic_preservation_solar_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an energy consultant designing a solar retrofit for a historic building. The local historic commission mandates that modern additions (like solar panels) must not be visible from the primary street elevation (the North side). \n\n1. Open Energy3D and load the sample project `~/Documents/Energy3D/building-shape.ng3`.\n2. Change the project's geographic location to Boston, MA.\n3. Change the simulation date to June 21 (Summer Solstice).\n4. Modify the building's roof: change it from a Flat roof to a Hip roof with a roof height of approximately 4 meters.\n5. Add flush-mounted Solar Panels to the roof facets. You must place panels on the South, East, and West facing roof facets to maximize energy capture.\n6. CRITICAL CONSTRAINT: Do NOT place any solar panels on the North-facing roof facet (the side facing the top of the 2D default view/street side) to comply with historic preservation rules.\n7. Run the Daily Solar Yield analysis (Analysis > Solar Panels > Yield Today).\n8. Export the resulting yield data to a CSV file saved exactly at `~/Documents/Energy3D/historic_solar_yield.csv`.\n9. Save the modified project as `~/Documents/Energy3D/historic_retrofit.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/historic_preservation_solar_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/historic_preservation_solar_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/Energy3D/historic_solar_yield.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/historic_retrofit.ng3",
+    "required_location": "Boston",
+    "required_roof_type": "Hip",
+    "min_csv_size_bytes": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_historic_retrofit"
+    }
+  }
+}

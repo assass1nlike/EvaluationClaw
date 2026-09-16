@@ -1,0 +1,59 @@
+{
+  "task_id": "splunk_audit_and_compliance@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the creation of a dashboard named 'Splunk_Usage_Audit'.",
+      "points": 10,
+      "visual_evidence": "The Splunk Dashboards list shows 'Splunk_Usage_Audit', or the dashboard is open with 'Splunk_Usage_Audit' as the title."
+    },
+    {
+      "id": "dashboard_min_panels",
+      "description": "Verify the dashboard contains at least three panels visualizing user search activity.",
+      "points": 20,
+      "visual_evidence": "The 'Splunk_Usage_Audit' dashboard displays 3 or more distinct visualization panels (e.g., charts, tables, or single values) related to search activity."
+    },
+    {
+      "id": "dashboard_system_user_filtered",
+      "description": "Verify the dashboard panels filter out the internal system user.",
+      "points": 20,
+      "visual_evidence": "The search queries for the dashboard panels (visible in edit mode, search bar, or SPL view) explicitly exclude the system user, e.g., using `user!=\"splunk-system-user\"` or `NOT user=\"splunk-system-user\"`."
+    },
+    {
+      "id": "alert_created",
+      "description": "Verify the creation of a scheduled alert named 'Data_Exfiltration_Via_Search'.",
+      "points": 10,
+      "visual_evidence": "The Splunk Alerts list shows 'Data_Exfiltration_Via_Search', or the alert configuration/save dialog is visible with this exact name."
+    },
+    {
+      "id": "alert_search_criteria",
+      "description": "Verify the alert monitors the `_audit` index for the specified data export commands.",
+      "points": 20,
+      "visual_evidence": "The alert's underlying search query includes `index=_audit` and the keywords `outputcsv`, `outputlookup`, and `export`."
+    },
+    {
+      "id": "alert_schedule_hourly",
+      "description": "Verify the alert is configured to run on an hourly schedule.",
+      "points": 20,
+      "visual_evidence": "The alert configuration screen shows the schedule type set to run hourly (e.g., 'Run every hour' selected in the UI, or a cron expression like `0 * * * *`)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the actual Splunk web interface to complete the task.",
+      "visual_evidence": "Screenshots show the Splunk Web UI (http://localhost:8000) being navigated in a web browser, rather than API calls via terminal."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "The agent used the Splunk UI to create the dashboard and alert, rather than manually writing configuration files.",
+      "visual_evidence": "Absence of terminal windows or text editors (like nano/vim) editing `.conf` or `.xml` files directly in the Splunk backend directories."
+    },
+    {
+      "id": "authentic_search_execution",
+      "description": "The agent actively used the Search & Reporting app to build the queries before saving them.",
+      "visual_evidence": "The Splunk Search interface is visible with search results populating the screen before being saved as a dashboard panel or alert."
+    }
+  ],
+  "privileged_info_for_vlm": "Dashboard must be named exactly 'Splunk_Usage_Audit' and contain a minimum of 3 panels. The dashboard searches must explicitly filter out 'splunk-system-user'. The alert must be named exactly 'Data_Exfiltration_Via_Search', target the '_audit' index, and look for the keywords 'outputcsv', 'outputlookup', and 'export'. The alert must be scheduled to run hourly."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_indexer_auditor_access@1",
+  "task_completion": [
+    {
+      "id": "create_internal_user",
+      "description": "Create the 'compliance_auditor' internal user via REST API",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command (e.g., curl or python script) sending a PUT or POST request to the OpenSearch security API (e.g., /_plugins/_security/api/internalusers/compliance_auditor) containing the password 'AuditP@ss2024!', the description, and the backend role 'auditors'."
+    },
+    {
+      "id": "create_role",
+      "description": "Create the 'compliance_read_alerts' role via REST API",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command sending a PUT or POST request to the roles API (e.g., /_plugins/_security/api/roles/compliance_read_alerts) with a JSON payload specifying 'cluster_composite_ops_ro' for cluster permissions and 'read'/'search' permissions for the 'wazuh-alerts-*' and 'wazuh-monitoring-*' index patterns."
+    },
+    {
+      "id": "map_user_to_role",
+      "description": "Map the 'compliance_auditor' user to the 'compliance_read_alerts' role",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command sending a PUT or POST request to the roles mapping API (e.g., /_plugins/_security/api/rolesmapping/compliance_read_alerts) with a JSON payload that includes the user 'compliance_auditor'."
+    },
+    {
+      "id": "save_user_check",
+      "description": "Save the user API response to ~/auditor_user_check.json",
+      "points": 10,
+      "visual_evidence": "Look for a command redirecting the output of the user GET/PUT request to '~/auditor_user_check.json', or a 'cat' command displaying the contents of this file showing the OpenSearch API response for the user."
+    },
+    {
+      "id": "save_role_check",
+      "description": "Save the role API response to ~/auditor_role_check.json",
+      "points": 10,
+      "visual_evidence": "Look for a command redirecting the output of the role GET/PUT request to '~/auditor_role_check.json', or a 'cat' command displaying the contents of this file showing the OpenSearch API response for the role."
+    },
+    {
+      "id": "save_access_test",
+      "description": "Save a successful test query response authenticated as the new user to ~/auditor_access_test.json",
+      "points": 25,
+      "visual_evidence": "Look for a curl command querying the indexer (e.g., GET /wazuh-alerts-*/_search) that explicitly authenticates as the new user (e.g., -u compliance_auditor:AuditP@ss2024!) and redirects the successful JSON response to '~/auditor_access_test.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rest_api",
+      "description": "The agent must use terminal commands (like curl or python) to interact with the REST API, not a GUI browser.",
+      "visual_evidence": "Check that the configuration was done via command-line HTTP clients (e.g., curl) in the terminal, rather than using the OpenSearch Dashboards or Wazuh web interface."
+    },
+    {
+      "id": "genuine_api_responses",
+      "description": "The saved JSON files must contain actual API responses, not manually typed mock data.",
+      "visual_evidence": "Look at the contents of the saved .json files. They should look like genuine OpenSearch JSON responses (e.g., containing status codes, '_id', '_version', or standard OpenSearch error/success formatting) rather than simple copy-pasted text from the prompt."
+    },
+    {
+      "id": "actual_authentication_used",
+      "description": "The test query must actually use the newly created user's credentials.",
+      "visual_evidence": "Ensure the curl command generating '~/auditor_access_test.json' uses '-u compliance_auditor:AuditP@ss2024!' (or similar auth headers) and does NOT use the admin credentials ('admin:SecretPassword') to fake the test."
+    }
+  ],
+  "privileged_info_for_vlm": "The Wazuh Indexer (OpenSearch) is running at https://localhost:9200. The admin credentials are 'admin' / 'SecretPassword'. The target user is 'compliance_auditor' and the target role is 'compliance_read_alerts'. The role must grant 'read' and 'search' access to 'wazuh-alerts-*' and 'wazuh-monitoring-*' indices. The user must be mapped to this role. The test query should demonstrate successful access to the allowed indices using the new user's credentials."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "incident_resolution_knowledge_base@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "You are a senior IT support specialist completing end-of-week housekeeping. Resolve and close Ticket 1002 (email account issue) with the resolution: 'Investigated mail server configuration. Found SMTP relay settings were changed during last maintenance window. Reverted SMTP settings to prior configuration: smtp.company.local port 587 with TLS. Confirmed fix by sending test emails from 5 accounts.' Resolve the Adobe Acrobat Pro installation request ticket with the resolution: 'Adobe Acrobat Pro DC license provisioned via company software portal. Installation completed remotely via SCCM push. User confirmed application is working and PDF editing is accessible.' Create a Knowledge Base solution article in the Solutions module titled 'Troubleshooting SMTP Email Issues After Maintenance Windows' describing the SMTP relay fix as a known solution.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/incident_resolution_knowledge_base/setup_task.sh",
+    "pre_task_timeout": 3600,
+    "post_task": "/workspace/tasks/incident_resolution_knowledge_base/export_result.sh"
+  },
+  "metadata": {
+    "email_ticket_id": 1002,
+    "adobe_ticket_id": 1005,
+    "email_resolution_keyword": "smtp",
+    "adobe_resolution_keyword": "acrobat",
+    "kb_title_keyword": "SMTP",
+    "kb_title": "Troubleshooting SMTP Email Issues After Maintenance Windows"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_incident_resolution_knowledge_base"
+    }
+  }
+}

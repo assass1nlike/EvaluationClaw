@@ -1,0 +1,53 @@
+{
+  "task_id": "fuel_economy_diagnostic@1",
+  "task_completion": [
+    {
+      "id": "remove_duplicates",
+      "description": "Remove duplicate entries from the dataset.",
+      "points": 15,
+      "visual_evidence": "Look at the dataset rows. There should be exactly 17 data rows remaining (excluding the header), and only one entry for the date 2024-03-11."
+    },
+    {
+      "id": "clean_numeric_data",
+      "description": "Clean the Miles and Gallons columns by removing text units.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Miles' and 'Gallons' columns. They must contain only numbers. Any text artifacts like 'mi', 'miles', 'gal', or 'gallons' should be completely removed."
+    },
+    {
+      "id": "standardize_categories",
+      "description": "Standardize the categories in the Weather and AC Usage columns.",
+      "points": 20,
+      "visual_evidence": "Look at the 'Weather' and 'AC Usage' columns. The text formatting must be uniform (e.g., consistent capitalization like all Title Case, and consistent terms like exclusively 'Yes' or 'No' for AC Usage without mixed cases like 'YES' or 'no')."
+    },
+    {
+      "id": "calculate_mpg",
+      "description": "Calculate the MPG (Miles Per Gallon) for each row.",
+      "points": 25,
+      "visual_evidence": "Look for an 'MPG' column containing calculated numerical values. The values should be approximately between 24.38 and 29.48."
+    },
+    {
+      "id": "apply_conditional_formatting",
+      "description": "Apply conditional formatting to highlight performance trends.",
+      "points": 20,
+      "visual_evidence": "Look at the MPG column (or related performance columns). There should be visual indicators such as color scales, data bars, or highlight rules applied to the cells to differentiate higher and lower values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_software",
+      "description": "The agent used a spreadsheet application to process the data.",
+      "visual_evidence": "Look for the UI of a spreadsheet program (e.g., LibreOffice Calc, Excel, Google Sheets). The data should not be open in a plain text editor."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use terminal scripts to bypass GUI interaction.",
+      "visual_evidence": "Ensure there are no terminal windows open showing Python, bash, or other scripts being used to clean the data or calculate the MPG."
+    },
+    {
+      "id": "genuine_conditional_formatting",
+      "description": "The agent used the application's conditional formatting feature rather than manual coloring.",
+      "visual_evidence": "Look for evidence of systematic conditional formatting (like a smooth color gradient or data bars) rather than haphazard, manually applied background colors to individual cells."
+    }
+  ],
+  "privileged_info_for_vlm": "The original dataset contains 18 data rows plus a header. There is exactly one duplicate row (date: 2024-03-11), which leaves 17 data rows after deduplication. The 'Miles' and 'Gallons' columns contain text artifacts (e.g., '298 mi', '11.8 gal') that must be removed to allow calculation. 'Weather' and 'AC Usage' have inconsistent casing (e.g., 'COLD', 'Cold', 'YES', 'no') that must be standardized. Calculated MPG values (Miles / Gallons) should range strictly between 24.38 and 29.48."
+}

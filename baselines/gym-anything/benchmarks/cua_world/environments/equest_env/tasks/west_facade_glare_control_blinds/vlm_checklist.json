@@ -1,0 +1,54 @@
+{
+  "task_id": "west_facade_glare_control_blinds@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the 4StoreyBuilding project in eQUEST",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the eQUEST main window with '4StoreyBuilding' loaded in the project tree or title bar."
+    },
+    {
+      "id": "create_day_schedule",
+      "description": "Create the Glare-Day-Sch with correct hourly values",
+      "points": 20,
+      "visual_evidence": "Screenshot of the Schedule Properties for 'Glare-Day-Sch'. The hourly values must be 0.0 for hours 1-14, 1.0 for hours 15-18 (representing 14:00-18:00), and 0.0 for hours 19-24."
+    },
+    {
+      "id": "create_week_year_schedules",
+      "description": "Create the hierarchical Week and Year schedules",
+      "points": 15,
+      "visual_evidence": "Screenshot showing 'Glare-Week-Sch' and 'Glare-Year-Sch' in the project tree or schedule properties dialog, demonstrating the hierarchical schedule creation."
+    },
+    {
+      "id": "apply_blinds_and_schedule",
+      "description": "Apply Venetian Blinds and the Year schedule to West-facing windows",
+      "points": 30,
+      "visual_evidence": "Screenshot of the Window Properties or Spreadsheet view in eQUEST showing exterior windows for West-facing spaces (e.g., G.W14, M.W24, T.W34). The 'Interior Shade Type' must be set to 'Venetian Blinds' (or VENETIAN-BLINDS) and the shade schedule must be set to 'Glare-Year-Sch'."
+    },
+    {
+      "id": "run_simulation",
+      "description": "Run the full annual DOE-2.2 simulation",
+      "points": 15,
+      "visual_evidence": "Screenshot of the eQUEST simulation dialog showing the DOE-2.2 simulation running or completed successfully."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the eQUEST project",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the user saving the project (e.g., clicking File -> Save, clicking the save icon, or a save confirmation dialog)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_equest_gui",
+      "description": "The agent used the eQUEST GUI to complete the task",
+      "visual_evidence": "The agent interacted with the eQUEST graphical user interface to create schedules and modify window properties, rather than directly editing the .inp file in a text editor or using a script."
+    },
+    {
+      "id": "actual_simulation_run",
+      "description": "The simulation was genuinely executed",
+      "visual_evidence": "The simulation progress or completion dialog is visible in eQUEST, indicating the simulation was actually run rather than faked."
+    }
+  ],
+  "privileged_info_for_vlm": "The 4StoreyBuilding model has 8 west-facing spaces containing '.W' (e.g., B.W4, G.W14, M.W24, T.W34). Only the above-ground spaces (G.W14, M.W24, T.W34) have exterior windows (5 total). The task requires setting Interior Shade Type to VENETIAN-BLINDS and assigning the Glare-Year-Sch to these windows. In DOE-2/eQUEST, 14:00-18:00 corresponds to hours 15, 16, 17, and 18, which must have a value of 1.0 in Glare-Day-Sch, with all other hours set to 0.0."
+}

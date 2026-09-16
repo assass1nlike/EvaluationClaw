@@ -1,0 +1,94 @@
+{
+  "dataset_id": "6d45c24e",
+  "name": "Openset Cartoon Story Telling",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A dataset for open-ended cartoon story ending generation: given a sequence of five cartoon frames and the first four captions, the model must generate the final caption that completes the story.",
+  "card_text": "Openset Cartoon Story Telling contains 200 samples of 5-frame cartoon sequences from the Pororo animation. Each sample includes five images, a prompt that combines an instruction with the preceding four captions, and a target text caption for the final image. The task is to generate a coherent narrative continuation for the last frame, using both visual and textual context. Images are cartoon illustrations; captions are short narrative sentences. The dataset evaluates multimodal story understanding and visual storytelling generation.",
+  "tasks": [
+    "open_ended_qa",
+    "captioning"
+  ],
+  "domain": "cartoon storytelling",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "narrative",
+        "semantics": "The prompt provides the story context: an instruction to complete the story and the first four captions describing the preceding images. It includes <ImageHere> placeholders indicating where images are inserted. The captions narrate events involving characters such as Pororo and Eddy.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The instruction (embedded in the prompt) asks the model to draft the ending of the story with reference to the last image, using the preceding captions as context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "The target story ending: a caption that describes the final event in the story, completing the narrative for the last image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "illustration",
+        "semantics": "A sequence of five cartoon frames from the Pororo animation, depicting the story's progression. The last frame is the one to be captioned; the earlier frames correspond to the preceding captions.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an ordered list of five cartoon images, a text prompt that combines a story-ending instruction with the first four captions (interleaved with <ImageHere> tokens referencing the images), and a target text answer that provides the ending caption for the final image. The images are referenced by filenames, and the captions describe the visual content of the corresponding frames."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/CartoonStoryTelling/openset_cartoon_story_telling.json",
+    "existing_tags": {
+      "task": "Cartoon Story Telling",
+      "type": "image comprehension",
+      "skill": "Visual Storytelling Generation",
+      "domain": "General",
+      "general_capability": [
+        "Commense Understanding"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

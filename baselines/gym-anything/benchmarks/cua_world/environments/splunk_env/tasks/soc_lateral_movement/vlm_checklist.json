@@ -1,0 +1,53 @@
+{
+  "task_id": "soc_lateral_movement@1",
+  "task_completion": [
+    {
+      "id": "alert_created",
+      "description": "Verify that a new alert was successfully created in Splunk.",
+      "points": 20,
+      "visual_evidence": "A confirmation dialog stating 'Alert has been saved', or the Splunk 'Alerts' dashboard showing a newly created alert in the list."
+    },
+    {
+      "id": "references_security_logs",
+      "description": "Verify the alert's search query targets the correct security logs index.",
+      "points": 20,
+      "visual_evidence": "The search query visible in the Splunk search bar or the alert configuration screen explicitly includes 'index=security_logs' or 'index=\"security_logs\"'."
+    },
+    {
+      "id": "detects_fail_and_success",
+      "description": "Verify the search query includes logic to detect both failed and successful authentications.",
+      "points": 20,
+      "visual_evidence": "The search query contains keywords or logic for both failure (e.g., 'fail*', 'invalid') and success (e.g., 'success*', 'accepted'), often using stats or transaction commands to correlate brute force attempts with a successful login."
+    },
+    {
+      "id": "alert_is_scheduled",
+      "description": "Verify the alert is configured as a scheduled alert.",
+      "points": 20,
+      "visual_evidence": "In the 'Save As Alert' dialog or alert settings, the 'Alert type' option is set to 'Scheduled' rather than 'Real-time'."
+    },
+    {
+      "id": "alert_has_cron",
+      "description": "Verify the alert's schedule is defined using a cron expression.",
+      "points": 20,
+      "visual_evidence": "In the alert schedule settings, the 'Schedule' dropdown is set to 'Cron Schedule' and a valid cron expression (e.g., '*/5 * * * *') is visible in the input field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_gui",
+      "description": "Verify the agent interacted with the Splunk Web GUI to create the alert.",
+      "visual_evidence": "Screenshots should show the Splunk web interface (http://localhost:8000) in a browser, rather than the agent just writing API scripts or modifying .conf files in a terminal."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Verify the agent actually executed searches and navigated the Splunk interface.",
+      "visual_evidence": "Presence of search results, timeline histograms, and Splunk UI elements being actively clicked or typed into, rather than just a text editor with a drafted query."
+    },
+    {
+      "id": "no_task_text_copy_paste",
+      "description": "Verify the agent did not simply paste the task description into the search bar.",
+      "visual_evidence": "The Splunk search bar should contain valid SPL (Splunk Processing Language) queries, not English sentences copied directly from the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must log into Splunk at http://localhost:8000 using 'admin' and 'SplunkAdmin1!'. The target index containing the SSH logs is 'security_logs'. To receive full points, the created alert's search query must explicitly query the 'security_logs' index, and contain logic to detect both failed and successful authentications (e.g., brute force followed by success). Furthermore, the alert must be saved as a Scheduled Alert and specifically use a Cron Schedule."
+}

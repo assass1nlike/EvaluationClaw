@@ -1,0 +1,33 @@
+hf_configuration:
+  hf_dataset_name: yourbench-smoke
+  push_to_hub: false
+  upload_card: false
+  local_saving: true
+  local_dataset_dir: $YOURBENCH_RUN_DIR/dataset
+  export_jsonl: true
+  jsonl_export_dir: $YOURBENCH_RUN_DIR/jsonl
+
+model_list:
+  - model_name: $YOURBENCH_MODEL
+    base_url: $YOURBENCH_BASE_URL
+    api_key: $YOURBENCH_API_KEY
+    max_concurrent_requests: 2
+    extra_parameters:
+      temperature: 0.7
+      max_tokens: 16384
+      seed: 42
+      thinking:
+        type: disabled
+
+pipeline:
+  ingestion:
+    source_documents_dir: $YOURBENCH_SOURCE
+    output_dir: $YOURBENCH_RUN_DIR/processed
+  summarization:
+  chunking:
+  single_hop_question_generation:
+    question_schema: $YOURBENCH_ROOT/schema.py
+  multi_hop_question_generation:
+    question_schema: $YOURBENCH_ROOT/schema.py
+  prepare_lighteval:
+  citation_score_filtering:

@@ -1,0 +1,53 @@
+{
+  "task_id": "setup_secure_project_workspace@1",
+  "task_completion": [
+    {
+      "id": "read_hr_manager_login",
+      "description": "Verify the agent read the contents of ~/hr_manager_login.txt to identify the HR manager.",
+      "points": 10,
+      "visual_evidence": "A terminal window showing a command like 'cat ~/hr_manager_login.txt' or a text editor displaying the file's contents, revealing a username or email."
+    },
+    {
+      "id": "project_created_private",
+      "description": "Verify a private project named 'HR Case Management' with identifier 'hr-cases' was created.",
+      "points": 20,
+      "visual_evidence": "The Redmine 'New project' form or project 'Settings' page showing the Name field as 'HR Case Management', the Identifier field as 'hr-cases', and the 'Public' checkbox UNCHECKED (meaning it is private)."
+    },
+    {
+      "id": "modules_configured",
+      "description": "Verify that ONLY the 'Issue tracking' and 'Documents' modules are enabled.",
+      "points": 20,
+      "visual_evidence": "In the project creation or settings page under the 'Modules' section, the checkboxes for 'Issue tracking' and 'Documents' are checked, and ALL other module checkboxes (e.g., Time tracking, Wiki, Forums) are unchecked."
+    },
+    {
+      "id": "trackers_configured",
+      "description": "Verify that ONLY the 'Support' tracker is enabled.",
+      "points": 20,
+      "visual_evidence": "In the project creation or settings page under the 'Trackers' section, the checkbox for 'Support' is checked, and ALL other tracker checkboxes (e.g., Bug, Feature) are unchecked."
+    },
+    {
+      "id": "member_added_with_role",
+      "description": "Verify the user from the text file was added to the project with the 'Manager' role.",
+      "points": 30,
+      "visual_evidence": "The project's 'Members' tab or 'New member' dialog showing the specific user (matching the one found in the text file) being added or already listed with the 'Manager' role checked/assigned."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "The agent used the web browser to interact with the application.",
+      "visual_evidence": "A web browser is open showing the Redmine web interface, rather than the agent using curl or API scripts in the terminal to complete the setup."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "The agent genuinely navigated the interface to configure the project.",
+      "visual_evidence": "Screenshots show intermediate steps like filling out the 'New project' form, unchecking boxes, and searching for the user in the 'New member' dialog."
+    },
+    {
+      "id": "no_hardcoded_user",
+      "description": "The agent did not guess the user without reading the file.",
+      "visual_evidence": "The agent explicitly opens or cats ~/hr_manager_login.txt before adding the user in the Redmine interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The project must be named exactly 'HR Case Management' with the identifier 'hr-cases'. It must be private (Public checkbox unchecked). Only the 'issue_tracking' (Issue tracking) and 'documents' (Documents) modules should be enabled. Only the 'Support' tracker should be enabled. The user to be added is specified in ~/hr_manager_login.txt and must be assigned the 'Manager' role."
+}

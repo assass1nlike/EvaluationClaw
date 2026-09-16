@@ -1,0 +1,41 @@
+{
+  "id": "visual_swatch_attribute@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure a product attribute 'finish_color' (Label: 'Finish Color') as a 'Visual Swatch' with three options: 'Matte Black' (#2C2C2C), 'Brushed Gold' (#D4AF37), and 'Polished Chrome' (#E6E6FA). The attribute must be filterable (with results) in Layered Navigation, visible on Catalog Pages on Storefront, and used in Search Results Layered Navigation. Use credentials admin/Admin1234! if required.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/visual_swatch_attribute/setup_task.sh",
+    "post_task": "/workspace/tasks/visual_swatch_attribute/export_result.sh"
+  },
+  "metadata": {
+    "attribute_code": "finish_color",
+    "expected_label": "Finish Color",
+    "expected_input_type": "swatch_visual",
+    "options": [
+      {
+        "label": "Matte Black",
+        "hex": "#2C2C2C"
+      },
+      {
+        "label": "Brushed Gold",
+        "hex": "#D4AF37"
+      },
+      {
+        "label": "Polished Chrome",
+        "hex": "#E6E6FA"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_visual_swatch_attribute"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "task_id": "heater_power_derating@1",
+  "task_completion": [
+    {
+      "id": "open_electrical_app",
+      "description": "Open the Electrical Engineering Calculations app",
+      "points": 10,
+      "visual_evidence": "The 'Electrical Engineering Calculations' app interface is visible on the screen."
+    },
+    {
+      "id": "calculate_resistance",
+      "description": "Calculate the fixed resistance of the heating element",
+      "points": 20,
+      "visual_evidence": "The app shows inputs of 240 (Voltage) and 5000 (Power) with a resulting calculated resistance of approximately 11.52 ohms."
+    },
+    {
+      "id": "calculate_derated_power",
+      "description": "Calculate the derated power using the new voltage and fixed resistance",
+      "points": 30,
+      "visual_evidence": "The app shows inputs of 208 (Voltage) and 11.52 (Resistance) with a resulting calculated power of approximately 3755.56 Watts."
+    },
+    {
+      "id": "save_final_value",
+      "description": "Save the final derated power value to the specified text file",
+      "points": 40,
+      "visual_evidence": "A text editor or file manager shows the value '3755.56' (or a value within the 10W tolerance) being saved to the file path '/sdcard/Download/derated_power.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_calculation_used",
+      "description": "The agent used the app's GUI for calculations",
+      "visual_evidence": "Screenshots must show the calculation steps occurring within the Electrical Engineering Calculations app, not in a terminal, Python script, or web browser."
+    },
+    {
+      "id": "no_precomputed_answer",
+      "description": "The agent did not just copy-paste a precomputed answer",
+      "visual_evidence": "There should be visual evidence of the intermediate resistance calculation (11.52 ohms) and the final power calculation (3755.56 W) inside the app, proving the agent actually performed the math."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The output file was created genuinely",
+      "visual_evidence": "The agent is seen interacting with a text editor or terminal to explicitly write the calculated value into '/sdcard/Download/derated_power.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The heating element has a rated power of 5000W at 240V, which yields a fixed resistance of 11.52\u03a9 (R = V\u00b2/P). When operated at 208V, the derated power is 3755.56W (P = V\u00b2/R). The verifier allows a 10W tolerance, so any final saved value between 3745.56W and 3765.56W is acceptable. The output must be saved exactly to '/sdcard/Download/derated_power.txt'."
+}

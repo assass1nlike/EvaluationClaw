@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_schedule_data_quality@1",
+  "task_completion": [
+    {
+      "id": "fix_task_8_duration",
+      "description": "Verify that Task 8's duration has been corrected to a realistic value.",
+      "points": 15,
+      "visual_evidence": "In the ProjectLibre task list, row 8 shows a duration of 160 hours (or 20 days) or less."
+    },
+    {
+      "id": "fix_task_17_duration",
+      "description": "Verify that Task 17's duration has been corrected to a realistic value.",
+      "points": 15,
+      "visual_evidence": "In the ProjectLibre task list, row 17 shows a duration of 400 hours (or 50 days) or more."
+    },
+    {
+      "id": "fix_task_39_lag",
+      "description": "Verify that Task 39's unrealistic negative lead time (lag) has been removed.",
+      "points": 15,
+      "visual_evidence": "In the ProjectLibre task list, row 39's predecessor column does not contain a negative lag value (e.g., no minus sign like '-2880000' in the predecessor link)."
+    },
+    {
+      "id": "fix_task_55_predecessor",
+      "description": "Verify that Task 55 has a predecessor link restored.",
+      "points": 15,
+      "visual_evidence": "In the ProjectLibre task list, row 55's predecessor column is not empty and contains at least one valid task ID."
+    },
+    {
+      "id": "fix_task_82_duration",
+      "description": "Verify that Task 82's duration has been corrected to a realistic value.",
+      "points": 15,
+      "visual_evidence": "In the ProjectLibre task list, row 82 shows a duration of 120 hours (or 15 days) or more."
+    },
+    {
+      "id": "save_corrected_project",
+      "description": "Verify the corrected project is saved to the specified path.",
+      "points": 25,
+      "visual_evidence": "A 'Save' or 'Save As' dialog is visible saving the file as 'construction_audit_fixed.pod' in the '/home/ga/Documents/' directory, OR the ProjectLibre window title updates to 'construction_audit_fixed.pod', OR a terminal/file manager verifies the file's existence in the correct folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_projectlibre_gui",
+      "description": "The agent used the ProjectLibre GUI to make edits.",
+      "visual_evidence": "Screenshots show the agent clicking and typing inside the ProjectLibre application interface to edit cells, rather than using a text editor or terminal script to modify the XML directly."
+    },
+    {
+      "id": "actual_save_dialog",
+      "description": "The agent used the application to save the file.",
+      "visual_evidence": "The agent uses the ProjectLibre 'Save As' menu or dialog to save the .pod file, rather than just renaming the file in the terminal."
+    },
+    {
+      "id": "project_structure_maintained",
+      "description": "The overall project structure was not destroyed or replaced by a dummy file.",
+      "visual_evidence": "The Gantt chart and task list for the 'Commercial Construction' project remain visible with multiple phases and tasks intact."
+    }
+  ],
+  "privileged_info_for_vlm": "The original project file is located at /home/ga/Projects/current_task.xml. The task requires fixing 5 specific injected errors in ProjectLibre: Task 8 (duration must be <= 160h or 20 days), Task 17 (duration must be >= 400h or 50 days), Task 39 (lag must be >= 0, removing the unrealistic negative lead time), Task 55 (must have at least one predecessor), and Task 82 (duration must be >= 120h or 15 days). Finally, the project must be saved to /home/ga/Documents/construction_audit_fixed.pod."
+}

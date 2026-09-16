@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_patient_interface@1",
+  "task_completion": [
+    {
+      "id": "welcome_title_configured",
+      "description": "Verify that DEFAULT_WELCOME_PAGE_TITLE is set to 'Hospital Virtual Care' in the configuration file.",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor showing the modification of interface_config.js inside the Docker container with DEFAULT_WELCOME_PAGE_TITLE set to 'Hospital Virtual Care'."
+    },
+    {
+      "id": "settings_sections_configured",
+      "description": "Verify that SETTINGS_SECTIONS is restricted to 'devices' and 'sounds' in the configuration file.",
+      "points": 20,
+      "visual_evidence": "Terminal or text editor showing interface_config.js being modified to set SETTINGS_SECTIONS to ['devices', 'sounds']."
+    },
+    {
+      "id": "promo_configured",
+      "description": "Verify that MOBILE_APP_PROMO is set to false in the configuration file.",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor showing interface_config.js being modified to set MOBILE_APP_PROMO to false."
+    },
+    {
+      "id": "jitsi_interface_accessed",
+      "description": "Verify that the Jitsi Meet interface is accessed via a web browser.",
+      "points": 10,
+      "visual_evidence": "A web browser is open to http://localhost:8080 showing the Jitsi Meet welcome page or meeting interface."
+    },
+    {
+      "id": "settings_dialog_restricted",
+      "description": "Verify that the settings dialog in the web interface reflects the restricted sections.",
+      "points": 20,
+      "visual_evidence": "The settings dialog is open in the browser, and its sidebar/tabs display ONLY 'Devices' and 'Sounds' (other default options like 'Profile' or 'Calendar' are absent)."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify that the screenshot of the settings dialog is saved to the correct location.",
+      "points": 30,
+      "visual_evidence": "A file manager, terminal (e.g., ls command), or image viewer showing that a file named 'restricted_settings.png' exists in the '~/Documents/' directory and depicts the restricted settings dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "Check that the agent used a real web browser to view the interface.",
+      "visual_evidence": "The Jitsi Meet interface is shown inside a genuine web browser window (like Chromium or Firefox), not just raw HTML output in a terminal."
+    },
+    {
+      "id": "genuine_screenshot",
+      "description": "Check that the screenshot was actually captured from the browser.",
+      "visual_evidence": "The saved screenshot matches the visual appearance of the browser's settings dialog seen in earlier steps, rather than being a generic image from the internet."
+    },
+    {
+      "id": "container_modified",
+      "description": "Check that the configuration file was modified inside the Docker container.",
+      "visual_evidence": "Commands like 'docker exec', 'docker cp', or editing a file inside the container's filesystem are visible, rather than just editing a local file that isn't mounted to the container."
+    }
+  ],
+  "privileged_info_for_vlm": "Jitsi Meet's default SETTINGS_SECTIONS are ['devices', 'language', 'moderator', 'profile', 'calendar', 'sounds', 'more']. The task requires restricting this to only ['devices', 'sounds']. MOBILE_APP_PROMO defaults to true and must be set to false. The configuration file is typically located at /config/interface_config.js or /usr/share/jitsi-meet/interface_config.js inside the Docker container. Note that DEFAULT_WELCOME_PAGE_TITLE is not a standard Jitsi Meet parameter, so modifying it in the file may not visibly change the web UI, but the file modification should still be verified in the terminal/editor. The final screenshot must be saved to /home/ga/Documents/restricted_settings.png."
+}

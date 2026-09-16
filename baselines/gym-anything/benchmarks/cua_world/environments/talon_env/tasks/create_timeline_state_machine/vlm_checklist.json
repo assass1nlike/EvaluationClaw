@@ -1,0 +1,53 @@
+{
+  "task_id": "create_timeline_state_machine@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Verify the case_timeline directory is created in the correct Talon user folder.",
+      "points": 10,
+      "visual_evidence": "File explorer or editor file tree showing the folder 'case_timeline' inside 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user'."
+    },
+    {
+      "id": "python_state_module",
+      "description": "Verify timeline_state.py defines a Talon Module and internal state variables.",
+      "points": 20,
+      "visual_evidence": "Code editor showing timeline_state.py with imports from talon (e.g., Module, actions, app), a Module() instance, and variables initialized to store date, actor, and event."
+    },
+    {
+      "id": "python_actions",
+      "description": "Verify timeline_state.py exposes the required setter actions.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the @mod.action_class decorator and definitions for timeline_set_date(date_str), timeline_set_actor(actor_str), and timeline_set_event(event_str)."
+    },
+    {
+      "id": "python_commit_logic",
+      "description": "Verify the timeline_commit action implements the required logic.",
+      "points": 30,
+      "visual_evidence": "Code editor showing timeline_commit checking for empty fields, triggering app.notify on error, appending to master_timeline.csv, sorting chronologically under 'Date,Actor,Event', overwriting the CSV, clearing state, and notifying on success."
+    },
+    {
+      "id": "talon_commands",
+      "description": "Verify timeline.talon maps voice commands to the actions.",
+      "points": 20,
+      "visual_evidence": "Code editor showing timeline.talon with commands like 'timeline date <user.text>' mapped to the corresponding user.timeline_set_* actions and 'timeline commit' mapped to user.timeline_commit()."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "editor_used",
+      "description": "Verify that a genuine text editor or IDE is used to write the scripts.",
+      "visual_evidence": "The code should be visible in a text editor interface (like VS Code, Notepad, or Notepad++), not just printed in a terminal or AI chat window."
+    },
+    {
+      "id": "correct_csv_path",
+      "description": "Verify that the CSV path in the code exactly matches the required path.",
+      "visual_evidence": "The Python script must explicitly contain the path 'C:\\Users\\Docker\\Documents\\master_timeline.csv' and not a placeholder or relative path."
+    },
+    {
+      "id": "no_direct_csv_edit",
+      "description": "Verify that the agent wrote the Python script to handle the CSV, rather than manually creating or editing the CSV file itself.",
+      "visual_evidence": "The agent should be focused on writing the Talon module logic in Python, rather than opening Excel or a text editor to manually create the master_timeline.csv file with sorted data."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory for Talon module: C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\case_timeline. CSV path for timeline: C:\\Users\\Docker\\Documents\\master_timeline.csv."
+}

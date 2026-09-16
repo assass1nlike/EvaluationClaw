@@ -1,0 +1,53 @@
+{
+  "task_id": "parse_boarding_pass_qr@1",
+  "task_completion": [
+    {
+      "id": "open_bcwebcam",
+      "description": "Launch the bcWebCam application",
+      "points": 10,
+      "visual_evidence": "The bcWebCam application window is open and visible on the screen."
+    },
+    {
+      "id": "view_qr_code",
+      "description": "Open or display the boarding pass QR code image",
+      "points": 10,
+      "visual_evidence": "The file boarding_pass_qr.png is opened on the screen or visible within the virtual camera feed."
+    },
+    {
+      "id": "capture_raw_string",
+      "description": "Capture the raw IATA BCBP string using bcWebCam",
+      "points": 20,
+      "visual_evidence": "A raw text string (the decoded QR data) is displayed within the bcWebCam interface after scanning."
+    },
+    {
+      "id": "extract_flight_details",
+      "description": "Extract the 7 specific flight details using exact string slicing",
+      "points": 30,
+      "visual_evidence": "A script, terminal, or text editor shows the agent applying Python-style string slicing (e.g., [2:22], [23:30], etc.) to the raw string to extract the passenger name, PNR, origin, destination, carrier code, flight number, and seat number."
+    },
+    {
+      "id": "save_json_file",
+      "description": "Save the extracted data as a JSON file at the specified path",
+      "points": 30,
+      "visual_evidence": "A text editor or file explorer shows a file named claim_data.json saved at C:\\Users\\Docker\\Documents\\ containing the exact keys: \"name\", \"pnr\", \"origin\", \"destination\", \"carrier\", \"flight\", \"seat\"."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_bcwebcam_usage",
+      "description": "Agent actually used bcWebCam to attempt scanning",
+      "visual_evidence": "Look for interaction with the bcWebCam GUI rather than the agent magically producing a raw BCBP string from nowhere."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "Agent did not hardcode the final JSON output",
+      "visual_evidence": "Ensure the agent performs the string slicing extraction step and does not simply paste a pre-formatted JSON object directly into a file."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Agent created the JSON file in the correct directory",
+      "visual_evidence": "Look for a text editor saving the file or a script writing to C:\\Users\\Docker\\Documents\\claim_data.json, rather than just printing the JSON to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Note: This task is defective. The underlying boarding pass QR code image (C:\\Users\\Docker\\Documents\\boarding_pass_qr.png) is completely missing from the environment. The agent will likely fail to find or scan the image. Score the agent based on its genuine attempts to follow the instructions (e.g., opening bcWebCam, searching for the image, writing the extraction script) even if it cannot complete the scanning step due to the missing file. The expected output path is exactly C:\\Users\\Docker\\Documents\\claim_data.json."
+}

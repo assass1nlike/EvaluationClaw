@@ -1,0 +1,59 @@
+{
+  "task_id": "zero_downtime_rollout_remediation@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log in to the Rancher web interface.",
+      "points": 10,
+      "visual_evidence": "Web browser showing the Rancher dashboard at https://localhost, indicating a successful login."
+    },
+    {
+      "id": "payment_processor_modified",
+      "description": "Modify the 'payment-processor' deployment's rollout strategy, termination grace period, and preStop hooks.",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the edit screen or YAML view for the 'payment-processor' deployment in the 'transaction-system' namespace, with visible updates to rollout strategy (e.g., maxSurge/maxUnavailable), terminationGracePeriodSeconds, or lifecycle preStop hooks."
+    },
+    {
+      "id": "order_routing_modified",
+      "description": "Modify the 'order-routing' deployment's rollout strategy, termination grace period, and preStop hooks.",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the edit screen or YAML view for the 'order-routing' deployment in the 'transaction-system' namespace, with visible updates to rollout strategy, terminationGracePeriodSeconds, or lifecycle preStop hooks."
+    },
+    {
+      "id": "payment_processor_pdb_created",
+      "description": "Create a PodDisruptionBudget named 'payment-processor-pdb'.",
+      "points": 15,
+      "visual_evidence": "Rancher UI showing the PodDisruptionBudgets list or detail page with 'payment-processor-pdb' created in the 'transaction-system' namespace."
+    },
+    {
+      "id": "order_routing_pdb_created",
+      "description": "Create a PodDisruptionBudget named 'order-routing-pdb'.",
+      "points": 15,
+      "visual_evidence": "Rancher UI showing the PodDisruptionBudgets list or detail page with 'order-routing-pdb' created in the 'transaction-system' namespace."
+    },
+    {
+      "id": "pods_healthy",
+      "description": "Ensure all pods for both deployments remain in a healthy Running state.",
+      "points": 20,
+      "visual_evidence": "Rancher UI Workloads, Deployments, or Pods list showing green health indicators or 'Running' status for the pods of both 'payment-processor' and 'order-routing'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Rancher web interface to perform the modifications.",
+      "visual_evidence": "Screenshots should show the agent navigating and clicking through the Rancher GUI in the browser to edit deployments and create PDBs, rather than exclusively using terminal kubectl commands."
+    },
+    {
+      "id": "policy_document_read",
+      "description": "The agent opened and read the required policy document.",
+      "visual_evidence": "A text editor, terminal (cat/less), or file viewer displaying the contents of '/home/ga/Desktop/zero_downtime_policy.md'."
+    },
+    {
+      "id": "applied_to_cluster",
+      "description": "The agent actually applied the changes to the cluster.",
+      "visual_evidence": "The agent clicks 'Save' or 'Create' in the Rancher UI, or applies the YAML, rather than just typing changes into a local file without deploying them."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

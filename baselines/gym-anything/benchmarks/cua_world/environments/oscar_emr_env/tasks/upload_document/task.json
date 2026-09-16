@@ -1,0 +1,38 @@
+{
+  "id": "upload_document@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Upload the cardiology consultation report for patient Martha Thompson (DOB: 1958-07-22) in OSCAR EMR using the credentials oscardoc/oscar/1117. Upload the file from /home/ga/Documents/incoming/cardiology_consult_thompson.pdf. Set the document description to 'Cardiology Consultation - Dr. Patel - Jan 2024' and the document type to 'Consultation'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/upload_document/setup_task.sh",
+    "post_task": "/workspace/tasks/upload_document/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Martha",
+    "patient_lname": "Thompson",
+    "patient_dob": "1958-07-22",
+    "source_file": "/home/ga/Documents/incoming/cardiology_consult_thompson.pdf",
+    "expected_keywords": [
+      "Cardiology",
+      "Consult",
+      "Patel"
+    ],
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_upload_document"
+    }
+  }
+}

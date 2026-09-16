@@ -1,0 +1,31 @@
+{
+  "id": "crawl_depth_architecture_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a site architecture audit on https://books.toscrape.com/ to analyze crawl depth. Export the crawl data for HTML pages to a CSV file in ~/Documents/SEO/exports/. Generate a text report at ~/Documents/SEO/reports/architecture_report.txt that includes the total number of HTML pages crawled, the distribution of pages per depth level, the maximum crawl depth, three example URLs from deep in the site structure, and recommendations for improving the site architecture.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/crawl_depth_architecture_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/crawl_depth_architecture_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "target_domain": "books.toscrape.com",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "report_path": "/home/ga/Documents/SEO/reports/architecture_report.txt",
+    "min_csv_rows": 30,
+    "min_depth_levels": 3,
+    "min_report_chars": 400
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_crawl_depth_audit"
+    }
+  }
+}

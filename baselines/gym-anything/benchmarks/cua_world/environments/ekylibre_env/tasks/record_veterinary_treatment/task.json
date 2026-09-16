@@ -1,0 +1,29 @@
+{
+  "id": "record_veterinary_treatment@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Record a veterinary treatment for the cow 'Marguerite' (Work ID: 9001) using 50ml of 'Curamycin' in the Ekylibre system. Ensure the intervention is categorized under sanitary/health care.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_veterinary_treatment/setup_task.sh",
+    "post_task": "/workspace/tasks/record_veterinary_treatment/export_result.sh"
+  },
+  "metadata": {
+    "target_animal_name": "Marguerite",
+    "target_animal_number": "9001",
+    "product_name": "Curamycin",
+    "quantity": 50.0,
+    "intervention_type": "sanitary"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_veterinary_treatment"
+    }
+  }
+}

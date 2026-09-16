@@ -1,0 +1,53 @@
+{
+  "task_id": "import_messy_excel_range@1",
+  "task_completion": [
+    {
+      "id": "create_labimport_project",
+      "description": "Create a new Epi Info 7 project named 'LabImport' using a SQLite database",
+      "points": 20,
+      "visual_evidence": "Epi Info 7 'New Project' dialog showing 'LabImport' as the project name and SQLite as the database format, or the main Epi Info window showing the 'LabImport' project is open."
+    },
+    {
+      "id": "select_excel_source",
+      "description": "Select the VirologyReport.xlsx file as the data source for import",
+      "points": 10,
+      "visual_evidence": "An import or read dialog in Epi Info 7 showing the file path 'C:\\Users\\Docker\\Documents\\VirologyReport.xlsx' selected as the data source."
+    },
+    {
+      "id": "set_destination_table",
+      "description": "Set the destination table name to 'LabResults'",
+      "points": 10,
+      "visual_evidence": "The import configuration dialog showing 'LabResults' entered as the destination table name."
+    },
+    {
+      "id": "handle_messy_headers",
+      "description": "Configure the import or preprocess the file to skip the first 3 junk header rows",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the agent specifying a data range (e.g., starting at row 4), writing a custom SQL query in the import dialog, or modifying the Excel file to remove the first 3 rows so that the actual data headers are used."
+    },
+    {
+      "id": "verify_imported_columns",
+      "description": "Successfully import the data with the correct column names and no junk columns",
+      "points": 30,
+      "visual_evidence": "A data grid, table view, or import success summary in Epi Info 7 showing the 'LabResults' table contains the columns 'SpecimenID', 'PatientID', 'CollectionDate', 'TestResult', and 'CtValue'. There should be no columns named 'F1', 'F2', or 'St. Mary's Hospital'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_gui",
+      "description": "The agent used the Epi Info 7 application GUI to perform the import",
+      "visual_evidence": "Screenshots should show interaction with the Epi Info 7 interface (e.g., Form Designer, Enter Data, or Classic Analysis modules) rather than using terminal commands or Python scripts to build the SQLite database."
+    },
+    {
+      "id": "no_sqlite_cli_injection",
+      "description": "The agent did not use the sqlite3 command line tool to directly inject data",
+      "visual_evidence": "No terminal windows showing 'sqlite3 LabImport.db' or direct SQL INSERT commands being executed outside of Epi Info 7."
+    },
+    {
+      "id": "genuine_import_process",
+      "description": "The agent actually imported the data rather than manually typing it",
+      "visual_evidence": "Presence of import dialogs, progress bars, or read commands in the Epi Info 7 interface, rather than manual data entry into a form."
+    }
+  ],
+  "privileged_info_for_vlm": "The Excel file 'C:\\Users\\Docker\\Documents\\VirologyReport.xlsx' contains 51 data rows. Rows 1-3 contain junk headers (e.g., 'St. Mary's Hospital', 'Report Date'). The actual headers ('SpecimenID', 'PatientID', 'CollectionDate', 'TestResult', 'CtValue') start on row 4. The target project is 'LabImport' at 'C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\LabImport\\LabImport.prj' using a SQLite database. The destination table must be named 'LabResults'. The final table must NOT contain columns like 'F1', 'F2', 'St. Mary's Hospital', or 'Report Date'."
+}

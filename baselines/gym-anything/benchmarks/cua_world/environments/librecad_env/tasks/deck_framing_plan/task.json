@@ -1,0 +1,38 @@
+{
+  "id": "deck_framing_plan@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a residential deck framing plan in LibreCAD and save it as a DXF file at /home/ga/Documents/LibreCAD/deck_framing_plan.dxf. The drawing (units in inches) must include a 144x192 unit deck outline starting at (0,0) on layer 'OUTLINE', a ledger board (double or thick line) at the top edge (Y=192) on layer 'LEDGER', a beam line across the full width at Y=96 on layer 'BEAM', and vertical joist lines from Y=0 to 192 spaced 16 units on-center starting from X=0 on layer 'JOISTS'. The plan also requires three post markers under the beam at X=0, 72, and 144 on layer 'POSTS', a 36x48 unit stair rectangle centered on the bottom edge (X=54 to 90, Y=-48 to 0) on layer 'STAIRS', and dimensions for overall width, length, and joist spacing on layer",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deck_framing_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/deck_framing_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "deck_framing_plan.dxf",
+    "required_layers": [
+      "OUTLINE",
+      "JOISTS",
+      "BEAM",
+      "POSTS",
+      "STAIRS",
+      "DIMENSIONS"
+    ],
+    "dimensions": {
+      "width": 144,
+      "length": 192,
+      "joist_spacing": 16
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_deck_framing_plan"
+    }
+  }
+}

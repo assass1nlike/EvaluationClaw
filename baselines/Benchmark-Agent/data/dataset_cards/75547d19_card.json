@@ -1,0 +1,85 @@
+{
+  "dataset_id": "75547d19",
+  "name": "Metal Nut Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 37,
+  "description": "Dataset of metal nut images paired with a text prompt asking to detect the anomaly region, and binary segmentation masks localizing defects. It evaluates pixel-level anomaly segmentation for industrial inspection.",
+  "card_text": "This dataset contains 37 samples from an industrial anomaly detection scenario focused on metal nuts. Each sample includes an RGB image of a metal nut, a fixed textual prompt instructing the model to detect the anomaly region, and a corresponding binary mask image that marks the anomalous area. The images are object-centric views of a single manufactured part, and the masks share the same base filename as the input image. The dataset is designed for evaluating segmentation-based anomaly localization, where the model must produce a spatial map of defects rather than a global label. The text prompt is short and instructional, while the visual content varies in anomaly appearance and location. The domain is manufacturing quality control.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction prompt asking the model to detect the anomaly region of the metal nut shown in the corresponding input image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Path to an RGB image of a metal nut, which may contain surface or structural anomalies; serves as the visual input for localization.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Path to a binary segmentation mask aligned with the input image, where anomalous regions of the metal nut are marked.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has an input object containing an image_file that references a metal nut image and a prompt that instructs the model to detect the anomaly region, plus an output object containing a mask_file that references the corresponding binary segmentation mask. The image and prompt together specify the task, and the mask provides the pixel-level anomaly localization."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/MetalNutAnomalyDetection/metal_nut_anomaly_detection.json",
+    "existing_tags": {
+      "task": "metal nut anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

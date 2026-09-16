@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_data_pruner_retention@1",
+  "task_completion": [
+    {
+      "id": "api_authentication_and_headers",
+      "description": "Verify the agent accessed the system via the REST API with the correct credentials and headers.",
+      "points": 10,
+      "visual_evidence": "Screenshots show terminal commands (e.g., curl), a script (e.g., Python), or an API client making requests to https://localhost:8443/api. The requests must include authentication (e.g., admin:admin) and the header 'X-Requested-With: OpenAPI'."
+    },
+    {
+      "id": "pruner_schedule_and_block_size",
+      "description": "Verify the Data Pruner extension is configured to run daily at 03:00 with a block size of 1000.",
+      "points": 20,
+      "visual_evidence": "Screenshots show an API request payload (in a script, curl command, or API client) targeting the Data Pruner settings. The payload must contain values for running daily at 03:00 (e.g., hour: 3, minute: 0) and a block size of 1000, along with a successful response or execution."
+    },
+    {
+      "id": "pruner_archive_and_events",
+      "description": "Verify the Data Pruner extension is configured to archive pruned messages (including attachments) and prune events older than 31 days.",
+      "points": 20,
+      "visual_evidence": "Screenshots show an API request payload for the Data Pruner settings containing values to enable archiving for messages and attachments, and setting event pruning to 31 days, along with a successful response or execution."
+    },
+    {
+      "id": "adt_channel_retention",
+      "description": "Verify the Regional_ADT_Feed channel retention is configured correctly.",
+      "points": 25,
+      "visual_evidence": "Screenshots show an API request payload configuring the Regional_ADT_Feed channel. The payload must specify pruning metadata after 7 days, pruning content after 3 days, and enabling archiving, along with a successful response or execution."
+    },
+    {
+      "id": "lab_channel_retention",
+      "description": "Verify the Lab_Orders_Interface channel retention is configured correctly.",
+      "points": 25,
+      "visual_evidence": "Screenshots show an API request payload configuring the Lab_Orders_Interface channel. The payload must specify pruning metadata after 90 days, pruning content after 30 days, and enabling archiving, along with a successful response or execution."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Verify the agent actually executed the API requests and received a response from the server.",
+      "visual_evidence": "Screenshots show the execution of the API requests (e.g., running a script or curl command) and receiving a successful HTTP response (e.g., 200 OK), rather than just writing code in a text editor without running it."
+    },
+    {
+      "id": "no_gui_configuration",
+      "description": "Verify the agent used the REST API as requested, rather than the NextGen Connect Administrator GUI.",
+      "visual_evidence": "The configuration changes should be made via terminal commands, scripts, or a REST client. The agent should not be using the NextGen Connect Administrator Java GUI to manually apply the settings."
+    },
+    {
+      "id": "authentic_channel_ids",
+      "description": "Verify the agent retrieved the dynamically generated channel IDs from the system.",
+      "visual_evidence": "Screenshots should show the agent querying the API for channel lists or extracting the UUIDs for the Regional_ADT_Feed and Lab_Orders_Interface channels before updating them, rather than using hardcoded or guessed IDs."
+    }
+  ],
+  "privileged_info_for_vlm": "The Regional_ADT_Feed and Lab_Orders_Interface channels are synthetic test channels created programmatically with unique UUIDs. The agent must query the API to find these UUIDs before updating their retention policies. The Data Pruner block size of 1000 matches documented Mirth Connect defaults."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "configure_low_bandwidth_profile@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure the Jitsi Meet web server (~/.jitsi-meet-cfg/web/config.js) to enforce a 'Low Bandwidth Profile'. The configuration must set startAudioOnly to true and update the video constraints to a height of 360 (ideal and max) and 180 (min). Apply these changes and save a screenshot of a meeting joined in this state to /home/ga/bandwidth_test_evidence.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_low_bandwidth_profile/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_low_bandwidth_profile/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/config.js",
+    "evidence_path": "/home/ga/bandwidth_test_evidence.png",
+    "container_name": "jitsi-web",
+    "expected_resolution": 360
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_low_bandwidth_profile"
+    }
+  }
+}

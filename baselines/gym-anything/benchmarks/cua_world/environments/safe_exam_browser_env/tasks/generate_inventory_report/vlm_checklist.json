@@ -1,0 +1,65 @@
+{
+  "task_id": "generate_inventory_report@1",
+  "task_completion": [
+    {
+      "id": "db_access",
+      "description": "Agent accesses the MariaDB database inside the 'seb-server-mariadb' container",
+      "points": 10,
+      "visual_evidence": "Terminal showing execution of a docker command (e.g., `docker exec -it seb-server-mariadb mysql...`) or a script connecting to the 'SEBServer' database."
+    },
+    {
+      "id": "query_institution",
+      "description": "Agent queries the 'institution' table",
+      "points": 10,
+      "visual_evidence": "Terminal or script showing a `SELECT` query extracting data from the 'institution' table."
+    },
+    {
+      "id": "query_user",
+      "description": "Agent queries the 'user' table",
+      "points": 10,
+      "visual_evidence": "Terminal or script showing a `SELECT` query extracting data from the 'user' table."
+    },
+    {
+      "id": "query_configuration_node",
+      "description": "Agent queries the 'configuration_node' table",
+      "points": 10,
+      "visual_evidence": "Terminal or script showing a `SELECT` query extracting data from the 'configuration_node' table."
+    },
+    {
+      "id": "role_mapping_logic",
+      "description": "Agent maps user role integers to their corresponding string names",
+      "points": 20,
+      "visual_evidence": "Code in a script or manual data manipulation showing the mapping of 'role' integers (0, 1, 2, 4) to 'SEB_SERVER_ADMIN', 'INSTITUTIONAL_ADMIN', 'EXAM_ADMIN', and 'EXAM_SUPPORTER'."
+    },
+    {
+      "id": "json_structure_formatting",
+      "description": "Agent constructs the JSON report with the required structure",
+      "points": 20,
+      "visual_evidence": "Text editor or terminal output showing the construction of the JSON report with top-level keys: 'report_title', 'generated_by', 'institutions', 'user_accounts', 'exam_configurations', and 'summary'."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Agent saves the final JSON report to the specified path",
+      "points": 20,
+      "visual_evidence": "Terminal showing the file 'seb_inventory_report.json' being saved, moved, or verified (e.g., using `ls` or `cat`) in the '~/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_interaction_verified",
+      "description": "Agent actually queried the database instead of hallucinating data",
+      "visual_evidence": "Look for executed SQL queries returning actual records or a script successfully connecting to the database. The agent should not just create a JSON file with dummy or invented data."
+    },
+    {
+      "id": "authentic_data_usage",
+      "description": "JSON report contains genuine data extracted from the database",
+      "visual_evidence": "The data populated in the JSON file (institutions, users, configurations) should clearly match the output seen from the database queries."
+    },
+    {
+      "id": "no_hardcoded_mock_file",
+      "description": "Agent did not just write a hardcoded mock JSON file",
+      "visual_evidence": "Ensure the agent uses a script or manual extraction to build the JSON dynamically or carefully transcribes real query results, rather than just typing out a fake JSON structure from scratch."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is /home/ga/Documents/seb_inventory_report.json. The JSON report must include the following exact top-level keys: 'report_title', 'generated_by', 'institutions', 'user_accounts', 'exam_configurations', and 'summary'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "compute_heatpump_cop@1",
+  "task_completion": [
+    {
+      "id": "feed_created",
+      "description": "Verify the 'heatpump_cop' feed was created with the correct tag and unit.",
+      "points": 20,
+      "visual_evidence": "Emoncms Feeds page or API response showing a feed named 'heatpump_cop' with tag 'heatpump' and unit 'COP'."
+    },
+    {
+      "id": "feed_populated",
+      "description": "Verify the 'heatpump_cop' feed contains data.",
+      "points": 20,
+      "visual_evidence": "Emoncms Feeds page showing the 'heatpump_cop' feed has a non-zero size, an updated 'Value' (likely between 1.8 and 4.2), or a graph showing the populated data points."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify the summary report file was created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'cat /home/ga/cop_report.txt' or a text editor open with the file '/home/ga/cop_report.txt' containing exactly 5 lines."
+    },
+    {
+      "id": "report_count_correct",
+      "description": "Verify the report contains the correct feed ID and data point count.",
+      "points": 20,
+      "visual_evidence": "Line 1 of the report shows an integer (the new feed ID). Line 2 shows exactly '1083' (the correct count of inserted data points)."
+    },
+    {
+      "id": "report_stats_correct",
+      "description": "Verify the report contains the correct COP statistics.",
+      "points": 30,
+      "visual_evidence": "Line 3 shows '2.99' (average COP). Line 4 shows '4.2' or '4.20' (maximum COP). Line 5 shows '1.81' (minimum COP)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_cheating",
+      "description": "Verify the agent did not cheat by reading the ground truth file.",
+      "visual_evidence": "Terminal history should not show commands like 'cat /var/lib/emoncms/cop_ground_truth.json' or opening this file in an editor."
+    },
+    {
+      "id": "actual_computation_performed",
+      "description": "Verify the agent actually computed the values rather than guessing or hardcoding.",
+      "visual_evidence": "Presence of a Python script, bash script, or spreadsheet used to fetch the feed data, filter Elec < 50W, and compute the COP values."
+    },
+    {
+      "id": "api_or_ui_interaction",
+      "description": "Verify the agent interacted with Emoncms to create and populate the feed.",
+      "visual_evidence": "Terminal showing curl commands to the Emoncms API, a Python script using the requests library to post data, or the Emoncms web interface open in a browser."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct data point count is 1083. The correct average COP is 2.99. The correct maximum COP is 4.2 (or 4.20). The correct minimum COP is 1.81. The report must be exactly 5 lines located at /home/ga/cop_report.txt."
+}

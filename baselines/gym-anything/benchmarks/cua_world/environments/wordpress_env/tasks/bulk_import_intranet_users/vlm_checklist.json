@@ -1,0 +1,59 @@
+{
+  "task_id": "bulk_import_intranet_users@1",
+  "task_completion": [
+    {
+      "id": "create_employee_role",
+      "description": "Verify that a new user role named 'Employee' (slug: 'employee') has been created.",
+      "points": 15,
+      "visual_evidence": "Look for a WordPress roles management screen (e.g., User Role Editor or similar plugin) showing 'Employee' in the list of available roles."
+    },
+    {
+      "id": "employee_role_caps",
+      "description": "Verify that the 'Employee' role has exactly the required capabilities.",
+      "points": 15,
+      "visual_evidence": "Look for a role editing screen for the 'Employee' role. Only the checkboxes for 'read', 'read_private_posts', and 'read_private_pages' should be selected. All other capabilities should be unchecked."
+    },
+    {
+      "id": "delete_subscriber_role",
+      "description": "Verify that the default 'Subscriber' role has been removed.",
+      "points": 10,
+      "visual_evidence": "Look at the WordPress roles list or the 'Change role to...' dropdown in the Users screen. The 'Subscriber' role should no longer be visible."
+    },
+    {
+      "id": "bulk_import_users",
+      "description": "Verify that the users from the CSV were bulk imported and assigned the 'Employee' role.",
+      "points": 20,
+      "visual_evidence": "Look for the WordPress 'Users' list screen showing a total of 25 users (or 26 if including the admin), with the imported users having the 'Employee' role assigned in the 'Role' column."
+    },
+    {
+      "id": "user_profile_mapping",
+      "description": "Verify that the imported users have their standard profile fields correctly mapped (First Name, Last Name, Email).",
+      "points": 20,
+      "visual_evidence": "Look for a user profile edit screen (e.g., for 'asmith', 'ewilliams', or 'yrodriguez'). The 'First Name', 'Last Name', and 'Email' fields must match the expected spot check data."
+    },
+    {
+      "id": "user_meta_department",
+      "description": "Verify that the custom user meta key 'department' was created and populated for the users.",
+      "points": 20,
+      "visual_evidence": "Look for the bottom of a user profile edit screen or a custom fields/meta section showing a field named 'department' containing the correct department string (e.g., 'Engineering' for Alice Smith)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_or_cli_interaction",
+      "description": "Verify the agent interacted with the actual WordPress application or used valid WP-CLI commands.",
+      "visual_evidence": "Screenshots should show the WordPress admin dashboard, a user import plugin interface, or a terminal with valid WP-CLI commands executing the import, rather than just a text editor."
+    },
+    {
+      "id": "actual_csv_used",
+      "description": "Verify the agent used the provided '~/staff_directory.csv' file.",
+      "visual_evidence": "Look for the file path '~/staff_directory.csv' in a file upload dialog, import plugin settings, or terminal command."
+    },
+    {
+      "id": "no_faked_profiles",
+      "description": "Verify the agent did not manually edit HTML to fake the user profiles or role screens.",
+      "visual_evidence": "The browser address bar should show standard WordPress admin URLs (e.g., wp-admin/user-edit.php, wp-admin/users.php) and the interface should look like a genuine WordPress dashboard without signs of browser developer tools being used to alter text."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected role slug is 'employee' with exactly three capabilities: 'read', 'read_private_posts', and 'read_private_pages'. The 'subscriber' role must be deleted. Exactly 25 users should be imported. Spot check examples: Alice Smith (asmith@corpnet.local, Engineering), Elena Williams (ewilliams@corpnet.local, Human Resources), Yara Rodriguez (yrodriguez@corpnet.local, Sales)."
+}

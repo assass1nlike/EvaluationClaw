@@ -1,0 +1,48 @@
+{
+  "id": "usgs_earthquake_data_analysis@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "Search the USGS Earthquake Hazards Program (earthquake.usgs.gov) for all earthquakes from 2024-01-01 to 2024-12-31 with a minimum magnitude of 6.0. Export the results to ~/Downloads/earthquake_data.csv. Create a Firefox bookmark folder named 'USGS Earthquake Research' with at least 3 USGS page bookmarks. Produce an analysis report at ~/Documents/earthquake_analysis.txt covering the total number of M6.0+ earthquakes, details of the strongest event, a list of 5 significant events, and a summary of geographic patterns.",
+  "difficulty": "hard",
+  "tags": [
+    "firefox",
+    "research",
+    "data-collection",
+    "science",
+    "csv",
+    "analysis"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/usgs_earthquake_data_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/usgs_earthquake_data_analysis/export_result.sh"
+  },
+  "metadata": {
+    "target_year": 2024,
+    "min_magnitude": 6.0,
+    "csv_path": "/home/ga/Downloads/earthquake_data.csv",
+    "report_path": "/home/ga/Documents/earthquake_analysis.txt",
+    "bookmark_folder": "USGS Earthquake Research",
+    "required_domains": [
+      "earthquake.usgs.gov"
+    ],
+    "min_csv_rows": 50,
+    "expected_csv_headers": [
+      "time",
+      "latitude",
+      "longitude",
+      "mag",
+      "place"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_usgs_earthquake_analysis"
+    }
+  }
+}

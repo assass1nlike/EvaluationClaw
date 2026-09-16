@@ -1,0 +1,60 @@
+{
+  "id": "safety_induction_assessment_rules@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create an active 'Site Safety Induction Exam 2024' in LimeSurvey to determine subcontractor worksite eligibility. The survey must have assessment mode enabled and include a question group named 'OSHA Compliance'. Add four mandatory List (Radio) questions with specific assessment values: 'What is the standard color for Danger signs per OSHA?' (Red: 1, Yellow: 0, Orange: 0); 'At what height is fall protection generally required in construction?' (4 feet: 0, 6 feet: 1, 10 feet: 0); 'Who is responsible for maintaining a safe work environment?' (The Site Foreman only: 0, The Safety Officer only: 0, Everyone on site: 1); and 'What should you do if you discover a damaged ladder?' (Use it carefully: 0, Tag it Do Not Use and report it: 1, Leave it for someone else: 0). Set assessment rules to display 'FAIL - Retraining Required' for scores 0-3 and 'PASS - Induction Complete' for a score of 4.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/safety_induction_assessment_rules/setup_task.sh",
+    "post_task": "/workspace/tasks/safety_induction_assessment_rules/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Site Safety Induction Exam 2024",
+    "expected_group": "OSHA Compliance",
+    "questions": [
+      {
+        "text_snippet": "standard color",
+        "correct_answer": "Red",
+        "correct_value": 1
+      },
+      {
+        "text_snippet": "fall protection",
+        "correct_answer": "6 feet",
+        "correct_value": 1
+      },
+      {
+        "text_snippet": "safe work environment",
+        "correct_answer": "Everyone",
+        "correct_value": 1
+      },
+      {
+        "text_snippet": "damaged ladder",
+        "correct_answer": "Tag it",
+        "correct_value": 1
+      }
+    ],
+    "rules": [
+      {
+        "min": 0,
+        "max": 3,
+        "msg_snippet": "FAIL"
+      },
+      {
+        "min": 4,
+        "max": 4,
+        "msg_snippet": "PASS"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_safety_induction"
+    }
+  }
+}

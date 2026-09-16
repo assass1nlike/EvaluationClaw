@@ -223,6 +223,73 @@ def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp
     assert "rejected" not in exported_ids
 
 
+def test_gateway_failure_stops_dispatch_and_preserves_checkpoint(monkeypatch, tmp_path):
+    calls = []
+
+    def fail(item, config, target_id, **kwargs):
+        calls.append(item.id)
+        return ItemResult(
+            item_id=item.id, target_id=target_id, error="network creation failed",
+            execution={"stage": "model_gateway", "target_started": False},
+        )
+
+    monkeypatch.setattr("evalclaw.execution.runner._run_item", fail)
+    target = TargetModelConfig(id="target", provider="openai", model="test-model")
+    with pytest.raises(RuntimeError, match="stopped dispatching"):
+        run_eval(
+            _suite(), QcReport(passed_item_ids=["mc", "short"]),
+            BenchmarkConfig(targets=[target], runner_max_workers=1), trace_dir=tmp_path,
+        )
+    assert calls == ["mc"]
+    checkpoint = json.loads((tmp_path / "run.json").read_text())
+    assert len(checkpoint["results"]) == 1
+    assert not (tmp_path / "target" / "short" / "result.json").exists()
+
+
+def test_gateway_preflight_failure_happens_before_construction(monkeypatch, tmp_path):
+    from evalclaw.pipeline import run_pipeline
+
+    def fail(*args):
+        raise RuntimeError("network is unavailable")
+
+    def unexpected(*args, **kwargs):
+        pytest.fail("construction must not start after a failed network preflight")
+
+    monkeypatch.setattr("evalclaw.runners.harness.preflight_model_gateways", fail)
+    monkeypatch.setattr("evalclaw.pipeline.build_benchmark_suite_with_qc_loop", unexpected)
+    with pytest.raises(RuntimeError, match="network is unavailable"):
+        run_pipeline("Evaluate reasoning", BenchmarkConfig(output_dir=str(tmp_path)), interactive=False)
+    statuses = list(tmp_path.glob("debug/runs/*/status.json"))
+    assert len(statuses) == 1
+    assert json.loads(statuses[0].read_text())["stage"] == "model_gateway_preflight"
+
+
+def test_item_failure_keeps_partial_target_output_and_evidence(monkeypatch, tmp_path):
+    from evalclaw.execution.runner import _run_item
+    from evalclaw.runners.harness import HarnessTimeoutError
+
+    def fail(*args, **kwargs):
+        error = HarnessTimeoutError("openclaw", 60, "partial secret-key", "warning")
+        error.execution_evidence = {
+            "stage": "target_execution", "target_started": None,
+            "target_execution": {"raw_output": error.stdout, "tool_call_count": None},
+            "actors": {"summary": {"tool_call_count": 0}},
+            "termination": {"status": "failed"},
+        }
+        raise error
+
+    monkeypatch.setattr("evalclaw.execution.runner._run_agent_interaction", fail)
+    target = TargetModelConfig(id="target", provider="openai", model="test-model", api_key="secret-key")
+    item = next(item for item in _suite().tasks if item.id == "agent")
+    result = _run_item(item, BenchmarkConfig(targets=[target]), target.id, trace_dir=tmp_path)
+    assert result.raw_response == "partial [REDACTED]"
+    assert result.error and result.latency_ms is not None
+    assert result.execution["target_started"] is None
+    evidence = json.loads((tmp_path / "execution-failure.json").read_text())
+    assert evidence["target_execution"]["tool_call_count"] is None
+    assert evidence["actors"]["summary"]["tool_call_count"] == 0
+
+
 def test_mixed_lm_eval_export_splits_scoring_protocols(tmp_path) -> None:
     plan = build_execution_plan(
         _suite(),

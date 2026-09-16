@@ -1,0 +1,53 @@
+{
+  "task_id": "segment_frontal_sinus_cavity@1",
+  "task_completion": [
+    {
+      "id": "dicom_scan_visible",
+      "description": "Verify the CT Cranium DICOM scan is loaded and visible in the medical imaging software.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show 2D slice views (axial, coronal, sagittal) of a human skull/head in a medical imaging application (like InVesalius)."
+    },
+    {
+      "id": "frontal_sinus_segmented",
+      "description": "Verify the frontal sinus air cavity is segmented.",
+      "points": 30,
+      "visual_evidence": "A colored segmentation mask should overlay the dark air pockets located in the anterior-superior region (forehead bone, directly above the eye sockets/orbits) in the 2D slice views."
+    },
+    {
+      "id": "3d_surface_created",
+      "description": "Verify a 3D surface model is generated from the segmentation.",
+      "points": 20,
+      "visual_evidence": "A 3D rendering of the segmented region should be visible in the application's 3D viewport."
+    },
+    {
+      "id": "exclusive_frontal_sinus_model",
+      "description": "Verify the 3D model contains ONLY the frontal sinus cavities.",
+      "points": 20,
+      "visual_evidence": "The 3D model shown in the viewport should only consist of the paired frontal sinus pockets. It must NOT include the entire skull, skin, or other sinuses (like the large maxillary sinuses in the cheeks)."
+    },
+    {
+      "id": "stl_exported_to_path",
+      "description": "Verify the 3D surface is exported as an STL file to the correct path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'Export' dialog box showing the file being saved to '/home/ga/Documents/frontal_sinus.stl' with the STL file format selected, or a file manager/terminal showing the file successfully created at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the medical imaging software's GUI to perform the segmentation and surface generation.",
+      "visual_evidence": "Screenshots should show the agent clicking through the application's menus, adjusting threshold values, or using segmentation tools, rather than just executing a pre-written script in the terminal."
+    },
+    {
+      "id": "genuine_anatomical_segmentation",
+      "description": "Verify the segmentation mask actually follows the anatomical boundaries of the frontal sinus.",
+      "visual_evidence": "The colored mask in the 2D slices should conform to the shape of the dark air cavities in the forehead bone, not just be a hastily drawn box or random painted blob."
+    },
+    {
+      "id": "no_empty_file_shortcut",
+      "description": "Verify the agent did not bypass the task by simply creating an empty file or copying an unrelated file to the target path.",
+      "visual_evidence": "The export process must originate from the medical imaging software containing the generated 3D surface, rather than terminal commands like 'touch /home/ga/Documents/frontal_sinus.stl' or 'wget'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output path is exactly '/home/ga/Documents/frontal_sinus.stl'. The DICOM series being processed is 'ct_cranium/0051' (patient 'CT 0051 - InVesalius Sample'). The frontal sinus is anatomically located in the Anterior-Superior region (in the forehead bone, directly above the bony orbits/eyes). The final 3D model must exclusively contain these paired air pockets and exclude all other structures such as the skull, skin, or other paranasal sinuses."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "malaria_positivity_indicator@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "Create a DHIS2 indicator named 'Malaria RDT Positivity Rate' (Numerator: Malaria RDT positive / Denominator: Malaria RDT tested) with the 'Percentage' indicator type (factor 100). Generate a bar chart showing this indicator by District for 2023, saved as 'Malaria RDT Positivity by District 2023'. Export the visualization data to /home/ga/Downloads/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/malaria_positivity_indicator/setup_task.sh",
+    "post_task": "/workspace/tasks/malaria_positivity_indicator/export_result.sh"
+  },
+  "metadata": {
+    "target_indicator_name": "Malaria RDT Positivity Rate",
+    "target_visualization_name": "Malaria RDT Positivity by District 2023",
+    "numerator_keywords": [
+      "malaria",
+      "positive",
+      "rdt"
+    ],
+    "denominator_keywords": [
+      "malaria",
+      "tested",
+      "rdt"
+    ],
+    "indicator_factor": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_malaria_positivity_indicator"
+    }
+  }
+}

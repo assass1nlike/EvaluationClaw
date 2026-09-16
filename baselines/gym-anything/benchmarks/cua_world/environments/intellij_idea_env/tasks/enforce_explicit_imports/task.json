@@ -1,0 +1,27 @@
+{
+  "id": "enforce_explicit_imports@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "The 'inventory-system' project currently uses wildcard imports (e.g., 'import java.util.*;'), which violates the team's coding standards. Configure the Java Code Style settings to prevent the use of wildcard imports and refactor the project to replace all existing wildcard imports with explicit single-class imports. Ensure the project compiles successfully after the changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enforce_explicit_imports/setup_task.sh",
+    "post_task": "/workspace/tasks/enforce_explicit_imports/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/inventory-system",
+    "required_wildcard_threshold": 50,
+    "forbidden_pattern": "import\\s+[\\w\\.]+\\*;"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enforce_explicit_imports"
+    }
+  }
+}

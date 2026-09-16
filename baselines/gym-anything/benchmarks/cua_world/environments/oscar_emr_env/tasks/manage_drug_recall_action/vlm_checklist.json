@@ -1,0 +1,53 @@
+{
+  "task_id": "manage_drug_recall_action@1",
+  "task_completion": [
+    {
+      "id": "login_oscar",
+      "description": "Verify the agent successfully logged into the OSCAR EMR system.",
+      "points": 10,
+      "visual_evidence": "The OSCAR EMR main dashboard or schedule screen is visible, indicating a successful login (typically showing 'oscardoc' as the logged-in user)."
+    },
+    {
+      "id": "identify_patient",
+      "description": "Verify the agent located the patient prescribed Atenolol.",
+      "points": 20,
+      "visual_evidence": "A search result, patient chart, or demographic summary is visible for the patient 'Maria Santos', or a screen showing the active prescription for 'Atenolol'."
+    },
+    {
+      "id": "initiate_tickler",
+      "description": "Verify the agent opened the Tickler creation interface for the identified patient.",
+      "points": 20,
+      "visual_evidence": "An 'Add Tickler', 'Create Tickler', or similar dialog/window is open specifically for the patient Maria Santos."
+    },
+    {
+      "id": "set_tickler_attributes",
+      "description": "Verify the Tickler priority is set to High and assigned to the correct doctor.",
+      "points": 20,
+      "visual_evidence": "In the Tickler creation form, the Priority dropdown/selection is set to 'High' and the Assignee/Recipient field is set to 'oscardoc' or 'Dr. Sarah Chen'."
+    },
+    {
+      "id": "write_tickler_message",
+      "description": "Verify the correct recall message is entered and the Tickler is saved.",
+      "points": 30,
+      "visual_evidence": "The message box contains text instructing to stop the medication (must include 'recall' and 'stop', e.g., 'Drug Recall: Stop medication immediately.'). There should be evidence of the form being submitted (clicking Save/Submit) or the new Tickler appearing in the patient's active tickler list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the OSCAR EMR web interface to complete the task.",
+      "visual_evidence": "The screenshots should show a web browser navigating the OSCAR EMR interface, not terminal windows executing curl requests or API scripts."
+    },
+    {
+      "id": "no_direct_db_access",
+      "description": "Ensure the agent did not bypass the UI by directly modifying the database.",
+      "visual_evidence": "There should be no terminal windows open showing MySQL/PostgreSQL command line interfaces or SQL INSERT/UPDATE statements being executed."
+    },
+    {
+      "id": "genuine_patient_record",
+      "description": "Ensure the agent interacted with the actual EMR system rather than a text editor.",
+      "visual_evidence": "The patient information and tickler creation must occur within the styled OSCAR EMR web application, not in a local text file, notepad, or mock HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Patient: Maria Santos (ID 501). Target Drug: Atenolol. The Tickler must be assigned to 'oscardoc' (Dr. Sarah Chen) with a 'High' priority. The Tickler message must contain the words 'recall' and 'stop' (e.g., 'Drug Recall: Stop medication immediately.'). Login credentials are oscardoc / oscar / PIN: 1117."
+}

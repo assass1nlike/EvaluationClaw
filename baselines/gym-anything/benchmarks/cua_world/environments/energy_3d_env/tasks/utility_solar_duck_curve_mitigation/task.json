@@ -1,0 +1,31 @@
+{
+  "id": "utility_solar_duck_curve_mitigation@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Energy Systems Engineer tasked with mitigating the 'Duck Curve' for a utility-scale solar project.\n\nThe Energy3D project '/home/ga/Documents/Energy3D/duck_curve_starter.ng3' is open and contains a standard, monolithic South-facing solar array. Your goal is to flatten its daily generation profile to reduce the noon spike and boost late-afternoon power production.\n\nInstructions:\n1. Change the location to 'Los Angeles, CA' and the date to the Autumnal Equinox (September 21).\n2. Run the Daily Yield Analysis (Analysis > Solar Panels > Daily Yield Analysis) for the baseline design. Note the generation values at 12:00 (peak) and 16:00 (late afternoon).\n3. Redesign the installation: split the monolithic array into three separate sections (or rotate existing racks) to create a multi-azimuth array:\n   - ~1/3 of the panels facing East (Azimuth ~90\u00b0)\n   - ~1/3 of the panels facing South (Azimuth ~180\u00b0)\n   - ~1/3 of the panels facing West (Azimuth ~270\u00b0)\n   (Keep the total number of solar panels roughly equal to the baseline).\n4. Run the Daily Yield Analysis again for the new design on September 21.\n5. Take a screenshot of the new Daily Yield graph (showing the flattened curve) and save it as '~/Documents/Energy3D/screenshot_daily_yield.png'.\n6. Create a text report at '~/Documents/Energy3D/profile_comparison.txt' reporting four values (in kWh) clearly labeled:\n   - Baseline yield at 12:00\n   - Baseline yield at 16:00\n   - New yield at 12:00\n   - New yield at 16:00\n7. Save the modified 3D model as '~/Documents/Energy3D/duck_curve_mitigated.ng3'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/utility_solar_duck_curve_mitigation/setup_task.sh",
+    "post_task": "/workspace/tasks/utility_solar_duck_curve_mitigation/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Energy Systems Engineer",
+    "industry": "Electric Power Generation",
+    "expected_files": [
+      "/home/ga/Documents/Energy3D/duck_curve_mitigated.ng3",
+      "/home/ga/Documents/Energy3D/screenshot_daily_yield.png",
+      "/home/ga/Documents/Energy3D/profile_comparison.txt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_duck_curve_mitigation"
+    }
+  }
+}

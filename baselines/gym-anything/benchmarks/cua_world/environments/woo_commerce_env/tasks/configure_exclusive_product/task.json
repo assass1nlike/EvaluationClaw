@@ -1,0 +1,29 @@
+{
+  "id": "configure_exclusive_product@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure the 'Wireless Bluetooth Headphones' product as an exclusive limited-release item. Set its catalog visibility to 'Search results only' and enable the 'Sold individually' inventory setting. Append '*** LIMIT 1 PER CUSTOMER ***' to the product's short description.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_exclusive_product/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_exclusive_product/export_result.sh"
+  },
+  "metadata": {
+    "target_product_name": "Wireless Bluetooth Headphones",
+    "required_visibility_slug": "exclude-from-catalog",
+    "forbidden_visibility_slug": "exclude-from-search",
+    "required_inventory_meta": "yes",
+    "required_text": "*** LIMIT 1 PER CUSTOMER ***"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_exclusive_product"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "hyperstack_z_projection_profiling@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Hyperstack Z-Projection and Temporal Profiling",
+  "description": "You are a cell biologist analyzing a 5D confocal movie of a dividing cell. Process the 'Mitosis' sample image to produce a 2D time-lapse video of the chromosomes (Channel 1/Red) using Maximum Intensity Z-Projection across all time frames. Save the resulting time-lapse to ~/ImageJ_Data/results/chromosomes_timelapse.tif. Quantify the Mean Gray Value of the entire image for every time frame and save the measurements to ~/ImageJ_Data/results/intensity_trace.csv. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "tags": [
+    "hyperstack",
+    "z-projection",
+    "time-lapse",
+    "quantification",
+    "microscopy",
+    "5d-image"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hyperstack_z_projection_profiling/setup_task.sh",
+    "post_task": "/workspace/tasks/hyperstack_z_projection_profiling/export_result.sh"
+  },
+  "metadata": {
+    "sample_name": "Mitosis (26MB, 5D stack)",
+    "expected_tif_path": "/home/ga/ImageJ_Data/results/chromosomes_timelapse.tif",
+    "expected_csv_path": "/home/ga/ImageJ_Data/results/intensity_trace.csv",
+    "expected_frames": 51,
+    "expected_slices": 1,
+    "expected_channels": 1,
+    "expected_width": 171,
+    "expected_height": 196
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hyperstack_task"
+    }
+  }
+}

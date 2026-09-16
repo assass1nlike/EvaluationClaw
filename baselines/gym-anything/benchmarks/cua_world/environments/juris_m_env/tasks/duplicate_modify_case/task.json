@@ -1,0 +1,36 @@
+{
+  "id": "duplicate_modify_case@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Duplicate the 'Brown v. Board of Education' (347 U.S. 483, 1954) case in your library to create the 1955 implementation decree ('Brown II'). The new record must have the Case Name 'Brown v. Board of Education II', Volume '349', First Page '294', Date Decided '1955', and the Abstract 'Implementation decree requiring desegregation of public schools with all deliberate speed, following the 1954 decision declaring segregation unconstitutional.' Ensure the original 1954 case remains unchanged.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/duplicate_modify_case/setup_task.sh",
+    "post_task": "/workspace/tasks/duplicate_modify_case/export_result.sh"
+  },
+  "metadata": {
+    "original_year": "1954",
+    "original_vol": "347",
+    "original_page": "483",
+    "new_case_name": "Brown v. Board of Education II",
+    "new_year": "1955",
+    "new_vol": "349",
+    "new_page": "294",
+    "abstract_keywords": [
+      "implementation",
+      "desegregation",
+      "deliberate speed"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_duplicate_modify_case"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "prepare_colored_airway_model@1",
+  "task_completion": [
+    {
+      "id": "import_ct_dataset",
+      "description": "Verify that the CT Cranium dataset is loaded into the software.",
+      "points": 10,
+      "visual_evidence": "The InVesalius interface shows the loaded CT Cranium dataset with 2D slice views (axial, coronal, sagittal) visible."
+    },
+    {
+      "id": "set_custom_threshold",
+      "description": "Verify that a custom threshold is set with a maximum of -100 HU to target air/sinuses.",
+      "points": 20,
+      "visual_evidence": "The threshold panel in InVesalius shows a custom range where the maximum value is -100 or lower, and the 2D slices show a mask highlighting the empty air cavities/sinuses."
+    },
+    {
+      "id": "generate_3d_surface",
+      "description": "Verify that a 3D surface of the air-filled cavities is generated.",
+      "points": 30,
+      "visual_evidence": "A 3D surface model representing the airways/sinuses is visible in the 3D viewer pane of InVesalius."
+    },
+    {
+      "id": "color_surface_blue",
+      "description": "Verify that the generated 3D surface is colored blue.",
+      "points": 20,
+      "visual_evidence": "The 3D surface model in the viewer pane is predominantly blue. The surface properties or color picker may also be visible showing blue as the selected color."
+    },
+    {
+      "id": "save_project",
+      "description": "Verify that the project is saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog is visible showing the path '/home/ga/Documents/airway_study.inv3', or the main InVesalius window title bar displays 'airway_study.inv3'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the InVesalius graphical user interface to complete the task.",
+      "visual_evidence": "Screenshots show the agent clicking through the InVesalius menus, threshold panels, and 3D surface generation buttons rather than running terminal scripts."
+    },
+    {
+      "id": "genuine_surface_generation",
+      "description": "Ensure the 3D surface is genuinely generated within the software.",
+      "visual_evidence": "The 3D surface appears inside the standard InVesalius 3D viewport with appropriate lighting and shading, matching the thresholded 2D mask slices."
+    },
+    {
+      "id": "authentic_save_action",
+      "description": "Ensure the project file was saved via the application.",
+      "visual_evidence": "The save action is performed via the InVesalius GUI (e.g., File -> Save Project As), rather than a terminal command creating a dummy file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using InVesalius 3. The dataset is 'ct_cranium/0051'. The threshold maximum Hounsfield Unit (HU) must be exactly -100 or less to properly target Air/Sinuses. The generated 3D surface must be colored predominantly Blue (b > r and b > g). The final project must be saved exactly as '/home/ga/Documents/airway_study.inv3'."
+}

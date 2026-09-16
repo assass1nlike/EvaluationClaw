@@ -1,0 +1,53 @@
+{
+  "task_id": "record_payment_with_withholding@1",
+  "task_completion": [
+    {
+      "id": "locate_invoice",
+      "description": "Verify that the agent locates the correct sales invoice for the customer.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the Sales Invoices tab with Invoice #INV-CONS-001 for 'Alfreds Futterkiste' visible."
+    },
+    {
+      "id": "initiate_receipt",
+      "description": "Verify that the agent initiates a receipt or payment transaction to clear the invoice.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a 'New Receipt' or 'New Payment' form being opened and linked to customer 'Alfreds Futterkiste' or Invoice #INV-CONS-001."
+    },
+    {
+      "id": "cash_on_hand_allocation",
+      "description": "Verify that the net received funds are allocated to the correct bank account.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the receipt form showing 'Cash on Hand' selected as the receiving account and the received amount set to exactly 900.00."
+    },
+    {
+      "id": "withholding_tax_allocation",
+      "description": "Verify that the withheld tax portion is correctly allocated to the withholding tax asset account.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing a line item or allocation for 'Withholding Tax Receivable' with an amount of 100.00 (this may appear as a negative line item on a receipt or as part of a related journal entry) to account for the withheld tax."
+    },
+    {
+      "id": "invoice_paid_in_full",
+      "description": "Verify that the invoice status is successfully updated to reflect full payment.",
+      "points": 35,
+      "visual_evidence": "Screenshots of the Sales Invoices list or the specific invoice view showing Invoice #INV-CONS-001 with a balance due of 0.00 and a status of 'Paid in Full'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify that the agent used the Manager.io web interface to complete the task.",
+      "visual_evidence": "Screenshots should show the agent navigating and clicking through the Manager.io web application in a browser, not using a terminal or API scripts."
+    },
+    {
+      "id": "transaction_saved",
+      "description": "Verify that the transaction was actually saved and not just previewed.",
+      "visual_evidence": "Screenshots should show the agent clicking the 'Create' or 'Update' button, followed by a confirmation screen or the updated list view showing the recorded transaction."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "Verify that the agent did not use terminal commands to modify the database directly.",
+      "visual_evidence": "The terminal window should not show commands like sqlite3, curl, or python scripts being used to alter the Manager.io database directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Invoice Reference: INV-CONS-001 | Customer: Alfreds Futterkiste | Total Invoice Amount: $1000.00 | Withheld Tax Amount: $100.00 | Net Received (Cash): $900.00 | Tax Account: Withholding Tax Receivable | Bank Account: Cash on Hand."
+}

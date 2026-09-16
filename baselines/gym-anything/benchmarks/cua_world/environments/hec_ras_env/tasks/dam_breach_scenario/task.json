@@ -1,0 +1,27 @@
+{
+  "id": "dam_breach_scenario@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are a dam safety engineer at the Indiana Dam Safety Program responding to an emergency scenario: a hypothetical dam upstream of Muncie is assessed to be at risk of failure. Your goal is to use HEC-RAS to simulate the resulting dam-break flood wave and produce an inundation severity report for emergency planners. \n\nUsing the dam breach parameters provided in ~/Documents/dam_breach_parameters.txt (peak breach outflow, time to peak, and base duration), construct a triangular dam-break inflow hydrograph and update the Muncie boundary condition file (Muncie.b04). The hydrograph should rise linearly from 0 to peak over the time-to-peak period and recede linearly to 0 over the remaining base duration using 1-hour intervals. Ensure the b04 file maintains its required format: a header line 'Flow Hydrograph= <N>' followed by space-separated time-flow pairs (minutes and cfs). \n\nExecute the unsteady flow simulation (RasUnsteady Muncie.p04.tmp.hdf x04) and extract the overall peak WSE, the mean peak WSE across all cells, and the timestep (in minutes) of the peak WSE from Muncie.p04.hdf. Generate a dam breach inundation report at ~/Documents/hec_ras_results/dam_breach_report.txt containing labeled lines for PEAK_BREACH_FLOW_CFS, PEAK_WSE_FT, MEAN_PEAK_WSE_FT, and PEAK_WSE_TIMESTEP_MIN. The report must also include a plain-text summary paragraph of at least three sentences describing the severity of the inundation and its implications for downstream communities.",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dam_breach_scenario/setup_task.sh",
+    "post_task": "/workspace/tasks/dam_breach_scenario/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Civil Engineers",
+    "onetsoc": "17-2051.00",
+    "industry": "Government / Dam Safety / Emergency Engineering",
+    "difficulty": "very_hard"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dam_breach_scenario"
+    }
+  }
+}

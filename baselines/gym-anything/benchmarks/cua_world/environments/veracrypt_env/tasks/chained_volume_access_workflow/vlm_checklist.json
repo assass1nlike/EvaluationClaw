@@ -1,0 +1,53 @@
+{
+  "task_id": "chained_volume_access_workflow@1",
+  "task_completion": [
+    {
+      "id": "mount_alpha_volume",
+      "description": "Mount Volume Alpha to access the first keyfile.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt main window showing 'alpha_entry.hc' mounted to a drive slot, or a file manager window displaying the contents of the mounted Alpha volume."
+    },
+    {
+      "id": "mount_beta_volume",
+      "description": "Mount Volume Beta using the password and the keyfile extracted from Alpha.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt main window showing 'beta_relay.hc' mounted to a drive slot, or a file manager window displaying the contents of the mounted Beta volume."
+    },
+    {
+      "id": "mount_gamma_volume",
+      "description": "Mount Volume Gamma using the password and the keyfile extracted from Beta.",
+      "points": 25,
+      "visual_evidence": "VeraCrypt main window showing 'gamma_vault.hc' mounted to a drive slot, or a file manager window displaying the contents of the mounted Gamma volume including 'coordinates.csv'."
+    },
+    {
+      "id": "copy_recovered_file",
+      "description": "Copy 'coordinates.csv' to the specified Documents folder.",
+      "points": 25,
+      "visual_evidence": "File manager or terminal showing a file named 'recovered_coordinates.csv' located inside the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "dismount_all_volumes",
+      "description": "Dismount all volumes before finishing the task.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt main window visible in the final screenshots showing all drive slots empty, indicating all volumes have been successfully dismounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_gui_usage",
+      "description": "Verify the agent used the VeraCrypt application to mount the volumes.",
+      "visual_evidence": "VeraCrypt GUI windows, including password and keyfile selection dialogs, should be visible in the trajectory."
+    },
+    {
+      "id": "genuine_file_extraction",
+      "description": "Verify the agent copied the file from the mounted volume rather than creating a fake file.",
+      "visual_evidence": "Screenshots showing a copy-paste action in the file manager from the mounted Gamma volume, or a 'cp' command in the terminal originating from the mount point."
+    },
+    {
+      "id": "no_fake_mount_directories",
+      "description": "Verify the agent did not just create standard folders named after the volumes.",
+      "visual_evidence": "The volumes must appear as mounted drives in the VeraCrypt interface or system mount points, not just regular directories created via 'mkdir'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output path: /home/ga/Documents/recovered_coordinates.csv. Volume paths: /home/ga/Volumes/alpha_entry.hc, /home/ga/Volumes/beta_relay.hc, /home/ga/Volumes/gamma_vault.hc."
+}

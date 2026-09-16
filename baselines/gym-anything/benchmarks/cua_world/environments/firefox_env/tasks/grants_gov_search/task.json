@@ -1,0 +1,35 @@
+{
+  "id": "grants_gov_search@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a Development Director for a non-profit organization. Identify three open federal funding opportunities on Grants.gov using the keyword 'rural health' and the eligibility filter 'Nonprofits having a 501(c)(3) status with the IRS, other than institutions of higher education'. Bookmark the 'View Opportunity' pages for these three grants in a folder named 'Grant Prospects'. Compile the details (opportunity_number, title, agency, posted_date, and close_date) for these opportunities into a JSON file at '~/Documents/grant_prospects.json'.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "grants",
+    "json",
+    "bookmarks"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/grants_gov_search/setup_task.sh",
+    "post_task": "/workspace/tasks/grants_gov_search/export_result.sh"
+  },
+  "metadata": {
+    "target_keyword": "rural health",
+    "required_bookmark_folder": "Grant Prospects",
+    "required_output_file": "/home/ga/Documents/grant_prospects.json",
+    "min_opportunities": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_grants_gov_search"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_embedded_widget_code@1",
+  "task_completion": [
+    {
+      "id": "file_created",
+      "description": "The agent created or edited the correct output file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command (e.g., nano, vim, echo, cat) showing the file path /home/ga/intranet_widget_code.html."
+    },
+    {
+      "id": "iframe_tag_present",
+      "description": "The generated code includes an HTML iframe tag.",
+      "points": 10,
+      "visual_evidence": "The code being saved or displayed contains an `<iframe` tag with a `src` attribute."
+    },
+    {
+      "id": "correct_module",
+      "description": "The iframe URL specifies the correct Matomo module.",
+      "points": 20,
+      "visual_evidence": "The `src` URL inside the iframe code contains the parameter `moduleToWidgetize=VisitsSummary`."
+    },
+    {
+      "id": "correct_action",
+      "description": "The iframe URL specifies the correct Matomo action.",
+      "points": 20,
+      "visual_evidence": "The `src` URL inside the iframe code contains the parameter `actionToWidgetize=getEvolutionGraph`."
+    },
+    {
+      "id": "site_id_correct",
+      "description": "The iframe URL targets the correct site ID.",
+      "points": 10,
+      "visual_evidence": "The `src` URL inside the iframe code contains the parameter `idSite=1`."
+    },
+    {
+      "id": "auth_token_present",
+      "description": "The iframe URL includes an authentication token.",
+      "points": 30,
+      "visual_evidence": "The `src` URL inside the iframe code contains the parameter `token_auth=` followed by a token string (not a placeholder)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "matomo_ui_interaction",
+      "description": "The agent interacted with the Matomo web interface to obtain the embed code or token.",
+      "visual_evidence": "Screenshots show the Matomo web interface open in a browser, navigating to widgets, platform settings, or API token pages."
+    },
+    {
+      "id": "genuine_token",
+      "description": "The authentication token is a genuine string, not a placeholder.",
+      "visual_evidence": "The `token_auth` value in the generated code is a long alphanumeric string (typically 32 characters), not a generic placeholder like 'YOUR_TOKEN'."
+    },
+    {
+      "id": "no_hallucinated_code",
+      "description": "The agent did not hallucinate the iframe code structure.",
+      "visual_evidence": "The iframe code matches the structure provided by Matomo (e.g., pointing to `index.php` with appropriate query parameters) rather than a completely fabricated URL."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is /home/ga/intranet_widget_code.html. The correct iframe URL must contain the following parameters: moduleToWidgetize=VisitsSummary, actionToWidgetize=getEvolutionGraph, and idSite=1. It must also contain a valid token_auth parameter with a 32-character alphanumeric string."
+}

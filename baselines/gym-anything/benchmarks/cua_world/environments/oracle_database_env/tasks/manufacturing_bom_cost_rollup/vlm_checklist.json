@@ -1,0 +1,53 @@
+{
+  "task_id": "manufacturing_bom_cost_rollup@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Agent connects to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a database client (like DBeaver, SQL Developer, or sqlplus in the terminal) successfully connected to localhost:1521/XEPDB1 with the user 'hr'."
+    },
+    {
+      "id": "view_creation",
+      "description": "Agent creates the ASSEMBLY_COST_ANALYSIS view with recursive logic.",
+      "points": 30,
+      "visual_evidence": "A SQL query being executed that starts with 'CREATE [OR REPLACE] VIEW ASSEMBLY_COST_ANALYSIS AS' and contains recursive or hierarchical logic (e.g., a recursive CTE using 'WITH' or Oracle's 'CONNECT BY') joining MFG_PARTS and MFG_BOM."
+    },
+    {
+      "id": "query_results",
+      "description": "Agent queries the view to retrieve the 5 most expensive parts.",
+      "points": 20,
+      "visual_evidence": "Execution of a SELECT query on ASSEMBLY_COST_ANALYSIS ordering by the total cost descending and limiting to 5 rows, with the results visible on screen showing 'Server X1' at the top."
+    },
+    {
+      "id": "csv_file_exists",
+      "description": "The target CSV file is created on the Desktop.",
+      "points": 10,
+      "visual_evidence": "A file named 'top_expensive_products.csv' is visible on the Desktop in the file manager, or a terminal command (like 'ls /home/ga/Desktop') shows the file exists."
+    },
+    {
+      "id": "csv_contents_correct",
+      "description": "The CSV file contains the correct headers and the top 5 parts with their exact rolled-up costs.",
+      "points": 30,
+      "visual_evidence": "The CSV file opened in a text editor or terminal (via cat) showing headers 'PART_NAME,TOTAL_UNIT_COST' and the following rows (order may vary but values must match): Server X1 (1476.0), CPU Module (404.0), RAM Stick (164.0), Case Frame (7.0), Motherboard PCB (4.0)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sql_execution",
+      "description": "The agent actually executed SQL queries against the database to calculate the costs.",
+      "visual_evidence": "Screenshots must show the agent interacting with a database client or terminal to run the queries, rather than just guessing or calculating the values externally."
+    },
+    {
+      "id": "dynamic_view_logic",
+      "description": "The view creation query uses dynamic SQL logic rather than hardcoding the expected part names and costs.",
+      "visual_evidence": "The CREATE VIEW statement must contain table joins and mathematical operations (e.g., SUM, multiplication by quantity), not a series of hardcoded 'SELECT ... FROM DUAL' statements."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file is generated from the query results or properly formatted manually based on the DB output.",
+      "visual_evidence": "The CSV file contents should match the output seen in the database query results, indicating a genuine transfer of data rather than fabricated text."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected View Name: ASSEMBLY_COST_ANALYSIS. Output File: /home/ga/Desktop/top_expensive_products.csv. Ground Truth Data (Top 5 expensive parts and costs): Server X1 (1476.0), CPU Module (404.0), RAM Stick (164.0), Case Frame (7.0), Motherboard PCB (4.0)."
+}

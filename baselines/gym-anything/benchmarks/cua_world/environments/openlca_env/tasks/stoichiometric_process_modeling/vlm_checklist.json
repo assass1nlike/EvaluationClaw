@@ -1,0 +1,53 @@
+{
+  "task_id": "stoichiometric_process_modeling@1",
+  "task_completion": [
+    {
+      "id": "create_process",
+      "description": "Verify a new Unit Process named 'Quicklime Production, stoichiometric' is created in the USLCI database.",
+      "points": 15,
+      "visual_evidence": "OpenLCA window showing a process tab, navigation tree, or list with the exact name 'Quicklime Production, stoichiometric'."
+    },
+    {
+      "id": "add_limestone_input",
+      "description": "Verify 1000 kg of Limestone is added as an input (technosphere flow).",
+      "points": 15,
+      "visual_evidence": "In the Inputs/Outputs tab of the process in OpenLCA, 'Limestone' is listed under Inputs with an amount of 1000 kg."
+    },
+    {
+      "id": "add_quicklime_product",
+      "description": "Verify 560 kg of Quicklime is added as a product flow.",
+      "points": 15,
+      "visual_evidence": "In the Inputs/Outputs tab of the process in OpenLCA, 'Quicklime' is listed under Outputs (or Quantitative reference) with an amount of 560 kg."
+    },
+    {
+      "id": "add_co2_output",
+      "description": "Verify Carbon Dioxide is added as an elementary flow to air to satisfy the mass balance.",
+      "points": 35,
+      "visual_evidence": "In the Inputs/Outputs tab of the process in OpenLCA, 'Carbon Dioxide' (or CO2) is listed under Outputs (Emissions to air) with an amount of approximately 440 kg (acceptable range: 418 to 462 kg)."
+    },
+    {
+      "id": "save_co2_txt",
+      "description": "Verify the calculated CO2 amount is saved to ~/LCA_Results/stoichiometry_check.txt.",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal window, or file explorer showing the contents of 'stoichiometry_check.txt' in the '~/LCA_Results/' directory containing the value 440 (or a value within the 418-462 range)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "openlca_gui_used",
+      "description": "The agent used the OpenLCA graphical interface to create the process and add flows.",
+      "visual_evidence": "Screenshots show the actual OpenLCA application interface with the process open and flows being added, not just terminal outputs, scripts, or mocked UI."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "The agent performed the calculation or mass balance rather than just hardcoding the final text file.",
+      "visual_evidence": "Screenshots show the agent interacting with OpenLCA to set up the mass balance, or using a calculator/script to derive 440 from 1000 and 560, rather than just running a single terminal command like 'echo 440 > stoichiometry_check.txt' without opening OpenLCA."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The agent saved the text file in the exact requested directory.",
+      "visual_evidence": "Terminal prompt, file explorer path, or text editor title bar confirms the file is located exactly at '~/LCA_Results/stoichiometry_check.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CO2 amount is exactly 440 kg, derived from the stoichiometric mass balance of the chemical reaction: 1000 kg (Limestone input) - 560 kg (Quicklime product) = 440 kg (CO2 emission). A 5% tolerance is acceptable, meaning any value between 418 kg and 462 kg is considered correct. The process must be created within the OpenLCA software using the USLCI database."
+}

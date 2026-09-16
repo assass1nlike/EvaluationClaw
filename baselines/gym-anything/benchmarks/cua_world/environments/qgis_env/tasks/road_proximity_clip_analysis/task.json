@@ -1,0 +1,30 @@
+{
+  "id": "road_proximity_clip_analysis@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform an impact analysis to identify road segments within 500 meters of monitoring stations. Using the 'Monitoring Stations' (/home/ga/GIS_Data/sample_points.geojson) and 'Road Network' (/home/ga/GIS_Data/sample_lines.geojson) datasets, isolate the road segments within the 500-meter buffer zone. Ensure calculations are performed using EPSG:32610 (UTM Zone 10N) for accurate metric distance. The resulting layer must include a field named 'impact_len' containing the length of each segment in meters. Export the final dataset to /home/ga/GIS_Data/exports/impacted_roads_500m.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/road_proximity_clip_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/road_proximity_clip_analysis/export_result.sh"
+  },
+  "metadata": {
+    "points_file": "/home/ga/GIS_Data/sample_points.geojson",
+    "lines_file": "/home/ga/GIS_Data/sample_lines.geojson",
+    "output_file": "/home/ga/GIS_Data/exports/impacted_roads_500m.geojson",
+    "buffer_distance": 500,
+    "target_crs": "EPSG:32610",
+    "field_name": "impact_len"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_road_proximity_clip_analysis"
+    }
+  }
+}

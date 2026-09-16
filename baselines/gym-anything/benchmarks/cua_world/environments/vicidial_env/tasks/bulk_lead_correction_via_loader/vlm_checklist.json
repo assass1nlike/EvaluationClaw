@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_lead_correction_via_loader@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_lead_loader",
+      "description": "Navigate to the Lead Loader interface",
+      "points": 10,
+      "visual_evidence": "The browser displays the Lead Loader page (Basic or Advanced) within the application's administration interface."
+    },
+    {
+      "id": "upload_correction_file",
+      "description": "Select a file containing the corrected lead data",
+      "points": 20,
+      "visual_evidence": "A file is selected in the file upload input on the Lead Loader page. The agent may also be seen creating this file (e.g., CSV or TXT) containing the target phone numbers and the correct city 'Washington'."
+    },
+    {
+      "id": "configure_update_mode",
+      "description": "Configure the Lead Loader to update existing records in List 9999",
+      "points": 30,
+      "visual_evidence": "The Lead Loader settings show the List ID set to 9999. Crucially, an 'Update' or 'Deduplication' setting must be enabled (e.g., 'Lead Update' set to YES, or searching by phone number to update) to ensure records are modified rather than duplicated."
+    },
+    {
+      "id": "execute_lead_load",
+      "description": "Execute the bulk load process",
+      "points": 20,
+      "visual_evidence": "A confirmation or summary screen from the Lead Loader indicating that the file was processed successfully, ideally showing 5 records were updated."
+    },
+    {
+      "id": "verify_corrected_leads",
+      "description": "Verify the leads were updated correctly without altering the entry date",
+      "points": 20,
+      "visual_evidence": "A search results page or list view showing the target leads (phones 2025550101 to 2025550105). The 'City' field must display 'Washington' and the 'Entry Date' must still show the original 2020 date, confirming no duplicates were created and the date was preserved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the web GUI to perform the bulk update",
+      "visual_evidence": "The agent interacts with the web-based Lead Loader form rather than bypassing the UI."
+    },
+    {
+      "id": "no_direct_db_update",
+      "description": "The agent did not use direct SQL commands to update the database",
+      "visual_evidence": "The terminal or command line does not show direct MySQL 'UPDATE' commands being executed on the database tables."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent genuinely created the upload file",
+      "visual_evidence": "The agent is seen creating, editing, or formatting a CSV/text file containing the target phone numbers and the word 'Washington' prior to uploading it."
+    }
+  ],
+  "privileged_info_for_vlm": "List ID: 9999. Target phone numbers: 2025550101, 2025550102, 2025550103, 2025550104, 2025550105. Incorrect city: 'Washingtun'. Correct city: 'Washington'. Original entry date to preserve: '2020-01-01 12:00:00' (must remain prior to '2021-01-01')."
+}

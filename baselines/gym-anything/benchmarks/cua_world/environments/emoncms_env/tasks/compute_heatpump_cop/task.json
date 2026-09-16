@@ -1,0 +1,28 @@
+{
+  "id": "compute_heatpump_cop@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Your goal is to compute the Coefficient of Performance (COP) for a heat pump monitoring system using 24 hours of 1-minute interval data from 'heatpump_elec' (Electrical input power in Watts) and 'heatpump_heat' (Thermal heat output in Watts). Create a new PHPFina feed named 'heatpump_cop' with tag 'heatpump' and unit 'COP'. Populate this feed by calculating COP = Heat / Elec for each timestamp, skipping any points where Elec is less than 50W. Generate a summary report at /home/ga/cop_report.txt with exactly five lines: Line 1 is the new feed ID, Line 2 is the count of data points inserted, Line 3 is the average COP, Line 4 is the maximum COP, and Line 5 is the minimum COP (rounding all COP values to 2 decimal places). Admin API keys are available in /home/ga/emoncms_apikeys.sh.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_heatpump_cop/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_heatpump_cop/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "report_path": "/home/ga/cop_report.txt",
+    "min_valid_power": 50,
+    "ground_truth_path": "/var/lib/emoncms/cop_ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_heatpump_cop"
+    }
+  }
+}

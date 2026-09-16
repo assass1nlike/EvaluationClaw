@@ -1,0 +1,53 @@
+{
+  "task_id": "joint_dynamics_profiling@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_scene_loaded",
+      "description": "CoppeliaSim is open and the correct scene is loaded.",
+      "points": 10,
+      "visual_evidence": "The CoppeliaSim application window is visible, and the scene name 'messaging/movementViaRemoteApi.ttt' is shown in the title bar or scene hierarchy."
+    },
+    {
+      "id": "motion_script_visible",
+      "description": "A script is created to control the robot via ZMQ Remote API and record dynamics.",
+      "points": 20,
+      "visual_evidence": "A code editor (e.g., VS Code, terminal editor) shows a script containing ZMQ Remote API connection (port 23000), stepping mode configuration, and logic for moving through at least 6 waypoints."
+    },
+    {
+      "id": "script_execution_and_motion",
+      "description": "The script is executed to drive the robot arm in the simulation.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the script running, and/or the CoppeliaSim simulation is in a 'play' state with the robot arm having moved from its initial position."
+    },
+    {
+      "id": "csv_file_generated",
+      "description": "The dynamics profile CSV file is exported with the required columns.",
+      "points": 25,
+      "visual_evidence": "A file manager or terminal shows 'dynamics_profile.csv' in '/home/ga/Documents/CoppeliaSim/exports/'. If the file contents are visible, it must include headers for time_s, j0_pos_deg to j5_pos_deg, j0_vel_degs to j5_vel_degs, and j0_acc_degs2 to j5_acc_degs2."
+    },
+    {
+      "id": "json_report_generated",
+      "description": "The compliance report JSON file is exported with the required fields.",
+      "points": 25,
+      "visual_evidence": "A file manager or terminal shows 'dynamics_report.json' in '/home/ga/Documents/CoppeliaSim/exports/'. If the file contents are visible, it must include fields: total_samples, total_waypoints, trajectory_duration_s, max_velocity_degs, max_acceleration_degs2, velocity_violations, acceleration_violations, and compliant."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "The agent actually used the ZMQ Remote API to interact with CoppeliaSim.",
+      "visual_evidence": "The script contains genuine CoppeliaSim ZMQ Remote API calls (e.g., sim.simx... or sim...) rather than just generating random numbers or mocking the data."
+    },
+    {
+      "id": "no_mocked_results",
+      "description": "The CSV and JSON files were generated programmatically, not manually typed.",
+      "visual_evidence": "The agent's script contains file writing logic (e.g., csv.writer, json.dump) and there is no evidence of the agent manually typing the JSON or CSV contents into a text editor."
+    },
+    {
+      "id": "simulation_actually_run",
+      "description": "The agent executed the script to gather real simulation data.",
+      "visual_evidence": "There is terminal output showing the execution of the Python script, rather than the agent just writing the script and skipping execution."
+    }
+  ],
+  "privileged_info_for_vlm": "Output CSV path: /home/ga/Documents/CoppeliaSim/exports/dynamics_profile.csv. Output JSON path: /home/ga/Documents/CoppeliaSim/exports/dynamics_report.json. Velocity limit: 180 deg/s. Acceleration limit: 800 deg/s^2. Minimum waypoints: 6. Minimum samples: 100. Minimum joint range: 45 degrees in at least 2 joints. CSV must contain columns: time_s, j0_pos_deg to j5_pos_deg, j0_vel_degs to j5_vel_degs, and j0_acc_degs2 to j5_acc_degs2. JSON must contain fields: total_samples, total_waypoints, trajectory_duration_s, max_velocity_degs, max_acceleration_degs2, velocity_violations, acceleration_violations, compliant."
+}

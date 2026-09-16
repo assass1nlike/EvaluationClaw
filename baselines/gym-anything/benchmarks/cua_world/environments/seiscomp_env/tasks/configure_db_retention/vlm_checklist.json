@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_db_retention@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "Verify the script file is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command creating or opening the file (e.g., 'nano /home/ga/scripts/cleanup_events.sh', 'vim /home/ga/scripts/cleanup_events.sh', or 'touch /home/ga/scripts/cleanup_events.sh'), or a text editor window displaying this file path."
+    },
+    {
+      "id": "script_contains_scdbstrip",
+      "description": "Verify the script utilizes the scdbstrip utility.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the script (visible in a text editor or via a 'cat' command in the terminal). The script must contain the command 'scdbstrip'."
+    },
+    {
+      "id": "script_contains_retention_flag",
+      "description": "Verify the script configures the correct retention period of 365 days.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the script. The 'scdbstrip' command must be accompanied by the number '365' and either the '--days' or '-d' flag."
+    },
+    {
+      "id": "script_made_executable",
+      "description": "Verify the script has been made executable.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command like 'chmod +x /home/ga/scripts/cleanup_events.sh' or an 'ls -l' output showing executable permissions (e.g., '-rwxr-xr-x') for the cleanup_events.sh file."
+    },
+    {
+      "id": "initial_cleanup_executed",
+      "description": "Verify the initial cleanup was performed.",
+      "points": 30,
+      "visual_evidence": "Look for the execution of the script in the terminal (e.g., running '/home/ga/scripts/cleanup_events.sh' or 'bash /home/ga/scripts/cleanup_events.sh') and the subsequent output from the scdbstrip utility indicating database connection and pruning."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_creation",
+      "description": "Verify the script was actually saved to the filesystem.",
+      "visual_evidence": "Ensure the agent used a real text editor (nano, vim) or standard redirection (echo ... > file) to create the file, rather than just typing the contents into the terminal without saving."
+    },
+    {
+      "id": "real_utility_invocation",
+      "description": "Verify the script genuinely calls the required utility.",
+      "visual_evidence": "Check that the script does not simply 'echo' a fake success message, but actually contains the 'scdbstrip' command."
+    },
+    {
+      "id": "execution_output_visible",
+      "description": "Verify the initial cleanup was actually run, not just typed.",
+      "visual_evidence": "Ensure the terminal shows the command being executed (followed by a new prompt or command output), rather than just the command being typed without pressing Enter."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected script path is exactly '/home/ga/scripts/cleanup_events.sh'. The script must contain the utility 'scdbstrip', the retention value '365', and either the '--days' or '-d' flag. The script must be made executable, and the agent must execute it to perform the initial cleanup."
+}

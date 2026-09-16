@@ -1,0 +1,28 @@
+{
+  "id": "urban_microgrid_shading_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Load the 'city-block.ng3' scene from ~/Documents/Energy3D/city-block.ng3. Configure the environment's City setting to Chicago, IL. Identify the central, low-rise building (surrounded by four tall skyscrapers) and install at least 50 solar panels exclusively on its flat roof. Adjust the properties of these solar panels so their tilt angle is exactly 20 degrees. Save the modified project as ~/Documents/Energy3D/chicago_microgrid.ng3.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_microgrid_shading_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_microgrid_shading_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/Documents/Energy3D/chicago_microgrid.ng3",
+    "expected_city": "Chicago",
+    "min_panels": 50,
+    "expected_tilt": 20.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_urban_microgrid"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "incident_triage_and_summary@1",
+  "task_completion": [
+    {
+      "id": "folders_created",
+      "description": "Folders 'Triage/Critical' and 'Triage/Warning' are created in the email client.",
+      "points": 20,
+      "visual_evidence": "Look at the email client's folder pane (usually on the left side). Verify that folders named 'Triage/Critical' and 'Triage/Warning' exist."
+    },
+    {
+      "id": "critical_emails_moved",
+      "description": "Emails with critical keywords are moved to the 'Triage/Critical' folder.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'Triage/Critical' folder. Verify if any emails with subjects containing 'error', 'fail', 'failure', or 'fatal' are present. (Note: This may be empty if the agent correctly identified that no such emails exist)."
+    },
+    {
+      "id": "warning_emails_moved",
+      "description": "Emails with warning keywords are moved to the 'Triage/Warning' folder.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'Triage/Warning' folder. Verify if any emails with subjects containing 'check', 'review', or 'warning' are present. (Note: This may be empty if the agent correctly identified that no such emails exist)."
+    },
+    {
+      "id": "incident_acknowledged",
+      "description": "A reply is sent to a sender of a Critical email with the required acknowledgment text.",
+      "points": 20,
+      "visual_evidence": "Look for a drafted or sent email replying to a critical email. The body must contain the exact text: 'Acknowledged, investigating now.'"
+    },
+    {
+      "id": "summary_email_sent",
+      "description": "A 'Shift Handover Summary' email is sent to sre-leads@company.com reporting the counts of categorized emails.",
+      "points": 20,
+      "visual_evidence": "Look for a drafted or sent email with the subject 'Shift Handover Summary' addressed to 'sre-leads@company.com'. The body must contain the format 'Critical Issues: [Number]' and 'Warnings: [Number]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_client_used",
+      "description": "The agent used a graphical email client to perform the task.",
+      "visual_evidence": "Check that the agent is interacting with a GUI email client (e.g., Thunderbird, Evolution, or webmail) rather than using terminal commands or text editors to manipulate mail files."
+    },
+    {
+      "id": "genuine_email_composition",
+      "description": "The acknowledgment and summary emails were genuinely composed in the email client.",
+      "visual_evidence": "Verify that the emails are visible in the email client's composer window or 'Sent' folder, rather than being injected via scripts."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not use terminal commands to bypass the GUI.",
+      "visual_evidence": "Ensure there are no terminal windows showing commands that directly modify maildir/mbox files or send emails via CLI tools like 'sendmail' or 'mail'."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: Critical keywords are 'error', 'fail', 'failure', 'fatal'. Warning keywords are 'check', 'review', 'warning'. The summary report recipient is 'sre-leads@company.com'. Note: The provided inbox contains 50 sample emails, none of which contain the required keywords in their subjects. It is impossible to find and move 5 relevant emails. The agent may correctly report 0 counts in the summary email."
+}

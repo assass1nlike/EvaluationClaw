@@ -1,0 +1,53 @@
+{
+  "task_id": "atc_radio_communications_preprocessing@1",
+  "task_completion": [
+    {
+      "id": "audio_processing_execution",
+      "description": "Verify that the agent executed commands or used software to process the audio (split channels, remove silence, apply bandpass filter, convert format).",
+      "points": 20,
+      "visual_evidence": "Terminal window showing 'ffmpeg', 'sox', or Python scripts with parameters for channel mapping, silence removal, bandpass filtering (300-3000Hz), and MP3 conversion (16000Hz, 64kbps), or an audio editor GUI (like Audacity) showing these operations."
+    },
+    {
+      "id": "processed_audio_files_created",
+      "description": "Verify that the processed MP3 files for Tower and Ground channels were created in the correct directory.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal output (e.g., 'ls') showing 'tower_clean.mp3' and 'ground_clean.mp3' located in '/home/ga/Music/processed/'."
+    },
+    {
+      "id": "waveform_images_created",
+      "description": "Verify that the visual waveform diagnostic images were generated.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal output showing 'tower_waveform.png' and 'ground_waveform.png' located in '/home/ga/Pictures/diagnostics/'."
+    },
+    {
+      "id": "playlist_created",
+      "description": "Verify that the VLC XSPF playlist containing the processed tracks was created.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal output showing 'atc_review_playlist.xspf' located in '/home/ga/Music/processed/'."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify that the JSON processing report was generated.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal output showing 'processing_report.json' located in '/home/ga/Documents/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_processing_not_mocked",
+      "description": "Ensure the agent actually processed the audio and didn't just create empty files.",
+      "visual_evidence": "Look for non-zero file sizes in terminal 'ls -l' or file manager properties for the MP3 and PNG files, or verify that actual processing tools (ffmpeg, python, etc.) were run instead of 'touch' commands."
+    },
+    {
+      "id": "valid_waveform_images",
+      "description": "Ensure the waveform images are actual visual representations of audio.",
+      "visual_evidence": "If the PNG files are visible as thumbnails or opened in an image viewer, they should display actual waveform graphs (lines/peaks), not blank canvases or text."
+    },
+    {
+      "id": "valid_text_outputs",
+      "description": "Ensure the playlist and report contain actual formatted content.",
+      "visual_evidence": "If the XSPF or JSON files are visible in a text editor or via 'cat'/'less' in the terminal, they should contain valid XML/XSPF tags and JSON structures respectively, rather than being empty or containing plain unstructured text."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output paths are strictly: MP3s at /home/ga/Music/processed/tower_clean.mp3 and ground_clean.mp3; PNG waveforms at /home/ga/Pictures/diagnostics/tower_waveform.png and ground_waveform.png; XSPF playlist at /home/ga/Music/processed/atc_review_playlist.xspf; and JSON report at /home/ga/Documents/processing_report.json. The left channel (Tower) has 180 seconds of active audio, and the right channel (Ground) has 100 seconds of active audio. If file lengths or waveform durations are visible in the screenshots, they should reflect these shortened durations (silence removed) rather than the original 15 minutes."
+}

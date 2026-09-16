@@ -1,0 +1,53 @@
+{
+  "task_id": "sensor_imputation_and_cleaning@1",
+  "task_completion": [
+    {
+      "id": "graph_bridged_traffic_signal",
+      "description": "Create the 'Bridged Traffic Signal' graph with the keepLastValue() function",
+      "points": 20,
+      "visual_evidence": "Look for a graph panel titled 'Bridged Traffic Signal' in the Graphite UI. The metric query or legend should show 'keepLastValue(servers.web_traffic.speed_sensor_1)'."
+    },
+    {
+      "id": "graph_median_smoothed_temperature",
+      "description": "Create the 'Median-Smoothed Temperature' graph with the movingMedian() function",
+      "points": 20,
+      "visual_evidence": "Look for a graph panel titled 'Median-Smoothed Temperature'. The metric query or legend should show 'movingMedian(servers.datacenter.machine_temperature, 5)'."
+    },
+    {
+      "id": "graph_continuous_disk_io",
+      "description": "Create the 'Continuous Disk IO' graph with the transformNull() function",
+      "points": 20,
+      "visual_evidence": "Look for a graph panel titled 'Continuous Disk IO'. The metric query or legend should show 'transformNull(servers.ec2_instance_1.disk.write_bytes, 0)'."
+    },
+    {
+      "id": "graph_clean_fleet_cpu",
+      "description": "Create the 'Clean Fleet CPU' graph with the aliasByNode() function",
+      "points": 20,
+      "visual_evidence": "Look for a graph panel titled 'Clean Fleet CPU'. The metric query or legend should show 'aliasByNode(servers.ec2_instance_*.cpu.*, 1)'."
+    },
+    {
+      "id": "save_dashboard_cleaned_telemetry",
+      "description": "Save the dashboard as 'Cleaned Telemetry'",
+      "points": 20,
+      "visual_evidence": "Look for the dashboard title 'Cleaned Telemetry' at the top of the Graphite web interface, indicating the dashboard has been successfully named and saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_web_ui",
+      "description": "The agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "Screenshots should show the Graphite web UI being interacted with (e.g., adding panels, typing in metric queries), rather than terminal commands or API scripts."
+    },
+    {
+      "id": "graphs_rendered_data",
+      "description": "The graphs display actual rendered data lines",
+      "visual_evidence": "The graph panels in the UI should display visual data lines/charts, proving the metrics were actually queried and rendered, not just typed into a text editor."
+    },
+    {
+      "id": "no_manual_json_creation",
+      "description": "The agent did not manually create the result JSON file to bypass the UI",
+      "visual_evidence": "The agent should not be seen manually writing the dashboard JSON or the result file '/tmp/sensor_imputation_and_cleaning_result.json' in a text editor or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is 'Cleaned Telemetry'. The dashboard must contain exactly four graphs with the following exact titles: 'Bridged Traffic Signal', 'Median-Smoothed Temperature', 'Continuous Disk IO', and 'Clean Fleet CPU'."
+}

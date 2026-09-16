@@ -1,0 +1,53 @@
+{
+  "task_id": "openvsp_variable_sweep_study@1",
+  "task_completion": [
+    {
+      "id": "wing_model_two_sections",
+      "description": "The agent has a 'Main_Wing' component open in OpenVSP with exactly two sections.",
+      "points": 20,
+      "visual_evidence": "OpenVSP geometry browser shows a 'Main_Wing' component, and the Section tab indicates exactly 2 sections are present."
+    },
+    {
+      "id": "takeoff_config_parameters",
+      "description": "The agent sets the Takeoff configuration parameters for the outboard panel and saves the file.",
+      "points": 15,
+      "visual_evidence": "OpenVSP Plan tab for Section 2 shows Span = 7.5 and Sweep = 20, AND/OR the file manager/terminal shows 'vswing_takeoff.vsp3' has been saved."
+    },
+    {
+      "id": "dash_config_parameters",
+      "description": "The agent sets the Dash configuration parameters for the outboard panel and saves the file.",
+      "points": 15,
+      "visual_evidence": "OpenVSP Plan tab for Section 2 shows Span = 4.8 and Sweep = 68, AND/OR the file manager/terminal shows 'vswing_dash.vsp3' has been saved."
+    },
+    {
+      "id": "degengeom_analysis_run",
+      "description": "The agent runs the DegenGeom analysis on both configurations.",
+      "points": 20,
+      "visual_evidence": "The OpenVSP DegenGeom analysis dialog is visible and executed, or the file manager/terminal shows the generated DegenGeom CSV files for both the takeoff and dash configurations."
+    },
+    {
+      "id": "sweep_area_report_written",
+      "description": "The agent writes the two projected planform area values to the final report file.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Desktop/sweep_area_report.txt' containing two distinct area values corresponding to the takeoff and dash configurations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "openvsp_gui_used",
+      "description": "The agent actually used the OpenVSP GUI to modify the geometry and run the analysis.",
+      "visual_evidence": "Screenshots show interaction with the OpenVSP graphical interface (modifying parameters, clicking Analysis > Degen Geom) rather than just writing mock files via terminal."
+    },
+    {
+      "id": "csv_files_inspected",
+      "description": "The agent inspected the generated CSV files to extract the area values.",
+      "visual_evidence": "Screenshots show the agent opening the DegenGeom CSV files (via text editor, spreadsheet software, or terminal commands like 'cat' or 'grep') to find the 'Main_Wing' projected planform area."
+    },
+    {
+      "id": "report_created_after_analysis",
+      "description": "The final report is created only after the DegenGeom analysis is complete.",
+      "visual_evidence": "The creation and editing of 'sweep_area_report.txt' happens in the later screenshots, following the generation of the CSV files."
+    }
+  ],
+  "privileged_info_for_vlm": "Takeoff configuration requires Section 2 LE Sweep = 20.0 degrees and Span = 7.5 m. Dash configuration requires Section 2 LE Sweep = 68.0 degrees and Span = 4.8 m. Note: The initial baseline model provided to the agent is completely empty due to a setup bug. The agent must successfully reconstruct or recover the 'Main_Wing' component before applying the parameters."
+}

@@ -1,0 +1,81 @@
+{
+  "dataset_id": "b90cb392",
+  "name": "Wound-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A medical imaging dataset for wound detection: given a clinical image and a prompt, the model must output bounding boxes localizing wound regions.",
+  "card_text": "Wound-Detection is a small (200-sample) image-text benchmark for medical object detection. Each sample contains a photograph of a wound or skin lesion, a text prompt that instructs the model to detect wounds, and a structured output listing bounding boxes for wound regions. The bounding boxes are annotated with the class label 'wound' and four coordinates, likely in pixel space. The dataset evaluates a model's ability to recognize and localize wounds in clinical imagery, a core task in medical computer vision and wound-care assessment. Images vary in lighting, scale, and clinical appearance. The prompt field is a placeholder for user-defined or model-specific detection instructions. No text passages or multiple-choice answers are present; the primary target is spatial localization.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "medical imaging",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Clinical photograph of a wound or skin lesion. It is the visual input that the model must analyze to identify the wound region. The image path is furnished alongside a text prompt, and the expected output is a bounding box over the wound area.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short, often user-defined or model-specific prompt that instructs the model to detect wounds in the input image. It functions as the task instruction and is paired with the image to elicit bounding-box outputs.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of bounding box annotations. Each entry is a dictionary keyed by the class name 'wound', with a four-value coordinate list [x_min, y_min, x_max, y_max] (probably pixel coordinates) that localizes the wound region in the corresponding input image. Multiple boxes may appear if multiple wounds are annotated.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image_file path and a text prompt, and an output object with a bbox field. The image_file points to a clinical wound photograph; the prompt is the detection instruction; the bbox field contains a list of wound annotations, each mapping the class name 'wound' to a four-coordinate bounding box. The prompt and image together form the input, and the bounding boxes are the spatial targets."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/wound-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "wound-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "Medicine",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Medicine"
+  }
+}

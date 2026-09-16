@@ -1,0 +1,94 @@
+{
+  "dataset_id": "9350c0c1",
+  "name": "Openset Multimodal Decision-Making Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Multimodal Decision-Making Reasoning dataset evaluates a model's ability to decide the next action in a sequential household task given a textual goal, step-by-step plan, and a sequence of images. Each sample contains multiple images and a prompt describing the overall goal and previous steps, and the model must output the immediate next action.",
+  "card_text": "This dataset contains 200 multimodal samples for sequential decision-making in everyday kitchen and household tasks. Each sample provides a list of image files (typically five frames) and a textual prompt that includes a main goal, a numbered list of prior steps with image placeholders, and a 'Current Step:' cue. The model must combine visual information from the images with the textual plan to predict the next action as a short text phrase. The domain is embodied household activities. The images depict kitchen scenes and objects, while the prompt is instructional. The task is open-ended and requires reasoning over past steps and visual context. Answers are concise action commands.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "embodied AI household tasks",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt is the main textual input: it states the overall goal, lists prior steps with <ImageHere> placeholders that refer to the images, and ends with 'Current Step:' to elicit the next action. It provides the task context and step history needed for decision-making.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt concludes with a request for the immediate next action, effectively acting as the instruction/question that the model must answer using the visual and textual context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of image filenames, typically five sequential frames, showing the kitchen environment and objects relevant to the task. These images supply the visual context that the model must interpret together with the textual step plan to decide the next action.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The target next action, given as a concise imperative phrase (e.g., 'Go to the fridge'). It is the output the model must generate based on the goal, step history, and images.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three parallel components: a list of image filenames in input.image_file (usually five frames), a textual prompt in input.prompt that describes the main goal and a sequence of prior steps with <ImageHere> placeholders plus a 'Current Step:' cue, and a target text answer in output.text. The prompt references the images via placeholders and asks for the immediate next action, which is provided as a short action phrase."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/MultimodalDecision-makingReasoning/openset_multimodal_decision-making_reasoning.json",
+    "existing_tags": {
+      "task": "Multimodal Decision-making Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Dialogue",
+      "domain": "General",
+      "general_capability": [
+        "Interactive Capability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

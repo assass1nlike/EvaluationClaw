@@ -1,0 +1,53 @@
+{
+  "task_id": "delete_waypoints@1",
+  "task_completion": [
+    {
+      "id": "open_basecamp_file",
+      "description": "Verify that Garmin BaseCamp is open and the 'fells_survey_points' data is loaded.",
+      "points": 10,
+      "visual_evidence": "The Garmin BaseCamp application window is visible, and 'fells_survey_points' is selected or visible in the Library/Devices pane on the left."
+    },
+    {
+      "id": "delete_err_waypoints",
+      "description": "Verify that the erroneous waypoints ('ERR_Canopy_Glitch', 'ERR_Signal_Bounce', 'ERR_Cold_Start') have been deleted from the list.",
+      "points": 30,
+      "visual_evidence": "The waypoint list in the bottom-left pane of Garmin BaseCamp no longer contains any waypoints starting with 'ERR_'."
+    },
+    {
+      "id": "preserve_valid_waypoints",
+      "description": "Verify that the valid survey waypoints are preserved in the list.",
+      "points": 30,
+      "visual_evidence": "The waypoint list in Garmin BaseCamp clearly displays the remaining waypoints: 'Survey_Start', 'Survey_End', 'Junction_North', and 'Junction_South'."
+    },
+    {
+      "id": "initiate_export",
+      "description": "Verify the agent initiates the export process for the cleaned data.",
+      "points": 10,
+      "visual_evidence": "The 'File' menu is open with an 'Export' option highlighted, or a Garmin BaseCamp 'Export' dialog box is visible on the screen."
+    },
+    {
+      "id": "save_cleaned_file",
+      "description": "Verify the cleaned data is exported to the correct path ('C:\\Users\\Docker\\Documents\\cleaned_survey.gpx').",
+      "points": 20,
+      "visual_evidence": "A save dialog box shows the file name as 'cleaned_survey.gpx' and the destination folder as 'Documents', or a File Explorer window confirms the file 'cleaned_survey.gpx' exists in the Documents folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_basecamp_gui",
+      "description": "Verify the agent used the Garmin BaseCamp GUI to modify the waypoints.",
+      "visual_evidence": "Screenshots should show interaction with the Garmin BaseCamp application interface (menus, lists, dialogs) rather than terminal commands or scripts."
+    },
+    {
+      "id": "no_text_editor_manipulation",
+      "description": "Verify the agent did not simply open the .gpx file in a text editor to delete the XML nodes.",
+      "visual_evidence": "No text editors (such as Notepad, Notepad++, or VS Code) are seen open containing the raw .gpx XML data."
+    },
+    {
+      "id": "genuine_export_dialog",
+      "description": "Verify the agent used the application's native export functionality to create the final file.",
+      "visual_evidence": "The standard 'Export' or 'Save As' dialog box originating from Garmin BaseCamp is visible when saving 'cleaned_survey.gpx'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path for the exported file is exactly 'C:\\Users\\Docker\\Documents\\cleaned_survey.gpx'. The erroneous waypoints that MUST be deleted are 'ERR_Canopy_Glitch', 'ERR_Signal_Bounce', and 'ERR_Cold_Start'. The valid waypoints that MUST be preserved are 'Survey_Start', 'Survey_End', 'Junction_North', and 'Junction_South'."
+}

@@ -1,0 +1,40 @@
+{
+  "id": "category_merchandising@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure the 'Electronics' category to sort products by 'Position'. Manually arrange the following products to appear at the top of the list with these specific position values: Business Laptop Pro (SKU: LAPTOP-001) at position 10, Smartphone Ultra (SKU: PHONE-001) at position 20, and Wireless Headphones (SKU: HEADPHONES-001) at position 30.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/category_merchandising/setup_task.sh",
+    "post_task": "/workspace/tasks/category_merchandising/export_result.sh"
+  },
+  "metadata": {
+    "category_name": "Electronics",
+    "target_sort_by": "position",
+    "products": [
+      {
+        "sku": "LAPTOP-001",
+        "expected_position": 10
+      },
+      {
+        "sku": "PHONE-001",
+        "expected_position": 20
+      },
+      {
+        "sku": "HEADPHONES-001",
+        "expected_position": 30
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_category_merchandising"
+    }
+  }
+}

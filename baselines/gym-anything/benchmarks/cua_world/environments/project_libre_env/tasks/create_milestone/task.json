@@ -1,0 +1,26 @@
+{
+  "id": "create_milestone@1",
+  "version": "1.0",
+  "env_id": "project_libre_env@0.1",
+  "description": "As the project manager for a three-story office building construction project, add a milestone named 'Foundation Work Complete' with a duration of 0 days immediately after the 'Strip column piers and foundation forms' task (row 44) in ProjectLibre to mark the end of the Foundations phase. Save the project.",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_milestone/setup_task.sh"
+  },
+  "metadata": {
+    "project_file": "/home/ga/Projects/current_task.xml",
+    "milestone_name": "Foundation Work Complete",
+    "milestone_position_after_task_uid": 44,
+    "milestone_position_after_task_name": "Strip column piers and foundation forms"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_milestone"
+    }
+  }
+}

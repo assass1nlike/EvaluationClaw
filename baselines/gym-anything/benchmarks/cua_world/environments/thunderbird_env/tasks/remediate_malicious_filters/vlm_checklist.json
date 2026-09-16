@@ -1,0 +1,53 @@
+{
+  "task_id": "remediate_malicious_filters@1",
+  "task_completion": [
+    {
+      "id": "malicious_filter_deleted",
+      "description": "The malicious 'System Sync' filter is deleted.",
+      "points": 30,
+      "visual_evidence": "Screenshots of the email client's filter/rules settings show the agent deleting the 'System Sync' rule, or the final view of the settings page shows that 'System Sync' is no longer in the list of active filters."
+    },
+    {
+      "id": "legitimate_filter_intact",
+      "description": "The legitimate 'Sort Newsletters' filter remains intact.",
+      "points": 10,
+      "visual_evidence": "Screenshots of the email client's filter/rules settings show that the 'Sort Newsletters' rule is still present and has not been deleted or disabled."
+    },
+    {
+      "id": "trash_folder_accessed",
+      "description": "The agent navigates to the Trash folder to locate the emails.",
+      "points": 10,
+      "visual_evidence": "The email client's 'Trash' or 'Deleted Items' folder is opened and its contents are displayed on the screen."
+    },
+    {
+      "id": "invoices_moved_to_inbox",
+      "description": "The 3 legitimate 'Invoice' emails are moved from Trash to the Inbox.",
+      "points": 40,
+      "visual_evidence": "Screenshots show the agent selecting exactly 3 emails with 'Invoice' in the subject from the Trash and moving them to the Inbox (e.g., via drag-and-drop, context menu, or top toolbar). Alternatively, the Inbox folder is shown containing these 3 'Invoice' emails."
+    },
+    {
+      "id": "unrelated_emails_remain_in_trash",
+      "description": "Spam or unrelated emails are left in the Trash folder.",
+      "points": 10,
+      "visual_evidence": "While in the Trash folder, emails without 'Invoice' in the subject are left unselected and remain in the Trash after the invoice emails are moved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the email client's Graphical User Interface (GUI) to complete the task.",
+      "visual_evidence": "The agent is seen clicking through the email application's menus, settings, and folders rather than executing terminal commands or scripts to modify IMAP/mail settings."
+    },
+    {
+      "id": "actual_email_client_used",
+      "description": "The agent interacted with a genuine email application.",
+      "visual_evidence": "A real email client (e.g., Thunderbird, Evolution, or a webmail interface) is open and used, rather than a text editor modifying raw maildir files."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "The agent did not bypass the UI by directly editing backend configuration files.",
+      "visual_evidence": "There are no terminal windows open with text editors (like nano or vim) editing filter configuration files or manually moving files between mail directories."
+    }
+  ],
+  "privileged_info_for_vlm": "The malicious rule that must be deleted is exactly named 'System Sync'. The legitimate rule that must be preserved is exactly named 'Sort Newsletters'. There are exactly 3 emails with 'Invoice' in the subject line injected into the Trash folder that need to be moved back to the Inbox."
+}

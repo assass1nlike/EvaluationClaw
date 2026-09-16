@@ -1,0 +1,59 @@
+{
+  "task_id": "create_cdb_threat_intel@1",
+  "task_completion": [
+    {
+      "id": "cdb_list_created",
+      "description": "Create the CDB list file named 'threat-intel-blocklist'",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor showing the creation or editing of a file named 'threat-intel-blocklist' in the 'etc/lists/' directory (typically /var/ossec/etc/lists/threat-intel-blocklist)."
+    },
+    {
+      "id": "cdb_list_content",
+      "description": "Populate the CDB list with the required IP and category pairs",
+      "points": 20,
+      "visual_evidence": "The contents of the 'threat-intel-blocklist' file must show exactly the 8 IP:category pairs specified in the task (e.g., '45.33.32.156:network_scanner', '185.220.101.34:tor_exit_node', etc.)."
+    },
+    {
+      "id": "custom_rule_id_level",
+      "description": "Create a custom rule with ID 100100 and level 12",
+      "points": 20,
+      "visual_evidence": "A Wazuh custom rules file (e.g., local_rules.xml) being edited, showing a rule tag with attributes id=\"100100\" and level=\"12\"."
+    },
+    {
+      "id": "custom_rule_lookup",
+      "description": "Configure the rule to perform an address_match lookup on the srcip field against the CDB list",
+      "points": 20,
+      "visual_evidence": "The rule contains a list lookup tag matching: <list field=\"srcip\" lookup=\"address_match\">etc/lists/threat-intel-blocklist</list>."
+    },
+    {
+      "id": "custom_rule_desc_group",
+      "description": "Configure the rule description and groups",
+      "points": 20,
+      "visual_evidence": "The rule contains a <description> tag that includes the text 'threat intelligence' and a <group> tag that includes both 'syslog' and 'threat_intelligence'."
+    },
+    {
+      "id": "wazuh_manager_restarted",
+      "description": "Restart the Wazuh manager to apply changes",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a command to restart the Wazuh manager, such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_wazuh_environment",
+      "description": "Verify the agent is interacting with the actual Wazuh server environment",
+      "visual_evidence": "The terminal prompt or file paths should indicate the agent is working within the Wazuh directory structure (e.g., /var/ossec/) rather than a generic local mock directory."
+    },
+    {
+      "id": "valid_xml_format",
+      "description": "Verify the custom rule is written in valid XML format",
+      "visual_evidence": "The rule configuration should be properly enclosed in XML tags (e.g., <group>, <rule>, <description>) and not just written as plain text."
+    },
+    {
+      "id": "no_echo_cheating",
+      "description": "Verify the agent didn't just echo text to bypass checks",
+      "visual_evidence": "The agent should use a text editor (like nano or vim) or proper append commands to edit the actual Wazuh configuration files, rather than just echoing the expected strings into arbitrary files."
+    }
+  ],
+  "privileged_info_for_vlm": "The CDB list must be named 'threat-intel-blocklist' and contain exactly these 8 entries: 45.33.32.156:network_scanner, 185.220.101.34:tor_exit_node, 91.189.114.8:brute_force_attacker, 104.248.36.228:malware_distributor, 45.148.10.78:botnet_c2, 185.56.80.65:apt_infrastructure, 23.129.64.130:tor_exit_node, 171.25.193.20:tor_exit_node. The custom rule must have ID 100100, level 12, include 'threat intelligence' in its description, and include 'threat_intelligence' and 'syslog' in its groups. The rule must use <list field=\"srcip\" lookup=\"address_match\">etc/lists/threat-intel-blocklist</list>."
+}

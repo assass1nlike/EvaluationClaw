@@ -1,0 +1,54 @@
+{
+  "id": "loan_portfolio_amortization@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "You are a corporate treasurer managing a portfolio of 6 commercial real estate loans. Using the provided 'Loan_Terms', 'Rate_Curve', and 'Property_NOI' sheets, build a comprehensive loan portfolio management workbook. Create individual amortization schedules for each loan (LOAN-001 through LOAN-006) showing payment number, date, beginning balance, scheduled payment, principal, interest, and ending balance, ensuring specific logic for variable-rate (LOAN-004), balloon (LOAN-003), and interest-only (LOAN-006) loans. Develop a 'Portfolio_Summary' sheet detailing current outstanding balances, next 12 months of total debt service, weighted average interest rates, and total portfolio balance. Calculate the Debt Service Coverage Ratio (DSCR) for each loan on a 'Covenant_Compliance' sheet, including a visual status indicator based on the covenant minimums (Red for below minimum, Yellow for within 0.10, and Green for more than 0.10 above). Include a 'Sensitivity_Analysis' sheet evaluating the impact of +/- 100bps interest rate changes on the portfolio's annual debt service. Save the completed workbook to /home/ga/Documents/loan_portfolio_analysis.xlsx.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/loan_portfolio_amortization/setup_task.sh",
+    "post_task": "/workspace/tasks/loan_portfolio_amortization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Treasurers and Controllers",
+    "industry": "Finance and Insurance",
+    "data_source": "Commercial real estate loan portfolio data based on real Federal Reserve H.15 selected interest rates and typical CRE loan structures",
+    "expected_new_sheets": [
+      "LOAN-001",
+      "LOAN-002",
+      "LOAN-003",
+      "LOAN-004",
+      "LOAN-005",
+      "LOAN-006",
+      "Portfolio_Summary",
+      "Covenant_Compliance",
+      "Sensitivity_Analysis"
+    ],
+    "required_features": [
+      "PMT/IPMT/PPMT financial formulas",
+      "variable rate lookups from Rate_Curve",
+      "balloon payment calculation",
+      "DSCR covenant compliance",
+      "sensitivity/scenario analysis",
+      "conditional formatting"
+    ],
+    "ground_truth": {
+      "num_loans": 6,
+      "total_portfolio_principal": 23800000,
+      "fixed_rate_loans": 3,
+      "variable_rate_loans": 1,
+      "balloon_loans": 1,
+      "io_loans": 1
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_loan_portfolio"
+    }
+  }
+}

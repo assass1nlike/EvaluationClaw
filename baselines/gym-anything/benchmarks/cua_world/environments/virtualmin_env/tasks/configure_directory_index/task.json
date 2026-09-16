@@ -1,0 +1,29 @@
+{
+  "id": "configure_directory_index@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "Configure the web server settings for the virtual server 'acmecorp.test'. Set the Directory Index priority so that 'promo.html' is the primary default file served when visiting the site root, with 'index.php' remaining as a fallback. Additionally, disable Directory Listing (Index Options) so that visiting a directory without an index file returns a 403 Forbidden error.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_directory_index/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_directory_index/export_result.sh"
+  },
+  "metadata": {
+    "domain": "acmecorp.test",
+    "target_index": "promo.html",
+    "fallback_index": "index.php",
+    "test_subdir": "assets",
+    "promo_string": "PROMO_2024_LAUNCH"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_directory_index"
+    }
+  }
+}

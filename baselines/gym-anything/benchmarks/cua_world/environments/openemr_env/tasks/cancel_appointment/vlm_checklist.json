@@ -1,0 +1,53 @@
+{
+  "task_id": "cancel_appointment@1",
+  "task_completion": [
+    {
+      "id": "identify_patient",
+      "description": "Verify the agent selected the correct patient for the appointment.",
+      "points": 20,
+      "visual_evidence": "The name 'Sarah Borer' is visible in the appointment edit dialog or calendar event details."
+    },
+    {
+      "id": "identify_datetime",
+      "description": "Verify the agent selected the appointment with the correct date and time.",
+      "points": 10,
+      "visual_evidence": "The appointment date '2024-12-20' (or December 20, 2024) and time '10:00' (or 10:00 AM) are visible in the appointment details."
+    },
+    {
+      "id": "change_status_to_cancelled",
+      "description": "Verify the appointment status is changed to 'cancelled'.",
+      "points": 35,
+      "visual_evidence": "The status dropdown or field in the appointment window is set to 'Cancelled', 'x', or '%'."
+    },
+    {
+      "id": "document_cancellation_reason",
+      "description": "Verify the specific cancellation reason is documented.",
+      "points": 15,
+      "visual_evidence": "The exact phrase 'Patient requested cancellation - work conflict' is typed into a comments, notes, or reason field within the appointment window."
+    },
+    {
+      "id": "preserve_appointment_record",
+      "description": "Verify the appointment record is saved with the new status and not deleted.",
+      "points": 20,
+      "visual_evidence": "The agent clicks 'Save' (not 'Delete') in the appointment dialog, and/or the appointment remains visible on the calendar view (often indicated by a specific color, strikethrough, or 'x' mark)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the OpenEMR graphical user interface to cancel the appointment.",
+      "visual_evidence": "Screenshots show interaction with the OpenEMR web interface (calendar, appointment dialogs) rather than terminal commands or database scripts."
+    },
+    {
+      "id": "no_direct_database_manipulation",
+      "description": "Verify the agent did not use a database client or script to directly modify the appointment status.",
+      "visual_evidence": "There are no open terminal windows, phpMyAdmin, or SQL scripts visible modifying the 'openemr' database."
+    },
+    {
+      "id": "authentic_reason_entry",
+      "description": "Verify the cancellation reason was typed into the actual OpenEMR application.",
+      "visual_evidence": "The text 'Patient requested cancellation - work conflict' is seen inside the OpenEMR web interface's text fields, not just in a separate text editor or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The patient is Sarah Borer (DOB: 1954-07-22). The appointment date is 2024-12-20. In OpenEMR, the default initial appointment status is '-' and the standard status code for a cancelled appointment is 'x' or '%'."
+}

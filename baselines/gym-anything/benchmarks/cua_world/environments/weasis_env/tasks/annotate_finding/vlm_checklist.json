@@ -1,0 +1,59 @@
+{
+  "task_id": "annotate_finding@1",
+  "task_completion": [
+    {
+      "id": "weasis_displaying_image",
+      "description": "Weasis is open and displaying a DICOM image.",
+      "points": 10,
+      "visual_evidence": "The Weasis application window is visible with a medical CT scan loaded in the main viewer."
+    },
+    {
+      "id": "arrow_annotation_drawn",
+      "description": "An arrow annotation is drawn on the DICOM image.",
+      "points": 20,
+      "visual_evidence": "A graphical arrow is visible overlaid on the medical image, pointing to a specific anatomical structure."
+    },
+    {
+      "id": "text_annotation_added",
+      "description": "A text annotation reading 'Suspected lesion' is added to the image.",
+      "points": 30,
+      "visual_evidence": "The exact text 'Suspected lesion' is visible as an annotation overlaid on the medical image."
+    },
+    {
+      "id": "export_dialog_opened",
+      "description": "The export or save dialog is opened in Weasis.",
+      "points": 10,
+      "visual_evidence": "A dialog box for exporting or saving the image view is visible over the Weasis interface."
+    },
+    {
+      "id": "export_path_and_format_set",
+      "description": "The export dialog is configured to save a JPEG to the correct path.",
+      "points": 15,
+      "visual_evidence": "The export dialog shows the file format as JPEG (.jpg) and the destination path as ~/DICOM/exports/annotated_finding.jpg or /home/ga/DICOM/exports/annotated_finding.jpg."
+    },
+    {
+      "id": "export_completed",
+      "description": "The annotated image is successfully exported.",
+      "points": 15,
+      "visual_evidence": "The save/export dialog is confirmed (e.g., clicking 'Export' or 'Save'), or a file manager/terminal shows the newly created annotated_finding.jpg file in the correct directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_used",
+      "description": "The agent used the Weasis GUI to create annotations.",
+      "visual_evidence": "Screenshots show the agent clicking annotation tools in the Weasis toolbar and interacting with the image canvas, rather than using terminal commands (like ImageMagick) to edit the image."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "The agent used the application's export feature rather than taking a screenshot.",
+      "visual_evidence": "The agent navigates the Weasis menu (e.g., File -> Export) to save the image, rather than using a system screenshot tool to capture the screen."
+    },
+    {
+      "id": "annotations_burned_in",
+      "description": "The export settings indicate annotations are burned into the image.",
+      "visual_evidence": "In the export dialog, options related to exporting the 'view' (which burns in overlays) rather than raw DICOM data are selected, ensuring the annotations are part of the final JPEG."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected export path is exactly '/home/ga/DICOM/exports/annotated_finding.jpg'. The text annotation must be exactly 'Suspected lesion'. The exported file must be a valid JPEG (expected to be >10,000 bytes, indicating a real image export rather than an empty file)."
+}

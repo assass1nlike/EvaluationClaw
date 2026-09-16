@@ -1,0 +1,49 @@
+{
+  "id": "create_agent_user@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "A call center operations manager needs to onboard a new outbound sales agent. Create a new user account in the Vicidial administration panel at http://localhost/vicidial/admin.php (credentials: user 6666, password andromeda) with the following settings:\n\n- User (login ID): 2001\n- Password: EastSales2024\n- Full Name: Maria Gonzalez\n- User Level: 1\n- User Group: ADMIN\n- Active: Y\n- Phone Login: 201\n- Phone Pass: test1234\n- Hotkeys Active: 1 (enabled)\n- Scheduled Callbacks: 1 (enabled)\n\nEnsure all specified fields are correctly configured and saved in the system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_agent_user/setup_task.sh",
+    "post_task": "/workspace/tasks/create_agent_user/export_result.sh"
+  },
+  "metadata": {
+    "target_user_id": "2001",
+    "expected_values": {
+      "user": "2001",
+      "pass": "EastSales2024",
+      "full_name": "Maria Gonzalez",
+      "user_level": "1",
+      "user_group": "ADMIN",
+      "active": "Y",
+      "phone_login": "201",
+      "phone_pass": "test1234",
+      "hotkeys_active": "1",
+      "scheduled_callbacks": "1"
+    },
+    "scoring_weights": {
+      "exists": 10,
+      "pass": 10,
+      "full_name": 15,
+      "user_level": 10,
+      "user_group": 10,
+      "active": 10,
+      "phone_login": 10,
+      "phone_pass": 10,
+      "hotkeys_active": 8,
+      "scheduled_callbacks": 7
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_agent_user"
+    }
+  }
+}

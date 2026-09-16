@@ -1,0 +1,65 @@
+{
+  "task_id": "laundry_compliance@1",
+  "task_completion": [
+    {
+      "id": "data_imported",
+      "description": "The agent opened the laundry booking data in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "LibreOffice Calc is open, displaying the raw laundry booking data with columns like ResidentName, BookingStatus, ActualUse, and MinutesUsed."
+    },
+    {
+      "id": "summary_sheet_created",
+      "description": "A summary sheet is created to aggregate the data for each resident.",
+      "points": 10,
+      "visual_evidence": "A separate sheet or distinct area in the spreadsheet is visible, listing the 10 unique residents (e.g., Alice Chen, Bob Martinez)."
+    },
+    {
+      "id": "metrics_calculated",
+      "description": "Compliance metrics and violation scores are calculated for the residents.",
+      "points": 25,
+      "visual_evidence": "Columns showing calculated metrics such as no-show counts/rates, overtime violations, or a final violation score. For example, Bob Martinez should show 5 no-shows and a no-show rate around 45.5%."
+    },
+    {
+      "id": "conditional_formatting_applied",
+      "description": "Conditional formatting is applied to highlight policy violators.",
+      "points": 15,
+      "visual_evidence": "Cells in the summary sheet are color-coded (e.g., red or yellow backgrounds) to highlight high violation scores, high no-show rates, or excessive overtime violations."
+    },
+    {
+      "id": "sorted_rankings",
+      "description": "The summary sheet is sorted by violation rankings.",
+      "points": 15,
+      "visual_evidence": "The list of residents in the summary sheet is ordered based on their violation scores or metrics, typically sorted from highest to lowest."
+    },
+    {
+      "id": "management_recommendations",
+      "description": "Management recommendations are generated and included in the spreadsheet.",
+      "points": 15,
+      "visual_evidence": "Text cells containing actionable recommendations or conclusions based on the compliance analysis (e.g., 'Issue warning to Bob Martinez' or policy suggestions)."
+    },
+    {
+      "id": "file_exported",
+      "description": "The results are exported to the specified Excel file.",
+      "points": 10,
+      "visual_evidence": "The application title bar shows 'laundry_analysis.xlsx' or a save dialog is visible saving the file to '/home/ga/Documents/laundry_analysis.xlsx'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the LibreOffice Calc GUI to perform the analysis.",
+      "visual_evidence": "Screenshots show interaction with LibreOffice Calc menus, dialogs, or cells, rather than a terminal window running a script to generate the Excel file."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent used spreadsheet formulas rather than just typing in hardcoded answers.",
+      "visual_evidence": "The formula bar shows aggregation formulas (e.g., COUNTIF, SUMIF) when a metric cell is selected, or the process of typing formulas is visible in the screenshots."
+    },
+    {
+      "id": "no_direct_file_creation",
+      "description": "The agent did not use a terminal command to directly create the final xlsx file without opening the GUI.",
+      "visual_evidence": "The terminal is not the primary tool used to generate the 'laundry_analysis.xlsx' file; the file is saved via the spreadsheet application."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 72 booking records across 10 unique residents over 6 weeks. Bob Martinez is a key test case: he has 11 total bookings, 5 no-shows (BookingStatus='Booked' AND ActualUse='No'), resulting in a 45.5% no-show rate, and 3 overtime violations (MinutesUsed > 100). Cancelled bookings do NOT count as no-shows. ActualUse='Partial' counts as completed use. The violation score formula is (NoShowRate * 0.5) + (OvertimeRate * 0.3) + (MultiSlotDays * 5)."
+}

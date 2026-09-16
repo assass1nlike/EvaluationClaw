@@ -1,0 +1,28 @@
+{
+  "id": "configure_public_private_access@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Configure JFrog Artifactory to allow anonymous read-only access to public content while protecting secrets. Enable global anonymous access and ensure that unauthenticated users can download artifacts from 'example-repo-local/public/' but cannot access 'example-repo-local/secret/' or perform any deploy/delete operations. Credentials: admin / password.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_public_private_access/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_public_private_access/export_result.sh"
+  },
+  "metadata": {
+    "repo_key": "example-repo-local",
+    "public_path": "public/info.txt",
+    "secret_path": "secret/passwords.txt",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_public_private_access"
+    }
+  }
+}

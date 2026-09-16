@@ -1,0 +1,36 @@
+{
+  "id": "create_blog_post@1",
+  "version": "1.0",
+  "env_id": "wordpress_env@0.1",
+  "description": "Create and publish a blog post titled 'The Future of Artificial Intelligence in Healthcare'. Assign the post to the 'Technology' category and include the following four tags: 'AI', 'healthcare', 'technology', and 'featured'. The post content must be at least 100 words discussing how AI is transforming healthcare and must incorporate these five keywords: 'artificial intelligence', 'healthcare', 'diagnostics', 'treatment', and 'patient care'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_blog_post/setup_task.sh",
+    "post_task": "/workspace/tasks/create_blog_post/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "The Future of Artificial Intelligence in Healthcare",
+    "expected_category": "Technology",
+    "expected_tags": "AI, healthcare, technology, featured",
+    "expected_status": "publish",
+    "min_content_length": 100,
+    "required_content_keywords": [
+      "artificial intelligence",
+      "healthcare",
+      "diagnostics",
+      "treatment",
+      "patient care"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_blog_post"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "create_stride_threat_model@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a STRIDE Threat Model diagram for an 'IoT Smart Home System' in EdrawMax. The model must include an external entity 'Mobile App', a process/server 'IoT Cloud Platform', and an external entity 'Smart Thermostat', with two-way data flows connecting both the app and the thermostat to the cloud platform. Include a trust boundary enclosing only the 'IoT Cloud Platform'. Annotate the Mobile App connection with 'Spoofing' and the Smart Thermostat connection with 'Tampering'. Save the diagram to /home/ga/Documents/threat_model.eddx and export it to /home/ga/Documents/threat_model.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_stride_threat_model/setup_task.sh",
+    "post_task": "/workspace/tasks/create_stride_threat_model/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename_eddx": "threat_model.eddx",
+    "expected_filename_png": "threat_model.png",
+    "output_dir": "/home/ga/Documents",
+    "required_text": [
+      "Mobile App",
+      "IoT Cloud Platform",
+      "Smart Thermostat",
+      "Spoofing",
+      "Tampering"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_stride_threat_model"
+    }
+  }
+}

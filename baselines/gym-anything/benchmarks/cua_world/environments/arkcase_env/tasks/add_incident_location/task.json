@@ -1,0 +1,31 @@
+{
+  "id": "add_incident_location@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Login to ArkCase (admin/ArkCase1234!) and add a structured incident location to the existing complaint case 'HazMat-Spill-2024-001'. The incident occurred at '2500 East Second Street, Reno, NV 89595'. Use the location type 'Incident' or 'Business'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_incident_location/setup_task.sh",
+    "post_task": "/workspace/tasks/add_incident_location/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "HazMat-Spill-2024-001",
+    "expected_address": {
+      "street": "2500 East Second Street",
+      "city": "Reno",
+      "state": "NV",
+      "zip": "89595"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_incident_location"
+    }
+  }
+}

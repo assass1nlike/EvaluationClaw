@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_pip_mode@1",
+  "task_completion": [
+    {
+      "id": "manifest_supports_pip",
+      "description": "Verify that android:supportsPictureInPicture='true' is added to PlayerActivity in the AndroidManifest.xml.",
+      "points": 15,
+      "visual_evidence": "Screenshot showing the AndroidManifest.xml file open in an editor, with the attribute android:supportsPictureInPicture=\"true\" added inside the <activity> tag for PlayerActivity."
+    },
+    {
+      "id": "manifest_config_changes",
+      "description": "Verify that android:configChanges is added to PlayerActivity with the required values to prevent activity restart.",
+      "points": 15,
+      "visual_evidence": "Screenshot showing the AndroidManifest.xml file with android:configChanges=\"screenSize|smallestScreenSize|screenLayout|orientation\" added inside the <activity> tag for PlayerActivity."
+    },
+    {
+      "id": "activity_on_user_leave_hint",
+      "description": "Verify that onUserLeaveHint() is overridden in PlayerActivity.kt to enter PiP mode with a 16:9 aspect ratio.",
+      "points": 20,
+      "visual_evidence": "Screenshot of PlayerActivity.kt showing the overridden function 'onUserLeaveHint()'. Inside this function, there should be a call to 'enterPictureInPictureMode' (or building a PictureInPictureParams) with an aspect ratio of 16:9 (e.g., using Rational(16, 9))."
+    },
+    {
+      "id": "activity_on_pip_mode_changed",
+      "description": "Verify that onPictureInPictureModeChanged() is overridden in PlayerActivity.kt to toggle the visibility of the closeButton.",
+      "points": 20,
+      "visual_evidence": "Screenshot of PlayerActivity.kt showing the overridden function 'onPictureInPictureModeChanged()'. Inside, there should be logic checking if in PiP mode (e.g., 'isInPictureInPictureMode') and setting 'closeButton.visibility' to View.GONE (or invisible) when true, and View.VISIBLE when false."
+    },
+    {
+      "id": "build_successful",
+      "description": "Verify that the project builds successfully after the changes.",
+      "points": 30,
+      "visual_evidence": "Screenshot showing Android Studio's 'Build' tool window with a 'BUILD SUCCESSFUL' message, or a successful Gradle build execution (e.g., './gradlew build') in the terminal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_ide_usage",
+      "description": "Verify the agent used a genuine editor or IDE (like Android Studio) to modify the files.",
+      "visual_evidence": "Screenshots show the Android Studio interface or a legitimate code editor with the StreamFlix project open, rather than just echoing text into files via terminal commands."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "Verify the build success message comes from a real Gradle build process.",
+      "visual_evidence": "The build output is visible in the standard Android Studio Build window or a terminal running a Gradle command, not just a mocked text output or script printing 'BUILD SUCCESSFUL'."
+    },
+    {
+      "id": "actual_code_implementation",
+      "description": "Verify the agent actually wrote the required Kotlin and XML code.",
+      "visual_evidence": "The screenshots of the code editor clearly show the implemented logic in PlayerActivity.kt and AndroidManifest.xml, rather than the agent just running a pre-made script to bypass the task."
+    }
+  ],
+  "privileged_info_for_vlm": "Project is located at /home/ga/AndroidStudioProjects/StreamFlix. The AndroidManifest.xml (app/src/main/AndroidManifest.xml) must have android:supportsPictureInPicture='true' and android:configChanges='screenSize|smallestScreenSize|screenLayout|orientation' added to PlayerActivity. The PlayerActivity.kt (app/src/main/java/com/example/streamflix/PlayerActivity.kt) must override onUserLeaveHint() to call enterPictureInPictureMode with a 16:9 aspect ratio, and override onPictureInPictureModeChanged() to toggle the 'closeButton' visibility (hidden in PiP, visible otherwise). The project must build successfully."
+}

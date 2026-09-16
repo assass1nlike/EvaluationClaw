@@ -1,0 +1,53 @@
+{
+  "task_id": "http_session_timeline_reconstruction@1",
+  "task_completion": [
+    {
+      "id": "access_pcap_file",
+      "description": "Agent reads or opens the target PCAP file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command reading the PCAP file (e.g., `tshark -r /home/ga/Documents/captures/http.cap`), a Python script opening it, or Wireshark GUI with the file loaded."
+    },
+    {
+      "id": "filter_http_traffic",
+      "description": "Agent applies a filter to isolate only HTTP packets.",
+      "points": 20,
+      "visual_evidence": "Terminal command including an HTTP filter (e.g., `-Y http` or `-Y 'http'`), a Python script filtering for HTTP layers, or Wireshark filter bar showing `http`."
+    },
+    {
+      "id": "extract_required_fields",
+      "description": "Agent specifies the exact packet fields required by the task description.",
+      "points": 30,
+      "visual_evidence": "Terminal command showing field extraction flags (e.g., `-T fields` with multiple `-e` flags like `frame.number`, `frame.time_relative`, `ip.src`, `ip.dst`, `http.request.method`, etc.) or a script explicitly extracting these specific packet properties."
+    },
+    {
+      "id": "write_csv_header",
+      "description": "Agent creates the CSV file with the exact required header row.",
+      "points": 20,
+      "visual_evidence": "Terminal command (like `echo`) or script code writing the exact header string: `frame_number,time_relative,source_ip,destination_ip,http_method,http_request_uri,http_host,http_response_code,http_content_type,frame_length`."
+    },
+    {
+      "id": "save_csv_output",
+      "description": "Agent saves the extracted data to the correct CSV output path.",
+      "points": 20,
+      "visual_evidence": "Terminal command redirecting output to `/home/ga/Documents/captures/http_session_timeline.csv` (e.g., using `>`), a script writing to this path, or a file viewer/editor showing the final CSV file containing the header and 4 rows of data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_extraction",
+      "description": "Verify the agent actually parsed the PCAP file using a tool or script.",
+      "visual_evidence": "The agent used a packet analysis tool (tshark, Wireshark) or script (pyshark, scapy) to extract the data, rather than manually typing or echoing hardcoded packet data."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent did not bypass extraction by hardcoding the final output.",
+      "visual_evidence": "The agent did not simply `echo` or paste the final 4 rows of data directly into the CSV without running a legitimate extraction command."
+    },
+    {
+      "id": "correct_paths",
+      "description": "Verify the agent used the exact file paths specified in the task.",
+      "visual_evidence": "Commands and scripts must explicitly reference `/home/ga/Documents/captures/http.cap` as the input and `/home/ga/Documents/captures/http_session_timeline.csv` as the output."
+    }
+  ],
+  "privileged_info_for_vlm": "The source PCAP file contains exactly 4 HTTP packets (frames 4, 18, 27, and 38) out of 43 total packets. The final CSV should contain exactly 5 lines: 1 header row and 4 data rows. The header must exactly match: frame_number,time_relative,source_ip,destination_ip,http_method,http_request_uri,http_host,http_response_code,http_content_type,frame_length. The data rows correspond to 2 GET requests (to www.ethereal.com and pagead2.googlesyndication.com) and 2 HTTP 200 OK responses. The output should ideally be comma-separated with double-quoted fields."
+}

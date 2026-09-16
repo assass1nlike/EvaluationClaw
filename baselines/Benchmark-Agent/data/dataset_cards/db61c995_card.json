@@ -1,0 +1,121 @@
+{
+  "dataset_id": "db61c995",
+  "name": "Physics Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 179,
+  "description": "Physics VQA is a visual question answering dataset where each sample presents an image with a physics-related question and a set of candidate answers. The model must select the correct answer from the choices based on the visual content.",
+  "card_text": "The dataset contains 179 image-text samples for physics visual question answering. Each item includes an image file, a natural-language question with embedded multiple-choice options, a generic instruction prompt, and a short answer string. Questions cover physics topics such as magnetism, states of matter, and other elementary physics concepts. The images typically show diagrams or illustrations relevant to the question. The task evaluates whether a model can ground its reasoning in visual information and pick the correct multiple-choice answer.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "physics",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "The image provides the visual scene or diagram relevant to the physics question, such as a configuration of magnets or a depiction of a substance's state. It is the primary visual context the question refers to.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "Reference to the image file associated with the sample. The image is the visual input for the question-answering task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A natural-language physics question about the image. It often ends with a bracketed list of candidate choices embedded in the string, e.g., 'The candidate choices are [...]'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The candidate answer choices are embedded within the question text as a bracketed list. They define the set of possible answers for the multiple-choice selection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer selected from the candidate choices, expressed as a short phrase (e.g., 'attract', 'a liquid').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic instruction prompt that tells the model to answer the question based on the image and select one of the provided choices. It is the same across samples.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image file, a physics-related question with embedded multiple-choice options, a generic instruction prompt, and a short answer. The question asks about the visual content, the options are listed inside the question string, and the answer is the selected choice. The prompt provides task instructions but no physics content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/physics_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "physics vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Physics"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Physics"
+    ]
+  }
+}

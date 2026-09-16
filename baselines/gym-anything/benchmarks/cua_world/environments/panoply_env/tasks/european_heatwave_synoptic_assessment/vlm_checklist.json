@@ -1,0 +1,59 @@
+{
+  "task_id": "european_heatwave_synoptic_assessment@1",
+  "task_completion": [
+    {
+      "id": "read_brief",
+      "description": "Open and read the heatwave preparedness brief",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/heatwave_preparedness_brief.txt."
+    },
+    {
+      "id": "load_datasets_panoply",
+      "description": "Open Panoply and load the required climate datasets",
+      "points": 10,
+      "visual_evidence": "The Panoply application window is open, and the 'Sources' or 'Datasets' panel lists both air.mon.ltm.nc and slp.mon.ltm.nc."
+    },
+    {
+      "id": "plot_july_temperature",
+      "description": "Create a plot for July air temperature over Europe",
+      "points": 20,
+      "visual_evidence": "A Panoply plot window showing the 'air' variable. The time/array index should be set to July (often index 6 or 7), and the map projection/view should be focused on Europe."
+    },
+    {
+      "id": "plot_july_slp",
+      "description": "Create a plot for July sea level pressure over Europe/Azores",
+      "points": 20,
+      "visual_evidence": "A Panoply plot window showing the 'slp' variable. The time/array index should be set to July, and the map projection/view should be focused on Europe and the North Atlantic (Azores region)."
+    },
+    {
+      "id": "save_image_outputs",
+      "description": "Save the generated plots to the output directory",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window showing the files 'europe_temp_july.png' and 'europe_slp_july.png' located in /home/ga/Documents/HeatwaveAssessment/."
+    },
+    {
+      "id": "write_assessment_report",
+      "description": "Write the synoptic assessment text file",
+      "points": 20,
+      "visual_evidence": "A text editor showing the creation or editing of 'heatwave_assessment.txt' in /home/ga/Documents/HeatwaveAssessment/, containing an analysis of the temperature and pressure data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_panoply_gui",
+      "description": "The agent used the Panoply graphical interface to generate the plots",
+      "visual_evidence": "Screenshots should show the Panoply GUI being actively used (menus, plot configuration windows) rather than a terminal running a Python/CLI script to generate the images."
+    },
+    {
+      "id": "avoided_unit_trap",
+      "description": "The agent used the correct inherent units without incorrectly converting them",
+      "visual_evidence": "The assessment text or Panoply data inspector should show plausible temperatures (e.g., 20-40 degrees) and SLP (~1025). If temperatures are negative (e.g., -250), the agent incorrectly subtracted 273.15."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The agent actually saved the deliverables to the correct directory",
+      "visual_evidence": "The VLM should see the files explicitly saved in the /home/ga/Documents/HeatwaveAssessment/ directory via a save dialog, file explorer, or terminal 'ls' command, not just displayed on screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The datasets are inherently in degrees Celsius (air.mon.ltm.nc) and millibars/hPa (slp.mon.ltm.nc). Deceptive setup notes may falsely claim they are in Kelvin and Pascals. The agent must NOT subtract 273.15 from the temperature data. Plausible July temperatures for Southern Europe are 20-40\u00b0C (mean ~23.4\u00b0C), and max SLP over the Azores is ~1025.6 hPa. Negative temperature values indicate the agent fell for the deception."
+}

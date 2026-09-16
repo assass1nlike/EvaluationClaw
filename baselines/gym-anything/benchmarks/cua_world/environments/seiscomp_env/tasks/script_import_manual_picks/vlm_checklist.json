@@ -1,0 +1,53 @@
+{
+  "task_id": "script_import_manual_picks@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "A Python script is created in the /home/ga/ directory.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal showing a .py file being edited or saved in /home/ga/."
+    },
+    {
+      "id": "script_pick_data",
+      "description": "The script contains the correct station names and arrival times.",
+      "points": 20,
+      "visual_evidence": "The code includes the stations 'TOLI', 'GSI', 'SANI' and their respective times '07:16:35.45', '07:17:12.80', '07:18:05.15'."
+    },
+    {
+      "id": "script_pick_attributes",
+      "description": "The script sets the required attributes for the Pick objects.",
+      "points": 20,
+      "visual_evidence": "The code contains assignments or arguments setting PhaseHint='P', EvaluationMode='MANUAL', AgencyID='ExternalSource', Network='GE', and Channel='BHZ'."
+    },
+    {
+      "id": "script_seiscomp_api_and_db",
+      "description": "The script uses the SeisComP API and connects to the specified database.",
+      "points": 20,
+      "visual_evidence": "The code shows imports from 'seiscomp' (e.g., seiscomp.datamodel) and includes the database connection string 'mysql://sysop:sysop@localhost/seiscomp'."
+    },
+    {
+      "id": "script_execution_success",
+      "description": "The script is executed successfully in the terminal.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the command to run the script (e.g., 'python3 script.py') and returning to the prompt without error tracebacks, or a database query showing the inserted picks."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "api_used_not_raw_sql",
+      "description": "The agent uses the SeisComP Python API to create Pick objects, not raw SQL queries.",
+      "visual_evidence": "The code shows SeisComP API usage (e.g., seiscomp.datamodel.Pick()) rather than raw SQL INSERT statements using mysql.connector or similar."
+    },
+    {
+      "id": "script_actually_executed",
+      "description": "The agent actually runs the script in the terminal.",
+      "visual_evidence": "Terminal output showing the execution command and completion, rather than just the script being written in an editor."
+    },
+    {
+      "id": "genuine_database_interaction",
+      "description": "The script contains actual logic to connect to the database and send the objects.",
+      "visual_evidence": "The script uses SeisComP database interface methods (e.g., DatabaseInterface.Open, save, or similar) rather than just printing a fake success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The script must insert 3 picks for stations TOLI, GSI, and SANI with times 2024-01-01 07:16:35.45, 07:17:12.80, and 07:18:05.15 respectively. Attributes must be PhaseHint='P', EvaluationMode='MANUAL', AgencyID='ExternalSource', Network='GE', Channel='BHZ'. The database connection string is mysql://sysop:sysop@localhost/seiscomp."
+}

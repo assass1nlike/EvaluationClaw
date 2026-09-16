@@ -1,0 +1,34 @@
+{
+  "id": "exclude_prohibited_file_types@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Modify the 'example-repo-local' repository configuration to exclude executable files using the patterns '**/*.exe' and '**/*.dll'. Ensure the repository rejects these formats while continuing to accept text files. Login with admin/password.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/exclude_prohibited_file_types/setup_task.sh",
+    "post_task": "/workspace/tasks/exclude_prohibited_file_types/export_result.sh"
+  },
+  "metadata": {
+    "repo_key": "example-repo-local",
+    "prohibited_extensions": [
+      "exe",
+      "dll"
+    ],
+    "allowed_extension": "txt",
+    "required_patterns": [
+      "**/*.exe",
+      "**/*.dll"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_exclude_prohibited_file_types"
+    }
+  }
+}

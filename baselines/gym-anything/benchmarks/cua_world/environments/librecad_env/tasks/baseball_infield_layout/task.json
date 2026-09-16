@@ -1,0 +1,37 @@
+{
+  "id": "baseball_infield_layout@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a regulation baseball infield layout in LibreCAD and save it as /home/ga/Documents/LibreCAD/baseball_infield.dxf. Use feet as units with the origin (0,0) at the apex of Home Plate and the Y-axis as the field centerline. The layout must include: foul lines extending at least 250ft at 45° and 135°; 15\" square bases at 90ft from Home on the foul lines (1st and 3rd) and 2nd base centered at 127.28ft on the Y-axis; a pentagonal Home Plate at the origin; a 2ft x 0.5ft Pitcher's Plate with the front edge at Y=60.5ft; and a running lane offset 3ft from the 1st base line starting at 45ft. Organize the drawing into the following layers: FOUL_LINES (White), BASES (White), MOUND (Red), MARKINGS (Yellow), and DIMENSIONS (Cyan).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/baseball_infield_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/baseball_infield_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/baseball_infield.dxf",
+    "required_layers": [
+      "FOUL_LINES",
+      "BASES",
+      "MOUND",
+      "MARKINGS",
+      "DIMENSIONS"
+    ],
+    "geometry_specs": {
+      "base_distance": 90.0,
+      "pitching_dist": 60.5,
+      "second_base_dist": 127.279
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_baseball_infield_layout"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "segment_opportunities_by_region@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "The Sales Director needs the pipeline segmented by territory for an upcoming report. Apply the existing regional tag 'Region: Europe' to all opportunities where the customer is located in Belgium, and apply the existing tag 'Region: North America' to all opportunities where the customer is located in the United States.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/segment_opportunities_by_region/setup_task.sh",
+    "post_task": "/workspace/tasks/segment_opportunities_by_region/export_result.sh"
+  },
+  "metadata": {
+    "expected_tags": {
+      "BE": "Region: Europe",
+      "US": "Region: North America"
+    },
+    "opportunity_names": [
+      "Waffle Iron Bulk Order",
+      "Logistics Software Upgrade",
+      "Cloud Server Migration",
+      "Fleet Tracking System"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_segment_opportunities_by_region"
+    }
+  }
+}

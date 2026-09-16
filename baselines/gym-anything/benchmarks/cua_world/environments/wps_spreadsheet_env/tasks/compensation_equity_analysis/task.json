@@ -1,0 +1,45 @@
+{
+  "id": "compensation_equity_analysis@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "You are an HR Manager conducting an annual compensation equity review. Using the 'Employees' and 'Market_Benchmarks' sheets, perform a comprehensive pay equity analysis. Create a 'Compa_Ratio' sheet that calculates each employee's compa-ratio (salary relative to the market 50th percentile for their job family and level) and their percentile position within their pay band. On this sheet, visually distinguish compa-ratios using red for values below 0.90, yellow for 0.90-0.95, and green for values above 1.10. Produce an 'Equity_Summary' sheet containing statistical breakdowns (average, median, standard deviation, count, minimum, and maximum) by gender and ethnicity, including the compa-ratio gap between male and female averages by job level. Generate a 'Flagged_Employees' sheet for those with compa-ratios below 0.85 or above 1.15, documenting their department, tenure, and the adjustment needed to reach a 1.00 compa-ratio. Finally, provide a 'Charts' sheet with a scatter plot of employee tenure versus compa-ratio, categorized by gender. Save the completed workbook to /home/ga/Documents/compensation_equity_review.xlsx.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 640,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compensation_equity_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/compensation_equity_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Human Resources Managers",
+    "industry": "Management of Companies and Enterprises",
+    "data_source": "Employee compensation data modeled on real BLS Occupational Employment and Wage Statistics (OEWS) with market benchmarks from published salary surveys",
+    "expected_new_sheets": [
+      "Compa_Ratio",
+      "Equity_Summary",
+      "Flagged_Employees",
+      "Charts"
+    ],
+    "required_features": [
+      "INDEX-MATCH or VLOOKUP across sheets",
+      "statistical formulas (AVERAGE, MEDIAN, STDEV, COUNTIFS)",
+      "conditional formatting with multiple tiers",
+      "scatter chart with multiple series",
+      "date-based tenure calculations"
+    ],
+    "ground_truth": {
+      "total_employees": 36,
+      "gender_count_f": 18,
+      "gender_count_m": 18
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compensation_equity"
+    }
+  }
+}

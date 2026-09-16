@@ -1,0 +1,95 @@
+{
+  "dataset_id": "feb0f5f2",
+  "name": "Openset Text-Table-Image Joint Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates joint reasoning over text, tables, and images. Each sample presents a multiple-choice question that requires integrating information from a table image and a context image to select the correct answer.",
+  "card_text": "The Openset Text-Table-Image Joint Reasoning dataset contains 200 samples for multimodal question answering. Each sample includes two images: a global table image and a context image, along with a textual prompt that frames a multiple-choice question and lists candidate answers. The model must integrate visual information from both the table and the context image to choose the correct answer from the provided options. The data covers general-domain topics, such as flags of countries and shapes of objects in specific contexts. Questions are typically short and fact-based, requiring cross-modal alignment and reasoning. The output is a single short text answer selected from the choices. The dataset tests capabilities in visual question answering, table understanding, and multimodal reasoning.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering",
+    "table_question_answering"
+  ],
+  "domain": "general multimodal reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of two image file names per sample: one image is a global table and the other is a context image. Together they provide the visual and tabular information required to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt instructs the model to answer a multiple-choice question using the provided table and context images. It embeds the question text and the choice list, and ends with a cue for the answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The multiple-choice options are listed in brackets at the end of the prompt (e.g., ['two', 'four', 'five', 'three']).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer selected from the provided choice list, given as a short text string.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of image file names (two images: a global table and a context image), a text prompt that includes an instruction, the question, and a multiple-choice list, and a short text answer selected from the choices. The images provide the visual and tabular context, while the prompt frames the question and options; the answer is the chosen option."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Text-Table-ImageJointReasoning/openset_text-table-image_joint_reasoning.json",
+    "existing_tags": {
+      "task": "Text-Table-Image Joint Reasoning",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

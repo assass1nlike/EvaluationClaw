@@ -1,0 +1,49 @@
+{
+  "id": "asvs_contamination_cleanup@1",
+  "version": "1.0",
+  "env_id": "reqview_env@0.1",
+  "description": "You are a security compliance analyst auditing the OWASP Application Security Verification Standard (ASVS) document in this ReqView project. Identify and delete all items in the ASVS document that are not legitimate OWASP security verification standards (security verification controls, testing requirements, or architecture standards). Remove any items describing general software functionality—such as file operations, document editing, reporting features, or integration capabilities—that were accidentally imported from the SRS document. Ensure all legitimate ASVS security requirements are preserved. The application is already open with the project loaded.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/asvs_contamination_cleanup/setup_task.sh",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "injected_items": [
+      {
+        "id": "900",
+        "original_srs_id": "53",
+        "text_contains": "create a new empty document"
+      },
+      {
+        "id": "901",
+        "original_srs_id": "77",
+        "text_contains": "export requirements to CSV"
+      },
+      {
+        "id": "902",
+        "original_srs_id": "109",
+        "text_contains": "move selected requirements or document sections"
+      },
+      {
+        "id": "903",
+        "original_srs_id": "163",
+        "text_contains": "print the displayed requirements table"
+      }
+    ],
+    "target_document": "ASVS",
+    "num_injected": 4,
+    "legitimate_item_count_before_injection": null
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_asvs_contamination_cleanup"
+    }
+  }
+}

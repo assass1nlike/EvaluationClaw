@@ -1,0 +1,28 @@
+{
+  "id": "create_inventory_request@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "The Emergency Department is running low on sterile gauze pads after a busy weekend. Create a new inventory request in HospitalRun for 25 'Sterile Gauze Pads (4x4 inch)' and ensure the request is saved with the status 'Requested'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_inventory_request/setup_task.sh",
+    "post_task": "/workspace/tasks/create_inventory_request/export_result.sh"
+  },
+  "metadata": {
+    "target_item_name": "Sterile Gauze Pads (4x4 inch)",
+    "target_quantity": 25,
+    "target_status": "Requested",
+    "couch_db_url": "http://couchadmin:test@localhost:5984/main"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_inventory_request"
+    }
+  }
+}

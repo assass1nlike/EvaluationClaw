@@ -1,0 +1,40 @@
+{
+  "id": "podcast_studio_signal_flow@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a technical signal flow diagram for 'Studio A' using draw.io based on the specifications in ~/Desktop/studio_specs/equipment_inventory.txt and ~/Desktop/studio_specs/wiring_schedule.txt. The diagram must depict the audio signal path for a 4-person podcast setup, including the host input chains (Shure SM7B Mic to Cloudlifter CL-1 to RodeCaster Pro II), output monitoring (RodeCaster Main Out to Yamaha HS8 Monitors), headphone monitoring (RodeCaster Monitor Out to Behringer HA8000 to 4x Sony Headphones), and the recording interface (RodeCaster USB to Studio PC). Ensure all signal directions are shown with labeled arrows and every connection line is labeled with the specific cable type (XLR, TRS, or USB-C) as defined in the wiring schedule. Save the source file as ~/Desktop/studio_signal_flow.drawio and export the final diagram as ~/Desktop/studio_signal_flow.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/podcast_studio_signal_flow/setup_task.sh",
+    "post_task": "/workspace/tasks/podcast_studio_signal_flow/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/studio_signal_flow.drawio",
+    "expected_png": "/home/ga/Desktop/studio_signal_flow.png",
+    "required_nodes": {
+      "mics": 4,
+      "cloudlifters": 4,
+      "mixer": 1,
+      "pc": 1,
+      "headphone_amp": 1,
+      "headphones": 4,
+      "monitors": 1
+    },
+    "required_cable_labels": [
+      "XLR",
+      "TRS",
+      "USB"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_podcast_studio_signal_flow"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "dashboard_symptom_profile_ecoli@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Create a clinical symptom profile visualization for the E. coli outbreak investigation using the 'EColi' sample project (FoodHistory form) in Epi Info 7. The analysis must be restricted to confirmed cases where 'Ill' equals 'Yes'. Generate a 'Combined Frequency' visualization for the symptoms Diarrhea, BloodyDiarrhea, Fever, Vomiting, Nausea, and AbdominalPain, sorted from high to low frequency. Title the visualization 'Symptom Profile of Cases' and save the dashboard as 'SymptomProfile.cvs7' to C:\\Users\\Docker\\Documents\\Epi_Info\\Dashboards\\.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dashboard_symptom_profile_ecoli\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dashboard_symptom_profile_ecoli\\export_result.ps1"
+  },
+  "metadata": {
+    "output_path": "C:\\Users\\Docker\\Documents\\Epi_Info\\Dashboards\\SymptomProfile.cvs7",
+    "project_path": "C:\\Program Files (x86)\\Epi Info 7\\Projects\\EColi\\EColi.prj",
+    "required_symptoms": [
+      "Diarrhea",
+      "BloodyDiarrhea",
+      "Fever",
+      "Vomiting",
+      "Nausea",
+      "AbdominalPain"
+    ],
+    "filter_variable": "Ill",
+    "filter_value": "Yes",
+    "gadget_title": "Symptom Profile of Cases"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dashboard_symptom_profile"
+    }
+  }
+}

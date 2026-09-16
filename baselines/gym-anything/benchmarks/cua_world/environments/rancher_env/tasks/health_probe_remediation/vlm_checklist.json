@@ -1,0 +1,53 @@
+{
+  "task_id": "health_probe_remediation@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log in to the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "Browser window showing the Rancher UI dashboard at https://localhost, indicating a successful login."
+    },
+    {
+      "id": "read_spec_file",
+      "description": "Read the health check specification file",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Desktop/health_check_spec.yaml."
+    },
+    {
+      "id": "navigate_services_namespace",
+      "description": "Navigate to the 'services' namespace in Rancher",
+      "points": 10,
+      "visual_evidence": "Rancher UI showing the 'Workloads' or 'Deployments' page specifically filtered to or displaying the 'services' namespace."
+    },
+    {
+      "id": "update_health_probes",
+      "description": "Update health probes for the deployments",
+      "points": 40,
+      "visual_evidence": "Rancher UI showing the 'Edit Deployment' screen (either form view or YAML view) where health checks (Liveness, Readiness, or Startup probes) are being added or modified for the deployments."
+    },
+    {
+      "id": "pods_running_state",
+      "description": "Ensure all pods reach a stable Running state",
+      "points": 30,
+      "visual_evidence": "Rancher UI showing the deployments in the 'services' namespace with a green 'Active' status, or a terminal showing 'Running' status with all containers ready (e.g., 1/1) for all pods in the namespace."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_ui",
+      "description": "Verify the agent used the Rancher web interface",
+      "visual_evidence": "The agent interacted with the Rancher web interface in a browser to perform the updates, aligning with the instruction to login to Rancher."
+    },
+    {
+      "id": "genuine_cluster_state",
+      "description": "Verify the pod running state is genuine",
+      "visual_evidence": "The final running state of the pods is displayed in the actual Rancher UI or standard kubectl output, not a manually typed text file or mocked terminal output."
+    },
+    {
+      "id": "actual_probe_modification",
+      "description": "Verify the agent saved the configuration changes",
+      "visual_evidence": "Screenshots show the agent actually applying or saving the deployment configurations (e.g., clicking 'Save' in Rancher or applying YAML) rather than just viewing the edit screens."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace in Rancher is 'services'. The health probe specification file is located at '/home/ga/Desktop/health_check_spec.yaml'."
+}

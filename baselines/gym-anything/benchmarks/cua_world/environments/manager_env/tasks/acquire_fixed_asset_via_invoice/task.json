@@ -1,0 +1,28 @@
+{
+  "id": "acquire_fixed_asset_via_invoice@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Enable the Fixed Assets module in Manager.io and record the purchase of a new asset named 'MacBook Pro' from a supplier named 'TechWorld'. The purchase should be recorded via a purchase invoice dated today for a unit price of 2500.00, allocated to the 'Fixed assets' account.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/acquire_fixed_asset_via_invoice/setup_task.sh",
+    "post_task": "/workspace/tasks/acquire_fixed_asset_via_invoice/export_result.sh"
+  },
+  "metadata": {
+    "expected_asset_name": "MacBook Pro",
+    "expected_supplier_name": "TechWorld",
+    "expected_amount": 2500.0,
+    "expected_account": "Fixed assets"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_acquire_fixed_asset"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "flat_field_noise_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_fits_stack",
+      "description": "Load the flat-field FITS frames into AstroImageJ",
+      "points": 10,
+      "visual_evidence": "AstroImageJ interface open showing an image stack loaded from the ~/AstroImages/flat_analysis/flats/ directory."
+    },
+    {
+      "id": "generate_median_projection",
+      "description": "Generate and save the median Z-projection",
+      "points": 15,
+      "visual_evidence": "AstroImageJ Z-Project window with 'Median' projection type selected, or an image window showing the median projection being saved as median_flat.fits in the results directory."
+    },
+    {
+      "id": "generate_stddev_projection",
+      "description": "Generate and save the standard deviation Z-projection",
+      "points": 15,
+      "visual_evidence": "AstroImageJ Z-Project window with 'Standard Deviation' projection type selected, or an image window showing the stddev projection being saved as stddev_flat.fits in the results directory."
+    },
+    {
+      "id": "measure_quadrants",
+      "description": "Measure median signal and noise for four quadrants",
+      "points": 20,
+      "visual_evidence": "AstroImageJ Results table or measurement windows showing median values extracted from rectangular ROI selections (representing quadrants) on both the median and standard deviation projection images."
+    },
+    {
+      "id": "identify_bad_pixels",
+      "description": "Identify bad pixels based on standard deviation thresholds",
+      "points": 15,
+      "visual_evidence": "Use of AstroImageJ tools (such as Image Math, Thresholding, Histogram, or Macros) on the standard deviation projection to find pixels >5x or <0.1x the overall median standard deviation."
+    },
+    {
+      "id": "export_noise_analysis",
+      "description": "Export the final analysis to noise_analysis.txt",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal displaying the contents of noise_analysis.txt with exactly 5 lines matching the requested format (Median signal, Median noise, GAIN_ESTIMATE, BAD_PIXEL_COUNT, POISSON_CHECK) populated with calculated values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_astroimagej_gui",
+      "description": "Agent used AstroImageJ GUI for processing",
+      "visual_evidence": "Screenshots should show active interaction with the AstroImageJ graphical interface (menus, dialogs, image windows) rather than bypassing it with Python scripts or command-line ImageMagick tools."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "Results file contains actual calculated numbers",
+      "visual_evidence": "The noise_analysis.txt file must contain actual numerical values for signals, noise, gain, and bad pixel counts, not the literal bracketed placeholder text (e.g., '[Median signal Q1]') from the prompt."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "FITS files were genuinely generated and saved",
+      "visual_evidence": "The median_flat.fits and stddev_flat.fits files should be saved via AstroImageJ's save functionality, not just created as empty files using the 'touch' command in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses real cryogenically cooled flat-field CCD frames from the Palomar 200-inch Hale Telescope's Large Format Camera (LFC). The expected output directory is /home/ga/AstroImages/flat_analysis/results/ and must contain exactly three files: median_flat.fits, stddev_flat.fits, and noise_analysis.txt."
+}

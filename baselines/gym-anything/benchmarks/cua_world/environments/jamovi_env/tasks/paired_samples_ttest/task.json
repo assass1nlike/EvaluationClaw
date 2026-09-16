@@ -1,0 +1,41 @@
+{
+  "id": "paired_samples_ttest@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Perform a Paired Samples T-Test on the Student's Sleep Study data from '~/Documents/Jamovi/SleepWide.csv' comparing 'Drug1' and 'Drug2'. The analysis should include Effect Size (Cohen's d), Descriptives, and the Shapiro-Wilk Normality Test. Save the Jamovi project to '~/Documents/Jamovi/SleepPairedTest.omv' and record the results in '~/Documents/Jamovi/paired_ttest_results.txt' using the 'key: value' format for the following statistics: t_statistic, df, p_value, mean_difference, cohens_d, and shapiro_wilk_p.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/paired_samples_ttest/setup_task.sh",
+    "post_task": "/workspace/tasks/paired_samples_ttest/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_omv": "/home/ga/Documents/Jamovi/SleepPairedTest.omv",
+    "expected_output_txt": "/home/ga/Documents/Jamovi/paired_ttest_results.txt",
+    "ground_truth": {
+      "t_statistic": 4.062,
+      "df": 9,
+      "p_value": 0.00283,
+      "mean_difference": 1.58,
+      "cohens_d": 1.285,
+      "shapiro_wilk_p": 0.175
+    },
+    "tolerances": {
+      "t_statistic": 0.1,
+      "p_value": 0.001,
+      "mean_difference": 0.1,
+      "cohens_d": 0.1,
+      "shapiro_wilk_p": 0.05
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_paired_samples_ttest"
+    }
+  }
+}

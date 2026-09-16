@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_fail2ban_ssh@1",
+  "task_completion": [
+    {
+      "id": "sshd_jail_configured",
+      "description": "Verify the agent targets the 'sshd' jail for configuration.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a text editor open on a Fail2Ban configuration file (like /etc/fail2ban/jail.local or jail.conf) with an '[sshd]' section, or terminal commands explicitly targeting the 'sshd' jail (e.g., using fail2ban-client)."
+    },
+    {
+      "id": "max_retry_set",
+      "description": "Verify the maximum retry limit is set to 3 for the SSH service.",
+      "points": 25,
+      "visual_evidence": "Visual confirmation of 'maxretry = 3' under the '[sshd]' section in the configuration file, or terminal output from 'fail2ban-client get sshd maxretry' returning '3'."
+    },
+    {
+      "id": "ban_time_set",
+      "description": "Verify the ban time is set to 7200 seconds for the SSH service.",
+      "points": 25,
+      "visual_evidence": "Visual confirmation of 'bantime = 7200' under the '[sshd]' section in the configuration file, or terminal output from 'fail2ban-client get sshd bantime' returning '7200'."
+    },
+    {
+      "id": "service_enabled",
+      "description": "Verify the Fail2Ban service is enabled to start on boot.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'systemctl enable fail2ban' or the output of 'systemctl status fail2ban' / 'systemctl is-enabled fail2ban' indicating the service is 'enabled'."
+    },
+    {
+      "id": "service_running",
+      "description": "Verify the Fail2Ban service is currently running.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'systemctl start fail2ban', 'systemctl restart fail2ban', or the output of 'systemctl status fail2ban' displaying 'active (running)'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_usage",
+      "description": "Ensure the agent uses a real terminal to execute commands and modify configurations.",
+      "visual_evidence": "The agent interacts with a genuine shell environment (e.g., bash) using standard Linux utilities (nano, vim, systemctl, fail2ban-client) rather than just typing expected answers into a blank text document."
+    },
+    {
+      "id": "configuration_applied",
+      "description": "Ensure the agent applies the configuration changes to the running service.",
+      "visual_evidence": "If the agent modifies a configuration file, look for a subsequent command to restart or reload the service (e.g., 'systemctl restart fail2ban' or 'fail2ban-client reload') so the changes actually take effect."
+    },
+    {
+      "id": "no_echo_spoofing",
+      "description": "Ensure the agent does not fake the verification outputs.",
+      "visual_evidence": "The outputs for service status or fail2ban-client queries must come from actual command executions, not from the agent using the 'echo' command to print fake success messages."
+    }
+  ],
+  "privileged_info_for_vlm": "The target jail name is exactly '[sshd]'. The required configuration values are maxretry = 3 and bantime = 7200. These values should be visible in the Fail2Ban configuration file (e.g., /etc/fail2ban/jail.local) under the [sshd] section, or verified via 'fail2ban-client' commands. The service must be both enabled (starts on boot) and running (active)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_ecommerce_graphql_api@1",
+  "task_completion": [
+    {
+      "id": "fix_product_price_format",
+      "description": "Ensure product prices are returned in dollars (Float) instead of cents (integers).",
+      "points": 15,
+      "visual_evidence": "Code modification in the GraphQL resolver or schema showing price divided by 100 (e.g., `price / 100`), or a GraphQL query response showing prices with decimal points."
+    },
+    {
+      "id": "handle_null_descriptions",
+      "description": "Handle NULL product descriptions by returning 'No description available'.",
+      "points": 15,
+      "visual_evidence": "Code modification in the resolver checking for null/undefined descriptions and returning the fallback string 'No description available', or a GraphQL query response showing this exact string."
+    },
+    {
+      "id": "implement_user_fullname",
+      "description": "Implement the missing 'User.fullName' field in the resolvers.",
+      "points": 15,
+      "visual_evidence": "Code showing a resolver for `User` with a `fullName` function (e.g., combining `firstName` and `lastName`), or a successful GraphQL query returning a user's full name."
+    },
+    {
+      "id": "prevent_negative_quantities",
+      "description": "Prevent orders with negative quantities by throwing a GraphQLError.",
+      "points": 20,
+      "visual_evidence": "Code in the mutation resolver checking `if (quantity <= 0)` and throwing a `GraphQLError` with the exact message 'Quantity must be greater than zero', or a GraphQL playground screenshot showing this error."
+    },
+    {
+      "id": "resolve_n_plus_one_bottleneck",
+      "description": "Resolve the N+1 database query bottleneck for categories and nested products.",
+      "points": 35,
+      "visual_evidence": "Code showing the implementation and usage of `DataLoader` (e.g., `new DataLoader(...)`) to batch fetch products by category ID, replacing individual database queries inside the category resolver."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "The agent modified the actual source code files in the workspace.",
+      "visual_evidence": "Screenshots showing a text editor (like VS Code, nano, or vim) with the modified files open in `/home/ga/workspace/graphql_api/`."
+    },
+    {
+      "id": "no_hardcoded_bypasses",
+      "description": "The agent implemented actual logic rather than hardcoding specific responses to pass tests.",
+      "visual_evidence": "Code uses dynamic variables (e.g., `parent.firstName + ' ' + parent.lastName`) rather than hardcoded strings for specific IDs."
+    },
+    {
+      "id": "server_running_or_tested",
+      "description": "The agent ran the Apollo server or tested the API to verify changes.",
+      "visual_evidence": "Terminal output showing the Node.js server running, or a GraphQL playground/curl command interacting with the API."
+    }
+  ],
+  "privileged_info_for_vlm": "The environment uses Apollo Server, GraphQL, and DataLoader. The pass threshold is strictly verified as 60. Note: integer dollar prices (e.g., $12.00) may fail the float check in the hidden test script due to modulo logic, so accept valid float conversion logic in the code (e.g., `price / 100`) even if a test script complains about integer formatting."
+}

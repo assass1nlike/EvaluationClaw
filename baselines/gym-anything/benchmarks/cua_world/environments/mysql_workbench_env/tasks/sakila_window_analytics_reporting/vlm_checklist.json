@@ -1,0 +1,65 @@
+{
+  "task_id": "sakila_window_analytics_reporting@1",
+  "task_completion": [
+    {
+      "id": "create_view_film_revenue_ranked",
+      "description": "Create the view v_film_revenue_ranked",
+      "points": 15,
+      "visual_evidence": "Look for a database client (e.g., DBeaver, MySQL CLI, MySQL Workbench) showing the successful execution of a 'CREATE VIEW v_film_revenue_ranked' statement, or the view name appearing in the database schema tree/list."
+    },
+    {
+      "id": "create_view_customer_rfm",
+      "description": "Create the view v_customer_rfm",
+      "points": 15,
+      "visual_evidence": "Look for a database client showing the successful execution of a 'CREATE VIEW v_customer_rfm' statement, or the view name appearing in the database schema tree/list."
+    },
+    {
+      "id": "create_table_monthly_category_performance",
+      "description": "Create the reporting table rpt_monthly_category_performance",
+      "points": 15,
+      "visual_evidence": "Look for a database client showing the successful execution of a 'CREATE TABLE rpt_monthly_category_performance' statement, or the table name appearing in the database schema tree/list."
+    },
+    {
+      "id": "create_procedure_refresh_category_performance",
+      "description": "Create the stored procedure sp_refresh_category_performance",
+      "points": 20,
+      "visual_evidence": "Look for a database client showing the successful execution of a 'CREATE PROCEDURE sp_refresh_category_performance' statement, or the procedure name appearing in the routines/procedures list in the database schema."
+    },
+    {
+      "id": "populate_reporting_table",
+      "description": "Populate the reporting table by executing the stored procedure",
+      "points": 15,
+      "visual_evidence": "Look for the execution of 'CALL sp_refresh_category_performance()' in the database client, or a 'SELECT * FROM rpt_monthly_category_performance' query showing populated rows with monthly category revenue data."
+    },
+    {
+      "id": "export_film_revenue_csv",
+      "description": "Export the v_film_revenue_ranked view to a CSV file",
+      "points": 10,
+      "visual_evidence": "Look for a file manager window, terminal (ls command), or database export dialog showing the file 'film_revenue_ranked.csv' successfully created in the '/home/ga/Documents/exports/' directory."
+    },
+    {
+      "id": "export_monthly_category_csv",
+      "description": "Export the rpt_monthly_category_performance table to a CSV file",
+      "points": 10,
+      "visual_evidence": "Look for a file manager window, terminal (ls command), or database export dialog showing the file 'monthly_category_performance.csv' successfully created in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent interacted with a real database client to execute SQL commands.",
+      "visual_evidence": "The agent should be using a tool like MySQL CLI, DBeaver, or another SQL client to run queries, rather than just typing SQL code into a text editor without executing it."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "Verify the CSV files were generated from the database.",
+      "visual_evidence": "Look for evidence of an actual export process (e.g., 'INTO OUTFILE' SQL command, or a GUI export wizard in DBeaver) rather than the agent manually creating dummy CSV files in a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent wrote actual SQL logic rather than hardcoding expected output.",
+      "visual_evidence": "The SQL scripts should contain window functions (RANK/DENSE_RANK, NTILE) and CTEs as requested, rather than simple INSERT statements with hardcoded values."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires the creation of specific database objects in the Sakila database: two views ('v_film_revenue_ranked', 'v_customer_rfm'), one table ('rpt_monthly_category_performance'), and one stored procedure ('sp_refresh_category_performance'). Additionally, two CSV files must be exported to specific paths: '/home/ga/Documents/exports/film_revenue_ranked.csv' and '/home/ga/Documents/exports/monthly_category_performance.csv'."
+}

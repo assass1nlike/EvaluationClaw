@@ -1,0 +1,58 @@
+{
+  "id": "oer_textbook_curriculum_sourcing@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are an instructional coordinator sourcing Zero Textbook Cost (ZTC) materials for a Fall pilot program. Locate \"Psychology 2e\" (Social Sciences), \"Calculus Volume 1\" (Math), and \"Microbiology\" (Science) on OpenStax (https://openstax.org). Create a Firefox bookmark folder named \"Fall Curriculum OER\" containing the landing pages for these three books. Download the PDF version of \"Psychology 2e\" to ~/Downloads/ and create a curriculum metadata report at ~/Documents/oer_report.json containing the ISBN-13 (digital), license, and authors for all three books using the following JSON structure:\n\n{\n  \"curriculum_pilot\": \"Fall 2024\",\n  \"resources\": [",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "oer",
+    "education",
+    "json",
+    "download"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/oer_textbook_curriculum_sourcing/setup_task.sh",
+    "post_task": "/workspace/tasks/oer_textbook_curriculum_sourcing/export_result.sh"
+  },
+  "metadata": {
+    "expected_titles": [
+      "Psychology 2e",
+      "Calculus Volume 1",
+      "Microbiology"
+    ],
+    "expected_isbns": {
+      "Psychology 2e": "978-1-975076-45-0",
+      "Calculus Volume 1": "978-1-947172-13-5",
+      "Microbiology": "978-1-947172-23-4"
+    },
+    "expected_authors": {
+      "Psychology 2e": [
+        "Spielman"
+      ],
+      "Calculus Volume 1": [
+        "Strang",
+        "Herman"
+      ],
+      "Microbiology": [
+        "Parker",
+        "Schneegurt"
+      ]
+    },
+    "required_bookmark_folder": "Fall Curriculum OER",
+    "required_pdf_download": "Psychology 2e",
+    "output_file": "/home/ga/Documents/oer_report.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_oer_sourcing"
+    }
+  }
+}

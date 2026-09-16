@@ -1,0 +1,40 @@
+{
+  "id": "roundabout_design@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Design a 'Mini-Roundabout' intersection centered at (100, 100) in LibreCAD. Use layers 'ISLAND' (Green), 'ROADWAY' (White), and 'CENTERLINES' (Cyan). The design must feature a central island with a radius of 4 on the 'ISLAND' layer and an outer roadway with a radius of 12 on the 'ROADWAY' layer. Include four 8-unit wide approach legs extending North, South, East, and West on the 'ROADWAY' layer. Ensure the intersection is trimmed so the outer roadway and approach legs form a continuous boundary with corners filleted at a radius of 6. Save the completed design to /home/ga/Documents/LibreCAD/roundabout_design.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/roundabout_design/setup_task.sh",
+    "post_task": "/workspace/tasks/roundabout_design/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "roundabout_design.dxf",
+    "layers": {
+      "ISLAND": 3,
+      "ROADWAY": 7,
+      "CENTERLINES": 4
+    },
+    "geometry": {
+      "center": [
+        100,
+        100
+      ],
+      "island_radius": 4,
+      "outer_radius": 12,
+      "fillet_radius": 6,
+      "leg_width": 8
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_roundabout_design"
+    }
+  }
+}

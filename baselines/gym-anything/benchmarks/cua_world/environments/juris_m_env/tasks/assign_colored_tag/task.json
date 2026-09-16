@@ -1,0 +1,32 @@
+{
+  "id": "assign_colored_tag@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Your Jurism library is pre-populated with 10 legal references including US Supreme Court cases. Visually prioritize specific cases by creating a tag named \"Landmark Decision\" (case-sensitive) and assigning it a display color. Apply this tag only to the following cases: Brown v. Board of Education, Miranda v. Arizona, and Gideon v. Wainwright.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assign_colored_tag/setup_task.sh",
+    "post_task": "/workspace/tasks/assign_colored_tag/export_result.sh"
+  },
+  "metadata": {
+    "target_tag_name": "Landmark Decision",
+    "target_cases": [
+      "Brown v. Board of Education",
+      "Miranda v. Arizona",
+      "Gideon v. Wainwright"
+    ],
+    "min_tagged_count": 3,
+    "max_tagged_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assign_colored_tag"
+    }
+  }
+}

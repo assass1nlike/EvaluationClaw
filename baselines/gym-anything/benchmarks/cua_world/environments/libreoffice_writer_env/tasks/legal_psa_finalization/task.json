@@ -1,0 +1,48 @@
+{
+  "id": "legal_psa_finalization@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are a paralegal at Meridian Legal Partners LLP. Transform the raw draft of a Professional Services Agreement (/home/ga/Documents/psa_draft.docx) into an execution-ready final document. The document title 'PROFESSIONAL SERVICES AGREEMENT' must be centered, bold, and 14pt on the first page. Apply 'Heading 1' style to all nine top-level section headings (Definitions, Scope of Services, Fees and Payment, Intellectual Property, Confidentiality, Representations and Warranties, Limitation of Liability, Indemnification, General Provisions) and 'Heading 2' style to all subsection headings. In the Definitions section, format the first appearance of defined terms ('Services', 'Deliverables', 'Confidential Information', 'Intellectual Property Rights', 'Force Majeure Event', and 'Effective Date') in bold. Create a borderless 2-column table for the signature block at the end, with each column containing five lines ('By:', 'Name:', 'Title:', 'Date:', and 'Company:') followed by blank lines. Add a footer to every page except the first with 'CONFIDENTIAL — Meridian Legal Partners LLP' on the left and an auto-updating page number on the right. Save the final document as /home/ga/Documents/psa_final.docx.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/legal_psa_finalization/setup_task.sh",
+    "post_task": "/workspace/tasks/legal_psa_finalization/export_result.sh"
+  },
+  "metadata": {
+    "source_doc": "/home/ga/Documents/psa_draft.docx",
+    "output_doc": "/home/ga/Documents/psa_final.docx",
+    "title_text": "PROFESSIONAL SERVICES AGREEMENT",
+    "section_headings": [
+      "Definitions",
+      "Scope of Services",
+      "Fees and Payment",
+      "Intellectual Property",
+      "Confidentiality",
+      "Representations and Warranties",
+      "Limitation of Liability",
+      "Indemnification",
+      "General Provisions"
+    ],
+    "defined_terms": [
+      "Services",
+      "Deliverables",
+      "Confidential Information",
+      "Intellectual Property Rights",
+      "Force Majeure Event",
+      "Effective Date"
+    ],
+    "footer_fragment_left": "Meridian Legal Partners",
+    "footer_has_page_number": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_legal_psa_finalization"
+    }
+  }
+}

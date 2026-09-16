@@ -1,0 +1,36 @@
+{
+  "id": "diagnostic_accuracy_oswego@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Calculate the diagnostic accuracy metrics for 'Vanilla Ice Cream' (VANILLA_IC) consumption as a predictor of Illness (ILL) in the Oswego outbreak dataset using Epi Info 7 Classic Analysis. Record the True Positives (TP), False Positives (FP), False Negatives (FN), True Negatives (TN), Sensitivity, Specificity, Positive Predictive Value (PPV), and Negative Predictive Value (NPV) rounded to two decimal places. Save the results to C:\\Users\\Docker\\Documents\\diagnostic_report.txt in the following format:\nTP: <value>\nFP: <value>\nFN: <value>\nTN: <value>\nSensitivity: <value>\nSpecificity: <value>\nPPV: <value>\nNPV: <value>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\diagnostic_accuracy_oswego\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\diagnostic_accuracy_oswego\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\diagnostic_report.txt",
+    "ground_truth": {
+      "TP": 43,
+      "FP": 11,
+      "FN": 3,
+      "TN": 18,
+      "Sensitivity": 0.93,
+      "Specificity": 0.62,
+      "PPV": 0.8,
+      "NPV": 0.86
+    },
+    "tolerance_metrics": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_diagnostic_accuracy"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "radiologist_cross_modality_fusion_report@1",
+  "task_completion": [
+    {
+      "id": "open_weasis_and_load_data",
+      "description": "Open Weasis and load the datasets from the specified CT and MR directories.",
+      "points": 10,
+      "visual_evidence": "The Weasis application is open and images from the /home/ga/DICOM/studies/crossmod_ct/ and /home/ga/DICOM/studies/crossmod_mr/ directories are loaded into the viewer."
+    },
+    {
+      "id": "simultaneous_comparison",
+      "description": "Perform a simultaneous comparison of the two modalities.",
+      "points": 10,
+      "visual_evidence": "Weasis is configured to show a split-screen or dual viewport layout, displaying images from both datasets side-by-side."
+    },
+    {
+      "id": "adjust_window_settings",
+      "description": "Adjust window settings, including an attempt at a bone-window assessment.",
+      "points": 15,
+      "visual_evidence": "The Window/Level controls in Weasis are actively adjusted, or there is a visible change in the contrast/brightness of the images indicating a windowing preset (like 'Bone') was applied."
+    },
+    {
+      "id": "measure_structures",
+      "description": "Measure a common anatomical structure on both modalities.",
+      "points": 20,
+      "visual_evidence": "Measurement tools (e.g., distance/line tool) are used on the images in both viewports, with numerical measurement values visible on the screen."
+    },
+    {
+      "id": "export_annotated_views",
+      "description": "Export the annotated views as PNG files to the specified export directory.",
+      "points": 20,
+      "visual_evidence": "The Weasis export/save dialog is used to save images to /home/ga/DICOM/exports/ct_crossmod.png and /home/ga/DICOM/exports/mr_crossmod.png, or a file manager/terminal shows these specific PNG files have been created."
+    },
+    {
+      "id": "save_comparative_report",
+      "description": "Save a comparative imaging report containing measurements, percentage difference, and commentary.",
+      "points": 25,
+      "visual_evidence": "A text editor is open showing a report saved to /home/ga/DICOM/exports/crossmodality_report.txt. The text must include numerical measurements, a calculated percentage difference, and comparative commentary on CT vs MRI."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_weasis",
+      "description": "The agent used the Weasis GUI to view, measure, and export the images.",
+      "visual_evidence": "Screenshots show actual interaction with the Weasis graphical interface, rather than using terminal commands (like ImageMagick) to generate dummy PNG files."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "The measurements in the report correspond to actual visual measurements taken in the software.",
+      "visual_evidence": "The numerical values typed into the crossmodality_report.txt match or closely approximate the measurement annotations visible in the Weasis viewports."
+    },
+    {
+      "id": "report_not_hardcoded",
+      "description": "The text report contains genuine analysis rather than a copy-paste of the prompt.",
+      "visual_evidence": "The report contains specific numerical values and original commentary, not just a verbatim repetition of the task description's requirements."
+    }
+  ],
+  "privileged_info_for_vlm": "The datasets provided in the CT and MR directories are actually multi-frame X-Ray Angiography (XA) sequences, not true CT or MR scans. Do not penalize the agent if the images in Weasis look like 2D X-rays/angiograms instead of cross-sectional CT/MRs. The agent should still attempt to fulfill the prompt's instructions (measuring, adjusting windows, and writing a report comparing 'CT' and 'MR')."
+}

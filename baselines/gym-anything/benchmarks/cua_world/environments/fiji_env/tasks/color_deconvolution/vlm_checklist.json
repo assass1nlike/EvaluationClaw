@@ -1,0 +1,59 @@
+{
+  "task_id": "color_deconvolution@1",
+  "task_completion": [
+    {
+      "id": "open_hela_cells",
+      "description": "Open the 'HeLa Cells' sample image in Fiji",
+      "points": 10,
+      "visual_evidence": "Fiji application is open with an image window titled 'HeLa Cells' visible."
+    },
+    {
+      "id": "perform_color_deconvolution",
+      "description": "Perform color deconvolution on the image",
+      "points": 20,
+      "visual_evidence": "The Colour Deconvolution plugin dialog is visible, or multiple new image windows are generated from the original, typically with titles containing 'Colour_1', 'Colour_2', etc."
+    },
+    {
+      "id": "save_channel_1",
+      "description": "Save the first resulting channel to channel_1.png",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog in Fiji saving the Colour_1 image as 'channel_1.png' in the '~/Fiji_Data/results/' directory, or a file manager/terminal showing this file exists."
+    },
+    {
+      "id": "save_channel_2",
+      "description": "Save the second resulting channel to channel_2.png",
+      "points": 15,
+      "visual_evidence": "A 'Save As' dialog in Fiji saving the Colour_2 image as 'channel_2.png' in the '~/Fiji_Data/results/' directory, or a file manager/terminal showing this file exists."
+    },
+    {
+      "id": "measure_channel_1",
+      "description": "Record measurement statistics for the first channel",
+      "points": 20,
+      "visual_evidence": "Fiji's 'Results' window is open, displaying calculated statistics (e.g., Area, Mean, Min, Max) specifically for the Colour_1 image."
+    },
+    {
+      "id": "save_stats_csv",
+      "description": "Save the measurement statistics to channel_1_stats.csv",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog saving the Results table as 'channel_1_stats.csv' in the '~/Fiji_Data/results/' directory, or a file manager/terminal showing this file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Fiji GUI to perform the tasks rather than using terminal commands to create mock files.",
+      "visual_evidence": "Screenshots show interaction with Fiji's menus (e.g., File > Open Samples, Image > Color > Colour Deconvolution, Analyze > Measure) and dialog boxes."
+    },
+    {
+      "id": "genuine_image_processing",
+      "description": "The saved channel images are actual separated components, not just renamed copies of the original image.",
+      "visual_evidence": "The resulting Colour_1 and Colour_2 images look visually distinct from the original multi-color HeLa cells composite (e.g., they appear as grayscale or single-color intensity maps)."
+    },
+    {
+      "id": "genuine_measurement",
+      "description": "The statistics CSV is generated from actual Fiji measurements, not manually typed or mocked.",
+      "visual_evidence": "The 'Results' window in Fiji is populated with data before the CSV is saved, rather than the agent opening a text editor to manually create a CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'HeLa Cells' sample is a built-in Fiji image (fluorescence, 48-bit RGB, 1.3M). It contains three 16-bit channels: red (lysosomes), green (mitochondria), blue (nucleus). The expected outputs are 'channel_1.png', 'channel_2.png', and 'channel_1_stats.csv'. Note: While Colour Deconvolution is typically designed for bright-field microscopy (subtractive color), the agent must still apply it to this fluorescence image (additive color) exactly as instructed by the task."
+}

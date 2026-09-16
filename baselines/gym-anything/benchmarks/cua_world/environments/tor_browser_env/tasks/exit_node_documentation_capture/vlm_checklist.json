@@ -1,0 +1,59 @@
+{
+  "task_id": "exit_node_documentation_capture@1",
+  "task_completion": [
+    {
+      "id": "access_tor_check_site",
+      "description": "Navigate to the Tor Project check website.",
+      "points": 15,
+      "visual_evidence": "A web browser or terminal window showing a successful connection to https://check.torproject.org/."
+    },
+    {
+      "id": "create_opsec_directory",
+      "description": "Create or access the target OpsecLogs directory.",
+      "points": 15,
+      "visual_evidence": "A file manager or terminal window showing the directory /home/ga/Documents/OpsecLogs being created or opened."
+    },
+    {
+      "id": "capture_html_source",
+      "description": "Capture the raw HTML source code of the Tor check page.",
+      "points": 20,
+      "visual_evidence": "Browser 'View Source' window, developer tools showing the page's HTML, or a terminal command (like curl/wget) downloading the HTML."
+    },
+    {
+      "id": "save_source_file",
+      "description": "Save the HTML source code to the specified file.",
+      "points": 20,
+      "visual_evidence": "A file named check_source.html visible in the /home/ga/Documents/OpsecLogs/ directory, or a text editor saving the HTML content to this path."
+    },
+    {
+      "id": "extract_exit_ip",
+      "description": "Identify and extract the displayed exit IP address.",
+      "points": 10,
+      "visual_evidence": "The IP address displayed on the check.torproject.org page being highlighted, copied, or typed into a text editor."
+    },
+    {
+      "id": "save_ip_file",
+      "description": "Save the extracted IP address to the specified text file.",
+      "points": 20,
+      "visual_evidence": "A file named exit_ip.txt visible in the /home/ga/Documents/OpsecLogs/ directory, with its contents showing ONLY the extracted IP address."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_web_interaction",
+      "description": "The agent interacted with the live check.torproject.org website.",
+      "visual_evidence": "Screenshots should show the actual website loading in a browser or a genuine network request being made, not just a locally created mock file."
+    },
+    {
+      "id": "matching_ip_address",
+      "description": "The IP address saved in the text file matches the one displayed on the website.",
+      "visual_evidence": "The IP address in exit_ip.txt must be identical to the IP address shown on the check.torproject.org page during the session."
+    },
+    {
+      "id": "no_extra_content_in_ip_file",
+      "description": "The IP file contains only the IP address without extra text.",
+      "visual_evidence": "The text editor or terminal output for exit_ip.txt should show strictly the IP address (e.g., '192.168.1.1' or an IPv6 address) and no surrounding text like 'Your IP is...'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://check.torproject.org/. Output directory: /home/ga/Documents/OpsecLogs. Source code file: /home/ga/Documents/OpsecLogs/check_source.html. IP address file: /home/ga/Documents/OpsecLogs/exit_ip.txt. The IP file must contain ONLY the IP address."
+}

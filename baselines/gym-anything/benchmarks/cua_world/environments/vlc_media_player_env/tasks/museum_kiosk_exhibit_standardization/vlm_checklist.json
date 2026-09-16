@@ -1,0 +1,53 @@
+{
+  "task_id": "museum_kiosk_exhibit_standardization@1",
+  "task_completion": [
+    {
+      "id": "videos_transcoded_and_renamed",
+      "description": "Check if the three raw videos have been transcoded and saved with the correct names in the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window or terminal output (e.g., 'ls') showing 'exhibit_01.mp4', 'exhibit_02.mp4', and 'exhibit_03.mp4' inside the '/home/ga/Videos/kiosk_ready/' directory."
+    },
+    {
+      "id": "video_specifications_correct",
+      "description": "Verify that the transcoded videos meet the required specifications: 1920x1080 resolution, H.264 video codec, and AAC audio codec.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output from commands like 'ffprobe', 'ffmpeg', or 'file', or a GUI media properties window confirming the resolution is 1920x1080, video is H.264 (or AVC), and audio is AAC."
+    },
+    {
+      "id": "logo_burned_in",
+      "description": "Check if the museum logo has been successfully burned into the bottom-right corner of the videos.",
+      "points": 20,
+      "visual_evidence": "Look for a video player (like VLC) or a video editor preview showing one of the 'exhibit' videos playing with a visible logo overlaid in the bottom-right corner."
+    },
+    {
+      "id": "playlist_created",
+      "description": "Verify the creation of the XSPF playlist containing the three videos in sequential order.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., 'cat') showing the contents of '/home/ga/Videos/kiosk_ready/ocean_loop.xspf'. It should be an XML/XSPF format file listing exhibit_01.mp4, exhibit_02.mp4, and exhibit_03.mp4 in order."
+    },
+    {
+      "id": "kiosk_script_created",
+      "description": "Check if the executable bash script was created on the Desktop with the correct VLC launch parameters.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor or terminal showing the contents of '/home/ga/Desktop/start_kiosk.sh'. It must contain a command launching 'vlc' with the playlist path and flags for fullscreen (e.g., '--fullscreen' or '-f'), looping (e.g., '--loop' or '-L'), and disabling OSD/titles (e.g., '--no-osd' and '--no-video-title-show')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_transcoding_performed",
+      "description": "Ensure the agent actually processed the videos to change codecs and add the logo, rather than just renaming the original files.",
+      "visual_evidence": "Look for terminal history showing complex 'ffmpeg' commands (using filters like 'overlay' and 'scale') or the use of a GUI video converter like Handbrake."
+    },
+    {
+      "id": "correct_logo_referenced",
+      "description": "Verify that the agent used the specific museum logo provided in the instructions.",
+      "visual_evidence": "Look for the exact path '/home/ga/Pictures/museum_logo.png' in the 'ffmpeg' commands or video editor import bins."
+    },
+    {
+      "id": "genuine_script_contents",
+      "description": "Ensure the bash script and playlist were actually authored and are not just empty files.",
+      "visual_evidence": "Look for the actual text contents of 'start_kiosk.sh' and 'ocean_loop.xspf' being edited in a text editor like nano, vim, or gedit, or displayed via terminal commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected transcoded videos must be exactly 1920x1080 resolution, use the h264 video codec, and the aac audio codec. The playlist must be saved at '/home/ga/Videos/kiosk_ready/ocean_loop.xspf'. The bash script must be at '/home/ga/Desktop/start_kiosk.sh'. The logo to be burned in is located at '/home/ga/Pictures/museum_logo.png'."
+}

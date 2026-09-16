@@ -1,0 +1,39 @@
+{
+  "id": "record_prevention@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Log into Oscar EMR (Username: oscardoc, Password: oscar, PIN: 1117) and record a completed influenza vaccination for patient Maria Santos in the Prevention module. Use the following details for the record: Date: Today's date, Vaccine Name: Fluzone Quadrivalent 2024-2025, Lot Number: UJ478AA, Route: IM (Intramuscular), Injection Site: Left Deltoid, Dose: 0.5 mL, and Manufacturer: Sanofi Pasteur.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_prevention/setup_task.sh",
+    "post_task": "/workspace/tasks/record_prevention/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Maria",
+    "patient_lname": "Santos",
+    "prevention_type": "Flu",
+    "expected_vaccine": "Fluzone Quadrivalent 2024-2025",
+    "expected_lot": "UJ478AA",
+    "expected_route": "IM",
+    "expected_site": "Left Deltoid",
+    "expected_manufacturer": "Sanofi Pasteur",
+    "expected_dose": "0.5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_prevention"
+    }
+  },
+  "tags": [
+    "clinical_workflow",
+    "prevention",
+    "immunization",
+    "oscar_emr"
+  ]
+}

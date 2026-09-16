@@ -1,0 +1,53 @@
+{
+  "task_id": "insurance_claims_fraud_detection@1",
+  "task_completion": [
+    {
+      "id": "create_fraud_flags_table",
+      "description": "Create the FRAUD_FLAGS table to store detection results.",
+      "points": 10,
+      "visual_evidence": "Look for a SQL client or terminal executing a CREATE TABLE statement for FRAUD_FLAGS, or a table description showing the columns: claim_id, flag_type, severity, detection_date, and details."
+    },
+    {
+      "id": "create_fraud_detection_pkg",
+      "description": "Create the PL/SQL package FRAUD_DETECTION_PKG with the required subprograms.",
+      "points": 30,
+      "visual_evidence": "Look for SQL code being executed that creates the FRAUD_DETECTION_PKG package and its body. It must contain BENFORD_ANALYSIS (pipelined table function), FIND_STATISTICAL_OUTLIERS (function), DETECT_DUPLICATES (procedure), and DETECT_UPCODING (procedure)."
+    },
+    {
+      "id": "execute_fraud_detection",
+      "description": "Execute the fraud detection package to populate the FRAUD_FLAGS table.",
+      "points": 20,
+      "visual_evidence": "Look for PL/SQL execution blocks (e.g., BEGIN ... END;) calling the package procedures, or a SELECT query on the FRAUD_FLAGS table showing populated rows with fraud detection results."
+    },
+    {
+      "id": "create_fraud_summary_mv",
+      "description": "Create the materialized view FRAUD_SUMMARY_MV to summarize the fraud flags.",
+      "points": 20,
+      "visual_evidence": "Look for a CREATE MATERIALIZED VIEW FRAUD_SUMMARY_MV statement being executed, or a SELECT query against this materialized view showing aggregated fraud data."
+    },
+    {
+      "id": "export_fraud_report_csv",
+      "description": "Export the summary report to /home/ga/fraud_report.csv with the required columns.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window showing the contents of /home/ga/fraud_report.csv (e.g., using 'cat' or 'head'), or a spreadsheet/text editor displaying the file. The file must contain the columns: FLAG_TYPE, SEVERITY, FLAG_COUNT, and TOTAL_AMOUNT_FLAGGED."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Verify the agent interacted with the Oracle database to execute the SQL/PLSQL code.",
+      "visual_evidence": "Look for an active connection to the Oracle database (XEPDB1) via a tool like SQL*Plus, SQLcl, or a GUI client. The code must be executed, not just written in a text editor."
+    },
+    {
+      "id": "authentic_plsql_logic",
+      "description": "Verify the PL/SQL package contains actual logic matching the fraud detection rules.",
+      "visual_evidence": "Look at the package body code. It should contain mathematical/statistical logic (e.g., STDDEV, counts, chi-square calculations) rather than hardcoded mock inserts."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the CSV file was generated from the database results.",
+      "visual_evidence": "Look for evidence of a database export command (like SPOOL in SQL*Plus or a CSV export feature in a GUI client) rather than the agent manually typing out a CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "The PL/SQL package must implement specific fraud detection thresholds: Benford's Law (chi-square > 15.51), statistical outliers (> 3 stddev above provider mean), duplicates (same patient, procedure, and date within 7 days), and upcoding (> 2 stddev from population average). The implementation should use Oracle features like Pipelined Table Functions and Materialized Views. The final output must be exported to /home/ga/fraud_report.csv."
+}

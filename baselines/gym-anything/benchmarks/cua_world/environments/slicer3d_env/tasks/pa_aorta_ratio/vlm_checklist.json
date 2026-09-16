@@ -1,0 +1,71 @@
+{
+  "task_id": "pa_aorta_ratio@1",
+  "task_completion": [
+    {
+      "id": "plausible_pa_measurement",
+      "description": "Checks if the PA diameter measurement is plausible (around 31.0 mm).",
+      "points": 15,
+      "visual_evidence": "Look for a line measurement in the 3D Slicer UI or a value in the final report for the PA diameter that is approximately 28 to 34 mm."
+    },
+    {
+      "id": "plausible_aorta_measurement",
+      "description": "Checks if the ascending aorta diameter measurement is plausible (around 32.0 mm).",
+      "points": 15,
+      "visual_evidence": "Look for a line measurement in the 3D Slicer UI or a value in the final report for the aorta diameter that is approximately 29 to 35 mm."
+    },
+    {
+      "id": "measurements_distinct",
+      "description": "Checks that the PA and Aorta measurements are not identical.",
+      "points": 5,
+      "visual_evidence": "Look at the Slicer UI or the report JSON to ensure the PA and Aorta diameter values are different, indicating two separate measurements were taken."
+    },
+    {
+      "id": "pa_markup_saved",
+      "description": "Checks if the PA measurement markup was saved to the correct path.",
+      "points": 8,
+      "visual_evidence": "Look for terminal commands, file explorer, or Slicer save dialogs showing 'pa_measurement.mrk.json' being saved in '~/Documents/SlicerData/LIDC/'."
+    },
+    {
+      "id": "aorta_markup_saved",
+      "description": "Checks if the aorta measurement markup was saved to the correct path.",
+      "points": 8,
+      "visual_evidence": "Look for terminal commands, file explorer, or Slicer save dialogs showing 'aorta_measurement.mrk.json' being saved in '~/Documents/SlicerData/LIDC/'."
+    },
+    {
+      "id": "report_created_with_fields",
+      "description": "Checks if the final report JSON contains all required fields.",
+      "points": 9,
+      "visual_evidence": "Look for the contents of 'pa_aorta_report.json' showing keys: pa_diameter_mm, aorta_diameter_mm, pa_aorta_ratio, assessment, and measurement_slice_index."
+    },
+    {
+      "id": "ratio_calculated_correctly",
+      "description": "Checks if the PA:Aorta ratio is mathematically correct based on the measured diameters.",
+      "points": 20,
+      "visual_evidence": "Look at the 'pa_aorta_report.json' contents. The 'pa_aorta_ratio' value should equal the 'pa_diameter_mm' divided by the 'aorta_diameter_mm'."
+    },
+    {
+      "id": "classification_correct",
+      "description": "Checks if the assessment classifies the finding correctly based on the ratio.",
+      "points": 20,
+      "visual_evidence": "Look at the 'assessment' field in the report. It should indicate 'Normal' (or similar) since the expected ratio is < 1.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verifies the agent used the 3D Slicer GUI to perform the measurements.",
+      "visual_evidence": "Screenshots should show the 3D Slicer application open with the chest CT loaded and line markups actively placed on the axial slice."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "Verifies the measurements in the report match the actual UI measurements.",
+      "visual_evidence": "The diameter values in the final JSON report should exactly match the lengths of the line markups visible in the 3D Slicer UI."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verifies the agent didn't just guess or hardcode the exact true values without measuring.",
+      "visual_evidence": "The measurements should ideally show typical manual placement precision (e.g., 31.2 mm, 32.4 mm) rather than exactly 31.0 and 32.0, unless the UI explicitly shows those exact values."
+    }
+  ],
+  "privileged_info_for_vlm": "The synthetic CT volume has a true main pulmonary artery (PA) diameter of 31.0 mm and an ascending aorta diameter of 32.0 mm. A plausible measurement should be within a few millimeters of these values. The normal maximum PA:Aorta ratio is 1.0. Since 31.0 / 32.0 = 0.96875, the correct classification/assessment is 'Normal'."
+}

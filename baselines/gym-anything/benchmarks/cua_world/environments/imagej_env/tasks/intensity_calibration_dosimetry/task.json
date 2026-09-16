@@ -1,0 +1,39 @@
+{
+  "id": "intensity_calibration_dosimetry@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Radiochromic Film Dosimetry Calibration",
+  "description": "As a medical physicist QAing a radiation treatment plan, perform an optical density calibration on the 'Blobs (25K)' sample image to convert it into a radiation dose map. Calibrate the image intensity using a 'Straight Line' function with the following standards: Pixel Intensity 0 (Black) = 5.0 Gy, Pixel Intensity 255 (White) = 0.0 Gy, and Unit: 'Gy'. Generate measurement statistics for the calibrated image showing physical dose values. Save the calibrated image to '~/ImageJ_Data/results/calibrated_dose_map.tif' and the measurement results table to '~/ImageJ_Data/results/dose_report.csv'.",
+  "difficulty": "medium",
+  "tags": [
+    "calibration",
+    "medical-physics",
+    "dosimetry",
+    "image-processing",
+    "quantitative"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/intensity_calibration_dosimetry/setup_task.sh",
+    "post_task": "/workspace/tasks/intensity_calibration_dosimetry/export_result.sh"
+  },
+  "metadata": {
+    "expected_unit": "Gy",
+    "min_expected_max_dose": 3.0,
+    "max_expected_max_dose": 6.0,
+    "min_expected_mean_dose": 0.5,
+    "max_expected_mean_dose": 2.5,
+    "result_image_path": "/home/ga/ImageJ_Data/results/calibrated_dose_map.tif",
+    "result_csv_path": "/home/ga/ImageJ_Data/results/dose_report.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dosimetry"
+    }
+  }
+}

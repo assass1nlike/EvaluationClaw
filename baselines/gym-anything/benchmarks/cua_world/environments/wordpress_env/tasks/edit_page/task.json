@@ -1,0 +1,33 @@
+{
+  "id": "edit_page@1",
+  "version": "1.0",
+  "env_id": "wordpress_env@0.1",
+  "description": "In the WordPress admin panel, update the 'About Us' page. Change the page title to 'About Our Team' and append a new section containing a heading titled 'Our Values' and a list with the following items: Innovation, Integrity, and Excellence. Save the updates to the page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/edit_page/setup_task.sh",
+    "post_task": "/workspace/tasks/edit_page/export_result.sh"
+  },
+  "metadata": {
+    "original_title": "About Us",
+    "expected_title": "About Our Team",
+    "expected_content_keywords": [
+      "Our Values",
+      "Innovation",
+      "Integrity",
+      "Excellence"
+    ],
+    "expected_status": "publish"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_edit_page"
+    }
+  }
+}

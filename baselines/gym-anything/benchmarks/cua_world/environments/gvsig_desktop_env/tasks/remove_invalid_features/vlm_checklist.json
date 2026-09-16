@@ -1,0 +1,59 @@
+{
+  "task_id": "remove_invalid_features@1",
+  "task_completion": [
+    {
+      "id": "load_shapefile",
+      "description": "Load the 'countries_cleaning.shp' dataset into gvSIG Desktop.",
+      "points": 10,
+      "visual_evidence": "The gvSIG Desktop application is open and 'countries_cleaning' is visible in the Table of Contents (TOC) or the Project Manager window."
+    },
+    {
+      "id": "open_attribute_table",
+      "description": "Open the attribute table for the loaded shapefile.",
+      "points": 10,
+      "visual_evidence": "An attribute table window is open for the 'countries_cleaning' layer, displaying data columns including the 'POP_EST' field."
+    },
+    {
+      "id": "start_editing",
+      "description": "Enable editing mode for the shapefile.",
+      "points": 15,
+      "visual_evidence": "The layer is in editing mode, indicated by active editing tools in the toolbar, or the layer name highlighted/marked in red in the TOC."
+    },
+    {
+      "id": "select_invalid_records",
+      "description": "Identify and select the features where 'POP_EST' equals -99.",
+      "points": 20,
+      "visual_evidence": "Rows in the attribute table with '-99' in the 'POP_EST' column are highlighted (selected), or a 'Select by Attributes' / Filter dialog is visible querying for 'POP_EST = -99'."
+    },
+    {
+      "id": "delete_invalid_records",
+      "description": "Delete the selected invalid features.",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Delete row' / 'Delete selected features' button, or the previously selected rows with '-99' disappear from the attribute table."
+    },
+    {
+      "id": "save_edits",
+      "description": "Save the changes to the shapefile.",
+      "points": 25,
+      "visual_evidence": "The agent clicks 'Finish Editing' and confirms saving changes, or clicks a 'Save' button specifically for the layer edits, ensuring the shapefile is permanently updated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gvsig_gui",
+      "description": "The agent used the gvSIG Desktop graphical interface to perform the task.",
+      "visual_evidence": "Screenshots show interaction with gvSIG menus, toolbars, and attribute tables rather than terminal windows."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent did not use command-line tools or scripts to bypass GUI interaction.",
+      "visual_evidence": "No terminal windows showing commands like 'ogr2ogr', 'qgis_process', or Python scripts (e.g., geopandas) being used to filter and save the shapefile."
+    },
+    {
+      "id": "genuine_deletion",
+      "description": "The agent actually deleted the records and saved the file, rather than just applying a visual filter.",
+      "visual_evidence": "The editing tools were used to delete rows and save the file, rather than just using a display filter or symbology rule to hide the -99 values."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is '/home/ga/gvsig_data/projects/countries_cleaning.shp'. The invalid value to identify and remove is exactly '-99' in the 'POP_EST' field. There are exactly 15 invalid records containing this value that must be deleted."
+}

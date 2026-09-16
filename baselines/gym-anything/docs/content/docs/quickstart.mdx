@@ -1,0 +1,77 @@
+---
+title: Quickstart
+description: Install Gym Anything and run a first environment.
+---
+
+This page is the fastest path from clone to first successful run.
+
+## 1. Install The Runtime
+
+We recommend [uv](https://docs.astral.sh/uv/) for fast, reliable Python environment management.
+
+```bash
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -e .[all]
+```
+
+<Callout type="info">
+If you prefer plain pip, `python -m venv .venv && source .venv/bin/activate && pip install -e .[all]` works too.
+</Callout>
+
+## 2. Add Optional Secrets
+
+<Callout type="info">
+This step is only needed if you use online model providers (Anthropic, OpenAI, Google, etc.).
+</Callout>
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the keys you need.
+
+## 3. Check Your Setup
+
+```bash
+gym-anything doctor
+```
+
+This command tells you what is installed, what is missing, and interactively asks your permissions to install the missing ones (eg, docker).
+
+{/* TODO: screenshot of `gym-anything doctor` output showing a healthy setup */}
+
+## 4. Load An Environment
+
+```python
+from gym_anything import from_config
+
+env = from_config(
+    "benchmarks/cua_world/environments/moodle_env",
+    task_id="enroll_student",
+)
+
+obs = env.reset(seed=42)
+obs, reward, done, info = env.step([], mark_done=True)
+env.close()
+```
+
+## 5. Run An Example Agent
+
+```bash
+gym-anything benchmark moodle --task enroll_student --agent ClaudeAgent --model claude-opus-4
+```
+
+## 6. Go Deeper
+
+<Cards>
+  <Card icon={<Download />} title="Installation" href="/installation">
+    Fuller install checklist
+  </Card>
+  <Card icon={<Play />} title="First Run" href="/first-run">
+    A more realistic task flow
+  </Card>
+  <Card icon={<Cpu />} title="Core Overview" href="/core">
+    The core ideas behind the framework
+  </Card>
+</Cards>

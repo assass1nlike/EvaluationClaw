@@ -1,0 +1,59 @@
+{
+  "task_id": "optimize_dashboard_base_searches@1",
+  "task_completion": [
+    {
+      "id": "access_splunk_dashboard",
+      "description": "Log into Splunk and navigate to the 'Security_Executive_Overview' dashboard.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows the Splunk Web UI with the 'Security_Executive_Overview' dashboard open."
+    },
+    {
+      "id": "open_xml_editor",
+      "description": "Open the dashboard's XML source code for editing.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows the Splunk dashboard edit mode, specifically with the 'Source' tab selected, displaying the XML code."
+    },
+    {
+      "id": "create_base_search",
+      "description": "Create a single global base search querying the security logs.",
+      "points": 25,
+      "visual_evidence": "In the XML source, there is a `<search id=\"...\">` block (outside of the individual `<panel>` blocks) containing `<query>index=security_logs</query>`."
+    },
+    {
+      "id": "configure_time_range",
+      "description": "Set the time range of the global base search to -30d@d to now.",
+      "points": 20,
+      "visual_evidence": "Within the global base search XML block, there are tags specifying the time range: `<earliest>-30d@d</earliest>` and `<latest>now</latest>`."
+    },
+    {
+      "id": "refactor_panels",
+      "description": "Update all four panels to reference the base search as post-process commands.",
+      "points": 25,
+      "visual_evidence": "In the XML source, the individual panel `<search>` blocks have been updated to use the base search (e.g., `<search base=\"YOUR_BASE_SEARCH_ID\">`) instead of containing independent `index=security_logs` queries."
+    },
+    {
+      "id": "save_dashboard",
+      "description": "Save the dashboard and ensure it renders correctly.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows the saved dashboard in view mode with all 4 panels successfully loading or displaying data without errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_usage",
+      "description": "The agent used a web browser to access and edit the Splunk dashboard via the GUI.",
+      "visual_evidence": "Screenshots show a standard web browser interface navigating to http://localhost:8000, rather than terminal-based text editors modifying files directly."
+    },
+    {
+      "id": "panel_count_maintained",
+      "description": "The agent did not delete panels to bypass the refactoring requirement.",
+      "visual_evidence": "The final saved dashboard clearly displays exactly 4 distinct panels."
+    },
+    {
+      "id": "genuine_dashboard_render",
+      "description": "The dashboard renders actual Splunk UI elements and data.",
+      "visual_evidence": "The visualizations show authentic Splunk charts/tables and UI chrome, not a static HTML mockup or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target dashboard is 'Security_Executive_Overview'. The global base search must query the 'security_logs' index. The dashboard must maintain exactly 4 panels. Splunk credentials are 'admin' / 'SplunkAdmin1!'."
+}

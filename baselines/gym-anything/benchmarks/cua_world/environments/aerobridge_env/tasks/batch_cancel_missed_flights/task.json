@@ -1,0 +1,26 @@
+{
+  "id": "batch_cancel_missed_flights@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "The Operations Director needs to clean up the dashboard by addressing 'missed' flight plans—flights scheduled for the past that never occurred and remain in 'Planned' status. Create and execute a Python script named /home/ga/Documents/cancel_missed_flights.py that uses Django's ORM to identify all FlightPlan records where the end_datetime is in the past and the status is 'Planned'. Update these records to 'Cancelled' status and record their UUIDs in a log file at /home/ga/Documents/cancelled_flights.log. Ensure that flights already marked as 'Completed' or those scheduled for the future remain unchanged.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/batch_cancel_missed_flights/setup_task.sh",
+    "post_task": "/workspace/tasks/batch_cancel_missed_flights/export_result.sh"
+  },
+  "metadata": {
+    "log_file_path": "/home/ga/Documents/cancelled_flights.log",
+    "script_path": "/home/ga/Documents/cancel_missed_flights.py"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_batch_cancel_missed_flights"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_tag_distributed_documents@1",
+  "task_completion": [
+    {
+      "id": "identify_target_documents",
+      "description": "The agent locates the documents containing 'Legacy Policy' in their titles.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent entering 'Legacy Policy' into the Nuxeo search bar, or navigating through workspaces (Projects, Templates, DeepStorage) to view lists of documents containing the target files."
+    },
+    {
+      "id": "tag_legacy_policy_2020",
+      "description": "The agent applies the 'to_archive' tag to the 'Legacy Policy 2020 - HR' document.",
+      "points": 20,
+      "visual_evidence": "The document titled 'Legacy Policy 2020 - HR' is open or selected, and the tag 'to_archive' is visibly added to its tags section in the Nuxeo UI."
+    },
+    {
+      "id": "tag_legacy_policy_template",
+      "description": "The agent applies the 'to_archive' tag to the 'Legacy Policy Template v1' document.",
+      "points": 20,
+      "visual_evidence": "The document titled 'Legacy Policy Template v1' is open or selected, and the tag 'to_archive' is visibly added to its tags section in the Nuxeo UI."
+    },
+    {
+      "id": "tag_legacy_policy_draft",
+      "description": "The agent applies the 'to_archive' tag to the 'Legacy Policy Draft (Scanned)' document.",
+      "points": 20,
+      "visual_evidence": "The document titled 'Legacy Policy Draft (Scanned)' is open or selected, and the tag 'to_archive' is visibly added to its tags section in the Nuxeo UI."
+    },
+    {
+      "id": "preserve_active_policy_state",
+      "description": "The agent does not apply the 'to_archive' tag to the 'Active Policy' document.",
+      "points": 30,
+      "visual_evidence": "The document titled 'Active Policy 2024 - Remote Work' is either completely ignored by the agent during the tagging process, or if opened/viewed, the 'to_archive' tag is NOT present in its tags section."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Nuxeo web interface to apply tags rather than terminal commands.",
+      "visual_evidence": "Screenshots show interaction with the Nuxeo web UI in a browser. There should be no terminal windows executing curl commands or API requests to Nuxeo."
+    },
+    {
+      "id": "correct_tag_field_used",
+      "description": "The agent used the actual Nuxeo tagging feature.",
+      "visual_evidence": "The 'to_archive' text is entered into the specific tagging UI component (typically a pill-shaped tag input area), not just typed into a document description, comment, or text editor."
+    },
+    {
+      "id": "no_automated_scripts",
+      "description": "The agent did not use scripts to bypass manual UI interaction.",
+      "visual_evidence": "No terminal windows showing Python, Bash, or Node.js scripts being written or executed to bulk-tag the documents via the Nuxeo REST API."
+    }
+  ],
+  "privileged_info_for_vlm": "The target tag to apply is exactly 'to_archive'. There are three documents that MUST be tagged: 1) 'Legacy Policy 2020 - HR' (located in Projects workspace), 2) 'Legacy Policy Template v1' (located in Templates workspace), and 3) 'Legacy Policy Draft (Scanned)' (located in DeepStorage workspace). There is one document that MUST NOT be tagged: 'Active Policy 2024 - Remote Work' (located in Projects workspace)."
+}

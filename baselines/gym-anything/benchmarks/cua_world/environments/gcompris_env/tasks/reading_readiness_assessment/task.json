@@ -1,0 +1,31 @@
+{
+  "id": "reading_readiness_assessment@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "You are a literacy specialist at Oakwood Unified School District assessing GCompris for use in a kindergarten reading readiness program. Explore the Letters, Words, and Vocabulary sub-tabs within the Language/Reading section of GCompris, interacting with at least 4 different activities to evaluate their instructional approach. Document your findings in a formal Reading Readiness Assessment Report at ~/Desktop/reading_readiness_report.txt. The report must include labeled sections for each sub-tab listing all visible activity names, the reading skills targeted, and suitability recommendations for kindergartners (ages 4-6). Login: ga / password123",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reading_readiness_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/reading_readiness_assessment/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Desktop/reading_readiness_report.txt",
+    "occupation": "Literacy Specialist / Kindergarten Teacher",
+    "required_sections": [
+      "Letters",
+      "Words",
+      "Vocabulary"
+    ],
+    "min_report_bytes": 400
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reading_readiness_assessment"
+    }
+  }
+}

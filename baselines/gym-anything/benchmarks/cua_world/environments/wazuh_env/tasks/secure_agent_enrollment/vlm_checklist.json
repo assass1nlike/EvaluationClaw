@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_agent_enrollment@1",
+  "task_completion": [
+    {
+      "id": "create_password_file",
+      "description": "Verify the password file was created with the correct password content.",
+      "points": 20,
+      "visual_evidence": "Terminal output of a command like 'cat /var/ossec/etc/authd.pass' showing the exact string 'SecuRe!Enroll2024'."
+    },
+    {
+      "id": "verify_file_ownership",
+      "description": "Verify the password file is owned by the wazuh user and group.",
+      "points": 15,
+      "visual_evidence": "Terminal output of 'ls -l /var/ossec/etc/authd.pass' (or similar) showing 'wazuh wazuh' in the owner and group columns."
+    },
+    {
+      "id": "verify_file_permissions",
+      "description": "Verify the password file has secure permissions of 640 or 600.",
+      "points": 15,
+      "visual_evidence": "Terminal output of 'ls -l /var/ossec/etc/authd.pass' showing the permission string as either '-rw-r-----' (640) or '-rw-------' (600)."
+    },
+    {
+      "id": "enable_use_password",
+      "description": "Verify password usage is enabled in the ossec.conf file.",
+      "points": 20,
+      "visual_evidence": "Terminal output (via cat, grep, or a text editor) of '/var/ossec/etc/ossec.conf' showing the line '<use_password>yes</use_password>' nested within the '<auth>' block."
+    },
+    {
+      "id": "enable_force_insert",
+      "description": "Verify forced insertion is enabled in the ossec.conf file.",
+      "points": 15,
+      "visual_evidence": "Terminal output (via cat, grep, or a text editor) of '/var/ossec/etc/ossec.conf' showing the line '<force_insert>yes</force_insert>' nested within the '<auth>' block."
+    },
+    {
+      "id": "verify_service_listening",
+      "description": "Verify the authd service is active and listening on port 1515.",
+      "points": 15,
+      "visual_evidence": "Terminal output of a network command like 'netstat -tuln', 'ss -tuln', or 'lsof -i :1515' showing port 1515 in a 'LISTEN' state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_interaction",
+      "description": "Verify the agent executed commands in a real terminal environment.",
+      "visual_evidence": "Presence of standard shell prompts, command execution history, and standard system output formats rather than just echoing expected text."
+    },
+    {
+      "id": "correct_container_context",
+      "description": "Verify the agent interacted with the correct Docker container.",
+      "visual_evidence": "Commands showing 'docker exec' into 'wazuh-wazuh.manager-1' or a shell prompt indicating the user is operating inside the Wazuh manager container."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the configuration file was genuinely edited.",
+      "visual_evidence": "Screenshots showing a text editor (like nano or vim) open with ossec.conf, or valid shell commands (like sed/echo) modifying the file, rather than a script just printing the final expected state."
+    }
+  ],
+  "privileged_info_for_vlm": "Target password must be exactly 'SecuRe!Enroll2024'. Password file must be located at '/var/ossec/etc/authd.pass'. Configuration file must be located at '/var/ossec/etc/ossec.conf'. The Wazuh manager container name is 'wazuh-wazuh.manager-1'."
+}

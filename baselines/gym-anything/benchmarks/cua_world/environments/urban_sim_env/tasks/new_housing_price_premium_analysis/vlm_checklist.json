@@ -1,0 +1,59 @@
+{
+  "task_id": "new_housing_price_premium_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_and_data_load",
+      "description": "Open the specified Jupyter notebook and load the San Francisco public dataset.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook open at '/home/ga/urbansim_projects/notebooks/new_construction_premium.ipynb' with a code cell showing the loading of '/home/ga/urbansim_projects/data/sanfran_public.h5' (e.g., using pandas read_hdf)."
+    },
+    {
+      "id": "data_filtering_and_grouping",
+      "description": "Filter data by vintage year and minimum unit counts per zone.",
+      "points": 20,
+      "visual_evidence": "Code cells showing filtering logic for 'year_built >= 2000' (new) and 'year_built < 2000' (existing), grouping by 'zone_id', and applying the minimum thresholds of 20 new units and 50 existing units."
+    },
+    {
+      "id": "csv_export",
+      "description": "Calculate median prices and premium ratio, then export to CSV.",
+      "points": 20,
+      "visual_evidence": "A code cell showing the calculation of the price premium ratio and an export to '/home/ga/urbansim_projects/output/zone_premium_analysis.csv'. A preview of the dataframe should display columns: zone_id, new_units, existing_units, median_price_new, median_price_existing, price_premium_ratio."
+    },
+    {
+      "id": "scatter_plot_generation",
+      "description": "Generate and save a scatter plot of median prices.",
+      "points": 20,
+      "visual_evidence": "A scatter plot visible in the notebook output comparing median prices, with code saving it to '/home/ga/urbansim_projects/output/premium_scatter.png'."
+    },
+    {
+      "id": "bar_chart_generation",
+      "description": "Generate and save a bar chart of the top 10 zones with the highest premium ratios.",
+      "points": 20,
+      "visual_evidence": "A bar chart visible in the notebook output showing the top 10 zones by premium ratio, with code saving it to '/home/ga/urbansim_projects/output/top_premium_zones.png'."
+    },
+    {
+      "id": "cells_executed_with_outputs",
+      "description": "Ensure all notebook cells are executed with visible outputs.",
+      "points": 10,
+      "visual_evidence": "All code cells in the notebook have execution numbers (e.g., '[1]', '[2]') indicating they were run, and the resulting dataframes or plots are visible directly beneath them."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_notebook_execution",
+      "description": "Verify the agent used Jupyter Notebook to execute Python code rather than creating the files via terminal echo commands or external scripts.",
+      "visual_evidence": "The Jupyter Notebook interface should show active execution states, syntax highlighting, and inline outputs corresponding to the code."
+    },
+    {
+      "id": "real_data_usage",
+      "description": "Verify the agent actually processed the provided .h5 dataset.",
+      "visual_evidence": "The code must reference the 'sanfran_public.h5' file and perform pandas operations on it, rather than creating a mock dataframe with hardcoded values."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not hardcode the final output tables or plots.",
+      "visual_evidence": "The outputs (CSV, scatter plot, bar chart) must be the direct result of pandas and matplotlib/seaborn functions applied to the loaded dataset, with no manually typed arrays of final answers."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified paths: Notebook at /home/ga/urbansim_projects/notebooks/new_construction_premium.ipynb, Data at /home/ga/urbansim_projects/data/sanfran_public.h5. Expected outputs: /home/ga/urbansim_projects/output/zone_premium_analysis.csv, /home/ga/urbansim_projects/output/premium_scatter.png, /home/ga/urbansim_projects/output/top_premium_zones.png. CSV must contain columns: zone_id, new_units, existing_units, median_price_new, median_price_existing, price_premium_ratio. Filtering requires >= 20 new units, >= 50 existing units, and vintage cutoff year 2000. Note: 'zone_id' resides in the 'parcels' table, not 'buildings', so the agent must join the 'buildings' table with 'parcels' to correctly extract the zones. If the agent fails to join these tables, their analysis is mathematically invalid even if it runs."
+}

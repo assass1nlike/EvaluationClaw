@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_clinical_cohort_report@1",
+  "task_completion": [
+    {
+      "id": "librehealth_login",
+      "description": "Log in to LibreHealth EHR",
+      "points": 10,
+      "visual_evidence": "A web browser showing the LibreHealth EHR login screen with credentials entered, or the main LibreHealth EHR dashboard visible after a successful login."
+    },
+    {
+      "id": "search_diagnosis",
+      "description": "Search for patients with 'Chronic Fatigue Syndrome'",
+      "points": 20,
+      "visual_evidence": "A search interface, reporting tool, or patient list within LibreHealth EHR where 'Chronic Fatigue Syndrome' (or related ICD-10 codes like R53.82 or G93.32) is entered as the filter or search query."
+    },
+    {
+      "id": "view_patient_cohort",
+      "description": "View the identified patient cohort",
+      "points": 30,
+      "visual_evidence": "A table, report, or list of patients displayed in the EHR interface showing the results of the diagnosis query."
+    },
+    {
+      "id": "initiate_csv_export",
+      "description": "Export or compile the cohort details into a CSV format",
+      "points": 20,
+      "visual_evidence": "An export dialog, a 'Save As' prompt for a CSV file, or a spreadsheet/text editor open with the patient names formatted as comma-separated values."
+    },
+    {
+      "id": "verify_csv_path",
+      "description": "Save the CSV file to the expected path",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal window, or save dialog showing the file named 'cohort_report.csv' located exactly in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent interacted with the LibreHealth EHR web interface rather than bypassing it via direct database queries.",
+      "visual_evidence": "Screenshots should show a web browser navigating the LibreHealth EHR UI, rather than terminal windows executing MySQL commands."
+    },
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent did not cheat by reading the ground truth files.",
+      "visual_evidence": "No terminal commands, file manager windows, or text editors should show access to the '/var/lib/app/ground_truth' directory or files like 'expected_targets.txt'."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "The agent extracted data from the EHR rather than fabricating it.",
+      "visual_evidence": "The names being saved to the CSV should visibly match the names displayed in the LibreHealth EHR search results."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/Documents/cohort_report.csv'. The target diagnosis is 'Chronic Fatigue Syndrome'. The dataset contains 3 randomly selected target patients who have this diagnosis and 2 control patients who do not. The exact patient names are randomized per run, so the VLM should look for evidence of a genuine search and export process within the LibreHealth EHR web interface rather than expecting specific hardcoded names. The agent must not access '/var/lib/app/ground_truth'."
+}

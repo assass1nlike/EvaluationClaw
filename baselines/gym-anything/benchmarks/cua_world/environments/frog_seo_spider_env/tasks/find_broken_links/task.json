@@ -1,0 +1,26 @@
+{
+  "id": "find_broken_links@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Identify broken links (404 errors) on https://crawler-test.com/links/broken_links using Screaming Frog SEO Spider. Identify at least one 404 error and export the client error (4xx) report to /home/ga/Documents/broken_links.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/find_broken_links/setup_task.sh",
+    "post_task": "/workspace/tasks/find_broken_links/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/links/broken_links",
+    "expected_status_code": 404
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_find_broken_links"
+    }
+  }
+}

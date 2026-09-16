@@ -1,0 +1,29 @@
+{
+  "id": "hyperstack_reconstruction@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a bioimage analyst. Reconstruct a 4D Hyperstack from raw TIFF files located at `~/Fiji_Data/raw/BBBC005/` for a specific field of view (Well: A01, Cell Density: C1, Site: s1). The raw data contains 2 channels (w1=Nuclear, w2=Cell Body) and multiple focal planes. The resulting hyperstack should be organized in xyCZT order with 2 channels and 1 timeframe. Save the reconstructed hyperstack to `~/Fiji_Data/results/reconstructed_hyperstack.tif`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hyperstack_reconstruction/setup_task.sh",
+    "post_task": "/workspace/tasks/hyperstack_reconstruction/export_result.sh"
+  },
+  "metadata": {
+    "input_dir": "~/Fiji_Data/raw/BBBC005/",
+    "output_path": "~/Fiji_Data/results/reconstructed_hyperstack.tif",
+    "expected_channels": 2,
+    "expected_frames": 1,
+    "filename_pattern": "A01_C1_.*_s1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hyperstack_reconstruction"
+    }
+  }
+}

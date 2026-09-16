@@ -1,0 +1,59 @@
+{
+  "task_id": "ccda_allergy_extraction@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a NextGen Connect channel named 'CCDA_Allergy_Parser'",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'CCDA_Allergy_Parser' in the NextGen Connect Administrator Channels list or Channel Summary tab."
+    },
+    {
+      "id": "source_directory_and_polling",
+      "description": "Configure the source to poll from '/home/ga/ccda_input' every 1000ms",
+      "points": 15,
+      "visual_evidence": "In the Source tab, the Reader type should be 'File Reader' (or similar), the Directory should be set to '/home/ga/ccda_input', and the Polling Frequency should be set to 1000 ms."
+    },
+    {
+      "id": "source_auto_delete",
+      "description": "Configure the source to auto-delete processed files",
+      "points": 10,
+      "visual_evidence": "In the Source tab, the 'After Processing Action' (or similar file handling setting) should be set to 'Delete'."
+    },
+    {
+      "id": "extraction_logic",
+      "description": "Extract patient name and allergy details using specified XML paths and templateId",
+      "points": 30,
+      "visual_evidence": "In the Source Transformer or Destination Transformer, look for JavaScript or Mapper steps that reference the XML path 'recordTarget/patientRole/patient/name' and the allergy section templateId '2.16.840.1.113883.10.20.22.2.6.1'."
+    },
+    {
+      "id": "destination_directory",
+      "description": "Configure the destination to write to '/home/ga/allergy_output'",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab, the Writer type should be 'File Writer', and the Directory should be set to '/home/ga/allergy_output'."
+    },
+    {
+      "id": "json_output_format",
+      "description": "Format the output as the specified JSON structure",
+      "points": 20,
+      "visual_evidence": "In the Destination Template or a JavaScript transformer step, look for the JSON structure being built: {\"patient\": ..., \"allergies\": [{\"substance\": ..., \"reaction\": ..., \"status\": ...}]}."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_nextgen_connect_gui",
+      "description": "The agent used the NextGen Connect Administrator GUI to build the channel",
+      "visual_evidence": "Screenshots should show interaction with the NextGen Connect (Mirth Connect) Administrator Java application, not just a standalone Python script or text editor."
+    },
+    {
+      "id": "no_hardcoded_sample_data",
+      "description": "The agent did not hardcode the sample data into the output",
+      "visual_evidence": "The transformer scripts or destination templates should use variables or XML extraction paths, and should NOT contain hardcoded strings like 'John Doe', 'Penicillin', or 'Hives'."
+    },
+    {
+      "id": "no_manual_output_creation",
+      "description": "The agent did not manually create the output JSON file",
+      "visual_evidence": "Terminal or text editor windows should not show the agent manually writing a JSON file to '/home/ga/allergy_output' to bypass the NextGen Connect channel."
+    }
+  ],
+  "privileged_info_for_vlm": "The channel must be named 'CCDA_Allergy_Parser'. Input directory is '/home/ga/ccda_input' and output directory is '/home/ga/allergy_output'. The sample file at '/home/ga/Documents/sample_ccda.xml' contains patient 'John Doe' with a 'Penicillin' allergy and 'Hives' reaction. Ensure the agent's extraction logic uses the specified XML paths and templateId ('2.16.840.1.113883.10.20.22.2.6.1') rather than hardcoding the sample data."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "summary_index_auth_metrics@1",
+  "task_completion": [
+    {
+      "id": "auth_summary_index_created",
+      "description": "Verify that the 'auth_summary' index has been created in Splunk.",
+      "points": 15,
+      "visual_evidence": "Look for the Splunk 'Indexes' settings page (Settings > Indexes) showing 'auth_summary' in the list of indexes."
+    },
+    {
+      "id": "saved_search_created",
+      "description": "Verify that a saved search named 'Auth_Metrics_Collector' has been created.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Searches, reports, and alerts' page or a saved search configuration screen showing the name 'Auth_Metrics_Collector'."
+    },
+    {
+      "id": "search_query_logic",
+      "description": "Verify the search query aggregates from 'security_logs' and uses the 'collect' command to route to 'auth_summary'.",
+      "points": 25,
+      "visual_evidence": "Look at the search string in the Splunk search bar or saved search edit window. It must contain 'index=\"security_logs\"' (or similar), an aggregation command (like stats, timechart, or sistats), and end with '| collect index=\"auth_summary\"' (or similar syntax)."
+    },
+    {
+      "id": "search_schedule_configured",
+      "description": "Verify the saved search is scheduled to run every 4 hours.",
+      "points": 20,
+      "visual_evidence": "Look for the schedule settings of the 'Auth_Metrics_Collector' saved search. The cron schedule should be explicitly set to '0 */4 * * *' or the UI should indicate it runs 'Every 4 hours'."
+    },
+    {
+      "id": "summary_events_populated",
+      "description": "Verify that the 'auth_summary' index contains at least one pre-computed summary event.",
+      "points": 25,
+      "visual_evidence": "Look for a Splunk search execution screen where the query is 'index=\"auth_summary\"' (or similar) and the results table/list shows at least one event returned, indicating the collect command successfully populated the index."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "splunk_ui_used",
+      "description": "Verify the agent interacted with the Splunk Web UI rather than just editing configuration files via terminal.",
+      "visual_evidence": "Screenshots should show the Splunk Enterprise web interface (typically with the Splunk logo, navigation bar, and dark/light theme UI elements) loaded in a web browser at localhost:8000."
+    },
+    {
+      "id": "genuine_search_execution",
+      "description": "Verify that the summary events are genuine Splunk search results and not manually mocked data.",
+      "visual_evidence": "The events shown in the 'auth_summary' index should have standard Splunk fields (like _time, host, source, sourcetype) and formatting consistent with the Splunk Search & Reporting app."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "Verify the agent did not bypass the Splunk UI by just using curl commands or script injections to fake the task completion.",
+      "visual_evidence": "The trajectory should show the agent navigating through the Splunk UI menus (Settings > Indexes, Search, Save As > Report/Alert) rather than exclusively operating in a terminal window."
+    }
+  ],
+  "privileged_info_for_vlm": "Target index name: 'auth_summary'. Saved search name: 'Auth_Metrics_Collector'. Source index: 'security_logs'. Cron schedule: '0 */4 * * *'. The search query must contain 'index=security_logs' (or similar) and '| collect index=auth_summary'."
+}

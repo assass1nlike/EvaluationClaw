@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_folding_wingtip_clearance@1",
+  "task_completion": [
+    {
+      "id": "open_openvsp_model",
+      "description": "Open the eCRM-001_wing_tail.vsp3 model in OpenVSP",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application window is open, and the 3D workspace displays the loaded aircraft wing and tail geometry."
+    },
+    {
+      "id": "access_wing_section_tab",
+      "description": "Select the 'Wing' component and navigate to its Section tab",
+      "points": 10,
+      "visual_evidence": "In the OpenVSP Geometry Browser, the 'Wing' component is highlighted/selected, and the component properties window has the 'Sect' (Section) tab active."
+    },
+    {
+      "id": "split_wing_section",
+      "description": "Split the outermost wing section into two separate panels",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Split' button in the Section tab while the outermost section is selected, or the total number of sections for the Wing component has increased by one."
+    },
+    {
+      "id": "fold_wingtip_90_degrees",
+      "description": "Set the Dihedral angle of the new outermost section to 90.0 degrees",
+      "points": 20,
+      "visual_evidence": "The Dihedral parameter for the outermost section is set to 90.0 in the properties window, and the 3D view clearly shows the wingtip folded straight up vertically."
+    },
+    {
+      "id": "save_folded_model",
+      "description": "Save the modified model to eCRM_folded.vsp3",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog box or terminal command shows the model being saved to the path /home/ga/Documents/OpenVSP/eCRM_folded.vsp3."
+    },
+    {
+      "id": "create_span_report",
+      "description": "Write a report containing the new total span to gate_span_report.txt",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal shows the creation of /home/ga/Desktop/gate_span_report.txt, containing a numerical value representing the new projected wingspan."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openvsp_gui",
+      "description": "The agent used the OpenVSP GUI to modify the model geometry",
+      "visual_evidence": "Screenshots should show interaction with the OpenVSP graphical interface (menus, properties windows) rather than the agent directly editing the .vsp3 XML file in a text editor."
+    },
+    {
+      "id": "used_split_feature",
+      "description": "The agent used the built-in section split feature",
+      "visual_evidence": "The agent must use the 'Split' button within the Wing's Section tab, rather than manually adding a new separate wing component to act as the folded tip."
+    },
+    {
+      "id": "genuine_report_file",
+      "description": "The agent actually created the report file on the Desktop",
+      "visual_evidence": "The file gate_span_report.txt must be visibly created and saved to the Desktop directory, not just printed as text in the terminal or chat interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline 'Wing' component in the provided .vsp3 file actually has a TotalSpan of 454.34 units. The reported folded span in gate_span_report.txt should be mathematically consistent with folding the outermost section of this 454.34 unit wing. Do not penalize if the reported span is not between 30.0 and 55.0, as long as it reflects the correct fold of the provided model."
+}

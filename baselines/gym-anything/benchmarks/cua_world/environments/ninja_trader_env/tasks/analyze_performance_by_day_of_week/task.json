@@ -1,0 +1,35 @@
+{
+  "id": "analyze_performance_by_day_of_week@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Perform a Period Analysis on a strategy backtest for 'SampleMACrossover' on 'SPY' using Daily data from 1/1/2023 to 12/30/2024 with parameters Fast=10 and Slow=25. Generate performance statistics grouped by 'Day of Week' and export the resulting grid to C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\day_of_week_stats.csv. Save the workspace upon completion.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_performance_by_day_of_week\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_performance_by_day_of_week\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\day_of_week_stats.csv",
+    "strategy_name": "SampleMACrossover",
+    "instrument": "SPY",
+    "required_rows": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "min_trades": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_performance"
+    }
+  }
+}

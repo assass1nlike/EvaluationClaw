@@ -1,0 +1,28 @@
+{
+  "id": "fix_jpa_entity_mappings@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Fix the JPA Entity mappings in a Spring Boot application to match the SQL schema defined in src/main/resources/schema.sql. The project currently builds but fails at runtime and during testing due to mismatches between the Java Entity classes and the database tables. Align Category.java and Product.java with the provided schema, ensuring all fields and relationships are correctly mapped. The task is complete when all tests in MappingIntegrationTest pass.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_jpa_entity_mappings/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_jpa_entity_mappings/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/inventory-orm",
+    "schema_file": "src/main/resources/schema.sql",
+    "product_entity": "src/main/java/com/example/inventory/model/Product.java",
+    "category_entity": "src/main/java/com/example/inventory/model/Category.java"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_jpa_entity_mappings"
+    }
+  }
+}

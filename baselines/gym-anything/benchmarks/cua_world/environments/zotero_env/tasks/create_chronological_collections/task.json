@@ -1,0 +1,55 @@
+{
+  "id": "create_chronological_collections@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A historian of science needs their library organized by era. Organize the 18 papers in your Zotero library into three collections based on their publication year: \"Pre-1950 Foundations\" (for papers published before 1950), \"1950-1999 Classical\" (for papers published from 1950 to 1999 inclusive), and \"2000s and Beyond\" (for papers published in 2000 or later). Ensure every paper is assigned to exactly one of these collections.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_chronological_collections/setup_task.sh",
+    "post_task": "/workspace/tasks/create_chronological_collections/export_result.sh"
+  },
+  "metadata": {
+    "collections": {
+      "pre_1950": "Pre-1950 Foundations",
+      "classical": "1950-1999 Classical",
+      "modern": "2000s and Beyond"
+    },
+    "papers": {
+      "pre_1950": [
+        "On the Electrodynamics of Moving Bodies",
+        "On Computable Numbers, with an Application to the Entscheidungsproblem",
+        "An Unsolvable Problem of Elementary Number Theory",
+        "A Mathematical Theory of Communication",
+        "The Mathematical Theory of Communication"
+      ],
+      "classical": [
+        "Computing Machinery and Intelligence",
+        "A Method for the Construction of Minimum-Redundancy Codes",
+        "Molecular Structure of Nucleic Acids: A Structure for Deoxyribose Nucleic Acid",
+        "A Note on Two Problems in Connexion with Graphs",
+        "Recursive Functions of Symbolic Expressions and Their Computation by Machine, Part I"
+      ],
+      "modern": [
+        "ImageNet Classification with Deep Convolutional Neural Networks",
+        "Generative Adversarial Nets",
+        "Deep Learning",
+        "Deep Residual Learning for Image Recognition",
+        "Mastering the Game of Go with Deep Neural Networks and Tree Search",
+        "Attention Is All You Need",
+        "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+        "Language Models are Few-Shot Learners"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_chronological_collections"
+    }
+  }
+}

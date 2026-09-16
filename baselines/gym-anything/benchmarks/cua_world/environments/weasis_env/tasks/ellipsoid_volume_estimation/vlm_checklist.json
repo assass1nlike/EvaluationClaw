@@ -1,0 +1,53 @@
+{
+  "task_id": "ellipsoid_volume_estimation@1",
+  "task_completion": [
+    {
+      "id": "measurements_visible",
+      "description": "Measurement lines are drawn on the bright central mass in the CT scan.",
+      "points": 20,
+      "visual_evidence": "Look for a medical image viewer or the exported screenshot showing a CT scan with a bright central mass. There should be measurement lines (typically two orthogonal lines, as the image is 2D) drawn across the mass."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "The screenshot of the measurements is saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output (e.g., 'ls'), a file manager, or an image viewer confirming that a file named 'volume_measurements.png' exists in the '~/DICOM/exports/' directory."
+    },
+    {
+      "id": "json_created",
+      "description": "The JSON report file is created at the correct path.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output, a file manager, or a text editor confirming that a file named 'volume_report.json' exists in the '~/DICOM/exports/' directory."
+    },
+    {
+      "id": "json_keys_present",
+      "description": "The JSON report contains the exact required keys.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the JSON file (visible in a text editor, terminal 'cat' output, etc.) and verify it contains exactly these keys: 'axis_1_mm', 'axis_2_mm', 'axis_3_mm', and 'volume_mm3'."
+    },
+    {
+      "id": "json_values_valid",
+      "description": "The JSON report contains valid numerical dimensions and a mathematically consistent volume.",
+      "points": 30,
+      "visual_evidence": "Examine the numerical values in the JSON file. Verify that all three axis values are greater than 5.0. Then, verify that 'volume_mm3' is approximately equal to (axis_1_mm * axis_2_mm * axis_3_mm * 0.52) within a 5% tolerance."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_measurement_tool",
+      "description": "The agent used a genuine measurement tool within an image viewer.",
+      "visual_evidence": "Check that the measurement lines look like standard medical viewer annotations (e.g., straight lines with tick marks or length labels in mm), rather than crudely drawn lines from a basic paint program."
+    },
+    {
+      "id": "authentic_screenshot",
+      "description": "The exported screenshot genuinely depicts the task's CT scan.",
+      "visual_evidence": "Verify that 'volume_measurements.png' actually shows the CT scan with the central bright mass and measurement overlays, not a blank image, an unrelated screenshot, or a text document."
+    },
+    {
+      "id": "derived_volume_calculation",
+      "description": "The volume is calculated from the reported dimensions rather than hardcoded.",
+      "visual_evidence": "Ensure the reported volume in the JSON mathematically aligns with the three reported axes using the 0.52 multiplier, indicating the agent actually performed the calculation instead of guessing or hallucinating a random number."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected JSON path is '/home/ga/DICOM/exports/volume_report.json' and the screenshot path is '/home/ga/DICOM/exports/volume_measurements.png'. The JSON must contain the exact keys: 'axis_1_mm', 'axis_2_mm', 'axis_3_mm', and 'volume_mm3'. Each reported axis dimension must be strictly greater than 5.0 mm. The reported volume must equal the product of the three axes multiplied by the standard ellipsoid formula multiplier of 0.52, within a 5% tolerance. Note: Because the CT scan is a 2D image, the agent can only visually measure two dimensions and must hypothesize the third dimension; you should evaluate the mathematical consistency of the reported numbers (L * W * H * 0.52) rather than their physical accuracy against the 2D image."
+}

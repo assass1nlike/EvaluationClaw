@@ -1,0 +1,59 @@
+{
+  "task_id": "ci_pipeline_for_flask_api@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_pipelines",
+      "description": "Navigate to the Pipelines section in the TailwindTraders project.",
+      "points": 10,
+      "visual_evidence": "The Azure DevOps web interface is visible with 'TailwindTraders' as the active project and the 'Pipelines' tab selected from the left sidebar."
+    },
+    {
+      "id": "select_repository",
+      "description": "Select the TailwindTraders repository for the new pipeline.",
+      "points": 10,
+      "visual_evidence": "The pipeline creation wizard shows 'TailwindTraders' selected as the target repository, or the YAML editor indicates it is editing a pipeline for the TailwindTraders repo."
+    },
+    {
+      "id": "configure_triggers",
+      "description": "Configure the pipeline to trigger on pushes to main and pull requests targeting main.",
+      "points": 20,
+      "visual_evidence": "The pipeline YAML editor shows a `trigger:` section including `main` and a `pr:` section including `main`."
+    },
+    {
+      "id": "configure_python_version",
+      "description": "Configure the pipeline to use Python 3.11.",
+      "points": 20,
+      "visual_evidence": "The pipeline YAML editor shows a task (like `UsePythonVersion@0`) with the version specified as '3.11'."
+    },
+    {
+      "id": "configure_dependencies_and_tests",
+      "description": "Configure the pipeline to install dependencies from requirements.txt and execute pytest on the tests/ directory.",
+      "points": 20,
+      "visual_evidence": "The pipeline YAML editor shows script steps containing commands to run `pip install -r requirements.txt` and `pytest tests/`."
+    },
+    {
+      "id": "save_and_run_pipeline",
+      "description": "Save and run the newly created pipeline.",
+      "points": 20,
+      "visual_evidence": "A pipeline run summary page, job logs, or a status indicator showing that the pipeline has been saved and a run has been initiated in Azure DevOps."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "azure_devops_interface",
+      "description": "The agent used the Azure DevOps web interface to create the pipeline.",
+      "visual_evidence": "The browser URL shows `http://localhost/DefaultCollection` and the standard Azure DevOps UI is used, rather than a local text editor or IDE."
+    },
+    {
+      "id": "actual_pipeline_creation",
+      "description": "The pipeline was genuinely created and saved in the system.",
+      "visual_evidence": "The pipeline appears in the list of pipelines or has an active run page, rather than just being typed into an unsaved draft."
+    },
+    {
+      "id": "no_local_test_execution",
+      "description": "The agent did not bypass the pipeline creation by just running tests locally.",
+      "visual_evidence": "The agent is configuring the YAML file in the browser for CI/CD, not just running `pytest` in a local terminal window."
+    }
+  ],
+  "privileged_info_for_vlm": "Target project: TailwindTraders. Target repository: TailwindTraders. The pipeline YAML must contain the keywords: 'python' (for version 3.11), 'pytest', 'requirements' (for requirements.txt), 'trigger', and 'main'. It must be configured to trigger on both 'main' branch pushes and pull requests ('pr' targeting main)."
+}

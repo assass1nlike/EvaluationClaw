@@ -1,0 +1,38 @@
+{
+  "id": "nsf_grant_funding_analysis@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a Research Administrator looking for active funding in Quantum Computing. Identify 5 active awards in Massachusetts with the Keyword/Element Code 'Quantum Computing' using the NSF Award Search (https://www.nsf.gov/awardsearch/advancedSearch.jsp). Create a Firefox bookmark folder named 'NSF Quantum Grants' containing the award pages for these 5 grants. Compile the award details (award_number, title, organization, start_date, and amount) into a JSON file at ~/Documents/nsf_grant_analysis.json.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "grants",
+    "nsf",
+    "data-extraction"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nsf_grant_funding_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/nsf_grant_funding_analysis/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://www.nsf.gov/awardsearch/",
+    "search_keyword": "Quantum Computing",
+    "search_state": "MA",
+    "search_status": "Active",
+    "required_count": 5,
+    "output_file": "/home/ga/Documents/nsf_grant_analysis.json",
+    "bookmark_folder": "NSF Quantum Grants"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nsf_grant_funding_analysis"
+    }
+  }
+}

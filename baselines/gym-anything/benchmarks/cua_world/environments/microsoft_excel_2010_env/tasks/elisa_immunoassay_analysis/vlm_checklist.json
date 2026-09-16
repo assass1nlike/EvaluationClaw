@@ -1,0 +1,59 @@
+{
+  "task_id": "elisa_immunoassay_analysis@1",
+  "task_completion": [
+    {
+      "id": "calc_corrected_od",
+      "description": "Calculate Corrected OD values by subtracting the average Blank OD.",
+      "points": 15,
+      "visual_evidence": "A column labeled 'Corrected OD' in the 'Results_Template' sheet containing calculated numerical values."
+    },
+    {
+      "id": "log_log_transformation",
+      "description": "Calculate Log10 values for both Concentration and Corrected OD for the standard curve.",
+      "points": 15,
+      "visual_evidence": "Columns or cells showing Log10 transformations of the standard concentrations (300 down to 3.125) and their corresponding Corrected ODs."
+    },
+    {
+      "id": "standard_curve_plot",
+      "description": "Create a scatter plot of the log-transformed standard curve with a linear regression.",
+      "points": 20,
+      "visual_evidence": "A scatter plot chart visible in the spreadsheet plotting Log10 Concentration vs Log10 Corrected OD, including a linear trendline."
+    },
+    {
+      "id": "calc_concentrations",
+      "description": "Determine patient sample concentrations using the linear regression equation.",
+      "points": 20,
+      "visual_evidence": "A 'Concentration' column filled with calculated numerical values for the patient samples."
+    },
+    {
+      "id": "calc_percent_cv",
+      "description": "Calculate the %CV for all sample replicates.",
+      "points": 15,
+      "visual_evidence": "A '%CV' column containing percentage values calculated for the sample replicates."
+    },
+    {
+      "id": "flag_high_cv",
+      "description": "Flag samples with a %CV above 15% as 'REPEAT'.",
+      "points": 15,
+      "visual_evidence": "A 'Flag' column containing the text 'REPEAT' specifically next to samples where the %CV value is greater than 15%."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_usage",
+      "description": "The agent used a spreadsheet application GUI to perform the analysis.",
+      "visual_evidence": "Excel or a similar spreadsheet application is open with the 'elisa_data.xlsx' file loaded, rather than a Python script or terminal window generating the outputs."
+    },
+    {
+      "id": "formula_usage",
+      "description": "The agent used spreadsheet formulas rather than hardcoding calculated values.",
+      "visual_evidence": "The formula bar shows actual spreadsheet formulas (e.g., LOG10, AVERAGE, STDEV, or basic arithmetic) when cells are selected, rather than plain typed numbers."
+    },
+    {
+      "id": "genuine_chart_object",
+      "description": "The scatter plot is a genuine spreadsheet chart object derived from the data.",
+      "visual_evidence": "The chart is an embedded spreadsheet object with standard chart elements (axes, markers, trendline) and is selected/editable, not a pasted image from an external tool."
+    }
+  ],
+  "privileged_info_for_vlm": "The standard concentrations are [300, 100, 50, 25, 12.5, 6.25, 3.125]. The required columns in the Results_Template are 'Corrected OD', 'Concentration', '%CV', and 'Flag'. The CV threshold for flagging a sample as 'REPEAT' is strictly > 15.0%. A typical acceptable R-squared value for the standard curve regression is >= 0.98."
+}

@@ -1,0 +1,34 @@
+{
+  "id": "create_union_query@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a unified contact list query named 'AllContacts' in the Chinook database (chinook.odb) that combines records from the 'Customer' and 'Employee' tables. The query must use a UNION operator and include the columns 'FirstName', 'LastName', 'Email', and 'Phone'. Include a calculated column named 'ContactType' that identifies each record as either 'Customer' or 'Employee' based on its source table.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_union_query/setup_task.sh",
+    "post_task": "/workspace/tasks/create_union_query/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "AllContacts",
+    "expected_row_count": 67,
+    "expected_columns": [
+      "FirstName",
+      "LastName",
+      "Email",
+      "Phone",
+      "ContactType"
+    ],
+    "sqlite_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_union_query"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "cvd_accessibility_color_grading@1",
+  "task_completion": [
+    {
+      "id": "accessible_variants_folder",
+      "description": "Create the accessible_variants directory",
+      "points": 10,
+      "visual_evidence": "Look for a file manager window or terminal command (e.g., mkdir, ls) showing the existence of the directory '/home/ga/Videos/accessible_variants/'."
+    },
+    {
+      "id": "cvd_blue_variant",
+      "description": "Generate the Red/Blue swapped video variant",
+      "points": 25,
+      "visual_evidence": "Look for the file 'titration_cvd_blue.mp4' in the accessible_variants folder. If the video or rendering preview is visible, the titration liquid (which normally turns red) should appear blue, confirming the red and blue channels were swapped."
+    },
+    {
+      "id": "high_contrast_bw_variant",
+      "description": "Generate the high-contrast grayscale video variant",
+      "points": 25,
+      "visual_evidence": "Look for the file 'titration_high_contrast_bw.mp4' in the accessible_variants folder. If the video or rendering preview is visible, the image must be entirely monochrome (black, white, and gray) with stark, intensified contrast."
+    },
+    {
+      "id": "video_properties_retained",
+      "description": "Maintain original duration, resolution, and audio track",
+      "points": 20,
+      "visual_evidence": "Look for terminal output (e.g., ffmpeg stream mapping), file properties dialogs, or video editor export settings confirming the outputs are 854x480 resolution, approximately 10 seconds long, and include an audio stream."
+    },
+    {
+      "id": "remediation_report_created",
+      "description": "Generate the JSON compliance report",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'remediation_report.json' in '/home/ga/Documents/'. Its contents must be visible in a text editor or terminal output (e.g., cat command), containing the source file path, the two output filenames, and a brief description of the color swapping and contrast transformations."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Verify the agent actually processed the videos rather than just renaming dummy files",
+      "visual_evidence": "Look for evidence of video rendering or transcoding, such as ffmpeg progress logs in the terminal, or a rendering progress bar/export dialog in a GUI video editor."
+    },
+    {
+      "id": "authentic_json_creation",
+      "description": "Verify the JSON report was genuinely created",
+      "visual_evidence": "Look for the JSON file being actively edited in a real text editor (like nano, vim, gedit) or created via valid terminal commands (like echo or python scripts), rather than hallucinated text."
+    },
+    {
+      "id": "no_file_spoofing",
+      "description": "Verify the output files are valid video files",
+      "visual_evidence": "Look at file sizes in the file manager or terminal (e.g., via 'ls -l'). The generated .mp4 files should have non-zero file sizes consistent with a 10-second video."
+    }
+  ],
+  "privileged_info_for_vlm": "The original video is a 10-second 854x480 MP4 showing a pH indicator changing from green to red. The 'cvd_blue' variant must show the red color swapped to blue. The 'high_contrast_bw' variant must be purely grayscale with noticeably intensified contrast (exactly 50% increase over standard grayscale). Both outputs must retain the 854x480 resolution, 10-second duration, and audio track. The agent may use terminal tools like ffmpeg or GUI video editors to accomplish this."
+}

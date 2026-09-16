@@ -1,0 +1,97 @@
+{
+  "dataset_id": "93292b7f",
+  "name": "Drone-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 238,
+  "description": "Drone-Detection is an object detection dataset for localizing drones (and possibly other aircraft) in aerial images. Each sample pairs an image with a text instruction to detect the drone region and provides bounding box annotations with category labels.",
+  "card_text": "The dataset contains 238 image-text samples for drone detection in aerial/surveillance imagery. Each item includes an image file and a short text prompt 'Detect the drone region in the given image'. Annotations are given as bounding boxes in [x, y, width, height] format, keyed by numeric category labels (0 or 1), which likely distinguish drones from other objects such as airplanes. The images are captured from aerial viewpoints and may contain one or more objects. The task evaluates a model's ability to localize and classify drones in visual scenes based on natural language instructions. The dataset is small and intended for detection and localization benchmarks.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "aerial drone detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "Reference to an image file, typically aerial or surveillance imagery, containing zero or more objects (e.g., drones, airplanes) to be detected.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction asking the model to detect the drone region in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category: bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Bounding box coordinates for detected objects, formatted as [x, y, width, height] under a category key. Most samples contain one bounding box, but multiple boxes may be present.",
+        "path_types": [
+          "dict"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.category: bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Numeric category label (0 or 1) associated with each bounding box, indicating the object class (e.g., drone vs. non-drone/airplane).",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample includes an image file reference, a text prompt instructing detection of the drone region, and an output annotation dictionary. The output dictionary is keyed by category labels (0 or 1) and maps each label to a bounding box specified as [x, y, width, height]. The image and prompt together specify the detection task, while the output provides the spatial localization and class label for objects in the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/drone-detection/json/annotation.json",
+    "existing_tags": {
+      "task": "drone detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

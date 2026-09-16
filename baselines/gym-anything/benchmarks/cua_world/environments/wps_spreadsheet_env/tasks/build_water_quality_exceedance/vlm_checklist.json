@@ -1,0 +1,59 @@
+{
+  "task_id": "build_water_quality_exceedance@1",
+  "task_completion": [
+    {
+      "id": "raw_data_imported",
+      "description": "Import raw data into a 'Raw Data' sheet and format headers as bold.",
+      "points": 10,
+      "visual_evidence": "A sheet named 'Raw Data' is visible in WPS Spreadsheet, containing populated data with the top row (headers) formatted in bold text."
+    },
+    {
+      "id": "regulatory_limits_created",
+      "description": "Create a 'Regulatory Limits' sheet with the specified parameters and limits.",
+      "points": 15,
+      "visual_evidence": "A sheet named 'Regulatory Limits' is visible, containing a table with columns 'Parameter', 'MCL_Value', 'Unit', and 'Standard_Type', and rows for pH_Low (6.5), pH_High (8.5), Nitrate, Lead, Arsenic, Turbidity, TDS, Fluoride, and Copper."
+    },
+    {
+      "id": "exceedance_analysis_vlookup",
+      "description": "Use VLOOKUP in the 'Exceedance Analysis' sheet to fetch MCL values.",
+      "points": 20,
+      "visual_evidence": "A sheet named 'Exceedance Analysis' is visible with a column displaying MCL values. The formula bar should ideally show a VLOOKUP formula being used to fetch these values."
+    },
+    {
+      "id": "exceedance_analysis_flag",
+      "description": "Use IF formulas to generate an 'Exceedance_Flag' ('EXCEED' or 'PASS').",
+      "points": 25,
+      "visual_evidence": "The 'Exceedance Analysis' sheet contains an 'Exceedance_Flag' column showing 'EXCEED' or 'PASS'. The formula bar should show an IF formula evaluating the Result_Value against the MCL."
+    },
+    {
+      "id": "summary_tables_created",
+      "description": "Create 'Parameter Exceedance Summary' and 'Station Compliance Summary' tables in the 'Summary' sheet.",
+      "points": 20,
+      "visual_evidence": "A sheet named 'Summary' is visible, containing two distinct tables: 'Parameter Exceedance Summary' and 'Station Compliance Summary', displaying calculated totals and percentage rates."
+    },
+    {
+      "id": "workbook_saved",
+      "description": "Save the workbook as 'water_quality_report.xlsx' in the Documents folder.",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet title bar shows 'water_quality_report.xlsx', or a file manager window shows the file saved in the /home/ga/Documents/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wps_spreadsheet",
+      "description": "The agent used WPS Spreadsheet to complete the task.",
+      "visual_evidence": "Screenshots should show the WPS Spreadsheet GUI being actively used, rather than a terminal running a Python script or a text editor."
+    },
+    {
+      "id": "formulas_used_not_hardcoded",
+      "description": "The agent used formulas for calculations rather than hardcoding the results.",
+      "visual_evidence": "The formula bar in WPS Spreadsheet should show actual formulas (e.g., VLOOKUP, IF, COUNTIF/COUNTIFS) when cells with calculated values are selected, instead of plain text or numbers."
+    },
+    {
+      "id": "genuine_data_import",
+      "description": "The agent imported the CSV data manually into the spreadsheet.",
+      "visual_evidence": "Screenshots should show the process of opening or importing the 'water_quality_raw.csv' file into WPS Spreadsheet."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data is located at /home/ga/Documents/water_quality_raw.csv. The expected output is a workbook saved to /home/ga/Documents/water_quality_report.xlsx containing exactly four sheets: 'Raw Data', 'Regulatory Limits', 'Exceedance Analysis', and 'Summary'."
+}

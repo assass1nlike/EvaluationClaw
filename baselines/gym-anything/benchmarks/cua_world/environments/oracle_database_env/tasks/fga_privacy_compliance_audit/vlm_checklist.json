@@ -1,0 +1,53 @@
+{
+  "task_id": "fga_privacy_compliance_audit@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Agent connects to the Oracle database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful `sqlplus` connection or a GUI database client (like DBeaver or SQL Developer) connected to the database."
+    },
+    {
+      "id": "fga_policy_creation",
+      "description": "Agent creates the Fine-Grained Auditing (FGA) policy with the specified parameters.",
+      "points": 30,
+      "visual_evidence": "Execution of a SQL command using `DBMS_FGA.ADD_POLICY` with parameters including `policy_name => 'AUDIT_VIP_ACCESS'`, `object_schema => 'HR'`, `object_name => 'EMPLOYEES'`, `audit_condition => 'SALARY >= 15000'`, and `audit_column => 'SALARY, EMAIL, PHONE_NUMBER'`."
+    },
+    {
+      "id": "policy_verification",
+      "description": "Agent verifies the policy by executing a query that triggers the audit.",
+      "points": 20,
+      "visual_evidence": "Execution of a `SELECT` statement on `HR.EMPLOYEES` that accesses at least one of the audited columns (SALARY, EMAIL, or PHONE_NUMBER) for an employee with a salary of 15,000 or more."
+    },
+    {
+      "id": "query_audit_trail",
+      "description": "Agent queries the audit trail to retrieve the required columns.",
+      "points": 20,
+      "visual_evidence": "Execution of a `SELECT` query on an audit view (e.g., `DBA_FGA_AUDIT_TRAIL` or `UNIFIED_AUDIT_TRAIL`) explicitly selecting the columns `DB_USER`, `OBJECT_NAME`, `SQL_TEXT`, and `TIMESTAMP`."
+    },
+    {
+      "id": "export_audit_records",
+      "description": "Agent exports the audit records to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "A file named `vip_audit_proof.csv` visible on the Desktop (`/home/ga/Desktop/`) or its contents displayed in a terminal/editor, showing the required columns and the corresponding audit data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent executed SQL commands in a real database client rather than just typing them in a text editor.",
+      "visual_evidence": "SQL commands are seen being executed in a terminal (e.g., sqlplus) or a database GUI, showing actual execution output or success messages from the Oracle database."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The exported CSV file contains actual query results from the database.",
+      "visual_evidence": "The CSV file appears to be generated via a database export function or spooling command, rather than being manually typed with mock data."
+    },
+    {
+      "id": "no_direct_file_creation_without_query",
+      "description": "The agent did not bypass the auditing process by directly creating a fake CSV file.",
+      "visual_evidence": "The creation of the CSV file logically follows the execution of the audit trail query, and the data inside matches the queries executed during the verification step."
+    }
+  ],
+  "privileged_info_for_vlm": "The FGA policy must be named 'AUDIT_VIP_ACCESS', target the 'HR' schema, and apply to the 'EMPLOYEES' table. The audit condition must check for salaries of 15000 or greater (e.g., 'SALARY >= 15000'), and the audited columns must include 'SALARY', 'EMAIL', and 'PHONE_NUMBER'. The final output must be a CSV file located exactly at '/home/ga/Desktop/vip_audit_proof.csv' and contain the columns DB_USER, OBJECT_NAME, SQL_TEXT, and TIMESTAMP."
+}

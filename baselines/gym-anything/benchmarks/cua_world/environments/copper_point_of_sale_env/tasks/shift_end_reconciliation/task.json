@@ -1,0 +1,59 @@
+{
+  "id": "shift_end_reconciliation@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "As the afternoon cashier/supervisor using Copper Point of Sale, import the inventory from C:\\Users\\Docker\\Desktop\\shift_items.csv and process the transactions listed in C:\\Users\\Docker\\Desktop\\shift_log.txt. Transactions include: two Ocean Blue Shirts and one Classic Varsity Top (Cash); one Yellow Wool Jumper with a 15% loyalty discount (Cash); one Classic Leather Jacket (Credit Card); two Soft Winter Jackets (rung up then voided); and one Floral White Top (Cash). Generate a Sales Report for today and export it to C:\\Users\\Docker\\Desktop\\shift_report.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\shift_end_reconciliation\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\shift_end_reconciliation\\export_result.ps1"
+  },
+  "metadata": {
+    "completed_transactions": [
+      {
+        "id": 1,
+        "items": "Ocean Blue Shirt x2 + Classic Varsity Top x1",
+        "subtotal": 160.0,
+        "payment": "Cash"
+      },
+      {
+        "id": 2,
+        "items": "Yellow Wool Jumper x1",
+        "subtotal": 68.0,
+        "discount": 0.15,
+        "payment": "Cash"
+      },
+      {
+        "id": 3,
+        "items": "Classic Leather Jacket x1",
+        "subtotal": 80.0,
+        "payment": "Credit Card"
+      },
+      {
+        "id": 5,
+        "items": "Floral White Top x1",
+        "subtotal": 75.0,
+        "payment": "Cash"
+      }
+    ],
+    "voided_transaction": {
+      "id": 4,
+      "items": "Soft Winter Jacket x2"
+    },
+    "expected_completed_count": 4,
+    "expected_total_min": 350.0,
+    "expected_total_max": 450.0,
+    "export_path": "C:\\Users\\Docker\\Desktop\\shift_report.csv",
+    "result_json_path": "C:\\Users\\Docker\\shift_end_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shift_end_reconciliation"
+    }
+  }
+}

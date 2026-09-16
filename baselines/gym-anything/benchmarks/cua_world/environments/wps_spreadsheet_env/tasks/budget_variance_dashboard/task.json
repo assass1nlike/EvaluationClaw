@@ -1,0 +1,45 @@
+{
+  "id": "budget_variance_dashboard@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "You are a regional operations manager reviewing annual spending across 8 cost centers. Using the 'Budget' and 'Actuals' sheets, develop a comprehensive budget variance analysis workbook. Create a 'Monthly_Variance' sheet calculating monthly budget, actual, dollar variance, and percentage variance for each cost center and category. Include a 'YTD_Summary' sheet showing year-to-date totals for budget, actual, and variances, along with a trend indicator comparing performance to the prior quarter. Create an 'Executive_Summary' sheet that identifies the total company YTD variance, the three cost centers with the largest unfavorable variances, the three expense categories with the largest favorable variances, and the overall percentage of line items exceeding budget. Apply conditional formatting to highlight variances greater than 5% (red for unfavorable, green for favorable) and use icon sets for the YTD trend. Generate a clustered bar chart on the YTD_Summary sheet comparing YTD Budget vs Actual by cost center, and a line chart on the Executive_Summary sheet showing the 12-month total variance trend. Save the completed workbook to ~/Documents/budget_analysis.xlsx.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/budget_variance_dashboard/setup_task.sh",
+    "post_task": "/workspace/tasks/budget_variance_dashboard/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "General and Operations Managers",
+    "industry": "Administrative and Support and Waste Management and Remediation Services",
+    "data_source": "Operational budget and actuals data modeled on real mid-market company departmental spending patterns with realistic mid-year adjustments",
+    "expected_new_sheets": [
+      "Monthly_Variance",
+      "YTD_Summary",
+      "Executive_Summary"
+    ],
+    "required_features": [
+      "cross-sheet variance formulas",
+      "LARGE/SMALL with INDEX-MATCH",
+      "conditional formatting with icon sets",
+      "clustered bar chart",
+      "line trend chart",
+      "YTD cumulative calculations"
+    ],
+    "ground_truth": {
+      "cost_centers": 8,
+      "expense_categories": 28,
+      "months": 12
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_budget_variance"
+    }
+  }
+}

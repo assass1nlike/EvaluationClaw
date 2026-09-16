@@ -1,0 +1,53 @@
+{
+  "task_id": "forensic_keyfile_recovery@1",
+  "task_completion": [
+    {
+      "id": "keyfile_selected",
+      "description": "Agent selects an image file from the vacation_photos directory to use as a keyfile.",
+      "points": 20,
+      "visual_evidence": "A decryption or mounting utility (e.g., VeraCrypt) dialog showing an image file from '/home/ga/Investigation/vacation_photos/' added to the keyfiles list."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Agent successfully mounts the encrypted volume.",
+      "points": 20,
+      "visual_evidence": "A mounting utility's main window showing '/home/ga/Investigation/design_specs.hc' actively mounted to a drive slot or mount point."
+    },
+    {
+      "id": "mounted_volume_accessed",
+      "description": "Agent accesses the contents of the successfully mounted volume.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window displaying the internal contents of the mounted volume, with 'prototype_specs.txt' clearly visible."
+    },
+    {
+      "id": "prototype_specs_extracted",
+      "description": "Agent extracts the confidential file to the required recovery directory.",
+      "points": 40,
+      "visual_evidence": "A file manager or terminal showing that 'prototype_specs.txt' now exists inside the '/home/ga/recovered_data/' directory."
+    },
+    {
+      "id": "keyfile_name_saved",
+      "description": "Agent optionally saves the name of the correct keyfile to a text file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output (e.g., using 'cat') showing the file '/home/ga/recovered_data/keyfile_name.txt' containing the filename of the correct image keyfile."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_mount_operation",
+      "description": "Verify the volume was genuinely mounted using a cryptographic tool.",
+      "visual_evidence": "Look for interaction with actual volume mounting software (like VeraCrypt, zuluCrypt, or cryptsetup in terminal) rather than the agent simply creating a mock folder named after the volume."
+    },
+    {
+      "id": "genuine_file_extraction",
+      "description": "Verify the file was copied from the volume, not fabricated.",
+      "visual_evidence": "Look for evidence of a copy/paste action or terminal 'cp' command moving the file from the mount point to the recovered_data directory, rather than the agent creating a new empty file named 'prototype_specs.txt'."
+    },
+    {
+      "id": "consistent_keyfile_reporting",
+      "description": "Verify the reported keyfile matches the one actually used.",
+      "visual_evidence": "Check that the filename written in 'keyfile_name.txt' is the exact same image file that was selected in the keyfile selection dialog during the mounting step."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

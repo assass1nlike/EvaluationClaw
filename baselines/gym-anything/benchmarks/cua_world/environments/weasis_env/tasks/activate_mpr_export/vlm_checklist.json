@@ -1,0 +1,53 @@
+{
+  "task_id": "activate_mpr_export@1",
+  "task_completion": [
+    {
+      "id": "mpr_layout_visible",
+      "description": "Verify that the Multiplanar Reconstruction (MPR) mode is activated in Weasis.",
+      "points": 20,
+      "visual_evidence": "The Weasis application window should display a split-screen MPR layout, showing multiple orthogonal planes (e.g., axial, coronal, and sagittal views) of the CT scan simultaneously."
+    },
+    {
+      "id": "coronal_export_dialog",
+      "description": "Verify the agent initiates the export of the coronal view.",
+      "points": 15,
+      "visual_evidence": "A 'Save', 'Export', or similar dialog box is open in Weasis, and the filename 'mpr_coronal.png' is typed into the file name field. The active or selected view for export should be the coronal plane."
+    },
+    {
+      "id": "coronal_file_created",
+      "description": "Verify the coronal MPR image was successfully saved to the correct directory.",
+      "points": 25,
+      "visual_evidence": "A terminal window (e.g., showing 'ls' output) or a graphical file manager displays the file 'mpr_coronal.png' located in the '~/DICOM/exports/' (or '/home/ga/DICOM/exports/') directory."
+    },
+    {
+      "id": "sagittal_export_dialog",
+      "description": "Verify the agent initiates the export of the sagittal view.",
+      "points": 15,
+      "visual_evidence": "A 'Save', 'Export', or similar dialog box is open in Weasis, and the filename 'mpr_sagittal.png' is typed into the file name field. The active or selected view for export should be the sagittal plane."
+    },
+    {
+      "id": "sagittal_file_created",
+      "description": "Verify the sagittal MPR image was successfully saved to the correct directory.",
+      "points": 25,
+      "visual_evidence": "A terminal window (e.g., showing 'ls' output) or a graphical file manager displays the file 'mpr_sagittal.png' located in the '~/DICOM/exports/' (or '/home/ga/DICOM/exports/') directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the Weasis GUI to perform the MPR activation and export.",
+      "visual_evidence": "Screenshots should show the agent clicking through Weasis menus, toolbars, or using the Weasis interface to open the MPR view and export dialogs, rather than just running terminal commands to generate fake images."
+    },
+    {
+      "id": "genuine_mpr_images",
+      "description": "Verify the exported files are genuine medical images.",
+      "visual_evidence": "If the exported files are previewed or opened, they should display grayscale anatomical structures (CT scan slices), not blank canvases, random noise, or text."
+    },
+    {
+      "id": "no_direct_file_copying",
+      "description": "Verify the agent did not bypass the application by simply copying or renaming existing files.",
+      "visual_evidence": "The trajectory must show the Weasis export dialogs being used to create the files, rather than terminal commands like 'cp' or 'mv' being used to place pre-existing files into the exports directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected target paths are exactly '/home/ga/DICOM/exports/mpr_coronal.png' and '/home/ga/DICOM/exports/mpr_sagittal.png'. Valid exported MPR views will be at least 100x100 pixels in dimension and have a file size of at least 5000 bytes (5 KB). The synthetic DICOM volume contains 60 slices of 256x256 resolution, which translates to a 256x166 MPR reconstructed base image."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "block_hightraffic_ips_apache@1",
+  "task_completion": [
+    {
+      "id": "analyze_access_log",
+      "description": "Analyze the historical Apache access log to find the top IPs.",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands executed to analyze /home/ga/historical_access.log (e.g., using combinations of awk, sort, uniq -c, or head) and displaying the top IP addresses and their request counts."
+    },
+    {
+      "id": "create_blocked_ips_report",
+      "description": "Create a report at /home/ga/blocked_ips.txt listing the top three IP addresses.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (like cat or echo) showing the creation and content of /home/ga/blocked_ips.txt containing exactly 3 IP addresses."
+    },
+    {
+      "id": "report_format_correct",
+      "description": "Ensure the report uses the exact format IP_ADDRESS : REQUEST_COUNT.",
+      "points": 10,
+      "visual_evidence": "The contents of /home/ga/blocked_ips.txt strictly follow the requested format with a colon separating the IP and the count (e.g., '192.168.1.50 : 842')."
+    },
+    {
+      "id": "update_apache_config",
+      "description": "Update the Apache configuration to block the three identified IP addresses.",
+      "points": 40,
+      "visual_evidence": "A text editor (like nano or vim) or terminal command showing modifications to an Apache configuration file (e.g., /etc/apache2/apache2.conf, /etc/apache2/sites-available/000-default.conf, or a .htaccess file) adding access control directives to block the 3 IPs (e.g., 'Require not ip <IP>' or 'Deny from <IP>')."
+    },
+    {
+      "id": "restart_apache_service",
+      "description": "Ensure the Apache configuration changes are active.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a successfully executed command to restart or reload the Apache service (e.g., 'sudo systemctl restart apache2', 'sudo service apache2 reload', or 'sudo apachectl restart')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "The agent must not access the privileged ground truth file.",
+      "visual_evidence": "Ensure there are no commands reading, opening, or extracting data from /tmp/ground_truth.json."
+    },
+    {
+      "id": "genuine_log_analysis",
+      "description": "The reported IPs and counts must come from actual log analysis.",
+      "visual_evidence": "The IP addresses and request counts written to /home/ga/blocked_ips.txt should match the output visible in the terminal when the agent analyzed /home/ga/historical_access.log."
+    },
+    {
+      "id": "genuine_config_modification",
+      "description": "The Apache configuration must be genuinely modified.",
+      "visual_evidence": "Look for actual file editing interfaces (nano/vim) or valid shell redirection commands (echo ... >> config) rather than just printing text to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The exact target IPs and their request counts are randomized per run. The top 3 IPs will have between 400 and 950 requests each, while the remaining noise IPs will have 5-45 requests. The VLM should verify that the IPs the agent blocks and reports match the highest counts seen in the agent's own terminal output during the log analysis step."
+}

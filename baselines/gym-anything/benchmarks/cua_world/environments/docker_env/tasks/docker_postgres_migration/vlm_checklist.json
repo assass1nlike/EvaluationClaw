@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_postgres_migration@1",
+  "task_completion": [
+    {
+      "id": "source_db_dumped",
+      "description": "Agent creates a database dump from the source PostgreSQL 13 container.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'pg_dump' command targeting port 5433 or the 'chinook-pg13' container, resulting in a .sql or .dump file."
+    },
+    {
+      "id": "target_container_ready",
+      "description": "Agent verifies or starts the target PostgreSQL 15 container.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a 'docker run' command creating 'chinook-pg15' on port 5434, or 'docker ps' confirming the container is running on port 5434."
+    },
+    {
+      "id": "target_db_created",
+      "description": "Agent ensures the 'chinook' database exists in the target container.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the execution of 'createdb' targeting port 5434, or a 'CREATE DATABASE chinook;' SQL command executed on the target container."
+    },
+    {
+      "id": "database_restored",
+      "description": "Agent imports the database dump into the target PostgreSQL 15 container.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a 'psql' or 'pg_restore' command importing the previously created dump file into port 5434 or the 'chinook-pg15' container."
+    },
+    {
+      "id": "tables_verified",
+      "description": "Agent verifies the presence of the expected tables in the target database.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a psql session connected to port 5434 executing '\\dt' or a similar query, displaying the Chinook tables (e.g., Artist, Album, Track)."
+    },
+    {
+      "id": "fidelity_verified",
+      "description": "Agent verifies row-count fidelity in the target database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'SELECT COUNT(*)' queries or similar validation steps executed on the target database to ensure all rows were migrated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_usage",
+      "description": "Agent executed actual commands in a terminal emulator rather than typing mocked outputs in a text editor.",
+      "visual_evidence": "Presence of standard shell prompts, command execution history, and standard error/output streams in a terminal window."
+    },
+    {
+      "id": "real_docker_interaction",
+      "description": "Docker command outputs show genuine formatting and container IDs.",
+      "visual_evidence": "Outputs from 'docker ps' or 'docker run' display authentic Docker formatting, hashes, and port mappings rather than manually typed text."
+    },
+    {
+      "id": "authentic_postgres_output",
+      "description": "PostgreSQL interactive terminal (psql) outputs show standard formatting.",
+      "visual_evidence": "psql query results, table listings (\\dt), and connection messages display the standard PostgreSQL ASCII table formatting and headers."
+    }
+  ],
+  "privileged_info_for_vlm": "Source Database: PostgreSQL 13 in container 'chinook-pg13' on port 5433. Target Database: PostgreSQL 15 in container 'chinook-pg15' on port 5434. Credentials: username 'chinook', password 'chinook_secret_2019'. Expected Tables (11): Artist, Album, MediaType, Genre, Track, Customer, Employee, Invoice, InvoiceLine, Playlist, PlaylistTrack. Pass threshold: 65 points."
+}

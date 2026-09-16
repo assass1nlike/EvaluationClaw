@@ -1,0 +1,53 @@
+{
+  "task_id": "process_returned_mail@1",
+  "task_completion": [
+    {
+      "id": "read_patient_list",
+      "description": "Verify the agent opens and reads the list of returned mail patients.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor, file viewer, or terminal output displaying the contents of '~/Documents/returned_mail_list.txt', which contains the names of the patients."
+    },
+    {
+      "id": "open_medintux",
+      "description": "Verify the agent opens the MedinTux application to manage patients.",
+      "points": 10,
+      "visual_evidence": "Look for the MedinTux graphical user interface (specifically the patient management module) open on the screen."
+    },
+    {
+      "id": "update_first_patient",
+      "description": "Verify the agent updates the address for one of the patients on the list.",
+      "points": 20,
+      "visual_evidence": "Look for a patient record from the text file open in MedinTux. The address text field must show 'NPAI' (e.g., 'NPAI - ') prepended to the beginning of the address."
+    },
+    {
+      "id": "update_second_patient",
+      "description": "Verify the agent updates the address for a second patient on the list.",
+      "points": 30,
+      "visual_evidence": "Look for a different patient record from the text file open in MedinTux, with 'NPAI' prepended to their address in the address field."
+    },
+    {
+      "id": "update_third_patient",
+      "description": "Verify the agent updates the address for the third patient on the list.",
+      "points": 30,
+      "visual_evidence": "Look for a third distinct patient record from the text file open in MedinTux, with 'NPAI' prepended to their address in the address field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the MedinTux GUI to update the records.",
+      "visual_evidence": "The address modifications should be visible within the MedinTux graphical interface text boxes. The agent should not bypass the UI by executing direct MySQL UPDATE queries in the terminal."
+    },
+    {
+      "id": "preserved_original_address",
+      "description": "Verify the original address information was not deleted.",
+      "visual_evidence": "The address field must still contain the original street address immediately following the 'NPAI' prefix. The field should not be replaced entirely by the 'NPAI' string."
+    },
+    {
+      "id": "no_unrelated_modifications",
+      "description": "Verify the agent did not modify patients outside the provided list.",
+      "visual_evidence": "There should be no screenshots showing the agent adding 'NPAI' to a patient who was not listed in the returned_mail_list.txt file."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/Documents/returned_mail_list.txt and contains exactly 3 patients. The agent must use the MedinTux GUI to update the address field for these 3 specific patients by prepending 'NPAI' (e.g., 'NPAI - '). The original address must be preserved after the prefix. The agent must not modify any other patients in the database."
+}

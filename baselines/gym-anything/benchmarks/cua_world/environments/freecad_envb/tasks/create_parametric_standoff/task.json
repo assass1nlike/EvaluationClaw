@@ -1,0 +1,33 @@
+{
+  "id": "create_parametric_standoff@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a parametric PCB mounting standoff using the Spreadsheet workbench. The model should consist of a 3D Part Design Body (a post on a flange with a through-hole) with all dimensions linked to a spreadsheet via expressions. The spreadsheet must include the following aliases and values: outer_diameter (8 mm), inner_diameter (3.2 mm), height (10 mm), flange_diameter (12 mm), and flange_height (1.5 mm). Save the completed model to /home/ga/Documents/FreeCAD/parametric_standoff.FCStd.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_parametric_standoff/setup_task.sh",
+    "post_task": "/workspace/tasks/create_parametric_standoff/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/FreeCAD/parametric_standoff.FCStd",
+    "required_aliases": {
+      "outer_diameter": 8.0,
+      "inner_diameter": 3.2,
+      "height": 10.0,
+      "flange_diameter": 12.0,
+      "flange_height": 1.5
+    },
+    "min_expressions": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_parametric_standoff"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "autocrop_image@1",
+  "task_completion": [
+    {
+      "id": "open_gimp_with_image",
+      "description": "Open the target image in the GIMP application",
+      "points": 15,
+      "visual_evidence": "The GIMP application window is open and displays the target image (either a photograph or a white canvas with a blue rectangle and text)."
+    },
+    {
+      "id": "open_image_menu",
+      "description": "Navigate to the Image menu",
+      "points": 15,
+      "visual_evidence": "The 'Image' dropdown menu in the top menu bar of GIMP is clicked and expanded."
+    },
+    {
+      "id": "select_autocrop",
+      "description": "Select the automatic cropping tool",
+      "points": 20,
+      "visual_evidence": "The 'Crop to Content' or 'Autocrop Image' option is highlighted or clicked within the Image dropdown menu."
+    },
+    {
+      "id": "verify_crop_result",
+      "description": "Image canvas is successfully cropped",
+      "points": 25,
+      "visual_evidence": "The image displayed in the GIMP workspace is visibly smaller, with the outer borders or whitespace removed, while the core visual content remains intact."
+    },
+    {
+      "id": "save_or_export_image",
+      "description": "Save or export the modified image",
+      "points": 25,
+      "visual_evidence": "The 'File' menu shows 'Overwrite [filename]' or 'Export As' being selected, or an export/save confirmation dialog is visible and being confirmed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage_only",
+      "description": "Agent used the GIMP GUI rather than terminal commands",
+      "visual_evidence": "Screenshots show interaction with the GIMP graphical interface for cropping and saving, rather than a terminal window executing ImageMagick or other CLI commands."
+    },
+    {
+      "id": "automatic_crop_used",
+      "description": "Agent used an automatic crop function rather than manual cropping",
+      "visual_evidence": "The agent uses the 'Image -> Crop to Content' or 'Autocrop Image' menu option. The manual Crop Tool (knife icon) and manual bounding box adjustments should NOT be used."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Agent genuinely saved the modified image",
+      "visual_evidence": "The agent completes the save/export dialogs or uses the overwrite function, rather than just modifying the image in the workspace and closing the application without saving."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using GIMP to automatically remove borders/whitespace from an image (either a 600x400 Unsplash photo or an 800x600 synthetic image with a blue rectangle). The agent must use an automatic feature like 'Image -> Crop to Content' or 'Autocrop Image', strictly avoiding manual cropping tools. The final image must be saved/exported. Successful programmatic verification requires dimension reduction (>=10px or >=5%), content preservation (SSIM >= 0.90), and improved edge density (>= 1.2x)."
+}

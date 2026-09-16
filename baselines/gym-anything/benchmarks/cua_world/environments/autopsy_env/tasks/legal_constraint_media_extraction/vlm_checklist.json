@@ -1,0 +1,53 @@
+{
+  "task_id": "legal_constraint_media_extraction@1",
+  "task_completion": [
+    {
+      "id": "create_forensic_case",
+      "description": "Create a forensic case with the specified name and case number.",
+      "points": 10,
+      "visual_evidence": "The forensic tool (e.g., Autopsy) displays the case name 'Warrant_Compliance_2024' and case number 'INV-WAR-011' in the new case wizard, case properties, or application title bar."
+    },
+    {
+      "id": "ingest_disk_image",
+      "description": "Ingest the correct disk image into the forensic case.",
+      "points": 15,
+      "visual_evidence": "The forensic tool's data source tree or ingestion wizard shows '/home/ga/evidence/jpeg_search.dd' as an added data source."
+    },
+    {
+      "id": "filter_allocated_jpegs",
+      "description": "Identify and filter for allocated JPEG files, excluding deleted or carved files.",
+      "points": 25,
+      "visual_evidence": "The forensic tool's file listing shows JPEG files (.jpg/.jpeg) with visual indicators that they are allocated (e.g., no 'deleted' flag, 'Dir' status instead of 'Unalloc', or a specific filter applied to hide deleted/carved files)."
+    },
+    {
+      "id": "extract_files_to_directory",
+      "description": "Extract the allocated JPEG files to the specified export directory.",
+      "points": 25,
+      "visual_evidence": "A file manager or terminal window shows the extracted .jpg or .jpeg files located inside the '/home/ga/Reports/Allocated_Media/' directory."
+    },
+    {
+      "id": "create_manifest_csv",
+      "description": "Create a chain-of-custody manifest CSV with the required headers and file details.",
+      "points": 25,
+      "visual_evidence": "A text editor or spreadsheet application displays the file '/home/ga/Reports/media_manifest.csv' containing the exact headers 'FILENAME,MD5_HASH,FILE_SIZE_BYTES' and rows populated with the extracted file data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_forensic_tool_used",
+      "description": "The agent used a genuine forensic GUI application to analyze the disk image.",
+      "visual_evidence": "Screenshots show interaction with a forensic tool's graphical interface (like Autopsy) rather than relying solely on text editors or basic terminal commands to fake the process."
+    },
+    {
+      "id": "genuine_manifest_data",
+      "description": "The manifest CSV contains authentic file metadata.",
+      "visual_evidence": "The CSV file contains realistic 32-character hex strings for MD5 hashes and valid numeric file sizes, rather than hallucinated placeholders or copy-pasted text from the prompt."
+    },
+    {
+      "id": "no_deleted_files_extracted",
+      "description": "The agent did not extract files from deleted or unallocated space.",
+      "visual_evidence": "There is no visual evidence of the agent selecting, viewing, or exporting files from nodes labeled 'Deleted Files', 'Orphan Files', 'Carved Files', or 'Unallocated Space' in the forensic tool."
+    }
+  ],
+  "privileged_info_for_vlm": "Case Name: Warrant_Compliance_2024\nCase Number: INV-WAR-011\nDisk Image: /home/ga/evidence/jpeg_search.dd\nExport Directory: /home/ga/Reports/Allocated_Media\nManifest File: /home/ga/Reports/media_manifest.csv\nNote: The agent must extract ONLY allocated JPEGs. Deleted, orphan, or carved files must be strictly excluded to comply with the simulated search warrant."
+}

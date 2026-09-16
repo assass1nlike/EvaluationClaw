@@ -1,0 +1,31 @@
+{
+  "id": "create_function@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Create a server-side SQL function named 'getAvgHotelStars' in the 'demodb' database (http://localhost:2480/studio/index.html, credentials admin/admin or server root/GymAnything123!). The function should take a single parameter 'country' and return the average 'Stars' value from the 'Hotels' class where the 'Country' property matches the parameter. Record the results of executing this function for 'Italy' and 'Japan' in /home/ga/function_results.txt, using the format 'Country=Value' with one entry per line.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_function/setup_task.sh",
+    "post_task": "/workspace/tasks/create_function/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/function_results.txt",
+    "database": "demodb",
+    "function_name": "getAvgHotelStars",
+    "test_cases": {
+      "Italy": 4.5,
+      "Japan": 5.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_function"
+    }
+  }
+}

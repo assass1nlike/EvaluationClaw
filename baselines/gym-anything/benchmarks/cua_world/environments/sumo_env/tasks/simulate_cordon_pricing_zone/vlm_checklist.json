@@ -1,0 +1,59 @@
+{
+  "task_id": "simulate_cordon_pricing_zone@1",
+  "task_completion": [
+    {
+      "id": "run_baseline_simulation",
+      "description": "Run the baseline simulation to generate initial vehicle counts.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands executing 'sumo' or 'sumo-gui' with the configuration file '/home/ga/SUMO_Scenarios/bologna_acosta/run.sumocfg', or evidence of an output file like 'base_edgedata.xml' being generated."
+    },
+    {
+      "id": "create_pricing_weights",
+      "description": "Create a weight file applying travel time penalties to the top 5 busiest edges.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., using 'cat') showing the contents of '/home/ga/SUMO_Output/pricing_weights.xml'. The file should contain XML tags assigning a high travel time (e.g., >= 1000.0) to the edges 204a[0], 43[0], 204b[0], 209, and 53[0]."
+    },
+    {
+      "id": "generate_alternative_routes",
+      "description": "Generate alternative routes using the pricing weights.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command executing 'duarouter' that includes the '--ignore-errors' flag, the weight file, and outputs to a route file (e.g., '/home/ga/SUMO_Output/priced_routes.rou.xml')."
+    },
+    {
+      "id": "run_priced_simulation",
+      "description": "Run the comparison simulation using the newly generated alternative routes.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command executing 'sumo' that uses the newly generated route file ('priced_routes.rou.xml') and outputs to a new edge data file (e.g., '/home/ga/SUMO_Output/priced_edgedata.xml')."
+    },
+    {
+      "id": "verify_report_header",
+      "description": "Generate the pricing report with the correct header.",
+      "points": 10,
+      "visual_evidence": "Look for the contents of '/home/ga/SUMO_Output/pricing_report.txt' displayed in a text editor or via terminal output. The very first line must be exactly 'EdgeID, BeforeVolume, AfterVolume'."
+    },
+    {
+      "id": "verify_report_content",
+      "description": "Document the 5 targeted edges and their before/after vehicle counts in the report.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of '/home/ga/SUMO_Output/pricing_report.txt'. It must contain exactly six lines total. Lines 2-6 must list the 5 targeted edges (204a[0], 43[0], 204b[0], 209, 53[0]) along with two numbers for each (the baseline volume and the priced simulation volume), separated by commas."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify that the agent actually ran the SUMO and duarouter commands rather than just creating mock output files.",
+      "visual_evidence": "Look for standard SUMO and duarouter execution logs in the terminal, such as step counts, warnings, or 'Success' messages."
+    },
+    {
+      "id": "data_extraction_process",
+      "description": "Verify that the agent extracted the top 5 edges from the baseline simulation data rather than hallucinating them.",
+      "visual_evidence": "Look for Python scripts, shell commands (like grep, awk, sort), or manual inspection of the baseline XML output used to identify the busiest edges."
+    },
+    {
+      "id": "no_gui_shortcut",
+      "description": "Verify the agent used terminal commands and scripts rather than relying solely on the SUMO-GUI to manually count vehicles.",
+      "visual_evidence": "Ensure the agent is interacting with terminal commands, XML files, and text editors rather than manually clicking through the SUMO-GUI to find vehicle counts."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct top 5 busiest standard edges in the baseline simulation are 204a[0] (2733 vehicles), 43[0] (1937 vehicles), 204b[0] (1820 vehicles), 209 (1679 vehicles), and 53[0] (1678 vehicles). The weight file must assign a travel time of at least 1000.0 to these specific edge IDs. Duarouter requires the '--ignore-errors' flag to successfully write the route file. The final report must be exactly six lines, starting with 'EdgeID, BeforeVolume, AfterVolume'."
+}

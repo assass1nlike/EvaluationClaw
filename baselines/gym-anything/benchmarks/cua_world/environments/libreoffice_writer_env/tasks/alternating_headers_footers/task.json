@@ -1,0 +1,30 @@
+{
+  "id": "alternating_headers_footers@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are a Regulatory Affairs Manager at Meridian Therapeutics preparing an IND Annual Report (IND 123456) for FDA submission. Format the document located at /home/ga/Documents/ind_annual_report.docx with specific headers and footers. Configure the document to use a unique first page and distinct odd/even pages. The first page header must be empty, while the first page footer must contain the centered text 'CONFIDENTIAL — Meridian Therapeutics, Inc.'. For subsequent pages, the odd page header should be right-aligned with 'Meridian Therapeutics, Inc. — MRD-4721' and the even page header left-aligned with 'IND 123456 — Annual Report'. Include right-aligned page numbers in the odd page footers and left-aligned page numbers in the even page footers. Save the final document as /home/ga/Documents/ind_annual_report_formatted.docx in Word 2007-365 (.docx) format.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/alternating_headers_footers/setup_task.sh",
+    "post_task": "/workspace/tasks/alternating_headers_footers/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/ind_annual_report.docx",
+    "output_path": "/home/ga/Documents/ind_annual_report_formatted.docx",
+    "company_name": "Meridian Therapeutics, Inc.",
+    "ind_number": "123456",
+    "compound": "MRD-4721",
+    "confidential_text": "CONFIDENTIAL — Meridian Therapeutics, Inc."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_alternating_headers"
+    }
+  }
+}

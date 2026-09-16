@@ -1,0 +1,38 @@
+{
+  "id": "multicell_timeseries_extraction@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Time-Lapse ROI Profiling and Data Extraction",
+  "description": "Perform quantitative time-series analysis on the 'Mitosis (26MB, 5D stack)' sample image. Create a Maximum Intensity Projection to collapse the Z-dimension while preserving the time series, then analyze the Red channel (Microtubules). Identify at least 3 distinct cells or regions and generate intensity traces for these regions across all 51 time frames. Save the measurement results to '~/ImageJ_Data/results/time_series_traces.csv' and the ROI set to '~/ImageJ_Data/results/cell_rois.zip'.",
+  "difficulty": "medium",
+  "tags": [
+    "time-series",
+    "hyperstack",
+    "roi-manager",
+    "z-projection",
+    "quantification",
+    "microscopy"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multicell_timeseries_extraction/setup_task.sh",
+    "post_task": "/workspace/tasks/multicell_timeseries_extraction/export_result.sh"
+  },
+  "metadata": {
+    "sample_name": "Mitosis (26MB, 5D stack)",
+    "expected_frames": 51,
+    "min_rois": 3,
+    "output_csv": "/home/ga/ImageJ_Data/results/time_series_traces.csv",
+    "output_rois": "/home/ga/ImageJ_Data/results/cell_rois.zip"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multicell_timeseries"
+    }
+  }
+}

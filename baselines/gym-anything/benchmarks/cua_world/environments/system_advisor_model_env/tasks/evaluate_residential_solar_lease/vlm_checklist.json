@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_residential_solar_lease@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_creation",
+      "description": "The agent creates a Python script that imports the required PySAM modules.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE showing a Python script with imports for PySAM, specifically Pvwattsv8, Utilityrate5, and Thirdpartyownership."
+    },
+    {
+      "id": "pv_system_configuration",
+      "description": "The script configures the PV system parameters according to the task description.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor setting system capacity to 8.0, tilt to 35, azimuth to 180, and system losses to 14.08."
+    },
+    {
+      "id": "financial_configuration",
+      "description": "The script configures the utility rate and Third-Party Ownership (TPO) financial parameters.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor setting the flat electricity rate (0.14), fixed monthly charge (12.00), PPA price (0.08), and PPA escalation rate (2.0)."
+    },
+    {
+      "id": "script_execution",
+      "description": "The agent executes the Python script.",
+      "points": 10,
+      "visual_evidence": "A terminal window showing the execution of the Python script (e.g., 'python script.py') without throwing unhandled exceptions."
+    },
+    {
+      "id": "json_file_creation",
+      "description": "The results are exported to the specified JSON file path.",
+      "points": 20,
+      "visual_evidence": "A terminal or file explorer showing the existence of 'denver_solar_lease_results.json' in the '/home/ga/Documents/SAM_Projects/' directory."
+    },
+    {
+      "id": "json_content_verification",
+      "description": "The exported JSON file contains the required keys and expected configuration values.",
+      "points": 20,
+      "visual_evidence": "The contents of 'denver_solar_lease_results.json' displayed on screen (e.g., via 'cat' or an editor) showing keys like 'system_size_kw': 8.0, 'tilt_deg': 35, 'azimuth_deg': 180, 'ppa_price_cents_per_kwh': 8.0, and calculated outputs like 'annual_energy_kwh'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent actually ran the Python script to generate the JSON file.",
+      "visual_evidence": "Terminal history shows the Python script being executed prior to the JSON file being viewed, rather than the JSON file being manually created or downloaded."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent dynamically extracted the simulation results rather than hardcoding fake output values.",
+      "visual_evidence": "The Python script shows PySAM execution methods (e.g., model.execute()) and dynamic assignment to the JSON dictionary (e.g., 'annual_energy_kwh': model.Outputs.annual_energy) instead of hardcoded numbers for the calculated fields."
+    },
+    {
+      "id": "correct_library_usage",
+      "description": "The agent used the PySAM library as requested.",
+      "visual_evidence": "The script explicitly imports and uses PySAM modules rather than making external API calls to a different service or using a completely different solar modeling library."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is 'denver_solar_lease_results.json' located in '/home/ga/Documents/SAM_Projects/'. The JSON should contain 'denver' in the location string. Expected values in the JSON: system_size_kw = 8.0, tilt_deg = 35, azimuth_deg = 180, ppa_price_cents_per_kwh = 8.0, ppa_escalation_pct = 2.0. The calculated capacity factor should be between 13.0% and 21.0%."
+}

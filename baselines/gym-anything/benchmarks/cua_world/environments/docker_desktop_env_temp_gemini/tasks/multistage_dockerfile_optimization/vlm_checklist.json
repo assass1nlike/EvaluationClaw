@@ -1,0 +1,53 @@
+{
+  "task_id": "multistage_dockerfile_optimization@1",
+  "task_completion": [
+    {
+      "id": "modify_dockerfile",
+      "description": "Open and modify the Dockerfile in the application directory.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) or terminal command (e.g., cat, echo) showing the Dockerfile being edited in /home/ga/todo-app/."
+    },
+    {
+      "id": "implement_multistage_build",
+      "description": "Rewrite the Dockerfile to use a multi-stage build.",
+      "points": 20,
+      "visual_evidence": "The contents of the Dockerfile clearly showing at least two 'FROM' instructions (e.g., 'FROM node... AS build' followed by another 'FROM node...')."
+    },
+    {
+      "id": "build_and_tag_image",
+      "description": "Build and tag the optimized image as 'todo-app:optimized'.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of a 'docker build -t todo-app:optimized .' command and the successful completion of the build steps."
+    },
+    {
+      "id": "verify_image_size",
+      "description": "Verify the final image size is under 250 MB.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker images' or 'docker image ls' showing the 'todo-app' repository with the 'optimized' tag and a size value less than 250MB."
+    },
+    {
+      "id": "verify_app_functionality",
+      "description": "Verify the optimized image serves the application on port 3000.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the container being run (e.g., 'docker run -p 3000:3000 todo-app:optimized') and a successful test of the application (e.g., 'curl http://localhost:3000' returning HTML/JSON, or a browser window displaying the app)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_dockerfile_modification",
+      "description": "The agent actually edited the Dockerfile rather than just downloading a pre-made file or image.",
+      "visual_evidence": "Screenshots should show the agent interacting with the file system and editing the Dockerfile manually or via script in the /home/ga/todo-app/ directory."
+    },
+    {
+      "id": "genuine_docker_build",
+      "description": "The agent built the image locally rather than just re-tagging an existing small image.",
+      "visual_evidence": "The terminal must show the standard Docker build output (e.g., transferring context, executing steps/layers) corresponding to the multi-stage Dockerfile."
+    },
+    {
+      "id": "genuine_app_test",
+      "description": "The agent actually ran the container and tested it, rather than faking the verification.",
+      "visual_evidence": "Look for a 'docker run' command executing before the 'curl' or browser test, ensuring the response comes from the newly built container."
+    }
+  ],
+  "privileged_info_for_vlm": "The application is located in /home/ga/todo-app. The optimized image must be tagged exactly as 'todo-app:optimized'. The final image size must be strictly less than 250 MB. The application listens internally on port 3000."
+}

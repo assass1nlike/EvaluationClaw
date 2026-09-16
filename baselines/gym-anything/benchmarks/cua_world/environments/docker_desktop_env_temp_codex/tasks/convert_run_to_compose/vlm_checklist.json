@@ -1,0 +1,59 @@
+{
+  "task_id": "convert_run_to_compose@1",
+  "task_completion": [
+    {
+      "id": "compose_file_created",
+      "description": "Verify that a docker-compose.yml file was created in the project directory.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'touch docker-compose.yml', 'nano docker-compose.yml', or an editor/file explorer showing 'docker-compose.yml' inside '/home/ga/monitoring-stack'."
+    },
+    {
+      "id": "services_defined_in_compose",
+      "description": "Verify the docker-compose.yml file defines the prometheus, grafana, and node-exporter services with correct images and translated flags.",
+      "points": 30,
+      "visual_evidence": "Look at the contents of docker-compose.yml. It must contain 'prometheus' (image: prom/prometheus:v2.53.0), 'grafana' (image: grafana/grafana:11.0.0), and 'node-exporter' (image: prom/node-exporter:v1.8.1). It should also include port mappings (9090:9090, 3000:3000, 9100:9100) and other translated flags like volumes or environment variables."
+    },
+    {
+      "id": "stack_running_via_compose",
+      "description": "Verify the monitoring stack was started using Docker Compose.",
+      "points": 30,
+      "visual_evidence": "Look for terminal output of 'docker compose up -d' or 'docker compose ps' showing the containers running as part of a compose project (container names typically prefixed with the folder name, e.g., 'monitoring-stack-prometheus-1')."
+    },
+    {
+      "id": "prometheus_accessible",
+      "description": "Verify Prometheus is accessible on port 9090.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser showing the Prometheus UI at localhost:9090 or a terminal showing a successful 'curl localhost:9090' response."
+    },
+    {
+      "id": "grafana_accessible",
+      "description": "Verify Grafana is accessible on port 3000.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser showing the Grafana login/UI at localhost:3000 or a terminal showing a successful 'curl localhost:3000' response."
+    },
+    {
+      "id": "node_exporter_accessible",
+      "description": "Verify Node Exporter is accessible on port 9100.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser showing the Node Exporter metrics page at localhost:9100 or a terminal showing a successful 'curl localhost:9100' response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_legacy_script_execution",
+      "description": "Ensure the agent did not simply execute the legacy run_commands.sh script to start the containers.",
+      "visual_evidence": "Check the terminal history. The agent should use 'docker compose up' to start the containers, not './run_commands.sh' or manual 'docker run' commands."
+    },
+    {
+      "id": "genuine_compose_usage",
+      "description": "Ensure the containers are actually running as a Docker Compose stack.",
+      "visual_evidence": "When viewing 'docker ps' or Docker Desktop, the containers should have Compose-generated names (e.g., monitoring-stack-grafana-1) and appropriate Compose labels, rather than the standalone names from the original script."
+    },
+    {
+      "id": "actual_service_access",
+      "description": "Ensure the accessibility checks show genuine application responses.",
+      "visual_evidence": "Browser windows or curl outputs should display the actual Prometheus UI, Grafana UI, and Node Exporter metrics format, not generic error pages or mocked text files."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/monitoring-stack. The target compose file is docker-compose.yml. The stack must include three services: 'prometheus' (image: prom/prometheus:v2.53.0, port: 9090), 'grafana' (image: grafana/grafana:11.0.0, port: 3000), and 'node-exporter' (image: prom/node-exporter:v1.8.1, port: 9100)."
+}

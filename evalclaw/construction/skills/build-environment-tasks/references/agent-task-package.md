@@ -5,7 +5,7 @@ EvaluationClaw derives canonical `metadata.agent_task_package` during packaging.
 - Identify the measured capability and provide concise task content.
 - Separate visible inputs, setup-only runtime material, and evaluator-only references.
 - Define required outputs or expected artifacts, including paths, formats, and side-effect constraints.
-- Provide deterministic setup, execution, and evaluation semantics with bounded timeout and steps.
+- Define reproducible setup and execution, explicit evaluation criteria and aggregation, and bounded timeout and steps. Use executable checks or the supported environment judge for semantic assessment.
 - Define full, partial, and failure criteria on a normalized score range.
 - State which artifacts, logs, screenshots, and tool traces must be retained.
 - Specify required tools and forbidden shortcuts when process behavior matters.

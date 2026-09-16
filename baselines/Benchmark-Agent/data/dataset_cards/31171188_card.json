@@ -1,0 +1,74 @@
+{
+  "dataset_id": "31171188",
+  "name": "Personality-Analysis",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A text dataset for personality analysis, where models must infer whether the author of a personal narrative is emotionally stable or neurotic. It frames the task as binary classification from long first-person essays.",
+  "card_text": "The Personality-Analysis dataset contains 200 English text samples, each consisting of a long, first-person stream-of-consciousness narrative and an instruction prompt. The prompt asks the model to decide, based solely on the text, whether the author is emotionally stable or neurotic, and to output only the category name. The narratives are personal and reflective, often describing college life, relationships, daily events, and emotional reactions. The output is a single categorical label: 'stable' or 'neurotic'. The dataset therefore evaluates binary text classification of personality/emotional stability from unstructured personal writing. It assumes the author's psychological trait can be inferred from self-expressive text, and that the provided label reflects the intended personality category.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "personality psychology",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "narrative",
+        "semantics": "Long first-person stream-of-consciousness text written by the author, typically describing daily events, feelings, and personal reflections. It serves as the input evidence for judging the author's emotional stability.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction template asking the model to read the raw text and decide whether the author is emotionally stable or neurotic, requiring only the category name as output. It contains a placeholder for the raw text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Binary target label indicating the inferred personality category: 'stable' (emotionally stable) or 'neurotic'. It is the classification decision derived from the raw text and prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a long first-person narrative in input.raw_text, an instruction prompt in input.prompt that asks to classify the author as emotionally stable or neurotic, and a categorical answer in output.category with values 'stable' or 'neurotic'. The prompt references the raw text via a placeholder, and the answer is the target personality label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Personality-Analysis/annotation.json",
+    "existing_tags": {
+      "task": "personality_analysis",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

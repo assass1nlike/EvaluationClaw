@@ -1,0 +1,30 @@
+{
+  "id": "lm317_regulator_design@1",
+  "version": "1.0",
+  "env_id": "electrical_calculations_env@0.1",
+  "description": "Calculate the required adjustment resistor (R2) for an LM317 voltage regulator circuit using the Electrical Engineering Calculations app. Based on the design requirements in /sdcard/Download/project_specs.txt (Vout=9V, R1=240Ω), determine the resistance value and save it to /sdcard/lm317_design.txt in the format 'R2=VALUE'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/lm317_regulator_design/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/lm317_regulator_design/export_result.sh"
+  },
+  "metadata": {
+    "specs_file": "/sdcard/Download/project_specs.txt",
+    "result_file": "/sdcard/lm317_design.txt",
+    "expected_r2": 1488,
+    "tolerance": 10,
+    "vout": 9,
+    "r1": 240
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lm317_design"
+    }
+  }
+}

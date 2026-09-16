@@ -1,0 +1,43 @@
+{
+  "id": "export_selected_items_to_bibtex@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Export the following three papers from your library to a BibTeX file at /home/ga/Documents/info_theory_foundations.bib: 'A Mathematical Theory of Communication' (Shannon, 1948), 'A Method for the Construction of Minimum-Redundancy Codes' (Huffman, 1952), and 'On Computable Numbers, with an Application to the Entscheidungsproblem' (Turing, 1936).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_selected_items_to_bibtex/setup_task.sh",
+    "post_task": "/workspace/tasks/export_selected_items_to_bibtex/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "info_theory_foundations.bib",
+    "expected_path": "/home/ga/Documents/info_theory_foundations.bib",
+    "target_papers": [
+      {
+        "title": "A Mathematical Theory of Communication",
+        "author": "Shannon",
+        "keyword": "Shannon"
+      },
+      {
+        "title": "A Method for the Construction of Minimum-Redundancy Codes",
+        "author": "Huffman",
+        "keyword": "Huffman"
+      },
+      {
+        "title": "On Computable Numbers",
+        "author": "Turing",
+        "keyword": "Turing"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_selected_items_to_bibtex"
+    }
+  }
+}

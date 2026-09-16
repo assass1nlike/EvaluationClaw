@@ -1,0 +1,62 @@
+{
+  "task_id": "lalonde_causal_psm@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The agent created the R script lalonde_analysis.R.",
+      "points": 10,
+      "visual_evidence": "An R script named 'lalonde_analysis.R' is visible in a text editor or IDE, containing code for propensity score matching and causal inference."
+    },
+    {
+      "id": "balance_table_saved",
+      "description": "The agent generated the lalonde_balance_table.csv file with required columns.",
+      "points": 20,
+      "visual_evidence": "A file named 'lalonde_balance_table.csv' is visible in the file explorer, or its contents are shown on screen containing covariate names and Standardized Mean Difference (SMD) values for Unmatched and Matched samples."
+    },
+    {
+      "id": "treatment_effects_saved",
+      "description": "The agent generated the lalonde_treatment_effects.csv file with required methods.",
+      "points": 20,
+      "visual_evidence": "A file named 'lalonde_treatment_effects.csv' is visible, or its contents are shown containing columns for 'Method' (including Naive, NN/Nearest Neighbor, and Full) and 'Estimate'."
+    },
+    {
+      "id": "love_plot_saved",
+      "description": "The agent generated the lalonde_love_plot.png visualizing balance improvement.",
+      "points": 20,
+      "visual_evidence": "A plot named 'lalonde_love_plot.png' is visible in the file explorer, plot viewer, or image viewer. The plot should be a Love plot showing SMD/balance before and after matching."
+    },
+    {
+      "id": "correct_estimates_calculated",
+      "description": "The calculated treatment effects match the expected statistical bounds.",
+      "points": 20,
+      "visual_evidence": "The console output, R environment, or the contents of 'lalonde_treatment_effects.csv' show a negative Naive estimate (less than -500, typically around -635) and positive matched estimates (between 500 and 3500) for NN and Full matching."
+    },
+    {
+      "id": "files_in_correct_directory",
+      "description": "All deliverables are saved in the specified output directory.",
+      "points": 10,
+      "visual_evidence": "The file explorer, terminal path, or IDE shows that the four required files are located exactly in '/home/ga/RProjects/output/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_r_execution",
+      "description": "The agent executed the R code to perform the analysis rather than manually creating the outputs.",
+      "points": 0,
+      "visual_evidence": "Look for an R console, RStudio environment, or terminal running 'Rscript' showing the execution of the code and generation of outputs, rather than a text editor just typing out CSV data."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent calculated the estimates using statistical functions rather than hardcoding the expected answers.",
+      "points": 0,
+      "visual_evidence": "The R script should contain functions like 'matchit()', 'lm()', or similar statistical modeling commands, rather than directly assigning values like '-635.03' or '894' to variables."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The Love plot was generated via code.",
+      "points": 0,
+      "visual_evidence": "The R script should contain plotting commands (e.g., 'love.plot()' from the cobalt package, or 'ggplot()') and commands to save the plot (e.g., 'ggsave()' or 'png()')."
+    }
+  ],
+  "privileged_info_for_vlm": "The output directory must be exactly '/home/ga/RProjects/output/'. The required files are 'lalonde_balance_table.csv', 'lalonde_treatment_effects.csv', 'lalonde_love_plot.png', and 'lalonde_analysis.R'. The naive unadjusted estimate for the treatment effect must be negative and less than -500 (specifically around -635.03). The matched ATT estimates (Nearest Neighbor and Full Matching) must be positive, falling between 500 and 3500 (specifically around 894 to 1801)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "weather_station_qc_anomaly_detection@1",
+  "task_completion": [
+    {
+      "id": "create_qc_results_table",
+      "description": "Verify the creation and population of the QC_RESULTS table for stuck sensors and impossible values.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL client (e.g., DBeaver, SQL Developer, or terminal sqlplus) showing the QC_RESULTS table schema or data. It must include columns result_id, station_id, obs_date, element, flag_type, and severity, with values like 'STUCK_SENSOR' or 'IMPOSSIBLE_VALUE'."
+    },
+    {
+      "id": "create_idw_function",
+      "description": "Verify the creation of the PL/SQL function FUNC_IDW_ESTIMATE.",
+      "points": 20,
+      "visual_evidence": "Look for the function FUNC_IDW_ESTIMATE in the database client's object explorer, or a 'Function created'/'Compiled successfully' message in the SQL execution output."
+    },
+    {
+      "id": "create_anomaly_view",
+      "description": "Verify the creation of the CLIMATE_ANOMALY_VW view.",
+      "points": 15,
+      "visual_evidence": "Look for the CLIMATE_ANOMALY_VW view in the database client. The query or view definition should show logic for monthly averages and an 'is_anomaly' column."
+    },
+    {
+      "id": "create_qc_mv",
+      "description": "Verify the creation of the QUALITY_CONTROLLED_OBS_MV materialized view with unit conversions.",
+      "points": 25,
+      "visual_evidence": "Look for the QUALITY_CONTROLLED_OBS_MV materialized view in the database client. The definition or data output must show columns for value_celsius and value_mm, along with station names and coordinates."
+    },
+    {
+      "id": "export_climate_summary_csv",
+      "description": "Verify the export of the monthly climate summary to /home/ga/climate_summary.csv.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window, file explorer, or text editor showing the file /home/ga/climate_summary.csv. The file contents should display headers: station_name, year_month, avg_tmax_c, avg_tmin_c, total_prcp_mm."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Ensure the agent actually executed SQL commands against the Oracle database.",
+      "visual_evidence": "Look for an active connection to the Oracle database (localhost:1521/XEPDB1) in a SQL client or terminal, with successful execution times or row counts, rather than just typing SQL into a disconnected text editor."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Ensure the CSV file was genuinely exported to the filesystem.",
+      "visual_evidence": "Look for terminal commands (like 'ls -l /home/ga/climate_summary.csv' or 'cat') or a file manager showing the file exists on the disk, rather than just a mock-up typed manually."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent used SQL logic to find anomalies and calculate values, rather than hardcoding the expected results.",
+      "visual_evidence": "Look at the SQL scripts or query history. They should contain actual analytical functions (e.g., STDDEV, Haversine math, LAG/LEAD for consecutive days) rather than direct INSERT statements with hardcoded station IDs and dates."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "soc_alert_fatigue_mitigation@1",
+  "task_completion": [
+    {
+      "id": "splunk_search_executed",
+      "description": "Agent executes a search query targeting the correct index for failed SSH logins.",
+      "points": 10,
+      "visual_evidence": "The Splunk search bar contains a query including 'index=\"security_logs\"' and terms related to failed SSH logins (e.g., 'fail', 'sshd', 'invalid')."
+    },
+    {
+      "id": "save_as_alert_dialog",
+      "description": "Agent opens the 'Save As Alert' dialog in the Splunk UI.",
+      "points": 10,
+      "visual_evidence": "A modal or dialog box titled 'Save As Alert' is visible over the Splunk search interface."
+    },
+    {
+      "id": "alert_name_set",
+      "description": "Agent sets the correct alert name.",
+      "points": 15,
+      "visual_evidence": "The 'Title' field in the alert configuration dialog is filled with exactly 'Throttled_SSH_Brute_Force'."
+    },
+    {
+      "id": "schedule_configured",
+      "description": "Agent configures the alert to run on the specified 5-minute cron schedule.",
+      "points": 20,
+      "visual_evidence": "The alert type is set to 'Scheduled', the schedule type is set to 'Cron', and the cron expression input field contains '*/5 * * * *'."
+    },
+    {
+      "id": "trigger_condition_set",
+      "description": "Agent sets the trigger condition for more than 5 attempts.",
+      "points": 20,
+      "visual_evidence": "The trigger condition is set to 'Number of Results' (or similar custom condition) 'is greater than' 5."
+    },
+    {
+      "id": "throttling_configured",
+      "description": "Agent enables throttling for the source IP for exactly 24 hours.",
+      "points": 25,
+      "visual_evidence": "The 'Throttle' checkbox is checked. The 'Suppress results containing field value' input contains 'src_ip' (or a valid alternative like 'clientip', 'src'). The 'Suppress triggering for' time input is set to '24h', '1d', '86400', or '86400s'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_web_ui",
+      "description": "Agent interacted with the Splunk Web UI via a browser.",
+      "visual_evidence": "Screenshots show a web browser navigating to localhost:8000 and using the Splunk graphical interface, rather than terminal commands (like curl or editing .conf files)."
+    },
+    {
+      "id": "actual_ui_interaction",
+      "description": "Agent genuinely filled out the Splunk alert forms.",
+      "visual_evidence": "Screenshots show the actual Splunk dropdowns, checkboxes, and input fields being interacted with, rather than a text editor or script output."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Agent did not use browser developer tools to fake the UI state.",
+      "visual_evidence": "The Splunk interface appears normal without the browser developer console open to manipulate DOM elements to fake the alert creation."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected alert name must be exactly 'Throttled_SSH_Brute_Force'. Valid suppression time period inputs for 24 hours include '24h', '86400', '86400s', or '1d'. Valid suppression fields for the source IP include 'src_ip', 'clientip', 'src', 'source_ip', or 'ip'."
+}

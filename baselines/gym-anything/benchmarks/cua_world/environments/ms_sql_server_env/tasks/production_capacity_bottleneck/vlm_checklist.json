@@ -1,0 +1,59 @@
+{
+  "task_id": "production_capacity_bottleneck@1",
+  "task_completion": [
+    {
+      "id": "scalar_function_created",
+      "description": "Check if the scalar function 'dbo.fn_UtilizationRate' was created.",
+      "points": 10,
+      "visual_evidence": "SQL query editor showing 'CREATE FUNCTION dbo.fn_UtilizationRate' with Actual/Available logic, or the function visible in the Azure Data Studio Object Explorer under Programmability > Functions."
+    },
+    {
+      "id": "view_created",
+      "description": "Check if the view 'dbo.vw_WorkCenterMonthlyMetrics' was created with the required aggregations.",
+      "points": 20,
+      "visual_evidence": "SQL query editor showing 'CREATE VIEW dbo.vw_WorkCenterMonthlyMetrics' with joins on WorkOrderRouting and Location, or the view visible in the Object Explorer."
+    },
+    {
+      "id": "analysis_table_created",
+      "description": "Check if the table 'Production.BottleneckAnalysis' was created to store the results.",
+      "points": 10,
+      "visual_evidence": "SQL query editor showing 'CREATE TABLE Production.BottleneckAnalysis' with the required 10 columns (LocationID, LocationName, AnalysisYear, etc.), or the table visible in the Object Explorer."
+    },
+    {
+      "id": "stored_procedure_created",
+      "description": "Check if the stored procedure 'dbo.usp_IdentifyBottlenecks' was created with the correct scoring logic.",
+      "points": 25,
+      "visual_evidence": "SQL query editor showing 'CREATE PROCEDURE dbo.usp_IdentifyBottlenecks' containing the BottleneckScore formula ((AvgUtilizationRate * 40) + ...) and DENSE_RANK() function."
+    },
+    {
+      "id": "procedure_executed_for_2013",
+      "description": "Check if the stored procedure was executed specifically for the year 2013.",
+      "points": 15,
+      "visual_evidence": "SQL query editor showing 'EXEC dbo.usp_IdentifyBottlenecks 2013' (or similar) with a successful execution message, or a SELECT query showing the populated table with 2013 data."
+    },
+    {
+      "id": "results_exported_to_csv",
+      "description": "Check if the final table contents were exported to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "Azure Data Studio 'Save As CSV' dialog, a file explorer showing 'bottleneck_report_2013.csv' in '/home/ga/Documents/exports/', or a terminal showing the file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_azure_data_studio",
+      "description": "Verify the agent used Azure Data Studio connected to AdventureWorks2022.",
+      "visual_evidence": "The Azure Data Studio interface is visible with an active connection to the local SQL Server and AdventureWorks2022 database."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "Verify the agent wrote actual SQL logic rather than hardcoding answers.",
+      "visual_evidence": "The SQL scripts contain the required formulas (e.g., AvgUtilizationRate * 40) and aggregations (GROUP BY) rather than static INSERT statements with pre-calculated numbers."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Verify the CSV was exported from the query results.",
+      "visual_evidence": "The agent used the 'Save as CSV' button in the Azure Data Studio results grid or a valid command-line export tool, rather than manually typing a CSV file in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path for the CSV export is exactly '/home/ga/Documents/exports/bottleneck_report_2013.csv'. The analysis year to be executed and exported is 2013."
+}

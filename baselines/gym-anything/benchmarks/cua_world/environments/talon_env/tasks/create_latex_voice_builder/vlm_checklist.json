@@ -1,0 +1,59 @@
+{
+  "task_id": "create_latex_voice_builder@1",
+  "task_completion": [
+    {
+      "id": "directory_and_files_created",
+      "description": "Create the target directory and the two required files.",
+      "points": 10,
+      "visual_evidence": "A file explorer or code editor showing the directory 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\latex_math' containing 'latex_math.py' and 'latex_math.talon'."
+    },
+    {
+      "id": "python_csv_list_loading",
+      "description": "Define the Talon list and populate it from the CSV file.",
+      "points": 20,
+      "visual_evidence": "In 'latex_math.py', code defining a Talon Module/Context, declaring the list 'user.latex_symbols', and reading from 'C:\\Users\\Docker\\Documents\\latex_symbols.csv' to populate it."
+    },
+    {
+      "id": "python_custom_actions",
+      "description": "Implement custom actions for fraction and environment with cursor movement.",
+      "points": 20,
+      "visual_evidence": "In 'latex_math.py', an @mod.action_class containing 'latex_insert_fraction()' (inserts '\\frac{}{}' and moves cursor left) and 'latex_environment(env_name: str)' (inserts '\\begin{env}' and '\\end{env}' and moves cursor inside)."
+    },
+    {
+      "id": "talon_custom_action_bindings",
+      "description": "Bind voice commands to the custom actions and symbols in the Talon file.",
+      "points": 20,
+      "visual_evidence": "In 'latex_math.talon', bindings for 'math symbol {user.latex_symbols}: insert(latex_symbols)', 'math fraction: user.latex_insert_fraction()', and 'math begin <user.text>: user.latex_environment(text)'."
+    },
+    {
+      "id": "talon_script_bindings",
+      "description": "Bind superscript and subscript commands with cursor movement.",
+      "points": 15,
+      "visual_evidence": "In 'latex_math.talon', bindings for 'math superscript' (inserts '^{}' and uses 'key(left)') and 'math subscript' (inserts '_{}' and uses 'key(left)')."
+    },
+    {
+      "id": "proper_escaping",
+      "description": "Ensure backslashes are properly escaped in LaTeX commands.",
+      "points": 15,
+      "visual_evidence": "In both files, LaTeX commands like '\\frac', '\\begin', and '\\end' use properly escaped backslashes (e.g., '\\\\frac' in Python strings or raw strings like r'\\frac')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Files are actually saved to the correct directory.",
+      "visual_evidence": "The code editor shows the files are saved in the correct 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\latex_math' path, not just existing as unsaved buffers."
+    },
+    {
+      "id": "dynamic_csv_loading",
+      "description": "The Python script dynamically reads the CSV rather than hardcoding the symbols.",
+      "visual_evidence": "The Python code contains file reading logic (e.g., 'with open(...)', 'csv.reader') instead of a hardcoded dictionary of LaTeX symbols."
+    },
+    {
+      "id": "valid_talon_syntax",
+      "description": "The Talon file uses valid Talon syntax, not Python code.",
+      "visual_evidence": "The '.talon' file uses standard Talon syntax (e.g., 'command: action()') and does not contain Python imports or Python function definitions."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\latex_math. Files to check: latex_math.py and latex_math.talon. The Python script must reference the CSV at C:\\Users\\Docker\\Documents\\latex_symbols.csv. Note: The actual CSV file might be missing from the environment due to a defective setup script, but the agent's code must still reference this exact path."
+}

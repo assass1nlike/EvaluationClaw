@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_approved_asset@1",
+  "task_completion": [
+    {
+      "id": "access_campaign_assets_workspace",
+      "description": "The agent navigates to the 'Campaign Assets' workspace.",
+      "points": 10,
+      "visual_evidence": "The Nuxeo web interface displays the 'Campaign Assets' workspace containing the documents 'Candidate-Alpha' and 'Candidate-Beta'."
+    },
+    {
+      "id": "inspect_first_candidate",
+      "description": "The agent opens one of the candidate documents to inspect its image content.",
+      "points": 15,
+      "visual_evidence": "A document view or preview screen showing the image content of either 'Candidate-Alpha' or 'Candidate-Beta' (displaying either a red 'APPROVED' stamp or grey 'DRAFT v1' text)."
+    },
+    {
+      "id": "inspect_second_candidate",
+      "description": "The agent opens the other candidate document to inspect its image content.",
+      "points": 15,
+      "visual_evidence": "A document view or preview screen showing the image content of the second candidate document, displaying the opposite stamp/text from the first inspected document."
+    },
+    {
+      "id": "rename_approved_document",
+      "description": "The agent renames the document containing the red 'APPROVED' stamp to 'Final-Banner'.",
+      "points": 40,
+      "visual_evidence": "The Nuxeo interface shows the document that was visually identified as having the red 'APPROVED' stamp is now titled 'Final-Banner' (visible in the document edit screen, detail view, or workspace list)."
+    },
+    {
+      "id": "draft_document_unchanged",
+      "description": "The agent leaves the document containing the grey 'DRAFT v1' text unchanged.",
+      "points": 20,
+      "visual_evidence": "The Nuxeo workspace list shows the document with the grey 'DRAFT v1' text still retains its original name (either 'Candidate-Alpha' or 'Candidate-Beta')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_rename",
+      "description": "The agent used the Nuxeo web interface to rename the document.",
+      "visual_evidence": "Screenshots show the agent interacting with the Nuxeo UI (e.g., clicking 'Edit' and typing in the title field) rather than using terminal commands or API scripts."
+    },
+    {
+      "id": "visual_inspection_performed",
+      "description": "The agent actually viewed the images to make the decision rather than guessing.",
+      "visual_evidence": "Screenshots must show the image previews being loaded and visible on screen before the renaming action occurs."
+    },
+    {
+      "id": "no_ground_truth_cheating",
+      "description": "The agent did not access the hidden ground truth file to find the answer.",
+      "visual_evidence": "No terminal or text editor windows are shown opening, reading, or printing the contents of '/tmp/ground_truth.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The workspace is located at '/default-domain/workspaces/Campaign-Assets'. The agent must visually inspect the documents to find the red 'APPROVED' stamp and rename only that document to 'Final-Banner'. The agent must not access the ground truth file at '/tmp/ground_truth.json'."
+}

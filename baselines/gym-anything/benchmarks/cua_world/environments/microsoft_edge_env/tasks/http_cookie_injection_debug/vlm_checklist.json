@@ -1,0 +1,59 @@
+{
+  "task_id": "http_cookie_injection_debug@1",
+  "task_completion": [
+    {
+      "id": "edge_opened_httpbin",
+      "description": "Open Microsoft Edge and navigate to httpbin.org",
+      "points": 10,
+      "visual_evidence": "Microsoft Edge window is open with 'httpbin.org' or 'https://httpbin.org' in the address bar."
+    },
+    {
+      "id": "devtools_cookies_opened",
+      "description": "Open Developer Tools and access the Cookies section",
+      "points": 10,
+      "visual_evidence": "Edge Developer Tools panel is open, the 'Application' tab is selected, and 'Cookies' -> 'https://httpbin.org' is selected in the left sidebar."
+    },
+    {
+      "id": "cookie_debug_session_id_set",
+      "description": "Set the debug_session_id cookie",
+      "points": 20,
+      "visual_evidence": "In the DevTools Cookies table, there is a row with Name 'debug_session_id' and Value '8849-alpha-test'."
+    },
+    {
+      "id": "cookie_ui_variant_set",
+      "description": "Set the ui_variant cookie with Secure and HttpOnly flags",
+      "points": 30,
+      "visual_evidence": "In the DevTools Cookies table, there is a row with Name 'ui_variant' and Value 'dark_v2'. Additionally, the checkboxes or indicators for both 'Secure' and 'HttpOnly' columns are checked/enabled for this row."
+    },
+    {
+      "id": "json_response_displayed",
+      "description": "Navigate to the cookies endpoint to view the injected cookies in the response",
+      "points": 10,
+      "visual_evidence": "The browser address bar shows 'https://httpbin.org/cookies' and the main viewport displays a JSON response containing both 'debug_session_id': '8849-alpha-test' and 'ui_variant': 'dark_v2'."
+    },
+    {
+      "id": "json_saved_to_desktop",
+      "description": "Save the raw JSON response to the specified Desktop file",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog saving the page to '/home/ga/Desktop/cookie_verification.json', or a text editor open showing the JSON response saved to that exact file path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_browser_devtools",
+      "description": "Agent used the Edge Developer Tools GUI to set the cookies",
+      "visual_evidence": "Screenshots should show interaction with the Edge DevTools Application tab. The agent should not be using terminal commands (like sqlite3) to directly modify the browser's cookie database."
+    },
+    {
+      "id": "genuine_browser_response",
+      "description": "Agent obtained the JSON response from the browser",
+      "visual_evidence": "The JSON response should be visible in the Edge browser window. The agent should not use curl or python scripts in the terminal to fetch the response."
+    },
+    {
+      "id": "no_manual_json_typing",
+      "description": "Agent did not manually type the expected JSON output",
+      "visual_evidence": "The file '/home/ga/Desktop/cookie_verification.json' should be saved directly from the browser's output or copied from the browser, rather than manually typed out in a text editor based on the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain: httpbin.org. Output file: /home/ga/Desktop/cookie_verification.json. Cookie 1: Name 'debug_session_id', Value '8849-alpha-test'. Cookie 2: Name 'ui_variant', Value 'dark_v2', with both Secure and HttpOnly flags enabled. The response from https://httpbin.org/cookies returns JSON in the format {\"cookies\": {\"name\": \"value\"}}."
+}

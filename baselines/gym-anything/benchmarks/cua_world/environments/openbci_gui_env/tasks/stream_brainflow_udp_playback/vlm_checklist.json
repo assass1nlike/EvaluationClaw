@@ -1,0 +1,53 @@
+{
+  "task_id": "stream_brainflow_udp_playback@1",
+  "task_completion": [
+    {
+      "id": "select_playback_mode",
+      "description": "Select Playback mode in OpenBCI GUI",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI System Control Panel is open and 'Playback' (or 'Playback File') is selected as the data source."
+    },
+    {
+      "id": "select_playback_file",
+      "description": "Select the correct EEG recording file",
+      "points": 20,
+      "visual_evidence": "The file 'OpenBCI-EEG-S001-EyesOpen.txt' is visible in the file selection field within the OpenBCI GUI Control Panel."
+    },
+    {
+      "id": "configure_brainflow_streamer",
+      "description": "Configure BrainFlow Streamer with target IP and Port",
+      "points": 30,
+      "visual_evidence": "In the BrainFlow Streamer settings (located in the Control Panel, not the Networking Widget), the IP address is set to '127.0.0.1' and the port is set to '9000'."
+    },
+    {
+      "id": "start_data_stream",
+      "description": "Start the system and data stream",
+      "points": 20,
+      "visual_evidence": "The OpenBCI GUI dashboard is active, showing live EEG data traces in the Time Series widget, indicating the playback has started."
+    },
+    {
+      "id": "run_duration",
+      "description": "Run the playback session for at least 15 seconds",
+      "points": 20,
+      "visual_evidence": "The time axis on the Time Series widget or the session timer indicates that the data stream has been running for 15 seconds or more."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_actual_gui",
+      "description": "Agent interacted with the OpenBCI GUI application",
+      "visual_evidence": "Screenshots show the actual OpenBCI GUI interface being manipulated, not a text editor or mock interface."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "Agent did not use terminal scripts to bypass the GUI",
+      "visual_evidence": "There are no terminal windows showing Python scripts or netcat commands being used to send UDP packets directly to port 9000."
+    },
+    {
+      "id": "used_brainflow_streamer",
+      "description": "Agent used the BrainFlow Streamer, not the Networking Widget",
+      "visual_evidence": "The configuration for IP and Port is done in the Control Panel's BrainFlow Streamer section, and the Networking Widget is either closed or not configured for this stream."
+    }
+  ],
+  "privileged_info_for_vlm": "Target IP: 127.0.0.1. Target Port: 9000. Playback file: 'OpenBCI-EEG-S001-EyesOpen.txt'. The task requires using the BrainFlow Streamer (which transmits binary data) located in the Control Panel, NOT the Networking Widget (which transmits JSON). The session must run for at least 15 seconds to ensure at least 50 UDP packets are transmitted."
+}

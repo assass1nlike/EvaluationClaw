@@ -1,0 +1,29 @@
+{
+  "id": "shading_correction_segmentation@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a microbiologist analyzing a colony plate image (blobs.gif) that suffers from uneven illumination (vignetting) where the corners are too dark for standard thresholding. Perform retrospective shading correction and segment all particles across the entire field of view, including the corners. Save the final binary mask as ~/Fiji_Data/results/corrected_mask.png and the measurement results, including the particle count, as ~/Fiji_Data/results/particle_count.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/shading_correction_segmentation/setup_task.sh",
+    "post_task": "/workspace/tasks/shading_correction_segmentation/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "blobs.gif (Fiji built-in sample)",
+    "expected_count_min": 50,
+    "uncorrected_count_approx": 40,
+    "output_mask": "~/Fiji_Data/results/corrected_mask.png",
+    "output_csv": "~/Fiji_Data/results/particle_count.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shading_correction"
+    }
+  }
+}

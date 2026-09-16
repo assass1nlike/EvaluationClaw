@@ -1,0 +1,28 @@
+{
+  "id": "perspective_grid_construction@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a geometrically correct 4x4 checkerboard grid in 2-point perspective in GeoGebra using a horizon line at y=4 and two vanishing points. The grid must feature mathematically accurate depth spacing rather than estimated positions. Save the file to ~/Documents/GeoGebra/projects/perspective_grid.ggb.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/perspective_grid_construction/setup_task.sh",
+    "post_task": "/workspace/tasks/perspective_grid_construction/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "perspective_grid.ggb",
+    "horizon_y": 4.0,
+    "min_grid_lines": 10,
+    "tolerance_pixels": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perspective_grid_construction"
+    }
+  }
+}

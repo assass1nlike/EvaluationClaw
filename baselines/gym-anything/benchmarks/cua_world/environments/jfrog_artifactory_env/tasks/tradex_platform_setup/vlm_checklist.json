@@ -1,0 +1,59 @@
+{
+  "task_id": "tradex_platform_setup@1",
+  "task_completion": [
+    {
+      "id": "create_generic_repo",
+      "description": "Create a local generic repository named 'tradex-artifacts'",
+      "points": 15,
+      "visual_evidence": "The Artifactory Repositories list or configuration page shows a local generic repository named 'tradex-artifacts' with the description 'TradeX Platform build artifacts'."
+    },
+    {
+      "id": "create_maven_repo",
+      "description": "Create a local Maven repository named 'tradex-maven-releases'",
+      "points": 15,
+      "visual_evidence": "The Artifactory Repositories list or configuration page shows a local Maven repository named 'tradex-maven-releases' with the description 'TradeX Java release artifacts'."
+    },
+    {
+      "id": "create_group",
+      "description": "Establish a group named 'tradex-developers'",
+      "points": 10,
+      "visual_evidence": "The Artifactory Identity and Access (or Groups) page shows a group named 'tradex-developers' has been created."
+    },
+    {
+      "id": "create_permission_target",
+      "description": "Create a permission target granting specific privileges to the group on both repositories",
+      "points": 20,
+      "visual_evidence": "The Permissions page shows a target named 'tradex-dev-perms' that includes both 'tradex-artifacts' and 'tradex-maven-releases' repositories, and grants Admin, Deploy, Annotate, and Read privileges to the 'tradex-developers' group."
+    },
+    {
+      "id": "generate_access_token",
+      "description": "Generate an access token for the admin user",
+      "points": 20,
+      "visual_evidence": "The User Profile or Access Tokens page shows a generated token with the description 'TradeX CI/CD production token'."
+    },
+    {
+      "id": "upload_artifact",
+      "description": "Upload the commons-io jar file to the 'tradex-artifacts' repository",
+      "points": 20,
+      "visual_evidence": "The Artifacts Tree or Browser shows 'commons-io-2.15.1.jar' successfully uploaded and residing inside the 'tradex-artifacts' repository."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Artifactory web UI to complete the setup rather than using terminal API/curl commands.",
+      "visual_evidence": "Screenshots show navigation and form filling within the JFrog Artifactory web interface in a browser, rather than terminal windows executing curl commands."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Artifactory application.",
+      "visual_evidence": "The browser URL bar shows 'http://localhost:8082' and the interface matches JFrog Artifactory."
+    },
+    {
+      "id": "authentic_file_upload",
+      "description": "The agent uploaded the actual file from the specified directory.",
+      "visual_evidence": "The file upload dialog or browser interaction shows the agent navigating to '/home/ga/Desktop/' to select 'commons-io-2.15.1.jar'."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The Artifactory URL is http://localhost:8082. The target repositories to be created are 'tradex-artifacts' (Generic) and 'tradex-maven-releases' (Maven). The target group is 'tradex-developers'. The permission target is 'tradex-dev-perms'. The token description must be exactly 'TradeX CI/CD production token'. The artifact to upload is 'commons-io-2.15.1.jar' located at '/home/ga/Desktop/commons-io-2.15.1.jar', and it must be uploaded specifically to the 'tradex-artifacts' repository."
+}

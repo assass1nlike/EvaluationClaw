@@ -1,0 +1,59 @@
+{
+  "task_id": "clean_municipal_payroll@1",
+  "task_completion": [
+    {
+      "id": "extract_names",
+      "description": "Extract last and first names into new columns",
+      "points": 15,
+      "visual_evidence": "Look for new columns named 'Last_Name' and 'First_Name' containing the separated names of the employees, with no obvious leading or trailing spaces."
+    },
+    {
+      "id": "clean_titles",
+      "description": "Create a Clean_Title column with proper case",
+      "points": 15,
+      "visual_evidence": "Look for a new column named 'Clean_Title' where the job titles are formatted in Proper Case (e.g., 'Police Officer' instead of 'POLICE OFFICER')."
+    },
+    {
+      "id": "total_compensation",
+      "description": "Calculate normalized Total_Compensation",
+      "points": 25,
+      "visual_evidence": "Look for a new column named 'Total_Compensation' containing numerical values representing annual pay. Evidence of a formula handling both salaried (direct annual salary) and hourly (rate * hours * 52) employees should be visible in the formula bar or script."
+    },
+    {
+      "id": "summary_sheet_created",
+      "description": "Create a new sheet named Department_Summary",
+      "points": 10,
+      "visual_evidence": "Look at the sheet tabs at the bottom of the spreadsheet application to verify a new tab named 'Department_Summary' exists."
+    },
+    {
+      "id": "summary_headers",
+      "description": "Add correct headers to the summary table",
+      "points": 10,
+      "visual_evidence": "On the 'Department_Summary' sheet, look for a table with exactly these column headers: 'Department', 'Headcount', and 'Avg_Compensation'."
+    },
+    {
+      "id": "summary_data",
+      "description": "Populate summary table with aggregated department data",
+      "points": 25,
+      "visual_evidence": "On the 'Department_Summary' sheet, look for rows corresponding to POLICE, FIRE, STREETS & SAN, WATER MGMNT, and AVIATION, along with their calculated headcount and average compensation values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_tool_usage",
+      "description": "Agent used appropriate tools (spreadsheet GUI or data processing script) to perform the task",
+      "visual_evidence": "Screenshots should show interaction with a spreadsheet application (e.g., LibreOffice Calc) using formulas/pivot tables, or a terminal running a Python/pandas script, rather than a text editor manually faking the output."
+    },
+    {
+      "id": "no_manual_aggregation",
+      "description": "Agent calculated the summary data rather than typing it manually",
+      "visual_evidence": "Look for evidence of calculation, such as pivot table UI elements, formula bars containing AVERAGE/COUNTIF functions, or a script performing group-by operations."
+    },
+    {
+      "id": "correct_file_saved",
+      "description": "The file was saved to the correct target path",
+      "visual_evidence": "The application title bar, save dialog, or terminal commands should indicate the file being modified and saved is '/home/ga/Documents/chicago_employees.xlsx'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is located at /home/ga/Documents/chicago_employees.xlsx. The dataset contains exactly 5 departments that must be summarized: POLICE, FIRE, STREETS & SAN, WATER MGMNT, and AVIATION. Verify that the summary sheet contains exactly these 5 departments and no others."
+}

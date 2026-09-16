@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_snr_report_scamp@1",
+  "task_completion": [
+    {
+      "id": "open_seiscomp_event",
+      "description": "Open SeisComP to view the 2024 Noto earthquake event",
+      "points": 15,
+      "visual_evidence": "The SeisComP GUI (e.g., scolv) is open on the screen, showing the earthquake event details."
+    },
+    {
+      "id": "process_waveforms_picks",
+      "description": "Load waveforms from the archive and determine P-wave picks",
+      "points": 20,
+      "visual_evidence": "Waveform traces are visible in the SeisComP picker window with P-wave arrival picks marked on the traces."
+    },
+    {
+      "id": "evaluate_snr",
+      "description": "Evaluate the signal-to-noise ratio (SNR) for the P-waves",
+      "points": 20,
+      "visual_evidence": "SNR values or amplitude measurements for the P-waves are visible in the SeisComP interface (e.g., in a table or next to the picks)."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export or save the results to /home/ga/snr_report.csv",
+      "points": 15,
+      "visual_evidence": "A file named 'snr_report.csv' is seen being saved in a file dialog, or is visible in the /home/ga/ directory in a file manager or terminal."
+    },
+    {
+      "id": "csv_header_format",
+      "description": "Ensure the CSV file has the exact required header",
+      "points": 10,
+      "visual_evidence": "The contents of 'snr_report.csv' are visible (e.g., in a text editor or terminal output) and the first row is exactly 'STATION,PHASE,SNR'."
+    },
+    {
+      "id": "csv_data_content",
+      "description": "Include Station Code, Phase, and SNR for each valid P-wave in the CSV",
+      "points": 20,
+      "visual_evidence": "The CSV file contains at least 3 rows of data below the header, showing station codes (e.g., GSI, SANI, BKB), the phase 'P', and numerical SNR values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_seiscomp_usage",
+      "description": "The agent used SeisComP to evaluate the SNR rather than fabricating the data",
+      "visual_evidence": "Screenshots show the agent actively interacting with the SeisComP GUI (scolv) and viewing waveform traces, not just typing data into a text editor."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The agent did not simply copy-paste a pre-written CSV file",
+      "visual_evidence": "The agent is seen extracting or manually transcribing the SNR values directly from the SeisComP interface into the CSV file."
+    },
+    {
+      "id": "correct_archive_usage",
+      "description": "The agent processed the correct waveform archive",
+      "visual_evidence": "The SeisComP interface or terminal commands show the agent loading data from '/home/ga/seiscomp/var/lib/archive'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/snr_report.csv'. Due to missing waveform data in the environment's SDS archive, only 3 stations (GSI, SANI, BKB) have valid waveform data available. Therefore, the agent can only extract a maximum of 3 valid SNR measurements. The CSV must contain exactly these 3 measurements, and the header must be exactly 'STATION,PHASE,SNR'."
+}

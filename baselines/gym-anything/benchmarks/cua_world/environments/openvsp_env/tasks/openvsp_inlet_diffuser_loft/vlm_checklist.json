@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_inlet_diffuser_loft@1",
+  "task_completion": [
+    {
+      "id": "component_created_and_renamed",
+      "description": "Create a new model with a Duct or Fuselage component renamed to 'Ramjet_Inlet'.",
+      "points": 15,
+      "visual_evidence": "Look for the OpenVSP geometry browser window showing a component named 'Ramjet_Inlet'."
+    },
+    {
+      "id": "length_configured",
+      "description": "Configure the overall length of the component to 4.5 meters.",
+      "points": 15,
+      "visual_evidence": "Look for the OpenVSP component geometry window (Design or Plan tab) showing the Length parameter set to 4.5."
+    },
+    {
+      "id": "front_face_configured",
+      "description": "Modify Cross-Section 0 (Front Face) to be a Rectangle with Width 0.8 m and Height 0.4 m.",
+      "points": 20,
+      "visual_evidence": "Look for the OpenVSP 'XSec' (Cross Section) tab for index 0 showing the shape type as 'Rectangle' (or equivalent) with Width set to 0.8 and Height set to 0.4."
+    },
+    {
+      "id": "rear_face_configured",
+      "description": "Modify the Rear Face cross-section to be a Circle with Diameter 0.7 m.",
+      "points": 20,
+      "visual_evidence": "Look for the OpenVSP 'XSec' tab for the final cross-section showing the shape type as 'Circle' (or Ellipse with equal axes) and Diameter/Width/Height set to 0.7."
+    },
+    {
+      "id": "model_saved",
+      "description": "Save the OpenVSP model to ~/Documents/OpenVSP/ramjet_inlet.vsp3.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal (ls command), or the OpenVSP title bar/save dialog confirming the file 'ramjet_inlet.vsp3' is saved in the '~/Documents/OpenVSP/' directory."
+    },
+    {
+      "id": "summary_report_created",
+      "description": "Calculate the theoretical area ratio and write a summary report to ~/Desktop/diffuser_report.txt.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the contents of 'diffuser_report.txt' on the Desktop. It must contain the front area (0.32), rear area (~0.385), and the final area ratio (~1.20)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "openvsp_gui_used",
+      "description": "The agent must use the OpenVSP graphical user interface to create the model.",
+      "visual_evidence": "The OpenVSP application window should be visible in the screenshots, showing the 3D model and parameter dialogs. The agent should not just write an XML .vsp3 file from scratch in a text editor."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "The agent should perform the area calculations rather than guessing or hallucinating the final ratio.",
+      "visual_evidence": "Look for evidence of the agent using a calculator, python shell, or terminal to compute the areas (0.8*0.4 and pi*0.35^2) and their ratio."
+    },
+    {
+      "id": "report_manually_created",
+      "description": "The agent must create the report file using standard tools.",
+      "visual_evidence": "Look for a text editor (like gedit, nano, vim) or terminal echo/cat commands being used to write the 'diffuser_report.txt' file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected model path: /home/ga/Documents/OpenVSP/ramjet_inlet.vsp3. Expected report path: /home/ga/Desktop/diffuser_report.txt. Geometry: Length = 4.5m, Front Face = Rectangle (0.8m x 0.4m), Rear Face = Circle (0.7m diameter). Theoretical Front Area = 0.32 m^2. Theoretical Rear Area = ~0.3848 m^2. Expected Area Ratio (Rear/Front) is approximately 1.203 (acceptable range is 1.18 to 1.22)."
+}

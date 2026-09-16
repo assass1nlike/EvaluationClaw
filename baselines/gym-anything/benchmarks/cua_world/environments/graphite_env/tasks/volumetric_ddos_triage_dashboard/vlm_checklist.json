@@ -1,0 +1,59 @@
+{
+  "task_id": "volumetric_ddos_triage_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_named_correctly",
+      "description": "The Graphite dashboard is named 'DDoS Threat Triage'.",
+      "points": 10,
+      "visual_evidence": "Look for the dashboard title 'DDoS Threat Triage' at the top of the Graphite dashboard interface."
+    },
+    {
+      "id": "graph_inbound_request_volume",
+      "description": "A graph titled 'Inbound Request Volume' is created with the correct target.",
+      "points": 15,
+      "visual_evidence": "Look for a graph with the title 'Inbound Request Volume'. The metric path, legend, or query editor should show 'servers.load_balancer.requests.count'."
+    },
+    {
+      "id": "graph_inbound_bandwidth_rate",
+      "description": "A graph titled 'Inbound Bandwidth Rate' is created with the correct target.",
+      "points": 20,
+      "visual_evidence": "Look for a graph with the title 'Inbound Bandwidth Rate'. The metric path, legend, or query editor should show 'nonNegativeDerivative(servers.ec2_instance_1.network.bytes_in)'."
+    },
+    {
+      "id": "graph_average_payload_size",
+      "description": "A graph titled 'Average Payload Size' is created with the correct target.",
+      "points": 25,
+      "visual_evidence": "Look for a graph with the title 'Average Payload Size'. The metric path, legend, or query editor should show 'divideSeries(nonNegativeDerivative(servers.ec2_instance_1.network.bytes_in), servers.load_balancer.requests.count)'."
+    },
+    {
+      "id": "graph_traffic_anomaly",
+      "description": "A graph titled 'Traffic Anomaly' is created with the correct target.",
+      "points": 25,
+      "visual_evidence": "Look for a graph with the title 'Traffic Anomaly'. The metric path, legend, or query editor should show 'diffSeries(servers.load_balancer.requests.count, movingAverage(servers.load_balancer.requests.count, 30))'."
+    },
+    {
+      "id": "exactly_four_graphs",
+      "description": "The dashboard contains exactly four graphs.",
+      "points": 5,
+      "visual_evidence": "Count the number of graphs displayed in the dashboard; there should be exactly four graphs visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent interacted with the Graphite web interface to create the dashboard.",
+      "visual_evidence": "Screenshots should show the Graphite web UI in a browser, not a terminal or text editor."
+    },
+    {
+      "id": "genuine_graphs_rendered",
+      "description": "The graphs are genuinely rendered by Graphite.",
+      "visual_evidence": "The graphs should display actual data lines, axes, and grid lines, indicating the metrics were properly queried and rendered."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not bypass the GUI by writing a JSON file directly.",
+      "visual_evidence": "There should be no evidence of the agent opening a text editor (like nano, vim, or gedit) to manually write the dashboard JSON configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "The target dashboard must be named 'DDoS Threat Triage'. The final evaluated state is exported correctly to /tmp/volumetric_ddos_triage_dashboard_result.json."
+}

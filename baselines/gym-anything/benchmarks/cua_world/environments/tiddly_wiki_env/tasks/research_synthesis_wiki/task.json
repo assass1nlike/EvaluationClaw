@@ -1,0 +1,40 @@
+{
+  "id": "research_synthesis_wiki@1",
+  "version": "1.0",
+  "env_id": "tiddly_wiki_env@0.1",
+  "description": "You are a science journalist preparing a long-form article on quantum computing. Using the TiddlyWiki at http://localhost:8080, build a structured research wiki by creating five specific tiddlers. All five tiddlers must be tagged with 'Research' and 'QuantumComputing', use appropriate section headings, include at least one table, and contain at least 120 words each.\n\nCreate the following tiddlers:\n- 'Quantum Computing - Research Hub': A 200+ word synthesis overview linking to the other four new tiddlers and the existing 'Quantum Entanglement Explained' tiddler. Include a table with columns: Subtopic | Key Finding | Relevance to Article | Source Tiddler.\n- 'Quantum Computing - Key Concepts': Explain foundational concepts including qubits, superposition, interference, quantum gates, and decoherence. Include a table with columns: Concept | Plain-English Definition | Why It Matters | Classical Computing Analogue.\n- 'Quantum Computing - Current Hardware': Survey the 2024 state of hardware (superconducting qubits, trapped ions, photonic, and neutral atoms). Include a table with columns: Approach | Leading Companies | Qubit Count (approx) | Key Advantage | Main Challenge.\n- 'Quantum Computing - Real-World Applications': Cover practical applications by industry sector. Include a table with columns: Industry | Application | Quantum Advantage | Estimated Timeline.\n- 'Quantum Computing - Challenges and Roadmap': Analyze technical and societal barriers and the roadmap to fault-tolerant computing. Include a table with columns: Challenge | Current Status | Proposed Solutions | Expected Resolution.\n\nNo login is required.",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/research_synthesis_wiki/setup_task.sh",
+    "post_task": "/workspace/tasks/research_synthesis_wiki/export_result.sh"
+  },
+  "metadata": {
+    "difficulty": "hard",
+    "domain": "science_journalism",
+    "occupation": "Writers and Authors",
+    "required_tiddlers": [
+      "Quantum Computing - Research Hub",
+      "Quantum Computing - Key Concepts",
+      "Quantum Computing - Current Hardware",
+      "Quantum Computing - Real-World Applications",
+      "Quantum Computing - Challenges and Roadmap"
+    ],
+    "required_tags": [
+      "Research",
+      "QuantumComputing"
+    ],
+    "existing_tiddler_link": "Quantum Entanglement Explained",
+    "min_word_count": 120,
+    "min_tiddler_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_research_synthesis_wiki"
+    }
+  }
+}

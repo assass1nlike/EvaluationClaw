@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_rating_curve@1",
+  "task_completion": [
+    {
+      "id": "hec_ras_execution_and_extraction",
+      "description": "Run the HEC-RAS simulation or execute a script to process the Muncie project HDF5 output.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of a Python script or HEC-RAS command that interacts with the Muncie project files (e.g., reading the HDF5 file)."
+    },
+    {
+      "id": "cross_sections_txt_generated",
+      "description": "Generate the cross_sections.txt file containing River Station identifiers.",
+      "points": 10,
+      "visual_evidence": "A file named 'cross_sections.txt' is visible in the ~/Documents/hec_ras_results/ directory via a terminal 'ls' command, file explorer, or text editor."
+    },
+    {
+      "id": "rating_curve_csv_generated",
+      "description": "Generate the rating_curve_data.csv file containing Flow and WSE time series.",
+      "points": 20,
+      "visual_evidence": "A file named 'rating_curve_data.csv' is visible in the ~/Documents/hec_ras_results/ directory. If open, it should show columns for Flow and Water Surface Elevation (WSE)."
+    },
+    {
+      "id": "rating_curve_plot_generated",
+      "description": "Generate the rating_curve.png scatter plot showing Stage vs Discharge.",
+      "points": 30,
+      "visual_evidence": "A file named 'rating_curve.png' is visible in the ~/Documents/hec_ras_results/ directory. If the image is displayed, it must be a scatter plot with Stage (or WSE) on the Y-axis and Discharge (or Flow) on the X-axis."
+    },
+    {
+      "id": "rating_curve_report_generated",
+      "description": "Generate the rating_curve_report.txt summarizing the River Station and min/max values.",
+      "points": 20,
+      "visual_evidence": "A file named 'rating_curve_report.txt' is visible in the ~/Documents/hec_ras_results/ directory. If open, it should mention the River Station (15696.24) and the min/max Flow and WSE values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_based_extraction",
+      "description": "The agent used a script to extract data from the HDF5 file rather than faking the output.",
+      "visual_evidence": "Look for a Python script containing imports like 'h5py', 'pandas', or 'rashdf' and logic to read the HDF5 file, rather than manually typing out the expected files."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The plot was generated programmatically by the agent.",
+      "visual_evidence": "Look for matplotlib (or similar plotting library) code in the agent's script that creates the scatter plot and saves it as 'rating_curve.png'."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent dynamically determined the highest River Station and min/max values.",
+      "visual_evidence": "The agent's code should contain logic to find the maximum River Station and calculate min/max values from the data, rather than hardcoding '15696.24' or the specific flow/WSE ranges directly into the script."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: /home/ga/Documents/hec_ras_results. Expected files: cross_sections.txt, rating_curve_data.csv, rating_curve.png, rating_curve_report.txt. The most upstream cross-section (highest River Station) is '15696.24'. Valid Flow values range from 13500 to 21000 cfs, and valid WSE values range from 950.80 to 955.42. The CSV must contain at least 10 rows of data."
+}

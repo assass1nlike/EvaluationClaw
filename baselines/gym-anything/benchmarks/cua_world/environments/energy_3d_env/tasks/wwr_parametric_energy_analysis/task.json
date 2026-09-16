@@ -1,0 +1,27 @@
+{
+  "id": "wwr_parametric_energy_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Evaluate the annual energy consumption of a house at 20%, 40%, and 60% Window-to-Wall Ratios (WWR) in Chicago, IL, and compile the results into a CSV file.\n\nStarting State: Energy3D is open with the `building-passive-heating.ng3` sample project loaded.\n\nExpected Actions:\n1. Change the project's Location (city) to Chicago, IL.\n2. Set the Window-to-Wall Ratio (WWR) for all walls of the building to 20%.\n3. Run the 'Annual Energy Analysis' (from the Analysis menu) and record the Total energy value (in kWh) displayed on the resulting bar chart.\n4. Repeat the simulation process for WWR = 40% and WWR = 60%, recording the new Total energy value for each run.\n5. Create a text file at `~/Documents/Energy3D/wwr_results.csv` with the exact header `WWR,Total_Energy_kWh` and three rows for your three test runs (e.g., `20,15420.5`).\n6. Save your final project state (which should now have WWR set to 60% and location set to Chicago) to `~/Documents/Energy3D/chicago_wwr_60.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wwr_parametric_energy_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/wwr_parametric_energy_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/Energy3D/wwr_results.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/chicago_wwr_60.ng3",
+    "required_wwr_values": [20, 40, 60]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wwr_analysis"
+    }
+  }
+}

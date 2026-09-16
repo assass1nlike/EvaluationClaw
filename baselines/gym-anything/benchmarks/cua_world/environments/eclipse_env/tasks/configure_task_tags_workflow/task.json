@@ -1,0 +1,30 @@
+{
+  "id": "configure_task_tags_workflow@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "The 'LegacyAuth' project contains critical technical debt markers that are currently hidden. Previous developers used custom tags '// SECURITY:' for vulnerabilities and '// PERF:' for optimization ideas. Surface these tasks by configuring project-specific task tags for 'SECURITY' (High priority) and 'PERF' (Low priority). Once surfaced, locate and remove the high-priority security vulnerability involving a hardcoded backdoor in 'UserDAO.java'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_task_tags_workflow/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_task_tags_workflow/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/LegacyAuth",
+    "prefs_file": ".settings/org.eclipse.jdt.core.prefs",
+    "target_file": "src/main/java/com/legacy/auth/UserDAO.java",
+    "backdoor_signature": "if (\"superuser\".equals(username))",
+    "security_tag": "SECURITY",
+    "perf_tag": "PERF"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_task_tags_workflow"
+    }
+  }
+}

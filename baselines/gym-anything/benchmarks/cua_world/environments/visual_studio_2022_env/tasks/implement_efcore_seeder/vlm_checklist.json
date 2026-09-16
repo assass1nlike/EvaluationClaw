@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_efcore_seeder@1",
+  "task_completion": [
+    {
+      "id": "open_program_cs",
+      "description": "Open Program.cs in Visual Studio 2022",
+      "points": 10,
+      "visual_evidence": "Visual Studio 2022 is open, showing the LibraryApi solution with Program.cs active in the code editor."
+    },
+    {
+      "id": "read_json_file",
+      "description": "Read the JSON dataset from the specified path",
+      "points": 15,
+      "visual_evidence": "The code in Program.cs contains logic to read or deserialize the JSON file specifically from 'C:\\Users\\Docker\\Documents\\books_catalog.json'."
+    },
+    {
+      "id": "check_db_empty",
+      "description": "Check if the Books DbSet is empty before seeding",
+      "points": 15,
+      "visual_evidence": "The code includes a conditional statement checking if the Books table is empty (e.g., `!context.Books.Any()`) before executing the seeding logic."
+    },
+    {
+      "id": "map_authors_array",
+      "description": "Flatten the Authors array into a comma-separated string",
+      "points": 20,
+      "visual_evidence": "The mapping logic explicitly shows joining the Authors array into a single string (e.g., using `string.Join(\",\", ...)` or similar) and assigning it to the `AuthorNames` property."
+    },
+    {
+      "id": "map_publish_year",
+      "description": "Map PublishDetails.Year to PublishYear",
+      "points": 20,
+      "visual_evidence": "The mapping logic explicitly shows assigning the `PublishDetails.Year` value from the parsed JSON/DTO to the `PublishYear` property of the Book entity."
+    },
+    {
+      "id": "save_and_build",
+      "description": "Save changes to the database and successfully build the application",
+      "points": 20,
+      "visual_evidence": "The code includes a call to save changes to the database (e.g., `SaveChanges()`), and there is visual evidence of a successful build in Visual Studio (e.g., 'Build succeeded' in the Output window or status bar)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_visual_studio",
+      "description": "Agent used Visual Studio 2022 to write the code",
+      "visual_evidence": "The code modifications were made inside the Visual Studio 2022 IDE, not a basic text editor or terminal."
+    },
+    {
+      "id": "dynamic_json_parsing",
+      "description": "Agent dynamically parsed the JSON file instead of hardcoding values",
+      "visual_evidence": "The code dynamically reads and deserializes the JSON file rather than hardcoding the expected book values (like 'Clean Code' or 'Robert C. Martin')."
+    },
+    {
+      "id": "proper_di_integration",
+      "description": "Agent integrated the seeder properly using Dependency Injection",
+      "visual_evidence": "The seeding routine resolves the database context properly from the application's service provider (e.g., using `app.Services.CreateScope()`), rather than instantiating a new context directly bypassing DI."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains realistic book data. If the agent runs the application and displays the seeded database contents or logs, verify that ISBN '978-0132350884' is correctly mapped to AuthorNames 'Robert C. Martin' and PublishYear 2008."
+}

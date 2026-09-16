@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_geospatial_etl_pipeline@1",
+  "task_completion": [
+    {
+      "id": "fix_coordinate_transform",
+      "description": "Fix the swapped latitude and longitude coordinates in coordinate_transform.py.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing coordinate_transform.py open in an editor or a terminal diff where the order of latitude and longitude has been corrected to the standard format."
+    },
+    {
+      "id": "fix_spatial_operations",
+      "description": "Fix the buffer distance unit in spatial_operations.py.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing spatial_operations.py where the buffer distance application has been modified to use meters instead of raw degrees (e.g., projecting before buffering or converting units)."
+    },
+    {
+      "id": "fix_area_calculator",
+      "description": "Fix the area calculation to use a projected CRS in area_calculator.py.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing area_calculator.py modified to project the geometry to a suitable Coordinate Reference System (CRS) before calculating the area, rather than calculating it on raw geographic degrees."
+    },
+    {
+      "id": "fix_topology_validator",
+      "description": "Fix the exact floating-point comparison in topology_validator.py.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing topology_validator.py where an exact comparison to zero (== 0) for cross products has been replaced with a tolerance-based floating-point comparison (e.g., math.isclose or checking if the absolute value is less than a small epsilon)."
+    },
+    {
+      "id": "fix_geojson_exporter",
+      "description": "Fix the GeoJSON export format in geojson_exporter.py.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing geojson_exporter.py modified to wrap the exported array of features inside a standard GeoJSON 'FeatureCollection' object."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "workspace_verification",
+      "description": "Verify that the agent is modifying files in the correct workspace directory.",
+      "visual_evidence": "The file paths visible in the code editor, terminal prompt, or file explorer should clearly indicate the agent is working within /home/ga/workspace/geospatial_pipeline/."
+    },
+    {
+      "id": "logical_code_fixes",
+      "description": "Verify that the agent actually fixed the pipeline logic rather than hardcoding the expected final output.",
+      "visual_evidence": "The code changes should show modifications to variables, functions, or mathematical logic. There should be no hardcoded static GeoJSON strings or pre-computed area values bypassing the pipeline."
+    },
+    {
+      "id": "genuine_editor_usage",
+      "description": "Verify that the agent used a genuine text editor or standard command-line tools to modify the code.",
+      "visual_evidence": "Screenshots should show the use of a recognizable text editor (like VS Code, vim, nano) or standard Unix commands (like sed, awk, or git apply) rather than echoing large blocks of text blindly."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing five specific bugs in the Python ETL pipeline at /home/ga/workspace/geospatial_pipeline/: 1) Swapped latitude/longitude coordinates in coordinate_transform.py. 2) Buffer distance incorrectly applied in degrees instead of meters in spatial_operations.py. 3) Area calculated on raw geographic degrees instead of a projected CRS in area_calculator.py. 4) Exact floating-point comparisons (== 0) for cross products in topology_validator.py. 5) Missing FeatureCollection wrapper around the exported array in geojson_exporter.py."
+}

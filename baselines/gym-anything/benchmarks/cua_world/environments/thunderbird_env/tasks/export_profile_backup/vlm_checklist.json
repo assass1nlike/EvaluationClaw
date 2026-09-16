@@ -1,0 +1,53 @@
+{
+  "task_id": "export_profile_backup@1",
+  "task_completion": [
+    {
+      "id": "access_export_or_profile",
+      "description": "Access Thunderbird's export tool or locate the profile directory in the file manager.",
+      "points": 10,
+      "visual_evidence": "Screenshots show Thunderbird open to the 'Export' tab (Tools -> Export), OR the File Manager open and navigated to the hidden '~/.thunderbird' profile directory."
+    },
+    {
+      "id": "initiate_zip_archive",
+      "description": "Initiate the process to create a zip archive of the profile.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'Export' dialog is triggered from Thunderbird, OR a 'Compress' / 'Create Archive' dialog is open in the File Manager for the profile folder."
+    },
+    {
+      "id": "navigate_target_directory",
+      "description": "Navigate to the ~/Documents/ProfileBackup/ directory.",
+      "points": 20,
+      "visual_evidence": "The save dialog or file manager path explicitly shows 'Documents/ProfileBackup' or '/home/ga/Documents/ProfileBackup' as the current active folder."
+    },
+    {
+      "id": "specify_zip_extension",
+      "description": "Specify the backup file to have a .zip extension.",
+      "points": 20,
+      "visual_evidence": "The filename field in the save/compress dialog shows a filename ending in '.zip' (e.g., 'Thunderbird_profile_backup.zip')."
+    },
+    {
+      "id": "verify_backup_created",
+      "description": "Verify the .zip backup archive is successfully saved in the target directory.",
+      "points": 30,
+      "visual_evidence": "A file manager window displaying the contents of '~/Documents/ProfileBackup/' with the newly created '.zip' file visible, or a clear success notification indicating the zip was saved to that path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used GUI tools (Thunderbird or File Manager/Archive Manager) to create the backup rather than terminal commands.",
+      "visual_evidence": "Screenshots show interaction with Thunderbird's UI or the desktop environment's file manager, rather than a terminal window running 'zip' commands."
+    },
+    {
+      "id": "genuine_profile_data",
+      "description": "The agent backed up the actual Thunderbird profile rather than creating a fake or empty zip file.",
+      "visual_evidence": "The export process is clearly linked to the active Thunderbird application or the actual '~/.thunderbird' directory containing 'prefs.js' and 'Mail'."
+    },
+    {
+      "id": "no_pre_existing_file_rename",
+      "description": "The agent actually created a new backup rather than just renaming an existing unrelated file.",
+      "visual_evidence": "A progress bar for exporting/compressing is visible, or the file size/creation context implies a newly generated archive."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory for the backup is exactly '/home/ga/Documents/ProfileBackup'. The backup must be a '.zip' file. A valid Thunderbird profile backup zip must contain 'prefs.js' and a 'Mail' directory."
+}

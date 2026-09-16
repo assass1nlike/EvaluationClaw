@@ -1,0 +1,32 @@
+{
+  "id": "configure_proxy@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Configure a system-wide HTTP proxy in JFrog Artifactory (http://localhost:8082, credentials: admin / password) for outbound traffic. Create a new proxy configuration with the Proxy Key 'corporate-proxy', Host 'proxy.acme-corp.internal', Port '8080', Username 'proxyuser', and Password 'ProxyP@ss2024'. This proxy must be enabled as the system default.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_proxy/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_proxy/export_result.sh"
+  },
+  "metadata": {
+    "proxy_key": "corporate-proxy",
+    "proxy_host": "proxy.acme-corp.internal",
+    "proxy_port": 8080,
+    "proxy_username": "proxyuser",
+    "is_default": true,
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_proxy"
+    }
+  }
+}

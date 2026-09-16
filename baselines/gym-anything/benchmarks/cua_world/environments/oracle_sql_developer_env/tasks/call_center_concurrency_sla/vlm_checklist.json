@@ -1,0 +1,53 @@
+{
+  "task_id": "call_center_concurrency_sla@1",
+  "task_completion": [
+    {
+      "id": "create_interval_summary_vw",
+      "description": "Create the INTERVAL_SUMMARY_VW view grouping calls into 15-minute intervals with SLA metrics.",
+      "points": 20,
+      "visual_evidence": "SQL editor showing a 'CREATE VIEW INTERVAL_SUMMARY_VW AS' statement including columns for interval_start, queue_name, total_calls, abandoned_calls, sla_breach_count, and service_level_pct."
+    },
+    {
+      "id": "create_peak_concurrency_vw",
+      "description": "Create the PEAK_CONCURRENCY_VW view calculating maximum simultaneous active calls per day and queue.",
+      "points": 25,
+      "visual_evidence": "SQL editor showing a 'CREATE VIEW PEAK_CONCURRENCY_VW AS' statement with logic to calculate concurrent calls (e.g., using unpivot, cross joins, or window functions) and columns for call_date, queue_name, and max_concurrent_calls."
+    },
+    {
+      "id": "create_repeat_abandon_callers_vw",
+      "description": "Create the REPEAT_ABANDON_CALLERS_VW view identifying callers who abandoned and called back within 120 minutes.",
+      "points": 25,
+      "visual_evidence": "SQL editor showing a 'CREATE VIEW REPEAT_ABANDON_CALLERS_VW AS' statement with a self-join or window function on caller_phone, checking for a time difference of <= 120 minutes between an abandoned call and a subsequent call."
+    },
+    {
+      "id": "successful_view_compilation",
+      "description": "Successfully compile and save the three required views in the database.",
+      "points": 10,
+      "visual_evidence": "Script output pane showing 'View created' messages for all three views, or the views appearing under the 'Views' node in the database object explorer/connections pane."
+    },
+    {
+      "id": "export_interval_summary_csv",
+      "description": "Export the contents of INTERVAL_SUMMARY_VW to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "An export wizard dialog showing the target path '/home/ga/Documents/exports/wfm_interval_summary.csv', a terminal command executing the export, or a file manager window showing the created CSV file in the correct directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_tool_usage",
+      "description": "The agent used a genuine database client (e.g., Oracle SQL Developer, DBeaver, SQL*Plus) to execute the queries.",
+      "visual_evidence": "Screenshots show the interface of a database management tool connected to the database, not just a plain text editor."
+    },
+    {
+      "id": "dynamic_sql_logic",
+      "description": "The SQL queries use actual database logic rather than hardcoding specific values or mock data.",
+      "visual_evidence": "The SQL statements visible in the editor contain proper relational database functions (GROUP BY, JOIN, window functions) without 'SELECT <hardcoded_value>' shortcuts for the final output."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The CSV export was generated directly from the database view rather than being manually created or mocked.",
+      "visual_evidence": "The export process is tied to the INTERVAL_SUMMARY_VW view (e.g., right-clicking the view to export, or using a SQL spool/export command) rather than a python/bash script writing arbitrary text to the CSV."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV output path is exactly '/home/ga/Documents/exports/wfm_interval_summary.csv'. The database schema is 'wfm_analyst' and contains synthetically generated PBX call logs in the CALL_LOGS table."
+}

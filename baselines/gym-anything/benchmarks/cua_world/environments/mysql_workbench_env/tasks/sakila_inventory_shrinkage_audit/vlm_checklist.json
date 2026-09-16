@@ -1,0 +1,47 @@
+{
+  "task_id": "sakila_inventory_shrinkage_audit@1",
+  "task_completion": [
+    {
+      "id": "staging_table_created",
+      "description": "Create the staging table sakila.inventory_audit and import the physical count CSV data.",
+      "points": 20,
+      "visual_evidence": "A MySQL client (e.g., terminal, DBeaver) showing the creation of the 'inventory_audit' table with 'film_id' and 'actual_count' columns, and evidence of data being loaded into it (e.g., a SELECT query showing rows)."
+    },
+    {
+      "id": "function_implemented",
+      "description": "Implement the stored function fn_get_shrinkage_status.",
+      "points": 20,
+      "visual_evidence": "SQL code in a database client showing the creation of 'fn_get_shrinkage_status' with logic that compares system_count and actual_count, returning 'MISSING', 'EXTRA', or 'MATCH', and handling NULLs."
+    },
+    {
+      "id": "view_generated",
+      "description": "Generate the view v_store1_shrinkage_report showing discrepancies.",
+      "points": 30,
+      "visual_evidence": "SQL code or database object tree showing the creation of 'v_store1_shrinkage_report'. The query should select film_id, title, system_count, actual_count, variance, and status, with a filter for variance != 0."
+    },
+    {
+      "id": "report_exported",
+      "description": "Export the resulting shrinkage report to /home/ga/Documents/exports/shrinkage_report.csv.",
+      "points": 30,
+      "visual_evidence": "A terminal, file manager, or text editor showing the file 'shrinkage_report.csv' exists in '/home/ga/Documents/exports/' and contains the expected discrepancy data (e.g., rows for film_id 1, 2, and 10)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the MySQL database to perform the tasks.",
+      "visual_evidence": "Screenshots show the agent using a MySQL client (like MySQL CLI, DBeaver, or MySQL Workbench) to execute SQL commands, rather than just writing text files."
+    },
+    {
+      "id": "dynamic_sql_logic",
+      "description": "The agent wrote dynamic SQL for the view and function rather than hardcoding the specific discrepancies.",
+      "visual_evidence": "The SQL code for the view and function uses mathematical logic (e.g., system_count - actual_count) and standard filters (variance != 0) rather than hardcoding specific film_ids like 1, 2, or 10."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The final CSV report was generated via a database export or query output.",
+      "visual_evidence": "Evidence of a SQL export command (e.g., INTO OUTFILE) or a GUI export action, rather than the agent manually typing the CSV contents into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Database: 'sakila'. Input CSV: '/home/ga/Documents/imports/store1_physical_count.csv'. Output CSV: '/home/ga/Documents/exports/shrinkage_report.csv'. Staging Table: 'inventory_audit'. Function: 'fn_get_shrinkage_status'. View: 'v_store1_shrinkage_report'. Expected discrepancies in the final report: film_id 1 is MISSING (variance 1), film_id 2 is EXTRA (variance -1), and film_id 10 is MISSING (variance 1)."
+}

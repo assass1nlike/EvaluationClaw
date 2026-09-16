@@ -1,0 +1,59 @@
+{
+  "task_id": "heavy_lift_cinematic_tuning@1",
+  "task_completion": [
+    {
+      "id": "read_tuning_specs",
+      "description": "Open and read the cinematic tuning specifications file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Documents/QGC/cinematic_tuning_specs.txt."
+    },
+    {
+      "id": "update_vehicle_parameters",
+      "description": "Update the required vehicle parameters in QGroundControl.",
+      "points": 30,
+      "visual_evidence": "The QGroundControl Vehicle Setup -> Parameters screen showing modifications to WPNAV_SPEED (350), WPNAV_ACCEL (80), WPNAV_RADIUS (600), WP_YAW_BEHAVIOR (0), ATC_ACCEL_Y_MAX (9000), and/or PILOT_Y_RATE (45)."
+    },
+    {
+      "id": "create_mission_waypoints",
+      "description": "Create a test mission with a takeoff and a square pattern of at least four waypoints.",
+      "points": 20,
+      "visual_evidence": "The QGroundControl Plan view showing a 'Takeoff' item and at least four 'Waypoint' items arranged in a square pattern on the map and listed in the mission sequence."
+    },
+    {
+      "id": "add_rtl_command",
+      "description": "Add a Return to Launch (RTL) command to the end of the mission.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl Plan view showing a 'Return' or 'RTL' command as the final item in the mission sequence list."
+    },
+    {
+      "id": "export_mission_plan",
+      "description": "Export the created mission to the specified file path.",
+      "points": 20,
+      "visual_evidence": "A file save dialog in QGroundControl or a terminal/file manager window showing the mission being saved as 'cinematic_test.plan' in the /home/ga/Documents/QGC/ directory."
+    },
+    {
+      "id": "create_tuning_signoff",
+      "description": "Create the tuning signoff confirmation file containing the word 'cinematic'.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window showing the creation of 'tuning_signoff.txt' in /home/ga/Documents/QGC/ with the text 'cinematic' written inside."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_parameter_update",
+      "description": "Verify parameters were updated using the QGroundControl GUI.",
+      "visual_evidence": "The agent interacts with the QGroundControl Parameters menu (searching and changing values in the UI) rather than modifying parameter files directly via terminal commands or scripts."
+    },
+    {
+      "id": "gui_mission_planning",
+      "description": "Verify the mission was planned using the QGroundControl GUI.",
+      "visual_evidence": "The agent clicks on the map to add waypoints and uses the QGroundControl Plan view to construct the mission, rather than manually writing a JSON/.plan file in a text editor."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the signoff file and exported plan are genuinely saved to the correct directory.",
+      "visual_evidence": "The agent explicitly navigates to or specifies the path '/home/ga/Documents/QGC/' when saving the files, rather than just typing the content into an unsaved text buffer."
+    }
+  ],
+  "privileged_info_for_vlm": "The required vehicle parameters to be set in QGroundControl are: WPNAV_SPEED (350), WPNAV_ACCEL (80), WPNAV_RADIUS (600), WP_YAW_BEHAVIOR (0), ATC_ACCEL_Y_MAX (9000), and PILOT_Y_RATE (45). The mission must be exported exactly to '/home/ga/Documents/QGC/cinematic_test.plan' and the confirmation file must be exactly at '/home/ga/Documents/QGC/tuning_signoff.txt' containing the word 'cinematic'."
+}

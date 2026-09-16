@@ -1,0 +1,53 @@
+{
+  "task_id": "mot_capacity_analysis@1",
+  "task_completion": [
+    {
+      "id": "data_processing_logic",
+      "description": "Agent implements logic to calculate adjusted accuracy, K capacity, and convert reaction time to milliseconds.",
+      "points": 20,
+      "visual_evidence": "Look for code in a text editor, IDE, or terminal that includes formulas for adjusted accuracy (subtracting chance and dividing by 1-chance), K capacity (multiplying by target count), and converting reaction time (rt_sec * 1000)."
+    },
+    {
+      "id": "cheater_exclusion_logic",
+      "description": "Agent implements logic to exclude the participant with a mean K capacity strictly greater than 5.5 at target count 6.",
+      "points": 20,
+      "visual_evidence": "Look for code showing a conditional filter (e.g., `> 5.5` and `target_count == 6`) used to identify and exclude a participant's data from the group mean."
+    },
+    {
+      "id": "json_report_saved",
+      "description": "Agent successfully exports the JSON report to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output (e.g., `ls ~/pebl/analysis`), a file explorer window, or an IDE file tree showing `mot_capacity_report.json` located in the `/home/ga/pebl/analysis/` directory."
+    },
+    {
+      "id": "capacity_plot_saved",
+      "description": "Agent successfully saves the capacity line plot to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output, a file explorer window, or an IDE file tree showing `capacity_plot.png` located in the `/home/ga/pebl/analysis/` directory."
+    },
+    {
+      "id": "plot_visualized",
+      "description": "The generated plot correctly visualizes Group Mean Capacity vs. Target Count.",
+      "points": 20,
+      "visual_evidence": "Look for an open image viewer, IDE plot pane, or code output displaying a line plot. The x-axis must represent Target Count (with values 2, 3, 4, 5, 6) and the y-axis must represent Group Mean Capacity."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_driven_execution",
+      "description": "The agent wrote a script to process the data rather than manually calculating and hardcoding the final JSON and plot.",
+      "visual_evidence": "Look for a script (e.g., Python, R) containing data manipulation libraries (like pandas) reading the source CSV, rather than a script that just writes hardcoded strings to a file."
+    },
+    {
+      "id": "genuine_file_content",
+      "description": "The output files contain actual data and are not just empty files created to pass existence checks.",
+      "visual_evidence": "Look for the agent opening the JSON file to verify its contents (showing 'participants' and 'group_mean_capacity' keys) or viewing the PNG file to ensure it is a valid image."
+    },
+    {
+      "id": "correct_input_source",
+      "description": "The agent reads from the correct input CSV file.",
+      "visual_evidence": "Look for code explicitly loading `~/pebl/data/mot_tracking_data.csv` or `/home/ga/pebl/data/mot_tracking_data.csv`."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected JSON output path is /home/ga/pebl/analysis/mot_capacity_report.json. The expected PNG output path is /home/ga/pebl/analysis/capacity_plot.png. The cheater threshold is K > 5.5 at target_count 6."
+}

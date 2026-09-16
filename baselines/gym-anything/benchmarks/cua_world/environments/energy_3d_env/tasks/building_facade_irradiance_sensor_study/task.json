@@ -1,0 +1,29 @@
+{
+  "id": "building_facade_irradiance_sensor_study@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a building envelope engineer investigating peak solar heat gain. The Energy3D project 'building_shape.ng3' is open. Perform the following study:\n\n1. Place at least 3 Light Sensors on the exterior of the building. Distribute them across distinctly different surfaces (e.g., roof, South wall, East/West wall).\n2. Change the simulation date to the Summer Solstice (June 21).\n3. Run a Daily Environmental Simulation to log the irradiance data.\n4. Open the Sensor Data graph/plot to view the diurnal curves for the placed sensors.\n5. Take a screenshot showing the populated sensor graph and save it exactly as '~/Documents/Energy3D/sensor_graph.png'.\n6. Save the modified 3D model project as '~/Documents/Energy3D/facade_sensors.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/building_facade_irradiance_sensor_study/setup_task.sh",
+    "post_task": "/workspace/tasks/building_facade_irradiance_sensor_study/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Building Envelope Engineer",
+    "industry": "Architecture / Building Physics",
+    "starter_file": "building-shape.ng3",
+    "expected_model_output": "/home/ga/Documents/Energy3D/facade_sensors.ng3",
+    "expected_graph_output": "/home/ga/Documents/Energy3D/sensor_graph.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_building_facade_irradiance_sensor_study"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "mac_oui_inventory@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "A security team is investigating a suspected rogue device on the corporate network. Inventory all layer-2 devices observed in the packet captures located in ~/Documents/captures/ (http.cap, dns.cap, telnet-cooked.pcap, and smtp.pcap). For each unique MAC address found across these files, identify the hardware vendor, total packets sent, total packets received, and the specific capture files where it appears. Additionally, identify the most active sender (MAC, vendor, and packet count) and the total number of unique MAC addresses. Save the findings to ~/Documents/captures/mac_inventory_report.txt using the following format:\n\n=== MAC Address Network Inventory Report ===\n\nTotal unique MAC addresses: <N>\nMost active sender: <MAC> (<vendor>) with <count> packets sent\n\n--- Per-Device Inventory ---\nMAC: <address>\nVendor: <vendor_name>\nPackets Sent: <count>\nPackets Received: <count>\nSeen In: <file1>, <file2>, ...\n\nEnsure MAC addresses use colon-separated format (e.g., 00:1a:2b:3c:4d:5e).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mac_oui_inventory/setup_task.sh",
+    "post_task": "/workspace/tasks/mac_oui_inventory/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/captures/mac_inventory_report.txt",
+    "ground_truth_path": "/var/lib/wireshark_ground_truth/ground_truth.json",
+    "capture_files": [
+      "http.cap",
+      "dns.cap",
+      "telnet-cooked.pcap",
+      "smtp.pcap"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mac_oui_inventory"
+    }
+  }
+}

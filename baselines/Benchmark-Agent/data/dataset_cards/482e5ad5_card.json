@@ -1,0 +1,74 @@
+{
+  "dataset_id": "482e5ad5",
+  "name": "Genetic-Association-Database",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Genetic-Association-Database dataset consists of sentences from biomedical literature describing genetic association studies, in which mentions of a gene (@GENE$) and a disease (@DISEASE$) are masked. The model must classify the direction of the reported gene-disease association as either positive or negative.",
+  "card_text": "This dataset is a text-only, single-turn classification benchmark built from biomedical abstract sentences about genetic association studies. Each sample provides a raw literature sentence in which gene and disease mentions have been replaced by the placeholders @GENE$ and @DISEASE$, together with an instruction prompt that asks the model to classify the association between the two entities. The label space is binary: 'positive' (the variant/allele increases risk or is associated with the disease) or 'negative' (no association or protective effect). The language is dense, factual scientific prose with statistical and epidemiological terminology. Samples are short (typically one concluding sentence from an abstract), and the output is expected to be only the association-type word, making this a compact, label-focused evaluation of biomedical relation classification.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "biomedical genetics literature (gene-disease association)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A sentence (or short passage) from a biomedical publication reporting a genetic association finding. Gene and disease mentions are anonymized with the placeholders @GENE$ and @DISEASE$, and the sentence states or implies the direction of their relationship. It is the main evidence the model must reason over.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction template that embeds the raw text (shown as a <<<raw_text>>> slot) and asks the model to classify the association between @GENE$ and @DISEASE$ as either 'negative' or 'positive', requesting only the association type as output. It defines the label space and the output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold association label, a single word: 'positive' or 'negative', indicating the direction of the gene-disease association described in the corresponding context sentence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with two text fields and an output object with one text field. The context is input.raw_text, a biomedical sentence with @GENE$ and @DISEASE$ placeholders that carries the association evidence. The question is input.prompt, an instruction template that references the raw text and specifies the binary label set (negative/positive) plus the restricted output format. The answer is output.text, a single-word label 'positive' or 'negative' that reports the gold association direction between the gene and the disease mentioned in the context."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Genetic-Association-Database/annotation.json",
+    "existing_tags": {
+      "task": "genetic_association_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

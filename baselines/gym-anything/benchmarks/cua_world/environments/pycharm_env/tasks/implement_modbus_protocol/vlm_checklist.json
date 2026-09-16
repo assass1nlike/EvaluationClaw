@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_modbus_protocol@1",
+  "task_completion": [
+    {
+      "id": "crc_16_implemented",
+      "description": "Verifies the implementation of the CRC-16 calculation.",
+      "points": 15,
+      "visual_evidence": "Look for a Python file in the modbus/ directory open in an editor, containing bitwise operations or logic for CRC-16 calculation specifically using the polynomial 0xA001."
+    },
+    {
+      "id": "rtu_frame_handling",
+      "description": "Verifies the implementation of RTU frame construction and parsing.",
+      "points": 15,
+      "visual_evidence": "Look for Python code in the modbus/ directory showing byte manipulation, packing, or unpacking (e.g., using the 'struct' module) of Modbus RTU frames, which include address, function code, data, and CRC."
+    },
+    {
+      "id": "function_codes_implemented",
+      "description": "Verifies the implementation of required Modbus Function Codes.",
+      "points": 20,
+      "visual_evidence": "Look for Python code in the modbus/ directory explicitly handling or routing Function Codes 01 (Read Coils), 03 (Read Holding Registers), 06 (Write Single Register), and 16 (Write Multiple Registers)."
+    },
+    {
+      "id": "exception_responses_implemented",
+      "description": "Verifies the implementation of Modbus exception responses.",
+      "points": 10,
+      "visual_evidence": "Look for Python code in the modbus/ directory defining, raising, or returning Modbus exception frames (typically involving adding 0x80 to the function code) and standard error codes."
+    },
+    {
+      "id": "pytest_execution_success",
+      "description": "Verifies that the provided pytest suite was executed and passed.",
+      "points": 40,
+      "visual_evidence": "Look for a terminal window showing the execution of 'pytest' with output indicating that the tests passed (expecting up to 19 passing tests). The output should show a green passing status or a score meeting the threshold."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_third_party_libraries",
+      "description": "Verifies that no third-party Modbus libraries were used.",
+      "visual_evidence": "Check the import statements in the visible Python files within the modbus/ directory. There should be no imports of external Modbus libraries like 'pymodbus', 'minimalmodbus', or 'umodbus'."
+    },
+    {
+      "id": "tests_unmodified",
+      "description": "Verifies that the tests/ directory was not modified.",
+      "visual_evidence": "Ensure there is no visual evidence of the agent opening, editing, or saving files within the 'tests/' directory in the IDE/editor to force tests to pass."
+    },
+    {
+      "id": "genuine_test_output",
+      "description": "Verifies that the test execution is genuine.",
+      "visual_evidence": "Check the terminal output for standard pytest formatting, including the test session starts header, collected items count, execution time, and summary. It should not look like a manually typed text file or an echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/PycharmProjects/modbus_rtu. The correct Modbus CRC-16 polynomial is 0xA001. The test suite contains exactly 19 tests. The passing threshold score is 60."
+}

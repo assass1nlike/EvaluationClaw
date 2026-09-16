@@ -1,0 +1,27 @@
+{
+  "id": "open_shift@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Open a new shift in Floreant POS with an opening balance of $200.00 using PIN 1111. Return the application to the main terminal screen once the shift is successfully opened.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/open_shift/setup_task.sh",
+    "post_task": "/workspace/tasks/open_shift/export_result.sh"
+  },
+  "metadata": {
+    "expected_balance": 200.0,
+    "pin": "1111",
+    "db_path": "/opt/floreantpos/database/derby-server"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_open_shift"
+    }
+  }
+}

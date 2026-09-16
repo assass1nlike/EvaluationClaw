@@ -1,0 +1,38 @@
+{
+  "id": "dmn_loan_prequal_drd@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Business Analyst at a fintech startup. Based on the logic for a new 'Instant Pre-Qualification' feature found in ~/Desktop/risk_policy_memo.txt, create a formal Decision Requirements Diagram (DRD) in draw.io. The diagram must include four Input Data nodes ('Credit Score', 'Annual Income', 'Loan Amount', 'Monthly Debt') and three Decision nodes ('Risk Tier', 'DTI Ratio', 'Pre-Qualification Result') connected by Information Requirement arrows according to the dependencies described in the memo. Save the diagram as ~/Desktop/loan_drd.drawio and export a PNG image to ~/Desktop/loan_drd.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dmn_loan_prequal_drd/setup_task.sh",
+    "post_task": "/workspace/tasks/dmn_loan_prequal_drd/export_result.sh"
+  },
+  "metadata": {
+    "output_drawio": "/home/ga/Desktop/loan_drd.drawio",
+    "output_png": "/home/ga/Desktop/loan_drd.png",
+    "required_inputs": [
+      "Credit Score",
+      "Annual Income",
+      "Loan Amount",
+      "Monthly Debt"
+    ],
+    "required_decisions": [
+      "Risk Tier",
+      "DTI Ratio",
+      "Pre-Qualification Result"
+    ],
+    "min_edges": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dmn_loan_prequal_drd"
+    }
+  }
+}

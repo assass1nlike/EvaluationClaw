@@ -1,0 +1,29 @@
+{
+  "id": "residential_solar_payback_period_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a residential solar sales engineer. Your goal is to model a house with a rooftop solar array, run an energy yield simulation, extract the system cost and annual yield, and calculate the financial payback period.\n\nExpected Actions:\n1. Open Energy3D and set the location to San Francisco, CA.\n2. Draw a rectangular foundation (approx 15m x 10m) and build a house with a Gable (pitched) roof and a few windows.\n3. Add a solar panel array covering the south-facing slope of the roof.\n4. Determine the Total Cost of the installed solar panels (visible in the UI or via Analysis -> Project Cost).\n5. Run the Annual Yield Analysis (Analysis -> Solar Panels -> Annual Yield Analysis) to find the Total Annual Yield (in kWh).\n6. Assuming a local electricity rate of $0.30 per kWh, calculate:\n   - Annual Savings = Annual Yield * $0.30\n   - Payback Period = Total Cost / Annual Savings\n7. Save the Energy3D project to `~/Documents/Energy3D/sf_solar_home.ng3`.\n8. Create a text report at `~/Documents/Energy3D/payback_report.txt` clearly listing the four metrics: Total Cost, Annual Yield, Annual Savings, and Payback Period (in years).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/residential_solar_payback_period_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/residential_solar_payback_period_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Sales Engineer",
+    "industry": "Renewable Energy",
+    "electricity_rate_usd": 0.30,
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/sf_solar_home.ng3",
+    "expected_report_path": "/home/ga/Documents/Energy3D/payback_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_payback_analysis"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "calc_medicare_readmission_penalties@1",
+  "task_completion": [
+    {
+      "id": "readmission_status_categorization",
+      "description": "Categorize 'Readmission_Status' in column G based on the Excess_Readmission_Ratio.",
+      "points": 15,
+      "visual_evidence": "In the main sheet ('Readmissions'), column G should have the header 'Readmission_Status' and contain text values like 'Excessive', 'Acceptable', or 'No Data'."
+    },
+    {
+      "id": "estimated_penalty_calculation",
+      "description": "Calculate 'Estimated_Penalty' in column H and format it as Currency.",
+      "points": 20,
+      "visual_evidence": "Column H should have the header 'Estimated_Penalty' and contain numeric values formatted as currency (e.g., with a $ symbol). Values should be 0.00 for 'Acceptable'/'No Data' rows, and positive amounts for 'Excessive' rows."
+    },
+    {
+      "id": "measure_summary_sheet_and_headers",
+      "description": "Create a new sheet named 'Measure_Summary' with specific table headers.",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Measure_Summary' is visible and active. The sheet contains the headers: 'Measure_Name', 'Evaluated_Hospitals', 'Penalized_Hospitals', and 'Total_Penalty_Amount'."
+    },
+    {
+      "id": "measure_summary_measures_listed",
+      "description": "List the 6 specified HRRP measures in the summary table.",
+      "points": 10,
+      "visual_evidence": "Under the 'Measure_Name' column, the 6 specific measures (READM-30-AMI-HRRP, READM-30-CABG-HRRP, READM-30-COPD-HRRP, READM-30-HF-HRRP, READM-30-HIP-KNEE-HRRP, READM-30-PN-HRRP) are listed as rows."
+    },
+    {
+      "id": "hospital_counts_calculated",
+      "description": "Calculate the number of Evaluated and Penalized hospitals for each measure.",
+      "points": 20,
+      "visual_evidence": "The 'Evaluated_Hospitals' and 'Penalized_Hospitals' columns contain numeric counts for each measure row. The 'Evaluated_Hospitals' count should be strictly greater than or equal to the 'Penalized_Hospitals' count."
+    },
+    {
+      "id": "total_penalty_calculated",
+      "description": "Sum the total penalty amount for each measure.",
+      "points": 15,
+      "visual_evidence": "The 'Total_Penalty_Amount' column contains numeric values representing the sum of penalties for each respective measure."
+    },
+    {
+      "id": "data_bar_formatting",
+      "description": "Apply Data Bar conditional formatting to the Total_Penalty_Amount column.",
+      "points": 10,
+      "visual_evidence": "The cells in the 'Total_Penalty_Amount' column display horizontal colored bars (Data Bars) in the background of the numbers, visually representing the relative size of the penalty amounts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_app",
+      "description": "The agent used a spreadsheet application (e.g., LibreOffice Calc) to perform the task.",
+      "visual_evidence": "Screenshots show the LibreOffice Calc interface open with the cms_readmissions.xlsx file, rather than a text editor or terminal."
+    },
+    {
+      "id": "no_terminal_scripting_bypass",
+      "description": "The agent did not use a terminal script (e.g., Python/Pandas) to bypass GUI interaction.",
+      "visual_evidence": "The terminal does not show commands executing Python scripts or using tools like sed/awk to directly manipulate the Excel file."
+    },
+    {
+      "id": "genuine_formulas_used",
+      "description": "The agent used spreadsheet formulas to calculate values rather than typing in hardcoded answers.",
+      "visual_evidence": "The formula bar at the top of the spreadsheet interface shows actual formulas (e.g., =IF(...), =COUNTIFS(...), =SUMIFS(...)) when a calculated cell is selected."
+    }
+  ],
+  "privileged_info_for_vlm": "The initial data is in a sheet named 'Readmissions' with 2500 rows. The agent must create a second sheet named 'Measure_Summary'. The 6 expected measures to be summarized are exactly: READM-30-AMI-HRRP, READM-30-CABG-HRRP, READM-30-COPD-HRRP, READM-30-HF-HRRP, READM-30-HIP-KNEE-HRRP, and READM-30-PN-HRRP."
+}

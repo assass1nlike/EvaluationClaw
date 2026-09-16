@@ -1,0 +1,59 @@
+{
+  "task_id": "sakila_star_schema_data_mart@1",
+  "task_completion": [
+    {
+      "id": "db_created",
+      "description": "Create the sakila_mart database in MySQL Workbench",
+      "points": 10,
+      "visual_evidence": "In MySQL Workbench, the left sidebar (Navigator -> Schemas) should display 'sakila_mart' as an available database."
+    },
+    {
+      "id": "dim_tables_created",
+      "description": "Create the dimension tables (dim_date, dim_customer, dim_film, dim_store)",
+      "points": 20,
+      "visual_evidence": "Under the 'sakila_mart' schema in the Navigator sidebar, expanding the 'Tables' node should reveal 'dim_date', 'dim_customer', 'dim_film', and 'dim_store'."
+    },
+    {
+      "id": "fact_table_created",
+      "description": "Create the fact_rental table",
+      "points": 15,
+      "visual_evidence": "Under the 'sakila_mart' schema in the Navigator sidebar, expanding the 'Tables' node should reveal 'fact_rental'."
+    },
+    {
+      "id": "view_created",
+      "description": "Create the v_monthly_store_performance view",
+      "points": 15,
+      "visual_evidence": "Under the 'sakila_mart' schema in the Navigator sidebar, expanding the 'Views' node should reveal 'v_monthly_store_performance'."
+    },
+    {
+      "id": "data_populated",
+      "description": "Populate the tables and view with transformed data from the Sakila database",
+      "points": 20,
+      "visual_evidence": "The 'Action Output' panel at the bottom of MySQL Workbench shows successful INSERT or CREATE TABLE AS SELECT statements with expected row counts (e.g., ~599 for customers, ~1000 for films, ~16044 for rentals), OR the 'Result Grid' shows the populated view returning exactly 10 rows."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the view results to the specified CSV file",
+      "points": 20,
+      "visual_evidence": "A file manager window, terminal output, or MySQL Workbench export dialog showing the file 'monthly_store_performance.csv' successfully created in the '/home/ga/Documents/exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_mysql_workbench",
+      "description": "The agent used MySQL Workbench to perform the database operations",
+      "visual_evidence": "Screenshots should show the MySQL Workbench GUI being actively used to write and execute SQL queries, rather than just writing a script in a text editor."
+    },
+    {
+      "id": "genuine_data_transformation",
+      "description": "The agent wrote actual SQL queries to transform the data",
+      "visual_evidence": "The SQL editor in MySQL Workbench should show genuine JOINs, aggregations (GROUP BY), and INSERT/SELECT statements referencing the original 'sakila' database tables, rather than hardcoding the final 10 rows."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV was exported from the database results",
+      "visual_evidence": "The export should be triggered via MySQL Workbench's export functionality or a valid SQL 'INTO OUTFILE' command, not by manually typing the expected output into a text file and saving it as a CSV."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'sakila_mart'. The target CSV path is '/home/ga/Documents/exports/monthly_store_performance.csv'. The dim_date table should cover 2005-01-01 to 2006-12-31. Expected row counts for populated tables: dim_customer = 599, dim_film = 1000, dim_store = 2, fact_rental = 16044. The v_monthly_store_performance view should produce exactly 10 rows."
+}

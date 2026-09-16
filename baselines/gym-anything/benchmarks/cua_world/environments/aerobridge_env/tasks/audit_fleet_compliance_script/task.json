@@ -1,0 +1,46 @@
+{
+  "id": "audit_fleet_compliance_script@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Perform a fleet compliance audit using Django's ORM by creating a Python script at /home/ga/fleet_compliance_audit.py and generating a report at /home/ga/fleet_compliance_report.txt. Compliance is defined as having non-null values for 'manufacturer', 'operator', and 'type_certificate'. The report must include a 'COMPLIANCE' header, summary counts for 'Total', 'Compliant', and 'Non-Compliant' aircraft, and a detail line for each aircraft listing its manufacturer (or 'None') and its status (COMPLIANT/NON-COMPLIANT).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_fleet_compliance_script/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_fleet_compliance_script/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/fleet_compliance_audit.py",
+    "report_path": "/home/ga/fleet_compliance_report.txt",
+    "required_imports": [
+      "django",
+      "registry.models",
+      "Aircraft"
+    ],
+    "criteria": {
+      "compliant_needs": [
+        "manufacturer",
+        "operator",
+        "type_certificate"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_fleet_compliance_script"
+    }
+  },
+  "tags": [
+    "django",
+    "python",
+    "scripting",
+    "orm",
+    "compliance",
+    "automation"
+  ]
+}

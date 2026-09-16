@@ -1,0 +1,30 @@
+{
+  "id": "modify_bearing_housing_eco@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "An engineering change order (ECO) requires updating the T8 lead screw housing bracket from '~/Documents/FreeCAD/T8_housing_bracket.FCStd'. Modify the design for a 16mm shaft bushing and M5 mounting bolts by changing the central bore diameter to 16.0 mm and the four base mounting hole diameters to 5.5 mm. Do not modify the overall outer dimensions of the bracket. Save the modified design as '~/Documents/FreeCAD/modified_housing.FCStd'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/modify_bearing_housing_eco/setup_task.sh",
+    "post_task": "/workspace/tasks/modify_bearing_housing_eco/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/FreeCAD/T8_housing_bracket.FCStd",
+    "output_file": "/home/ga/Documents/FreeCAD/modified_housing.FCStd",
+    "target_bore_diameter": 16.0,
+    "target_mount_diameter": 5.5,
+    "diameter_tolerance": 0.1,
+    "bbox_tolerance_percent": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_modify_housing"
+    }
+  }
+}

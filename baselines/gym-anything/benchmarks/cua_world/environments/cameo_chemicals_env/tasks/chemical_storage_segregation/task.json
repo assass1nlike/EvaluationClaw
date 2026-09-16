@@ -1,0 +1,60 @@
+{
+  "id": "chemical_storage_segregation@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are a laboratory safety manager. Create a storage segregation plan CSV file for the five chemicals listed in '~/Desktop/shipment_manifest.txt' based on their official CAMEO Chemicals Reactive Groups from https://cameochemicals.noaa.gov/. For each chemical, identify its exact Reactive Group and assign a Storage Code (A, B, O, F, or G) using these precedence rules: Code O (Oxidizer) if the group contains 'Oxidizing Agents'; Code A (Acid) if it contains 'Acids'; Code B (Base) if it contains 'Bases' or 'Amines'; Code F (Flammable) if it contains 'Ketones', 'Aldehydes', 'Esters', or 'Hydrocarbons'; and Code G (General) for any other group. Save the results to '~/Documents/storage_plan.csv' with columns 'Chemical Name', 'Reactive Group', and 'Storage Code'.",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "safety",
+    "storage",
+    "classification",
+    "csv"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chemical_storage_segregation/setup_task.sh",
+    "post_task": "/workspace/tasks/chemical_storage_segregation/export_result.sh"
+  },
+  "metadata": {
+    "manifest_path": "/home/ga/Desktop/shipment_manifest.txt",
+    "output_path": "/home/ga/Documents/storage_plan.csv",
+    "expected_chemicals": [
+      {
+        "name": "Hydrochloric Acid",
+        "reactive_group_substring": "Acids",
+        "expected_code": "A"
+      },
+      {
+        "name": "Sodium Permanganate",
+        "reactive_group_substring": "Oxidizing Agents",
+        "expected_code": "O"
+      },
+      {
+        "name": "Triethylamine",
+        "reactive_group_substring": "Amines",
+        "expected_code": "B"
+      },
+      {
+        "name": "Methyl Ethyl Ketone",
+        "reactive_group_substring": "Ketones",
+        "expected_code": "F"
+      },
+      {
+        "name": "Potassium Hydroxide",
+        "reactive_group_substring": "Bases",
+        "expected_code": "B"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chemical_storage_segregation"
+    }
+  }
+}

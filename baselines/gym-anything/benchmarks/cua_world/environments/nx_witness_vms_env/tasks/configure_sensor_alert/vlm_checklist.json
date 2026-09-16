@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_sensor_alert@1",
+  "task_completion": [
+    {
+      "id": "access_vms_interface",
+      "description": "Verify the agent has accessed the Nx Witness VMS interface.",
+      "points": 10,
+      "visual_evidence": "Browser or desktop client showing the Nx Witness interface connected to localhost:7001."
+    },
+    {
+      "id": "configure_event_trigger",
+      "description": "Verify the creation of a Generic Event rule with the specified source and caption.",
+      "points": 20,
+      "visual_evidence": "Event Rules dialog showing 'Generic Event' selected as the trigger, the Source field containing 'TempSensor_01', and the Caption field containing 'Overheat'."
+    },
+    {
+      "id": "configure_event_action",
+      "description": "Verify the event action is set to create a bookmark on the correct camera.",
+      "points": 20,
+      "visual_evidence": "Action section of the Event Rule showing 'Bookmark' (or 'Create Bookmark') selected, with the target camera explicitly set to 'Server Room Camera'."
+    },
+    {
+      "id": "configure_bookmark_tags",
+      "description": "Verify the bookmark action includes the required tags.",
+      "points": 10,
+      "visual_evidence": "Tags field in the Bookmark action configuration containing both 'environment' and 'danger'."
+    },
+    {
+      "id": "simulate_api_event",
+      "description": "Verify the agent simulates the event using the API endpoint.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a curl command, a browser address bar, or an API tool making an HTTP request to 'https://localhost:7001/api/createEvent' (including source and caption parameters) using the provided admin credentials."
+    },
+    {
+      "id": "verify_bookmark_created",
+      "description": "Verify the bookmark is successfully generated on the camera timeline.",
+      "points": 20,
+      "visual_evidence": "Nx Witness interface showing the 'Server Room Camera' timeline, bookmark log, or notifications panel displaying a newly created bookmark with the tags 'environment' and 'danger'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_vms_configuration",
+      "description": "Verify the event rule was configured using the actual VMS GUI.",
+      "visual_evidence": "Screenshots must show interaction with the Nx Witness Event Rules dialog menus and fields, rather than modifying backend configuration files or using a script to bypass the UI."
+    },
+    {
+      "id": "genuine_api_request",
+      "description": "Verify the API request was actually executed and not just typed out.",
+      "visual_evidence": "Screenshots should show the execution and result of the API request (e.g., terminal output showing an HTTP 200 OK response, or a browser showing the API success response) rather than just a drafted command in a text editor."
+    },
+    {
+      "id": "authentic_bookmark_display",
+      "description": "Verify the bookmark is displayed in the actual VMS interface.",
+      "visual_evidence": "The final bookmark must be shown integrated within the Nx Witness camera view, timeline, or native bookmark search panel, not pasted into a separate document or mocked up."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring a Generic Event rule in Nx Witness. Target Source: 'TempSensor_01'. Target Caption: 'Overheat'. Target Camera: 'Server Room Camera'. Required Tags: 'environment' and 'danger'. The API endpoint for simulation is '/api/createEvent'."
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "hypertension_followup_audit@1",
+  "task_completion": [
+    {
+      "id": "database_connection_visible",
+      "description": "Verify that the agent connects to the 'DrTuxTest' MySQL database.",
+      "points": 10,
+      "visual_evidence": "Look for a database client (e.g., DBeaver, MySQL CLI) connected to 'DrTuxTest', or a script (e.g., Python) containing connection parameters for the 'DrTuxTest' database."
+    },
+    {
+      "id": "query_logic_visible",
+      "description": "Verify that the agent formulates logic to filter patients by the required keywords and calculates visit intervals.",
+      "points": 20,
+      "visual_evidence": "Look for SQL query text or script code containing filters for 'Hypertension', 'HTA', or 'Hypertonie' (e.g., LIKE '%HTA%') and logic to calculate the difference between dates."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "Verify that the CSV file is created at the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for 'hta_audit_report.csv' in the '/home/ga/Documents/' directory via a file manager, terminal command (e.g., ls), or the file being open in an editor."
+    },
+    {
+      "id": "csv_headers_correct",
+      "description": "Verify that the CSV file contains the exact required columns.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the CSV file and ensure the header row contains exactly: 'PatientName', 'VisitCount', and 'AvgDaysBetweenVisits'."
+    },
+    {
+      "id": "csv_data_correct",
+      "description": "Verify that the CSV file contains the correct patient data and is sorted correctly.",
+      "points": 30,
+      "visual_evidence": "Look at the CSV contents. It must contain exactly two data rows: 'DUBOIS Paul' (VisitCount: 3, AvgDays: 45 or 45.0) and 'ROUX Julie' (VisitCount: 2, AvgDays: 10 or 10.0). DUBOIS Paul must appear before ROUX Julie (sorted descending by average days)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not hardcode the final answers.",
+      "visual_evidence": "Check scripts, terminal commands, or SQL queries to ensure the agent did not manually type 'DUBOIS Paul', 'ROUX Julie', '45.0', or '10.0' to bypass actual database querying."
+    },
+    {
+      "id": "genuine_database_interaction",
+      "description": "Ensure the agent actually queried the database to get the results.",
+      "visual_evidence": "Look for evidence of executing a query (e.g., SQL client results grid, script execution output) rather than just manually creating a CSV file with the expected output."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct output CSV must contain exactly two patients: 1. DUBOIS Paul (VisitCount = 3, AvgDaysBetweenVisits = 45.0). 2. ROUX Julie (VisitCount = 2, AvgDaysBetweenVisits = 10.0). The CSV must be sorted by AvgDaysBetweenVisits descending, so DUBOIS Paul must be the first data row. Patients PETIT Sophie, BLANC Jean, and LEGRAND Marc must be excluded because they either lack the required keywords or have fewer than 2 distinct visit dates."
+}

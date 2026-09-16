@@ -1,0 +1,32 @@
+{
+  "id": "residential_weatherization_energy_audit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an energy auditor modeling weatherization upgrades. Energy3D is open with the baseline project `~/Documents/Energy3D/building-passive-heating.ng3`. Retrofit the larger house (the one with the yellow door) by making the following envelope upgrades: 1. Change the Roof U-value to 0.15 W/(m\u00b2\u00b7K). 2. Change the U-value of ALL Walls in the building to 0.30 W/(m\u00b2\u00b7K) (use the 'Apply to All Walls' context menu). 3. Change the U-value of ALL Windows to 1.50 W/(m\u00b2\u00b7K). 4. Change the Air Infiltration Rate of the building to 0.4. After updating these properties, run the Annual Building Energy Analysis for that building. Finally, save the modified project as `~/Documents/Energy3D/weatherized_home.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/residential_weatherization_energy_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/residential_weatherization_energy_audit/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Auditor",
+    "industry": "Weatherization Assistance Program",
+    "starter_file": "building-passive-heating.ng3",
+    "expected_output_file": "/home/ga/Documents/Energy3D/weatherized_home.ng3",
+    "expected_roof_u_value": "0.15",
+    "expected_wall_u_value": "0.30",
+    "expected_window_u_value": "1.50",
+    "expected_air_infiltration": "0.4"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_weatherization"
+    }
+  }
+}

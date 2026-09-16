@@ -1,0 +1,64 @@
+{
+  "id": "ecoli_comprehensive_food_investigation@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are an epidemiologist conducting a comprehensive food safety investigation of an E. coli O157:H7 outbreak using interview data from the FoodHistory table in the EColi dataset (C:\\EpiInfo7\\Projects\\EColi\\EColi.mdb). Analyze the food exposure variables, illness outcomes, and onset dates to identify statistically significant risk factors (p<0.05) through crude odds ratios and multivariable logistic regression. Generate epidemic curve data from the onset dates to examine the timing of the outbreak. Save the complete investigation output to C:\\Users\\Docker\\ecoli_food_investigation.html and the summary risk factor table to C:\\Users\\Docker\\ecoli_risk_factors.csv.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ecoli_comprehensive_food_investigation\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ecoli_comprehensive_food_investigation\\export_result.ps1"
+  },
+  "metadata": {
+    "dataset": "C:\\EpiInfo7\\Projects\\EColi\\EColi.mdb",
+    "table": "FoodHistory",
+    "known_variables": {
+      "outcome": "ILLDUM (illness dummy variable)",
+      "food_exposures": [
+        "HAMBURGER",
+        "HOTDOG",
+        "WATERMELON",
+        "LETTUCE",
+        "MUSTARD",
+        "RELISH",
+        "KETCHUP",
+        "ONION",
+        "PEPPERS",
+        "CORN",
+        "TOMATO",
+        "GROUNDMEAT"
+      ],
+      "demographics": [
+        "AGE",
+        "SEX"
+      ],
+      "onset_date": "ONSETDATE"
+    },
+    "required_outputs": [
+      "C:\\Users\\Docker\\ecoli_food_investigation.html",
+      "C:\\Users\\Docker\\ecoli_risk_factors.csv"
+    ],
+    "analysis_modules": [
+      "Classic Analysis"
+    ],
+    "expected_commands": [
+      "READ",
+      "FREQ",
+      "TABLES",
+      "LOGISTIC",
+      "GRAPH",
+      "ROUTEOUT",
+      "WRITE",
+      "SELECT"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ecoli_comprehensive_food_investigation"
+    }
+  }
+}

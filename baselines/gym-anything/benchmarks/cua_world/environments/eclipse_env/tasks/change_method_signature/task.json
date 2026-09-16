@@ -1,0 +1,28 @@
+{
+  "id": "change_method_signature@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Modify the API of the PaymentPlatform project by updating the 'processPayment(String customerId, double amount)' method in 'src/main/java/com/acme/payment/PaymentService.java'. Add two new parameters: 'currency' (String) with a default value of \"USD\", and 'priority' (boolean) with a default value of false. Use the change method signature refactoring to ensure all call sites across the project are updated automatically and the project compiles without errors.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_method_signature/setup_task.sh",
+    "post_task": "/workspace/tasks/change_method_signature/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/PaymentPlatform",
+    "target_file": "src/main/java/com/acme/payment/PaymentService.java",
+    "expected_signature_regex": "processPayment\\s*\\(\\s*String\\s+\\w+,\\s*double\\s+\\w+,\\s*String\\s+currency,\\s*boolean\\s+priority\\s*\\)",
+    "expected_call_regex": "processPayment\\s*\\([^,]+,[^,]+,\\s*\"USD\",\\s*false\\s*\\)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_method_signature"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "clip_3d_rendering@1",
+  "task_completion": [
+    {
+      "id": "volume_loaded",
+      "description": "Verify that the BraTS T1ce MRI volume is loaded into the application.",
+      "points": 15,
+      "visual_evidence": "The 3D Slicer interface shows the loaded brain MRI volume in the 2D slice views (axial, sagittal, coronal) or the volume is listed in the Data or Subject Hierarchy modules."
+    },
+    {
+      "id": "volume_rendering_active",
+      "description": "Verify that 3D volume rendering has been activated for the loaded MRI.",
+      "points": 20,
+      "visual_evidence": "A 3D representation of the brain is visible in the main 3D view window of the application."
+    },
+    {
+      "id": "roi_node_exists",
+      "description": "Verify that an ROI (Region of Interest) bounding box is visible or created for cropping the volume.",
+      "points": 15,
+      "visual_evidence": "A 3D bounding box with colored control points (usually small colored spheres) is visible around or intersecting the 3D rendered brain in the 3D view."
+    },
+    {
+      "id": "clipping_enabled",
+      "description": "Verify that ROI cropping/clipping is enabled on the volume rendering.",
+      "points": 20,
+      "visual_evidence": "The 3D rendered volume is visibly cut or sliced by the boundaries of the ROI box, showing sharp, flat cutaway edges rather than the natural curved surface of the brain."
+    },
+    {
+      "id": "meaningful_clip",
+      "description": "Verify that the clip removes 30-50% of the brain surface to reveal internal structures.",
+      "points": 15,
+      "visual_evidence": "The 3D rendering shows a substantial cutaway (roughly a third to a half of the outer surface removed), clearly exposing the inside of the brain and the internal tumor area."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify that a screenshot was saved to the specified path.",
+      "points": 10,
+      "visual_evidence": "A terminal window, file explorer, or Slicer's Screen Capture module shows the file 'clipped_brain_rendering.png' successfully saved in '~/Documents/SlicerData/Screenshots/'."
+    },
+    {
+      "id": "vlm_cutaway_visible",
+      "description": "Verify that the final saved screenshot clearly shows the cutaway rendering.",
+      "points": 5,
+      "visual_evidence": "An image viewer, file preview, or the final state of the 3D view prior to saving clearly displays the 3D rendered brain with the internal structures revealed via the ROI clip."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Ensure the agent used the 3D Slicer GUI to perform the rendering and clipping.",
+      "visual_evidence": "Screenshots should show the 3D Slicer application open with the agent interacting with menus, the Volume Rendering module, and the 3D view, rather than just running a background script."
+    },
+    {
+      "id": "genuine_clipping_operation",
+      "description": "Ensure the clipping was done via the ROI tool and not by manipulating opacity gradients.",
+      "visual_evidence": "The cutaway on the rendered volume should have sharp, distinct geometric edges corresponding to an ROI box, rather than a fuzzy or gradual disappearance of the outer layers."
+    },
+    {
+      "id": "actual_screenshot_saved",
+      "description": "Ensure the agent actually saved the screenshot file to the disk.",
+      "visual_evidence": "Look for evidence of a save dialog being completed, a terminal 'ls' command verifying the file's existence, or a success message from the Screen Capture module."
+    }
+  ],
+  "privileged_info_for_vlm": "The BraTS T1ce MRI volume is located at /home/ga/Documents/SlicerData/BraTS. The expected output screenshot must be saved to /home/ga/Documents/SlicerData/Screenshots/clipped_brain_rendering.png and must be at least 100 KB in size. The cutaway should remove 30-50% of the brain surface to reveal internal tumor structures."
+}

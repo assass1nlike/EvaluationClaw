@@ -1,0 +1,38 @@
+{
+  "id": "correct_paper_year@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a researcher who imported a set of classic computer science and physics papers into Zotero. Two papers in your library of 10 have incorrect publication years: 'On the Electrodynamics of Moving Bodies' by Albert Einstein and 'A Mathematical Theory of Communication' by Claude E. Shannon. Correct the publication years for both entries in your Zotero library to their historically accurate years.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 45,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_paper_year/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_paper_year/export_result.sh"
+  },
+  "metadata": {
+    "papers_to_fix": [
+      {
+        "title": "On the Electrodynamics of Moving Bodies",
+        "author": "Einstein",
+        "wrong_year": "1906",
+        "correct_year": "1905"
+      },
+      {
+        "title": "A Mathematical Theory of Communication",
+        "author": "Shannon",
+        "wrong_year": "1950",
+        "correct_year": "1948"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_correct_paper_year"
+    }
+  }
+}

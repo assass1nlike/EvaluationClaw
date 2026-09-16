@@ -1,0 +1,59 @@
+{
+  "task_id": "migrate_media_urls_mongodb@1",
+  "task_completion": [
+    {
+      "id": "connect_mongodb",
+      "description": "Connect to the local MongoDB instance and access the socioboard database.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows a MongoDB client (e.g., mongosh, MongoDB Compass, or a script) successfully connected to port 27017 and using the 'socioboard' database."
+    },
+    {
+      "id": "access_userpublishposts",
+      "description": "Access or query the 'userpublishposts' collection.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows the 'userpublishposts' collection being selected, viewed, or targeted in a query within the database client."
+    },
+    {
+      "id": "access_drafts",
+      "description": "Access or query the 'drafts' collection.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows the 'drafts' collection being selected, viewed, or targeted in a query within the database client."
+    },
+    {
+      "id": "update_userpublishposts",
+      "description": "Perform a bulk update in the 'userpublishposts' collection to replace the legacy domain with the new CDN domain.",
+      "points": 25,
+      "visual_evidence": "Screenshot shows an update command (e.g., updateMany) or bulk operation targeting 'userpublishposts' that replaces 'http://media.acmesocial.legacy' with 'https://cdn.acme-corp.com' in the 'mediaUrl' field."
+    },
+    {
+      "id": "update_drafts",
+      "description": "Perform a bulk update in the 'drafts' collection to replace the legacy domain with the new CDN domain.",
+      "points": 25,
+      "visual_evidence": "Screenshot shows an update command (e.g., updateMany) or bulk operation targeting 'drafts' that replaces 'http://media.acmesocial.legacy' with 'https://cdn.acme-corp.com' in the 'mediaUrl' field."
+    },
+    {
+      "id": "verify_updated_urls",
+      "description": "Verify that zero documents remain with the legacy domain and file paths are preserved.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows a query for the legacy domain returning 0 results, or displays the updated documents showing 'mediaUrl' fields starting with 'https://cdn.acme-corp.com' while retaining the original file paths."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with a genuine database client or executed a real script, rather than mocking the output in a text editor.",
+      "visual_evidence": "Screenshots show an actual database interface (like MongoDB Compass) or a terminal running a real database shell (mongosh) or script execution."
+    },
+    {
+      "id": "execution_confirmation",
+      "description": "The database update commands were actually executed and acknowledged by the server.",
+      "visual_evidence": "Screenshots show the database server's response to the update commands, such as 'acknowledged: true', 'modifiedCount', or a success message from the GUI."
+    },
+    {
+      "id": "bulk_update_used",
+      "description": "The agent performed a bulk database update as requested, rather than manually editing individual documents one by one.",
+      "visual_evidence": "Screenshots show a programmatic bulk update query (like updateMany with a pipeline or regex) rather than the agent clicking and editing individual fields manually in a GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Database: 'socioboard' on port 27017. Target Collections: 'userpublishposts' and 'drafts'. Legacy Domain to replace: 'http://media.acmesocial.legacy'. New Domain: 'https://cdn.acme-corp.com'. The update must target the 'mediaUrl' field and preserve the rest of the URL path."
+}

@@ -1,0 +1,69 @@
+{
+  "id": "link_nearby_restaurants_and_attractions@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "A new tourism recommendation feature requires graph edges between restaurants and attractions located in the same city. Using OrientDB Studio at http://localhost:2480/studio/index.html (root / GymAnything123!) on the demodb database, link all restaurant-attraction pairs within the same city using a ProximityLink edge class with a MatchBasis property. For every link created, persist a corresponding RecommendationManifest vertex record. Ensure no cross-city links are created.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 780,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/link_nearby_restaurants_and_attractions/setup_task.sh",
+    "post_task": "/workspace/tasks/link_nearby_restaurants_and_attractions/export_result.sh"
+  },
+  "metadata": {
+    "expected_edge_count": 8,
+    "expected_edges": [
+      {
+        "restaurant": "Da Enzo al 29",
+        "attraction": "Colosseum",
+        "city": "Rome"
+      },
+      {
+        "restaurant": "Lorenz Adlon Esszimmer",
+        "attraction": "Brandenburg Gate",
+        "city": "Berlin"
+      },
+      {
+        "restaurant": "Le Cinq",
+        "attraction": "Eiffel Tower",
+        "city": "Paris"
+      },
+      {
+        "restaurant": "Sketch",
+        "attraction": "Big Ben",
+        "city": "London"
+      },
+      {
+        "restaurant": "Per Se",
+        "attraction": "Statue of Liberty",
+        "city": "New York"
+      },
+      {
+        "restaurant": "Spondi",
+        "attraction": "Acropolis of Athens",
+        "city": "Athens"
+      },
+      {
+        "restaurant": "Spondi",
+        "attraction": "Parthenon",
+        "city": "Athens"
+      },
+      {
+        "restaurant": "Tickets",
+        "attraction": "Sagrada Familia",
+        "city": "Barcelona"
+      }
+    ],
+    "match_basis": "same_city",
+    "batch_id": "geo_proximity_2026q1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_link_nearby_restaurants_and_attractions"
+    }
+  }
+}

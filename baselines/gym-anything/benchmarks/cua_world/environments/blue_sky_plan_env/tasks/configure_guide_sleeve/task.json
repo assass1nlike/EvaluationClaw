@@ -1,0 +1,32 @@
+{
+  "id": "configure_guide_sleeve@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Blue Sky Plan is open with a mandibular CBCT loaded. You need to configure a custom surgical guide sleeve for a clinical case using a 'Steco' universal sleeve kit. Place an implant at site #30 (lower right first molar) and configure the custom guide tube settings with an offset of 9.5 mm, a hole diameter of 5.3 mm, and a height of 4.0 mm. Generate a drilling report and save it as a PDF to C:\\Users\\Docker\\Documents\\BlueSkyPlan\\Sleeve_Report.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_guide_sleeve\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_guide_sleeve\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\BlueSkyPlan\\Sleeve_Report.pdf",
+    "required_strings": [
+      "9.5",
+      "5.3",
+      "4.0",
+      "30"
+    ],
+    "project_file": "C:\\workspace\\data\\mandible_case.bsp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_guide_sleeve"
+    }
+  }
+}

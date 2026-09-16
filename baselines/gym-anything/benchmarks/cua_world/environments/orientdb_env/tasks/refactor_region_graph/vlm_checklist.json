@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_region_graph@1",
+  "task_completion": [
+    {
+      "id": "create_regions_class",
+      "description": "Create a new Vertex class named 'Regions'",
+      "points": 15,
+      "visual_evidence": "In the OrientDB Studio Schema or Class management view, 'Regions' is listed as a new class and is shown inheriting from the base Vertex class ('V')."
+    },
+    {
+      "id": "create_regions_property_index",
+      "description": "Add a String property 'Name' with a UNIQUE index to the 'Regions' class",
+      "points": 15,
+      "visual_evidence": "In the OrientDB Studio Schema view for the 'Regions' class, there is a property named 'Name' of type STRING, and the indexes section shows a UNIQUE index applied to this property."
+    },
+    {
+      "id": "create_inregion_class",
+      "description": "Create a new Edge class named 'InRegion'",
+      "points": 10,
+      "visual_evidence": "In the OrientDB Studio Schema or Class management view, 'InRegion' is listed as a new class and is shown inheriting from the base Edge class ('E')."
+    },
+    {
+      "id": "migrate_region_vertices",
+      "description": "Create a 'Regions' vertex for every unique 'Type' found in 'Countries' without duplicates",
+      "points": 25,
+      "visual_evidence": "A query result in the OrientDB Studio Browse tab (e.g., `SELECT * FROM Regions`) shows exactly 4 records with the names: 'European', 'American', 'Asian', and 'Oceanian'."
+    },
+    {
+      "id": "migrate_inregion_edges",
+      "description": "Connect each country to its corresponding region vertex via an 'InRegion' edge",
+      "points": 35,
+      "visual_evidence": "A query result showing exactly 12 records for 'InRegion' edges, OR a Graph visualization in OrientDB Studio showing Country vertices correctly connected to their respective Region vertices via 'InRegion' edges."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "Verify the agent interacted with the OrientDB Studio web GUI",
+      "visual_evidence": "Screenshots show the OrientDB Studio UI in a web browser being actively used to execute queries or manage the schema, rather than just terminal commands or background scripts."
+    },
+    {
+      "id": "actual_database_modification",
+      "description": "Verify the results are from actual database queries and interactions",
+      "visual_evidence": "The query results, schema changes, or graph visualizations are displayed within the genuine OrientDB Studio interface connected to the 'demodb' database."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "Verify the agent didn't just type the expected answers into a text editor",
+      "visual_evidence": "There are no text editors or mock files open that simply list the expected regions ('European', 'American', etc.) or edge counts as a shortcut to bypass actual database migration."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'demodb' database contains exactly 12 countries and 4 unique regions (European, American, Asian, Oceanian). The final refactored graph must have exactly 4 'Regions' vertices and 12 'InRegion' edges connecting each country to its respective region. Credentials for the database are root / GymAnything123!."
+}

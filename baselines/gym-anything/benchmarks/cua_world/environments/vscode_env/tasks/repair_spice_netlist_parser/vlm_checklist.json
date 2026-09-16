@@ -1,0 +1,65 @@
+{
+  "task_id": "repair_spice_netlist_parser@1",
+  "task_completion": [
+    {
+      "id": "open_parser_code",
+      "description": "Open the SPICE parser source code in a text editor or IDE.",
+      "points": 10,
+      "visual_evidence": "A text editor (like VS Code, vim, or nano) is visible displaying Python source code from the /home/ga/workspace/spice_parser/ directory."
+    },
+    {
+      "id": "fix_mega_ohm_bug",
+      "description": "Fix the bug where Mega-ohm ('meg') resistors are misread as milli-ohms ('m').",
+      "points": 15,
+      "visual_evidence": "Code modifications visible in the editor that explicitly differentiate between 'meg' (Mega) and 'm' (milli) suffixes, typically using case-insensitive string comparisons."
+    },
+    {
+      "id": "fix_subcircuit_bug",
+      "description": "Fix the bug that mangles op-amp subcircuit connections.",
+      "points": 15,
+      "visual_evidence": "Code modifications visible in the editor addressing subcircuit parsing (often components starting with 'X' in SPICE) and correctly mapping or namespacing their node connections."
+    },
+    {
+      "id": "fix_continuation_lines_bug",
+      "description": "Fix the bug where the parser fails on continuation lines starting with '+'.",
+      "points": 15,
+      "visual_evidence": "Code modifications visible in the editor that check if a line starts with a '+' character and correctly append/join it to the previous line's content."
+    },
+    {
+      "id": "fix_asterisk_comment_bug",
+      "description": "Fix the bug where math expressions with asterisks are corrupted by comment parsing.",
+      "points": 15,
+      "visual_evidence": "Code modifications visible in the editor ensuring that '*' is only treated as a comment if it appears at the very beginning of a line (e.g., using line.startswith('*')), rather than anywhere in the string."
+    },
+    {
+      "id": "fix_gnd_zero_bug",
+      "description": "Fix the bug failing to treat 'GND' and '0' as equivalent nodes.",
+      "points": 15,
+      "visual_evidence": "Code modifications visible in the editor that normalize node names, such as converting 'GND' (case-insensitive) to '0' or explicitly treating them as identical in the node data structure."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Run the test suite to verify the fixes.",
+      "points": 15,
+      "visual_evidence": "Terminal window showing the execution of a test command (e.g., pytest, python -m unittest) in the spice_parser directory, ideally showing passing tests or improved test results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_suite_tampering",
+      "description": "Ensure the agent did not modify the test files to artificially pass the test suite.",
+      "visual_evidence": "The agent's editor and terminal history should only show modifications to the parser source code files, not the test files (e.g., test_*.py). No evidence of deleting assertions or hardcoding 'pass'."
+    },
+    {
+      "id": "genuine_code_edits",
+      "description": "Ensure the agent actually edited the Python files rather than just printing fake success messages.",
+      "visual_evidence": "Screenshots must show the actual Python code being modified in an editor or via valid sed/echo commands, not just a text file with a fake terminal output."
+    },
+    {
+      "id": "real_test_execution",
+      "description": "Ensure the test suite was executed in a genuine terminal environment.",
+      "visual_evidence": "The test execution output should appear in a standard terminal emulator with typical command prompts, execution times, and standard test runner formatting."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific SPICE parsing bugs in Python: 1) 'm' (milli) vs 'meg' (mega) suffixes, 2) '+' for continuation lines, 3) '*' for line-start comments (must not break math multiplication), 4) '0' and 'gnd' node equivalence, 5) subcircuit namespacing. A passing score requires at least 3 of 5 bugs fixed (threshold 60). Note: The environment may be missing 'verifier.py', but the agent's goal remains to fix the code and run the local test suite."
+}

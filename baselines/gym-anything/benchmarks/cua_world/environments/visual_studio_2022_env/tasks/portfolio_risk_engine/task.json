@@ -1,0 +1,34 @@
+{
+  "id": "portfolio_risk_engine@1",
+  "version": "1.0",
+  "env_id": "visual_studio_2022_env@0.1",
+  "description": "You are a quantitative developer at Atlas Capital Management. The risk team has scaffolded a PortfolioAnalytics library with interface contracts for three core risk metrics, but the implementations are empty stubs. Using historical return data for a 3-asset portfolio, implement the VaRCalculator, SharpeRatioCalculator, and MaxDrawdownCalculator classes in the PortfolioAnalytics solution. All implementations must match the IPortfolioRiskCalculator interface exactly and the solution must build with zero errors. The VaRCalculator must implement Historical Simulation Value-at-Risk at the 95% confidence level, returning the loss as a positive number. The SharpeRatioCalculator must implement the annualized Sharpe Ratio using a 252-day trading year convention and the provided annual risk-free rate. The MaxDrawdownCalculator must implement the maximum drawdown as a positive",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\portfolio_risk_engine\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\portfolio_risk_engine\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "PortfolioAnalytics",
+    "project_path": "C:\\Users\\Docker\\source\\repos\\PortfolioAnalytics",
+    "target_files": [
+      "VaRCalculator.cs",
+      "SharpeRatioCalculator.cs",
+      "MaxDrawdownCalculator.cs"
+    ],
+    "interface": "IPortfolioRiskCalculator",
+    "var_confidence": 0.95,
+    "risk_free_rate_annual": 0.04,
+    "trading_days_per_year": 252
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_portfolio_risk_engine"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "seismic_risk_country_exposure@1",
+  "task_completion": [
+    {
+      "id": "load_layers",
+      "description": "Load earthquake and country GeoJSON layers into QGIS",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel shows both 'earthquakes_month' and 'world_countries' layers loaded."
+    },
+    {
+      "id": "compute_spatial_statistics",
+      "description": "Compute earthquake counts and magnitude statistics per country",
+      "points": 30,
+      "visual_evidence": "Use of spatial tools like 'Join attributes by location (summary)' or 'Count points in polygon', or an attribute table showing computed fields for earthquake count, mean magnitude, and max magnitude."
+    },
+    {
+      "id": "compute_risk_tier",
+      "description": "Calculate the risk_tier field based on earthquake count",
+      "points": 20,
+      "visual_evidence": "The Field Calculator dialog open with an expression for 'risk_tier' (e.g., CASE WHEN count < 5 THEN 'low'...), or an attribute table showing the 'risk_tier' column populated with 'low', 'medium', or 'high'."
+    },
+    {
+      "id": "filter_nonzero_quakes",
+      "description": "Filter the dataset to include only countries with at least one earthquake",
+      "points": 20,
+      "visual_evidence": "A 'Select by Expression' dialog filtering for count > 0, a layer filter applied, or an attribute table/map showing only countries that experienced earthquakes."
+    },
+    {
+      "id": "export_geojson",
+      "description": "Export the final result as a GeoJSON file to the specified path",
+      "points": 20,
+      "visual_evidence": "The 'Save Vector Layer as...' dialog showing the format as GeoJSON and the file path as '/home/ga/GIS_Data/exports/country_seismic_exposure.geojson', or a QGIS success message indicating the export."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis",
+      "description": "The agent used QGIS to perform the spatial operations",
+      "visual_evidence": "Screenshots show interaction with the QGIS application (GUI or QGIS Python console) rather than solving the task entirely via standalone terminal scripts."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "The agent did not manually create or edit the output file in a text editor",
+      "visual_evidence": "There should be no evidence of the agent typing out the GeoJSON output manually in an editor like nano, vim, or VS Code."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires computing four fields: 'quake_count', 'mean_mag', 'max_mag', and 'risk_tier'. Risk tier thresholds are: 'low' if count < 5, 'medium' if 5 <= count < 15, 'high' if count >= 15. The output must only include countries with at least one earthquake. Note: The task description mentions 'ADMIN' and 'ISO_A3' fields, but the actual country data fields are 'name' and 'ISO3166-1-Alpha-3'. The agent should handle this gracefully. The final output must be saved to /home/ga/GIS_Data/exports/country_seismic_exposure.geojson."
+}

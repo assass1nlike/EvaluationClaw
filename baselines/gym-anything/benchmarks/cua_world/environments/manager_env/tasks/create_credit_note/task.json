@@ -1,0 +1,28 @@
+{
+  "id": "create_credit_note@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In Manager.io (Northwind Traders business), issue a sales credit note to customer Ernst Handel for a returned or over-billed item. Use reference CN-2024-001 and set the date to today. Include one line item with the description 'Returned Beverages — Damaged Shipment', a quantity of 5, and a unit price of 18.00. Credentials: Username = administrator, Password = (leave empty).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_credit_note/setup_task.sh"
+  },
+  "metadata": {
+    "expected_customer": "Ernst Handel",
+    "expected_reference": "CN-2024-001",
+    "expected_amount": 90.0,
+    "manager_module": "credit_notes",
+    "manager_action": "new"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_credit_note"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "check_antibiotic_interaction_with_venetoclax@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "A hematology ward pharmacist needs to check whether ciprofloxacin (a fluoroquinolone antibiotic) can be safely co-administered with venetoclax (a BCL-2 inhibitor for CLL) using the Liverpool Cancer iChart app. Determine the traffic light interaction color for this drug pair and save the result as a single lowercase word (e.g., 'red', 'orange', 'yellow', 'green', or 'grey') to /sdcard/tasks/check_antibiotic_interaction_with_venetoclax/result.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_antibiotic_interaction_with_venetoclax/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_antibiotic_interaction_with_venetoclax/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Venetoclax",
+    "co_medication": "Ciprofloxacin",
+    "expected_filename": "result.txt",
+    "valid_colors": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "grey"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_antibiotic_interaction"
+    }
+  },
+  "tags": [
+    "android",
+    "medical",
+    "drug-interactions",
+    "venetoclax",
+    "ciprofloxacin"
+  ]
+}

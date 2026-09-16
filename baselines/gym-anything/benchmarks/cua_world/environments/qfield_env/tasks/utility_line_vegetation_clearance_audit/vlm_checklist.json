@@ -1,0 +1,59 @@
+{
+  "task_id": "utility_line_vegetation_clearance_audit@1",
+  "task_completion": [
+    {
+      "id": "load_geopackage",
+      "description": "Load the target GeoPackage into a GIS application.",
+      "points": 10,
+      "visual_evidence": "The file 'utility_line_vegetation_clearance_audit.gpkg' is visible in the layers panel or data source manager of a GIS application like QGIS, with the 'vegetation_survey' layer loaded."
+    },
+    {
+      "id": "open_attribute_table",
+      "description": "Open the attribute table for the vegetation_survey layer.",
+      "points": 10,
+      "visual_evidence": "The attribute table window for the 'vegetation_survey' layer is open, displaying fields such as clearance_status, trim_reason, height, and distance."
+    },
+    {
+      "id": "identify_compliance_violations",
+      "description": "Identify trees incorrectly marked as 'COMPLIANT' that violate clearance standards.",
+      "points": 20,
+      "visual_evidence": "The agent is using a 'Select by Expression' dialog, filtering the attribute table, or sorting columns to find records where clearance_status is 'COMPLIANT' but attributes (like height vs distance to line) indicate Zone 1 encroachment, grow-in, or fall-in risks."
+    },
+    {
+      "id": "update_clearance_status",
+      "description": "Update the clearance_status to 'TRIM_REQUIRED' for the violating trees.",
+      "points": 20,
+      "visual_evidence": "The agent is using the Field Calculator or manually editing the attribute table to change the 'clearance_status' field from 'COMPLIANT' to 'TRIM_REQUIRED' for the selected records."
+    },
+    {
+      "id": "update_trim_reason",
+      "description": "Document the applicable criterion in the trim_reason field.",
+      "points": 20,
+      "visual_evidence": "The agent is typing or using the Field Calculator to populate the 'trim_reason' field with specific violation criteria (e.g., 'Zone 1 encroachment', 'grow-in violation', or 'fall-in risk') for the updated records."
+    },
+    {
+      "id": "save_updated_geopackage",
+      "description": "Save the edits to the GeoPackage.",
+      "points": 20,
+      "visual_evidence": "The agent clicks the 'Save Layer Edits' button (floppy disk icon), toggles off editing mode and saves, or exports the updated layer to the required output path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used a graphical GIS application to perform the task.",
+      "visual_evidence": "Screenshots show interaction with a GUI (like QGIS), rather than the agent exclusively using terminal commands (e.g., sqlite3 or python scripts) to bypass visual interaction."
+    },
+    {
+      "id": "genuine_attribute_edits",
+      "description": "The agent genuinely edited the attributes based on the criteria.",
+      "visual_evidence": "Screenshots show the agent actively using the Field Calculator, selection tools, or manual cell editing in the attribute table, rather than just replacing the file with a pre-made result."
+    },
+    {
+      "id": "correct_layer_modification",
+      "description": "The agent modified the correct target layer.",
+      "visual_evidence": "The layer being edited is explicitly named 'vegetation_survey' and belongs to the provided GeoPackage."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is utility_line_vegetation_clearance_audit.gpkg and the target layer is vegetation_survey. The expected output path of the validated GeoPackage database is /sdcard/utility_line_vegetation_clearance_audit_result.gpkg. The agent must update the clearance_status to 'TRIM_REQUIRED' and document the reason in trim_reason for trees violating NERC FAC-003-4 / ANSI A300 Part 7 standards."
+}

@@ -1,0 +1,36 @@
+{
+  "id": "select_safer_insomnia_medication_crizotinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "A patient taking the cancer drug Crizotinib is experiencing insomnia. Use the Liverpool Cancer iChart Archive app to determine whether Zopiclone or Lorazepam is safer to prescribe by checking their interaction ratings with Crizotinib. Create a report at /sdcard/insomnia_safety_report.txt using the following format:\n\nCrizotinib + Zopiclone: [Color]\nCrizotinib + Lorazepam: [Color]\nRecommendation: [Name of Safer Drug]\n\nThe safer drug is the one with the lower severity (greener) traffic light rating.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/select_safer_insomnia_medication_crizotinib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/select_safer_insomnia_medication_crizotinib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Crizotinib",
+    "option_1": "Zopiclone",
+    "option_2": "Lorazepam",
+    "expected_safer_drug": "Lorazepam",
+    "output_file_path": "/sdcard/insomnia_safety_report.txt",
+    "color_severity_order": [
+      "green",
+      "yellow",
+      "orange",
+      "amber",
+      "red"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_select_safer_insomnia_medication_crizotinib"
+    }
+  }
+}

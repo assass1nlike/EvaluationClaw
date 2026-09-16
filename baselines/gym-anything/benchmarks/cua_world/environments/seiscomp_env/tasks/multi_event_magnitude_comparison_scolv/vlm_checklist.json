@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_event_magnitude_comparison_scolv@1",
+  "task_completion": [
+    {
+      "id": "import_aftershock_xml",
+      "description": "Import the aftershock XML data into the SeisComP database.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window showing a command (such as 'scdb') being executed to import '/home/ga/Desktop/aftershock_data.xml' into the database."
+    },
+    {
+      "id": "set_event_type_earthquake",
+      "description": "Set the aftershock event type to 'earthquake' using scolv.",
+      "points": 25,
+      "visual_evidence": "Look for the 'scolv' (SeisComP Origin Locator View) GUI window. The aftershock event (ID: us6000m13n) should be selected, and its Event Type field/dropdown must be set to 'earthquake'."
+    },
+    {
+      "id": "set_preferred_magnitude_mwmb",
+      "description": "Set the preferred magnitude type of the aftershock to 'Mw(mB)' using scolv.",
+      "points": 25,
+      "visual_evidence": "Look for the 'scolv' GUI window with the aftershock event (ID: us6000m13n) selected. The preferred magnitude type must be explicitly set to 'Mw(mB)' in the event summary or magnitude tab."
+    },
+    {
+      "id": "export_event_bulletin",
+      "description": "Export the formatted event bulletin to the specified text file.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window showing a command (such as 'scbulletin') being used to export event data and redirecting the output to '/home/ga/Desktop/event_comparison.txt'."
+    },
+    {
+      "id": "verify_bulletin_contents",
+      "description": "Verify the exported bulletin contains magnitudes and locations for both the mainshock and aftershock.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command (e.g., 'cat', 'less') or a text editor displaying the contents of '/home/ga/Desktop/event_comparison.txt'. The file must clearly show location and magnitude data for both the mainshock (us6000m0xl) and the aftershock (us6000m13n)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_scolv_usage",
+      "description": "Verify the agent used the scolv GUI to modify the event type and magnitude.",
+      "visual_evidence": "Check that the agent actually opened and interacted with the 'scolv' application windows to make changes, rather than bypassing the GUI by manually editing database files or using unsupported scripts."
+    },
+    {
+      "id": "genuine_bulletin_generation",
+      "description": "Verify the bulletin was generated using SeisComP CLI tools.",
+      "visual_evidence": "Check the terminal history to ensure a tool like 'scbulletin' was used to generate the text file, rather than the agent manually typing out the expected output in a text editor."
+    },
+    {
+      "id": "no_manual_text_faking",
+      "description": "Ensure the agent did not hardcode the output file.",
+      "visual_evidence": "Look out for 'echo' commands or text editor usage that manually pastes the event IDs, magnitudes, and locations into '/home/ga/Desktop/event_comparison.txt' without querying the actual SeisComP database."
+    }
+  ],
+  "privileged_info_for_vlm": "Mainshock Event ID: us6000m0xl. Aftershock Event ID: us6000m13n (synthetic 6.2 mag event). Aftershock XML path: /home/ga/Desktop/aftershock_data.xml. Required GUI app: scolv. Required CLI tools: scdb (for import) and scbulletin (for export). Output file: /home/ga/Desktop/event_comparison.txt."
+}

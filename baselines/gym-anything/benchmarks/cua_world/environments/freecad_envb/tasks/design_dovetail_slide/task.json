@@ -1,0 +1,29 @@
+{
+  "id": "design_dovetail_slide@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Design a parametric dovetail slide assembly in FreeCAD containing two separate bodies: a 'Rail' and a 'Carriage'. The 'Rail' must be 100mm long with a trapezoidal profile (XZ plane) of height 10mm, bottom width 30mm, and top width 40mm. The 'Carriage' must be 50mm long, created from a 60x20mm rectangular block with a dovetail slot (height 10.5mm, bottom width 31mm, and top width 41mm). Save the document to /home/ga/Documents/FreeCAD/dovetail_slide.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_dovetail_slide/setup_task.sh",
+    "post_task": "/workspace/tasks/design_dovetail_slide/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "dovetail_slide.FCStd",
+    "rail_volume_mm3": 35000,
+    "carriage_volume_mm3": 41100,
+    "volume_tolerance_mm3": 600,
+    "min_body_count": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_dovetail_slide"
+    }
+  }
+}

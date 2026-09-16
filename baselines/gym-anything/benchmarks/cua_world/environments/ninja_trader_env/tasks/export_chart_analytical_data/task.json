@@ -1,0 +1,40 @@
+{
+  "id": "export_chart_analytical_data@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Export analytical chart data for SPY to a CSV file for external quantitative analysis. Configure a daily chart for SPY covering the period from January 1, 2023, to December 31, 2024, with a 50-period Simple Moving Average (SMA) and a 14-period Relative Strength Index (RSI). Export the chart data, including price and indicators, to C:\\Users\\Docker\\Documents\\NinjaTraderTasks\\spy_analytical_export.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\export_chart_analytical_data\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\export_chart_analytical_data\\export_result.ps1"
+  },
+  "metadata": {
+    "output_dir": "C:\\Users\\Docker\\Documents\\NinjaTraderTasks",
+    "filename": "spy_analytical_export.csv",
+    "instrument": "SPY",
+    "start_date": "2023-01-01",
+    "end_date": "2024-12-31",
+    "min_rows": 480,
+    "indicators": [
+      {
+        "name": "SMA",
+        "period": 50
+      },
+      {
+        "name": "RSI",
+        "period": 14
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_chart_analytical_data"
+    }
+  }
+}

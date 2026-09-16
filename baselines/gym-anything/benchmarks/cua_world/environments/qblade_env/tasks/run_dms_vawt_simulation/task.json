@@ -1,0 +1,30 @@
+{
+  "id": "run_dms_vawt_simulation@1",
+  "version": "1.0",
+  "env_id": "qblade_env@0.1",
+  "description": "Perform a Double Multiple Streamtube (DMS) simulation on the loaded Vertical Axis Wind Turbine (VAWT) project in QBlade. Configure the simulation for the current rotor using a Tip Speed Ratio (TSR) range from 1 to 8 with a delta of 0.5. After running the simulation, verify the Power Coefficient (Cp) vs TSR curve is plotted and save the project to /home/ga/Documents/projects/vawt_dms_result.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_dms_vawt_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/run_dms_vawt_simulation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/projects/vawt_dms_result.wpa",
+    "tsr_start": 1.0,
+    "tsr_end": 8.0,
+    "tsr_step": 0.5,
+    "required_module": "DMS Rotor Simulation",
+    "min_file_size_kb": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_dms_vawt_simulation"
+    }
+  }
+}

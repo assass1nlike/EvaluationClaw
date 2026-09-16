@@ -1,0 +1,59 @@
+{
+  "task_id": "pbr_material_assembly@1",
+  "task_completion": [
+    {
+      "id": "material_creation_and_assignment",
+      "description": "Verify that a material named 'SandMaterial' is created and assigned to the 'GroundPlane' object.",
+      "points": 10,
+      "visual_evidence": "In the Blender interface (Properties panel or Outliner), 'GroundPlane' is selected and its active material is named 'SandMaterial'."
+    },
+    {
+      "id": "diffuse_texture_setup",
+      "description": "Verify the diffuse texture is loaded and connected to the material's Base Color.",
+      "points": 15,
+      "visual_evidence": "In the Shader Editor, an Image Texture node loading 'diffuse.jpg' from '/home/ga/Assets/Textures/' is connected to the Base Color input of the Principled BSDF node."
+    },
+    {
+      "id": "roughness_texture_setup",
+      "description": "Verify the roughness texture is loaded, configured for physical accuracy, and connected to the material's Roughness.",
+      "points": 20,
+      "visual_evidence": "In the Shader Editor, an Image Texture node loading 'roughness.jpg' is present, its Color Space is set to 'Non-Color', and it is connected to the Roughness input of the Principled BSDF node."
+    },
+    {
+      "id": "normal_texture_setup",
+      "description": "Verify the normal texture is loaded, configured for physical accuracy, and connected correctly to the material's Normal input.",
+      "points": 25,
+      "visual_evidence": "In the Shader Editor, an Image Texture node loading 'normal.jpg' with Color Space set to 'Non-Color' is connected to a 'Normal Map' node, which is then connected to the Normal input of the Principled BSDF node."
+    },
+    {
+      "id": "render_scene_output",
+      "description": "Verify the scene is rendered and saved to the specified PNG path.",
+      "points": 15,
+      "visual_evidence": "Blender's render window is shown completing the render, and a file manager or terminal confirms 'pbr_render.png' exists in '/home/ga/BlenderProjects/'."
+    },
+    {
+      "id": "save_project_file",
+      "description": "Verify the Blender project is saved to the specified .blend file path.",
+      "points": 15,
+      "visual_evidence": "Blender's window title bar shows 'pbr_material_complete.blend' or a file manager/terminal shows the file exists in '/home/ga/BlenderProjects/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_blender",
+      "description": "The agent used Blender's GUI (Shader Editor, Properties panel) to set up the material rather than bypassing the UI with a pre-written Python script.",
+      "visual_evidence": "Screenshots show the Blender interface with the Shader Editor open, nodes being manually added, and connections being dragged between them."
+    },
+    {
+      "id": "genuine_render_process",
+      "description": "The render output is genuinely generated from Blender.",
+      "visual_evidence": "The Blender Render window (F12) is visible at some point showing the rendering process of the sand material."
+    },
+    {
+      "id": "genuine_file_save",
+      "description": "The agent used Blender's save functionality to save the project.",
+      "visual_evidence": "The Blender 'Save As' dialog is visible, or the user interacts with the File > Save menu, updating the top window bar to reflect the new filename."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Object: 'GroundPlane'. Target Material: 'SandMaterial'. Required Textures: 'diffuse.jpg', 'roughness.jpg', 'normal.jpg' located in '/home/ga/Assets/Textures/'. Output Render Path: '/home/ga/BlenderProjects/pbr_render.png'. Output Blend Path: '/home/ga/BlenderProjects/pbr_material_complete.blend'. Physical accuracy requires roughness and normal maps to be set to 'Non-Color' data in the Image Texture node, and the normal map must be routed through a 'Normal Map' node before connecting to the Principled BSDF."
+}

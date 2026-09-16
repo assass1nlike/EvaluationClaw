@@ -1,0 +1,53 @@
+{
+  "task_id": "git_cherry_pick_fix@1",
+  "task_completion": [
+    {
+      "id": "branch_is_main",
+      "description": "Verify the agent is currently on the 'main' branch.",
+      "points": 5,
+      "visual_evidence": "Terminal prompt, `git status`, or `git branch` output clearly showing that the current active branch is `main`."
+    },
+    {
+      "id": "commit_in_log",
+      "description": "Verify the fix commit has been cherry-picked and is present in the git log.",
+      "points": 15,
+      "visual_evidence": "Terminal output of `git log` (or an IDE git history view) showing the commit message 'FIX: Use constant-time comparison to prevent timing attacks' at or near the top of the commit history."
+    },
+    {
+      "id": "fix_code_present",
+      "description": "Verify the security fix code is present in AuthUtils.java.",
+      "points": 40,
+      "visual_evidence": "The file `src/main/java/com/example/auth/AuthUtils.java` is displayed in a text editor or via a terminal command (like `cat` or `git show`), and it contains the code `MessageDigest.isEqual`."
+    },
+    {
+      "id": "wip_code_absent",
+      "description": "Verify the Work-In-Progress (WIP) code is absent from AuthUtils.java.",
+      "points": 30,
+      "visual_evidence": "The file `src/main/java/com/example/auth/AuthUtils.java` is displayed, and it does NOT contain the forbidden string `TODO: Implement OAuth2 support`."
+    },
+    {
+      "id": "compilation_success",
+      "description": "Verify the project compiles successfully after the changes.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a successful compilation command (e.g., `javac src/main/java/com/example/auth/AuthUtils.java` returning with no errors, or a build tool like Maven/Gradle showing a 'SUCCESS' message)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_git_commands",
+      "description": "Verify the agent used actual git commands to perform the cherry-pick and commit.",
+      "visual_evidence": "Look for real git commands (e.g., `git cherry-pick`, `git commit`, `git add`) in the terminal history, rather than the agent just manually editing the file and echoing a fake git log."
+    },
+    {
+      "id": "genuine_compilation",
+      "description": "Verify the compilation output is from a real compiler execution.",
+      "visual_evidence": "Look for actual compiler commands (like `javac`) being executed in the terminal, rather than the agent just printing a fake success message."
+    },
+    {
+      "id": "no_manual_fake_log",
+      "description": "Verify the git log output is genuine.",
+      "visual_evidence": "The `git log` output should have standard git formatting (commit hashes, author, date) and not appear to be manually constructed via `echo` commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/IdeaProjects/auth-service. Target file: src/main/java/com/example/auth/AuthUtils.java. Required commit message: 'FIX: Use constant-time comparison to prevent timing attacks'. Required code in AuthUtils.java: 'MessageDigest.isEqual'. Forbidden code in AuthUtils.java: 'TODO: Implement OAuth2 support'. The agent must cherry-pick the fix commit to the main branch, resolve any conflicts to ensure the fix is applied but the WIP code is absent, and successfully compile the project."
+}

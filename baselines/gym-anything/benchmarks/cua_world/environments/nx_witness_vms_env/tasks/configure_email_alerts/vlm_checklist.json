@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_email_alerts@1",
+  "task_completion": [
+    {
+      "id": "access_vms_interface",
+      "description": "Verify the agent accessed the Nx Witness VMS interface at https://localhost:7001.",
+      "points": 10,
+      "visual_evidence": "The browser shows the Nx Witness VMS web administration interface or API interface (e.g., Swagger UI) loaded at the URL https://localhost:7001."
+    },
+    {
+      "id": "configure_smtp_host_port",
+      "description": "Verify the SMTP Server Host and Port are configured correctly.",
+      "points": 20,
+      "visual_evidence": "The 'SMTP Server' or 'Host' field (or 'smtpHost' API parameter) contains 'smtp.securecorp.net' and the 'Port' field (or 'smtpPort' API parameter) contains '587'."
+    },
+    {
+      "id": "configure_connection_type",
+      "description": "Verify the Connection Type is set to TLS.",
+      "points": 20,
+      "visual_evidence": "The 'Connection Type' or 'Secure Connection' setting is set to 'tls' or 'TLS' (or 'smtpConnectionType' is set to 'tls' in the API)."
+    },
+    {
+      "id": "configure_sender_email",
+      "description": "Verify the Sender Email Address is configured correctly.",
+      "points": 20,
+      "visual_evidence": "The 'System Email', 'Sender Email', 'From' field (or 'emailFrom' API parameter) contains 'vms-alerts@securecorp.net'."
+    },
+    {
+      "id": "configure_smtp_credentials",
+      "description": "Verify the SMTP Username and Password are provided.",
+      "points": 20,
+      "visual_evidence": "The 'User' or 'Username' field (or 'smtpUser') contains 'vms-alerts@securecorp.net' and the 'Password' field (or 'smtpPassword') is filled with 'S3cur3Ma!l#2024' or masked characters."
+    },
+    {
+      "id": "save_email_settings",
+      "description": "Verify the settings have been saved or applied.",
+      "points": 10,
+      "visual_evidence": "A 'Save' or 'Apply' button has been clicked, a success message is visible in the UI, or a '200 OK' response is shown if the API was used."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_vms_interaction",
+      "description": "Ensure the agent interacted with the actual Nx Witness VMS web interface or API.",
+      "visual_evidence": "The screenshots show the genuine Nx Witness VMS web interface or API documentation UI at localhost:7001, not a local HTML file, text editor, or mock interface."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Ensure the agent did not use browser developer tools to fake the settings.",
+      "visual_evidence": "The browser developer tools (Inspect Element/Console) are not open and actively modifying the DOM to display the correct values."
+    },
+    {
+      "id": "settings_actually_inputted",
+      "description": "Ensure the agent actually typed or pasted the settings into the appropriate input fields.",
+      "visual_evidence": "The values are present inside standard input fields, dropdowns, or API request bodies within the application, rather than just being written in a notepad or terminal window."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring SMTP settings in Nx Witness VMS. Expected values: Host = 'smtp.securecorp.net', Port = 587, Connection Type = 'tls', Sender Email = 'vms-alerts@securecorp.net', Username = 'vms-alerts@securecorp.net', Password = 'S3cur3Ma!l#2024'. If the agent uses the REST API (/rest/v1/system/settings) instead of the standard web UI, look for the corresponding JSON keys: smtpHost, smtpPort, smtpConnectionType, emailFrom, smtpUser, smtpPassword."
+}

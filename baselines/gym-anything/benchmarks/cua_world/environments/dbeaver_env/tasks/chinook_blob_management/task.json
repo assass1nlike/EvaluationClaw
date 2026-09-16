@@ -1,0 +1,30 @@
+{
+  "id": "chinook_blob_management@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "Your task is to manage digital assets in the Chinook database (/home/ga/Documents/databases/chinook.db) using DBeaver. Create a table named 'employee_badges' with columns BadgeId (Integer, Primary Key, Auto Increment), EmployeeId (Integer, Foreign Key referencing employees), BadgeData (BLOB), and IssueDate (Text). For the General Manager 'Andrew Adams' (EmployeeId=1), insert a record with the IssueDate '2024-01-01' and the image file '/usr/share/dbeaver-ce/dbeaver.png' stored in the BadgeData column. Export the image from the database to '/home/ga/Documents/exports/verified_badge.png' and save the SQL CREATE TABLE statement to '/home/ga/Documents/scripts/badge_schema.sql'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_blob_management/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_blob_management/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook.db",
+    "source_image": "/usr/share/dbeaver-ce/dbeaver.png",
+    "export_image": "/home/ga/Documents/exports/verified_badge.png",
+    "ddl_script": "/home/ga/Documents/scripts/badge_schema.sql",
+    "target_employee_id": 1,
+    "target_issue_date": "2024-01-01"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_blob_management"
+    }
+  }
+}

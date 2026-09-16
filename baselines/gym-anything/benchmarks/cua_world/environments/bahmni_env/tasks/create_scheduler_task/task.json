@@ -1,0 +1,29 @@
+{
+  "id": "create_scheduler_task@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "As a system administrator for the hospital IT team, configure and start a new background job in the OpenMRS Scheduler (https://localhost/openmrs/admin) using the credentials 'superman' / 'Admin123'. The task must be named 'Hourly Alert Sync' with the schedulable class 'org.openmrs.scheduler.tasks.AlertReminderTask' and the description 'Background task to sync system alerts every hour'. Set the repeat interval to 3600 seconds, enable 'Start on Startup', and ensure the task is actively running. The browser is currently open to the Bahmni home page.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_scheduler_task/setup_task.sh",
+    "post_task": "/workspace/tasks/create_scheduler_task/export_result.sh"
+  },
+  "metadata": {
+    "target_task_name": "Hourly Alert Sync",
+    "target_class": "org.openmrs.scheduler.tasks.AlertReminderTask",
+    "target_interval": 3600,
+    "target_start_on_startup": 1,
+    "target_status_started": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_scheduler_task"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "export_repo_content@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Log in to Artifactory (admin/password) and export the complete contents of the 'example-repo-local' repository, including metadata, to the server's local filesystem at /home/ga/repo_export for backup purposes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_repo_content/setup_task.sh",
+    "post_task": "/workspace/tasks/export_repo_content/export_result.sh"
+  },
+  "metadata": {
+    "export_path": "/home/ga/repo_export",
+    "repo_key": "example-repo-local",
+    "artifact_name": "commons-lang3-3.14.0.jar",
+    "min_export_size_bytes": 500000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_repo_content"
+    }
+  }
+}

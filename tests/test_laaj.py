@@ -331,6 +331,7 @@ def test_laaj_uses_tool_loop_for_agent_tasks(monkeypatch) -> None:
 
     assert report.correctness.score == 4
     assert {tool.name for tool in calls[0]["tools"]} == {
+        "explore_agent_environment",
         "inspect_agent_environment",
         "read_task_file",
         "view_benchmark_image",

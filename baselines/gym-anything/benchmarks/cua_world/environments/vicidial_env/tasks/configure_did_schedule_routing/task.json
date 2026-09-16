@@ -1,0 +1,28 @@
+{
+  "id": "configure_did_schedule_routing@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure inbound DID '8885559999' to route to the 'SUPPORT' In-Group only during the '9am-5pm' Call Time. Set the filter action to route after-hours calls to Voicemail box '8500' and enable the 'Clean CID Number' option for the filter. Login credentials: User '6666', Password 'andromeda'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_did_schedule_routing/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_did_schedule_routing/export_result.sh"
+  },
+  "metadata": {
+    "target_did": "8885559999",
+    "required_call_time": "9am-5pm",
+    "required_voicemail": "8500",
+    "expected_action": "VOICEMAIL"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_did_schedule_routing"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "system_expansion_credit@1",
+  "task_completion": [
+    {
+      "id": "databases_imported",
+      "description": "Verify that the USLCI database and TRACI 2.1 methods have been imported into OpenLCA.",
+      "points": 10,
+      "visual_evidence": "Look at the Navigation panel on the left side of the OpenLCA window. You should see folders or database entries indicating 'USLCI' (or similar USLCI database name) and 'TRACI 2.1' under the databases or indicators/methods sections."
+    },
+    {
+      "id": "process_and_output_created",
+      "description": "Verify the creation of the 'HDPE Recycling with Substitution' process and its reference output.",
+      "points": 15,
+      "visual_evidence": "Look for a process tab or window titled 'HDPE Recycling with Substitution'. In the Inputs/Outputs section, there should be an output flow named 'Recycled HDPE pellets' with an amount of 1.0 kg marked as the quantitative reference."
+    },
+    {
+      "id": "parameter_defined",
+      "description": "Verify that the parameter 'substitution_ratio' is defined with a value of 0.9.",
+      "points": 15,
+      "visual_evidence": "Look at the Parameters tab within the process or the global parameters list. There must be a parameter named 'substitution_ratio' with its value set to 0.9."
+    },
+    {
+      "id": "avoided_burden_input",
+      "description": "Verify the input exchange for virgin polyethylene uses a negative value to model avoided burden.",
+      "points": 25,
+      "visual_evidence": "In the Inputs/Outputs tab of the process, look for an input flow containing 'Polyethylene, high density' (specifically 'virgin resin, at plant'). The amount must be negative (e.g., -0.9) or show a formula using the parameter (e.g., '-substitution_ratio' or '-1 * substitution_ratio')."
+    },
+    {
+      "id": "lcia_calculated",
+      "description": "Verify that the LCIA results were calculated using TRACI 2.1, specifically showing Global Warming.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Results' tab in OpenLCA showing Impact Assessment results. The method should be identified as TRACI 2.1, and there should be a row for the 'Global Warming' impact category (measured in kg CO2-eq)."
+    },
+    {
+      "id": "results_exported",
+      "description": "Verify that the results were exported to the specified CSV file.",
+      "points": 15,
+      "visual_evidence": "Look for an OpenLCA export dialog pointing to '~/LCA_Results/substitution_benefit.csv', a file manager window showing this file in the LCA_Results folder, or a terminal window confirming the file's creation/existence at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_modeling",
+      "description": "Ensure the agent actually used the OpenLCA graphical user interface to build the model.",
+      "visual_evidence": "Screenshots should show the OpenLCA application open with the process editor, inputs/outputs, and parameters tabs actively being used, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_lcia_results",
+      "description": "Ensure the LCIA results are genuinely calculated by OpenLCA.",
+      "visual_evidence": "The results should appear in the standard OpenLCA results viewer (with tabs for General information, Inventory results, Impact analysis, etc.), not as a plain text file or manually typed table."
+    },
+    {
+      "id": "no_direct_csv_fabrication",
+      "description": "Ensure the output CSV was not fabricated using terminal commands.",
+      "visual_evidence": "Check terminal windows to ensure the agent didn't simply use 'echo' or a basic Python script to write expected text directly into 'substitution_benefit.csv' without exporting from OpenLCA."
+    }
+  ],
+  "privileged_info_for_vlm": "The parameter must be exactly named 'substitution_ratio' with a value of 0.9. The target input flow representing the avoided burden is 'Polyethylene, high density, HDPE, virgin resin, at plant' and its amount must be negative (e.g., -0.9) to correctly model system expansion. The final output must be exported to '/home/ga/LCA_Results/substitution_benefit.csv'."
+}

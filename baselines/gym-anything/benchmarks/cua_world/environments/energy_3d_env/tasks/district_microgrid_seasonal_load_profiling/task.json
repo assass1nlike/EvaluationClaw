@@ -1,0 +1,31 @@
+{
+  "id": "district_microgrid_seasonal_load_profiling@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a District Energy Manager sizing a microgrid battery system. The Energy3D project 'city-block.ng3' is open. Perform a seasonal load analysis to extract hourly energy profiles for peak summer and peak winter.\n\nInstructions:\n1. Change the project's geographic location/city to Houston, TX (to apply correct weather/solar data).\n2. Set the simulation date to August 15.\n3. Run a Daily Energy Analysis for the entire scene (Analysis menu -> Daily Energy Analysis).\n4. From the resulting graph window, export the hourly data to a CSV file at `~/Documents/Energy3D/houston_microgrid_august.csv`.\n5. Close the analysis graph, and change the simulation date to January 15.\n6. Run a second Daily Energy Analysis for the scene.\n7. Export this new hourly data to `~/Documents/Energy3D/houston_microgrid_january.csv`.\n8. Save the modified project as `~/Documents/Energy3D/houston_microgrid_district.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/district_microgrid_seasonal_load_profiling/setup_task.sh",
+    "post_task": "/workspace/tasks/district_microgrid_seasonal_load_profiling/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "District Energy Manager",
+    "industry": "Urban Planning / Microgrids",
+    "starter_file": "city-block.ng3",
+    "expected_project_file": "/home/ga/Documents/Energy3D/houston_microgrid_district.ng3",
+    "expected_august_csv": "/home/ga/Documents/Energy3D/houston_microgrid_august.csv",
+    "expected_january_csv": "/home/ga/Documents/Energy3D/houston_microgrid_january.csv",
+    "expected_location_string": "Houston, TX"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_district_microgrid_profiling"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "fd796e2d",
+  "name": "Causal-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A small multiple-choice question answering dataset designed to test causal reasoning. Each item presents a short scenario describing a cause and asks the model to identify its effect from two answer options. The gold answer is provided as a multiple-choice letter.",
+  "card_text": "The Causal-Reasoning dataset contains 200 text-only multiple-choice examples. Each sample is a single-turn question that embeds a brief everyday causal scenario, introduced by 'What is the effect of: ...?', and two candidate effect statements. The model must select the option that best describes the consequence of the described cause. Questions and options are short natural-language sentences, often involving physical, biological, or emotional events (e.g., running into an anemone, being injected with depressants). Answers are stored as option letters (e.g., 'A', 'B'). The dataset is intended to evaluate commonsense causal understanding in a closed-form multiple-choice format, without requiring external context or long passages.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "everyday causal reasoning",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short natural-language question that presents a cause scenario and asks for its effect. It is the primary input and contains the causal premise to be reasoned about.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A list of two short candidate effect statements. The model must choose the option that correctly describes the consequence of the cause mentioned in the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold multiple-choice label (e.g., 'A' or 'B') indicating which option is correct.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with a question and an options list, and an output object with a single answer key. The question field holds a short causal query that embeds the cause scenario; the options field holds two short candidate effect statements; the answer field holds the gold option letter (A or B). There is no separate passage or context; the causal premise is part of the question text."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Causal-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "Causal Reasoning",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

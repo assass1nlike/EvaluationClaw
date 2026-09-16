@@ -1,0 +1,31 @@
+{
+  "id": "design_pcb_housing@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Design a printable PCB housing (open-top box) with four internal standoffs and a USB port cutout. The main box must have external dimensions of 100mm (Length X) × 60mm (Width Y) × 30mm (Height Z) with a uniform 2mm wall and floor thickness, open at the top (Positive Z face). Include four cylindrical internal standoffs on the floor, each 6mm in diameter and 5mm high from the internal floor, spaced 80mm apart in X and 40mm apart in Y (centered in the box), with 2.5mm diameter through-holes passing through the posts and the box floor. Create a 12mm (Y) × 12mm (Z) USB port cutout on the right face (X = +50mm), centered horizontally with the bottom edge 5mm above the internal floor. Save the result as /home/ga/Documents/FreeCAD/pcb_housing.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_pcb_housing/setup_task.sh",
+    "post_task": "/workspace/tasks/design_pcb_housing/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/pcb_housing.FCStd",
+    "target_volume_mm3": 29612.0,
+    "volume_tolerance_percent": 5.0,
+    "bbox_x": 100.0,
+    "bbox_y": 60.0,
+    "bbox_z": 30.0,
+    "bbox_tolerance": 1.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_pcb_housing"
+    }
+  }
+}

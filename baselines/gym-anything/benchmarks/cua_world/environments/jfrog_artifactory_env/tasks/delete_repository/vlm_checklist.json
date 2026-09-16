@@ -1,0 +1,59 @@
+{
+  "task_id": "delete_repository@1",
+  "task_completion": [
+    {
+      "id": "access_artifactory_login",
+      "description": "Access the JFrog Artifactory login page",
+      "points": 10,
+      "visual_evidence": "A web browser showing the JFrog Artifactory login screen at http://localhost:8082."
+    },
+    {
+      "id": "logged_into_artifactory",
+      "description": "Log into Artifactory as the admin user",
+      "points": 10,
+      "visual_evidence": "The Artifactory dashboard or welcome screen is visible, indicating a successful login (often showing 'admin' in the user profile section)."
+    },
+    {
+      "id": "navigate_to_repositories",
+      "description": "Navigate to the Repositories management section",
+      "points": 15,
+      "visual_evidence": "The Administration module is open, specifically showing the 'Repositories' -> 'Local' (or similar) settings page."
+    },
+    {
+      "id": "locate_target_repository",
+      "description": "Locate the 'helix-staging-local' repository",
+      "points": 15,
+      "visual_evidence": "The repository named 'helix-staging-local' is visible in the list or table of repositories."
+    },
+    {
+      "id": "confirm_deletion_prompt",
+      "description": "Initiate the deletion of the target repository",
+      "points": 25,
+      "visual_evidence": "A confirmation dialog, modal, or action menu is visible, explicitly asking to confirm the deletion of 'helix-staging-local'."
+    },
+    {
+      "id": "verify_repository_deleted",
+      "description": "Verify the target repository has been deleted",
+      "points": 25,
+      "visual_evidence": "The repository list is shown again, and 'helix-staging-local' is no longer present, while 'example-repo-local' is still visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_usage",
+      "description": "Verify the agent used a web browser to interact with the Artifactory GUI",
+      "visual_evidence": "Screenshots should show a standard web browser (like Chrome or Firefox) navigating the Artifactory web interface, rather than terminal windows executing curl commands or API scripts."
+    },
+    {
+      "id": "genuine_artifactory_ui",
+      "description": "Verify the interaction is with the genuine JFrog Artifactory application",
+      "visual_evidence": "The UI elements, styling, and layout should match JFrog Artifactory, not a generic text editor or mocked HTML page."
+    },
+    {
+      "id": "default_repo_intact",
+      "description": "Verify the default repository was not mistakenly deleted",
+      "visual_evidence": "The repository 'example-repo-local' should remain visible in the repository list in the final screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The target repository to delete is 'helix-staging-local'. It contains the artifact 'org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar', which will be destroyed when the repository is deleted. The environment also contains a default repository named 'example-repo-local' which must remain intact."
+}

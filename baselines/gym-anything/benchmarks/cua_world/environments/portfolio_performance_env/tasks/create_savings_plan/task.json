@@ -1,0 +1,30 @@
+{
+  "id": "create_savings_plan@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Create a monthly savings plan for the 'Vanguard FTSE All-World UCITS ETF' in the portfolio file /home/ga/Documents/PortfolioData/savings_plan.xml. The plan must be configured for 500.00 EUR monthly, starting April 1, 2026, using the 'Reference Account (EUR) / My Depot' account. Save the updated file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_savings_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/create_savings_plan/export_result.sh"
+  },
+  "metadata": {
+    "portfolio_file": "/home/ga/Documents/PortfolioData/savings_plan.xml",
+    "expected_security_isin": "IE00B3RBWM25",
+    "expected_amount": 50000,
+    "expected_amount_display": "500.00",
+    "expected_interval": "MONTHLY",
+    "expected_start_date": "2026-04-01"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_savings_plan"
+    }
+  }
+}

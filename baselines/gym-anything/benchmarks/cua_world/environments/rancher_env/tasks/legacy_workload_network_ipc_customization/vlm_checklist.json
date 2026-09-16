@@ -1,0 +1,53 @@
+{
+  "task_id": "legacy_workload_network_ipc_customization@1",
+  "task_completion": [
+    {
+      "id": "host_aliases_configured",
+      "description": "Configure static hostAliases for clearinghouse.local and audit.local",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the deployment YAML or 'kubectl describe' output with hostAliases containing IP 198.51.100.15 for clearinghouse.local and 198.51.100.16 for audit.local."
+    },
+    {
+      "id": "dns_policy_none",
+      "description": "Set the dnsPolicy to 'None'",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the deployment YAML or 'kubectl describe' output with 'dnsPolicy' explicitly set to 'None'."
+    },
+    {
+      "id": "dns_config_customized",
+      "description": "Provide a custom dnsConfig with specified nameservers, search domains, and ndots",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 'dnsConfig' section with nameservers 1.1.1.1 and 1.0.0.1, search domains 'trading.internal' and 'finance.internal', and an option for 'ndots' set to '2'."
+    },
+    {
+      "id": "volume_ram_disk",
+      "description": "Update the 'fast-cache' volume to use a RAM disk",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the 'volumes' section where the 'fast-cache' volume is configured as an 'emptyDir' with 'medium: Memory' and 'sizeLimit: 512Mi'."
+    },
+    {
+      "id": "deployment_rolled_out",
+      "description": "Ensure the deployment successfully rolls out and pods are Running",
+      "points": 30,
+      "visual_evidence": "Terminal output of 'kubectl get pods -n legacy-migration' showing the trading-monolith pods in a 'Running' state, or 'kubectl rollout status' confirming the successful rollout."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "applied_to_cluster",
+      "description": "Verify that changes were actually applied to the Kubernetes cluster",
+      "visual_evidence": "Look for terminal output like 'deployment.apps/trading-monolith edited' or 'configured' after applying a YAML file, rather than just editing a local text file without applying."
+    },
+    {
+      "id": "real_kubernetes_interaction",
+      "description": "Verify genuine interaction with the Kubernetes cluster",
+      "visual_evidence": "Check that the agent used valid 'kubectl' commands or a legitimate Kubernetes dashboard to make and verify changes."
+    },
+    {
+      "id": "no_fake_output",
+      "description": "Ensure the agent did not fake the success output",
+      "visual_evidence": "Check that the agent did not use 'echo' commands or manually type out the expected pod status or configuration outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "Target deployment: 'trading-monolith' in namespace 'legacy-migration'. Expected hostAliases: 198.51.100.15 (clearinghouse.local) and 198.51.100.16 (audit.local). Expected DNS: policy 'None', nameservers [1.1.1.1, 1.0.0.1], searches [trading.internal, finance.internal], ndots '2'. Expected volume: 'fast-cache' with emptyDir medium 'Memory' and sizeLimit '512Mi'."
+}

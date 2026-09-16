@@ -1,0 +1,53 @@
+{
+  "task_id": "ediscovery_load_file_generation@1",
+  "task_completion": [
+    {
+      "id": "case_created",
+      "description": "Verify that a new case named 'Litigation_Support_2024' with Case Number 'INV-EDISC-01' was created in Autopsy.",
+      "points": 15,
+      "visual_evidence": "Look for the Autopsy main window title bar, case summary dashboard, or case creation dialog showing 'Litigation_Support_2024' and 'INV-EDISC-01'."
+    },
+    {
+      "id": "data_source_added",
+      "description": "Verify that the disk image 'ntfs_undel.dd' was added as a data source to the case.",
+      "points": 15,
+      "visual_evidence": "Look for 'ntfs_undel.dd' in the Autopsy tree view on the left (under Data Sources) or in a data source summary window."
+    },
+    {
+      "id": "ingest_modules_run",
+      "description": "Verify that the Hash Lookup and File Type Identification modules were configured or run.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Run Ingest Modules' dialog showing checkboxes ticked for 'Hash Lookup' and 'File Type Identification', or progress bars/results indicating these specific modules were executed."
+    },
+    {
+      "id": "files_extracted",
+      "description": "Verify that allocated user files were extracted to the Natives directory.",
+      "points": 25,
+      "visual_evidence": "Look for a file manager window or terminal listing files inside '/home/ga/Reports/eDiscovery/Natives/'. The files should appear to be actual extracted user files (not directories or system metafiles like $MFT)."
+    },
+    {
+      "id": "load_file_generated",
+      "description": "Verify that the pipe-delimited load file was generated with the correct headers and metadata.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor, terminal output (e.g., cat command), or script showing the contents of '/home/ga/Reports/eDiscovery/load_file.dat'. It must contain the exact header 'CONTROL_NUMBER|FILENAME|ORIGINAL_PATH|SIZE_BYTES|MIME_TYPE|MD5_HASH|EXPORT_PATH' and subsequent rows with pipe-delimited (|) metadata."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "autopsy_used",
+      "description": "Ensure the agent actually used Autopsy to process the image.",
+      "visual_evidence": "Look for screenshots showing the Autopsy GUI open and being interacted with, rather than just a Python script bypassing the forensic software entirely."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "Ensure the extracted files and load file contain genuine data from the disk image.",
+      "visual_evidence": "The load file contents should show realistic MD5 hashes, MIME types, and file sizes corresponding to the extracted files, not placeholder text or dummy values."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not just manually type a fake load file.",
+      "visual_evidence": "Look for evidence of a script or Autopsy export feature being used to generate the load file programmatically based on the case data, rather than manual text entry of a few fake rows."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Case Name: 'Litigation_Support_2024'. Target Case Number: 'INV-EDISC-01'. Disk Image Path: '/home/ga/evidence/ntfs_undel.dd'. Export Directory: '/home/ga/Reports/eDiscovery/Natives'. Load File Path: '/home/ga/Reports/eDiscovery/load_file.dat'. The load file must use pipe (|) delimiters and include the exact header: CONTROL_NUMBER|FILENAME|ORIGINAL_PATH|SIZE_BYTES|MIME_TYPE|MD5_HASH|EXPORT_PATH."
+}

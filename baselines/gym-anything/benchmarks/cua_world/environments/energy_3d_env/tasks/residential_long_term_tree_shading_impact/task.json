@@ -1,0 +1,29 @@
+{
+  "id": "residential_long_term_tree_shading_impact@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a residential solar sales engineer. The homeowner in Atlanta, GA recently planted three pine trees on the South edge of their property, which will eventually cast shadows on the roof array. \n\nYour task:\n1. Open the starter project at `~/Documents/Energy3D/building-passive-heating.ng3`.\n2. Change the project Location to Atlanta, GA.\n3. Add a solar array (at least 10 panels) to the South-facing slope of the roof.\n4. Add three Pine trees to the yard directly South of the house.\n5. Set the height of all three pine trees to 4 meters to represent their current height.\n6. Run the Annual Yield Analysis (Analysis > Solar Panels > Annual Yield Analysis) and export the data to `~/Documents/Energy3D/yield_current.csv`.\n7. Select the three pine trees and modify their height to 18 meters to simulate 20 years of growth.\n8. Re-run the Annual Yield Analysis with the new tree heights and export the data to `~/Documents/Energy3D/yield_year_20.csv`.\n9. Save the modified project as `~/Documents/Energy3D/tree_shading_study.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/residential_long_term_tree_shading_impact/setup_task.sh",
+    "post_task": "/workspace/tasks/residential_long_term_tree_shading_impact/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Sales Engineer",
+    "industry": "Renewable Energy",
+    "expected_csv1": "/home/ga/Documents/Energy3D/yield_current.csv",
+    "expected_csv2": "/home/ga/Documents/Energy3D/yield_year_20.csv",
+    "expected_ng3": "/home/ga/Documents/Energy3D/tree_shading_study.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shading_impact"
+    }
+  }
+}

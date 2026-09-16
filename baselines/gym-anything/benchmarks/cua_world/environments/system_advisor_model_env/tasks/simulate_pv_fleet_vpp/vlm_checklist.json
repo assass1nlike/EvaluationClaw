@@ -1,0 +1,53 @@
+{
+  "task_id": "simulate_pv_fleet_vpp@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Verify that the Python simulation script is created at the correct path.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing a file named 'vpp_simulation.py' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "script_parameters_correct",
+      "description": "Verify that the script includes the correct system parameters for the PV systems.",
+      "points": 25,
+      "visual_evidence": "The code in 'vpp_simulation.py' should show system capacity set to 5.0 (or 5), tilt set to 22.0, array type set to 1, and a list or loop containing the azimuths: 90, 135, 180, 225, 270."
+    },
+    {
+      "id": "script_execution",
+      "description": "Verify that the agent executes the Python script.",
+      "points": 15,
+      "visual_evidence": "A terminal window showing the command 'python3 vpp_simulation.py' (or similar) being run without throwing syntax or execution errors."
+    },
+    {
+      "id": "json_file_created",
+      "description": "Verify that the results JSON file is created at the correct path.",
+      "points": 15,
+      "visual_evidence": "A terminal 'ls' command, file manager, or text editor showing 'vpp_fleet_results.json' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "json_content_structure",
+      "description": "Verify the JSON output contains the required structure, fleet capacity, and physical invariant.",
+      "points": 30,
+      "visual_evidence": "The contents of 'vpp_fleet_results.json' must show 'total_fleet_capacity_kw': 25.0, the required keys (total_annual_energy_kwh, peak_hourly_generation_kw, peak_generation_hour_index), and 'individual_annual_energies' where the value for '180' is numerically the highest among the five azimuths."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_json",
+      "description": "Ensure the agent did not hardcode the final JSON output values.",
+      "visual_evidence": "The Python script must contain actual PySAM execution logic (e.g., calling `.execute()`, summing arrays, finding the max) rather than just a `json.dump()` of pre-calculated or fabricated numbers."
+    },
+    {
+      "id": "actual_pysam_usage",
+      "description": "Ensure the agent actually used the PySAM library.",
+      "visual_evidence": "The script should contain 'import PySAM.Pvwattsv8' (or similar PySAM imports) and instantiate the model."
+    },
+    {
+      "id": "weather_file_referenced",
+      "description": "Ensure the agent used the correct weather file logic.",
+      "visual_evidence": "The script should show logic reading the path from '/home/ga/.SAM/solar_resource_dir.txt' or explicitly setting the solar resource file to the Phoenix AZ TMY file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected script path: /home/ga/Documents/SAM_Projects/vpp_simulation.py. Expected JSON path: /home/ga/Documents/SAM_Projects/vpp_fleet_results.json. The total fleet capacity in the JSON must be exactly 25.0. The JSON must include individual annual energies for azimuths 90, 135, 180, 225, and 270. Due to physical invariants in Phoenix, AZ (Northern Hemisphere), the azimuth 180 (south-facing) must produce the highest annual energy output among the five systems."
+}

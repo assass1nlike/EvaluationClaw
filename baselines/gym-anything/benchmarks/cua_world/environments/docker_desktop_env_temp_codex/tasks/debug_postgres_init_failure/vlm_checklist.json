@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_postgres_init_failure@1",
+  "task_completion": [
+    {
+      "id": "access_project_directory",
+      "description": "Navigate to the project directory",
+      "points": 10,
+      "visual_evidence": "Look for terminal output showing `cd /home/ga/Documents/docker-projects/inventory` or the shell prompt reflecting this path."
+    },
+    {
+      "id": "inspect_docker_compose",
+      "description": "Inspect the Docker Compose configuration",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like `cat docker-compose.yml` or the file opened in an editor like nano/vim, showing the service configuration."
+    },
+    {
+      "id": "apply_environment_fix",
+      "description": "Apply a fix to the environment to allow database initialization",
+      "points": 25,
+      "visual_evidence": "Look for terminal commands that clear the existing database volume (e.g., `docker-compose down -v`, `docker volume rm inventory_pgdata`) OR edits to `docker-compose.yml` fixing the mount path for `init.sql`."
+    },
+    {
+      "id": "initialize_docker_stack",
+      "description": "Start or restart the Docker Compose stack",
+      "points": 20,
+      "visual_evidence": "Look for the command `docker-compose up` or `docker compose up` being executed, followed by container startup logs."
+    },
+    {
+      "id": "verify_database_table",
+      "description": "Verify that the 'products' table was created automatically",
+      "points": 30,
+      "visual_evidence": "Look for a database connection (e.g., `docker exec -it inventory_db psql -U postgres`) and a query like `\\dt` or `SELECT * FROM products` that outputs the 'products' table."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_manual_sql_creation",
+      "description": "The agent must not manually create the table or insert data",
+      "visual_evidence": "Ensure the agent does not manually run `CREATE TABLE` or `INSERT` commands in the database client. The table must be created by the Docker initialization process."
+    },
+    {
+      "id": "genuine_docker_commands",
+      "description": "The agent must interact with the genuine Docker environment",
+      "visual_evidence": "Verify that the agent actually runs Docker commands and interacts with the real Docker daemon, showing authentic command outputs."
+    },
+    {
+      "id": "correct_verification_sequence",
+      "description": "Database verification must happen after stack initialization",
+      "visual_evidence": "Ensure the database verification occurs after the stack has been successfully started or restarted with the applied fixes."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/Documents/docker-projects/inventory'. The expected table to be created is 'products'. The database container is named 'inventory_db' and uses the volume 'inventory_pgdata'."
+}

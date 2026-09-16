@@ -1,0 +1,59 @@
+{
+  "task_id": "phone_number_normalization@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Agent connects to the DrTuxTest database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a connection to MySQL, specifically the `DrTuxTest` database (e.g., `mysql -u root DrTuxTest` or a `USE DrTuxTest;` command)."
+    },
+    {
+      "id": "execute_update_query",
+      "description": "Agent executes an UPDATE query on the fchpat table targeting the FchPat_Tel1 column.",
+      "points": 20,
+      "visual_evidence": "Terminal or script showing an `UPDATE fchpat SET FchPat_Tel1 = ...` SQL command."
+    },
+    {
+      "id": "remove_separators",
+      "description": "The UPDATE query explicitly removes spaces, dots, dashes, and slashes.",
+      "points": 20,
+      "visual_evidence": "The SQL query contains logic to remove spaces (' '), dots ('.'), dashes ('-'), and slashes ('/') using `REPLACE` or similar string manipulation functions."
+    },
+    {
+      "id": "query_invalid_phones",
+      "description": "Agent queries for phone numbers that are not exactly 10 digits long.",
+      "points": 20,
+      "visual_evidence": "Terminal or script showing a `SELECT` query with a condition checking for length not equal to 10 (e.g., `LENGTH(FchPat_Tel1) != 10` or `<> 10`)."
+    },
+    {
+      "id": "csv_headers",
+      "description": "The CSV report is created with the correct headers.",
+      "points": 10,
+      "visual_evidence": "A view of the `/home/ga/invalid_phones.csv` file (via `cat`, an editor, or script output) showing the first line as exactly `guid,nom,telephone`."
+    },
+    {
+      "id": "csv_content",
+      "description": "The CSV report contains the invalid phone numbers.",
+      "points": 20,
+      "visual_evidence": "A view of the `/home/ga/invalid_phones.csv` file showing the invalid entries, specifically containing the short number `061234` and the text entry `Pas de telephone`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent actually executed SQL queries against the database.",
+      "visual_evidence": "Check that the agent executed SQL commands in a MySQL client or via a script, rather than just printing text or simulating output."
+    },
+    {
+      "id": "authentic_csv_generation",
+      "description": "The CSV file was generated from database query results.",
+      "visual_evidence": "Check that the CSV file was populated using the results of a database query (e.g., using `INTO OUTFILE`, a Python script, or piping query results), not by manually typing the expected output."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent did not hardcode the known invalid test cases.",
+      "visual_evidence": "Ensure the agent did not simply `echo` the known invalid test cases (`061234`, `Pas de telephone`) directly into the CSV file without querying the database."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: DrTuxTest, Table: fchpat, Column: FchPat_Tel1. Separators to remove: spaces, dots, dashes, slashes. Test cases present in the DB include '06 12 34 56 78', '04.91.23.45.67', '01-45-67-89-01', '061234', and 'Pas de telephone'. The final CSV report at /home/ga/invalid_phones.csv must contain headers 'guid,nom,telephone' and include the invalid entries '061234' and 'Pas de telephone'."
+}

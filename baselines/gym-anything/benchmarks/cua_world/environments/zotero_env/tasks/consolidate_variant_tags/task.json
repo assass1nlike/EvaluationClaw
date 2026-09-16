@@ -1,0 +1,35 @@
+{
+  "id": "consolidate_variant_tags@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A shared research library has accumulated inconsistent tags. Consolidate the variant tags 'deep-learning', 'deep learning' (lowercase), and 'nlp' (lowercase) into their canonical forms: 'Deep Learning' and 'NLP'. The task is complete when the variant tags are removed and their associated items are merged into the canonical tags.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/consolidate_variant_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/consolidate_variant_tags/export_result.sh"
+  },
+  "metadata": {
+    "canonical_tags": [
+      "Deep Learning",
+      "NLP"
+    ],
+    "bad_tags": [
+      "deep-learning",
+      "deep learning",
+      "nlp"
+    ],
+    "expected_count_dl": 6,
+    "expected_count_nlp": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_consolidate_variant_tags"
+    }
+  }
+}

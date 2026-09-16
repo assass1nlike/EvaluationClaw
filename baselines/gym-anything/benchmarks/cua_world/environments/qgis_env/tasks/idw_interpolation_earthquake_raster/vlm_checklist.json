@@ -1,0 +1,59 @@
+{
+  "task_id": "idw_interpolation_earthquake_raster@1",
+  "task_completion": [
+    {
+      "id": "load_earthquake_data",
+      "description": "Load the california_earthquakes.geojson file into QGIS",
+      "points": 10,
+      "visual_evidence": "The Layers panel shows 'california_earthquakes' and point features representing earthquakes are visible on the map canvas."
+    },
+    {
+      "id": "open_idw_tool",
+      "description": "Open the IDW Interpolation tool",
+      "points": 10,
+      "visual_evidence": "The 'IDW Interpolation' dialog box is open on the screen (usually accessed via Processing Toolbox)."
+    },
+    {
+      "id": "configure_idw_attribute",
+      "description": "Set the interpolation attribute to 'mag'",
+      "points": 20,
+      "visual_evidence": "In the IDW Interpolation dialog, the 'Interpolation attribute' dropdown is set to 'mag' and it has been added to the Input layers list with the type 'Points'."
+    },
+    {
+      "id": "configure_idw_pixel_size",
+      "description": "Set the pixel size to approximately 0.05 degrees or at least 100x100 pixels",
+      "points": 20,
+      "visual_evidence": "In the IDW Interpolation dialog, 'Pixel size X' and 'Pixel size Y' are set to approximately 0.05, OR 'Rows' and 'Columns' are set to 100 or greater."
+    },
+    {
+      "id": "save_interpolated_raster",
+      "description": "Export the resulting GeoTIFF to the specified exports folder",
+      "points": 20,
+      "visual_evidence": "The 'Interpolated' output file path in the dialog is set to '/home/ga/GIS_Data/exports/earthquake_magnitude_surface.tif', or a new raster layer with this name appears in the Layers panel."
+    },
+    {
+      "id": "save_qgis_project",
+      "description": "Save the QGIS project to the specified projects folder",
+      "points": 20,
+      "visual_evidence": "The QGIS window title bar shows 'earthquake_interpolation' or a save dialog shows the file being saved to '/home/ga/GIS_Data/projects/earthquake_interpolation.qgz'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis_gui",
+      "description": "The agent used the QGIS graphical user interface to perform the interpolation",
+      "visual_evidence": "Screenshots show the QGIS application window and its dialogs being interacted with, rather than terminal commands like gdal_grid."
+    },
+    {
+      "id": "genuine_raster_output",
+      "description": "The output raster is a genuine interpolation result",
+      "visual_evidence": "The map canvas displays a continuous raster surface (usually a grayscale or colored gradient) representing the interpolated magnitudes, bounded by the point data extent."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not use a text editor or terminal to create dummy files",
+      "visual_evidence": "No text editors (like nano, vim) or terminal 'touch' commands are visible creating the .tif or .qgz files."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/GIS_Data/california_earthquakes.geojson. Expected output file: /home/ga/GIS_Data/exports/earthquake_magnitude_surface.tif. Expected project file: /home/ga/GIS_Data/projects/earthquake_interpolation.qgz. The interpolation must use the 'mag' attribute. The resulting raster should represent values between approximately 2.5 and 5.1 (the min/max magnitudes of the input data)."
+}

@@ -1,0 +1,36 @@
+{
+  "id": "workplace_investigation_report@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Sandra Okafor, Director of Compliance & Ethics at Pinnacle Software Solutions, Inc. Create a formal investigation report for Case PSS-EEO-2024-017 (Elena Vargas vs. Derek Haines) using Apache OpenOffice Writer, populating the content with data from /home/ga/Documents/case_file.json. The report must include an automated Table of Contents, page numbers in the footer, and formatted sections for Executive Summary, Background, Methodology, Witness Summaries, Evidence, Timeline, Findings, and Recommendations. Include tables for the witness list, evidence inventory, and timeline as detailed in the case file. Save the final report to /home/ga/Documents/PSS-EEO-2024-017_Investigation_Report.odt. Login: username ga, no password required.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/workplace_investigation_report/setup_task.sh",
+    "post_task": "/workspace/tasks/workplace_investigation_report/export_result.sh"
+  },
+  "metadata": {
+    "case_file_path": "/home/ga/Documents/case_file.json",
+    "output_file_path": "/home/ga/Documents/PSS-EEO-2024-017_Investigation_Report.odt",
+    "case_number": "PSS-EEO-2024-017",
+    "complainant": "Vargas",
+    "respondent": "Haines",
+    "finding_keyword": "substantiated",
+    "min_h1_count": 7,
+    "min_h2_count": 8,
+    "min_table_count": 3,
+    "min_paragraph_count": 30,
+    "requires_toc": true,
+    "requires_page_numbers": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_investigation_report"
+    }
+  }
+}

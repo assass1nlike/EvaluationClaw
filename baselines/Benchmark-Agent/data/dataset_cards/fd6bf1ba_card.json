@@ -1,0 +1,103 @@
+{
+  "dataset_id": "fd6bf1ba",
+  "name": "Small Object Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 204,
+  "description": "Small Object Detection is an object detection dataset of street scene images paired with a fixed prompt asking to detect objects. It evaluates the ability to localize and classify small objects such as pedestrians, cars, motors, and vans into bounding boxes.",
+  "card_text": "The dataset contains 204 image-text samples. Each sample includes a street scene image and a fixed instruction prompt ('Detect the object in the given image') as text input. The expected output is a structured dictionary called category2bbox, which maps object class labels (e.g., pedestrian, motor, car, van) to lists of bounding boxes. Each bounding box is represented as four numbers, likely [x, y, width, height] in pixel coordinates. The dataset focuses on small objects, and images vary in visual complexity with multiple object instances. The task is open-set detection where the model must identify all objects of the predefined categories without pre-specified candidate boxes.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "traffic/street scenes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "The image file provides the visual context: an outdoor street scene containing small objects to be detected, such as pedestrians, cars, motors, and vans.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "Reference to the input image. It is the visual input for the detection task and is identical to the context field.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction asking the model to detect objects in the given image. It is the task query.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category2bbox"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "structured",
+        "semantics": "A dictionary mapping each object category to a list of bounding boxes. Each bounding box is a list of four numbers (x, y, width, height) in pixel coordinates, representing the location of a detected object.",
+        "path_types": [
+          "dict"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.category2bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The keys of the category2bbox object are the object class labels (e.g., pedestrian, motor, car, van). They indicate which categories are present in the image.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image (input.image_file) that serves as the visual context, a fixed text prompt (input.prompt) instructing the model to detect objects, and an output dictionary (output.category2bbox) that maps category names to lists of bounding boxes. The categories are the keys of the dictionary, and the bounding boxes are lists of four coordinates. There are no multiple-choice options, rationales, or additional text fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/small_object_detection/json/annotation.json",
+    "existing_tags": {
+      "task": "small object detection",
+      "type": "comprehension",
+      "skill": "Object Detection (Object Det)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

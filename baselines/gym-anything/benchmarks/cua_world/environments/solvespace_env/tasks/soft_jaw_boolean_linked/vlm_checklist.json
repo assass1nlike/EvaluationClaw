@@ -1,0 +1,59 @@
+{
+  "task_id": "soft_jaw_boolean_linked@1",
+  "task_completion": [
+    {
+      "id": "base_sketch",
+      "description": "Create a 150 mm by 80 mm rectangle sketch centered on the origin.",
+      "points": 15,
+      "visual_evidence": "Look for a 2D rectangle sketch in the SolveSpace viewport. The dimensions '150' and '80' should be visible as constraints, and the rectangle should be symmetrically centered around the origin axes."
+    },
+    {
+      "id": "base_extrusion",
+      "description": "Extrude the base sketch by 15 mm to create a solid block.",
+      "points": 15,
+      "visual_evidence": "Look for the 2D sketch turned into a 3D solid block. The SolveSpace property browser (usually on the left) should show an extrusion group with a depth/thickness of 15."
+    },
+    {
+      "id": "import_divider",
+      "description": "Import the divider.slvs part at the origin.",
+      "points": 20,
+      "visual_evidence": "Look for a new part ('divider.slvs') appearing in the 3D viewport alongside or intersecting the main block. The property browser should list an imported assembly/part."
+    },
+    {
+      "id": "boolean_subtraction",
+      "description": "Subtract the imported divider from the solid block to form a cavity.",
+      "points": 20,
+      "visual_evidence": "Look for a trench or cavity cut into the main solid block. The property browser should show a Boolean operation set to 'Difference' or 'Subtract'."
+    },
+    {
+      "id": "save_slvs",
+      "description": "Save the project as soft_jaw_fixture.slvs in the specified directory.",
+      "points": 15,
+      "visual_evidence": "Look for a save dialog navigating to /home/ga/Documents/SolveSpace/ and saving as 'soft_jaw_fixture.slvs', or the SolveSpace application window title bar displaying 'soft_jaw_fixture.slvs'."
+    },
+    {
+      "id": "export_step",
+      "description": "Export the 3D model as a STEP file to the specified directory.",
+      "points": 15,
+      "visual_evidence": "Look for an 'Export' dialog saving 'soft_jaw_fixture.step' in /home/ga/Documents/SolveSpace/, or terminal/file manager output confirming the .step file exists in that location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the SolveSpace GUI to build the model.",
+      "visual_evidence": "Check that screenshots show the agent clicking through the SolveSpace interface, drawing sketches, and using the property browser, rather than just executing a pre-written script in the terminal."
+    },
+    {
+      "id": "model_history_visible",
+      "description": "The model was built step-by-step rather than opening a pre-made file.",
+      "visual_evidence": "Check the SolveSpace property browser (left panel) for a genuine history of groups (e.g., Sketch, Extrude, Import, Boolean). It should not just be a single pre-existing object."
+    },
+    {
+      "id": "no_dummy_files",
+      "description": "Agent did not create fake empty files to bypass the task.",
+      "visual_evidence": "Ensure the agent didn't use terminal commands like 'touch soft_jaw_fixture.step' or 'touch soft_jaw_fixture.slvs' to create empty files without actually exporting them from SolveSpace."
+    }
+  ],
+  "privileged_info_for_vlm": "The target part to import is 'divider.slvs'. The final model must be a single solid body with at least 15 faces. Subtracting the 5.99mm thick divider from the 15mm thick block creates a continuous trench that leaves a 9.01mm solid floor (it does not cut entirely through the block). Expected SLVS path: '/home/ga/Documents/SolveSpace/soft_jaw_fixture.slvs'. Expected STEP path: '/home/ga/Documents/SolveSpace/soft_jaw_fixture.step'."
+}

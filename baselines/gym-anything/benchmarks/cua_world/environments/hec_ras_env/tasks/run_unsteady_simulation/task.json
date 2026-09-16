@@ -1,0 +1,20 @@
+{
+  "id": "run_unsteady_simulation@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "A terminal window is open in the Muncie HEC-RAS project directory containing files for a 2D unsteady flow simulation of the White River. Identify the correct HEC-RAS 6.6 Linux compute engine from the system PATH and run the unsteady flow simulation. Rename the resulting output HDF5 file to Muncie.p04.hdf in the project directory. The simulation should complete within a few minutes.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_unsteady_simulation/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_unsteady_simulation"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "record_short_sale_trade@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Record a profitable short sale trade for Peloton Interactive (PTON) in the margin account 'margin_account.xml'. The security details are Ticker: PTON, ISIN: US70614W1009, and Currency: USD. The trade consists of an opening short sale on 2021-07-01 (100 shares at $124.00/share, $25.00 fee) and a closing cover trade on 2022-05-02 (100 shares at $18.50/share, $15.00 fee). Ensure the final position for PTON is 0 shares and save the updated portfolio to margin_account.xml.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_short_sale_trade/setup_task.sh",
+    "post_task": "/workspace/tasks/record_short_sale_trade/export_result.sh"
+  },
+  "metadata": {
+    "portfolio_file": "margin_account.xml",
+    "security_ticker": "PTON",
+    "security_isin": "US70614W1009",
+    "short_date": "2021-07-01",
+    "short_shares": 100,
+    "short_price": 124.0,
+    "short_fee": 25.0,
+    "cover_date": "2022-05-02",
+    "cover_shares": 100,
+    "cover_price": 18.5,
+    "cover_fee": 15.0,
+    "expected_profit_approx": 10510.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_short_sale_trade"
+    }
+  }
+}

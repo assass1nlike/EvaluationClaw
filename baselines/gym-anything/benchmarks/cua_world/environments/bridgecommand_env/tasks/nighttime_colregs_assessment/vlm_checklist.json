@@ -1,0 +1,53 @@
+{
+  "task_id": "nighttime_colregs_assessment@1",
+  "task_completion": [
+    {
+      "id": "environment_config",
+      "description": "Verify the creation of the scenario directory and environment.ini file with correct nighttime and weather settings.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal or text editor showing the path '/opt/bridgecommand/Scenarios/n) Solent COLREGS Night Assessment/environment.ini'. The file must contain StartTime between 22.0 and 4.0, Setting='Solent', VisibilityRange >= 5.0, and Weather <= 2.0."
+    },
+    {
+      "id": "ownship_config",
+      "description": "Verify the creation of ownship.ini with the correct vessel, location, and heading.",
+      "points": 15,
+      "visual_evidence": "Look for the contents of 'ownship.ini' in the scenario directory. It must specify the vessel 'MV Dorado', Latitude between 50.77 and 50.82, Longitude between -1.20 and -1.10, speed of 10 knots, and a heading of approximately 090."
+    },
+    {
+      "id": "othership_config",
+      "description": "Verify the creation of othership.ini with exactly four specific vessels and their waypoints.",
+      "points": 30,
+      "visual_evidence": "Look for the contents of 'othership.ini' in the scenario directory. It must contain exactly four vessels: a container ship (heading ~270, 12-15 kts), a bulk carrier (heading ~000 or ~180, 8-12 kts), a fast ferry (heading ~090, 15-20 kts, starting behind ownship), and a fishing vessel with restricted manoeuvrability. Each vessel must have at least two waypoint legs defined."
+    },
+    {
+      "id": "bc5_config",
+      "description": "Verify the configuration of the ARPA radar in bc5.ini.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal modifying 'bc5.ini'. The file must include the settings: arpa_on=1, full_radar=1, radar_range_resolution=256, and max_radar_range=96."
+    },
+    {
+      "id": "briefing_document",
+      "description": "Verify the creation of the assessment briefing document with required encounter types and rules.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal showing the file '/home/ga/Documents/colregs_assessment_briefing.txt'. It must list all four encounter types (head-on, crossing, overtaking, restricted manoeuvrability), the expected cadet responses under COLREGS rules (Rules 13, 14, 15), and the vessel identifiers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Ensure the configuration files and briefing document are actually saved to the disk.",
+      "visual_evidence": "Look for evidence that the files were saved, such as a clean terminal prompt after a 'nano' or 'vim' session, an 'ls' or 'cat' command verifying the file contents, or a saved status in a GUI text editor."
+    },
+    {
+      "id": "briefing_originality",
+      "description": "Ensure the briefing document is written as a proper instructional document and not just a copy-paste of the prompt.",
+      "visual_evidence": "The text in 'colregs_assessment_briefing.txt' should be formatted as a briefing (e.g., with sentences, bullet points, or instructions for cadets) rather than a raw dump of the task description text."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Ensure all files are created in their exact required directories.",
+      "visual_evidence": "Check the file paths in the terminal or editor title bars. The scenario files must be strictly inside '/opt/bridgecommand/Scenarios/n) Solent COLREGS Night Assessment/' and the briefing must be exactly at '/home/ga/Documents/colregs_assessment_briefing.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The Solent is a real maritime area located at approximately Latitude 50.785, Longitude -1.290. The required COLREGS rules are Rule 13 (overtaking), Rule 14 (head-on), and Rule 15 (crossing). Bridge Command is a real simulator where 'arpa_on' and 'full_radar' are valid bc5.ini settings (values 0 or 1). The settings 'radar_range_resolution' and 'max_radar_range' must be added exactly as requested even if not standard."
+}

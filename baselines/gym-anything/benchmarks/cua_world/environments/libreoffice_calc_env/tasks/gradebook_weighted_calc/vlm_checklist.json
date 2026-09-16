@@ -1,0 +1,59 @@
+{
+  "task_id": "gradebook_weighted_calc@1",
+  "task_completion": [
+    {
+      "id": "test_avg_calculated",
+      "description": "Calculate the test average for each student.",
+      "points": 10,
+      "visual_evidence": "Column N (Test Avg) contains the calculated average of the test scores from columns B, C, and D for each student."
+    },
+    {
+      "id": "hw_avg_calculated",
+      "description": "Calculate the homework average for each student.",
+      "points": 10,
+      "visual_evidence": "Column O (Homework Avg) contains the calculated average of the homework scores from columns E, F, G, and H for each student."
+    },
+    {
+      "id": "quiz_avg_calculated",
+      "description": "Calculate the quiz average for each student, dropping the lowest score.",
+      "points": 20,
+      "visual_evidence": "Column P (Quiz Avg) contains the calculated average of the quiz scores from columns I, J, K, and L, excluding the lowest score (e.g., using a formula like =(SUM(I2:L2)-MIN(I2:L2))/3)."
+    },
+    {
+      "id": "participation_referenced",
+      "description": "Reference or copy the participation score.",
+      "points": 10,
+      "visual_evidence": "Column Q (Participation) contains the participation scores, matching the values in column M."
+    },
+    {
+      "id": "final_grade_calculated",
+      "description": "Calculate the weighted final grade for each student.",
+      "points": 25,
+      "visual_evidence": "Column R (Final Grade %) contains the weighted sum: 40% Test Avg, 30% HW Avg, 20% Quiz Avg, and 10% Participation."
+    },
+    {
+      "id": "letter_grade_assigned",
+      "description": "Assign the correct letter grade based on the final grade.",
+      "points": 25,
+      "visual_evidence": "Column S (Letter Grade) contains the correct letter (A, B, C, D, or F) corresponding to the final percentage in column R, based on the standard scale (A: 90-100, B: 80-89, C: 70-79, D: 60-69, F: <60)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_calc_gui",
+      "description": "The agent used the LibreOffice Calc GUI to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Calc application interface, rather than a terminal or text editor."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used spreadsheet formulas rather than manual calculation.",
+      "visual_evidence": "The formula bar displays spreadsheet formulas (e.g., AVERAGE, SUM, MIN, IF) for the selected cells, indicating automated calculation."
+    },
+    {
+      "id": "applied_to_all_rows",
+      "description": "The agent applied the calculations to all student records.",
+      "visual_evidence": "The calculated columns (N through S) are populated for all 12 student rows, not just the first row."
+    }
+  ],
+  "privileged_info_for_vlm": "The spreadsheet contains 12 student records. Columns B-D are Tests, E-H are Homework, I-L are Quizzes, M is Participation. The agent must populate columns N-S using formulas.\n- Column N (Test Avg): Average of B-D.\n- Column O (HW Avg): Average of E-H.\n- Column P (Quiz Avg): Average of I-L, dropping the lowest score (e.g., =(SUM(I2:L2)-MIN(I2:L2))/3).\n- Column Q (Participation): Copy of M.\n- Column R (Final Grade): (N*0.40) + (O*0.30) + (P*0.20) + (Q*0.10).\n- Column S (Letter Grade): A (90-100%), B (80-89%), C (70-79%), D (60-69%), F (0-59%).\nVerify that the formulas are correct and applied to all 12 students."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "off_grid_cold_storage_sizing@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an Agricultural Engineer designing an off-grid cold storage facility in Energy3D.\n\n1. Open the project 'building-orientation.ng3' from ~/Documents/Energy3D/ (it should already be loaded when you start).\n2. Change the project location to Phoenix, AZ (to simulate a hot desert climate).\n3. Select the building and configure its Thermostat properties for cold storage:\n   - Set the Cooling Setpoint to 5 °C (or the minimum allowed, usually 10 °C).\n   - Set the Heating Setpoint to -10 °C (to effectively disable heating).\n4. Run the Annual Building Energy Analysis to measure the massive cooling load.\n5. Add a large solar array (solar panels on the roof and/or ground) capable of entirely offsetting the building's energy consumption.\n6. Run the Annual Solar Energy Analysis and combined analysis to verify your array's yield.\n7. Ensure the Net Energy is positive (Total Solar Yield >= Total Energy Consumed). If not, add more panels to reach the target.\n8. Save your completed project exactly as 'cold_storage_solar.ng3' in ~/Documents/Energy3D/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/off_grid_cold_storage_sizing/setup_task.sh",
+    "post_task": "/workspace/tasks/off_grid_cold_storage_sizing/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/Documents/Energy3D/cold_storage_solar.ng3",
+    "occupation": "Agricultural Engineer",
+    "industry": "Renewable Energy / Agriculture"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_off_grid_cold_storage"
+    }
+  }
+}

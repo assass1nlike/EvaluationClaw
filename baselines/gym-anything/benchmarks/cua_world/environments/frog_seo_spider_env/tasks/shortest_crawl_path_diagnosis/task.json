@@ -1,0 +1,32 @@
+{
+  "id": "shortest_crawl_path_diagnosis@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Diagnose the crawl depth of the book \"It's Only the Himalayas\" (URL ending in its-only-the-himalayas_981/index.html) on https://books.toscrape.com/. Export the Crawl Path Report for this specific URL to ~/Documents/SEO/exports/himalayas_path.csv. Record the crawl depth value as an integer in a text file at ~/Documents/SEO/reports/depth_value.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/shortest_crawl_path_diagnosis/setup_task.sh",
+    "post_task": "/workspace/tasks/shortest_crawl_path_diagnosis/export_result.sh"
+  },
+  "metadata": {
+    "target_domain": "books.toscrape.com",
+    "target_url_fragment": "its-only-the-himalayas_981",
+    "expected_export_path": "/home/ga/Documents/SEO/exports/himalayas_path.csv",
+    "expected_report_path": "/home/ga/Documents/SEO/reports/depth_value.txt",
+    "expected_depth_range": [
+      1,
+      4
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shortest_crawl_path_diagnosis"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_demand_routes@1",
+  "task_completion": [
+    {
+      "id": "reference_scenario_network",
+      "description": "Verify the agent locates or references the Bologna Acosta road network.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the agent navigating to '~/SUMO_Scenarios/bologna_acosta/' or referencing a '.net.xml' file from this directory in a command."
+    },
+    {
+      "id": "generate_trips_command",
+      "description": "Verify the agent executes a command to generate random trips for a 3600-second period.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a SUMO tool (e.g., 'randomTrips.py') with arguments specifying the network, an end time of 3600 (e.g., '-e 3600'), and parameters to generate approximately 200 trips."
+    },
+    {
+      "id": "trips_file_created",
+      "description": "Verify the trips XML file is successfully saved to the correct output path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'ls ~/SUMO_Output/' listing 'random_trips.trips.xml', or a command like 'cat', 'head', or 'wc' displaying the contents/size of this specific file."
+    },
+    {
+      "id": "compute_routes_command",
+      "description": "Verify the agent executes a command to compute shortest-path routes from the generated trips.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of a routing tool (e.g., 'duarouter') taking the generated trips file as input and specifying the output routes file."
+    },
+    {
+      "id": "routes_file_created",
+      "description": "Verify the routes XML file is successfully saved to the correct output path.",
+      "points": 30,
+      "visual_evidence": "Terminal showing 'ls ~/SUMO_Output/' listing 'random_trips.rou.xml', or a command like 'cat' or 'head' showing the XML content containing valid '<route>' tags."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_commands",
+      "description": "Ensure the agent used actual SUMO utilities to generate the files.",
+      "visual_evidence": "Look for commands like 'randomTrips.py' and 'duarouter' in the terminal history. The agent should not be manually writing the XML files using 'echo' or a text editor like 'nano' or 'vim'."
+    },
+    {
+      "id": "correct_network_used",
+      "description": "Ensure the agent used the specific Bologna Acosta network.",
+      "visual_evidence": "The commands executed must reference the network file located in '/home/ga/SUMO_Scenarios/bologna_acosta/', not a default or newly created dummy network."
+    },
+    {
+      "id": "no_hardcoded_xml",
+      "description": "Ensure the agent did not copy-paste a pre-computed XML response.",
+      "visual_evidence": "The terminal should show standard output logs from SUMO tools processing the network and trips, rather than direct pasting of large XML blocks into the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario directory is exactly '/home/ga/SUMO_Scenarios/bologna_acosta'. The agent must generate exactly 200 trips spanning a 3600-second period (maximum departure time > 1800s). The output trips file must be saved to '/home/ga/SUMO_Output/random_trips.trips.xml' and the routes file to '/home/ga/SUMO_Output/random_trips.rou.xml'. Look for the usage of SUMO tools like 'randomTrips.py' and 'duarouter' to accomplish this."
+}

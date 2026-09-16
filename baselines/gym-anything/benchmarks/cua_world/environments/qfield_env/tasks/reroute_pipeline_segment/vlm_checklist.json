@@ -1,0 +1,59 @@
+{
+  "task_id": "reroute_pipeline_segment@1",
+  "task_completion": [
+    {
+      "id": "project_opened",
+      "description": "Verify that the world_survey project is opened in the QField application.",
+      "points": 10,
+      "visual_evidence": "The QField app interface is visible, displaying a map, and the project name 'world_survey' is seen in the recent projects list or active session."
+    },
+    {
+      "id": "layer_selected",
+      "description": "Verify that the 'pipelines' layer is located and selected.",
+      "points": 10,
+      "visual_evidence": "The QField side menu or layer panel is open, and the 'pipelines' layer is visible and/or highlighted."
+    },
+    {
+      "id": "edit_mode_active",
+      "description": "Verify that the agent activated editing or digitizing mode for the layer.",
+      "points": 20,
+      "visual_evidence": "The QField interface shows active editing controls, such as a pencil icon toggled on, a crosshair in the center of the screen, or vertex editing tools."
+    },
+    {
+      "id": "feature_selected",
+      "description": "Verify that the 'Cairo-Baghdad' pipeline feature is selected for modification.",
+      "points": 10,
+      "visual_evidence": "The straight line representing the pipeline between Cairo and Baghdad is highlighted, or its start/end vertex nodes are visible, indicating it is ready for vertex editing."
+    },
+    {
+      "id": "vertex_added_amman",
+      "description": "Verify that a new vertex is added to the pipeline at Amman, Jordan.",
+      "points": 25,
+      "visual_evidence": "The map crosshair or a new vertex node is positioned over Amman (approximate coordinates 31.95\u00b0N, 35.93\u00b0E), and the line is pulled away from its original straight path to connect to this new point."
+    },
+    {
+      "id": "feature_saved_three_vertices",
+      "description": "Verify that the pipeline is finalized as a single feature with exactly three vertices.",
+      "points": 25,
+      "visual_evidence": "The final map view shows the pipeline as a continuous bent line (V-shape) connecting Cairo, Amman, and Baghdad with exactly one middle vertex. The editing session appears completed or saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the QField graphical user interface to perform the task.",
+      "visual_evidence": "Screenshots must show interaction with the QField app's map and menus. There should be no terminal emulators (like Termux) or scripts running spatial commands (e.g., ogr2ogr, sqlite3)."
+    },
+    {
+      "id": "genuine_map_navigation",
+      "description": "Ensure the agent visually navigated the map to locate the correct geographic area.",
+      "visual_evidence": "Screenshots should show panning and zooming on the map over the Middle East region (Egypt, Jordan, Iraq) to manually locate Amman."
+    },
+    {
+      "id": "no_direct_db_editing",
+      "description": "Ensure the agent did not bypass the GIS software by directly editing the GeoPackage database.",
+      "visual_evidence": "Absence of database viewer apps, text editors, or code editors modifying the world_survey.gpkg file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying the 'Cairo-Baghdad' feature in the 'pipelines' layer of the world_survey.gpkg project. The target location for the new vertex is Amman, Jordan (coordinates: 31.95\u00b0N, 35.93\u00b0E, tolerance 0.5\u00b0). The final feature must be a single line with exactly 3 vertices (Cairo, Amman, Baghdad). Verify that the line is bent to pass through Amman and is not just a straight line, and that no extra vertices were added."
+}

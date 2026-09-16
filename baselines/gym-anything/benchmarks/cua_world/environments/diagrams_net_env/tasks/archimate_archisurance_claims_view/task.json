@@ -1,0 +1,37 @@
+{
+  "id": "archimate_archisurance_claims_view@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are an Enterprise Architect at an insurance company. Model the 'Home & Away' claims system using the ArchiMate 3.1 modeling language in draw.io based on the architecture requirements in '~/Desktop/archisurance_specs.txt'. Create a Layered View diagram using official ArchiMate 3.0 shapes (with correct icons/symbols) including: a Business Layer (Yellow) with Actor 'Customer', Service 'Submit Claim', and Process 'Claims Administration'; an Application Layer (Blue) with Service 'Claims Management Service', Component 'Home & Away Policy Administration', and Data Object 'Customer Data'; and a Technology Layer (Green) with Device 'Mainframe' and System Software 'Policy Database'. Connect the elements using appropriate ArchiMate relationships (Serving, Realization, Access, Association) ensuring Technology elements serve Application elements and Application elements serve Business elements. Save the diagram to '~/Diagrams/claims_architecture.drawio' and export it as a PDF to '~/Diagrams/exports/claims_architecture.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archimate_archisurance_claims_view/setup_task.sh",
+    "post_task": "/workspace/tasks/archimate_archisurance_claims_view/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "claims_architecture.drawio",
+    "expected_pdf": "claims_architecture.pdf",
+    "required_shapes": {
+      "business_actor": "Customer",
+      "business_service": "Submit Claim",
+      "business_process": "Claims Administration",
+      "application_service": "Claims Management Service",
+      "application_component": "Home & Away Policy Administration",
+      "data_object": "Customer Data",
+      "device": "Mainframe",
+      "system_software": "Policy Database"
+    },
+    "min_connections": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archimate_diagram"
+    }
+  }
+}

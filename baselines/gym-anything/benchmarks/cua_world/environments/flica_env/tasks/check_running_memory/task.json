@@ -1,0 +1,26 @@
+{
+  "id": "check_running_memory@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Enable Developer Options on the device and determine the current RAM usage of the Flight Crew View application. Save the memory value to /sdcard/ram_audit.txt and capture a screenshot of the Running services screen showing the application's entry to /sdcard/ram_evidence.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_running_memory/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_running_memory/export_result.sh"
+  },
+  "metadata": {
+    "audit_file": "/sdcard/ram_audit.txt",
+    "evidence_file": "/sdcard/ram_evidence.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_check_running_memory"
+    }
+  }
+}

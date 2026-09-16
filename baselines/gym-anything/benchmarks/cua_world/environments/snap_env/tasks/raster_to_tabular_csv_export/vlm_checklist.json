@@ -1,0 +1,53 @@
+{
+  "task_id": "raster_to_tabular_csv_export@1",
+  "task_completion": [
+    {
+      "id": "open_source_image",
+      "description": "Verify the agent opened the Landsat multispectral image in ESA SNAP.",
+      "points": 10,
+      "visual_evidence": "The ESA SNAP application is open, and the Product Explorer panel shows the loaded file 'landsat_multispectral.tif'."
+    },
+    {
+      "id": "initiate_spatial_subset",
+      "description": "Verify the agent opened the Spatial Subset dialog.",
+      "points": 10,
+      "visual_evidence": "The 'Specify Product Subset' or 'Spatial Subset' dialog box is visible over the SNAP interface."
+    },
+    {
+      "id": "configure_subset_dimensions",
+      "description": "Verify the agent set the subset dimensions to exactly 100x100 pixels.",
+      "points": 20,
+      "visual_evidence": "In the Subset dialog, the width and height fields (or scene width/height) are explicitly set to 100."
+    },
+    {
+      "id": "save_dimap_subset",
+      "description": "Verify the agent saved the subset in BEAM-DIMAP format to the specified path.",
+      "points": 30,
+      "visual_evidence": "A 'Save Product As' dialog showing the path '/home/ga/snap_exports/ml_subset.dim' with the BEAM-DIMAP format selected, or the Product Explorer showing the newly saved 'ml_subset' product."
+    },
+    {
+      "id": "export_csv_dataset",
+      "description": "Verify the agent exported the subset data as a CSV file to the specified path.",
+      "points": 30,
+      "visual_evidence": "An 'Export' dialog showing the CSV format and the path '/home/ga/snap_exports/ml_dataset.csv', or a file manager/terminal showing the successfully created 'ml_dataset.csv' file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "Ensure the agent used the ESA SNAP GUI to perform the operations.",
+      "visual_evidence": "Screenshots should show interaction with the ESA SNAP graphical user interface (menus, dialogs) for subsetting and exporting, rather than using terminal commands like 'gpt' or 'gdal_translate'."
+    },
+    {
+      "id": "genuine_subset_operation",
+      "description": "Ensure the agent actually performed the subset operation in SNAP.",
+      "visual_evidence": "The 'Specify Product Subset' dialog must be actively used and applied to the original 'landsat_multispectral' product, not just renaming an existing file."
+    },
+    {
+      "id": "no_mock_csv_creation",
+      "description": "Ensure the agent didn't use a text editor or terminal to create a fake CSV file.",
+      "visual_evidence": "The CSV export should be triggered from within SNAP (e.g., File -> Export -> CSV) rather than a terminal 'echo' command or a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The source file is located at /home/ga/snap_data/landsat_multispectral.tif. The spatial subset must be exactly 100 pixels wide and 100 pixels high. The subset must be saved in BEAM-DIMAP format to /home/ga/snap_exports/ml_subset.dim. The final data must be exported as a CSV file to /home/ga/snap_exports/ml_dataset.csv. A correct 100x100 subset will result in exactly 10,000 rows of pixel data in the CSV."
+}

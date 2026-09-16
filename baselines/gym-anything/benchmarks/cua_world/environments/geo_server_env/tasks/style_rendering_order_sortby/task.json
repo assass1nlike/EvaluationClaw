@@ -1,0 +1,29 @@
+{
+  "id": "style_rendering_order_sortby@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Create a new SLD style named 'cities_sorted' in the 'ne' workspace to render the 'ne_populated_places' layer. The style must use a PointSymbolizer with a red (#FF0000) circle of size 10 and include the 'sortBy' VendorOption to ensure cities with larger populations ('pop_max') are drawn on top of smaller cities. Associate this style with the 'ne:ne_populated_places' layer. Access the GeoServer web admin at http://localhost:8080/geoserver/web/ (admin / Admin123!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/style_rendering_order_sortby/setup_task.sh",
+    "post_task": "/workspace/tasks/style_rendering_order_sortby/export_result.sh"
+  },
+  "metadata": {
+    "expected_style_name": "cities_sorted",
+    "expected_workspace": "ne",
+    "expected_attribute": "pop_max",
+    "expected_color": "#FF0000",
+    "layer_name": "ne_populated_places"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_style_rendering_order"
+    }
+  }
+}

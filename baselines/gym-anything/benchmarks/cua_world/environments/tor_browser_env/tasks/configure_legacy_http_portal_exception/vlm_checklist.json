@@ -1,0 +1,47 @@
+{
+  "task_id": "configure_legacy_http_portal_exception@1",
+  "task_completion": [
+    {
+      "id": "https_exception_configured",
+      "description": "Verify that a permanent exception for neverssl.com is added to Tor Browser's HTTPS-Only Mode settings.",
+      "points": 30,
+      "visual_evidence": "Screenshots should show the Tor Browser Settings page, specifically the 'HTTPS-Only Mode' exceptions or permissions list, with 'neverssl.com' or 'http://neverssl.com' added as an allowed site."
+    },
+    {
+      "id": "neverssl_loaded",
+      "description": "Verify that http://neverssl.com loads successfully without a security warning.",
+      "points": 30,
+      "visual_evidence": "Screenshots should show Tor Browser displaying the neverssl.com website (typically plain text on a white background) with 'neverssl.com' in the address bar, and no 'HTTPS-Only Mode Alert' or security warning page blocking it."
+    },
+    {
+      "id": "evidence_file_created",
+      "description": "Verify the evidence file is created at the correct path.",
+      "points": 20,
+      "visual_evidence": "A text editor (like gedit, nano, or vim) or file manager should be visible showing a file named 'neverssl_evidence.txt' saved in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "evidence_content_saved",
+      "description": "Verify the copied text content from the website is saved in the evidence file.",
+      "points": 20,
+      "visual_evidence": "The text editor should show the contents of the file, which must include the main text from the neverssl.com website and explicitly contain the word 'NeverSSL'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_gui_used",
+      "description": "Verify the agent used the Tor Browser GUI to load the page.",
+      "visual_evidence": "Screenshots should show the Tor Browser application open and rendering the website, rather than the agent using terminal commands like 'curl' or 'wget' to fetch the page content."
+    },
+    {
+      "id": "authentic_text_copied",
+      "description": "Verify the agent copied the actual page content and didn't just type the keyword.",
+      "visual_evidence": "The text in the evidence file should contain a substantial portion of the actual text from the neverssl.com website, not just the isolated word 'NeverSSL' typed manually."
+    },
+    {
+      "id": "settings_gui_used",
+      "description": "Verify the exception was configured via the browser settings.",
+      "visual_evidence": "Screenshots should show interaction with the Tor Browser Settings/Preferences GUI to add the exception, rather than directly modifying configuration files via terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The target domain is neverssl.com, a real public website that does not use SSL. The expected evidence file path is /home/ga/Documents/neverssl_evidence.txt. The file content must contain the keyword 'neverssl' (case-insensitive) along with the copied text from the website."
+}

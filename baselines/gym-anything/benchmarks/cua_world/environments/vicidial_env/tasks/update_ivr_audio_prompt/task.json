@@ -1,0 +1,28 @@
+{
+  "id": "update_ivr_audio_prompt@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Upload the audio file holiday_greeting_2026.wav from ~/Documents/ to the Vicidial Audio Store. Update the MAIN_IVR (Main Inbound Menu) Call Menu to use this audio file as its Menu Prompt, entering the filename without the .wav extension.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_ivr_audio_prompt/setup_task.sh",
+    "post_task": "/workspace/tasks/update_ivr_audio_prompt/export_result.sh"
+  },
+  "metadata": {
+    "audio_filename": "holiday_greeting_2026.wav",
+    "audio_prompt_string": "holiday_greeting_2026",
+    "menu_id": "MAIN_IVR",
+    "container_sounds_dir": "/var/lib/asterisk/sounds"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_ivr_audio_prompt"
+    }
+  }
+}

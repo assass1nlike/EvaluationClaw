@@ -1,0 +1,36 @@
+{
+  "id": "global_health_explorer@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a public health researcher. Using the dataset gapminder.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\gapminder.csv, create a Power BI report named Global_Health_Explorer.pbix at C:\\Users\\Docker\\Desktop\\. The report must include a calculated column named Income_Group (categorized as 'High' if gdpPercap >= 20000, 'Medium' if >= 5000 and < 20000, and 'Low' if < 5000) and a DAX measure named Avg_Life_Expectancy calculating the average of the lifeExp column. On a report page renamed 'Global Health', include a Filled Map showing country as location and lifeExp as color saturation, a Scatter Chart showing gdpPercap (X-axis), lifeExp (Y-axis), and pop (Size), and a Table visual displaying country, continent, lifeExp, gdpPercap, and pop. Save the final report to C:\\Users\\Docker\\Desktop\\Global_Health_Explorer.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\global_health_explorer\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\global_health_explorer\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Global_Health_Explorer.pbix",
+    "required_page_name": "Global Health",
+    "required_visuals": [
+      "filledMap",
+      "scatterChart",
+      "tableEx"
+    ],
+    "required_model_strings": [
+      "Income_Group",
+      "Avg_Life_Expectancy"
+    ],
+    "data_url": "https://raw.githubusercontent.com/plotly/datasets/master/gapminderDataFiveYear.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_global_health_explorer"
+    }
+  }
+}

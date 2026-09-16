@@ -1,0 +1,37 @@
+{
+  "id": "setup_cohort_enrollment@1",
+  "version": "1.0",
+  "env_id": "moodle_env@0.1",
+  "description": "You are the LMS administrator at State University. The Engineering department is starting a new cohort of students who need automatic enrollment in their required courses. Create a site-wide cohort named 'Engineering Program Cohort 2024' (ID: 'eng2024') and add the following students: eng_alice, eng_bob, eng_carol, eng_dave, and eng_emma. Configure cohort synchronization for both CS110 (Computer Science Fundamentals) and ENG110 (Introduction to Engineering) so that all members of the 'Engineering Program Cohort 2024' are automatically enrolled in these courses with the Student role. Verify that all five cohort members are successfully enrolled in both courses.\n\nLogin: admin / Admin1234!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_cohort_enrollment/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_cohort_enrollment/export_result.sh"
+  },
+  "metadata": {
+    "cohort_name": "Engineering Program Cohort 2024",
+    "cohort_idnumber": "eng2024",
+    "cohort_members": [
+      "eng_alice",
+      "eng_bob",
+      "eng_carol",
+      "eng_dave",
+      "eng_emma"
+    ],
+    "target_courses": [
+      "CS110",
+      "ENG110"
+    ],
+    "expected_member_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_cohort_enrollment"
+    }
+  }
+}

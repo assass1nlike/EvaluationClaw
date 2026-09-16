@@ -1,0 +1,53 @@
+{
+  "task_id": "openvsp_airfoil_resection@1",
+  "task_completion": [
+    {
+      "id": "open_model",
+      "description": "Open the existing eCRM-001 model in OpenVSP",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application window is visible with the eCRM-001_wing_tail model loaded, showing the aircraft wing and tail geometry in the workspace."
+    },
+    {
+      "id": "open_wing_geometry",
+      "description": "Open the Geometry window for the main Wing component",
+      "points": 10,
+      "visual_evidence": "The Geometry dialog box for the main Wing component is open, with the 'Cross Section' (or 'XSec') tab selected."
+    },
+    {
+      "id": "modify_root_section",
+      "description": "Modify the root cross-section to a Four Series airfoil matching NACA 4415",
+      "points": 30,
+      "visual_evidence": "In the Wing's Cross Section tab for the root section (usually index 0 or 1), the Type is set to 'Four Series' and the parameters are set to Camber: 0.04, Camber Loc: 0.4, and Thickness/Chord (T/C): 0.15."
+    },
+    {
+      "id": "modify_tip_section",
+      "description": "Modify the outermost tip cross-section to a Four Series airfoil matching NACA 2410",
+      "points": 30,
+      "visual_evidence": "In the Wing's Cross Section tab for the outermost tip section, the Type is set to 'Four Series' and the parameters are set to Camber: 0.02, Camber Loc: 0.4, and Thickness/Chord (T/C): 0.10."
+    },
+    {
+      "id": "save_model",
+      "description": "Save the modified model as eCRM001_resectioned.vsp3",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog is visible showing the filename 'eCRM001_resectioned.vsp3' in the /home/ga/Documents/OpenVSP/ directory, or a terminal window confirms the creation of this specific file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the OpenVSP graphical interface to modify the airfoil parameters",
+      "visual_evidence": "Screenshots show the agent clicking through the OpenVSP menus and Geometry dialogs rather than executing a script to bypass the UI."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Agent did not use a text editor to directly modify the XML structure of the .vsp3 file",
+      "visual_evidence": "There should be no evidence of the agent opening the .vsp3 file in a text editor (like nano, vim, or gedit) to manually change the XML tags."
+    },
+    {
+      "id": "genuine_save",
+      "description": "The file was saved through the OpenVSP application",
+      "visual_evidence": "The agent used the File > Save As menu in OpenVSP, rather than just copying and renaming the original file in the terminal without modifying it."
+    }
+  ],
+  "privileged_info_for_vlm": "The root NACA 4415 airfoil requires setting the Four Series parameters to: Camber = 0.04, Camber Loc = 0.4, and Thickness/Chord (T/C) = 0.15. The tip NACA 2410 airfoil requires setting the Four Series parameters to: Camber = 0.02, Camber Loc = 0.4, and Thickness/Chord (T/C) = 0.10. The expected output file is /home/ga/Documents/OpenVSP/eCRM001_resectioned.vsp3."
+}

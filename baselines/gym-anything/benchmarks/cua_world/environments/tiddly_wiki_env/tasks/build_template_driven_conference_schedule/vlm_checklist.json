@@ -1,0 +1,59 @@
+{
+  "task_id": "build_template_driven_conference_schedule@1",
+  "task_completion": [
+    {
+      "id": "create_session_template",
+      "description": "Create a template tiddler named SessionTemplate",
+      "points": 10,
+      "visual_evidence": "Look for a tiddler open in edit or view mode with the exact title 'SessionTemplate'."
+    },
+    {
+      "id": "format_session_template",
+      "description": "Format the SessionTemplate to display title as heading, time, room, speaker fields, and body text",
+      "points": 20,
+      "visual_evidence": "Look at the text content of 'SessionTemplate'. It should contain TiddlyWiki wikitext referencing the fields (e.g., `!! {{!!title}}`, `{{!!time}}`, `{{!!room}}`, `{{!!speaker}}`) and the body text (e.g., `<$transclude/>` or `{{!!text}}`)."
+    },
+    {
+      "id": "tag_target_sessions",
+      "description": "Tag the 4 specific sessions with 'MySchedule'",
+      "points": 20,
+      "visual_evidence": "Look for the tag 'MySchedule' applied to the tiddlers: 'Matrix 2.0', 'The State of Wayland', 'OpenStreetMap in 2024', and 'PostgreSQL 16 Features'. This can be seen in their individual tiddler views, edit modes, or by clicking the 'MySchedule' tag pill to reveal the dropdown list."
+    },
+    {
+      "id": "create_dashboard_tiddler",
+      "description": "Create a dashboard tiddler named 'My Conference Schedule' tagged with 'Dashboard'",
+      "points": 15,
+      "visual_evidence": "Look for a tiddler titled 'My Conference Schedule' that has the tag 'Dashboard' applied to it."
+    },
+    {
+      "id": "dashboard_intro_text",
+      "description": "Include an introductory sentence in the dashboard tiddler",
+      "points": 10,
+      "visual_evidence": "Look at the text content of 'My Conference Schedule'. It should start with a normal text sentence (e.g., 'Here is my schedule for FOSDEM 2024.') before the list of sessions."
+    },
+    {
+      "id": "dashboard_dynamic_list",
+      "description": "List sessions tagged MySchedule, sorted chronologically by time, rendered using SessionTemplate",
+      "points": 25,
+      "visual_evidence": "Look for a TiddlyWiki list widget in the 'My Conference Schedule' tiddler (e.g., `<$list filter=\"[tag[MySchedule]sort[time]]\" template=\"SessionTemplate\"/>`) OR look at the rendered view of the dashboard showing the 4 sessions dynamically transcluded and formatted according to the template."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the TiddlyWiki web GUI to create and edit tiddlers",
+      "visual_evidence": "Look for interaction with the TiddlyWiki interface in a web browser (e.g., clicking the '+' button to create tiddlers, using the text editor, clicking the checkmark to save), rather than terminal commands or API scripts."
+    },
+    {
+      "id": "no_hardcoded_schedule",
+      "description": "The agent used dynamic transclusion/listing rather than hardcoding the schedule",
+      "visual_evidence": "Ensure the 'My Conference Schedule' tiddler uses a filter/list widget to fetch the sessions. It should NOT contain manually typed out details for 'Matrix 2.0', 'The State of Wayland', etc., in its body."
+    },
+    {
+      "id": "genuine_tagging",
+      "description": "The agent applied tags using the TiddlyWiki tag input field",
+      "visual_evidence": "Look for the agent typing 'MySchedule' and 'Dashboard' into the specific tag input box of the tiddler editor and adding them as tag pills, rather than just writing the word 'tag' in the text body."
+    }
+  ],
+  "privileged_info_for_vlm": "Template Title must be exactly 'SessionTemplate'. Dashboard Title must be exactly 'My Conference Schedule'. Target Tag must be exactly 'MySchedule'. Dashboard Tag must be 'Dashboard'. The 'MySchedule' tag must be applied to exactly these 4 sessions: 'Matrix 2.0', 'The State of Wayland', 'OpenStreetMap in 2024', and 'PostgreSQL 16 Features'."
+}

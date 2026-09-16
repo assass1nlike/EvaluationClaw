@@ -1,0 +1,53 @@
+{
+  "task_id": "measure_dark_current_rate@1",
+  "task_completion": [
+    {
+      "id": "master_bias_created",
+      "description": "Verify the Master Bias FITS file was created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing 'ls' or a file explorer displaying 'master_bias.fits' inside '~/AstroImages/dark_current/results/'."
+    },
+    {
+      "id": "master_dark_created",
+      "description": "Verify the Master Dark FITS file was created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing 'ls' or a file explorer displaying 'master_dark.fits' inside '~/AstroImages/dark_current/results/'."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify the dark rate report text file was created.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing 'ls' or a file explorer displaying 'dark_rate_report.txt' inside '~/AstroImages/dark_current/results/'."
+    },
+    {
+      "id": "report_contains_medians",
+      "description": "Verify the report contains the labeled median values for the master frames.",
+      "points": 25,
+      "visual_evidence": "Contents of 'dark_rate_report.txt' (via 'cat', 'less', or a text editor) showing explicit labels and numerical values for 'MASTER_BIAS_MEDIAN' and 'MASTER_DARK_MEDIAN'."
+    },
+    {
+      "id": "report_contains_rate_and_exposure",
+      "description": "Verify the report contains the labeled exposure time and the final calculated dark current rate.",
+      "points": 25,
+      "visual_evidence": "Contents of 'dark_rate_report.txt' showing explicit labels and numerical values for 'EXPOSURE_TIME' and 'DARK_CURRENT_RATE'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fits_processing_evidence",
+      "description": "Verify the agent actually processed the FITS files to compute the medians.",
+      "visual_evidence": "Screenshots showing a Python script (e.g., using astropy.io.fits), an interactive Python session, or an astronomy tool (like IRAF) reading the files in the bias/ and dark/ directories."
+    },
+    {
+      "id": "calculated_not_hallucinated",
+      "description": "Verify the final report values are the result of a calculation, not just hallucinated or hardcoded text.",
+      "visual_evidence": "The agent executes a script or performs math operations (e.g., in Python or a calculator) that outputs the numbers eventually written to the report file, rather than just using 'echo' with arbitrary numbers."
+    },
+    {
+      "id": "used_instructed_gain",
+      "description": "Verify the agent used the instructed gain of 2.0 e-/ADU in its calculation.",
+      "visual_evidence": "The Python script or calculation steps explicitly multiply by 2.0 (as per the formula in the prompt), rather than extracting and using the true gain from the FITS header."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 5 bias frames and 5 dark frames. The expected report path is exactly /home/ga/AstroImages/dark_current/results/dark_rate_report.txt. Note: The dark frames in the dataset actually have mixed exposure times (three 300s, two 70s); accept any reasonable extraction of EXPOSURE_TIME (e.g., 300, 70, or an average) as long as the final math is consistent with the extracted value. The agent MUST use the gain of 2.0 e-/ADU as instructed in the prompt formula, even if the FITS headers indicate a different true gain (1.1)."
+}

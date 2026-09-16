@@ -1,0 +1,31 @@
+{
+  "id": "create_inventory_kit@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In Manager.io (Northwind Traders), create an inventory kit named 'Holiday Gift Basket' with a sale price of 79.99. The kit must include the following components: 2 units of Chai Tea, 1 unit of Extra Virgin Olive Oil, and 3 units of Dark Chocolate Assortment. Login credentials: administrator / (empty password).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_inventory_kit/setup_task.sh",
+    "post_task": "/workspace/tasks/create_inventory_kit/export_result.sh"
+  },
+  "metadata": {
+    "target_kit_name": "Holiday Gift Basket",
+    "target_price": 79.99,
+    "components": {
+      "Chai Tea": 2,
+      "Extra Virgin Olive Oil": 1,
+      "Dark Chocolate Assortment": 3
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_inventory_kit"
+    }
+  }
+}

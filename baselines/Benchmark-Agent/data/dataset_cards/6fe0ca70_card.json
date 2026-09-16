@@ -1,0 +1,95 @@
+{
+  "dataset_id": "6fe0ca70",
+  "name": "Openset Environment-Based Next-Action Description",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multimodal dataset for next-action prediction in household environments, where models receive a sequence of environment images and a textual goal/step history, and must output the immediate action description.",
+  "card_text": "This dataset contains 200 samples of vision-and-language tasks where an embodied agent must decide its immediate next action. Each sample pairs a sequence of egocentric images from a household environment with a textual prompt that states the main goal, previous steps, and current step. The model must output a short action description, such as 'Put the soap in the trash bin.' The data is open-set and focuses on interactive capability, requiring integration of visual observations and step history. It is suitable for evaluating multimodal, instruction-following, and sequential decision-making abilities.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "multi_hop_response"
+  ],
+  "domain": "embodied household environments",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "Text prompt that states the agent's main goal and step-by-step history, including placeholders for associated environment images. It provides the task context for deciding the next action.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The instruction embedded in the prompt, especially the 'Current Step:' cue, which asks the model to evaluate the current environment and choose the immediate next action.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "List of image filenames showing the agent's egocentric view of the environment at each step. They correspond to the <ImageHere> placeholders in the prompt and depict scenes and objects relevant to the goal.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Target text describing the immediate next action the agent should take, given the goal, past steps, and current visual observation.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of image filenames and a single text prompt. The prompt specifies the main goal, step-by-step history with embedded image placeholders, and a 'Current Step:' cue; the images provide visual observations for those steps. The model outputs a short text instruction describing the next action. No dialog, options, or rationale fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Environment-BasedNext-actionDescription/openset_environment-based_next-action_description.json",
+    "existing_tags": {
+      "task": "Environment-Based Next-action Description",
+      "type": "image comprehension",
+      "skill": "Multimodal Dialogue",
+      "domain": "General",
+      "general_capability": [
+        "Interactive Capability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

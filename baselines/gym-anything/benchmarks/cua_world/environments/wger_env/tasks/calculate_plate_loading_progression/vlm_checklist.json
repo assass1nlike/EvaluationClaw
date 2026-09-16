@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_plate_loading_progression@1",
+  "task_completion": [
+    {
+      "id": "access_workout_history",
+      "description": "Agent accesses the admin user's workout history to view Squat data.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a database viewer, spreadsheet, fitness app, or text file containing the admin's workout records, specifically showing 'Squat' entries."
+    },
+    {
+      "id": "identify_heaviest_squat",
+      "description": "Agent identifies the maximum Squat weight from the history.",
+      "points": 20,
+      "visual_evidence": "Visual evidence of the agent highlighting, copying, or noting down the highest weight value associated with the Squat exercise."
+    },
+    {
+      "id": "perform_plate_calculation",
+      "description": "Agent calculates the target weight and the required plates for one side of the barbell.",
+      "points": 30,
+      "visual_evidence": "A calculator app, terminal, or text editor scratchpad showing the math: adding 2.5 to the max squat, subtracting 20 (barbell weight), dividing by 2, and determining the optimal combination of allowed plates."
+    },
+    {
+      "id": "create_output_file",
+      "description": "Agent creates or opens the target output file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command explicitly creating or editing 'next_squat_plates.txt' in the home directory (~/ or /home/ga/)."
+    },
+    {
+      "id": "write_descending_plates",
+      "description": "Agent saves the calculated plates in descending order, one per line.",
+      "points": 20,
+      "visual_evidence": "The final text file clearly showing the correct plate weights (e.g., 25, 20, 5, etc.) listed one per line, strictly in descending order."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_history_access",
+      "description": "Agent actually retrieved the workout history from the system rather than hallucinating a starting weight.",
+      "visual_evidence": "Screenshots must show the agent opening and reading the actual workout history data source before performing any calculations."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent performed the necessary calculations instead of pasting a pre-computed answer.",
+      "visual_evidence": "Presence of intermediate calculation steps (calculator, scratchpad, or terminal script) rather than instantly creating the output file with the final plates."
+    },
+    {
+      "id": "correct_file_location",
+      "description": "Agent saved the file to the correct specified path.",
+      "visual_evidence": "The text editor save dialog or terminal command must clearly show the file being saved to '/home/ga/next_squat_plates.txt' or '~/next_squat_plates.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The admin's heaviest Squat weight is randomly generated between 105.0kg and 160.0kg. The target weight must be exactly 2.5 kg higher than this maximum historical weight. The barbell weighs 20.0 kg. The weight to be loaded on ONE side is calculated as: (Target Weight - 20.0) / 2. The allowed plates are 25.0, 20.0, 15.0, 10.0, 5.0, 2.5, and 1.25 kg. The output must be saved to /home/ga/next_squat_plates.txt with plates listed in descending order, one per line."
+}

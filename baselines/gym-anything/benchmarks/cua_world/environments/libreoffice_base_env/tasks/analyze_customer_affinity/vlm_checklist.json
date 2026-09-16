@@ -1,0 +1,59 @@
+{
+  "task_id": "analyze_customer_affinity@1",
+  "task_completion": [
+    {
+      "id": "query_columns_defined",
+      "description": "Define the required columns in the query",
+      "points": 15,
+      "visual_evidence": "The query editor (SQL view or Design view) shows the selection of 'CustomerName' (concatenating FirstName and LastName with a space), 'ArtistName', and 'AlbumCount' (using COUNT for distinct albums)."
+    },
+    {
+      "id": "query_conditions_defined",
+      "description": "Define the filtering conditions in the query",
+      "points": 20,
+      "visual_evidence": "The query editor shows conditions to exclude the artist 'Various Artists' and a HAVING clause or filter ensuring the album count is >= 3."
+    },
+    {
+      "id": "query_sorting_defined",
+      "description": "Define the sorting order in the query",
+      "points": 15,
+      "visual_evidence": "The query editor shows sorting by 'AlbumCount' in descending order, followed by 'CustomerName' in ascending order."
+    },
+    {
+      "id": "query_executed_successfully",
+      "description": "Execute the query to verify it identifies the correct customers",
+      "points": 15,
+      "visual_evidence": "A data view window shows the executed query results with the correct columns. The 'AlbumCount' values should be 3 or greater, and the rows should be sorted by AlbumCount descending."
+    },
+    {
+      "id": "query_saved_with_name",
+      "description": "Save the query as 'DeepCatalogCustomers'",
+      "points": 20,
+      "visual_evidence": "The main LibreOffice Base window shows a query named 'DeepCatalogCustomers' listed in the Queries section."
+    },
+    {
+      "id": "database_saved",
+      "description": "Save the database file",
+      "points": 15,
+      "visual_evidence": "The agent saves the main database file (e.g., by clicking the Save icon in the main LibreOffice Base window, or the Save icon is disabled indicating no unsaved changes)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_for_query",
+      "description": "The agent used the LibreOffice Base GUI to create the query.",
+      "visual_evidence": "Screenshots should show interaction with the LibreOffice Base Query Design or SQL View windows, rather than terminal commands."
+    },
+    {
+      "id": "no_sqlite_cli",
+      "description": "The agent did not use the sqlite3 command-line interface to bypass the GUI.",
+      "visual_evidence": "Terminal windows should not show the use of 'sqlite3' to execute SQL commands or create views directly in the database file."
+    },
+    {
+      "id": "genuine_results_display",
+      "description": "The query results are displayed genuinely within the application.",
+      "visual_evidence": "The results should appear in the standard LibreOffice Base query result grid, not as a text file or terminal output."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a query in LibreOffice Base on the Chinook database. The query must be named 'DeepCatalogCustomers'. It must exclude 'Various Artists' (which has ArtistId 21) and filter for customers with >= 3 distinct albums by the same artist. The ground truth query returns exactly 78 rows. The results should be ordered by AlbumCount descending, then CustomerName ascending."
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "legacy_scenario_migration@1",
+  "task_completion": [
+    {
+      "id": "target_directories_created",
+      "description": "Verify that the new scenario directories with the 'Migrated - ' prefix were created in the target location.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output of `ls /opt/bridgecommand/Scenarios/` or a file manager showing directories named 'Migrated - Scenario_A', 'Migrated - Scenario_B', and 'Migrated - Scenario_C'."
+    },
+    {
+      "id": "environment_ini_copied",
+      "description": "Verify that 'environment.ini' was copied unchanged to the migrated scenario directories.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands like `ls`, `tree`, or a file manager showing 'environment.ini' present inside the newly created 'Migrated - Scenario_*' directories."
+    },
+    {
+      "id": "scenario_a_updated",
+      "description": "Verify that Scenario A's coordinates and vessel models were correctly updated.",
+      "points": 25,
+      "visual_evidence": "Look for the contents of Scenario A's INI files (via `cat`, `less`, or an editor) showing ownship InitialLat=50.8015, InitialLong=-1.1022, othership InitialLat=50.8115, InitialLong=-1.1222, and Type=\"Tanker_A\"."
+    },
+    {
+      "id": "scenario_b_updated",
+      "description": "Verify that Scenario B's coordinates and vessel models were correctly updated.",
+      "points": 25,
+      "visual_evidence": "Look for the contents of Scenario B's INI files showing ownship InitialLat=50.5015, InitialLong=-0.5022, othership InitialLat=50.5115, InitialLong=-0.5122, and Type=\"Ferry_Pax_1\"."
+    },
+    {
+      "id": "scenario_c_updated",
+      "description": "Verify that Scenario C's coordinates and vessel models were correctly updated.",
+      "points": 25,
+      "visual_evidence": "Look for the contents of Scenario C's INI files showing ownship InitialLat=50.2015, InitialLong=-1.5022, othership InitialLat=50.2065, InitialLong=-1.5072, and Type=\"Buoy_Cardinal_N\"."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Ensure the agent actually created and modified the files on the file system.",
+      "visual_evidence": "Look for evidence of actual file creation and saving, such as successful execution of a Python script, `cp`/`sed` commands, or saving files in a text editor, followed by verification commands like `ls` or `cat`."
+    },
+    {
+      "id": "read_spec_file",
+      "description": "Verify the agent read the migration specification file rather than hallucinating the values.",
+      "visual_evidence": "Look for the agent opening or `cat`ing '/home/ga/Documents/migration_spec.txt' to extract the shift values and model mappings before performing the migration."
+    }
+  ],
+  "privileged_info_for_vlm": "Coordinate shift: Latitude +0.0015, Longitude -0.0022.\nModel mappings: Old_Tanker -> Tanker_A, Old_Ferry -> Ferry_Pax_1, Old_Buoy -> Buoy_Cardinal_N.\nScenario A expected: ownship Lat 50.8015, Long -1.1022; othership Lat 50.8115, Long -1.1222, Type=\"Tanker_A\".\nScenario B expected: ownship Lat 50.5015, Long -0.5022; othership Lat 50.5115, Long -0.5122, Type=\"Ferry_Pax_1\".\nScenario C expected: ownship Lat 50.2015, Long -1.5022; othership Lat 50.2065, Long -1.5072, Type=\"Buoy_Cardinal_N\".\nTarget directory: /opt/bridgecommand/Scenarios/ with directories prefixed 'Migrated - '."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "blue_green_migration_tracking@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created_and_named",
+      "description": "Verify the dashboard is created and named exactly 'Blue-Green Migration'",
+      "points": 10,
+      "visual_evidence": "The Graphite web UI shows a dashboard with the title 'Blue-Green Migration' clearly visible at the top."
+    },
+    {
+      "id": "graph_blue_fleet_aggregate_load",
+      "description": "Verify the first graph is titled 'Blue Fleet Aggregate Load' and uses sumSeries() with the correct alias",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Blue Fleet Aggregate Load' is present. The legend displays the alias 'Blue Total'. If the query editor is visible, it should show the use of sumSeries() on servers.ec2_instance_1.cpu.utilization and servers.ec2_instance_2.cpu.utilization."
+    },
+    {
+      "id": "graph_green_fleet_load",
+      "description": "Verify the second graph is titled 'Green Fleet Load' and targets instance 3 with the correct alias",
+      "points": 20,
+      "visual_evidence": "A graph titled 'Green Fleet Load' is present. The legend displays the alias 'Green Total'. If the query editor is visible, it should show the target servers.ec2_instance_3.cpu.cloudwatch_utilization."
+    },
+    {
+      "id": "graph_migration_shift_percentage",
+      "description": "Verify the third graph is titled 'Migration Shift Percentage' and uses asPercent()",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Migration Shift Percentage' is present. The query editor or legend shows the asPercent() function being used to calculate the Green fleet's utilization against the total fleet's utilization."
+    },
+    {
+      "id": "graph_migration_differential",
+      "description": "Verify the fourth graph is titled 'Migration Differential' and uses diffSeries()",
+      "points": 25,
+      "visual_evidence": "A graph titled 'Migration Differential' is present. The query editor or legend shows the diffSeries() function being used to subtract the Green fleet's metric from the Blue fleet's aggregate metric."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent used the Graphite web interface to create the dashboard and graphs",
+      "visual_evidence": "Screenshots show interaction with the Graphite web UI (e.g., clicking through menus, adding graphs, using the Composer), rather than just executing terminal commands to generate the dashboard."
+    },
+    {
+      "id": "genuine_metrics_displayed",
+      "description": "The graphs display actual data lines, indicating real metrics are being queried",
+      "visual_evidence": "The graphs in the dashboard show plotted lines or data curves, not empty grids, 'No Data' messages, or error screens."
+    },
+    {
+      "id": "no_direct_json_editing",
+      "description": "The agent did not bypass the UI by directly writing the dashboard JSON file",
+      "visual_evidence": "Screenshots should not show a text editor (like nano, vim, or gedit) being used to manually write or paste the dashboard configuration JSON directly into the system."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Blue-Green Migration'. The four expected graph titles are exactly: 'Blue Fleet Aggregate Load', 'Green Fleet Load', 'Migration Shift Percentage', and 'Migration Differential'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "lumbar_lordosis_angle@1",
+  "task_completion": [
+    {
+      "id": "l1_landmark_identified",
+      "description": "Identify the L1 superior endplate on the abdominal CT scan.",
+      "points": 15,
+      "visual_evidence": "Medical imaging software (e.g., 3D Slicer) shows a markup, fiducial, or measurement point placed on the superior endplate of the L1 vertebra in the sagittal view."
+    },
+    {
+      "id": "s1_landmark_identified",
+      "description": "Identify the S1 superior endplate on the abdominal CT scan.",
+      "points": 15,
+      "visual_evidence": "Medical imaging software shows a markup, fiducial, or measurement point placed on the superior endplate of the S1 vertebra in the sagittal view."
+    },
+    {
+      "id": "angle_measurement_performed",
+      "description": "Measure the lumbar lordosis angle between the L1 and S1 superior endplates.",
+      "points": 35,
+      "visual_evidence": "An angle measurement tool is visible in the imaging software, drawing lines along the L1 and S1 endplates and displaying an angle value (should be between 40.0 and 56.0 degrees)."
+    },
+    {
+      "id": "markups_file_saved",
+      "description": "Save the measurement markups to ~/Documents/SlicerData/AMOS/lumbar_lordosis_markups.mrk.json.",
+      "points": 10,
+      "visual_evidence": "A save dialog in the imaging software, a file explorer, or a terminal command showing the creation or existence of 'lumbar_lordosis_markups.mrk.json' in the specified directory."
+    },
+    {
+      "id": "report_file_created_with_fields",
+      "description": "Create the report JSON file with all required fields.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing 'lumbar_lordosis_report.json' containing the exact keys: 'angle_degrees', 'l1_identified', 's1_identified', 'classification', and 'measurement_method'."
+    },
+    {
+      "id": "report_classification_and_angle_correct",
+      "description": "Record the correct angle and classification in the report.",
+      "points": 15,
+      "visual_evidence": "The contents of 'lumbar_lordosis_report.json' show an 'angle_degrees' value between 40.0 and 56.0, and the values reflect the measurements taken in the software."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_for_measurement",
+      "description": "The agent used the medical imaging software GUI to perform the measurement rather than guessing or hardcoding values.",
+      "visual_evidence": "Screenshots show the agent actively interacting with the 3D Slicer interface, loading the CT scan, adjusting views, and placing measurement markups."
+    },
+    {
+      "id": "genuine_markup_export",
+      "description": "The agent exported the markups from the software rather than manually typing a fake markup file.",
+      "visual_evidence": "The save dialog in the imaging software is used to export the .mrk.json file, or the file contents show complex, software-generated formatting rather than simple manually typed JSON."
+    },
+    {
+      "id": "consistent_reporting",
+      "description": "The angle reported in the JSON file matches the angle measured in the imaging software.",
+      "visual_evidence": "The 'angle_degrees' value in the report JSON exactly or closely matches the angle displayed by the measurement tool in the 3D Slicer screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The ground truth lumbar lordosis angle is exactly 48.0 degrees. The acceptable error margin is 8.0 degrees, meaning any reported angle between 40.0 and 56.0 degrees is considered correct. The Z-axis tolerance for L1 and S1 vertebral positions is 25.0 mm."
+}

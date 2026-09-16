@@ -1,0 +1,53 @@
+{
+  "task_id": "cacti_style_legacy_migration@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create a Graphite dashboard named 'NOC Legacy View'",
+      "points": 10,
+      "visual_evidence": "Look for the dashboard title 'NOC Legacy View' at the top of the Graphite web interface."
+    },
+    {
+      "id": "cpu_graph_cacti_style",
+      "description": "Add a graph titled 'CPU Utilization (Cacti)' using the cactiStyle function on the specified wildcard metric",
+      "points": 25,
+      "visual_evidence": "Look for a graph panel titled 'CPU Utilization (Cacti)'. The query or legend should show 'cactiStyle(servers.ec2_instance_*.cpu.*)' and the graph should display Cacti-like formatting (e.g., specific legend alignment, current/max/min values)."
+    },
+    {
+      "id": "traffic_io_graph_styled",
+      "description": "Add a graph titled 'Traffic & I/O (Styled)' with specific line colors for network and disk metrics",
+      "points": 25,
+      "visual_evidence": "Look for a graph panel titled 'Traffic & I/O (Styled)'. The graph lines and legend must show 'servers.ec2_instance_1.network.bytes_in' colored green and 'servers.ec2_instance_1.disk.write_bytes' colored blue."
+    },
+    {
+      "id": "temperature_graph_baseline",
+      "description": "Add a graph titled 'Temperature with Baseline' showing machine temperature with lineWidth 3 and an average aggregateLine",
+      "points": 25,
+      "visual_evidence": "Look for a graph panel titled 'Temperature with Baseline'. The graph should show 'servers.datacenter.machine_temperature' with a noticeably thick line (lineWidth 3) and a horizontal straight line representing the average baseline (aggregateLine)."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the completed dashboard",
+      "points": 15,
+      "visual_evidence": "Look for a 'Dashboard Saved' notification, a save confirmation dialog, or the dashboard name 'NOC Legacy View' appearing in the URL bar or saved dashboards list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_web_ui",
+      "description": "The agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "The screenshots should show the Graphite web UI (browser window) being interacted with, rather than just terminal commands or API scripts."
+    },
+    {
+      "id": "actual_graph_rendering",
+      "description": "The graphs are actually rendered with data",
+      "visual_evidence": "The graph panels should display actual plotted lines representing the time-series data, not just empty panels or text descriptions."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not simply type the expected answers into a text editor",
+      "visual_evidence": "The expected dashboard name and graph titles must appear within the Graphite UI components (headers, panel titles), not in a separate text file or notepad."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'NOC Legacy View'. The three expected graph titles are exactly 'CPU Utilization (Cacti)', 'Traffic & I/O (Styled)', and 'Temperature with Baseline'. The task uses real-world time-series data from the Numenta Anomaly Benchmark (NAB), so the graphs should show realistic fluctuations for CPU, disk, network, and temperature metrics."
+}

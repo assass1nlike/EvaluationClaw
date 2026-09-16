@@ -1,0 +1,59 @@
+{
+  "task_id": "expand_encrypted_volume@1",
+  "task_completion": [
+    {
+      "id": "volume_expanded",
+      "description": "Verify the encrypted volume was expanded to approximately 50MB.",
+      "points": 20,
+      "visual_evidence": "Look for a file properties window, terminal output (e.g., 'ls -lh /home/ga/Volumes/project_archive.hc'), or VeraCrypt Volume Expander success screen showing the file size is now around 50MB."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Verify the expanded volume was mounted.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt GUI showing the volume in a mounted slot, or terminal output (like 'df -h' or 'mount') showing the VeraCrypt volume is actively mounted to a directory."
+    },
+    {
+      "id": "original_files_intact",
+      "description": "Verify the original files inside the volume remain intact after expansion.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager window or terminal 'ls' output of the mounted volume directory showing the presence of 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'."
+    },
+    {
+      "id": "marker_file_created",
+      "description": "Verify the creation of 'expansion_verified.txt' inside the mounted volume with the correct text.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor, 'cat', or 'echo' command showing a file named 'expansion_verified.txt' located inside the mounted volume directory, containing the exact text 'Volume expansion successful'."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify the creation of the expansion report at the specified path.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the file '/home/ga/Documents/expansion_report.txt'. The contents must list the new volume size (around 50MB) and the available free space."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Verify the volume was dismounted at the end of the task.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt GUI showing no mounted volumes, or a terminal command like 'veracrypt -d' being executed successfully in the final steps."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_expansion_performed",
+      "description": "Verify the agent used proper VeraCrypt expansion tools rather than artificially inflating the file.",
+      "visual_evidence": "Look for interaction with the VeraCrypt Volume Expander (GUI) or equivalent legitimate command-line tools, rather than commands like 'truncate' or 'dd' which would corrupt the container."
+    },
+    {
+      "id": "genuine_mount_location",
+      "description": "Verify the agent interacted with the actual mounted volume.",
+      "visual_evidence": "Check that the marker file 'expansion_verified.txt' is created inside a legitimate mount point (e.g., '/media/veracrypt1' or a custom mount directory) and not just a regular local folder."
+    },
+    {
+      "id": "authentic_report_data",
+      "description": "Verify the report contains genuine system data.",
+      "visual_evidence": "Look for the agent running commands like 'df -h' to check the actual free space of the mounted volume before writing the report, ensuring the values aren't just guessed or fabricated."
+    }
+  ],
+  "privileged_info_for_vlm": "The target volume is '/home/ga/Volumes/project_archive.hc'. The password is 'ArchivePass2024'. The target size is 50MB (acceptable range 45MB-55MB). The original files that must remain intact are: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'. The marker file must be named 'expansion_verified.txt' and contain 'Volume expansion successful'. The final report must be at '/home/ga/Documents/expansion_report.txt'."
+}

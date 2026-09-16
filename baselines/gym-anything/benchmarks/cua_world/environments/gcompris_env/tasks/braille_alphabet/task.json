@@ -1,0 +1,35 @@
+{
+  "id": "braille_alphabet@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Learn the Braille alphabet using GCompris. Successfully complete at least 3 different letters in the 'Braille Alphabets' activity located in the 'Discovery' category. Once finished, return to the GCompris main menu.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/braille_alphabet/setup_task.sh",
+    "post_task": "/workspace/tasks/braille_alphabet/export_result.sh"
+  },
+  "metadata": {
+    "activity_name": "braille_alphabets",
+    "category_name": "Discovery",
+    "min_letters_to_complete": 3,
+    "scoring": {
+      "discovery_reached": 15,
+      "activity_launched": 20,
+      "first_letter_success": 20,
+      "three_letters_success": 30,
+      "progress_saved": 10,
+      "clean_exit": 5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_braille_alphabet"
+    }
+  }
+}

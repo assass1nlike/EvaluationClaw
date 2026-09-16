@@ -1,0 +1,53 @@
+{
+  "task_id": "hospitality_iptv_streaming_setup@1",
+  "task_completion": [
+    {
+      "id": "promo_script_content",
+      "description": "Verify the promo stream bash script contains the correct VLC command and parameters.",
+      "points": 30,
+      "visual_evidence": "Look for terminal output (via cat, nano, vim, or echo) showing the contents of /home/ga/Documents/start_promo.sh. It must include a VLC command (e.g., 'vlc', 'cvlc') targeting '/home/ga/Videos/resort_promo_master.mp4'. It must include looping ('--loop' or '-L') and a stream output string specifying: vcodec=h264, vb=2000 (or similar bitrate), width=1280, height=720, mux=ts, and an HTTP destination on port 8080 with path /promo (e.g., 'dst=:8080/promo')."
+    },
+    {
+      "id": "ambient_script_content",
+      "description": "Verify the ambient audio stream bash script contains the correct VLC command and parameters.",
+      "points": 30,
+      "visual_evidence": "Look for terminal output showing the contents of /home/ga/Documents/start_ambient.sh. It must include a VLC command targeting '/home/ga/Music/lobby_ambient.wav'. It must include looping ('--loop' or '-L') and a stream output string specifying: acodec=mp3, ab=192 (or similar bitrate), and an HTTP destination on port 8081 with path /ambient (e.g., 'dst=:8081/ambient')."
+    },
+    {
+      "id": "scripts_made_executable",
+      "description": "Verify that both bash scripts were made executable.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'chmod +x /home/ga/Documents/start_promo.sh /home/ga/Documents/start_ambient.sh' or an 'ls -l' output showing the 'x' (executable) permission flag for both script files."
+    },
+    {
+      "id": "promo_stream_active",
+      "description": "Verify the promo stream was launched and remains active.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window actively running the promo script (e.g., './start_promo.sh'), the command running in the background (with '&'), or process list output (ps, top, htop) showing the VLC promo stream command currently executing."
+    },
+    {
+      "id": "ambient_stream_active",
+      "description": "Verify the ambient stream was launched and remains active.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window actively running the ambient script (e.g., './start_ambient.sh'), the command running in the background (with '&'), or process list output showing the VLC ambient stream command currently executing."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_vlc_usage",
+      "description": "Ensure the agent used VLC Media Player as requested, rather than alternative streaming software.",
+      "visual_evidence": "Check that the commands inside the scripts and the running processes explicitly invoke 'vlc', 'cvlc', or 'nvlc'. The agent should not use 'ffmpeg' or mock python scripts to bypass the VLC requirement."
+    },
+    {
+      "id": "streams_actually_running",
+      "description": "Ensure the agent actually executed the streams and didn't just write the scripts.",
+      "visual_evidence": "Look for evidence of execution, such as terminal tabs left open with the running streams, background job indicators '[1]+ Running', or network checks (like 'netstat' or 'ss') showing ports 8080 and 8081 are actively listening."
+    },
+    {
+      "id": "correct_source_files",
+      "description": "Ensure the agent used the exact source files provided in the instructions.",
+      "visual_evidence": "Verify that the file paths in the scripts are exactly '/home/ga/Videos/resort_promo_master.mp4' and '/home/ga/Music/lobby_ambient.wav', and not placeholder names or newly downloaded files."
+    }
+  ],
+  "privileged_info_for_vlm": "Promo video source: /home/ga/Videos/resort_promo_master.mp4. Ambient audio source: /home/ga/Music/lobby_ambient.wav. Promo stream must be on port 8080 with H.264 codec, 1280x720 resolution. Ambient stream must be on port 8081 with MP3 codec."
+}

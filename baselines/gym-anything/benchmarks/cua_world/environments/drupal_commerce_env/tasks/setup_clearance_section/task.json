@@ -1,0 +1,33 @@
+{
+  "id": "setup_clearance_section@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a 'Clearance' section for the store. Add a boolean field labeled 'Clearance Item' (machine name: field_clearance) to the Default Product type and set this flag to True for the 'Sony WH-1000XM5 Wireless Headphones' and 'Logitech MX Master 3S' products. Create a View page at path '/clearance' that filters for products with this flag enabled and add a 'Clearance' menu link to the Main navigation.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_clearance_section/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_clearance_section/export_result.sh"
+  },
+  "metadata": {
+    "expected_field_name": "field_clearance",
+    "expected_path": "/clearance",
+    "target_products": [
+      "Sony WH-1000XM5 Wireless Headphones",
+      "Logitech MX Master 3S"
+    ],
+    "excluded_products": [
+      "Apple AirPods Pro"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_clearance_section"
+    }
+  }
+}

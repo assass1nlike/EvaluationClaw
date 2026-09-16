@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_proxy@1",
+  "task_completion": [
+    {
+      "id": "artifactory_accessed",
+      "description": "Verify the agent accessed the JFrog Artifactory web interface.",
+      "points": 10,
+      "visual_evidence": "Look for the JFrog Artifactory UI loaded in a web browser, typically at http://localhost:8082."
+    },
+    {
+      "id": "proxy_settings_opened",
+      "description": "Verify the agent navigated to the Proxies configuration page.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Proxies' settings page within the Administration module (often represented by a gear icon)."
+    },
+    {
+      "id": "proxy_key_entered",
+      "description": "Verify the Proxy Key is correctly named 'corporate-proxy'.",
+      "points": 15,
+      "visual_evidence": "Look for the string 'corporate-proxy' entered into the 'Proxy Key' field on the new proxy form, or displayed in the saved proxies list."
+    },
+    {
+      "id": "proxy_host_port_entered",
+      "description": "Verify the Host and Port are correctly configured.",
+      "points": 25,
+      "visual_evidence": "Look for 'proxy.acme-corp.internal' in the Host field and '8080' in the Port field of the proxy configuration form."
+    },
+    {
+      "id": "proxy_credentials_entered",
+      "description": "Verify the proxy username is correctly entered.",
+      "points": 20,
+      "visual_evidence": "Look for 'proxyuser' entered in the Username field. The password field should also appear filled (usually masked with dots/asterisks)."
+    },
+    {
+      "id": "proxy_set_default",
+      "description": "Verify the proxy is enabled as the system default.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Default Proxy' checkbox being checked in the configuration form, or a 'Default' badge/indicator next to 'corporate-proxy' in the proxies list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Artifactory web GUI to configure the proxy.",
+      "visual_evidence": "Screenshots should show interaction with the web browser and Artifactory UI, rather than just terminal windows executing curl or API commands."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent interacted with the actual JFrog Artifactory application.",
+      "visual_evidence": "The interface should be the genuine JFrog Artifactory web application, not a text editor, a mock HTML page, or notes app."
+    },
+    {
+      "id": "no_copy_paste_shortcuts",
+      "description": "Verify the agent did not simply type the expected answers into a terminal or text file to bypass the task.",
+      "visual_evidence": "The proxy details must be entered into the actual input fields of the Artifactory proxy configuration form."
+    }
+  ],
+  "privileged_info_for_vlm": "The proxy must be configured in JFrog Artifactory (http://localhost:8082) with the following exact values: Proxy Key: 'corporate-proxy', Host: 'proxy.acme-corp.internal', Port: '8080', Username: 'proxyuser'. The proxy must be explicitly set as the default proxy (is_default: true)."
+}

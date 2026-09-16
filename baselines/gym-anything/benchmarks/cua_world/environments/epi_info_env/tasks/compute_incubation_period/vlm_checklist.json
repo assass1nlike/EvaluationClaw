@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_incubation_period@1",
+  "task_completion": [
+    {
+      "id": "load_data",
+      "description": "Open Epi Info 7 Classic Analysis and load the 'CaseData' table from the 'StigenOutbreak' project.",
+      "points": 10,
+      "visual_evidence": "The Epi Info 7 Classic Analysis window is visible, and the 'Data Source' or command log shows that 'CaseData' from 'StigenOutbreak' has been read/loaded."
+    },
+    {
+      "id": "filter_cases",
+      "description": "Filter the dataset to include only confirmed and probable cases (CaseStatus <> 'Not a case').",
+      "points": 15,
+      "visual_evidence": "The command log or selection window shows a SELECT command or active filter applying the condition 'CaseStatus <> \"Not a case\"' or similar logic."
+    },
+    {
+      "id": "calculate_interval",
+      "description": "Calculate the time interval in hours between 'MealDateTime' and 'OnsetDateTime'.",
+      "points": 20,
+      "visual_evidence": "The command log shows DEFINE and ASSIGN commands (or similar variable creation steps) calculating the difference between MealDateTime and OnsetDateTime in hours."
+    },
+    {
+      "id": "analyze_distribution",
+      "description": "Analyze the distribution of the calculated incubation period to find the required statistics.",
+      "points": 20,
+      "visual_evidence": "The output window shows the results of a MEANS command (or similar statistical summary) on the newly calculated incubation period variable, displaying count, mean, median, min, and max."
+    },
+    {
+      "id": "save_results_file",
+      "description": "Save a results file named incubation_results.txt to the specified directory.",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., Notepad) or terminal shows the creation/saving of a file specifically at C:\\Users\\Docker\\Documents\\EpiInfoData\\StigenOutbreak\\incubation_results.txt."
+    },
+    {
+      "id": "results_content",
+      "description": "The results file contains all required statistics and identifies the likely pathogen.",
+      "points": 20,
+      "visual_evidence": "The contents of incubation_results.txt are visible and explicitly list the number of cases analyzed, median, mean, minimum, maximum, and the pathogen name (Norovirus)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_gui",
+      "description": "Verify the agent used the Epi Info 7 Classic Analysis application to perform the data manipulation and analysis.",
+      "visual_evidence": "Screenshots must show the Epi Info 7 Classic Analysis GUI being interacted with, rather than the agent using Python scripts, external tools, or guessing the answers."
+    },
+    {
+      "id": "genuine_analysis",
+      "description": "Verify the agent derived the statistics from the software output rather than hallucinating or hardcoding the expected values.",
+      "visual_evidence": "The statistical values (mean, median, etc.) written to the text file should match the output visible in the Epi Info 7 analysis window in previous screenshots."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the agent actually created the text file at the specified path.",
+      "visual_evidence": "Look for a 'Save As' dialog, a text editor window with the correct file path in the title bar, or a terminal command confirming the file was written to C:\\Users\\Docker\\Documents\\EpiInfoData\\StigenOutbreak\\."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct pathogen is Norovirus. The ground truth median incubation period is approximately 33.5 hours (acceptable range is 29.0 to 48.0 hours). Verify that the final results file identifies Norovirus and reports a median within this expected range."
+}

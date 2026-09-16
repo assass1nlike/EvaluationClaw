@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_asset_inventory_scan@1",
+  "task_completion": [
+    {
+      "id": "configure_syscollector_interval",
+      "description": "Configure the Wazuh Syscollector module scan interval to 3 minutes in ossec.conf.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor (like nano or vim) or a command (like sed) modifying the ossec.conf file, specifically setting the <interval> tag within the <syscollector> block to '3m' or '180s'."
+    },
+    {
+      "id": "install_socat",
+      "description": "Install the socat utility on the manager system.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a package manager command such as 'sudo apt-get install socat' or 'apt install socat' executing and completing successfully."
+    },
+    {
+      "id": "apply_configuration",
+      "description": "Ensure the Wazuh manager configuration is applied.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command to restart the Wazuh manager service, such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart'."
+    },
+    {
+      "id": "query_wazuh_api",
+      "description": "Query the Wazuh API for the package inventory of agent 000 to find the socat entry.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a curl command or a script making an HTTPS request to 'https://localhost:55000' using the provided credentials (wazuh-wui), targeting the syscollector packages endpoint for agent '000' and filtering/searching for 'socat'."
+    },
+    {
+      "id": "save_json_response",
+      "description": "Save the raw JSON response for the socat package to /home/ga/socat_inventory.json.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the output of the API query being redirected (e.g., using '>') to '/home/ga/socat_inventory.json', or a file editor/cat command showing the JSON response saved at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "Verify the agent actually interacted with the Wazuh API rather than mocking the output.",
+      "visual_evidence": "Look for actual curl commands or script executions connecting to port 55000. The agent should not just use 'echo' to write a manually constructed JSON string into the output file."
+    },
+    {
+      "id": "genuine_ossec_conf_edit",
+      "description": "Verify the agent edited the real ossec.conf file.",
+      "visual_evidence": "The file being edited must be the actual Wazuh configuration file (typically /var/ossec/etc/ossec.conf), not a dummy file created in the user's home directory."
+    },
+    {
+      "id": "authentic_json_format",
+      "description": "Verify the saved JSON looks like a genuine Wazuh API response.",
+      "visual_evidence": "The contents of /home/ga/socat_inventory.json should contain standard Wazuh API response wrappers (e.g., 'data', 'affected_items') and not just a plain text string or a manually typed fake payload."
+    }
+  ],
+  "privileged_info_for_vlm": "Target package to install and query: 'socat'. Target Syscollector interval: '3m' or '180s' in ossec.conf. Output file for the API response: '/home/ga/socat_inventory.json'. The API query must target agent '000'."
+}

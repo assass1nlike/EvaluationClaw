@@ -1,0 +1,35 @@
+{
+  "id": "fix_corrupted_feed_data@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "You are a building energy manager using Emoncms to monitor a 3 kW rooftop solar PV system. The 'solar_gen' feed contains 5 corrupted data points with readings of approximately 50,000 W. Identify these points and replace them with valid solar generation values between 0 and 4,000 W based on surrounding readings. Use the Emoncms API to retrieve data (http://localhost/feed/data.json?id=FEED_ID&start=START_MS&end=END_MS&interval=SECONDS&apikey=APIKEY) and insert corrected values (http://localhost/feed/insert.json?id=FEED_ID&time=UNIX_TIMESTAMP_SECONDS&value=CORRECTED_VALUE&apikey=APIKEY). Note that data.json uses millisecond timestamps while insert.json requires seconds. Access your API key at http://localhost/user/get.json and the feed list at http://localhost/feed/list.json.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_corrupted_feed_data/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_corrupted_feed_data/export_result.sh"
+  },
+  "metadata": {
+    "feed_name": "solar_gen",
+    "total_spikes": 5,
+    "spike_value_approx": 50000,
+    "max_valid_value": 4000,
+    "min_valid_value": 0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_corrupted_feed_data"
+    }
+  },
+  "tags": [
+    "api",
+    "data-cleaning",
+    "time-series",
+    "emoncms"
+  ]
+}

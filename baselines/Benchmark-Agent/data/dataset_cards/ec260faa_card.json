@@ -1,0 +1,94 @@
+{
+  "dataset_id": "ec260faa",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates the ability to generate textual descriptions of a single spatial relationship between two objects in an image. Each sample provides an image, two object labels with bounding boxes, and multiple reference descriptions describing their relative position.",
+  "card_text": "The dataset contains 200 image-text samples for spatial relation description. Each item includes an image file path, a question that names two objects and their bounding boxes, a prompt specifying the output format, and a list of reference descriptions. The task is to describe the single spatial relationship between the two objects. The images are everyday scenes with common objects, and the descriptions are short phrases or sentences. The dataset focuses on spatial reasoning and relation reasoning, assuming the model can localize objects from bounding box coordinates and infer their relative spatial arrangement.",
+  "tasks": [
+    "captioning"
+  ],
+  "domain": "spatial relationships in everyday scenes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The image provides the visual scene containing the two objects whose spatial relationship is to be described.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A task instruction asking for a textual description of the single spatial relationship between two objects. It specifies the objects by label and bounding box coordinates (e.g., 'bucket [197, 253, 255, 337] man [56, 257, 115, 364]').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.description"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A list of natural language descriptions expressing the spatial relationship between the two objects (e.g., 'a bucket is behind the man'). Multiple references are provided to account for variation.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A format instruction indicating that the output should be a description of the relationship between subject and object.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image, a question that specifies two objects via labels and bounding box coordinates, a prompt for output format, and a list of reference descriptions. The image is the main visual context; the question and prompt provide instructions; the output contains multiple natural language descriptions of the spatial relationship. No separate bounding box fields are present; coordinates are embedded in the question text."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Description_of_Single_Spatial_Relationship/annotation_open.json",
+    "existing_tags": {
+      "task": "Description_of_Single_Spatial_Relationship",
+      "type": "comprehension",
+      "skill": "Relation Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition",
+        "Spatial Perception"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

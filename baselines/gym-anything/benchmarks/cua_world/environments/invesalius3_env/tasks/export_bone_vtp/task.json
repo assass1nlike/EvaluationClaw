@@ -1,0 +1,29 @@
+{
+  "id": "export_bone_vtp@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A biomedical engineering research group needs the cranial bone surface from the CT Cranium dataset exported in VTK PolyData (.vtp) format for use in their computational analysis pipeline. Using the CT Cranium DICOM dataset already loaded in InVesalius, generate a 3D surface of the bone tissue and export it as a VTK PolyData file to /home/ga/Documents/cranial_bone.vtp. Note that other formats like STL or OBJ are not acceptable for this pipeline.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_bone_vtp/setup_task.sh",
+    "post_task": "/workspace/tasks/export_bone_vtp/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/cranial_bone.vtp",
+    "min_file_size_bytes": 102400,
+    "min_points": 5000,
+    "min_polys": 10000,
+    "dicom_series": "ct_cranium"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_bone_vtp"
+    }
+  }
+}

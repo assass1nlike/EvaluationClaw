@@ -1,0 +1,26 @@
+{
+  "id": "enforce_global_lobby@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure the Jitsi Meet deployment in /home/ga/.jitsi-meet-cfg/ to automatically enable 'Lobby Mode' (Waiting Room) for all new meetings by default. Ensure the changes are applied to the service. Verify the configuration by creating a new meeting named 'SecureTest' and confirming that Lobby Mode is active immediately upon joining.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enforce_global_lobby/setup_task.sh",
+    "post_task": "/workspace/tasks/enforce_global_lobby/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/config.js",
+    "container_name": "jitsi-web"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enforce_global_lobby"
+    }
+  }
+}

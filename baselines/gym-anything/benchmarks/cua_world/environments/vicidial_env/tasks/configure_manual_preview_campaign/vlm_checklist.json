@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_manual_preview_campaign@1",
+  "task_completion": [
+    {
+      "id": "campaign_dial_settings",
+      "description": "Configure the Dial Method and Manual Dial Preview for the VIP_DIAL campaign",
+      "points": 20,
+      "visual_evidence": "In the Vicidial Campaign Detail screen for 'VIP_DIAL', the 'Dial Method' dropdown should be set to 'MANUAL' and 'Manual Dial Preview' should be set to 'Y' or 'YES'."
+    },
+    {
+      "id": "campaign_order_settings",
+      "description": "Configure the List Order, Auto Alt Dial, and Active status for the VIP_DIAL campaign",
+      "points": 20,
+      "visual_evidence": "In the Vicidial Campaign Detail screen for 'VIP_DIAL', the 'List Order' dropdown should be set to 'DOWN COUNT', 'Auto Alt Dial' should be set to 'NONE', and 'Active' should be set to 'Y'."
+    },
+    {
+      "id": "list_creation",
+      "description": "Create a new active list with List ID 9500",
+      "points": 20,
+      "visual_evidence": "In the Vicidial Lists section, there should be evidence of a list created with List ID '9500' and its 'Active' status set to 'Y'."
+    },
+    {
+      "id": "file_import_selection",
+      "description": "Select the correct vendor CSV file for import into list 9500",
+      "points": 15,
+      "visual_evidence": "On the 'Load New Leads' screen, the file input field should show 'vendor_senators_vip.csv' (or its full path) and the 'List ID Override' or target List ID should be set to '9500'."
+    },
+    {
+      "id": "field_mapping",
+      "description": "Map the CSV headers to the correct Vicidial fields",
+      "points": 25,
+      "visual_evidence": "On the custom lead mapping screen, the dropdowns must match the instructions: 'Gov_ID' mapped to 'Vendor Lead Code', 'Official_Name' mapped to 'First Name', 'Contact_Number' mapped to 'Phone', and 'Home_State' mapped to 'State'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the Vicidial web interface to configure the campaign and import leads",
+      "visual_evidence": "Screenshots should show a web browser navigating the Vicidial administration pages, not terminal commands or API scripts."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent did not use direct database manipulation",
+      "visual_evidence": "There should be no terminal windows open showing MySQL queries (e.g., UPDATE vicidial_campaigns...) to bypass the UI."
+    },
+    {
+      "id": "authentic_mapping",
+      "description": "The lead mapping was done through the genuine Vicidial Listloader interface",
+      "visual_evidence": "The field mapping must be visible on the standard Vicidial 'Listloader Custom Format' HTML page, not simulated in a text editor or custom script."
+    }
+  ],
+  "privileged_info_for_vlm": "The target campaign is 'VIP_DIAL'. Required campaign settings: Dial Method = MANUAL, Manual Dial Preview = YES, List Order = DOWN COUNT, Auto Alt Dial = NONE, Active = Y. The target list is '9500' (must be Active). The source file to import is '/home/ga/Documents/VicidialData/vendor_senators_vip.csv'. Required field mappings during import: 'Gov_ID' -> 'Vendor Lead Code', 'Official_Name' -> 'First Name', 'Contact_Number' -> 'Phone', and 'Home_State' -> 'State'."
+}

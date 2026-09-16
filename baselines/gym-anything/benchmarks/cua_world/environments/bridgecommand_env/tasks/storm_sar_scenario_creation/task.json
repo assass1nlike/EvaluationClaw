@@ -1,0 +1,69 @@
+{
+  "id": "storm_sar_scenario_creation@1",
+  "version": "1.0",
+  "env_id": "bridgecommand_env@0.1",
+  "description": "You are a Coast Guard operations officer at MRCC Falmouth (Maritime Rescue Coordination Centre) creating a Search and Rescue (SAR) training exercise for coordinating vessel response in storm conditions off the Lizard Peninsula, Cornwall. Build a complete SAR scenario at /opt/bridgecommand/Scenarios/p) Lizard SAR Exercise Storm and prepare a supporting briefing document. \n\nConfigure the environment (environment.ini) with Setting='Falmouth', StartTime=3.0, Weather=8.0, Rain=5.0, VisibilityRange=3.0, Variation=-2.5, StartMonth=1, and StartYear=2025. Set the ownship (ownship.ini) as an 'RNLI Severn Class' positioned at 49.96°N, 5.22°W, heading 045 at 15 knots with GPS and depth sounder enabled. Populate the scenario (othership.ini) with exactly six vessels, each having 2-3 waypoint legs: a 'Fishing Vessel' (casualty) drifting at 1-2 knots near 49.98°N, 5.18°W; a 'Tanker' heading 070 at 12 kts; a 'Container Ship' heading 250 at 14 kts; a 'Patrol' vessel heading toward the casualty at 18 kts; a 'Yacht' (distress) drifting at 1 knot; and a 'Cargo' vessel heading toward the casualty area at 10 kts. Configure system settings (bc5.ini) with arpa_on=1, full_radar=1, radar_range_resolution=512, radar_angular_resolution=720, max_radar_range=96, and hide_instruments=0. \n\nCreate a SAR briefing of at least 25 lines at /home/ga/Documents/sar_briefing.txt containing an incident summary, casualty description, datum point, search pattern assignment, vessel roles, communication plan (VHF channels 16 and 67), weather forecast, and safety warnings. Login: ga / password123.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/storm_sar_scenario_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/storm_sar_scenario_creation/export_result.sh"
+  },
+  "metadata": {
+    "scenario_name": "p) Lizard SAR Exercise Storm",
+    "scenario_dir": "/opt/bridgecommand/Scenarios/p) Lizard SAR Exercise Storm",
+    "own_ship_name": "RNLI Severn Class",
+    "own_ship_lat": 49.96,
+    "own_ship_long": -5.22,
+    "required_vessel_count": 6,
+    "required_vessel_types": [
+      "Fishing Vessel",
+      "Tanker",
+      "Container Ship",
+      "Patrol",
+      "Yacht",
+      "Cargo"
+    ],
+    "environment_config": {
+      "setting": "Falmouth",
+      "start_time": 3.0,
+      "weather": 8.0,
+      "rain": 5.0,
+      "visibility": 3.0,
+      "month": 1,
+      "year": 2025
+    },
+    "radar_config": {
+      "arpa_on": 1,
+      "full_radar": 1,
+      "radar_range_resolution": 512,
+      "radar_angular_resolution": 720,
+      "max_radar_range": 96,
+      "hide_instruments": 0
+    },
+    "briefing_file": "/home/ga/Documents/sar_briefing.txt",
+    "briefing_keywords": [
+      "casualty",
+      "datum",
+      "search",
+      "pattern",
+      "VHF",
+      "channel 16",
+      "weather",
+      "storm",
+      "SAR",
+      "rescue",
+      "coordinate"
+    ],
+    "briefing_min_lines": 25
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_storm_sar_scenario_creation"
+    }
+  }
+}

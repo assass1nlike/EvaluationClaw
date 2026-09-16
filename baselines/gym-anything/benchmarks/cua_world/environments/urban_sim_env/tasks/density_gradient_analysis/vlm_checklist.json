@@ -1,0 +1,53 @@
+{
+  "task_id": "density_gradient_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened_and_executed",
+      "description": "The Jupyter notebook is opened and cells are executed.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook interface is visible with 'density_gradient.ipynb' open. The cells should show execution indicators (e.g., 'In [1]:', 'In [2]:') demonstrating that the code has been run."
+    },
+    {
+      "id": "data_loaded_and_model_fitted",
+      "description": "Code is present to load the h5 data, compute density, and fit a log-linear regression model.",
+      "points": 20,
+      "visual_evidence": "Notebook cells contain code referencing 'sanfran_public.h5', 'buildings', 'parcels', and regression functions (e.g., using statsmodels, sklearn, or scipy) with a logarithmic transformation on density."
+    },
+    {
+      "id": "plot_generated_and_saved",
+      "description": "A scatter plot of distance vs. density with a fitted curve is generated and saved.",
+      "points": 20,
+      "visual_evidence": "A plot is visible either inline in the notebook or opened in an image viewer, showing a scatter plot and a fitted curve. Code must be visible saving this plot to '/home/ga/urbansim_projects/output/density_gradient_plot.png'."
+    },
+    {
+      "id": "csv_exported_with_columns",
+      "description": "A CSV file containing per-zone results is exported with the required columns.",
+      "points": 25,
+      "visual_evidence": "Code is visible saving a DataFrame to '/home/ga/urbansim_projects/output/density_by_zone.csv'. The code or an opened view of the CSV must show the columns: 'zone_id', 'residential_units', 'density', 'distance', 'predicted_density', and 'is_outlier'."
+    },
+    {
+      "id": "json_summary_saved",
+      "description": "A JSON summary containing the required metrics is saved.",
+      "points": 25,
+      "visual_evidence": "Code is visible saving a dictionary or JSON object to '/home/ga/urbansim_projects/output/gradient_summary.json'. The code or an opened view of the JSON must show the keys: 'slope', 'intercept', 'r_squared', 'num_zones', 'num_outlier_zones', and 'outlier_zone_ids'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_notebook_execution",
+      "description": "The agent actually executed the notebook cells rather than just typing code without running it.",
+      "visual_evidence": "Look for execution numbers in the brackets (e.g., 'In [5]:') and corresponding cell outputs (e.g., printed text, inline plots, or pandas dataframe previews) below the code cells."
+    },
+    {
+      "id": "programmatic_output_generation",
+      "description": "The output files (CSV, JSON, PNG) were generated programmatically via Python code.",
+      "visual_evidence": "Ensure there is Python code (e.g., `df.to_csv()`, `json.dump()`, `plt.savefig()`) responsible for creating the files, rather than the agent manually typing data into a text editor or creating a mock image."
+    },
+    {
+      "id": "dynamic_outlier_calculation",
+      "description": "The agent calculated the outliers dynamically using the 1.5 standard deviations rule.",
+      "visual_evidence": "Code should show mathematical operations calculating residuals, standard deviation, and a > 1.5 threshold comparison, rather than hardcoding a pre-determined list of outlier zone IDs."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is '/home/ga/urbansim_projects/notebooks/density_gradient.ipynb'. The data source is '/home/ga/urbansim_projects/data/sanfran_public.h5'. The agent must generate three outputs: 1) A plot at '/home/ga/urbansim_projects/output/density_gradient_plot.png'. 2) A CSV at '/home/ga/urbansim_projects/output/density_by_zone.csv' with exactly these columns: 'zone_id', 'residential_units', 'density', 'distance', 'predicted_density', 'is_outlier'. 3) A JSON at '/home/ga/urbansim_projects/output/gradient_summary.json' with exactly these keys: 'slope', 'intercept', 'r_squared', 'num_zones', 'num_outlier_zones', 'outlier_zone_ids'."
+}

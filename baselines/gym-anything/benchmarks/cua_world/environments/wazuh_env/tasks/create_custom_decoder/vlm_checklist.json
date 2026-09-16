@@ -1,0 +1,53 @@
+{
+  "task_id": "create_custom_decoder@1",
+  "task_completion": [
+    {
+      "id": "decoder_creation",
+      "description": "Create the custom Wazuh decoder named 'bastion-session' matching the program name 'session_auth'",
+      "points": 15,
+      "visual_evidence": "A text editor or Wazuh UI showing XML configuration with <decoder name=\"bastion-session\"> and <program_name>session_auth</program_name>."
+    },
+    {
+      "id": "decoder_field_extraction",
+      "description": "Configure the decoder to extract user, srcip, action, status, and extra_data fields",
+      "points": 25,
+      "visual_evidence": "The decoder XML configuration shows a <regex> or similar extraction tag, along with an <order> tag specifying 'user, srcip, action, status, extra_data' (mapping src_ip to srcip and reason to extra_data)."
+    },
+    {
+      "id": "rule_failed_auth",
+      "description": "Create Rule 100010 (Level 8) for failed authentication",
+      "points": 20,
+      "visual_evidence": "XML configuration showing <rule id=\"100010\" level=\"8\">, a condition matching the status 'failed' (e.g., <field name=\"status\">failed</field>), and <description>Bastion host failed authentication</description>."
+    },
+    {
+      "id": "rule_success_auth",
+      "description": "Create Rule 100011 (Level 3) for successful authentication",
+      "points": 20,
+      "visual_evidence": "XML configuration showing <rule id=\"100011\" level=\"3\">, a condition matching the status 'success' (e.g., <field name=\"status\">success</field>), and <description>Bastion host successful authentication</description>."
+    },
+    {
+      "id": "verify_configuration",
+      "description": "Apply and verify the configuration using wazuh-logtest or by restarting the manager",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of '/var/ossec/bin/wazuh-logtest' with a pasted log line successfully triggering rule 100010 or 100011, OR a terminal showing a successful restart of the wazuh-manager service."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration_edit",
+      "description": "Verify the agent edited the actual Wazuh configuration files",
+      "visual_evidence": "The file paths in the text editor should be within '/var/ossec/etc/decoders/' and '/var/ossec/etc/rules/' (e.g., local_decoder.xml and local_rules.xml), or the official Wazuh web UI should be used, rather than a random standalone file."
+    },
+    {
+      "id": "genuine_logtest_execution",
+      "description": "Verify the wazuh-logtest tool was genuinely executed",
+      "visual_evidence": "The terminal should show the interactive prompt for wazuh-logtest and the standard multi-phase output (Phase 1: log, Phase 2: decoder, Phase 3: rule), not just a printed or echoed string."
+    },
+    {
+      "id": "no_mocked_output",
+      "description": "Ensure the agent did not mock the verification results",
+      "visual_evidence": "There should be no 'echo' commands used to print fake logtest results or fake systemctl success messages to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The custom decoder must be named 'bastion-session' and filter on the program name 'session_auth'. The failed login rule must use ID '100010' and the successful login rule must use ID '100011'. A valid test log line for verification is: 'Jan 15 10:25:01 bastion-gw session_auth[5236]: user=root src_ip=203.0.113.42 action=login status=failed reason=\"account_locked\"'."
+}

@@ -1,0 +1,86 @@
+{
+  "dataset_id": "06ecbffc",
+  "name": "Target-Oriented-Opinion-Words-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates target-oriented opinion words extraction: given a review sentence and an aspect term, the model must identify the opinion word that describes that aspect. It contains 200 examples drawn from restaurant reviews.",
+  "card_text": "This text-only dataset focuses on aspect-based sentiment analysis, specifically extracting the opinion word associated with a given aspect target. Each sample provides a short restaurant review sentence, an aspect term (e.g., 'sushi', 'meals'), and a prompt instruction that asks for the opinion word describing that aspect. The expected output is a single word or short phrase (e.g., 'fresh', 'terrible'). The data are in English, use a simple template with placeholders for the raw text and aspect, and assume the opinion word appears verbatim in the review sentence. The task tests fine-grained extraction of sentiment-bearing expressions conditioned on a specified target.",
+  "tasks": [
+    "span_extraction"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "A short restaurant review sentence that contains an aspect term and an associated opinion expression. It is the primary text from which the opinion word is extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A prompt template that embeds the raw review text and the target aspect, asking for the opinion word that describes the given aspect. It serves as the task instruction.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The opinion word or short phrase (e.g., 'fresh', 'terrible') that describes the target aspect in the review sentence. It is the extraction target.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "entity": {
+        "paths": [
+          "input.aspect"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target aspect or entity (e.g., 'sushi', 'meals') mentioned in the review, for which the opinion word is sought. It conditions the extraction.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a context (a short restaurant review sentence), an entity (the target aspect term), a question (a prompt instruction that references the context and entity and asks for the opinion word), and an answer (the extracted opinion word describing that aspect). The prompt is a template that fills in the raw text and aspect, and the answer is a single word or phrase taken from the context."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Target-Oriented-Opinion-Words-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "target_oriented_opinion_words_extraction",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

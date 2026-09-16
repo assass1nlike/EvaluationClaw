@@ -1,0 +1,59 @@
+{
+  "task_id": "create_workflow_rule@1",
+  "task_completion": [
+    {
+      "id": "workflow_name_and_module",
+      "description": "Verify the workflow is created for the Potentials module with the correct name.",
+      "points": 15,
+      "visual_evidence": "Look for a workflow creation or summary screen showing the Target Module as 'Potentials' (or Opportunities, depending on Vtiger version) and the Description/Summary as 'Auto-Update Next Step on Closed Won'."
+    },
+    {
+      "id": "workflow_trigger_frequency",
+      "description": "Verify the workflow is set to trigger every time a record is saved.",
+      "points": 15,
+      "visual_evidence": "Look for the workflow trigger settings (usually a radio button or dropdown) selected as 'Every time the record is saved' or a visually equivalent option in the Vtiger UI."
+    },
+    {
+      "id": "workflow_conditions",
+      "description": "Verify the workflow condition checks if the Sales Stage is Closed Won.",
+      "points": 20,
+      "visual_evidence": "Look for a condition block in the workflow setup showing the field 'Sales Stage' (or sales_stage), an operator like 'is' or 'equals', and the value 'Closed Won'."
+    },
+    {
+      "id": "workflow_action_title_and_type",
+      "description": "Verify an 'Update Fields' action is added with the correct title.",
+      "points": 20,
+      "visual_evidence": "Look for an action added to the workflow with the Action Type 'Update Fields' and the Action Title 'Set Next Step to Generate Invoice'."
+    },
+    {
+      "id": "workflow_action_field_update",
+      "description": "Verify the action correctly sets the Next Step field to Generate Invoice.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'Update Fields' action configuration screen. The field 'Next Step' (or nextstep) should be selected and mapped to the text value 'Generate Invoice'."
+    },
+    {
+      "id": "workflow_saved_and_active",
+      "description": "Verify the workflow is saved and marked as active.",
+      "points": 10,
+      "visual_evidence": "Look for a status toggle or checkbox indicating the workflow is 'Active', and evidence that the workflow has been saved (e.g., a success message, or viewing it in the list of existing workflows)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Vtiger CRM web interface.",
+      "visual_evidence": "Screenshots should show a web browser navigating the Vtiger CRM interface, not terminal windows executing curl commands or API scripts."
+    },
+    {
+      "id": "no_database_manipulation",
+      "description": "Verify the agent did not bypass the UI by directly editing the database.",
+      "visual_evidence": "Screenshots should not show database management tools like phpMyAdmin, MySQL CLI, or raw SQL queries being executed."
+    },
+    {
+      "id": "genuine_workflow_creation",
+      "description": "Verify the agent actually went through the workflow creation steps.",
+      "visual_evidence": "Screenshots should show intermediate steps of the CRM settings, such as the workflow list, condition builder, and action configuration popups, rather than just a final static page."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Module: 'Potentials'. Workflow Name/Summary: 'Auto-Update Next Step on Closed Won'. Condition Field: 'Sales Stage' (internal: sales_stage). Condition Value: 'Closed Won'. Action Type: 'Update Fields' (internal: UpdateFields). Action Update Field: 'Next Step' (internal: nextstep). Action Update Value: 'Generate Invoice'."
+}

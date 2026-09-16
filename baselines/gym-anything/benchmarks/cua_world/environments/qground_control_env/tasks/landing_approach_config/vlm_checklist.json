@@ -1,0 +1,65 @@
+{
+  "task_id": "landing_approach_config@1",
+  "task_completion": [
+    {
+      "id": "read_ops_brief",
+      "description": "Open and read the operations brief to get the required parameters.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Documents/QGC/landing_ops_brief.txt."
+    },
+    {
+      "id": "takeoff_and_survey_waypoint",
+      "description": "Create a mission starting with a Takeoff and a survey waypoint at 50m altitude.",
+      "points": 10,
+      "visual_evidence": "QGroundControl Plan View showing a 'Takeoff' item and a subsequent 'Waypoint' item in the mission list with an altitude set to 50m."
+    },
+    {
+      "id": "do_land_start_command",
+      "description": "Insert a DO_LAND_START command into the mission.",
+      "points": 15,
+      "visual_evidence": "QGroundControl Plan View mission list showing a 'DO_LAND_START' (MAV_CMD 189) command item."
+    },
+    {
+      "id": "decreasing_altitude_waypoints",
+      "description": "Add at least two waypoints with decreasing altitudes following the DO_LAND_START command.",
+      "points": 20,
+      "visual_evidence": "QGroundControl Plan View mission list showing at least two 'Waypoint' items after the DO_LAND_START command, where the altitude value of the second waypoint is lower than the first."
+    },
+    {
+      "id": "final_land_command",
+      "description": "Add a final LAND command at the end of the mission.",
+      "points": 15,
+      "visual_evidence": "QGroundControl Plan View mission list showing a 'Land' (MAV_CMD 21) command as the final item in the sequence."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Save the mission plan to the specified file path.",
+      "points": 10,
+      "visual_evidence": "QGroundControl 'File Save' dialog or a sync/save notification indicating the mission is being saved as 'approach_landing.plan' in /home/ga/Documents/QGC/."
+    },
+    {
+      "id": "configure_ardupilot_parameters",
+      "description": "Configure the required landing parameters in QGroundControl.",
+      "points": 20,
+      "visual_evidence": "QGroundControl Vehicle Setup -> Parameters screen showing LAND_SPEED set to 50, LAND_ALT_LOW set to 1000, and WPNAV_SPEED_DN set to 100."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_mission_planning",
+      "description": "The agent used the QGroundControl GUI to plan the mission rather than writing a JSON .plan file manually.",
+      "visual_evidence": "Screenshots show the agent interacting with the QGroundControl map and mission item list on the left panel."
+    },
+    {
+      "id": "gui_parameter_configuration",
+      "description": "The agent used the QGroundControl GUI to set parameters rather than using terminal scripts or editing parameter files directly.",
+      "visual_evidence": "Screenshots show the agent navigating the QGroundControl Parameters menu and modifying values in the UI."
+    },
+    {
+      "id": "genuine_file_save",
+      "description": "The agent used the application's save functionality to create the plan file.",
+      "visual_evidence": "The QGroundControl 'Save Mission' dialog is visible, navigating to the correct directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The operations brief is located at /home/ga/Documents/QGC/landing_ops_brief.txt. The mission plan must be saved to /home/ga/Documents/QGC/approach_landing.plan. The required ArduPilot parameters to be set in QGroundControl are: LAND_SPEED = 50, LAND_ALT_LOW = 1000, and WPNAV_SPEED_DN = 100."
+}

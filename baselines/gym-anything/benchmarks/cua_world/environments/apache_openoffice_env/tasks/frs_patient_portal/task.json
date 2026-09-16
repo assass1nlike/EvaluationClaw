@@ -1,0 +1,46 @@
+{
+  "id": "frs_patient_portal@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Kenji Watanabe, Senior Systems Analyst at Pinnacle Health Informatics. Create a formal Functional Requirements Specification (FRS) document for the 'PatientConnect 3.0' project using Apache OpenOffice Writer based on the data in '/home/ga/Documents/patientconnect_requirements.json'. The document must include all 5 functional modules (Authentication, Scheduling, Medical Records, Messaging, Billing), non-functional requirements, and external interfaces. Format the document with a title page or header containing the document number (FRS-PC3-2024-012), an auto-generated Table of Contents, and page numbers in the footer. Use 'Heading 1' and 'Heading 2' styles for sections and subsections, and present requirements and use cases in data tables with columns for ID, Description, and Priority. Save the final document as an ODF Text Document to '/home/ga/Documents/FRS-PC3-2024-012.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/frs_patient_portal/setup_task.sh",
+    "post_task": "/workspace/tasks/frs_patient_portal/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/patientconnect_requirements.json",
+    "output_file": "/home/ga/Documents/FRS-PC3-2024-012.odt",
+    "min_file_size_kb": 8,
+    "criteria": {
+      "min_h1": 7,
+      "min_h2": 10,
+      "min_tables": 4,
+      "min_paragraphs": 40,
+      "required_modules": [
+        "FR-AUTH",
+        "FR-APPT",
+        "FR-MR",
+        "FR-MSG",
+        "FR-BILL"
+      ],
+      "required_keywords": [
+        "PatientConnect",
+        "FHIR",
+        "HIPAA",
+        "Pinnacle"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_frs_document"
+    }
+  }
+}

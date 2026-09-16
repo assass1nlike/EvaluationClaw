@@ -1,0 +1,84 @@
+{
+  "dataset_id": "d3134714",
+  "name": "Presentation Docvqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 124,
+  "description": "A dataset for document visual question answering on presentation slides. Each sample consists of a sequence of slide images and a natural language question, requiring the model to extract information from the slides to provide a short text answer.",
+  "card_text": "Presentation DocVQA is a visual question answering dataset built from presentation slide decks. Each example includes a set of images (ranging from a few to dozens of slides) and a textual question about the content, such as counting sections, identifying languages, or retrieving specific facts. The model must understand the visual layout, text, and graphics in the slides to answer. Answers are short text strings, sometimes empty if the question is unanswerable from the provided slides. The dataset has 124 samples and is designed to evaluate document understanding and multi-modal reasoning, particularly for presentation-style documents.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "document VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "Sequence of images representing pages of a presentation slide deck. These images contain textual and visual information (titles, bullet points, charts, images) that collectively provide the context for answering the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question asking for specific information from the presentation slides, such as a count, a name, or a language.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short text answer to the question, derived from the content of the slides. It is provided as a list of strings, typically containing a single phrase or word, and may be empty if the question cannot be answered from the images.",
+        "path_types": [
+          "list"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a list of image files (presentation slides) as the visual context, a textual question about the slides, and a textual answer (a list of strings) as the target. The images are the primary source of information, the question specifies what to extract, and the answer is the expected short response."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/presentation_docvqa/json/annotation.json",
+    "existing_tags": {
+      "task": "document vqa",
+      "type": "comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

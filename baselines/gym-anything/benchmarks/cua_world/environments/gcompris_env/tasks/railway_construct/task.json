@@ -1,0 +1,27 @@
+{
+  "id": "railway_construct@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Railway' activity in GCompris and solve the first level by constructing a continuous track connecting the engine to the station. Capture a screenshot of the success state and save it to /home/ga/railway_success.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/railway_construct/setup_task.sh",
+    "post_task": "/workspace/tasks/railway_construct/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot_path": "/home/ga/railway_success.png",
+    "activity_name": "Railway",
+    "category_name": "Puzzle"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_railway_construct"
+    }
+  }
+}

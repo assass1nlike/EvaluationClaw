@@ -1,0 +1,48 @@
+{
+  "task_id": "multi_workspace_portal@1",
+  "task_completion": [
+    {
+      "id": "workspaces_created",
+      "description": "Verify that the 'infrastructure' and 'environment' workspaces were created.",
+      "points": 10,
+      "visual_evidence": "Look for 'infrastructure' and 'environment' in the GeoServer 'Workspaces' list, or check if they appear in the Workspace column on the Stores or Layers pages."
+    },
+    {
+      "id": "datastores_created",
+      "description": "Verify that the 'infra_data' and 'env_data' PostGIS datastores were created.",
+      "points": 15,
+      "visual_evidence": "Look for 'infra_data' and 'env_data' in the GeoServer 'Stores' list, showing 'PostGIS' as the type/format."
+    },
+    {
+      "id": "styles_created",
+      "description": "Verify that the custom SLD styles 'settlement_marker' and 'waterway_line' were created.",
+      "points": 20,
+      "visual_evidence": "Look for 'settlement_marker' and 'waterway_line' in the GeoServer 'Styles' list, or look at the style editor showing the SLD XML with orange (#FFA500) and blue (#0080FF) color codes."
+    },
+    {
+      "id": "layers_published",
+      "description": "Verify that the 'settlements' and 'waterways' layers were published in their respective workspaces.",
+      "points": 25,
+      "visual_evidence": "Look for 'settlements' (associated with the 'infrastructure' workspace) and 'waterways' (associated with the 'environment' workspace) in the GeoServer 'Layers' list."
+    },
+    {
+      "id": "layer_group_created",
+      "description": "Verify that the 'regional_portal' global layer group was created containing both layers.",
+      "points": 30,
+      "visual_evidence": "Look for 'regional_portal' in the GeoServer 'Layer Groups' list, or look for a Layer Preview map showing both orange circle markers (settlements) and blue lines (waterways) rendered together."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_geoserver_gui",
+      "description": "The agent used the GeoServer web interface to perform the configuration.",
+      "visual_evidence": "Screenshots should show the agent navigating the GeoServer web administration interface in a web browser (http://localhost:8080/geoserver/web/)."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "The agent actually filled out and saved the forms for workspaces, stores, styles, layers, and layer groups.",
+      "visual_evidence": "Look for evidence of the agent typing into form fields, uploading/pasting SLD code, and clicking 'Save' or 'Submit' buttons, rather than just viewing pages."
+    }
+  ],
+  "privileged_info_for_vlm": "GeoServer is running at http://localhost:8080/geoserver/web/. Expected Workspaces: 'infrastructure' (URI: http://infrastructure.authority.gov/gis), 'environment' (URI: http://environment.authority.gov/gis). Expected Datastores: 'infra_data', 'env_data' (both PostGIS). Expected Layers: 'settlements' (from ne_populated_places), 'waterways' (from ne_rivers). Expected Styles: 'settlement_marker' (orange #FFA500 circle, size 8), 'waterway_line' (blue #0080FF line, width 2). Expected Layer group: 'regional_portal' containing both layers."
+}

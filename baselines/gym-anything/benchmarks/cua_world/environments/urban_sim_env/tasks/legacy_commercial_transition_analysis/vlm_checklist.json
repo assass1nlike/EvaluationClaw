@@ -1,0 +1,53 @@
+{
+  "task_id": "legacy_commercial_transition_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened",
+      "description": "Jupyter notebook is opened or created at the specified path.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook interface is visible with the filename 'neighborhood_transition.ipynb' in the /home/ga/urbansim_projects/notebooks/ directory."
+    },
+    {
+      "id": "data_filtered",
+      "description": "Data is loaded from the HDF5 file and filtered according to the legacy and new development criteria.",
+      "points": 20,
+      "visual_evidence": "Code cells show reading from 'sanfran_public.h5' and filtering logic for buildings built before 1980 (>= 50,000 sqft) and built in/after 2000 (>= 50 units)."
+    },
+    {
+      "id": "index_calculated",
+      "description": "The Transition Index is calculated using the specified formula.",
+      "points": 20,
+      "visual_evidence": "A code cell contains the formula calculating the index: new_res_units / (legacy_nonres_sqft / 1000.0)."
+    },
+    {
+      "id": "csv_saved",
+      "description": "The top 15 zones are sorted descending by the transition index and saved to a CSV file.",
+      "points": 20,
+      "visual_evidence": "Code cell shows sorting the dataframe descending by 'transition_index', selecting the top 15 (e.g., .head(15)), and saving to '/home/ga/urbansim_projects/output/transitioning_zones.csv' with columns zone_id, legacy_nonres_sqft, new_res_units, and transition_index. Output may show zone 159.0 at the top."
+    },
+    {
+      "id": "scatter_plot_generated",
+      "description": "A scatter plot is generated visualizing the filtered zones and highlighting the top 15, then saved as a PNG.",
+      "points": 30,
+      "visual_evidence": "Code cell shows matplotlib/seaborn plotting legacy_nonres_sqft vs. new_res_units, with a distinct color or marker for the top 15 zones, and saving to '/home/ga/urbansim_projects/output/transition_scatter.png'. The rendered plot should be visible in the notebook output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_jupyter_execution",
+      "description": "The agent executed code within the Jupyter Notebook environment.",
+      "visual_evidence": "The Jupyter Notebook shows execution numbers in the cell brackets (e.g., In [1]:) and rendered outputs below the cells, rather than just being plain text in an editor."
+    },
+    {
+      "id": "dynamic_data_processing",
+      "description": "The agent processed the actual HDF5 dataset rather than hardcoding the answers.",
+      "visual_evidence": "The code explicitly loads 'sanfran_public.h5' and performs pandas/dataframe operations. There is no hardcoded list of the top 15 zones or hardcoded transition index values."
+    },
+    {
+      "id": "plot_generated_via_code",
+      "description": "The scatter plot was generated programmatically.",
+      "visual_evidence": "The plot is the direct output of a Python plotting library (like matplotlib or seaborn) executed in a notebook cell, not an imported image or a pre-existing file."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct analysis should find exactly 67 zones meeting the filtering criteria (legacy_nonres_sqft >= 50,000 and new_res_units >= 50). The highest transition index value should be approximately 2.07, corresponding to zone_id 159.0. The output CSV must contain exactly 15 rows (top 15 zones) and the columns: zone_id, legacy_nonres_sqft, new_res_units, transition_index. If the dataframe output is visible, zone 159.0 should be at the top."
+}

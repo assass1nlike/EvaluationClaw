@@ -1,0 +1,45 @@
+{
+  "id": "american_football_playbook_digitization@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are an Offensive Coordinator digitizing a football playbook. Using the template '~/Diagrams/playbook_template.drawio' and the play call sheet at '~/Desktop/play_call_sheet.txt', diagram the 'Spider 2 Y Banana' pass play from a 'Green Right Strong' formation against a '4-3 Under' defense. Represent the offense using labeled blue circles (LT, LG, C, RG, RT, QB, FB, HB, Y, Z, X) and the defense using four red Xs for the defensive linemen. The diagram must show the 'Green Right Strong' formation (I-Formation with Y and Z on the right, X on the left) and the specific routes: FB slide route (curved arrow), Y banana route (curved corner route), Z shallow cross (straight arrow), X post route (angled straight arrow), HB blocking (line with T-bar), and QB bootleg (dashed line). Export the completed diagram as a PDF to '~/Diagrams/exports/spider_2_y_banana.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/american_football_playbook_digitization/setup_task.sh",
+    "post_task": "/workspace/tasks/american_football_playbook_digitization/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "spider_2_y_banana.pdf",
+    "expected_diagram": "playbook_template.drawio",
+    "required_labels": [
+      "QB",
+      "C",
+      "Y",
+      "Z",
+      "X",
+      "FB",
+      "HB",
+      "LT",
+      "LG",
+      "RG",
+      "RT"
+    ],
+    "required_routes": [
+      "banana",
+      "flat",
+      "shallow",
+      "post"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_playbook_digitization"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "knowledge_base_migration@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "You are a Tech Lead tasked with organizing scattered technical knowledge from the #engineering-chat channel into dedicated knowledge base channels in Rocket.Chat (Username: admin, Password: Admin1234!). Create three knowledge base channels: kb-architecture (Topic: System architecture documentation and diagrams), kb-api-docs (Topic: API endpoint documentation and integration guides), and kb-decisions (Topic: Architecture Decision Records (ADRs) and technical decisions). Migrate microservices migration decisions from #engineering-chat to #kb-decisions, REST API v2 endpoint information to #kb-api-docs, and event-driven architecture details to #kb-architecture. Pin at least one message in each new channel and invite junior.dev, senior.dev, and tech.architect to all three. Post an",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "dense"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/knowledge_base_migration/setup_task.sh",
+    "pre_task_timeout": 600,
+    "post_task": "/workspace/tasks/knowledge_base_migration/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Software Developer",
+    "industry": "Software Engineering",
+    "source_channel": "engineering-chat",
+    "kb_channels": [
+      "kb-architecture",
+      "kb-api-docs",
+      "kb-decisions"
+    ],
+    "team_members": [
+      "junior.dev",
+      "senior.dev",
+      "tech.architect"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_knowledge_base_migration"
+    }
+  }
+}

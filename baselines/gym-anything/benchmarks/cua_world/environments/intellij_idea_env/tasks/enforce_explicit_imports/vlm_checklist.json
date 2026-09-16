@@ -1,0 +1,53 @@
+{
+  "task_id": "enforce_explicit_imports@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the inventory-system project in IntelliJ IDEA",
+      "points": 10,
+      "visual_evidence": "IntelliJ IDEA is open with the 'inventory-system' project visible in the Project tool window."
+    },
+    {
+      "id": "open_code_style_settings",
+      "description": "Navigate to Java Code Style settings",
+      "points": 10,
+      "visual_evidence": "The Settings/Preferences dialog is open, specifically navigated to Editor > Code Style > Java."
+    },
+    {
+      "id": "configure_import_threshold",
+      "description": "Configure settings to prevent wildcard imports",
+      "points": 30,
+      "visual_evidence": "In the 'Imports' tab of the Java Code Style settings, the 'Class count to use import with '*'' (and ideally 'Names count to use static import with '*'') is set to a high value strictly greater than 50 (e.g., 99 or 999)."
+    },
+    {
+      "id": "replace_wildcard_imports",
+      "description": "Refactor existing wildcard imports to explicit single-class imports",
+      "points": 30,
+      "visual_evidence": "The code editor shows explicit single-class imports (e.g., 'import java.util.List;', 'import java.util.ArrayList;') instead of wildcard imports ('import java.util.*;') in files like Product.java, InventoryService.java, or FileUtils.java."
+    },
+    {
+      "id": "successful_compilation",
+      "description": "Ensure the project compiles successfully",
+      "points": 20,
+      "visual_evidence": "The Build Output tool window at the bottom of the IDE shows a 'Build completed successfully' message or a green checkmark indicating no compilation errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_settings_modification",
+      "description": "The agent used the IntelliJ IDEA GUI to modify the code style settings",
+      "visual_evidence": "Screenshots show the IntelliJ IDEA Settings/Preferences dialog being interacted with, rather than terminal commands editing XML configuration files directly."
+    },
+    {
+      "id": "ide_refactoring",
+      "description": "The agent used the IDE to refactor the code",
+      "visual_evidence": "Screenshots show the code being edited in the IntelliJ IDEA editor or the 'Optimize Imports' dialog/action being used, rather than terminal text replacement commands like 'sed'."
+    },
+    {
+      "id": "genuine_build",
+      "description": "The compilation was performed genuinely through the IDE or standard build tools",
+      "visual_evidence": "The build success is shown in the IDE's native Build tool window or via a genuine Maven/Gradle terminal command, not a mocked echo statement."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/IdeaProjects/inventory-system. To successfully prevent wildcard imports according to the verifier, the 'Class count to use import with '*'' setting must be configured to a value strictly greater than 50 (the default is 5; 99 or 999 are typical valid inputs)."
+}

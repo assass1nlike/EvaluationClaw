@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_custom_domain@1",
+  "task_completion": [
+    {
+      "id": "hosts_file_updated",
+      "description": "The system's hosts file is updated to map the custom domain to the local IP address.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor showing the contents of '/etc/hosts' being modified to include an entry like '127.0.0.1 social.agency.local'."
+    },
+    {
+      "id": "vhost_file_configured",
+      "description": "The Apache virtual host configuration file is created or updated with the correct ServerName and DocumentRoot.",
+      "points": 25,
+      "visual_evidence": "A terminal or text editor showing the file '/etc/apache2/sites-available/social-agency.conf' containing 'ServerName social.agency.local' and 'DocumentRoot /opt/socioboard/socioboard-web-php/public'."
+    },
+    {
+      "id": "env_file_updated",
+      "description": "The Socioboard environment file is updated to support the new custom domain.",
+      "points": 25,
+      "visual_evidence": "A terminal or text editor showing the file '/opt/socioboard/socioboard-web-php/.env' being modified to include the domain, such as setting 'APP_URL=http://social.agency.local'."
+    },
+    {
+      "id": "firefox_navigated_to_domain",
+      "description": "Firefox is opened and navigated to the new custom domain.",
+      "points": 10,
+      "visual_evidence": "A Firefox browser window is visible with 'social.agency.local' or 'http://social.agency.local' in the address bar."
+    },
+    {
+      "id": "socioboard_loaded_successfully",
+      "description": "The Socioboard application successfully loads at the custom domain in Firefox.",
+      "points": 20,
+      "visual_evidence": "The Socioboard web interface (e.g., login page or dashboard) is fully rendered in the Firefox browser, confirming the Apache and DNS configurations are working."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_verification",
+      "description": "Verifies the agent used Firefox to test the domain as explicitly requested.",
+      "visual_evidence": "A real Firefox GUI window is open displaying the rendered webpage, rather than the agent just relying on a terminal 'curl' command to verify."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Verifies the agent actually edited the required configuration files.",
+      "visual_evidence": "Use of text editors (nano, vim, gedit) or shell redirection ('>', '>>') targeting the specific file paths, rather than just echoing the required text to the console without saving."
+    },
+    {
+      "id": "correct_protocol_used",
+      "description": "Verifies the agent accessed the site via HTTP/web server, not as a local file.",
+      "visual_evidence": "The Firefox address bar shows 'http://social.agency.local' or just 'social.agency.local', and strictly NOT 'file://...' or 'localhost'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected domain is 'social.agency.local'. The Apache virtual host file must be located at '/etc/apache2/sites-available/social-agency.conf' and specify the document root '/opt/socioboard/socioboard-web-php/public'. The Socioboard environment file must be located at '/opt/socioboard/socioboard-web-php/.env'."
+}

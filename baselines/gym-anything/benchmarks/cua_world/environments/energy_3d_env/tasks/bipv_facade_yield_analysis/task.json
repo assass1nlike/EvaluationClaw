@@ -1,0 +1,29 @@
+{
+  "id": "bipv_facade_yield_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an Urban Energy Consultant. The Energy3D project 'city-block.ng3' is open and shows a dense urban environment with a prominent central high-rise building. Your task is to evaluate the potential of Building-Integrated Photovoltaics (BIPV) on this building's facade. Specifically:\n\n1. Locate the South-facing vertical wall of the large central high-rise.\n2. Add an array of at least 20 solar panels directly onto this vertical wall surface.\n3. Run an 'Annual Yield Analysis' for the solar panels to calculate generation.\n4. Export the resulting yield analysis data to a CSV file at `~/Documents/Energy3D/bipv_yield.csv`.\n5. Save the modified project as `~/Documents/Energy3D/city_block_bipv.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bipv_facade_yield_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/bipv_facade_yield_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Urban Energy Consultant",
+    "industry": "Green Architecture & Energy Efficiency",
+    "starter_file": "city-block.ng3",
+    "target_ng3": "/home/ga/Documents/Energy3D/city_block_bipv.ng3",
+    "target_csv": "/home/ga/Documents/Energy3D/bipv_yield.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bipv_yield_analysis"
+    }
+  }
+}

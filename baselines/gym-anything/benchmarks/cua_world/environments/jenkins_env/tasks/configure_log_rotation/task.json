@@ -1,0 +1,44 @@
+{
+  "id": "configure_log_rotation@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Configure 'Discard old builds' (Log Rotation) settings for three existing Jenkins jobs to manage disk space. For 'nightly-integration-tests', set the Log Rotation strategy to keep a maximum of 5 builds and 2 builds with artifacts. For 'feature-branch-builds', set the Log Rotation strategy to keep builds for 7 days. For 'release-pipeline', set the Log Rotation strategy to keep a maximum of 10 builds and 5 builds with artifacts. Ensure all other log rotation fields for these jobs are left blank. All jobs are already created and populated with build history.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_log_rotation/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_log_rotation/export_result.sh"
+  },
+  "metadata": {
+    "jobs": {
+      "nightly-integration-tests": {
+        "daysToKeep": "-1",
+        "numToKeep": "5",
+        "artifactDaysToKeep": "-1",
+        "artifactNumToKeep": "2"
+      },
+      "feature-branch-builds": {
+        "daysToKeep": "7",
+        "numToKeep": "-1",
+        "artifactDaysToKeep": "-1",
+        "artifactNumToKeep": "-1"
+      },
+      "release-pipeline": {
+        "daysToKeep": "-1",
+        "numToKeep": "10",
+        "artifactDaysToKeep": "-1",
+        "artifactNumToKeep": "5"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_log_rotation"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "cranioplasty_implant_pipeline@1",
+  "task_completion": [
+    {
+      "id": "load_dicom_and_create_masks",
+      "description": "Load the CT Cranium DICOM series and create three distinct masks (Full Bone, Compact Bone, and Cancellous Bone).",
+      "points": 20,
+      "visual_evidence": "InVesalius GUI showing the loaded CT scan in the 2D viewers and the 'Masks' section in the bottom-left panel listing at least three masks (e.g., Full Bone, Compact Bone, and a third mask representing the boolean difference)."
+    },
+    {
+      "id": "generate_3d_surfaces",
+      "description": "Generate 3D surfaces for both the compact and cancellous bone masks.",
+      "points": 15,
+      "visual_evidence": "The 'Surfaces' section in the bottom-left panel of InVesalius listing at least two generated surfaces, and the 3D viewer displaying a 3D skull model."
+    },
+    {
+      "id": "optimize_compact_bone_surface",
+      "description": "Optimize the compact bone surface using smoothing (at least 10 iterations) and decimation (under 400,000 triangles).",
+      "points": 20,
+      "visual_evidence": "Dialog boxes for surface optimization/properties showing smoothing iterations set to >= 10 and decimation applied, or the 3D viewer showing a noticeably smoothed compact bone surface compared to a raw mask."
+    },
+    {
+      "id": "document_calvarial_dimensions",
+      "description": "Document the calvarial dimensions with at least 5 linear measurements.",
+      "points": 15,
+      "visual_evidence": "The 2D slice viewers or 3D viewer showing at least 5 distinct linear measurement lines with numerical labels (lengths >= 10 mm) placed on the skull anatomy."
+    },
+    {
+      "id": "export_surface_files",
+      "description": "Export the compact bone surface as a PLY file and the cancellous bone surface as an STL file.",
+      "points": 15,
+      "visual_evidence": "Export dialogs in InVesalius saving to 'cortical_bone.ply' and 'cancellous_bone.stl', or a file manager/terminal window showing these files present in '/home/ga/Documents/cranioplasty/'."
+    },
+    {
+      "id": "save_invesalius_project",
+      "description": "Save the complete InVesalius project.",
+      "points": 15,
+      "visual_evidence": "The InVesalius main window title bar displaying 'implant_fabrication.inv3', or a file manager/terminal showing 'implant_fabrication.inv3' in the target directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gui_interaction",
+      "description": "The agent used the InVesalius GUI to perform the medical imaging tasks rather than bypassing the software with pre-written scripts or creating dummy files.",
+      "visual_evidence": "Screenshots show the agent actively clicking through InVesalius menus, adjusting threshold sliders, using the boolean operations dialog, and interacting with the 3D viewer."
+    },
+    {
+      "id": "meaningful_measurements",
+      "description": "The linear measurements are genuinely documenting calvarial dimensions.",
+      "visual_evidence": "Measurement lines are drawn across actual anatomical features of the skull in the viewers, not placed randomly in empty black space."
+    },
+    {
+      "id": "authentic_file_export",
+      "description": "The exported PLY, STL, and INV3 files are genuine outputs from the application.",
+      "visual_evidence": "The agent is seen using the 'Export 3D surface' and 'Save Project' dialogs within InVesalius, rather than using terminal commands like 'touch cortical_bone.ply'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the CT Cranium 0051 dataset (108 slices). The maximum HU value in the dataset is actually 3033, not 3071 as claimed in the specs. The compact bone HU minimum should be 662 HU. Three masks are required: Full Bone, Compact Bone, and a boolean MINUS result (Cancellous). The compact bone surface must be exported to /home/ga/Documents/cranioplasty/cortical_bone.ply and the cancellous to cancellous_bone.stl. The project must be saved as implant_fabrication.inv3. At least 5 measurements >= 10.0 mm must be present on the model."
+}

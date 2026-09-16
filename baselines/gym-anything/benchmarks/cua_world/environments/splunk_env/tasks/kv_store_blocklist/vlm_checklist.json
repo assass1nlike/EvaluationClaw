@@ -1,0 +1,53 @@
+{
+  "task_id": "kv_store_blocklist@1",
+  "task_completion": [
+    {
+      "id": "create_kv_store_collection",
+      "description": "Create a KV Store collection named 'ip_blocklist' with the required fields.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk Settings > Collections page showing 'ip_blocklist' in the list, or a configuration screen/search command output confirming the collection exists with fields 'ip_address', 'threat_level', 'reason', and 'date_added'."
+    },
+    {
+      "id": "create_lookup_definition",
+      "description": "Create a lookup definition named 'ip_blocklist_lookup'.",
+      "points": 15,
+      "visual_evidence": "Look for the Splunk Settings > Lookups > Lookup definitions page showing 'ip_blocklist_lookup' configured to use the 'ip_blocklist' KV Store collection."
+    },
+    {
+      "id": "identify_suspicious_ips",
+      "description": "Identify at least 3 source IPs in the 'security_logs' index exhibiting suspicious brute-force behavior.",
+      "points": 15,
+      "visual_evidence": "Look for a Splunk Search interface querying 'index=\"security_logs\"' (or similar) with results showing failed logins, authentication failures, or brute-force patterns, identifying at least 3 distinct IP addresses."
+    },
+    {
+      "id": "populate_kv_store",
+      "description": "Populate the 'ip_blocklist' collection with the identified IPs.",
+      "points": 25,
+      "visual_evidence": "Look for a Splunk Search using '| outputlookup ip_blocklist_lookup' or a verification search using '| inputlookup ip_blocklist_lookup' that displays a table with at least 3 rows containing the identified IPs, threat levels, reasons, and dates added."
+    },
+    {
+      "id": "create_saved_search",
+      "description": "Create a saved search named 'Blocklist_Alert' that queries 'security_logs' and uses the lookup.",
+      "points": 25,
+      "visual_evidence": "Look for the Splunk Settings > Searches, reports, and alerts page showing 'Blocklist_Alert', or a search window showing the query being saved as an alert/report. The query should include 'index=\"security_logs\"' and reference 'ip_blocklist_lookup' (e.g., using the 'lookup' command or a subsearch)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_splunk_interaction",
+      "description": "Verify the agent interacted with the actual Splunk Web UI or used legitimate Splunk CLI/API commands.",
+      "visual_evidence": "Screenshots should show the Splunk Web interface at http://localhost:8000 or terminal windows executing valid curl/splunk commands, not a text editor with mocked answers."
+    },
+    {
+      "id": "genuine_data_query",
+      "description": "Verify the agent actually queried the security logs rather than fabricating IP addresses.",
+      "visual_evidence": "Screenshots should show search results from 'security_logs' yielding the IPs that are subsequently added to the blocklist, rather than IPs appearing out of nowhere."
+    },
+    {
+      "id": "no_script_manipulation",
+      "description": "Verify the agent did not modify evaluation or export scripts to fake success.",
+      "visual_evidence": "The agent should not be seen editing files like 'export_result.sh' or 'task.json' in a text editor or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The KV Store collection must be exactly named 'ip_blocklist' and contain the fields: 'ip_address', 'threat_level', 'reason', and 'date_added'. The lookup definition must be exactly named 'ip_blocklist_lookup'. The saved search must be exactly named 'Blocklist_Alert'. The agent must log into Splunk at http://localhost:8000 using the credentials 'admin' / 'SplunkAdmin1!'."
+}

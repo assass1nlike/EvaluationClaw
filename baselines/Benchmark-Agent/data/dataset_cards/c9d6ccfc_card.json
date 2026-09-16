@@ -1,0 +1,75 @@
+{
+  "dataset_id": "c9d6ccfc",
+  "name": "Aspect-Category-Sentiment-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Aspect-Category-Sentiment-Detection is a dataset of restaurant reviews paired with instructions to extract aspect categories and their associated sentiment. It evaluates aspect-based sentiment analysis by requiring the model to identify all aspect-category and sentiment pairs mentioned in a review.",
+  "card_text": "The dataset consists of 200 text samples drawn from restaurant reviews. Each sample contains a raw review text (context), an instruction prompt (question) that asks to extract all aspect category and sentiment pairs, and a target output string (answer) formatted as 'category => sentiment' pairs separated by commas. Aspect categories are restricted to AMBIENCE, DRINKS, FOOD, LOCATION, RESTAURANT, SERVICE; sentiments are positive, negative, or neutral. The reviews are typically short, informal, and opinionated. The task is to identify all mentioned aspects and their associated sentiment, which is a multi-label aspect-category-sentiment detection problem.",
+  "tasks": [
+    "classification_multilabel",
+    "attribute_extraction"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The raw restaurant review text, typically a short opinionated snippet about food, service, ambience, or other aspects. It serves as the main input that the model must analyze to extract aspect-sentiment pairs.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract aspect-category and sentiment pairs from the review. It specifies the allowed aspect categories, the sentiment values, and the required output format, and includes a placeholder for the raw review text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output string containing zero or more aspect-category and sentiment pairs in the format 'CATEGORY => sentiment', separated by commas. It represents the extracted aspects and their associated sentiment from the review.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw review text as context, an instruction prompt as question, and a target string answer listing aspect-category and sentiment pairs. The context is the main input, the question specifies the extraction task and output format, and the answer is the expected structured output. No dialog, options, or visual fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Category-Sentiment-Detection/annotation.json",
+    "existing_tags": {
+      "task": "aspect_category_sentiment_detection",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

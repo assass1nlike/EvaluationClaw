@@ -1,0 +1,53 @@
+{
+  "task_id": "convert_text_to_3d_points@1",
+  "task_completion": [
+    {
+      "id": "open_topocal",
+      "description": "Launch the TopoCal application.",
+      "points": 10,
+      "visual_evidence": "The TopoCal application window is open and visible on the screen."
+    },
+    {
+      "id": "import_dxf_file",
+      "description": "Import the legacy DXF file containing the text entities.",
+      "points": 15,
+      "visual_evidence": "An import dialog showing 'legacy_topo_texts.dxf' being opened, or the TopoCal workspace displaying the imported text entities (numbers representing elevations)."
+    },
+    {
+      "id": "convert_text_to_points_tool",
+      "description": "Access the tool or command to convert text entities to 3D points.",
+      "points": 25,
+      "visual_evidence": "A menu item, ribbon button, or dialog box related to converting text to points or elevating text to Z coordinates is being clicked or is open."
+    },
+    {
+      "id": "points_generated_with_elevation",
+      "description": "Verify that 3D points have been generated with the correct Z elevations.",
+      "points": 25,
+      "visual_evidence": "Point entities (nodes/markers) are visible in the drawing area alongside or replacing the text, or a properties panel shows a selected point with a Z coordinate (elevation) that matches the numerical value of the text."
+    },
+    {
+      "id": "export_csv_dialog",
+      "description": "Export the generated 3D points to a CSV file at the specified path.",
+      "points": 25,
+      "visual_evidence": "An export or 'Save As' dialog is visible, showing the file name 'converted_3d_points.csv' and the destination folder 'C:\\Users\\Docker\\Documents\\'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the TopoCal graphical user interface to perform the conversion.",
+      "visual_evidence": "Screenshots show interaction with TopoCal's menus, dialogs, and workspace, rather than just a terminal window running a Python script to parse the DXF."
+    },
+    {
+      "id": "genuine_conversion",
+      "description": "The agent actually converted the text to points using the software's features.",
+      "visual_evidence": "The conversion tool/dialog is visible in the screenshots, proving the agent didn't manually type points or use an external tool to generate the output."
+    },
+    {
+      "id": "no_direct_file_copy",
+      "description": "The agent did not simply copy the ground truth file to the output directory.",
+      "visual_evidence": "The agent is seen exporting the file directly from TopoCal's interface rather than using file explorer or terminal commands to copy 'true_coordinates.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: C:\\workspace\\data\\legacy_topo_texts.dxf. Expected output file: C:\\Users\\Docker\\Documents\\converted_3d_points.csv. The DXF contains exactly 85 text entities. The agent must use TopoCal to convert these texts into 3D points where the Z coordinate equals the text value, and export them to the expected CSV path. Do not penalize if the agent does not manually verify all 85 points, as long as the batch conversion tool is used."
+}

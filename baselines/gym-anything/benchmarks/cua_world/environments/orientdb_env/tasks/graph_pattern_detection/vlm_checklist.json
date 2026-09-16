@@ -1,0 +1,59 @@
+{
+  "task_id": "graph_pattern_detection@1",
+  "task_completion": [
+    {
+      "id": "edge_class_created",
+      "description": "Checks if the 'TravelBuddy' edge class was created in OrientDB.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio Schema tab or query output showing a new class named 'TravelBuddy' that extends the base edge class 'E'."
+    },
+    {
+      "id": "property_created",
+      "description": "Checks if the 'SharedHotels' property was added to the 'TravelBuddy' class.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio interface showing 'SharedHotels' of type 'INTEGER' listed under the properties of the 'TravelBuddy' class."
+    },
+    {
+      "id": "edges_populated",
+      "description": "Checks if TravelBuddy edges were created between Profiles with the correct shared hotel counts.",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio Graph tab or query results showing edges of type 'TravelBuddy' connecting 'Profile' vertices, with 'SharedHotels' values visible (e.g., 1 or 2)."
+    },
+    {
+      "id": "report_total_pairs",
+      "description": "Checks if the report file contains the correct total pairs count.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the file '/home/ga/travel_buddy_report.txt' with the first line exactly reading: 'Total TravelBuddy pairs: 14'."
+    },
+    {
+      "id": "report_top_traveler",
+      "description": "Checks if the report file identifies the correct top traveler and score.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the file '/home/ga/travel_buddy_report.txt' with the second line exactly reading: 'Top traveler: David Jones (david.jones@example.com) with score 8'."
+    },
+    {
+      "id": "report_pairs_sorted",
+      "description": "Checks if the report lists the pairs correctly formatted and sorted by SharedHotels descending.",
+      "points": 25,
+      "visual_evidence": "The remaining lines in '/home/ga/travel_buddy_report.txt' formatted as '<Name1> <Surname1> - <Name2> <Surname2>: <SharedHotels>' (e.g., 'John Smith - David Jones: 2'), with higher numbers appearing before lower numbers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "Verifies the agent interacted with OrientDB Studio as requested.",
+      "visual_evidence": "Screenshots must show the web browser open to 'http://localhost:2480/studio/index.html' with the agent actively using the GUI."
+    },
+    {
+      "id": "genuine_query_execution",
+      "description": "Verifies the agent executed queries to calculate the shared hotels and top traveler.",
+      "visual_evidence": "Screenshots should show OrientDB SQL queries being executed in the Studio's Browse/Query tab to compute the edge creations and connectivity scores."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verifies the agent didn't just hardcode the final report without querying the database.",
+      "visual_evidence": "The agent should be seen extracting the data from the database (e.g., viewing query results) before or while writing the report, rather than directly typing the final verified answers out of nowhere."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct total number of TravelBuddy pairs (N) is exactly 14. The top traveler is David Jones (david.jones@example.com) with a connectivity score of 8. Specific verified pairs that should appear in the report include: John Smith and David Jones (2 shared hotels); Maria Garcia and Luca Rossi (1 shared hotel). The report must be sorted by the SharedHotels count in descending order."
+}

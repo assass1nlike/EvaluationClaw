@@ -1,0 +1,29 @@
+{
+  "id": "add_custom_drug@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Add a new custom medication 'Menthol 1% Cream' to the Oscar EMR drug formulary. Use the following details for the entry: Brand Name 'Menthol 1% Cream', Generic Name 'Menthol', Strength '1%', Dosage Form 'Cream', and Route 'Topical'.\n\nLogin Credentials:\n- Username: oscardoc\n- Password: oscar\n- PIN: 1117",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_custom_drug/setup_task.sh",
+    "post_task": "/workspace/tasks/add_custom_drug/export_result.sh"
+  },
+  "metadata": {
+    "expected_brand": "Menthol 1% Cream",
+    "expected_generic": "Menthol",
+    "expected_strength": "1%",
+    "expected_form": "Cream",
+    "expected_route": "Topical"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_custom_drug"
+    }
+  }
+}

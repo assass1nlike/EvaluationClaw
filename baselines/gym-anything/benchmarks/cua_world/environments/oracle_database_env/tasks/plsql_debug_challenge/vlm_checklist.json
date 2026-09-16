@@ -1,0 +1,59 @@
+{
+  "task_id": "plsql_debug_challenge@1",
+  "task_completion": [
+    {
+      "id": "fix_calc_annual_compensation",
+      "description": "Identify and fix the logic error in CALC_ANNUAL_COMPENSATION.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SQL client or terminal executing 'CREATE OR REPLACE FUNCTION CALC_ANNUAL_COMPENSATION' with modified logic (e.g., handling NULL commission using NVL or COALESCE)."
+    },
+    {
+      "id": "fix_find_dept_top_earner",
+      "description": "Identify and fix the logic error in FIND_DEPT_TOP_EARNER.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SQL client or terminal executing 'CREATE OR REPLACE FUNCTION FIND_DEPT_TOP_EARNER' with modified logic (e.g., fixing the ORDER BY clause to sort salaries descending)."
+    },
+    {
+      "id": "fix_get_salary_percentile",
+      "description": "Identify and fix the logic error in GET_SALARY_PERCENTILE.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SQL client or terminal executing 'CREATE OR REPLACE FUNCTION GET_SALARY_PERCENTILE' with modified logic (e.g., correcting the percentile calculation function)."
+    },
+    {
+      "id": "fix_adjust_salary",
+      "description": "Identify and fix the logic error in ADJUST_SALARY.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a SQL client or terminal executing 'CREATE OR REPLACE PROCEDURE ADJUST_SALARY' with modified logic (e.g., correctly applying the percentage increase to the salary)."
+    },
+    {
+      "id": "fix_and_run_build_dept_salary_rankings",
+      "description": "Fix BUILD_DEPT_SALARY_RANKINGS and execute it to repopulate the ranking table.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'CREATE OR REPLACE PROCEDURE BUILD_DEPT_SALARY_RANKINGS' being executed, followed by the execution of the procedure itself (e.g., 'EXEC BUILD_DEPT_SALARY_RANKINGS;' or 'BEGIN BUILD_DEPT_SALARY_RANKINGS; END;')."
+    },
+    {
+      "id": "document_bug_report",
+      "description": "Document findings and corrections in bug_report.txt.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a text editor open with the file '/home/ga/Desktop/bug_report.txt' containing notes on the identified logic errors and the fixes applied for the 5 objects."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent actually connected to the Oracle database and applied the fixes.",
+      "visual_evidence": "Screenshots should show an active SQL client session (like sqlplus in the terminal or a GUI DB tool) where the CREATE OR REPLACE statements are successfully compiled, rather than the agent just editing the buggy_source.sql file without running it."
+    },
+    {
+      "id": "no_hardcoded_inserts",
+      "description": "Verify the agent used the procedure to populate the rankings table.",
+      "visual_evidence": "The agent should run the BUILD_DEPT_SALARY_RANKINGS procedure. Look out for manual INSERT statements into the rankings table, which would indicate bypassing the procedure."
+    },
+    {
+      "id": "genuine_bug_report",
+      "description": "Verify the bug report contains actual analysis.",
+      "visual_evidence": "The bug_report.txt file should contain specific explanations of the PL/SQL logic errors found in the code, not just a copy-paste of the task description or generic placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "Database connection details: hr/hr123 at localhost:1521/XEPDB1. Expected behavior of fixed objects: CALC_ANNUAL_COMPENSATION for Emp 100 (NULL comm) should return 288000, and for Emp 145 (0.4 comm) should return 235200. FIND_DEPT_TOP_EARNER for Dept 90 should return Emp 100. GET_SALARY_PERCENTILE for Emp 100 should return 100. ADJUST_SALARY for Emp 250 (starting salary 5000) with a 10% raise should update the salary to 5500."
+}

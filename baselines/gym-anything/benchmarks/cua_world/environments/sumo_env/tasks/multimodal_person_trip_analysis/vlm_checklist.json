@@ -1,0 +1,59 @@
+{
+  "task_id": "multimodal_person_trip_analysis@1",
+  "task_completion": [
+    {
+      "id": "stop_output_generated",
+      "description": "Verify that the simulation was run and stop_output.xml was generated.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command running SUMO or a file listing showing 'stop_output.xml' in the /home/ga/SUMO_Scenarios/bologna_acosta/ directory."
+    },
+    {
+      "id": "performance_and_stop_analysis_csvs",
+      "description": "Verify the creation of modal_performance.csv and bus_stop_analysis.csv.",
+      "points": 20,
+      "visual_evidence": "Look for 'modal_performance.csv' and 'bus_stop_analysis.csv' in /home/ga/SUMO_Output/. If their contents are visible, modal_performance should show metrics for buses and cars, and bus_stop_analysis should list stops with bus counts, dwell times, and headways."
+    },
+    {
+      "id": "underserved_stops_identified",
+      "description": "Verify the creation of underserved_stops.csv containing stops with <3 visits or >1200s headway.",
+      "points": 20,
+      "visual_evidence": "Look for 'underserved_stops.csv' in /home/ga/SUMO_Output/. If open in an editor or printed in the terminal, it should contain a list of specific bus stop IDs."
+    },
+    {
+      "id": "new_bus_route_created",
+      "description": "Verify the creation of the new bus route XML file serving underserved stops.",
+      "points": 20,
+      "visual_evidence": "Look for 'acosta_new_bus_route.rou.xml' in /home/ga/SUMO_Scenarios/bologna_acosta/. If open, it should contain valid SUMO XML routing syntax with at least 2 new vehicles and stops referencing the underserved list."
+    },
+    {
+      "id": "improved_sumocfg_created",
+      "description": "Verify the creation of the modified SUMO configuration file.",
+      "points": 10,
+      "visual_evidence": "Look for 'run_improved_transit.sumocfg' in /home/ga/SUMO_Scenarios/bologna_acosta/. It should be a valid SUMO config file that includes the new bus route file."
+    },
+    {
+      "id": "assessment_report_written",
+      "description": "Verify the completion of the final transit assessment report.",
+      "points": 20,
+      "visual_evidence": "Look for 'transit_assessment_report.txt' in /home/ga/SUMO_Output/. If open, it should contain text discussing modal split, stop utilization, identified gaps, and proposed impacts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "Ensure the agent actually ran the SUMO simulation to generate the data.",
+      "visual_evidence": "Look for terminal history showing 'sumo' or 'sumo-gui' commands being executed with the scenario configuration, rather than the agent just creating the output XML/CSVs manually."
+    },
+    {
+      "id": "programmatic_data_analysis",
+      "description": "Ensure the agent used a script (e.g., Python) or data tool to compute the metrics.",
+      "visual_evidence": "Look for Python scripts, pandas usage, or terminal commands parsing the XML files. The agent should not just hallucinate or manually type fake numbers into the CSV files."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "Ensure the newly created XML files are properly formatted.",
+      "visual_evidence": "Check that 'acosta_new_bus_route.rou.xml' and 'run_improved_transit.sumocfg' look like genuine XML files with proper tags, not just plain text descriptions of what the file should do."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario 'bologna_acosta' contains exactly 35 bus stops and 157 bus vehicles. The agent must process data to find underserved stops (<3 visits or >1200s headway). The new route file must contain at least 2 new vehicles and serve at least 3 of these underserved stops. Ensure all files are saved in their exact requested directories (/home/ga/SUMO_Scenarios/bologna_acosta/ for scenario files, /home/ga/SUMO_Output/ for analysis/report files)."
+}

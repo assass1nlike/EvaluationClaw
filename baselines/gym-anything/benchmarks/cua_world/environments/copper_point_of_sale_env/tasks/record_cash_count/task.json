@@ -1,0 +1,32 @@
+{
+  "id": "record_cash_count@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Perform a mid-day register cash count in Copper Point of Sale. Record the following physical cash quantities in the drawer: 10 $20 bills, 5 $10 bills, 8 $5 bills, 12 $1 bills, 3 $1 coins, 85 quarters ($0.25), 66 dimes ($0.10), 50 nickels ($0.05), 250 pennies ($0.01), and $10.00 in checks/other. Save the recorded count in the system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\record_cash_count\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\record_cash_count\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_total": 347.85,
+    "denominations": {
+      "20": 10,
+      "10": 5,
+      "5": 8,
+      "1": 12
+    },
+    "app_data_path": "$env:APPDATA\\NCH Software\\CopperPointOfSale"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_cash_count"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_ev_fleet_pv_offset@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The Python script is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window showing the file /home/ga/Documents/SAM_Projects/ev_fleet_analysis.py."
+    },
+    {
+      "id": "pysam_pv_setup",
+      "description": "The script configures a 100 kW PySAM Pvwattsv8 model with the specified parameters.",
+      "points": 20,
+      "visual_evidence": "Code in the script setting system_capacity to 100, array_type to 1, module_type to 0, losses to 14.08, and loading a Phoenix weather file."
+    },
+    {
+      "id": "load_profile_logic",
+      "description": "The script generates an 8760-element hourly load array based on the specified daytime and nighttime loads.",
+      "points": 20,
+      "visual_evidence": "Code showing an array or list comprehension generating 8760 values, where hours 06:00-17:59 are set to 10 (kW) and hours 18:00-05:59 are set to 50 (kW)."
+    },
+    {
+      "id": "energy_balance_logic",
+      "description": "The script calculates the hourly energy balance and applies the correct import/export rates.",
+      "points": 20,
+      "visual_evidence": "Code iterating over the 8760 hours, subtracting load from PV generation, and applying $0.15/kWh for grid imports (deficits) and $0.04/kWh for grid exports (surplus)."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The JSON output file is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'ls' output or a file explorer/editor showing the existence of /home/ga/Documents/SAM_Projects/ev_fleet_pv_analysis.json."
+    },
+    {
+      "id": "json_correct_values",
+      "description": "The JSON output contains the correct expected values for the annual load and baseline cost.",
+      "points": 20,
+      "visual_evidence": "The contents of the JSON file (via 'cat' or an editor) showing 'load_annual_demand_kwh' as 262800 and 'cost_without_pv_usd' as 39420."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_json",
+      "description": "The agent did not simply hardcode the final JSON output string.",
+      "visual_evidence": "The Python script must contain actual logic to write the dictionary to JSON (e.g., using the 'json' module) rather than just printing a hardcoded string with the final answers."
+    },
+    {
+      "id": "actual_pysam_usage",
+      "description": "The agent actually imported and used the PySAM library.",
+      "visual_evidence": "The script contains 'import PySAM.Pvwattsv8' (or similar) and executes the model (e.g., 'model.execute()')."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The load and costs are calculated dynamically rather than hardcoded.",
+      "visual_evidence": "The script calculates the annual load and costs by summing the 8760-element arrays or loops, rather than just assigning 262800 and 39420 directly to variables."
+    }
+  ],
+  "privileged_info_for_vlm": "The Python script must be saved to /home/ga/Documents/SAM_Projects/ev_fleet_analysis.py. The JSON output must be saved to /home/ga/Documents/SAM_Projects/ev_fleet_pv_analysis.json. The expected annual load is exactly 262,800 kWh (12 hrs @ 10kW + 12 hrs @ 50kW = 720 kWh/day * 365). The expected baseline cost (cost_without_pv_usd) is exactly $39,420 (262,800 kWh * $0.15/kWh)."
+}

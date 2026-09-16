@@ -1,0 +1,53 @@
+{
+  "id": "stride_threat_model_dfd@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a STRIDE threat model for a payment processing system in draw.io based on the specification at '~/Desktop/payment_system_spec.txt'. The model must include a Level 1 Data Flow Diagram (DFD) on Page 1 and a Threat Catalog on Page 2. The DFD must contain at least 13 components (External Entities, Processes, Data Stores), 12 labeled data flows, and dashed trust boundaries for the Internet, DMZ, Internal Network, and External environments. The Threat Catalog on Page 2 must list at least 6 specific threats categorized by STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege), each mapped to a specific element in the DFD. Save the diagram as '~/Desktop/payment_threat_model.drawio' and export Page 1 as '~/Desktop/payment_threat_model.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/stride_threat_model_dfd/setup_task.sh",
+    "post_task": "/workspace/tasks/stride_threat_model_dfd/export_result.sh"
+  },
+  "metadata": {
+    "output_drawio": "/home/ga/Desktop/payment_threat_model.drawio",
+    "output_png": "/home/ga/Desktop/payment_threat_model.png",
+    "spec_file": "/home/ga/Desktop/payment_system_spec.txt",
+    "min_components": 10,
+    "min_flows": 12,
+    "min_boundaries": 3,
+    "required_stride_categories": [
+      "spoofing",
+      "tampering",
+      "repudiation",
+      "information",
+      "denial",
+      "elevation"
+    ],
+    "component_keywords": [
+      "browser",
+      "mobile",
+      "gateway",
+      "bank",
+      "web",
+      "api",
+      "auth",
+      "processor",
+      "fraud",
+      "notification",
+      "user",
+      "transaction",
+      "audit"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_stride_threat_model_dfd"
+    }
+  }
+}

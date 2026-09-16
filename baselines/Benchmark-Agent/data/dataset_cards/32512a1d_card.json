@@ -1,0 +1,84 @@
+{
+  "dataset_id": "32512a1d",
+  "name": "People-Clothing-Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The People-Clothing-Segmentation dataset evaluates image segmentation models on the task of isolating clothing regions worn by people. Each sample provides an input photograph and a text prompt, and the model must produce a pixel-level segmentation mask of the clothing areas.",
+  "card_text": "This dataset contains 200 image–text pairs for people clothing segmentation. The input consists of an everyday photograph (input.image_file) and a short instruction (input.prompt) that asks to 'Segment out the people clothing area in the image'. The target output is a segmentation mask image (output.map_file) where clothing pixels are highlighted. Images typically show people in various poses and settings, and the mask delineates all clothing items worn by them. The dataset tests a model's ability to understand a textual instruction and perform fine-grained pixel-level segmentation of clothing regions, requiring both visual recognition of garments and precise spatial localization. Assumptions include the presence of at least one person with visible clothing and a consistent mask format.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "fashion",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "Reference to the input photograph containing people and their clothing; the model must segment clothing regions from this image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction telling the model to segment out the people clothing area in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Reference to the output segmentation mask image that highlights the clothing regions of people in the input image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image (input.image_file), a textual instruction prompt (input.prompt) that asks to segment clothing, and an output segmentation mask image (output.map_file). The prompt refers to the input image, and the mask is the target visual output indicating pixel-level clothing regions."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/people-clothing-segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "people clothing segmentation",
+      "type": "comprehension",
+      "skill": "Image Semantic Segmentation",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

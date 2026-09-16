@@ -1,0 +1,35 @@
+{
+  "id": "medical_referral_triage@1",
+  "version": "1.0",
+  "env_id": "thunderbird_env@0.1",
+  "description": "You are the Practice Manager at Oakwood Medical Group, a multi-specialty outpatient clinic. Organize the incoming patient referrals in the shared inbox by creating a 'Referrals' folder in Local Folders with two subfolders: 'Urgent_Referrals' for time-sensitive cases marked [URGENT] and 'Routine_Referrals' for standard referrals. Move all referral emails to the correct subfolder based on urgency. Add the referring cardiologist Dr. Patricia Nguyen (p.nguyen@bayviewcardiology.com) to the address book. Apply the 'Important' tag (or any available priority tag) to the emails in the 'Urgent_Referrals' folder so the clinical team can visually distinguish them. Login: local account, no password needed.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/medical_referral_triage/setup_task.sh",
+    "post_task": "/workspace/tasks/medical_referral_triage/export_result.sh"
+  },
+  "metadata": {
+    "parent_folder": "Referrals",
+    "subfolders": [
+      "Urgent_Referrals",
+      "Routine_Referrals"
+    ],
+    "urgent_email_count": 3,
+    "routine_email_count": 4,
+    "key_contact_name": "Dr. Patricia Nguyen",
+    "key_contact_email": "p.nguyen@bayviewcardiology.com",
+    "tag_required": "Important",
+    "tag_keyword": "$label1",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_medical_referral_triage"
+    }
+  }
+}

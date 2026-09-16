@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_directory_index@1",
+  "task_completion": [
+    {
+      "id": "select_virtual_server",
+      "description": "Select the virtual server 'acmecorp.test' in the control panel.",
+      "points": 10,
+      "visual_evidence": "The dropdown menu or active server indicator in the Virtualmin/Webmin interface shows 'acmecorp.test' is selected."
+    },
+    {
+      "id": "access_website_options",
+      "description": "Navigate to the website options or Apache configuration for the selected virtual server.",
+      "points": 10,
+      "visual_evidence": "The main panel displays settings for 'Website Options', 'Document Options', or 'Apache Webserver' specifically for the 'acmecorp.test' virtual server."
+    },
+    {
+      "id": "set_primary_directory_index",
+      "description": "Set 'promo.html' as the primary default file for the Directory Index.",
+      "points": 25,
+      "visual_evidence": "In the 'Default website document' or 'Directory Index' text field, 'promo.html' is typed as the very first entry."
+    },
+    {
+      "id": "keep_fallback_directory_index",
+      "description": "Ensure 'index.php' remains as a fallback in the Directory Index list.",
+      "points": 15,
+      "visual_evidence": "In the same 'Default website document' or 'Directory Index' text field, 'index.php' is listed after 'promo.html'."
+    },
+    {
+      "id": "disable_directory_listing",
+      "description": "Disable Directory Listing (Index Options).",
+      "points": 25,
+      "visual_evidence": "The radio button, dropdown, or checkbox for 'Directory listing enabled?', 'Generate directory indexes?', or 'Options: Indexes' is set to 'No', unchecked, or explicitly removed."
+    },
+    {
+      "id": "save_and_apply_changes",
+      "description": "Save the configuration changes.",
+      "points": 15,
+      "visual_evidence": "The 'Save' button is clicked, and a success message is displayed, or the 'Apply Changes' button (often in the top right) is clicked to reload the Apache configuration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "The agent used the web-based GUI to configure the server.",
+      "visual_evidence": "Screenshots show the Virtualmin/Webmin web interface being used, not a terminal window editing configuration files directly (e.g., using nano or vim on Apache config files)."
+    },
+    {
+      "id": "actual_form_interaction",
+      "description": "The agent interacted with the actual configuration forms.",
+      "visual_evidence": "Values like 'promo.html' are entered into the proper form fields in the control panel, not just written in a text document, search bar, or terminal."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The agent did not use browser developer tools to fake the configuration.",
+      "visual_evidence": "No browser developer tools (Inspect Element) are open to manipulate the HTML of the control panel to falsely show success."
+    }
+  ],
+  "privileged_info_for_vlm": "Domain: acmecorp.test. Target index: promo.html. Fallback index: index.php. Test subdirectory: assets. Promo string: PROMO_2024_LAUNCH. The agent must configure the web server so that 'promo.html' is the primary index, 'index.php' is a fallback, and directory listing is disabled (which would cause the 'assets' directory to return a 403 error)."
+}

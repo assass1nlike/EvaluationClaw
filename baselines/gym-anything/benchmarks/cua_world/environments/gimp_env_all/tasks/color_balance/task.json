@@ -1,0 +1,20 @@
+{
+  "id": "color_balance@1",
+  "version": "1.0",
+  "env_id": "example.gimp_env@0.1",
+  "description": "Correct the color cast in the image to achieve natural color tones and save the result to /home/ga/Documents/output.png.",
+  "init": {
+    "timeout_sec": 90,
+    "max_steps": 8,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/color_balance/setup_balance_task.sh",
+    "post_task": "/workspace/tasks/color_balance/export_balance.sh"
+  },
+  "success": {
+    "spec": {
+      "program": "verifier.py::check_color_balance"
+    }
+  }
+}

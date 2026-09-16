@@ -1,0 +1,59 @@
+{
+  "task_id": "add_lab_order@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify successful login to NOSH ChartingSystem",
+      "points": 10,
+      "visual_evidence": "The NOSH ChartingSystem dashboard or main interface is visible, indicating the agent successfully logged in as demo_provider."
+    },
+    {
+      "id": "patient_chart_opened",
+      "description": "Verify Margaret Thompson's chart is accessed",
+      "points": 20,
+      "visual_evidence": "The patient chart for 'Margaret Thompson' is open. Look for her name and DOB (1958-04-22) in the patient header or active workspace."
+    },
+    {
+      "id": "lab_order_screen_opened",
+      "description": "Verify the laboratory order entry screen is open",
+      "points": 10,
+      "visual_evidence": "An 'Orders', 'Laboratory', or 'Add Lab' entry form/modal is open within Margaret Thompson's chart."
+    },
+    {
+      "id": "test_selected",
+      "description": "Verify the correct test (CMP) is selected",
+      "points": 30,
+      "visual_evidence": "The text 'Comprehensive Metabolic Panel' or 'CMP' is entered, selected, or visible in the test name/order field."
+    },
+    {
+      "id": "clinical_note_entered",
+      "description": "Verify the clinical note/indication is entered",
+      "points": 20,
+      "visual_evidence": "The text 'Monitoring type 2 diabetes and chronic kidney disease stage 3' is typed into the clinical note, indication, reason, or comments field of the order form."
+    },
+    {
+      "id": "order_submitted",
+      "description": "Verify the lab order is saved or submitted",
+      "points": 10,
+      "visual_evidence": "Evidence that the order was finalized, such as clicking a 'Save', 'Sign', or 'Submit' button, a success notification, or the CMP order appearing in the patient's list of active orders/encounters."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the web browser GUI to complete the task",
+      "visual_evidence": "The screenshots should show a web browser navigating the NOSH ChartingSystem interface, not terminal commands (like curl) making API requests."
+    },
+    {
+      "id": "no_database_tampering",
+      "description": "Agent did not use direct database manipulation",
+      "visual_evidence": "The agent should not be seen using a terminal to run SQL commands (e.g., mysql, sqlite3) to manually insert the order into the database."
+    },
+    {
+      "id": "genuine_application_usage",
+      "description": "Agent interacted with the actual EHR application",
+      "visual_evidence": "The inputs (test name, clinical note) must be entered into the actual NOSH web interface, not typed into a text editor, notepad, or terminal window."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient: Margaret Thompson (DOB: 1958-04-22). Expected Order Type: Laboratory. Expected Test: 'Comprehensive Metabolic Panel' or 'CMP'. Expected Clinical Note/Indication must include keywords related to 'diabetes', 'kidney', or 'ckd' (specifically 'Monitoring type 2 diabetes and chronic kidney disease stage 3'). NOSH ChartingSystem is a web-based EHR."
+}

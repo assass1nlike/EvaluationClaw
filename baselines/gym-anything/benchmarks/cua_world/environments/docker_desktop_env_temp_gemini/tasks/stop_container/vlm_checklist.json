@@ -1,0 +1,53 @@
+{
+  "task_id": "stop_container@1",
+  "task_completion": [
+    {
+      "id": "open_docker_interface",
+      "description": "Open a terminal or Docker management GUI to interact with Docker.",
+      "points": 10,
+      "visual_evidence": "Screenshot shows a terminal window open or the Docker Desktop application launched."
+    },
+    {
+      "id": "locate_target_container",
+      "description": "Identify the running container named 'test-web-server'.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the output of a command like 'docker ps' or the Docker Desktop GUI displaying 'test-web-server' as a currently running container."
+    },
+    {
+      "id": "execute_stop_action",
+      "description": "Execute the action to stop the target container.",
+      "points": 30,
+      "visual_evidence": "Screenshot shows the command 'docker stop test-web-server' being executed in the terminal, or the cursor clicking the 'Stop' button next to the container in a GUI."
+    },
+    {
+      "id": "verify_container_exists",
+      "description": "Check the list of all containers to ensure 'test-web-server' has not been deleted.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the output of 'docker ps -a' or the Docker Desktop GUI where 'test-web-server' is still visible in the list of all containers after the stop action."
+    },
+    {
+      "id": "verify_container_stopped",
+      "description": "Confirm the status of 'test-web-server' is stopped.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows the status of 'test-web-server' explicitly listed as 'Exited' (in terminal output) or 'Stopped' (in GUI)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Verify the agent is interacting with a real terminal or Docker GUI.",
+      "visual_evidence": "Commands and outputs should appear in a genuine terminal emulator or Docker Desktop application, not mocked in a text editor or document."
+    },
+    {
+      "id": "correct_container_targeted",
+      "description": "Verify the agent targets the pre-existing container rather than creating a fake one.",
+      "visual_evidence": "The container being stopped must be exactly named 'test-web-server' and should ideally show 'nginx:alpine' as its image or port 8080 if visible."
+    },
+    {
+      "id": "no_removal_command",
+      "description": "Verify the agent did not delete the container.",
+      "visual_evidence": "There should be no execution of 'docker rm test-web-server' in the terminal, nor any clicking of a delete/trash icon in the GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "The target container is exactly named 'test-web-server' and was created using the 'nginx:alpine' image. The successful end state requires this specific container to be in an 'Exited' or 'Stopped' state but still present in the system's container list (it must not be removed)."
+}

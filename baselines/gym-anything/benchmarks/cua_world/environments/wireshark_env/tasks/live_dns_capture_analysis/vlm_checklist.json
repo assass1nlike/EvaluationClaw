@@ -1,0 +1,59 @@
+{
+  "task_id": "live_dns_capture_analysis@1",
+  "task_completion": [
+    {
+      "id": "dns_lookups_executed",
+      "description": "Agent performs DNS lookups for the target domains.",
+      "points": 10,
+      "visual_evidence": "Terminal window showing commands like 'dig', 'nslookup', 'host', or 'ping' being executed for example.com, example.org, and example.net."
+    },
+    {
+      "id": "dns_traffic_captured",
+      "description": "Agent captures live DNS traffic.",
+      "points": 15,
+      "visual_evidence": "A packet capture tool (like Wireshark or tcpdump in the terminal) actively running and displaying captured DNS packets."
+    },
+    {
+      "id": "capture_file_saved",
+      "description": "The packet capture file is saved to the correct location.",
+      "points": 20,
+      "visual_evidence": "File manager or terminal showing 'live_dns_capture.pcapng' or 'live_dns_capture.pcap' located in the ~/Documents/captures/ directory."
+    },
+    {
+      "id": "report_file_created",
+      "description": "The DNS analysis report file is created in the correct location.",
+      "points": 10,
+      "visual_evidence": "File manager, terminal, or text editor showing 'dns_analysis_report.txt' located in the ~/Documents/captures/ directory."
+    },
+    {
+      "id": "report_total_packets",
+      "description": "The report includes the total number of DNS packets.",
+      "points": 15,
+      "visual_evidence": "The contents of dns_analysis_report.txt showing the line 'Total DNS packets: <number>'."
+    },
+    {
+      "id": "report_domain_resolutions",
+      "description": "The report includes the correct resolution data and response codes for all three domains.",
+      "points": 30,
+      "visual_evidence": "The contents of dns_analysis_report.txt showing lines for example.com, example.org, and example.net with their resolved IPv4 addresses (e.g., 104.18.x.x) and the [NOERROR] response code, matching the required format."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_capture_tool_used",
+      "description": "The agent actually used a packet capture tool rather than faking the capture file.",
+      "visual_evidence": "Screenshots should show Wireshark, tcpdump, or a similar network tool being executed and saving the file, rather than the agent just using 'touch' or a text editor to create a fake .pcapng file."
+    },
+    {
+      "id": "no_copied_example_ips",
+      "description": "The agent did not blindly copy the example IP addresses from the task description.",
+      "visual_evidence": "The IPs in the report should NOT be '93.184.216.34' (the example IP). They should be the actual resolved IPs (e.g., 104.18.x.x)."
+    },
+    {
+      "id": "no_copied_example_packet_count",
+      "description": "The agent did not blindly copy the example packet count from the task description.",
+      "visual_evidence": "The 'Total DNS packets' number in the report should be derived from the actual capture, and ideally should NOT be exactly '12' unless the capture genuinely only contained 12 packets."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected capture path: /home/ga/Documents/captures/live_dns_capture.pcapng (or .pcap). Expected report path: /home/ga/Documents/captures/dns_analysis_report.txt. The example IP '93.184.216.34' in the prompt is just an example and should NOT be in the final report. The actual resolved IPs are: example.com -> 104.18.26.120, 104.18.27.120; example.org -> 104.18.3.24, 104.18.2.24; example.net -> 104.18.5.106, 104.18.4.106. The expected response code for all three is NOERROR."
+}

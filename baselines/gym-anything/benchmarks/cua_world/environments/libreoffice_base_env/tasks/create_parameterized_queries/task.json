@@ -1,0 +1,56 @@
+{
+  "id": "create_parameterized_queries@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are an Office Clerk setting up reusable search queries for other staff at a digital media store. In the Chinook database (/home/ga/chinook.odb), create two saved parameterized queries.\n\nThe first query, named 'TrackSearch', must search for tracks by partial name match using the parameter ':track_name'. It should join the Track, Album, Artist, and Genre tables to return TrackId, Name (aliased as 'TrackName'), Album Title (aliased as 'AlbumTitle'), Artist Name (aliased as 'ArtistName'), Genre Name (aliased as 'GenreName'), and UnitPrice. Results must be filtered by the track name parameter and sorted ascending by ArtistName, AlbumTitle, and TrackName.\n\nThe second query, named 'InvoicesByDateRange', must retrieve invoices within a date range using parameters ':start_date' and ':end_date'. It should join the Invoice and Customer tables to return InvoiceId, InvoiceDate, FirstName, LastName, Country, and Total. Results must be filtered by the date range parameters and sorted by InvoiceDate in descending order.\n\nEnsure table and column names are correctly quoted for HSQLDB (e.g., \"Track\".\"Name\"). Save the database file after creating the queries.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_parameterized_queries/setup_task.sh",
+    "post_task": "/workspace/tasks/create_parameterized_queries/export_result.sh"
+  },
+  "metadata": {
+    "target_odb": "/home/ga/chinook.odb",
+    "required_queries": {
+      "TrackSearch": {
+        "tables": [
+          "Track",
+          "Album",
+          "Artist",
+          "Genre"
+        ],
+        "parameters": [
+          ":track_name"
+        ],
+        "keywords": [
+          "LIKE",
+          "ORDER BY"
+        ]
+      },
+      "InvoicesByDateRange": {
+        "tables": [
+          "Invoice",
+          "Customer"
+        ],
+        "parameters": [
+          ":start_date",
+          ":end_date"
+        ],
+        "keywords": [
+          "ORDER BY",
+          "DESC"
+        ]
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_parameterized_queries"
+    }
+  }
+}

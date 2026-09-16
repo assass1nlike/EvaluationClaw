@@ -1,0 +1,34 @@
+{
+  "id": "profitability_analysis@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a financial controller at a consumer goods company analyzing product line profitability. Using the data in C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv (columns: Sales_Amount, Quantity_Sold, Unit_Cost, Unit_Price, Product_Category, Region, Discount), create a profitability analysis report in Power BI Desktop. The report must include two DAX measures named exactly Gross_Profit (total Sales_Amount minus total cost of goods sold) and Profit_Margin_Pct (Gross_Profit divided by total Sales_Amount). Include a Matrix visual with Product_Category as rows, Region as columns, and Gross_Profit as values, and a Card visual displaying the overall Profit_Margin_Pct. Save the report as C:\\Users\\Docker\\Desktop\\Profitability_Report.pbix and export the Matrix visual's underlying data to C:\\Users\\Docker\\Desktop\\profit_by_category.csv. Login as user Docker with no password.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\profitability_analysis\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\profitability_analysis\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Profitability_Report.pbix",
+    "exported_csv": "C:\\Users\\Docker\\Desktop\\profit_by_category.csv",
+    "required_measures": [
+      "Gross_Profit",
+      "Profit_Margin_Pct"
+    ],
+    "required_visuals": [
+      "pivotTable",
+      "card"
+    ],
+    "source_data": "sales_data.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_profitability_analysis"
+    }
+  }
+}

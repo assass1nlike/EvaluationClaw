@@ -1,0 +1,30 @@
+{
+  "id": "deciduous_tree_shading_analysis@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Green Building Consultant optimizing the summer cooling load for a homeowner in Chicago. Energy3D is open with the starter project 'building_starter.ng3'. Your task is to modify the landscape for passive cooling: 1. Change the geographic location to Chicago. 2. Plant at least 3 large Oak trees (Deciduous) on the South and/or West sides of the building to intercept the afternoon sun. 3. Adjust the height of these trees to approximately 15 meters so they shade the roof and windows. 4. Run a Daily Building Energy Analysis (Analysis > Buildings > Daily Energy Analysis for All Buildings) for the date July 21. 5. From the analysis window, export the graph data to a CSV file located exactly at '~/Documents/Energy3D/summer_analysis.csv'. 6. Save the modified 3D model as '~/Documents/Energy3D/shaded_building.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/deciduous_tree_shading_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/deciduous_tree_shading_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Green Building Consultant",
+    "industry": "Architecture / Environmental Engineering",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/summer_analysis.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/shaded_building.ng3",
+    "test_date": "July 21",
+    "target_location": "Chicago"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shading_analysis"
+    }
+  }
+}

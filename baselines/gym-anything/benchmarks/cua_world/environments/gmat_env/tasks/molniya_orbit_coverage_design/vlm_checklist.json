@@ -1,0 +1,53 @@
+{
+  "task_id": "molniya_orbit_coverage_design@1",
+  "task_completion": [
+    {
+      "id": "open_spec_doc",
+      "description": "Agent opened the arcticlink_orbit_spec.txt document to read the orbit requirements.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal displaying the contents of ~/Desktop/arcticlink_orbit_spec.txt."
+    },
+    {
+      "id": "configure_force_model",
+      "description": "Agent configured the GMAT force model with Earth gravity harmonics of at least 4x4, atmospheric drag, and SRP.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI Force Model window OR GMAT script text showing Earth gravity Degree and Order >= 4, Drag enabled (e.g., Drag.AtmosphereModel), and SRP enabled."
+    },
+    {
+      "id": "configure_propagator",
+      "description": "Agent configured the GMAT propagator to run for 30 days.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI Propagate command window OR GMAT script text showing a stopping condition of 30 days (e.g., ElapsedDays = 30.0)."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Agent saved the GMAT script to ~/GMAT_output/molniya_mission.script.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or GMAT save dialog showing the file molniya_mission.script in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "generate_analysis_report",
+      "description": "Agent generated the analysis report at ~/GMAT_output/molniya_analysis.txt with the exactly labeled fields.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the contents of molniya_analysis.txt containing the exact labels: SMA_km, ECC, INC_deg, AOP_initial_deg, AOP_final_deg, AOP_drift_deg, apogee_alt_km, perigee_alt_km, and period_hours, along with their calculated values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution",
+      "description": "Agent actually ran the GMAT simulation to obtain the values.",
+      "visual_evidence": "GMAT GUI showing the mission run, a plot/3D view of the orbit, or terminal output indicating GMAT execution."
+    },
+    {
+      "id": "authentic_report",
+      "description": "The analysis report contains realistic values derived from simulation, not placeholder text.",
+      "visual_evidence": "The values in molniya_analysis.txt are actual numbers (e.g., SMA around 26600, ECC around 0.74) and not just '<value>'."
+    },
+    {
+      "id": "no_direct_copy",
+      "description": "Agent did not just copy-paste the prompt requirements into the report without running the simulation.",
+      "visual_evidence": "The report contains calculated values for AOP_drift_deg, apogee_alt_km, etc., which are not explicitly provided in the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The Molniya orbit should have approximately: SMA between 26400.0 and 26800.0 km, ECC between 0.70 and 0.78, INC between 62.9 and 63.9 degrees, AOP between 265.0 and 275.0 degrees, AOP drift max 5.0 degrees, Apogee altitude >= 35000.0 km, and Period between 11.9 and 12.1 hours. The script must be at /home/ga/GMAT_output/molniya_mission.script and the report at /home/ga/GMAT_output/molniya_analysis.txt."
+}

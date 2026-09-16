@@ -1,0 +1,83 @@
+{
+  "dataset_id": "c5aacf31",
+  "name": "Sports Image Classification",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A benchmark of 200 sports photographs paired with a classification instruction, where the model must identify the sport type depicted in the image and output the corresponding label.",
+  "card_text": "The Sports Image Classification dataset contains 200 image-text pairs for single-label sport recognition. Each sample provides a photograph of a sports activity—such as sumo wrestling or baseball—along with a fixed textual instruction: \"Classify the sport type of the image.\" The expected output is a short text label naming the sport. Images vary in setting and number of athletes, but each is centered on a specific sport. The dataset assumes a closed set of sport categories and evaluates a model's ability to recognize sport types from visual cues and follow a simple classification instruction.",
+  "tasks": [
+    "classification_multiclass",
+    "visual_question_answering"
+  ],
+  "domain": "sports",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "Photograph of a sports scene depicting one specific sport activity (e.g., sumo wrestling, baseball). The image is the primary visual input to be classified.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instructional prompt asking the model to classify the sport type of the provided image. It is a short, fixed template applied across samples.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Target label naming the sport category (e.g., 'sumo wrestling', 'baseball'). It serves as the ground-truth class for the image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image file path, a textual prompt, and a textual output label. The prompt is a fixed instruction ('Classify the sport type of the image') that references the image; the image is a photograph of a sport activity; and the output is the sport category name. No dialog, options, bounding boxes, or other annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/sports_image_classification/json/annotation_v1.json",
+    "existing_tags": {
+      "task": "sports classification",
+      "type": "comprehension",
+      "skill": "Behavior Recognition",
+      "domain": "Sports",
+      "general_capability": [
+        "Content Recognition",
+        "Commonsense Knowledge"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Sports"
+  }
+}

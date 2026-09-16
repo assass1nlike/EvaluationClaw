@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_lru_cache_mri@1",
+  "task_completion": [
+    {
+      "id": "open_mri_slice_cache",
+      "description": "Open the MRISliceCache.java file",
+      "points": 10,
+      "visual_evidence": "An editor or IDE window is open showing the contents of 'src/main/java/com/medsys/imaging/MRISliceCache.java'."
+    },
+    {
+      "id": "instantiate_lru_linkedhashmap",
+      "description": "Change the cache implementation to LinkedHashMap with LRU access order",
+      "points": 20,
+      "visual_evidence": "The source code shows the cache being instantiated as a `LinkedHashMap` with the `accessOrder` parameter set to `true` (e.g., `new LinkedHashMap<>(initialCapacity, loadFactor, true)`)."
+    },
+    {
+      "id": "override_remove_eldest_entry",
+      "description": "Implement the eviction policy with a maximum capacity of 20",
+      "points": 30,
+      "visual_evidence": "The source code shows an overridden `removeEldestEntry` method for the `LinkedHashMap` that returns true when the size exceeds 20 (e.g., `return size() > 20;`)."
+    },
+    {
+      "id": "run_tests",
+      "description": "Run the CacheStabilityTest",
+      "points": 20,
+      "visual_evidence": "A terminal showing a command like `mvn test` or an IDE test runner executing the `CacheStabilityTest`."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Verify that the tests pass successfully",
+      "points": 20,
+      "visual_evidence": "The terminal shows 'BUILD SUCCESS' for the Maven test run, or the IDE shows a green bar/checkmarks indicating the tests passed without OutOfMemory errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "editor_used",
+      "description": "The agent used a genuine text editor or IDE to modify the code",
+      "visual_evidence": "The screenshots show a real editor interface (like Eclipse, VS Code, vim, or nano) rather than just echoing text into the file from the command line."
+    },
+    {
+      "id": "test_file_unmodified",
+      "description": "The agent did not modify the test file to bypass assertions",
+      "visual_evidence": "There is no evidence of the agent editing 'CacheStabilityTest.java' to remove assertions or memory constraints."
+    },
+    {
+      "id": "genuine_test_output",
+      "description": "The test execution output is genuine",
+      "visual_evidence": "The test output contains standard Maven Surefire or JUnit logs, showing actual test execution details rather than a manually typed success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/eclipse-workspace/MedicalImagingSystem. The target file is src/main/java/com/medsys/imaging/MRISliceCache.java. The agent must replace the standard HashMap with a LinkedHashMap configured for LRU (accessOrder = true) and override the `removeEldestEntry` method to return true when the size exceeds 20. Finally, the agent must run the tests and the CacheStabilityTest must pass (exit code 0 or BUILD SUCCESS)."
+}

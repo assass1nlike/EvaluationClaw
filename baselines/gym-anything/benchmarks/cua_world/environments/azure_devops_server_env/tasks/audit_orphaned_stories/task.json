@@ -1,0 +1,32 @@
+{
+  "id": "audit_orphaned_stories@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Azure DevOps is open to the TailwindTraders project. Create a Shared Query named 'Stories without Tasks' that lists all User Stories in the project that do not have any child Task work items. Save the query in the Shared Queries folder.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\audit_orphaned_stories\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\audit_orphaned_stories\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "TailwindTraders",
+    "query_name": "Stories without Tasks",
+    "query_folder": "Shared Queries",
+    "expected_orphans": [
+      "Implement Wishlist",
+      "Update Terms of Service"
+    ],
+    "expected_count": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_orphaned_stories"
+    }
+  }
+}

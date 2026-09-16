@@ -1,0 +1,26 @@
+{
+  "id": "restore_deleted_conversation@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "A critical customer conversation has been accidentally deleted and needs to be recovered in the FreeScout help desk at http://localhost:8080. In the 'IT Infrastructure Support' mailbox, locate the conversation with the subject 'Cisco 2960X Switch Replacement - Building C Floor 3' currently in the Deleted folder and restore it to an active/published state so it appears in the normal conversation list.\n\nLogin credentials:\n- Email: admin@helpdesk.local\n- Password: Admin123!",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/restore_deleted_conversation/setup_task.sh",
+    "post_task": "/workspace/tasks/restore_deleted_conversation/export_result.sh"
+  },
+  "metadata": {
+    "target_subject": "Cisco 2960X Switch Replacement - Building C Floor 3",
+    "mailbox_name": "IT Infrastructure Support",
+    "customer_email": "mchen@acmecorp.net"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restore_deleted_conversation"
+    }
+  }
+}

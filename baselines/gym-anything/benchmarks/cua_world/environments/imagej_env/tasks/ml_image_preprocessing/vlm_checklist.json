@@ -1,0 +1,53 @@
+{
+  "task_id": "ml_image_preprocessing@1",
+  "task_completion": [
+    {
+      "id": "open_blobs_image",
+      "description": "Open the 'Blobs (25K)' sample image in the application.",
+      "points": 10,
+      "visual_evidence": "Look for an open image window titled 'blobs.gif' or similar, displaying the standard Blobs sample image (dark circular shapes on a light background) within the ImageJ/Fiji interface."
+    },
+    {
+      "id": "invert_contrast",
+      "description": "Invert the image contrast so objects appear bright on a dark background.",
+      "points": 20,
+      "visual_evidence": "Look for the blobs image to change appearance so that the circular blobs are bright/white and the surrounding background is dark/black."
+    },
+    {
+      "id": "resize_content",
+      "description": "Resize the image to exactly 128 pixels wide while maintaining the aspect ratio.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Size' or 'Resize' dialog box where the width is set to 128 pixels, or check the image window header/status bar which should indicate the new width is 128px."
+    },
+    {
+      "id": "pad_canvas",
+      "description": "Pad the canvas to exactly 256x256 pixels, centered with a black background.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Canvas Size' dialog setting the width and height to 256, with the position set to 'Center' and background set to 'Black' (or Value 0). Alternatively, look at the image window showing the 128px wide inverted blobs centered inside a larger black square."
+    },
+    {
+      "id": "save_processed_image",
+      "description": "Save the resulting image as a TIFF file to ~/ImageJ_Data/processed/blobs_ml_ready.tif.",
+      "points": 30,
+      "visual_evidence": "Look for a 'Save As' dialog showing the directory path '/home/ga/ImageJ_Data/processed/' and the filename 'blobs_ml_ready.tif' with TIFF format selected, or a terminal/file manager window confirming the file's existence at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used the graphical user interface (ImageJ) to perform the image manipulations.",
+      "visual_evidence": "Look for interactions with the ImageJ menu bar (e.g., Image > Adjust > Size, Image > Adjust > Canvas Size) rather than terminal commands like ImageMagick or Python scripts."
+    },
+    {
+      "id": "genuine_transformations",
+      "description": "The image transformations were genuinely applied to the image in the workspace.",
+      "visual_evidence": "The image window should visibly update to reflect the inverted contrast, smaller size, and padded black canvas during the trajectory."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent actually saved the processed image rather than creating a fake or empty file.",
+      "visual_evidence": "The file should be saved via the application's 'Save As' dialog. There should be no terminal commands like 'touch ~/ImageJ_Data/processed/blobs_ml_ready.tif' used to bypass the actual saving process."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output path is exactly '/home/ga/ImageJ_Data/processed/blobs_ml_ready.tif'. The final image must be exactly 256x256 pixels, with the actual content resized to 128 pixels wide. The padding must be black (pixel value 0, or < 5). The expected format is TIFF."
+}

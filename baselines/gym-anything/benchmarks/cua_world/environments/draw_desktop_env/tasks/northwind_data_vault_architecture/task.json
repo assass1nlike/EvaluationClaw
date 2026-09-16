@@ -1,0 +1,50 @@
+{
+  "id": "northwind_data_vault_architecture@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Data Warehouse Architect. Design a Data Vault 2.0 model for the Northwind database 'Sales' subject area in draw.io based on the source schema provided in ~/Desktop/dv_requirements.txt. The model must include Hubs (Hub_Customer, Hub_Order, Hub_Product) styled in blue (#dae8fc), Links (Link_Order_Customer, Link_Order_Line) styled in red/pink (#f8cecc), and Satellites (Sat_Customer, Sat_Order, Sat_Product) styled in yellow (#fff2cc). Hubs require primary key, HashKey, LoadDate, and RecordSource columns. Links require HashKey, LoadDate, and RecordSource columns. Satellites require HashKey, LoadDate, RecordSource, and HashDiff columns in addition to their respective source attributes. Ensure proper connectivity between Hubs, Satellites, and Links. Save the diagram as ~/Desktop/northwind_dv.drawio and export a PNG to ~/Desktop/northwind_dv.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/northwind_data_vault_architecture/setup_task.sh",
+    "post_task": "/workspace/tasks/northwind_data_vault_architecture/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "northwind_dv.drawio",
+    "expected_png": "northwind_dv.png",
+    "min_hubs": 3,
+    "min_links": 2,
+    "min_sats": 3,
+    "required_columns": [
+      "HashKey",
+      "LoadDate",
+      "RecordSource"
+    ],
+    "colors": {
+      "hub": [
+        "#dae8fc",
+        "blue"
+      ],
+      "link": [
+        "#f8cecc",
+        "red",
+        "pink"
+      ],
+      "sat": [
+        "#fff2cc",
+        "yellow",
+        "gold"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_northwind_data_vault_architecture"
+    }
+  }
+}

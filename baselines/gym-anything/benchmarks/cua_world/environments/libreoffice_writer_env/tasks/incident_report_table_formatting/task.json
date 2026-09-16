@@ -1,0 +1,46 @@
+{
+  "id": "incident_report_table_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are a fire department training officer preparing an After-Action Report (AAR). Reformat the raw text document at /home/ga/Documents/aar_draft.docx into a professional report and save it as /home/ga/Documents/aar_formatted.docx without modifying the original. Apply 'Heading 1' style to the sections 'Incident Summary', 'Incident Timeline', 'Tactical Operations', 'Personnel and Equipment', 'Findings and Recommendations', and 'Conclusion', and 'Heading 2' style to 'Fire Suppression', 'Search and Rescue', 'Ventilation', and 'Recommendations for Training'. Convert the plaintext timeline in the 'Incident Timeline' section into a 3-column table with headers 'Time', 'Unit/Source', and 'Action/Description', removing the original text lines. Set all page margins to 1.0 inch, center-align the first two paragraphs (Title and Subtitle), and set all body text to Liberation Sans or Arial at 11pt. Include a footer with the page number.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/incident_report_table_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/incident_report_table_formatting/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/aar_draft.docx",
+    "output_path": "/home/ga/Documents/aar_formatted.docx",
+    "required_headings_1": [
+      "Incident Summary",
+      "Incident Timeline",
+      "Tactical Operations",
+      "Personnel and Equipment",
+      "Findings and Recommendations",
+      "Conclusion"
+    ],
+    "required_headings_2": [
+      "Fire Suppression",
+      "Search and Rescue",
+      "Ventilation",
+      "Recommendations for Training"
+    ],
+    "content_integrity_phrases": [
+      "1847 Industrial Parkway",
+      "Metro City Fire Department",
+      "battalion chief okonkwo",
+      "wet-pipe sprinkler system"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_incident_report"
+    }
+  }
+}

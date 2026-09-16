@@ -53,6 +53,12 @@ def build_agent_environment(
         raise ValueError("Agent task is missing metadata.agent_env.")
     env_config = copy.deepcopy(env_config)
     env_type = str(env_config.get("type") or "docker_workspace")
+    if env_config.get("judge"):
+        from .agent_judge import judge_spec
+
+        judge_spec(item)
+        if config is None:
+            raise ValueError("Judge-agent scoring requires BenchmarkConfig.")
     if env_type == "docker_workspace":
         env_config = _resolve_builder_image_context(item, env_config, config)
         task_text = "\n".join(
@@ -84,10 +90,49 @@ def build_agent_environment(
             "destroy_vm_on_cleanup": env_config.get("destroy_vm_on_cleanup", config.vm_provider_destroy_on_cleanup),
         }
     if env_type == "docker_workspace":
-        return DockerWorkspaceAgentEnvironment.from_config(
+        if env_config.get("judge"):
+            env_config.update(expose_test_tool=False, auto_evaluate_on_final=False)
+        environment = DockerWorkspaceAgentEnvironment.from_config(
             env_config,
             input_assets=environment_asset_sources(item.assets),
         )
+        if env_config.get("judge"):
+            from .agent_judge import score_with_agent
+
+            def judge(evidence):
+                from .evidence import EVALUATOR_EVIDENCE_SCHEMA
+
+                evidence = {"schema_version": EVALUATOR_EVIDENCE_SCHEMA, "item_id": item.id, **evidence}
+
+                def deterministic():
+                    details = environment._evaluate_script_with_evidence(evidence)
+                    result = environment.last_test
+                    evaluation = environment.evaluation
+                    structured_required = bool(
+                        evaluation.get("result_path") or evaluation.get("score_path")
+                        or evaluation.get("result_format") == "json_on_stdout"
+                        or evaluation.get("allow_stdout_score")
+                    )
+                    if result["returncode"] not in {0, 1} or (structured_required and not result["evaluator"]["structured"]):
+                        raise RuntimeError(f"Evaluator did not return a valid result: {result['stderr'] or result['stdout']}")
+                    return environment.score(), details
+
+                score, details = score_with_agent(
+                    item, config, environment._container_name, evidence, deterministic,
+                    artifact_dir=environment.judge_artifact_dir,
+                )
+                environment.last_test = {
+                    "score": score, "passed": score >= 1, "returncode": 0,
+                    "stdout": details, "stderr": "", "evaluator": {
+                        "score": score, "passed": score >= 1, "returncode": 0,
+                        "structured": True, "source": "judge_agent", "details": details,
+                    },
+                }
+                environment.evaluator_runs.append(environment.last_test.copy())
+                return details
+
+            environment.judge_evaluator = judge
+        return environment
     if env_type == "vm":
         return DesktopBridgeAgentEnvironment.from_config(env_config)
     raise ValueError(f"Unsupported agent environment type: {env_type}")

@@ -1,0 +1,59 @@
+{
+  "task_id": "compare_pv_tou_revenue@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The Python script tou_analysis.py is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal `ls` command, or text editor showing `tou_analysis.py` located in `/home/ga/Documents/SAM_Projects/`."
+    },
+    {
+      "id": "pysam_setup_and_parameters",
+      "description": "The script correctly imports PySAM and sets up the required system parameters for both South and West arrays.",
+      "points": 20,
+      "visual_evidence": "Code visible in an editor or terminal showing `import PySAM.Pvwattsv8` (or similar), and system parameters like capacity (5000), tilt (20), and azimuths (180 and 270)."
+    },
+    {
+      "id": "tod_pricing_logic",
+      "description": "The script implements the Time-of-Delivery (TOD) pricing logic.",
+      "points": 20,
+      "visual_evidence": "Code showing logic to apply $0.15 to peak hours (indices 16-19 or 4:00 PM to 8:00 PM) and $0.05 to all other hours for the 8760 hourly generation data."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The results JSON file tou_results.json is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal `ls` command, or text editor showing `tou_results.json` located in `/home/ga/Documents/SAM_Projects/`."
+    },
+    {
+      "id": "json_structure_correct",
+      "description": "The JSON file contains the required structure and keys for both systems.",
+      "points": 10,
+      "visual_evidence": "Contents of `tou_results.json` (via `cat` or editor) showing the keys `south_system`, `west_system`, `annual_energy_kwh`, `peak_energy_kwh`, `off_peak_energy_kwh`, `annual_revenue_dollars`, and `recommended_azimuth`."
+    },
+    {
+      "id": "correct_recommended_azimuth",
+      "description": "The JSON file correctly identifies 180 (South) as the recommended azimuth based on higher annual revenue.",
+      "points": 30,
+      "visual_evidence": "Contents of `tou_results.json` showing `\"recommended_azimuth\": 180` and the `annual_revenue_dollars` for the `south_system` being higher than the `west_system`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_calculation",
+      "description": "The script calculates the energy and revenue dynamically rather than hardcoding the expected answers.",
+      "visual_evidence": "The Python script contains actual PySAM execution commands (`.execute()`) and math operations for revenue, rather than just a hardcoded dictionary or JSON string with the final numbers."
+    },
+    {
+      "id": "script_execution",
+      "description": "The agent actually executed the Python script to generate the JSON file.",
+      "visual_evidence": "Terminal output showing the execution of the script (e.g., `python3 tou_analysis.py`) prior to the creation of the JSON file."
+    },
+    {
+      "id": "weather_file_usage",
+      "description": "The script loads a Phoenix TMY weather file from the SAM bundled solar_resource directory.",
+      "visual_evidence": "Code showing a file path pointing to SAM's `solar_resource` directory containing 'Phoenix' or 'AZ' being assigned to the PySAM weather file parameter."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected script path: /home/ga/Documents/SAM_Projects/tou_analysis.py. Expected JSON path: /home/ga/Documents/SAM_Projects/tou_results.json. Peak price: $0.15/kWh, Off-peak price: $0.05/kWh. The South-facing array (180 degrees) generates more total annual revenue (approx $508k) compared to the West-facing array (approx $496k), despite the West array generating more peak-hour energy (approx 1,225 MWh vs 738 MWh). The recommended azimuth in the JSON must be 180."
+}

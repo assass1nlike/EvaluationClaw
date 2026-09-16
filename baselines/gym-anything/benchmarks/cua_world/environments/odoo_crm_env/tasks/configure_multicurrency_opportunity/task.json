@@ -1,0 +1,28 @@
+{
+  "id": "configure_multicurrency_opportunity@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "The VP of Sales needs the CRM configured to accept deals in Euros (EUR) for the new German expansion. Configure the CRM to support Euro (EUR) transactions and create a new opportunity for Bavaria Logistics GmbH named 'Munich Warehouse Solar Installation' with an expected revenue of 125,000 EUR and a 20% probability.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_multicurrency_opportunity/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_multicurrency_opportunity/export_result.sh"
+  },
+  "metadata": {
+    "target_currency": "EUR",
+    "target_opp_name": "Munich Warehouse Solar Installation",
+    "target_partner": "Bavaria Logistics GmbH",
+    "target_revenue": 125000.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_multicurrency_opportunity"
+    }
+  }
+}

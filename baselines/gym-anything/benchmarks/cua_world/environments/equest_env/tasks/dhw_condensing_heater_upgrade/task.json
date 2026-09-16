@@ -1,0 +1,30 @@
+{
+  "id": "dhw_condensing_heater_upgrade@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "Upgrade the domestic hot water (DHW) heater in the 4StoreyBuilding eQUEST model to reflect a high-efficiency condensing gas water heater. For all DW-HEATER components, set HEAT-INPUT-RATIO to 1.05263, TANK-UA to 3.0, and AQUASTAT-SETPT-T to 125. Save the project and generate the annual simulation results to calculate the energy impact.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dhw_condensing_heater_upgrade\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dhw_condensing_heater_upgrade\\export_result.ps1"
+  },
+  "metadata": {
+    "building_model": "4StoreyBuilding",
+    "target_component_type": "DW-HEATER",
+    "target_hir": 1.05263,
+    "target_ua": 3.0,
+    "target_setpoint": 125,
+    "simulation_required": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dhw_condensing_heater_upgrade"
+    }
+  }
+}

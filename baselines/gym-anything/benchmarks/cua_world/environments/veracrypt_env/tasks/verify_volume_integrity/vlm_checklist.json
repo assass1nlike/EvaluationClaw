@@ -1,0 +1,59 @@
+{
+  "task_id": "verify_volume_integrity@1",
+  "task_completion": [
+    {
+      "id": "mount_volume",
+      "description": "Mount the VeraCrypt volume to the specified slot",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command (e.g., 'veracrypt --mount /home/ga/Volumes/data_volume.hc /home/ga/MountPoints/slot1') or the VeraCrypt GUI showing the volume successfully mounted at /home/ga/MountPoints/slot1."
+    },
+    {
+      "id": "compute_checksums",
+      "description": "Compute SHA-256 checksums for the files inside the mounted volume",
+      "points": 15,
+      "visual_evidence": "Look for terminal output showing the execution of 'sha256sum' (or a similar hashing tool) on the files located within /home/ga/MountPoints/slot1."
+    },
+    {
+      "id": "compare_manifest",
+      "description": "Compare the computed checksums against the provided manifest",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'sha256sum -c /home/ga/Volumes/integrity_manifest.sha256' or the agent opening the manifest file alongside the computed hashes to verify they match."
+    },
+    {
+      "id": "report_header",
+      "description": "Create the integrity report with the correct header and overall status",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output creating '/home/ga/Volumes/integrity_report.txt' with the first four lines exactly matching: 'INTEGRITY VERIFICATION REPORT', 'Volume: data_volume.hc', 'Date: <current date>', and 'Status: ALL FILES VERIFIED OK'."
+    },
+    {
+      "id": "report_file_status",
+      "description": "Include individual file verification statuses in the report",
+      "points": 20,
+      "visual_evidence": "Look for the remaining lines in '/home/ga/Volumes/integrity_report.txt' showing the format '[OK] <filename>' for each file checked."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Dismount the VeraCrypt volume",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command (e.g., 'veracrypt -d') or the VeraCrypt GUI showing the volume being dismounted from slot1."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_checksum_computation",
+      "description": "Verify the agent actually computed the checksums",
+      "visual_evidence": "Check that the agent ran a hashing command (like sha256sum) on the mounted files and did not just guess or hallucinate the 'ALL FILES VERIFIED OK' status without checking."
+    },
+    {
+      "id": "actual_report_saved",
+      "description": "Verify the integrity report was actually saved to disk",
+      "visual_evidence": "Check that the agent used commands like 'echo', 'cat >', or explicitly saved the file in a text editor to '/home/ga/Volumes/integrity_report.txt', rather than just typing it into an unsaved buffer."
+    },
+    {
+      "id": "genuine_dismount",
+      "description": "Verify the volume was properly dismounted",
+      "visual_evidence": "Check that a specific dismount action was taken (GUI click on 'Dismount' or terminal command) rather than the agent simply closing the terminal or ignoring the dismount step."
+    }
+  ],
+  "privileged_info_for_vlm": "Volume Path: /home/ga/Volumes/data_volume.hc. Manifest Path: /home/ga/Volumes/integrity_manifest.sha256. Report Path: /home/ga/Volumes/integrity_report.txt. Password: MountMe2024. Mount Point: /home/ga/MountPoints/slot1. The volume contains intact confidential files; therefore, all checksums will match the manifest, and the report Status must be 'ALL FILES VERIFIED OK'."
+}

@@ -1,0 +1,47 @@
+{
+  "id": "particle_inclusion_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Perform a quantitative inclusion analysis on the metallographic cross-section image located at ~/Fiji_Data/raw/particles/specimen_micrograph.tif. Calibrate the image using the scale of 0.1725 µm/pixel (referenced in ~/Fiji_Data/raw/particles/calibration_info.txt). Segment the dark inclusion particles, excluding any noise smaller than 5 µm². Measure the Area, Perimeter, Circularity, Solidity, Feret's Diameter, and Aspect Ratio for all valid particles and save the detailed results to ~/Fiji_Data/results/particles/particle_measurements.csv. Generate a size distribution histogram of particle areas and save it to ~/Fiji_Data/results/particles/size_distribution.png. Produce an annotated image showing particle outlines and a scale bar (10-50 µm) at ~/Fiji_Data/results/particles/annotated_micrograph.png. Finally, create a summary report at ~/Fiji_Data/results/particles/inclusion_report.txt including the total particle count, mean area (µm²), area fraction (%), the number of particles exceeding 500 µm², and a QC result (PASS if 5 or fewer particles exceed 500 µm², otherwise FAIL).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/particle_inclusion_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/particle_inclusion_analysis/export_result.sh"
+  },
+  "metadata": {
+    "pixel_scale": 0.1725,
+    "unit": "um",
+    "min_particle_size_um2": 5,
+    "critical_threshold_um2": 500,
+    "qc_limit_count": 5,
+    "expected_outputs": [
+      "particle_measurements.csv",
+      "size_distribution.png",
+      "annotated_micrograph.png",
+      "inclusion_report.txt"
+    ],
+    "ground_truth": {
+      "min_particle_count": 15,
+      "max_particle_count": 120,
+      "min_mean_area": 10,
+      "max_mean_area": 600
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_particle_inclusion_analysis"
+    }
+  },
+  "tags": [
+    "materials-science",
+    "calibration",
+    "particle-analysis",
+    "quality-control"
+  ]
+}

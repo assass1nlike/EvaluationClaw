@@ -1,0 +1,53 @@
+{
+  "task_id": "gdpr_erasure@1",
+  "task_completion": [
+    {
+      "id": "anonymize_core_profile",
+      "description": "Anonymize the user's Name, Surname, and Email.",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio or terminal output showing an UPDATE query or record view where Name is 'Erased', Surname is 'User', and Email is 'erased_john_smith@agency.local'."
+    },
+    {
+      "id": "clear_demographic_data",
+      "description": "Clear the user's Gender, Birthday, and Nationality properties.",
+      "points": 20,
+      "visual_evidence": "OrientDB Studio or terminal output showing an UPDATE query or record view where the Gender, Birthday, and Nationality fields are removed, null, or empty for the user."
+    },
+    {
+      "id": "delete_hasfriend_edges",
+      "description": "Delete all incoming and outgoing 'HasFriend' edges for the user.",
+      "points": 20,
+      "visual_evidence": "A successful DELETE EDGE command targeting 'HasFriend' for the user's RID, or a graph/query view confirming 0 'HasFriend' edges remain for the user."
+    },
+    {
+      "id": "preserve_hasstayed_edges",
+      "description": "Preserve all 'HasStayed' edges connected to the user.",
+      "points": 20,
+      "visual_evidence": "A query result or graph view showing that 'HasStayed' edges connected to the user's RID still exist, or the absence of any command that would delete them while other edges are deleted."
+    },
+    {
+      "id": "create_audit_log",
+      "description": "Create an audit log file with the processed RID.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the creation of '/home/ga/gdpr_audit.txt' (e.g., using echo or a text editor) containing the text 'Processed erasure for RID <rid>', where <rid> is the actual OrientDB record ID (e.g., #XX:YY) retrieved from the database."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with the actual OrientDB database.",
+      "visual_evidence": "Screenshots show the OrientDB Studio web interface or the OrientDB console being used to execute queries, rather than just typing expected outputs into a text file."
+    },
+    {
+      "id": "authentic_rid_used",
+      "description": "The agent used the real Record ID in the audit log.",
+      "visual_evidence": "The audit log contains a real OrientDB RID format (like #12:34) that matches the user's record, not the literal string '<rid>' or a fabricated ID without querying."
+    },
+    {
+      "id": "node_not_deleted",
+      "description": "The agent anonymized the user node rather than deleting it entirely.",
+      "visual_evidence": "The user record (RID) still exists in the database with updated fields, rather than a 'DELETE VERTEX' command being used on the user."
+    }
+  ],
+  "privileged_info_for_vlm": "Target user email to find is 'john.smith@example.com'. The anonymized email must be set to 'erased_john_smith@agency.local'. The audit log must be created at '/home/ga/gdpr_audit.txt'."
+}

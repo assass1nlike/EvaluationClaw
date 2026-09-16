@@ -1,0 +1,53 @@
+{
+  "task_id": "pebl_bids_standardization@1",
+  "task_completion": [
+    {
+      "id": "dataset_description_and_participants_json",
+      "description": "Create dataset_description.json and participants.json in the bids_dataset directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file explorer or terminal showing 'dataset_description.json' and 'participants.json' in '~/pebl/bids_dataset/'. If file contents are visible, dataset_description.json must contain 'Name' and 'BIDSVersion' keys."
+    },
+    {
+      "id": "participants_tsv_conversion",
+      "description": "Convert demographics.csv to participants.tsv with correct formatting.",
+      "points": 20,
+      "visual_evidence": "Look for 'participants.tsv' in '~/pebl/bids_dataset/'. If the content is visible (via text editor or terminal like 'cat'), verify it is tab-separated, the first column is 'participant_id', and the ID values start with 'sub-'."
+    },
+    {
+      "id": "subject_folders_created",
+      "description": "Create subject-specific behavioral folders.",
+      "points": 15,
+      "visual_evidence": "Look for a directory tree, file explorer, or 'ls' output showing folders named 'sub-<label>' (e.g., sub-10159), each containing a 'beh' subfolder inside '~/pebl/bids_dataset/'."
+    },
+    {
+      "id": "raw_logs_renamed_and_moved",
+      "description": "Move and rename the 12 raw logs to the subject folders following BIDS naming conventions.",
+      "points": 30,
+      "visual_evidence": "Look inside the 'sub-<label>/beh/' folders. You should see CSV files named exactly 'sub-<label>_task-bart_beh.csv', 'sub-<label>_task-flanker_beh.csv', 'sub-<label>_task-simon_beh.csv', and 'sub-<label>_task-wcst_beh.csv'. There should be no original suffixes like '_raw' or '_data'."
+    },
+    {
+      "id": "task_json_sidecars",
+      "description": "Create four task JSON sidecars in the root directory with the SoftwareName key.",
+      "points": 20,
+      "visual_evidence": "Look for four files in the root of '~/pebl/bids_dataset/': 'task-bart_beh.json', 'task-flanker_beh.json', 'task-simon_beh.json', and 'task-wcst_beh.json'. If contents are visible, they must contain '{\"SoftwareName\": \"PEBL\"}'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_operations",
+      "description": "The agent actually created, moved, and modified the files rather than just printing the expected tree structure.",
+      "visual_evidence": "Screenshots should show actual file managers, text editors, or valid terminal commands (like mkdir, mv, cp, python scripts, or pandas operations) executing the changes."
+    },
+    {
+      "id": "no_empty_dummy_files",
+      "description": "The agent processed the actual raw data files rather than creating empty dummy files with the correct names.",
+      "visual_evidence": "File sizes in the file explorer or terminal output (e.g., 'ls -l') should be non-zero, or scripts should show actual file reading/moving operations rather than 'touch' commands."
+    },
+    {
+      "id": "correct_working_directory",
+      "description": "The agent worked within the specified directories.",
+      "visual_evidence": "Terminal prompts, file explorer paths, or script paths explicitly reference '~/pebl/raw_data' and '~/pebl/bids_dataset'."
+    }
+  ],
+  "privileged_info_for_vlm": "The required tasks are exactly 'bart', 'flanker', 'simon', and 'wcst'. The data consists of 12 raw logs across 3 participants."
+}

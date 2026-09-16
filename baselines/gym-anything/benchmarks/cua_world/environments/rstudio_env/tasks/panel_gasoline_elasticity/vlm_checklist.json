@@ -1,0 +1,53 @@
+{
+  "task_id": "panel_gasoline_elasticity@1",
+  "task_completion": [
+    {
+      "id": "create_r_script",
+      "description": "Create and save the R script gasoline_analysis.R in the correct directory.",
+      "points": 10,
+      "visual_evidence": "An R IDE (like RStudio) or text editor showing a script saved as 'gasoline_analysis.R' in the '/home/ga/RProjects/' directory."
+    },
+    {
+      "id": "fit_panel_models",
+      "description": "Write R code to fit Pooled OLS, Fixed Effects, and Random Effects models using the plm package.",
+      "points": 20,
+      "visual_evidence": "R code visible in the editor showing the use of the `plm` function with the formula `lgaspcar ~ lincomep + lrpmg` and the `model` argument set to 'pooling', 'within', and 'random'."
+    },
+    {
+      "id": "generate_heterogeneity_plot",
+      "description": "Generate and save heterogeneity_plot.png showing gasoline consumption across countries.",
+      "points": 20,
+      "visual_evidence": "A plot viewer, image viewer, or file manager showing 'heterogeneity_plot.png' saved in '/home/ga/RProjects/output/'. The image should display a chart (like a boxplot) of 'lgaspcar' grouped by country."
+    },
+    {
+      "id": "save_model_comparison_csv",
+      "description": "Save model_comparison.csv with the required columns and model results.",
+      "points": 25,
+      "visual_evidence": "A file manager, terminal, or editor showing 'model_comparison.csv' in '/home/ga/RProjects/output/'. The contents should include columns for 'model', 'price_elasticity', 'income_elasticity', and 'adj_r_squared'. The price elasticity for the fixed model should be approximately -0.257."
+    },
+    {
+      "id": "save_hausman_result_txt",
+      "description": "Save hausman_result.txt containing the Hausman test p-value and conclusion.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the contents of 'hausman_result.txt' in '/home/ga/RProjects/output/'. The text must mention a p-value of approximately 0.0062 and conclude that the Fixed Effects model is the consistent/preferred estimator."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "The agent actually executed the R code to generate the results rather than just creating text files with hardcoded answers.",
+      "visual_evidence": "R console output showing the execution of `plm` functions, `phtest`, or plot generation, rather than just `echo` commands in a terminal."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not copy-paste the expected p-value or elasticity directly into the output files without running the models.",
+      "visual_evidence": "The R script contains the actual model fitting, Hausman test execution (`phtest`), and variable extraction logic rather than hardcoded strings like `writeLines(\"p-value: 0.0062\", \"hausman_result.txt\")`."
+    },
+    {
+      "id": "correct_directory_structure",
+      "description": "The agent created the outputs in the specified directories.",
+      "visual_evidence": "File paths in the editor, terminal, or file manager explicitly show '/home/ga/RProjects/' for the R script and '/home/ga/RProjects/output/' for the CSV, TXT, and PNG files."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is 'Gasoline' from the R 'plm' package. The Fixed Effects model price elasticity (lrpmg coefficient) should be approximately -0.257 (acceptable range: -0.40 to -0.20). The Hausman test comparing Fixed and Random Effects yields a p-value of approximately 0.0062, which strongly rejects the null hypothesis, meaning Fixed Effects is the preferred/consistent estimator. The required outputs are model_comparison.csv, hausman_result.txt, heterogeneity_plot.png (in /home/ga/RProjects/output/), and gasoline_analysis.R (in /home/ga/RProjects/)."
+}

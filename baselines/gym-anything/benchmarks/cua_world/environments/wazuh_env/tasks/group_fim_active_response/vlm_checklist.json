@@ -1,0 +1,53 @@
+{
+  "task_id": "group_fim_active_response@1",
+  "task_completion": [
+    {
+      "id": "create_group",
+      "description": "Verify the creation of the 'critical-servers' agent group.",
+      "points": 15,
+      "visual_evidence": "Look for the Wazuh 'Groups' management page showing 'critical-servers' in the list of available groups."
+    },
+    {
+      "id": "assign_agent",
+      "description": "Verify agent 000 is assigned to the 'critical-servers' group.",
+      "points": 15,
+      "visual_evidence": "Look for the 'critical-servers' group details showing agent 000 as a member, or the agent 000 details page showing 'critical-servers' under its assigned groups."
+    },
+    {
+      "id": "configure_fim",
+      "description": "Verify FIM (syscheck) is configured for the group with the required paths.",
+      "points": 20,
+      "visual_evidence": "Look for the group configuration editor (e.g., agent.conf for critical-servers) in the Wazuh UI containing a <syscheck> section with realtime monitoring enabled for paths including /etc/passwd, /etc/shadow, /etc/ssh, /etc/audit, and /var/log/auth (or auth.log)."
+    },
+    {
+      "id": "create_custom_rule",
+      "description": "Verify a custom detection rule is created for the FIM events.",
+      "points": 25,
+      "visual_evidence": "Look for the custom rules editor (e.g., local_rules.xml) in the Wazuh UI showing a new rule with a severity level of 10 or higher that triggers on syscheck/FIM events."
+    },
+    {
+      "id": "configure_active_response",
+      "description": "Verify an active response is configured to trigger on the custom rule.",
+      "points": 25,
+      "visual_evidence": "Look for the Wazuh manager configuration (ossec.conf) in the UI showing an <active-response> block that references the newly created custom rule ID and specifies a host-based command/action."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Wazuh web dashboard to perform the configurations.",
+      "visual_evidence": "Screenshots should show the Wazuh web interface (https://localhost) being navigated, rather than just terminal windows echoing text into files."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Verify the configurations were actually saved and applied in the Wazuh interface.",
+      "visual_evidence": "Look for success toast notifications ('Configuration saved successfully', 'Rule saved', etc.) or active group/agent status in the dashboard, rather than just typed text in an unsaved text box."
+    },
+    {
+      "id": "no_spoofing",
+      "description": "Verify the agent did not spoof the results using a text editor or fake HTML.",
+      "visual_evidence": "The browser URL bar should show the correct Wazuh dashboard URLs, and the interface elements (menus, buttons, sidebars) should be consistent with the actual Wazuh application."
+    }
+  ],
+  "privileged_info_for_vlm": "Target group must be exactly 'critical-servers'. Target agent ID must be '000'. The configured FIM paths should include /etc/passwd, /etc/shadow, /etc/ssh, /etc/audit, and /var/log/auth (or auth.log). The custom rule level must be 10 or greater (the verifier accepts 10+, despite the prompt asking for 12 or higher)."
+}

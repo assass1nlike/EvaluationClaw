@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_and_list_low_stock_items@1",
+  "task_completion": [
+    {
+      "id": "tag_some_low_stock",
+      "description": "At least one low-stock chemical is tagged with 'Restock Needed'.",
+      "points": 10,
+      "visual_evidence": "Look for a screenshot of the 'General Chemicals' inventory table where at least one of the following items has the tag 'Restock Needed': Acetone, Methanol, DMSO, or Hexane."
+    },
+    {
+      "id": "tag_all_low_stock",
+      "description": "All four low-stock chemicals are tagged with 'Restock Needed'.",
+      "points": 30,
+      "visual_evidence": "Look for screenshots showing the inventory table where all four specific items (Acetone, Methanol, DMSO, Hexane) have the 'Restock Needed' tag applied to them."
+    },
+    {
+      "id": "strict_tagging",
+      "description": "High-stock chemicals are NOT tagged with 'Restock Needed'.",
+      "points": 10,
+      "visual_evidence": "Verify in the inventory screenshots that items with stock >= 10 (e.g., Ethanol, PBS Buffer, Chloroform, Deionized Water) do NOT have the 'Restock Needed' tag."
+    },
+    {
+      "id": "create_requisition_task",
+      "description": "A new task named 'Weekly Requisition' is created in the correct location.",
+      "points": 20,
+      "visual_evidence": "Look for a screenshot of the SciNote task board or task view showing a task specifically named 'Weekly Requisition' located within the 'Purchasing' experiment of the 'Lab Administration' project."
+    },
+    {
+      "id": "list_chemicals_in_task",
+      "description": "The task description lists the four low-stock chemicals.",
+      "points": 30,
+      "visual_evidence": "Look for a screenshot of the 'Weekly Requisition' task details where the description field explicitly contains the names of the four low-stock items: Acetone, Methanol, DMSO, and Hexane."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_ui",
+      "description": "The agent used the SciNote web interface to perform actions.",
+      "visual_evidence": "Screenshots should show the SciNote web application running in a web browser. There should be no evidence of terminal commands, database scripts, or API calls being used to bypass the UI."
+    },
+    {
+      "id": "actual_inventory_viewed",
+      "description": "The agent actually viewed the inventory to check stock levels.",
+      "visual_evidence": "There must be at least one screenshot showing the 'General Chemicals' repository table with the stock amounts visible, proving the agent didn't just guess or use prior knowledge."
+    },
+    {
+      "id": "actual_task_created",
+      "description": "The task was created inside the SciNote application.",
+      "visual_evidence": "The 'Weekly Requisition' task and its description must be visible within the SciNote application's task interface, not just typed into a text editor, notepad, or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The exact low-stock chemicals (amount < 10) that must be tagged and listed are: Acetone, Methanol, DMSO, and Hexane. High-stock chemicals (amount >= 10) such as Ethanol, PBS Buffer, Chloroform, Deionized Water, Dichloromethane, Toluene, Isopropanol, and Ethyl Acetate should NOT be tagged. The required tag is exactly 'Restock Needed' and the required task name is exactly 'Weekly Requisition'."
+}

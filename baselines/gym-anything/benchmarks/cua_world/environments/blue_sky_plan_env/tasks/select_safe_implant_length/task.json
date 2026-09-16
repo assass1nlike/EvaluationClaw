@@ -1,0 +1,28 @@
+{
+  "id": "select_safe_implant_length@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Select and place a dental implant at the lower right first molar site (tooth #30) using Blue Sky Plan. Maximize the implant length while strictly maintaining a minimum 2.0 mm safety distance from the inferior alveolar nerve canal. Document the final distance between the implant apex and the nerve with a measurement ruler. Save a screenshot of the cross-section showing the implant, nerve, and measurement to 'C:\\Users\\Docker\\Documents\\implant_safety_check.png'. Save a text file to 'C:\\Users\\Docker\\Documents\\implant_plan_data.txt' using the following format:\nAvailable_Bone_Height_mm: [value]\nSelected_Implant_Length_mm: [value]\nFinal_Safety_Gap_mm: [value]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\select_safe_implant_length\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\select_safe_implant_length\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_screenshot": "C:\\Users\\Docker\\Documents\\implant_safety_check.png",
+    "expected_data_file": "C:\\Users\\Docker\\Documents\\implant_plan_data.txt",
+    "min_safety_gap_mm": 2.0,
+    "max_wasted_bone_mm": 3.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_safe_implant_length"
+    }
+  }
+}

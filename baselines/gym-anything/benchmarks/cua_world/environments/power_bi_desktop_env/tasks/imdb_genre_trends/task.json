@@ -1,0 +1,28 @@
+{
+  "id": "imdb_genre_trends@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a media analyst. Using the movie dataset at C:\\Users\\Docker\\Documents\\TaskData\\movie_metadata.csv, build a Power BI report that analyzes box office trends by primary genre and decade. The data requires processing to extract the first value from the pipe-delimited (|) genres column as Primary_Genre, filter out null gross or budget values, and bin title_year into 10-year Decade groups. The report must feature a Matrix visual displaying the average gross by Primary_Genre (rows) and Decade (columns), and a Scatter Chart plotting gross against budget categorized by Primary_Genre. Export the Matrix visual data to C:\\Users\\Docker\\Documents\\TaskData\\genre_stats.csv and save the final report as C:\\Users\\Docker\\Documents\\TaskData\\IMDB_Analysis.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\imdb_genre_trends\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\imdb_genre_trends\\export_result.ps1"
+  },
+  "metadata": {
+    "data_url": "https://raw.githubusercontent.com/sundeepblue/movie_rating_prediction/master/movie_metadata.csv",
+    "expected_pbix": "C:\\Users\\Docker\\Documents\\TaskData\\IMDB_Analysis.pbix",
+    "expected_csv": "C:\\Users\\Docker\\Documents\\TaskData\\genre_stats.csv",
+    "forbidden_char_in_genre": "|"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_imdb_genre_trends"
+    }
+  }
+}

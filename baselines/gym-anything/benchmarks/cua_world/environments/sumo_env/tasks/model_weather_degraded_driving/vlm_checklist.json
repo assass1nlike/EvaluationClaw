@@ -1,0 +1,53 @@
+{
+  "task_id": "model_weather_degraded_driving@1",
+  "task_completion": [
+    {
+      "id": "create_modified_vtypes",
+      "description": "Create the modified vehicle types file for the rain scenario.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the creation or contents of '/home/ga/SUMO_Output/pasubio_vtypes_rain.add.xml', with <vType> elements containing the attributes tau=\"1.8\", minGap=\"4.0\", and speedFactor=\"0.8\"."
+    },
+    {
+      "id": "create_rain_config",
+      "description": "Create or modify a SUMO configuration file for the rain scenario.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing a .sumocfg file (e.g., run_rain.sumocfg) that references the newly created 'pasubio_vtypes_rain.add.xml' file."
+    },
+    {
+      "id": "run_simulations",
+      "description": "Run both the baseline and rain SUMO simulations to generate tripinfo outputs.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the 'sumo' command for both the baseline configuration and the rain configuration, including arguments to generate tripinfo output files (e.g., --tripinfo-output)."
+    },
+    {
+      "id": "calculate_averages",
+      "description": "Extract time loss data and calculate the average time loss for both scenarios.",
+      "points": 20,
+      "visual_evidence": "A script (e.g., Python), terminal commands (e.g., awk, grep, xmlstarlet), or a spreadsheet being used to parse the generated tripinfo XML files, extract the 'timeLoss' values, and compute their averages and the percentage increase."
+    },
+    {
+      "id": "save_report",
+      "description": "Save the final results to the weather impact report file.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/SUMO_Output/weather_impact.txt' containing exactly three lines: 'Baseline Average Time Loss: [Value]', 'Rain Average Time Loss: [Value]', and 'Percentage Increase: [Value]%'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "Verify that the agent actually ran the SUMO simulations.",
+      "visual_evidence": "Look for genuine SUMO terminal output (e.g., 'Success.', 'Simulation ended at time:', 'Reason: The final simulation step has been reached.') rather than the agent just creating mock tripinfo XML files."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "Verify that the agent calculated the values based on the simulation outputs.",
+      "visual_evidence": "Look for evidence of data extraction and math operations (e.g., a Python script reading the XML files) rather than the agent hallucinating or hardcoding the final numbers in the text file."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Verify that the agent used the exact file paths specified in the task.",
+      "visual_evidence": "Check terminal commands or file editors to ensure the report is saved exactly at '/home/ga/SUMO_Output/weather_impact.txt' and the modified vtypes at '/home/ga/SUMO_Output/pasubio_vtypes_rain.add.xml'."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified file paths: Modified vtypes must be at /home/ga/SUMO_Output/pasubio_vtypes_rain.add.xml. Rain config must be at /home/ga/SUMO_Scenarios/bologna_pasubio/run_rain.sumocfg. Baseline tripinfo must be at /home/ga/SUMO_Output/tripinfo_baseline.xml. Rain tripinfo must be at /home/ga/SUMO_Output/tripinfo_rain.xml. Final report must be at /home/ga/SUMO_Output/weather_impact.txt."
+}

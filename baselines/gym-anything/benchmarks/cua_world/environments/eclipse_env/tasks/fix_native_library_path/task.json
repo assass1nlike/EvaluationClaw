@@ -1,0 +1,29 @@
+{
+  "id": "fix_native_library_path@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "The 'DoseCalculator' medical physics application is failing to start because it cannot find the required native library 'libdosecalc.so' located at /opt/medphys/lib/. Configure the 'DoseCalculator' project in Eclipse to correctly link this library so that the com.hospital.dose.Main class can run successfully and generate a 'dose_report.txt' file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_native_library_path/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_native_library_path/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/DoseCalculator",
+    "native_lib_path": "/opt/medphys/lib",
+    "expected_output_file": "dose_report.txt",
+    "expected_result_value": "45.5",
+    "source_file_path": "src/com/hospital/dose/DoseEngine.java"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_native_library_path"
+    }
+  }
+}

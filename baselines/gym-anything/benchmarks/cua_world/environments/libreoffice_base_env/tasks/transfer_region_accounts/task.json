@@ -1,0 +1,32 @@
+{
+  "id": "transfer_region_accounts@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Transfer customer accounts for the North American region (USA and Canada) from Sales Support Agent Jane Peacock (SupportRepId 3) to Margaret Park (SupportRepId 4). Log each transfer in a new table named 'TransferLog' containing columns for CustomerId (INTEGER), OldRepId (INTEGER), NewRepId (INTEGER), and TransferDate (DATE or TIMESTAMP). Update the SupportRepId in the Customer table for all affected records and ensure the database is saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/transfer_region_accounts/setup_task.sh",
+    "post_task": "/workspace/tasks/transfer_region_accounts/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "target_rep_id": 4,
+    "source_rep_id": 3,
+    "target_countries": [
+      "USA",
+      "Canada"
+    ],
+    "log_table": "TransferLog"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_transfer_region_accounts"
+    }
+  }
+}

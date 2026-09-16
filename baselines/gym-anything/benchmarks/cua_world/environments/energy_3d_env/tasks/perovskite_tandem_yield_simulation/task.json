@@ -1,0 +1,30 @@
+{
+  "id": "perovskite_tandem_yield_simulation@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Modify the photovoltaic properties of the existing solar array to simulate a 29% efficiency perovskite-silicon tandem cell, run an annual yield analysis, and report the results. \n\nStarting from the loaded `solar-rack-array.ng3`:\n1. Select the solar array and update its technical specifications (apply to all panels):\n   - Cell Efficiency: 29% (or 0.29 depending on UI)\n   - Temperature Coefficient of Pmax: -0.20 %/°C\n   - Nominal Operating Cell Temp (NOCT): 40 °C\n2. Run the Annual Yield / Solar Radiation analysis for the array.\n3. Save a screenshot of the resulting analysis graph/dialog as `~/Documents/Energy3D/yield_graph.png`.\n4. Save the modified project as a new file at `~/Documents/Energy3D/high_efficiency_array.ng3`.\n5. Create a text file at `~/Documents/Energy3D/yield_report.txt` containing the total calculated annual yield in kWh.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/perovskite_tandem_yield_simulation/setup_task.sh",
+    "post_task": "/workspace/tasks/perovskite_tandem_yield_simulation/export_result.sh"
+  },
+  "metadata": {
+    "expected_efficiency": 0.29,
+    "expected_temp_coeff": -0.2,
+    "expected_noct": 40,
+    "output_project": "/home/ga/Documents/Energy3D/high_efficiency_array.ng3",
+    "output_graph": "/home/ga/Documents/Energy3D/yield_graph.png",
+    "output_report": "/home/ga/Documents/Energy3D/yield_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perovskite_tandem_yield_simulation"
+    }
+  }
+}

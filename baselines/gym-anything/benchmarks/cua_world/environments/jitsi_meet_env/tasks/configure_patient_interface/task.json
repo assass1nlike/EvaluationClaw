@@ -1,0 +1,33 @@
+{
+  "id": "configure_patient_interface@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure the Jitsi Meet web interface to act as a 'Hospital Virtual Care' portal by modifying the interface_config.js file within the running Docker container. The configuration must set the DEFAULT_WELCOME_PAGE_TITLE to \"Hospital Virtual Care\", restrict SETTINGS_SECTIONS to only 'devices' and 'sounds', and set MOBILE_APP_PROMO to false. Verify the restricted settings at http://localhost:8080 and save a screenshot of the settings dialog to ~/Documents/restricted_settings.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_patient_interface/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_patient_interface/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "expected_title": "Hospital Virtual Care",
+    "expected_settings": [
+      "devices",
+      "sounds"
+    ],
+    "expected_promo": false,
+    "screenshot_path": "/home/ga/Documents/restricted_settings.png",
+    "config_path_in_container": "/usr/share/jitsi-meet/interface_config.js"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_patient_interface"
+    }
+  }
+}

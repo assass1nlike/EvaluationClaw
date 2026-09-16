@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_downsampled_matlab@1",
+  "task_completion": [
+    {
+      "id": "load_case_file",
+      "description": "Verify that Vital Recorder is open and Case 6 is loaded.",
+      "points": 10,
+      "visual_evidence": "The Vital Recorder application window is visible, and the loaded file list or title bar indicates 'case6.vital' is open."
+    },
+    {
+      "id": "open_export_dialog",
+      "description": "Verify that the export functionality has been initiated.",
+      "points": 10,
+      "visual_evidence": "An 'Export' or 'Save As' dialog window specific to Vital Recorder is open on the screen."
+    },
+    {
+      "id": "select_required_tracks",
+      "description": "Verify that only the 'SNUADC/ECG_II' and 'SNUADC/PLETH' tracks are selected for export.",
+      "points": 20,
+      "visual_evidence": "In the track selection area of the export dialog, the checkboxes for 'SNUADC/ECG_II' and 'SNUADC/PLETH' are checked, while all other tracks are unchecked."
+    },
+    {
+      "id": "set_export_duration",
+      "description": "Verify the export duration is set to the first 5 minutes (0 to 300 seconds).",
+      "points": 20,
+      "visual_evidence": "The time range inputs in the export dialog show a start time of 0 and an end time of 300 (or 5:00 minutes)."
+    },
+    {
+      "id": "set_sampling_rate",
+      "description": "Verify the sampling rate is set to exactly 100 Hz.",
+      "points": 20,
+      "visual_evidence": "The sampling rate, frequency, or interval setting in the export dialog is explicitly set to 100 Hz (or 0.01 seconds)."
+    },
+    {
+      "id": "save_matlab_file",
+      "description": "Verify the file is saved as a MATLAB (.mat) file to the specified path.",
+      "points": 20,
+      "visual_evidence": "The save dialog shows the file name 'engineering_data.mat' and the directory path 'C:\\Users\\Docker\\Documents\\VitalRecorder\\', or a file explorer window shows the successfully created .mat file at this location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Vital Recorder GUI to perform the export.",
+      "visual_evidence": "Screenshots should show the agent clicking through the Vital Recorder application interface and its export dialogs, rather than writing a Python/MATLAB script in a terminal or code editor to process the file."
+    },
+    {
+      "id": "genuine_file_path",
+      "description": "Verify the agent navigated to the actual directory to save the file.",
+      "visual_evidence": "The Windows Save dialog or File Explorer shows the actual directory structure 'C:\\Users\\Docker\\Documents\\VitalRecorder\\' being interacted with, not just a text string typed into a mock interface."
+    },
+    {
+      "id": "no_empty_mock_file",
+      "description": "Verify the agent actually exported the data rather than creating an empty mock file.",
+      "visual_evidence": "A progress bar during export is visible, or the resulting file size in File Explorer is greater than 0 KB, indicating actual waveform data was written."
+    }
+  ],
+  "privileged_info_for_vlm": "VitalDB Case 6 contains data originally sampled at 500 Hz. The task requires downsampling to exactly 100 Hz over a 300-second duration (0-300s), which yields exactly 30,000 samples per track. The required tracks are 'SNUADC/ECG_II' and 'SNUADC/PLETH'. The output must be a MATLAB (.mat) file saved to C:\\Users\\Docker\\Documents\\VitalRecorder\\engineering_data.mat."
+}

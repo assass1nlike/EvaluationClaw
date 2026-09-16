@@ -1,0 +1,31 @@
+{
+  "id": "transcript_style_chaining@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Configure advanced paragraph style definitions to automate the formatting of a City Council meeting transcript using the raw text in /home/ga/Documents/council_minutes_raw.odt. Create a custom Paragraph Style named 'Speaker Label' with Bold font, 6pt Spacing Above Paragraph, 'Keep with next paragraph' enabled, and 'Minute Text' as the Next Style. Create a custom Paragraph Style named 'Minute Text' with a 0.5 inch (1.27 cm) Left Indent, Regular font, and 'Speaker Label' as the Next Style. Apply 'Speaker Label' to all speaker names (lines ending in ':') and 'Minute Text' to all dialogue paragraphs. Save the formatted document to /home/ga/Documents/council_minutes_formatted.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/transcript_style_chaining/setup_task.sh",
+    "post_task": "/workspace/tasks/transcript_style_chaining/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/council_minutes_raw.odt",
+    "output_file": "/home/ga/Documents/council_minutes_formatted.odt",
+    "style_speaker": "Speaker Label",
+    "style_text": "Minute Text",
+    "required_chain": true,
+    "speaker_pattern": ":$",
+    "min_speaker_count": 8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_transcript_style_chaining"
+    }
+  }
+}

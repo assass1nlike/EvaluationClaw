@@ -1,0 +1,32 @@
+{
+  "id": "split_transaction_strategy_lots@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Refactor a portfolio position in JStock by splitting a transaction. You have a single purchase of 100 shares of Apple (AAPL) bought on Jan 15, 2024, at $185.20. Split this into two separate lots of 50 shares each to track different strategies. One lot must contain 50 units with the comment 'Long Term Hold', and the other must be a new transaction for 50 units dated Jan 15, 2024, at $185.20 with the comment 'Short Term Trade'. The total share count and cost basis must remain consistent with the original 100-share position.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/split_transaction_strategy_lots/setup_task.sh",
+    "post_task": "/workspace/tasks/split_transaction_strategy_lots/export_result.sh"
+  },
+  "metadata": {
+    "target_symbol": "AAPL",
+    "target_date": "Jan 15, 2024",
+    "target_price": 185.2,
+    "target_total_units": 100.0,
+    "split_units": 50.0,
+    "comment_1": "Long Term Hold",
+    "comment_2": "Short Term Trade",
+    "portfolio_file": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/buyportfolio.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_split_transaction_strategy_lots"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "import_custom_historical_data@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is open at the Control Center. Define a new custom instrument named 'SYNTH101' (Currency: USD, Exchange: Default) and import the historical data from 'C:\\Users\\Docker\\Documents\\SYNTH101.txt' using the format 'yyyyMMdd;Open;High;Low;Close;Volume'. Open a Daily chart for 'SYNTH101' and save the workspace.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_custom_historical_data\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_custom_historical_data\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument_name": "SYNTH101",
+    "data_file_path": "C:\\Users\\Docker\\Documents\\SYNTH101.txt",
+    "expected_interval": "Daily",
+    "workspaces_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_custom_historical_data"
+    }
+  }
+}

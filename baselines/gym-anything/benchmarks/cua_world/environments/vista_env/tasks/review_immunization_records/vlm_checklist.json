@@ -1,0 +1,59 @@
+{
+  "task_id": "review_immunization_records@1",
+  "task_completion": [
+    {
+      "id": "ydbgui_accessible",
+      "description": "Verify that the YDBGui web interface is accessible.",
+      "points": 10,
+      "visual_evidence": "The Firefox browser is open and displaying the YDBGui Dashboard."
+    },
+    {
+      "id": "vista_running",
+      "description": "Verify that the VistA database is running and connected.",
+      "points": 10,
+      "visual_evidence": "The YDBGui interface shows an active connection to the database, such as displaying the global directory tree or database status."
+    },
+    {
+      "id": "immunization_types_navigated",
+      "description": "Verify navigation to the Immunization Type global (^AUTNIMM).",
+      "points": 25,
+      "visual_evidence": "The global '^AUTNIMM' is explicitly selected, searched, or opened within the YDBGui interface."
+    },
+    {
+      "id": "vaccine_names_visible",
+      "description": "Verify that vaccine definitions are visible in the ^AUTNIMM global.",
+      "points": 20,
+      "visual_evidence": "Data nodes or values within ^AUTNIMM are displayed on screen, showing readable vaccine types, names, or definitions."
+    },
+    {
+      "id": "vaccination_events_navigated",
+      "description": "Verify navigation to the Vaccination Event global (^AUPNVIMM).",
+      "points": 20,
+      "visual_evidence": "The global '^AUPNVIMM' is explicitly selected, searched, or opened within the YDBGui interface."
+    },
+    {
+      "id": "event_details_visible",
+      "description": "Verify that patient vaccination event records are visible in the ^AUPNVIMM global.",
+      "points": 15,
+      "visual_evidence": "Data nodes or values within ^AUPNVIMM are displayed on screen, showing event details such as record numbers, dates, or pointers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_not_terminal",
+      "description": "Verify the agent used the YDBGui web interface to view the globals, rather than terminal commands.",
+      "visual_evidence": "The globals ^AUTNIMM and ^AUPNVIMM are viewed within the Firefox browser UI, not via terminal commands like 'mumps -dir' or 'ZWR'."
+    },
+    {
+      "id": "genuine_application_interaction",
+      "description": "Verify the agent interacted with the live YDBGui application.",
+      "visual_evidence": "The screen shows the actual YDBGui web interface with its standard layout, buttons, and navigation tree, rather than a text editor or static file."
+    },
+    {
+      "id": "no_cheating_via_text_files",
+      "description": "Verify the agent did not just write the global names into a text file to simulate completion.",
+      "visual_evidence": "There are no text editors open simply listing '^AUTNIMM' and '^AUPNVIMM' without actual database interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The required interface is the YDBGui web interface running in Firefox. The target globals to review are exactly '^AUTNIMM' (Immunization Types) and '^AUPNVIMM' (Vaccination Events). The VLM should look for these specific global names and their expanded data nodes in the YDBGui interface."
+}

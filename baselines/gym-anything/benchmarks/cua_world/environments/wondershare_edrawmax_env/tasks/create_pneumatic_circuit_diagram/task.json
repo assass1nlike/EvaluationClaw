@@ -1,0 +1,38 @@
+{
+  "id": "create_pneumatic_circuit_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a pneumatic circuit diagram for a clamp system. The circuit must include an Air Source, an FRL Unit, a 3/2-Way Solenoid Valve (Spring Return), and a Single Acting Cylinder (Spring Return) connected in sequence (Source to FRL to Valve to Cylinder). Apply the following labels to the components: \"Main Air (6 bar)\" for the Source, \"FRL-01\" for the FRL, \"SOL-A\" for the Valve, and \"Clamp Cyl\" for the Cylinder. Save the diagram to /home/ga/Documents/pneumatic_clamp_circuit.eddx and export it as an image to /home/ga/Documents/pneumatic_clamp_circuit.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_pneumatic_circuit_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_pneumatic_circuit_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx": "/home/ga/Documents/pneumatic_clamp_circuit.eddx",
+    "expected_png": "/home/ga/Documents/pneumatic_clamp_circuit.png",
+    "required_labels": [
+      "Main Air",
+      "FRL-01",
+      "SOL-A",
+      "Clamp Cyl"
+    ],
+    "required_xml_terms": [
+      "Pneumatic",
+      "Cylinder",
+      "Valve",
+      "Source"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_pneumatic_circuit_diagram"
+    }
+  }
+}

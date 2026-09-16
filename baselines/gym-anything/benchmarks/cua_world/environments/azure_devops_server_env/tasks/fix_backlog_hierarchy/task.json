@@ -1,0 +1,49 @@
+{
+  "id": "fix_backlog_hierarchy@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "The TailwindTraders backlog is disorganized, with several User Stories nested under incorrect Features or orphaned without parents. Reorganize the backlog by reparenting 'Implement full-text product search', 'Add search filters by category and price', and 'Search autocomplete suggestions' to the 'Search & Discovery' Feature. Reparent 'Password reset via email' and 'User profile editing page' to the 'User Account Management' Feature. Reparent 'Apply discount codes at checkout', 'One-click purchase for saved payment methods', and 'Guest checkout without account creation' to the 'Shopping Cart & Checkout' Feature. Ensure all changes are saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\fix_backlog_hierarchy\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\fix_backlog_hierarchy\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "TailwindTraders",
+    "features": [
+      "Shopping Cart & Checkout",
+      "Search & Discovery",
+      "User Account Management"
+    ],
+    "expected_hierarchy": {
+      "Shopping Cart & Checkout": [
+        "Implement shopping cart persistence",
+        "Apply discount codes at checkout",
+        "One-click purchase for saved payment methods",
+        "Guest checkout without account creation"
+      ],
+      "Search & Discovery": [
+        "Product recommendation engine",
+        "Implement full-text product search",
+        "Add search filters by category and price",
+        "Search autocomplete suggestions"
+      ],
+      "User Account Management": [
+        "Two-factor authentication setup",
+        "Password reset via email",
+        "User profile editing page"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_backlog_hierarchy"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "task_id": "correct_station_metadata@1",
+  "task_completion": [
+    {
+      "id": "database_queried",
+      "description": "Agent queries the SeisComP database to find the original elevation of GE.BKB.",
+      "points": 20,
+      "visual_evidence": "Terminal shows a mysql SELECT query for GE.BKB's elevation, returning the original value (132.0)."
+    },
+    {
+      "id": "database_updated",
+      "description": "Agent updates the elevation of GE.BKB to 50.0 in the database.",
+      "points": 30,
+      "visual_evidence": "Terminal shows a mysql UPDATE statement setting the elevation to 50.0 for station BKB in network GE."
+    },
+    {
+      "id": "inventory_exported",
+      "description": "Agent exports the corrected inventory to the specified XML file.",
+      "points": 25,
+      "visual_evidence": "Terminal shows a command (e.g., scxmldump, scinv, or similar SeisComP utility) exporting the inventory to ~/seiscomp/var/lib/inventory/corrected_inventory.xml."
+    },
+    {
+      "id": "report_created",
+      "description": "Agent creates the required text report with the station ID, original elevation, and new elevation.",
+      "points": 25,
+      "visual_evidence": "Terminal shows the creation or viewing (e.g., using cat, nano, echo) of ~/station_correction_report.txt containing 'GE.BKB', '132.0', and '50.0'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacts with the actual MySQL database.",
+      "visual_evidence": "Screenshots show the mysql prompt and actual SQL queries being executed, rather than just echoing commands or writing a script without running it."
+    },
+    {
+      "id": "genuine_xml_export",
+      "description": "Agent uses a SeisComP tool to export the XML rather than manually writing a fake XML file.",
+      "visual_evidence": "Screenshots show the execution of a SeisComP export command rather than manually typing XML tags into a file."
+    },
+    {
+      "id": "original_elevation_discovered",
+      "description": "Agent discovers the original elevation from the database rather than hallucinating it.",
+      "visual_evidence": "Screenshots show the agent successfully querying the database and seeing the value 132.0 before writing it to the report."
+    }
+  ],
+  "privileged_info_for_vlm": "The target station is GE.BKB. The original corrupted elevation in the database is 132.0 meters. The new expected elevation is 50.0 meters. The output XML must be saved to /home/ga/seiscomp/var/lib/inventory/corrected_inventory.xml and the text report to /home/ga/station_correction_report.txt."
+}

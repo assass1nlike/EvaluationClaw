@@ -1,0 +1,53 @@
+{
+  "task_id": "enforce_bookmark_retention_policy@1",
+  "task_completion": [
+    {
+      "id": "fetch_bookmarks_api",
+      "description": "Agent queries the API to retrieve existing bookmarks.",
+      "points": 15,
+      "visual_evidence": "A script (e.g., Python) or terminal command (e.g., curl) is visible making a GET request to the Nx Witness API at https://localhost:7001 to fetch bookmarks, including authentication (admin/Admin1234!)."
+    },
+    {
+      "id": "age_filter_logic",
+      "description": "Agent implements logic to identify bookmarks older than 30 days.",
+      "points": 20,
+      "visual_evidence": "The script or command contains logic that uses 'startTimeMs' to calculate the age of the bookmark and checks if it is strictly greater than 30 days."
+    },
+    {
+      "id": "legal_hold_filter_logic",
+      "description": "Agent implements logic to protect bookmarks with 'LegalHold' in the description.",
+      "points": 20,
+      "visual_evidence": "The script or command contains logic that checks the bookmark's description for the keyword 'LegalHold' in a case-insensitive manner (e.g., converting the description to lowercase and checking for 'legalhold')."
+    },
+    {
+      "id": "delete_bookmarks_api",
+      "description": "Agent sends DELETE requests to the API for the filtered bookmarks.",
+      "points": 25,
+      "visual_evidence": "The script or command contains a DELETE request to the Nx Witness API targeting the specific IDs of the bookmarks that matched the deletion criteria."
+    },
+    {
+      "id": "log_file_creation",
+      "description": "Agent saves the IDs of the deleted bookmarks to the specified log file.",
+      "points": 20,
+      "visual_evidence": "The script writes to, or a terminal command outputs to, '/home/ga/Documents/retention_log.txt'. The file or terminal output should show a list of deleted bookmark IDs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_execution",
+      "description": "The agent actually executed the script or commands.",
+      "visual_evidence": "The terminal shows the execution of the script or curl commands with corresponding output, proving it was run and not just written in a text editor."
+    },
+    {
+      "id": "dynamic_querying",
+      "description": "The agent dynamically fetched and filtered data rather than hardcoding IDs.",
+      "visual_evidence": "The script or commands show programmatic logic (fetching, looping, filtering) rather than a hardcoded list of bookmark IDs to delete."
+    },
+    {
+      "id": "authentic_log",
+      "description": "The log file was generated programmatically.",
+      "visual_evidence": "The log file '/home/ga/Documents/retention_log.txt' is written via the script's file I/O operations or terminal redirection, rather than the agent manually opening a text editor and typing IDs."
+    }
+  ],
+  "privileged_info_for_vlm": "The Nx Witness VMS API endpoint is https://localhost:7001. The retention policy requires deleting bookmarks older than 30 days based on 'startTimeMs'. Bookmarks with 'LegalHold' (case-insensitive, e.g., 'legalhold', 'LegalHold') in their description must be protected and NOT deleted. The final output must be a log file at /home/ga/Documents/retention_log.txt containing the IDs of the deleted bookmarks."
+}

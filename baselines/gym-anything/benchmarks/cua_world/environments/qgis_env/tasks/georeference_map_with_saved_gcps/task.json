@@ -1,0 +1,33 @@
+{
+  "id": "georeference_map_with_saved_gcps@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Georeference the scanned map image located at /home/ga/GIS_Data/historical_map.png using the pre-existing Ground Control Points (GCPs) from /home/ga/GIS_Data/historical_map.png.points. Use a Polynomial 1 (Affine) or Helmert transformation type with Nearest Neighbour resampling and set the target CRS to EPSG:4326 (WGS 84). Export the georeferenced raster to /home/ga/GIS_Data/exports/historical_map_georeferenced.tif.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/georeference_map_with_saved_gcps/setup_task.sh",
+    "post_task": "/workspace/tasks/georeference_map_with_saved_gcps/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "/home/ga/GIS_Data/historical_map.png",
+    "input_points": "/home/ga/GIS_Data/historical_map.png.points",
+    "expected_output": "/home/ga/GIS_Data/exports/historical_map_georeferenced.tif",
+    "expected_crs": "EPSG:4326",
+    "expected_origin_x": -122.5,
+    "expected_origin_y": 37.8,
+    "expected_pixel_size_x": 0.0001,
+    "expected_pixel_size_y": -0.0001,
+    "tolerance_degrees": 0.0005
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_georeference_map_with_saved_gcps"
+    }
+  }
+}

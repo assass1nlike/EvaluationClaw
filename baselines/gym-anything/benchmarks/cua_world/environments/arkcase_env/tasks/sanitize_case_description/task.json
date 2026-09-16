@@ -1,0 +1,26 @@
+{
+  "id": "sanitize_case_description@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "A privacy violation has been flagged in case 'Privacy Compliance Review - Ticket #8842'. The intake clerk accidentally included the complainant's phone number in the public Description field. Redact the phone number (format 202-555-xxxx) from the Description field of this case by replacing it with the exact text '[REDACTED]'. Ensure all other text in the description remains intact.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sanitize_case_description/setup_task.sh",
+    "post_task": "/workspace/tasks/sanitize_case_description/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "Privacy Compliance Review - Ticket #8842",
+    "redaction_marker": "[REDACTED]"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sanitize_case_description"
+    }
+  }
+}

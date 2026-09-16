@@ -1,0 +1,59 @@
+{
+  "task_id": "odor_threshold_warning_audit@1",
+  "task_completion": [
+    {
+      "id": "cameo_chemicals_accessed",
+      "description": "Verify the agent accessed the CAMEO Chemicals website.",
+      "points": 10,
+      "visual_evidence": "A web browser window is open and navigated to cameochemicals.noaa.gov."
+    },
+    {
+      "id": "chemical_data_retrieval",
+      "description": "Verify the agent searched for and viewed the chemical datasheets for the required chemicals.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent viewing the CAMEO Chemicals data pages for Benzene, Hydrogen Sulfide, Toluene, Carbon Monoxide, or Dichloromethane."
+    },
+    {
+      "id": "csv_file_creation",
+      "description": "Verify the agent created the CSV file with the correct headers.",
+      "points": 10,
+      "visual_evidence": "A text editor or spreadsheet application showing a file named 'odor_safety_audit.csv' with the exact header row: 'Chemical,Odor_ppm,PEL_ppm,Assessment'."
+    },
+    {
+      "id": "assessment_group_1",
+      "description": "Verify the correct data and assessment for Benzene and Toluene.",
+      "points": 20,
+      "visual_evidence": "The CSV file contains a row for Benzene showing PEL ~1 and Assessment 'INADEQUATE', and a row for Toluene showing PEL ~200 and Assessment 'ADEQUATE'."
+    },
+    {
+      "id": "assessment_group_2",
+      "description": "Verify the correct data and assessment for Hydrogen Sulfide and Carbon Monoxide.",
+      "points": 20,
+      "visual_evidence": "The CSV file contains a row for Hydrogen Sulfide showing PEL ~20 and Assessment 'ADEQUATE', and a row for Carbon Monoxide showing Odor 'NA' (or similar) and Assessment 'NO_WARNING'."
+    },
+    {
+      "id": "assessment_group_3",
+      "description": "Verify the correct data and assessment for Dichloromethane and the correct save location.",
+      "points": 20,
+      "visual_evidence": "The CSV file contains a row for Dichloromethane showing PEL ~25 and Assessment 'INADEQUATE', and there is evidence (e.g., file manager, save dialog, or editor title bar) that the file is saved in '/home/ga/Documents/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_website_used",
+      "description": "Verify the agent actually navigated the CAMEO Chemicals website to find the data.",
+      "visual_evidence": "Browser history or active tabs showing genuine interaction with the CAMEO Chemicals search and result pages, rather than just a blank browser or a script."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify the agent did not simply hardcode the final answers without looking up the values.",
+      "visual_evidence": "The agent's workspace should show the process of extracting Odor and PEL values from the website before writing them to the CSV, rather than instantly pasting a pre-written block of text."
+    },
+    {
+      "id": "gui_file_creation",
+      "description": "Verify the agent created and saved the file properly.",
+      "visual_evidence": "The CSV file is visible in a GUI text editor (like gedit, nano in terminal, or a spreadsheet app) and saved to the disk, not just printed as standard output in a terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified expected assessments based on CAMEO Chemicals and OSHA PELs: 1) Benzene: PEL=1 ppm, Assessment=INADEQUATE. 2) Hydrogen Sulfide: PEL=20 ppm, Assessment=ADEQUATE. 3) Toluene: PEL=200 ppm, Assessment=ADEQUATE. 4) Carbon Monoxide: Odor=NA/odorless, Assessment=NO_WARNING. 5) Dichloromethane: PEL=25 ppm, Assessment=INADEQUATE. The logic is: ADEQUATE if Odor < PEL; INADEQUATE if Odor >= PEL; NO_WARNING if odorless."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "bayesian_one_sample_ttest@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Bayesian One-Sample T-Test on the 'Exam' variable from the 'ExamAnxiety.csv' dataset to determine if student scores differ significantly from the national average of 50. Use a test value of 50 and a two-sided hypothesis (≠ Test value). The analysis must include descriptives, a prior and posterior plot, and a Bayes factor robustness check. Save the final analysis to /home/ga/Documents/JASP/ExamBayesianOneSample.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bayesian_one_sample_ttest/setup_task.sh",
+    "post_task": "/workspace/tasks/bayesian_one_sample_ttest/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "ExamBayesianOneSample.jasp",
+    "expected_path": "/home/ga/Documents/JASP/ExamBayesianOneSample.jasp",
+    "target_variable": "Exam",
+    "test_value": 50,
+    "min_bf10": 1.0,
+    "max_bf10": 1000.0,
+    "dataset_name": "ExamAnxiety.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bayesian_one_sample_ttest"
+    }
+  }
+}

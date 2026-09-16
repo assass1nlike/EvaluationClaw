@@ -1,0 +1,59 @@
+{
+  "task_id": "roof_leak_water_damage_triage@1",
+  "task_completion": [
+    {
+      "id": "login_admin",
+      "description": "Verify the agent logged into Odoo as the administrator.",
+      "points": 10,
+      "visual_evidence": "The Odoo dashboard or interface is visible with the user profile indicating 'Administrator' or 'admin' (typically in the top right corner)."
+    },
+    {
+      "id": "locate_affected_locations",
+      "description": "Verify the agent navigated to view the inventory specifically in the water-damaged locations.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the Inventory Valuation, Current Stock, or Locations view filtered by or displaying 'WH/Stock/Aisle C/Bay 1' and 'WH/Stock/Aisle C/Bay 2'."
+    },
+    {
+      "id": "inspect_packaging_descriptions",
+      "description": "Verify the agent checked the internal descriptions of the products to determine their packaging types.",
+      "points": 20,
+      "visual_evidence": "Product form views are open, specifically showing the 'Internal Notes', 'General Information', or 'Description' tab where packaging materials (e.g., Plastic Buckets, Cardboard Cartons) are visible."
+    },
+    {
+      "id": "create_salvage_transfer",
+      "description": "Verify the agent created an internal transfer to move salvageable products to the safe location.",
+      "points": 20,
+      "visual_evidence": "An Internal Transfer operation form is visible, showing the Source Location as 'WH/Stock/Aisle C/Bay 1' (or Bay 2) and the Destination Location exactly as 'WH/Stock/Aisle D/Bay 1'."
+    },
+    {
+      "id": "validate_salvage_transfer",
+      "description": "Verify the internal transfer for salvageable items was successfully validated and completed.",
+      "points": 15,
+      "visual_evidence": "The Internal Transfer to Aisle D/Bay 1 is marked with a 'Done' status, confirming the items were moved."
+    },
+    {
+      "id": "process_destruction_scrap",
+      "description": "Verify the agent processed an inventory adjustment or scrap order to destroy the unrecoverable water-damaged products.",
+      "points": 25,
+      "visual_evidence": "Scrap orders or Inventory Adjustments are visible and marked as 'Done' or 'Applied', showing the removal (quantity set to 0 or negative adjustment) of products from 'WH/Stock/Aisle C/Bay 1' or 'Bay 2'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Odoo web GUI to perform the tasks.",
+      "visual_evidence": "A web browser window showing the Odoo interface is used for all operations. There should be no terminal windows running Python scripts, curl commands, or direct database queries to bypass the UI."
+    },
+    {
+      "id": "no_unauthorized_changes",
+      "description": "Verify that inventory in unaffected locations was not modified.",
+      "visual_evidence": "No internal transfers, scrap orders, or inventory adjustments should show 'Aisle A' or 'Aisle B' as the source or destination location."
+    },
+    {
+      "id": "genuine_progression",
+      "description": "Verify the agent genuinely interacted with the application step-by-step.",
+      "visual_evidence": "Screenshots show a logical progression through Odoo menus (e.g., Inventory -> Products -> Operations -> Transfers/Scrap) rather than just a single final state or text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires a score of 85 to pass. The final state is evaluated by a background script that exports to /tmp/roof_leak_result.json. The VLM should evaluate the agent's success based on visual evidence of Odoo GUI interactions: logging in, checking product descriptions for packaging types, transferring 'Plastic/Nylon' packaged items to Aisle D/Bay 1, and scrapping/adjusting 'Cardboard/Paper/Kraft' items from Aisle C."
+}

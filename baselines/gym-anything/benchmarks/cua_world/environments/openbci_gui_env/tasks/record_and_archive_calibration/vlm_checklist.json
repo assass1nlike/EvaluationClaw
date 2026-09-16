@@ -1,0 +1,47 @@
+{
+  "task_id": "record_and_archive_calibration@1",
+  "task_completion": [
+    {
+      "id": "gui_playback_selected",
+      "description": "The OpenBCI GUI is launched and the correct playback file is selected.",
+      "points": 20,
+      "visual_evidence": "The OpenBCI GUI window is visible. In the system control panel, 'Playback' mode is selected and the file 'OpenBCI-EEG-S001-EyesOpen.txt' is loaded as the data source."
+    },
+    {
+      "id": "data_streaming_active",
+      "description": "EEG data from the playback file is actively streaming in the GUI.",
+      "points": 20,
+      "visual_evidence": "Time series graphs showing EEG waveforms are visible and updating in the OpenBCI GUI. The 'Start Data Stream' button has been clicked (typically changes to 'Stop Data Stream')."
+    },
+    {
+      "id": "recording_duration_met",
+      "description": "A recording session is initiated and runs for at least 5 seconds.",
+      "points": 30,
+      "visual_evidence": "The GUI shows an active recording indicator or timer that reaches at least 00:00:05, or a widget indicating that a recording of sufficient length was captured."
+    },
+    {
+      "id": "file_renamed_correctly",
+      "description": "The resulting recording file is renamed to 'alpha_calibration.txt' in the correct directory.",
+      "points": 30,
+      "visual_evidence": "A file manager or terminal window shows the directory '~/Documents/OpenBCI_GUI/Recordings/' containing a file explicitly named 'alpha_calibration.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verified",
+      "description": "The agent used the OpenBCI GUI to generate the recording rather than faking it via terminal commands.",
+      "visual_evidence": "Screenshots must show the OpenBCI GUI interface actively streaming and recording. The output file should not be created solely via terminal commands like 'cp' or 'echo'."
+    },
+    {
+      "id": "no_text_editor_faking",
+      "description": "The agent did not manually create or edit the contents of the output file using a text editor.",
+      "visual_evidence": "No text editors (e.g., nano, vim, gedit) should be seen open with the contents of 'alpha_calibration.txt' being manually typed or pasted."
+    },
+    {
+      "id": "correct_file_renamed",
+      "description": "The agent renamed the newly generated recording file, not the original source file.",
+      "visual_evidence": "The file manager or terminal should show the new file 'alpha_calibration.txt' as a distinct file from the source file, ideally with a file size/timestamp consistent with a short 5+ second recording rather than the full original playback file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file must be named 'alpha_calibration.txt' and located in '~/Documents/OpenBCI_GUI/Recordings/'. The source playback file is 'OpenBCI-EEG-S001-EyesOpen.txt'. A valid 5-second recording at the standard 250 Hz sample rate will contain approximately 1250-1256 lines (including header comments starting with '%'). The output format is OpenBCI-RAW CSV text."
+}

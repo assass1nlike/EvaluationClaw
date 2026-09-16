@@ -1,0 +1,59 @@
+{
+  "task_id": "legacy_shipment_sqlloader@1",
+  "task_completion": [
+    {
+      "id": "create_shipment_history_table",
+      "description": "Create the SHIPMENT_HISTORY table in the Oracle database.",
+      "points": 15,
+      "visual_evidence": "Terminal showing sqlplus or a database GUI (like SQL Developer) executing a CREATE TABLE SHIPMENT_HISTORY statement with appropriate columns, followed by a success message like 'Table created'."
+    },
+    {
+      "id": "create_control_file_base",
+      "description": "Create the SQL*Loader control file at the specified path.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the creation of '/home/ga/Desktop/load_shipments.ctl' containing basic SQL*Loader syntax like 'LOAD DATA', 'INFILE', and 'INTO TABLE SHIPMENT_HISTORY'."
+    },
+    {
+      "id": "control_file_fixed_width_and_skip",
+      "description": "Configure the control file to handle fixed-width positions and skip headers.",
+      "points": 15,
+      "visual_evidence": "The control file contents show 'OPTIONS (SKIP=2)' (or similar logic to skip the first two lines) and column definitions using 'POSITION(start:end)' to map the fixed-width fields."
+    },
+    {
+      "id": "control_file_transformations",
+      "description": "Configure the control file to convert the Date string and divide the Cost by 100.",
+      "points": 20,
+      "visual_evidence": "The control file contents show the Date column mapped with a format like 'DATE \"YYYYMMDD\"' and the Cost column applying a SQL expression to divide by 100 (e.g., '\"<column_name> / 100\"')."
+    },
+    {
+      "id": "control_file_filtering",
+      "description": "Configure the control file to filter out records with Status '99'.",
+      "points": 15,
+      "visual_evidence": "The control file contents show a WHEN clause filtering out the void status, such as 'WHEN (<position>) != \"99\"' or 'WHEN status_code != \"99\"'."
+    },
+    {
+      "id": "execute_sql_loader",
+      "description": "Execute SQL*Loader to load the data into the database.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the 'sqlldr' command using the created control file, and the output summary indicating that exactly 45 rows were successfully loaded."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sqlldr_execution",
+      "description": "Verify that SQL*Loader was actually executed in the terminal.",
+      "visual_evidence": "Look for the 'sqlldr' command being typed and run in a terminal emulator, producing standard SQL*Loader console output, rather than just creating a mock log file."
+    },
+    {
+      "id": "actual_db_connection",
+      "description": "Verify that the agent connected to the Oracle database to create the table.",
+      "visual_evidence": "Look for an active sqlplus session or database GUI connected to 'hr' at 'XEPDB1' where the CREATE TABLE command is executed, rather than just writing a SQL script without running it."
+    },
+    {
+      "id": "no_manual_data_tampering",
+      "description": "Verify that the agent did not manually edit the source data file to remove headers or void records.",
+      "visual_evidence": "The agent should not be seen opening '/home/ga/Desktop/shipment_logs.dat' in a text editor and manually deleting the first two lines or the rows containing '99'. This must be handled by the control file."
+    }
+  ],
+  "privileged_info_for_vlm": "The data file is located at /home/ga/Desktop/shipment_logs.dat. The control file must be saved to /home/ga/Desktop/load_shipments.ctl. The target table is SHIPMENT_HISTORY under the 'hr' user. The data file contains exactly 50 records: 45 valid and 5 void (status '99'). A successful SQL*Loader execution should report exactly 45 rows successfully loaded."
+}

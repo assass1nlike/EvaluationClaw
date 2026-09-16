@@ -1,0 +1,53 @@
+{
+  "task_id": "planetarium_stereoscopic_formatting@1",
+  "task_completion": [
+    {
+      "id": "lobby_2d_created",
+      "description": "Create the Lobby Display version (Left eye, with audio)",
+      "points": 20,
+      "visual_evidence": "Look for the file 'lobby_2d.mp4' in the '/home/ga/Videos/exhibits/' directory. If a terminal or video editor is visible, look for commands/settings that crop or extract the left half of the video, scale to 1920x1080, and retain audio."
+    },
+    {
+      "id": "dome_right_created",
+      "description": "Create the Dome Projector version (Right eye, without audio)",
+      "points": 20,
+      "visual_evidence": "Look for the file 'dome_right.mp4' in the '/home/ga/Videos/exhibits/' directory. If a terminal or video editor is visible, look for commands/settings that crop or extract the right half of the video, scale to 1920x1080, and remove/drop the audio track."
+    },
+    {
+      "id": "classroom_anaglyph_created",
+      "description": "Create the Classroom Anaglyph version (Red/Cyan composite, with audio)",
+      "points": 20,
+      "visual_evidence": "Look for the file 'classroom_anaglyph.mp4' in the '/home/ga/Videos/exhibits/' directory. If a terminal or video editor is visible, look for commands/settings applying a stereo3d or anaglyph (red/cyan) filter, scaling to 1920x1080, and retaining audio."
+    },
+    {
+      "id": "manifest_created",
+      "description": "Create the spatial manifest JSON file",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'spatial_manifest.json' in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "manifest_content_correct",
+      "description": "Document all three versions correctly in the JSON manifest",
+      "points": 30,
+      "visual_evidence": "Look for a text editor displaying the contents of 'spatial_manifest.json'. It must contain a 'deliverables' array. The array must hold objects for each of the three videos, containing the keys 'filename', 'resolution', 'has_audio' (boolean or text), and '3d_format' (specifically using the words 'monoscopic' or 'anaglyph')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "The agent actually processed the videos using a tool rather than creating dummy files.",
+      "visual_evidence": "Look for the use of a video processing tool like ffmpeg in the terminal, or a GUI application like Handbrake or Kdenlive. The agent should not just be using 'touch', 'cp', or 'mv' to create the output files."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "The agent manually constructed the JSON manifest.",
+      "visual_evidence": "Look for a text editor (e.g., nano, vim, gedit) open with the JSON content being typed or formatted, rather than a single copy-paste command of a pre-existing file."
+    },
+    {
+      "id": "correct_directories_used",
+      "description": "The agent used the exact directories specified in the prompt.",
+      "visual_evidence": "Verify that the file manager or terminal shows the paths '/home/ga/Videos/exhibits/' for the videos and '/home/ga/Documents/' for the manifest, without the agent creating alternative workspace folders."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output video files are 'lobby_2d.mp4', 'dome_right.mp4', and 'classroom_anaglyph.mp4' located in '/home/ga/Videos/exhibits/'. The JSON manifest must be located at '/home/ga/Documents/spatial_manifest.json'."
+}

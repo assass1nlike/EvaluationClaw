@@ -1,0 +1,37 @@
+{
+  "id": "weekday_heatmap_matrix@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "A retail operations manager needs a heatmap to identify peak shopping days. Using the file 'sales_data.csv' located at 'C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv', create a Power BI report named 'Weekday_Heatmap.pbix' on the Desktop. The report must contain a page named 'Heatmap' featuring a Matrix visual and a Card visual. The Matrix should display a 'Total_Sales' measure (summing 'Sales_Amount') by 'Day_Name' (rows) and 'Product_Category' (columns), with background color conditional formatting applied to the values to create a heatmap effect. The 'sales_data' table must include calculated columns for 'Day_Number' and 'Day_Name' derived from 'Sale_Date'. The Card visual should display the 'Total_Sales' measure. Login as 'Docker' (no password required).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\weekday_heatmap_matrix\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\weekday_heatmap_matrix\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "Weekday_Heatmap.pbix",
+    "required_columns": [
+      "Day_Number",
+      "Day_Name"
+    ],
+    "required_measures": [
+      "Total_Sales"
+    ],
+    "required_visuals": [
+      "pivotTable",
+      "card"
+    ],
+    "check_conditional_formatting": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_weekday_heatmap"
+    }
+  }
+}

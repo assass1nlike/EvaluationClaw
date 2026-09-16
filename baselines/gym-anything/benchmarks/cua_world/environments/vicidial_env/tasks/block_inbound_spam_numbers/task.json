@@ -1,0 +1,29 @@
+{
+  "id": "block_inbound_spam_numbers@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Secure the inbound line by blocking the spam number found in '~/Documents/VicidialData/spam_number_to_block.txt'. Create a Filter Phone Group with ID 'SPAMBLOCK' and name 'Blocked Spammers' containing this number. Configure DID '8885550100' to use this Filter Phone Group with the 'HANGUP' action.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/block_inbound_spam_numbers/setup_task.sh",
+    "post_task": "/workspace/tasks/block_inbound_spam_numbers/export_result.sh"
+  },
+  "metadata": {
+    "spam_number_file": "/home/ga/Documents/VicidialData/spam_number_to_block.txt",
+    "target_did": "8885550100",
+    "filter_group_id": "SPAMBLOCK",
+    "filter_group_name": "Blocked Spammers",
+    "expected_action": "HANGUP"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_block_inbound_spam_numbers"
+    }
+  }
+}

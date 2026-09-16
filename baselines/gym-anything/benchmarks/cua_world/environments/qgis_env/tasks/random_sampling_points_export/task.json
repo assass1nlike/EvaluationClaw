@@ -1,0 +1,36 @@
+{
+  "id": "random_sampling_points_export@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "A conservation biologist is planning a biodiversity survey across three Central European countries. Using the boundaries for Austria, Switzerland, and Czechia provided in /home/ga/GIS_Data/european_countries.geojson, generate 5 random sampling points within each country. Ensure the resulting points layer includes 'longitude' and 'latitude' fields for each point. Export the sampling points as a GeoJSON to /home/ga/GIS_Data/exports/sampling_points.geojson and the attribute table as a CSV to /home/ga/GIS_Data/exports/sampling_coordinates.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/random_sampling_points_export/setup_task.sh",
+    "post_task": "/workspace/tasks/random_sampling_points_export/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/european_countries.geojson",
+    "expected_geojson_path": "/home/ga/GIS_Data/exports/sampling_points.geojson",
+    "expected_csv_path": "/home/ga/GIS_Data/exports/sampling_coordinates.csv",
+    "expected_feature_count": 15,
+    "expected_geometry_type": "Point",
+    "coordinate_bounds": {
+      "lon_min": 5.0,
+      "lon_max": 19.0,
+      "lat_min": 45.0,
+      "lat_max": 52.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_random_sampling_points_export"
+    }
+  }
+}

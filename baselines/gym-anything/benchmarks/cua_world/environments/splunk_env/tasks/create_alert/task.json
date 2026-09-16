@@ -1,0 +1,31 @@
+{
+  "id": "create_alert@1",
+  "version": "1.0",
+  "env_id": "splunk_env@0.1",
+  "description": "Create a Splunk alert named 'Brute_Force_Detection' at http://localhost:8000 (Credentials: admin / SplunkAdmin1!) that triggers when more than 5 failed SSH login attempts occur from the same source IP within a 5-minute window. Use the search query: index=security_logs \"Failed password\" | stats count by src_ip | where count > 5. The alert must use a cron schedule of */5 * * * * and trigger when the number of results is greater than 0.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_alert/setup_task.sh",
+    "post_task": "/workspace/tasks/create_alert/export_result.sh"
+  },
+  "metadata": {
+    "alert_name": "Brute_Force_Detection",
+    "expected_search_contains": "Failed password",
+    "expected_index": "security_logs",
+    "expected_cron": "*/5 * * * *",
+    "is_scheduled": true,
+    "splunk_user": "admin",
+    "splunk_pass": "SplunkAdmin1!"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_alert"
+    }
+  }
+}

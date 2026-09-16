@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_merchant_plant_wholesale_revenue@1",
+  "task_completion": [
+    {
+      "id": "sam_project_setup",
+      "description": "Create a SAM project with Photovoltaic and Merchant Plant financial model.",
+      "points": 10,
+      "visual_evidence": "SAM interface is open showing a project configured with 'Photovoltaic' (Detailed) and 'Merchant Plant' as the financial model, or a PySAM script initializing these models."
+    },
+    {
+      "id": "system_design_setup",
+      "description": "Configure the system capacity, tracking, and DC-to-AC ratio.",
+      "points": 20,
+      "visual_evidence": "The 'System Design' page in SAM shows a Nameplate capacity of 100,000 kWdc (or 100 MWdc), Tracking & Orientation set to 'Single axis', and a DC-to-AC ratio (or Inverter Loading Ratio) of 1.3. If using a script, these values are clearly defined in the code."
+    },
+    {
+      "id": "weather_setup",
+      "description": "Select Phoenix, AZ weather data.",
+      "points": 10,
+      "visual_evidence": "The 'Location and Resource' page in SAM shows Phoenix, AZ selected in the solar resource library, or the script loads a Phoenix weather file."
+    },
+    {
+      "id": "merchant_plant_revenue_setup",
+      "description": "Integrate the ERCOT hourly LMP dataset into the Merchant Plant revenue model.",
+      "points": 20,
+      "visual_evidence": "The 'Revenue' page in SAM shows hourly clearing prices configured (likely via the 'Edit array' window) using data from the provided ercot_hourly_lmp.csv file, with appropriate unit conversions if necessary."
+    },
+    {
+      "id": "simulation_results",
+      "description": "Run the simulation and generate results.",
+      "points": 20,
+      "visual_evidence": "The SAM 'Results' page is visible, displaying summary metrics like Annual Energy, Capacity Factor, NPV, and IRR, or a terminal shows the script successfully outputting these metrics."
+    },
+    {
+      "id": "json_export",
+      "description": "Export the required results to merchant_plant_results.json.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal shows the contents of merchant_plant_results.json containing exactly the keys: 'annual_energy_kwh', 'capacity_factor_pct', 'year1_energy_revenue_dollars', 'npv_dollars', and 'irr_percent'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation",
+      "description": "The agent actually ran a simulation to generate the results.",
+      "visual_evidence": "Screenshots show interaction with the SAM graphical interface or a Python script being executed, rather than just writing a JSON file with mocked data."
+    },
+    {
+      "id": "consistent_results",
+      "description": "The values in the JSON file match the simulation results.",
+      "visual_evidence": "The numbers for energy, capacity factor, revenue, NPV, and IRR in the JSON file correspond to the values shown on the SAM Results screen or script output."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "The agent did not simply hardcode expected values into the JSON file.",
+      "visual_evidence": "The JSON file creation involves extracting or typing actual results from the SAM simulation, not just pasting arbitrary numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected simulation results for a 100 MW DC tracking system in Phoenix: Annual Energy should be between 180,000,000 and 280,000,000 kWh (~211.9 GWh). Capacity Factor should be between 20% and 32% (~24.2%). Year 1 Energy Revenue should be between $1,000,000 and $20,000,000 (~$4.9M). The JSON file must contain exactly these keys: 'annual_energy_kwh', 'capacity_factor_pct', 'year1_energy_revenue_dollars', 'npv_dollars', and 'irr_percent'."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "identify_cities_on_major_rivers@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Identify major cities located near major rivers using gvSIG Desktop. Using the rivers data (/home/ga/gvsig_data/rivers/ne_110m_rivers_lake_centerlines.shp) and cities data (/home/ga/gvsig_data/cities/ne_110m_populated_places.shp), identify all cities located within 0.2 degrees of rivers that have a scalerank less than 4. Export the resulting selection as a new shapefile to /home/ga/gvsig_data/exports/river_cities.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_cities_on_major_rivers/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_cities_on_major_rivers/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/river_cities.shp",
+    "input_cities_path": "/home/ga/gvsig_data/cities/ne_110m_populated_places.shp",
+    "min_expected_count": 5,
+    "max_expected_count": 200
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_identify_cities_on_major_rivers"
+    }
+  }
+}

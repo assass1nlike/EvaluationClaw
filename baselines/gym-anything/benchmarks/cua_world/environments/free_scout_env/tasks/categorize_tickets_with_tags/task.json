@@ -1,0 +1,28 @@
+{
+  "id": "categorize_tickets_with_tags@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are a Customer Success Manager organizing the support queue in FreeScout (admin@helpdesk.local / Admin123!). Categorize all conversations from 'Acme Corp' (users with emails ending in @acmecorp.com) by creating and applying a new tag named 'Acme VIP'. Additionally, locate the conversation titled 'System Critical: Database Crash detected' and apply a new tag named 'Urgent'. Ensure no other conversations are tagged incorrectly.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/categorize_tickets_with_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/categorize_tickets_with_tags/export_result.sh"
+  },
+  "metadata": {
+    "expected_acme_tag": "Acme VIP",
+    "expected_urgent_tag": "Urgent",
+    "acme_domain": "acmecorp.com",
+    "urgent_subject_keyword": "System Critical"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_categorize_tickets"
+    }
+  }
+}

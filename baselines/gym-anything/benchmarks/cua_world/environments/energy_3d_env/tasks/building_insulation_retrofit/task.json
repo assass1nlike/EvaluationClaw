@@ -1,0 +1,31 @@
+{
+  "id": "building_insulation_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Upgrade the thermal insulation of an existing home's roof and walls by lowering their U-values, run a Daily Energy Analysis to observe the impact, and save the retrofitted model.\n\n1. Open the file `~/Documents/Energy3D/building-roof-insulation.ng3`.\n2. Select the Roof of the main building and change its U-value to exactly 0.11 W/m2*K (simulating R-50 insulation).\n3. Select all the Walls of the building and change their U-values to exactly 0.24 W/m2*K (simulating R-24 insulation).\n4. Run a Daily Energy Analysis (Analysis menu > Buildings > Daily Energy Analysis or similar) to compute the new heat loss.\n5. Take a screenshot of the Energy3D window showing the Daily Energy Analysis graph and save it to `~/Documents/Energy3D/retrofit_analysis.png`.\n6. Save the modified project as a new file at `~/Documents/Energy3D/retrofitted_building.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/building_insulation_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/building_insulation_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Auditor",
+    "industry": "Green Architecture / Energy Modeling",
+    "expected_roof_u_value": 0.11,
+    "expected_wall_u_value": 0.24,
+    "input_file": "/home/ga/Documents/Energy3D/building-roof-insulation.ng3",
+    "output_file": "/home/ga/Documents/Energy3D/retrofitted_building.ng3",
+    "screenshot_file": "/home/ga/Documents/Energy3D/retrofit_analysis.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_building_insulation_retrofit"
+    }
+  }
+}

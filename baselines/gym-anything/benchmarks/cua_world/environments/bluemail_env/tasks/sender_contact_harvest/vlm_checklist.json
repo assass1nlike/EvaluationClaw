@@ -1,0 +1,59 @@
+{
+  "task_id": "sender_contact_harvest@1",
+  "task_completion": [
+    {
+      "id": "inbox_accessed",
+      "description": "The agent opens the email client to view the inbox.",
+      "points": 10,
+      "visual_evidence": "An email client (e.g., Thunderbird) is open and displaying the inbox with multiple emails."
+    },
+    {
+      "id": "contact_list_created",
+      "description": "The agent creates and saves the contact list file in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A text editor or file manager shows a file named 'contact_list.txt' saved in the '~/Documents' (or /home/ga/Documents) directory."
+    },
+    {
+      "id": "contacts_extracted",
+      "description": "The contact list contains at least 15 unique email addresses, one per line.",
+      "points": 30,
+      "visual_evidence": "The contents of 'contact_list.txt' are visible in a text editor, showing a vertical list of at least 15 distinct email addresses with no other text."
+    },
+    {
+      "id": "draft_email_started",
+      "description": "The agent starts a draft email to the correct recipient.",
+      "points": 15,
+      "visual_evidence": "An email composition window is open with the 'To:' field set exactly to 'meetup-announce@techgroup.org'."
+    },
+    {
+      "id": "draft_subject_correct",
+      "description": "The draft email has the correct subject line.",
+      "points": 10,
+      "visual_evidence": "The 'Subject:' field in the email composition window is set exactly to 'Upcoming Tech Meetup Announcement'."
+    },
+    {
+      "id": "draft_body_written",
+      "description": "The draft email body mentions that the contact list has been compiled.",
+      "points": 15,
+      "visual_evidence": "The body of the draft email contains a message notifying the recipient about the contact list (look for keywords like 'contact', 'list', 'compiled', 'meetup', or 'event')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_email_composition",
+      "description": "The draft email is composed in an actual graphical email client.",
+      "visual_evidence": "The draft is seen in an email client's composition window (like Thunderbird), not just written as a raw text file or terminal command."
+    },
+    {
+      "id": "genuine_extraction",
+      "description": "The agent extracted real emails from the inbox rather than hallucinating them.",
+      "visual_evidence": "The email addresses in 'contact_list.txt' look like genuine addresses from a corpus, not generic placeholders like 'email1@test.com' or 'person@example.com'."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent used GUI tools to complete the task rather than terminal scripts.",
+      "visual_evidence": "Screenshots show interaction with the email client and a text editor, rather than terminal windows running commands like 'grep' or 'python' to parse the raw mail files."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be exactly at '/home/ga/Documents/contact_list.txt' and contain at least 15 unique email addresses (one per line). The draft email must be addressed to 'meetup-announce@techgroup.org' with the subject 'Upcoming Tech Meetup Announcement'. The draft body must contain at least 2 of the following keywords: 'meetup', 'event', 'contact', 'list', 'compiled'."
+}

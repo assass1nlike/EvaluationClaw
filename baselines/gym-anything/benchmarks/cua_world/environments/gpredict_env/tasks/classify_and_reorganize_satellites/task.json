@@ -1,0 +1,44 @@
+{
+  "id": "classify_and_reorganize_satellites@1",
+  "version": "1.0",
+  "env_id": "example.gpredict_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You have inherited a GPredict installation that was not properly maintained where non-amateur satellites have been mixed into the Amateur module. Identify the weather/meteorological satellites in the Amateur module, remove them, and add them to a new module named 'WeatherSats'. Add a ground station for the Fairbanks, AK receive facility (64.8378 N, 147.7164 W, 133m altitude) and configure GPredict to use metric units for all measurements. Login: username 'ga', password 'password123'.",
+  "natural_language": {
+    "prompt": "I've taken over managing our GPredict satellite tracking system and I've been told by the previous administrator that the Amateur module has some satellites that don't belong there — apparently some weather satellites got mixed in by mistake. I need you to look through the Amateur module, figure out which satellites are actually weather satellites (not amateur radio satellites), remove them from Amateur, and put them in a new module called WeatherSats. After that, please add a ground station for our Fairbanks Alaska receive site at 64.8378 North, 147.7164 West, 133 meters altitude. And please turn on metric units in the GPredict preferences."
+  },
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/classify_and_reorganize_satellites/setup_task.sh",
+    "post_task": "/workspace/tasks/classify_and_reorganize_satellites/export_result.sh"
+  },
+  "metadata": {
+    "weather_satellite_ids": [
+      37849,
+      32958,
+      37214,
+      35951
+    ],
+    "weather_satellite_names": {
+      "37849": "SUOMI NPP",
+      "32958": "FENGYUN 3A",
+      "37214": "FENGYUN 3B",
+      "35951": "DMSP 5D-3 F18 (USA 210)"
+    },
+    "target_module_name": "WeatherSats",
+    "fairbanks_lat": 64.8378,
+    "fairbanks_lon": -147.7164,
+    "fairbanks_alt": 133,
+    "require_metric_units": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_classify_and_reorganize_satellites"
+    }
+  }
+}

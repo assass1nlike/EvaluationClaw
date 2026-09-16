@@ -1,0 +1,59 @@
+{
+  "task_id": "create_clean_mandible_mesh@1",
+  "task_completion": [
+    {
+      "id": "cbct_scan_visible",
+      "description": "Verify that the dental CBCT scan is loaded and visible in the software.",
+      "points": 10,
+      "visual_evidence": "The Blue Sky Plan interface should display the CBCT scan, typically showing axial, coronal, and sagittal slice views of a patient's head/jaw."
+    },
+    {
+      "id": "3d_surface_generated",
+      "description": "Verify that a 3D surface model (mesh) has been generated from the scan.",
+      "points": 20,
+      "visual_evidence": "A 3D mesh/model of the bony anatomy is visible in the 3D viewport of the software."
+    },
+    {
+      "id": "maxilla_and_skull_removed",
+      "description": "Verify that the maxilla (upper jaw) and skull base have been removed from the 3D mesh.",
+      "points": 25,
+      "visual_evidence": "The 3D model in the viewport shows ONLY the lower jaw (mandible). The upper teeth, maxilla, and upper skull structures must be completely absent from the mesh."
+    },
+    {
+      "id": "noise_and_artifacts_cleaned",
+      "description": "Verify that the mandible mesh is clean of noise and artifacts.",
+      "points": 15,
+      "visual_evidence": "The isolated mandible mesh appears smooth and continuous without floating disconnected pieces, scatter noise, or jagged artifact remnants around the bone."
+    },
+    {
+      "id": "export_path_configured",
+      "description": "Verify the export settings are configured for the correct file path and format.",
+      "points": 10,
+      "visual_evidence": "An export dialog or save window is visible showing the STL format selected and the destination path set to C:\\Users\\Docker\\Documents\\MandibleOnly.stl."
+    },
+    {
+      "id": "stl_file_exported",
+      "description": "Verify the final STL file was successfully exported to the correct location with a valid file size.",
+      "points": 20,
+      "visual_evidence": "A file explorer window or terminal shows 'MandibleOnly.stl' present in 'C:\\Users\\Docker\\Documents\\' with a file size of at least 500 KB."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the Blue Sky Plan GUI to generate and clean the mesh.",
+      "visual_evidence": "Screenshots should show the agent clicking through the software's segmentation, surface generation, and cutting/cleaning tools rather than running a script in the terminal to bypass the UI."
+    },
+    {
+      "id": "genuine_mesh_cleaning",
+      "description": "Verify the agent actively cleaned the mesh rather than loading a pre-made clean STL.",
+      "visual_evidence": "Intermediate screenshots should show the progression from a full skull/jaw mesh to an isolated mandible using the software's cutting or region-growing tools."
+    },
+    {
+      "id": "genuine_export_action",
+      "description": "Verify the file was exported by the software and not faked via terminal.",
+      "visual_evidence": "The file 'MandibleOnly.stl' should be created via the software's export dialog, not by using a 'touch' command or renaming an unrelated file in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is C:\\Users\\Docker\\Documents\\MandibleOnly.stl. The exported STL file must be at least 500 KB (which corresponds to approximately 10,000 triangles) to be considered a valid, high-resolution mandible mesh. The project file is StandardCase.bsp, which opens in Blue Sky Plan. A valid mandible mesh typically has a minimum height of 30.0 mm."
+}

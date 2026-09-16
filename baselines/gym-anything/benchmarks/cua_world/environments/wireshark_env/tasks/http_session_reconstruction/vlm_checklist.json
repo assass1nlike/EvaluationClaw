@@ -1,0 +1,65 @@
+{
+  "task_id": "http_session_reconstruction@1",
+  "task_completion": [
+    {
+      "id": "pcap_analyzed",
+      "description": "The agent opened and analyzed the http.cap file.",
+      "points": 10,
+      "visual_evidence": "Wireshark is open displaying the contents of http.cap, or a terminal window shows output from a packet analysis tool (like tshark or tcpdump) reading the file."
+    },
+    {
+      "id": "report_file_visible",
+      "description": "The agent created or opened the required analysis report file.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) or terminal output shows the file `http_analysis_report.txt` being edited or viewed."
+    },
+    {
+      "id": "uris_recorded",
+      "description": "The report includes the HTTP request URIs.",
+      "points": 20,
+      "visual_evidence": "The report contains a clearly labeled section for URIs, listing `/download.html` and the `/pagead/ads...` URI."
+    },
+    {
+      "id": "ip_recorded",
+      "description": "The report includes the web server IP address.",
+      "points": 15,
+      "visual_evidence": "The report contains a clearly labeled section for the web server IP address, listing `216.239.59.99` and/or `65.208.228.223`."
+    },
+    {
+      "id": "status_codes_recorded",
+      "description": "The report includes the HTTP response status codes.",
+      "points": 15,
+      "visual_evidence": "The report contains a clearly labeled section for status codes, listing `200`."
+    },
+    {
+      "id": "user_agent_recorded",
+      "description": "The report includes the client User-Agent string.",
+      "points": 15,
+      "visual_evidence": "The report contains a clearly labeled section for the User-Agent, showing the Mozilla/5.0 string."
+    },
+    {
+      "id": "request_count_recorded",
+      "description": "The report includes the total count of HTTP request packets.",
+      "points": 15,
+      "visual_evidence": "The report contains a clearly labeled section for the total HTTP request count, showing the number `2`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "The agent derived the information by analyzing the PCAP file.",
+      "visual_evidence": "Screenshots should show the agent interacting with Wireshark or a command-line packet analyzer to extract the specific IPs, URIs, and User-Agent, rather than just typing them from memory or hallucinating."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The report is saved to the correct directory and filename.",
+      "visual_evidence": "The text editor or terminal shows the file path as `/home/ga/Documents/captures/http_analysis_report.txt`."
+    },
+    {
+      "id": "manual_report_creation",
+      "description": "The agent manually created the report or used standard tools to compile it.",
+      "visual_evidence": "The agent is seen typing the report in an editor or redirecting analysis output into the text file, rather than executing a pre-existing hidden script to generate the final text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The PCAP file `http.cap` contains exactly 2 HTTP requests. The URIs are `/download.html` and a path starting with `/pagead/ads`. The web server IPs are `65.208.228.223` and `216.239.59.99` (accept either or both). The HTTP response status code is `200`. The User-Agent begins with 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.6) Gecko/20040113'. The expected output file is `/home/ga/Documents/captures/http_analysis_report.txt`."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_custom_sca_policy@1",
+  "task_completion": [
+    {
+      "id": "policy_file_created",
+      "description": "Create the custom SCA policy file at the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor showing the creation or editing of the file '/var/ossec/etc/sca/payment_gateway_audit.yml'."
+    },
+    {
+      "id": "policy_metadata_defined",
+      "description": "Define the policy metadata including ID, name, and description.",
+      "points": 15,
+      "visual_evidence": "Inside the YAML file, look for 'id: 10005' (or similar syntax), 'name: \"Payment Gateway Hardening\"', and 'description: \"Security audit for custom payment gateway\"'."
+    },
+    {
+      "id": "check_10006_permissions",
+      "description": "Implement check 10006 for file permissions on keys.pem.",
+      "points": 15,
+      "visual_evidence": "Inside the YAML file, look for a check with 'id: 10006' that includes a condition verifying permissions of '400' on the file '/opt/payment_gateway/config/keys.pem'."
+    },
+    {
+      "id": "check_10007_ownership",
+      "description": "Implement check 10007 for ownership on the logs directory.",
+      "points": 15,
+      "visual_evidence": "Inside the YAML file, look for a check with 'id: 10007' that includes a condition verifying 'root:root' (or user/group root) ownership on '/opt/payment_gateway/logs'."
+    },
+    {
+      "id": "check_10008_content",
+      "description": "Implement check 10008 for specific content in app.conf.",
+      "points": 15,
+      "visual_evidence": "Inside the YAML file, look for a check with 'id: 10008' that includes a condition verifying the presence of 'debug=false' in the file '/opt/payment_gateway/config/app.conf'."
+    },
+    {
+      "id": "policy_enabled_wazuh_manager",
+      "description": "Enable and activate the policy within the Wazuh Manager configuration.",
+      "points": 30,
+      "visual_evidence": "Terminal or text editor showing modifications to the Wazuh Manager configuration file (typically '/var/ossec/etc/ossec.conf') to include the new policy path under the <sca> block, and/or a command restarting the wazuh-manager service."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent genuinely edited the YAML file using a text editor or valid shell commands.",
+      "visual_evidence": "Look for the use of editors like nano, vim, or valid echo/cat commands appending to the file, rather than just printing the expected output to the terminal."
+    },
+    {
+      "id": "valid_yaml_structure",
+      "description": "Verify the agent wrote actual YAML content structured for Wazuh SCA.",
+      "visual_evidence": "The file contents should resemble a valid Wazuh SCA policy structure (e.g., 'policy:', 'checks:', 'id:', 'title:', 'condition:') rather than plain text notes."
+    },
+    {
+      "id": "genuine_configuration_change",
+      "description": "Verify the agent actually modified the Wazuh configuration to enable the policy.",
+      "visual_evidence": "Look for actual edits to 'ossec.conf' or equivalent configuration files, not just a standalone command that claims the policy is enabled without modifying the manager's config."
+    }
+  ],
+  "privileged_info_for_vlm": "The custom SCA policy must be located at '/var/ossec/etc/sca/payment_gateway_audit.yml'. The policy must have ID 10005, name 'Payment Gateway Hardening', and description 'Security audit for custom payment gateway'. It must contain three checks: ID 10006 (verifying permissions 400 on '/opt/payment_gateway/config/keys.pem'), ID 10007 (verifying root:root ownership on '/opt/payment_gateway/logs'), and ID 10008 (verifying 'debug=false' inside '/opt/payment_gateway/config/app.conf'). The policy must be enabled in the Wazuh Manager configuration (typically '/var/ossec/etc/ossec.conf')."
+}

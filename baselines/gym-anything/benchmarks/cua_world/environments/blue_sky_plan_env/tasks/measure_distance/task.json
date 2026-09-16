@@ -1,0 +1,29 @@
+{
+  "id": "measure_distance@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Blue Sky Plan 5 is open with a dental CBCT scan loaded. Measure the distance from the crest of the alveolar ridge to the superior border of the mandibular canal in the lower right first molar region. This measurement is clinically important for determining available bone height for implant placement. Save the project with the measurement to C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\measurement.bsp.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\measure_distance\\setup_task.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\measurement.bsp",
+    "measurement_type": "ridge_to_canal_distance",
+    "expected_range_mm": [
+      8,
+      25
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_distance"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "playtest_ux_analysis_pipeline@1",
+  "task_completion": [
+    {
+      "id": "ux_report_folder_created",
+      "description": "Verify the creation of the ux_report directory.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window showing the directory '/home/ga/Documents/ux_report/' exists."
+    },
+    {
+      "id": "player_voice_extracted",
+      "description": "Verify the full Player Mic audio was extracted.",
+      "points": 20,
+      "visual_evidence": "The file 'player_voice_full.mp3' is visible inside the 'ux_report' directory."
+    },
+    {
+      "id": "bug_highlight_video_created",
+      "description": "Verify the 20-second highlight clip was created.",
+      "points": 20,
+      "visual_evidence": "The file 'bug_highlight.mp4' is visible inside the 'ux_report' directory. If file properties or a video player is open, the duration should be approximately 20 seconds."
+    },
+    {
+      "id": "error_frames_captured",
+      "description": "Verify the three full-resolution PNG snapshots were captured.",
+      "points": 25,
+      "visual_evidence": "The files 'error_frame_1.png', 'error_frame_2.png', and 'error_frame_3.png' are visible inside the 'ux_report' directory."
+    },
+    {
+      "id": "ux_manifest_created",
+      "description": "Verify the summary JSON file was created with the correct contents.",
+      "points": 25,
+      "visual_evidence": "The file 'ux_manifest.json' is visible. If open in a text editor, it should contain 'session_id': 'playtest_04' and arrays for 'extracted_audio', 'highlight_clip', and 'snapshots'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_media_processing",
+      "description": "Check that the agent actually processed the MKV file using a media tool or video editor.",
+      "visual_evidence": "Screenshots should show a video editor (e.g., Kdenlive, Pitivi), media player (e.g., VLC), or terminal commands (e.g., ffmpeg) actively opening or processing 'playtest_session_04.mkv' rather than just creating empty mock files."
+    },
+    {
+      "id": "track_2_audio_selection",
+      "description": "Check that the agent specifically targeted Track 2 for the Player Mic audio.",
+      "visual_evidence": "Audio track selection settings in a GUI or explicit stream mapping (like '-map 0:a:1') in a terminal command should be visible in the history."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Check that the agent manually created or scripted the JSON manifest rather than copying a pre-existing solution.",
+      "visual_evidence": "A text editor (like nano, gedit, or VS Code) should be seen editing 'ux_manifest.json', or terminal commands (like echo/cat/python) used to construct it."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output files are 'player_voice_full.mp3' and 'bug_highlight.mp4'. The target duration for the highlight video is exactly 20 seconds (with a verified tolerance of up to 3 seconds)."
+}

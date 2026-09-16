@@ -1,0 +1,29 @@
+{
+  "id": "block_provider_schedule@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Schedule a 60-minute Non-Patient (Provider Event) titled 'Staff Meeting' starting at 4:00 PM (16:00) today. Ensure no patient is assigned to the event.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/block_provider_schedule/setup_task.sh",
+    "post_task": "/workspace/tasks/block_provider_schedule/export_result.sh"
+  },
+  "metadata": {
+    "event_title": "Staff Meeting",
+    "event_time_str": "16:00",
+    "event_duration_sec": 3600,
+    "event_duration_min": 60,
+    "is_patient_event": false
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_block_schedule"
+    }
+  }
+}

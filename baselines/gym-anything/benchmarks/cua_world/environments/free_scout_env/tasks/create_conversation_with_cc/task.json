@@ -1,0 +1,35 @@
+{
+  "id": "create_conversation_with_cc@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are an AV equipment support technician at Lakewood University. A professor reported a broken projector and you need to create a formal support ticket in FreeScout.\n\nSend an email from the 'AV Support' mailbox to prof.martinez@lakewood-univ.edu, CC'ing deptchair.wilson@lakewood-univ.edu and facilities@lakewood-univ.edu.\n\nSubject: Projector Maintenance Request - Room 301 Anderson Hall\n\nBody:\nDear Prof. Martinez,\n\nWe have received your report about the malfunctioning Epson projector in Room 301, Anderson Hall. Our technician team has scheduled an on-site inspection for Thursday between 10 AM and 12 PM to assess the HDMI input failure and color calibration issues.\n\nA portable projector has been reserved for your Wednesday lecture. Please contact ext. 4521 to arrange pickup.\n\nBest regards,\nAV Support Team",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_conversation_with_cc/setup_task.sh",
+    "post_task": "/workspace/tasks/create_conversation_with_cc/export_result.sh"
+  },
+  "metadata": {
+    "target_mailbox_name": "AV Support",
+    "target_customer_email": "prof.martinez@lakewood-univ.edu",
+    "target_cc_1": "deptchair.wilson@lakewood-univ.edu",
+    "target_cc_2": "facilities@lakewood-univ.edu",
+    "target_subject": "Projector Maintenance Request - Room 301 Anderson Hall",
+    "required_body_keywords": [
+      "Room 301",
+      "Anderson Hall",
+      "HDMI",
+      "inspection"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_conversation_with_cc"
+    }
+  }
+}

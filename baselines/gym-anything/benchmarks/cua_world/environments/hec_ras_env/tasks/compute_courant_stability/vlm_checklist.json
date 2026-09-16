@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_courant_stability@1",
+  "task_completion": [
+    {
+      "id": "access_hdf_file",
+      "description": "Access the Muncie HEC-RAS HDF simulation results file.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command, Python script (e.g., using h5py), or HDF viewer opening '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf'."
+    },
+    {
+      "id": "extract_peak_flow_data",
+      "description": "Extract velocity and cross-section spacing (Delta X) at the time of peak flow.",
+      "points": 15,
+      "visual_evidence": "Look for code, queries, or tool usage specifically targeting peak flow time steps and extracting velocity and Delta X variables from the HDF file."
+    },
+    {
+      "id": "compute_courant_numbers",
+      "description": "Compute the Courant number for the cross-sections.",
+      "points": 20,
+      "visual_evidence": "Look for the implementation of the formula (C = V * dt / dx) in a script, spreadsheet, or terminal output."
+    },
+    {
+      "id": "save_courant_csv",
+      "description": "Save the computed data to courant_analysis.csv with the required columns.",
+      "points": 25,
+      "visual_evidence": "Look for a saved file at '~/Documents/hec_ras_results/courant_analysis.csv' (or code writing to this path) containing the columns: River_Station, Velocity_fps, Delta_X_ft, and Courant_Number."
+    },
+    {
+      "id": "save_summary_report",
+      "description": "Create the summary report text file.",
+      "points": 15,
+      "visual_evidence": "Look for a file created or saved at '~/Documents/hec_ras_results/courant_report.txt'."
+    },
+    {
+      "id": "report_content_assessment",
+      "description": "Include the Maximum Courant Number, count of sections > 1.0, and the correct stability assessment in the report.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of 'courant_report.txt' (in an editor or terminal 'cat' output) to ensure it displays a maximum Courant number, a count of sections exceeding 1.0, and one of the keywords: STABLE, MARGINAL, or UNSTABLE."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_hdf_extraction",
+      "description": "Verify the agent actually read the HDF file to get the data.",
+      "visual_evidence": "Look for actual execution of a script or tool that parses the .hdf file. The agent should not just hallucinate or hardcode a pre-made list of river stations and velocities."
+    },
+    {
+      "id": "calculated_not_hallucinated",
+      "description": "Verify the Courant numbers and stability assessment were actually calculated.",
+      "visual_evidence": "Look for a script executing the math or a spreadsheet performing the calculation. The agent should not just type out a final report from memory or copy-paste a generic response."
+    },
+    {
+      "id": "files_actually_saved",
+      "description": "Verify the CSV and TXT files were saved to the disk.",
+      "visual_evidence": "Look for terminal commands like 'ls' showing the files exist in the directory, or a clear 'Save' action in a text editor/IDE, rather than just printing the intended content to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified paths: The input HDF file is located at '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf'. The output CSV must be saved exactly to '/home/ga/Documents/hec_ras_results/courant_analysis.csv' and must include the columns: [\"River_Station\", \"Velocity_fps\", \"Delta_X_ft\", \"Courant_Number\"]. The output report must be saved exactly to '/home/ga/Documents/hec_ras_results/courant_report.txt'."
+}

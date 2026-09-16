@@ -1,0 +1,41 @@
+{
+  "id": "chinook_revenue_crosstab@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Data Analyst at a digital media distributor. Management needs a year-over-year revenue analysis by music genre for the period 2009–2013 using the SQLite database at '/home/ga/Documents/databases/chinook_crosstab.db' (connection name: 'ChinookCrosstab'). Create a persistent table named 'genre_yearly_revenue' that pivots revenue (UnitPrice * Quantity) by year from the Invoice table. The table must include columns GenreName, Rev_2009, Rev_2010, Rev_2011, Rev_2012, Rev_2013, and TotalRevenue, sorted by TotalRevenue descending. Create a database index named 'idx_genre_total_revenue' on the TotalRevenue column. Export the resulting table to '/home/ga/Documents/exports/genre_yearly_revenue.csv' and save the SQL script containing the table and index creation statements to '/home/ga/Documents/scripts/genre_crosstab.sql'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_revenue_crosstab/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_revenue_crosstab/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_crosstab.db",
+    "connection_name": "ChinookCrosstab",
+    "output_table": "genre_yearly_revenue",
+    "output_index": "idx_genre_total_revenue",
+    "csv_path": "/home/ga/Documents/exports/genre_yearly_revenue.csv",
+    "sql_path": "/home/ga/Documents/scripts/genre_crosstab.sql",
+    "required_columns": [
+      "GenreName",
+      "Rev_2009",
+      "Rev_2010",
+      "Rev_2011",
+      "Rev_2012",
+      "Rev_2013",
+      "TotalRevenue"
+    ],
+    "expected_top_genre": "Rock",
+    "ground_truth_tolerance": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_revenue_crosstab"
+    }
+  }
+}

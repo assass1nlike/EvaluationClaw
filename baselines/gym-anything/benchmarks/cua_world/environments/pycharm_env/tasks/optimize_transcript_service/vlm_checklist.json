@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_transcript_service@1",
+  "task_completion": [
+    {
+      "id": "open_project_directory",
+      "description": "The agent opened the project directory in an IDE or terminal.",
+      "points": 10,
+      "visual_evidence": "A file explorer, IDE (like PyCharm), or terminal showing the directory /home/ga/PycharmProjects/transcript_engine."
+    },
+    {
+      "id": "open_target_file",
+      "description": "The agent opened the target service file to inspect or edit the code.",
+      "points": 10,
+      "visual_evidence": "The file services/transcript.py is open in a text editor or IDE, displaying the generate_student_transcript function."
+    },
+    {
+      "id": "refactor_transcript_function",
+      "description": "The agent modified the generate_student_transcript function to resolve the N+1 query issue.",
+      "points": 30,
+      "visual_evidence": "Code changes in services/transcript.py showing the removal of queries inside loops, replaced by bulk queries, JOINs, or IN clauses to fetch data efficiently."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "The agent executed the test suite to verify functional and performance requirements.",
+      "points": 20,
+      "visual_evidence": "Terminal or IDE test runner showing the execution of a test command targeting tests/test_transcript.py (e.g., pytest tests/test_transcript.py)."
+    },
+    {
+      "id": "tests_pass_successfully",
+      "description": "The test suite passed, confirming the JSON output is identical and the query count is fewer than 10.",
+      "points": 30,
+      "visual_evidence": "Terminal or test runner output showing a successful test run (e.g., green text, 'passed', 'OK') for tests/test_transcript.py with no failures."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "test_file_unmodified",
+      "description": "The agent did not modify the test file to bypass the performance or functional assertions.",
+      "visual_evidence": "No visible edits, git diffs, or save actions on tests/test_transcript.py that alter the test logic or the < 10 query constraint."
+    },
+    {
+      "id": "schema_unmodified",
+      "description": "The agent did not modify the database schema to bypass the task constraints.",
+      "visual_evidence": "No edits to database setup files, schema definitions, or migrations."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The test results shown are from an actual execution of the test suite.",
+      "visual_evidence": "Standard test runner output format (e.g., pytest output with execution time, collected items, and progress indicators) matching the executed command, rather than manually printed text."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/PycharmProjects/transcript_engine. Target file to refactor: services/transcript.py. Test file to run: tests/test_transcript.py. The test file strictly enforces that the number of SQL queries is fewer than 10 (max_allowed_queries: 10). The database is a synthetic SQLite database (university.db)."
+}

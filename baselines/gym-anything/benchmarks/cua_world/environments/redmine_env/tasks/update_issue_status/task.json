@@ -1,0 +1,26 @@
+{
+  "id": "update_issue_status@1",
+  "version": "1.0",
+  "env_id": "redmine_env@0.1",
+  "description": "Log in to Redmine (Username: admin, Password: Admin1234!) and update the status of the issue titled 'Biometric authentication fails after app backgrounding on Android 14' in the 'Mobile Application v2' project from 'New' to 'In Progress'. Include a note stating 'Starting investigation. Will test on Android 14 emulator and real device.' and do not change any other fields.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_issue_status/setup_task.sh"
+  },
+  "metadata": {
+    "issue_subject_fragment": "Biometric authentication fails after app backgrounding",
+    "expected_status": "In Progress",
+    "expected_note_fragment": "Starting investigation"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_issue_status"
+    }
+  }
+}

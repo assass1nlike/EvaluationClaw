@@ -1,0 +1,59 @@
+{
+  "task_id": "browser_security_audit_report@1",
+  "task_completion": [
+    {
+      "id": "visit_check_torproject",
+      "description": "Visit check.torproject.org to verify Tor connection and Exit IP",
+      "points": 15,
+      "visual_evidence": "Tor Browser is open and navigated to check.torproject.org (or a similar IP checking site), displaying the Tor connection status and an IP address."
+    },
+    {
+      "id": "check_app_info",
+      "description": "Check the Tor Browser application version and User Agent",
+      "points": 15,
+      "visual_evidence": "Tor Browser is open to 'about:support', 'about:preferences', or the 'About Tor Browser' dialog, showing the browser version and User Agent string."
+    },
+    {
+      "id": "check_extensions",
+      "description": "Check installed extensions and NoScript status",
+      "points": 10,
+      "visual_evidence": "Tor Browser is open to 'about:addons' or the extensions menu is expanded, showing NoScript and its enabled/disabled status."
+    },
+    {
+      "id": "check_security_settings",
+      "description": "Check the Security Level and HTTPS-Only Mode status",
+      "points": 20,
+      "visual_evidence": "Tor Browser is open to the Privacy & Security settings page or the Security Shield menu is expanded, showing the current Security Level (Standard/Safer/Safest) and HTTPS-Only Mode settings."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Open a text editor to create the audit report at the specified path",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit, nano, vim, or mousepad) is open, and the window title or file path indicates it is saving to '/home/ga/Documents/tor-audit-report.txt'."
+    },
+    {
+      "id": "compile_report_content",
+      "description": "Compile all findings into the report with the required structure and headers",
+      "points": 30,
+      "visual_evidence": "The text editor shows the required headers (e.g., '--- Application Info ---', '--- Security Settings ---') and the gathered data (version, IP, security level, etc.) filled in correctly."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_browser_gui",
+      "description": "The agent used the Tor Browser GUI to gather information rather than guessing or using terminal scraping scripts.",
+      "visual_evidence": "Screenshots show active navigation through Tor Browser menus, settings, and web pages."
+    },
+    {
+      "id": "actual_ip_check",
+      "description": "The agent genuinely checked the Exit IP address via the browser.",
+      "visual_evidence": "There is at least one screenshot showing a webpage (like check.torproject.org) that displays the current IP address, rather than the agent hallucinating an IP."
+    },
+    {
+      "id": "data_consistency",
+      "description": "The data entered into the report matches the data seen in the browser.",
+      "visual_evidence": "The version number, Security Level, and Exit IP written in the text editor match the values visible in the browser screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "The final report must be saved to '/home/ga/Documents/tor-audit-report.txt'. It must contain exactly these 5 section headers: '--- Application Info ---', '--- Installed Extensions ---', '--- Security Settings ---', '--- Tor Network Verification ---', and '--- Audit Metadata ---'. The agent is expected to visit 'check.torproject.org' in the Tor Browser to verify the Tor connection and Exit IP."
+}

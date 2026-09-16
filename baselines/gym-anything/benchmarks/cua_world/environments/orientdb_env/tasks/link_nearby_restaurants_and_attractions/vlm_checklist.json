@@ -1,0 +1,65 @@
+{
+  "task_id": "link_nearby_restaurants_and_attractions@1",
+  "task_completion": [
+    {
+      "id": "access_orientdb_studio",
+      "description": "Log into OrientDB Studio and access the demodb database.",
+      "points": 10,
+      "visual_evidence": "The browser shows the OrientDB Studio interface at localhost:2480, successfully logged in, with 'demodb' selected as the active database."
+    },
+    {
+      "id": "create_proximity_link_class",
+      "description": "Create the ProximityLink edge class.",
+      "points": 10,
+      "visual_evidence": "The Schema tab or a query execution result shows the creation or existence of an edge class named 'ProximityLink'."
+    },
+    {
+      "id": "create_recommendation_manifest_class",
+      "description": "Create the RecommendationManifest vertex class.",
+      "points": 10,
+      "visual_evidence": "The Schema tab or a query execution result shows the creation or existence of a vertex class named 'RecommendationManifest'."
+    },
+    {
+      "id": "create_proximity_links",
+      "description": "Create ProximityLink edges between restaurants and attractions in the same city.",
+      "points": 30,
+      "visual_evidence": "The Graph tab or Browse tab shows edges of type 'ProximityLink' connecting Restaurant vertices to Attraction vertices. Look for evidence of the 8 expected same-city pairs being linked."
+    },
+    {
+      "id": "set_match_basis_property",
+      "description": "Set the MatchBasis property on the created links.",
+      "points": 10,
+      "visual_evidence": "The property inspector, edge details, or query results for the ProximityLink edges show a property named 'MatchBasis' (expected value: 'same_city')."
+    },
+    {
+      "id": "create_recommendation_manifest_vertices",
+      "description": "Persist a corresponding RecommendationManifest vertex record for every link created.",
+      "points": 20,
+      "visual_evidence": "The Browse tab or query results show records/vertices of type 'RecommendationManifest' having been created in the database."
+    },
+    {
+      "id": "verify_no_cross_city_links",
+      "description": "Ensure no cross-city links are created.",
+      "points": 10,
+      "visual_evidence": "In the graph view or query results, all connected Restaurant and Attraction pairs share the same city. There is no evidence of cross-city links (e.g., a Paris restaurant linked to a London attraction)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_orientdb_studio",
+      "description": "The agent used the OrientDB Studio web interface to perform the tasks.",
+      "visual_evidence": "Actions are performed within the browser at http://localhost:2480/studio/index.html (using the Graph, Schema, or Browse tabs), rather than by executing external scripts in the terminal."
+    },
+    {
+      "id": "genuine_database_records",
+      "description": "The results shown are genuine database records.",
+      "visual_evidence": "The displayed edges and vertices are actual OrientDB Studio UI elements (graph nodes, JSON result tables) and not mocked text in a text editor."
+    },
+    {
+      "id": "no_script_bypassing",
+      "description": "The agent did not bypass the task by running pre-existing setup or export scripts.",
+      "visual_evidence": "The terminal does not show the agent simply running a script like 'setup_task.sh' or 'export_result.sh' to magically complete the database operations."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected outcome: Exactly 8 'ProximityLink' edges connecting restaurants and attractions in the same city. The 8 valid pairs are: Da Enzo al 29 <-> Colosseum (Rome), Lorenz Adlon Esszimmer <-> Brandenburg Gate (Berlin), Le Cinq <-> Eiffel Tower (Paris), Sketch <-> Big Ben (London), Per Se <-> Statue of Liberty (New York), Spondi <-> Acropolis of Athens (Athens), Spondi <-> Parthenon (Athens), Tickets <-> Sagrada Familia (Barcelona). The 'MatchBasis' property on these edges must be 'same_city'. The agent should also create 8 'RecommendationManifest' vertex records. A 'BatchId' property of 'geo_proximity_2026q1' might also be present."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "compositing_product_pipeline@1",
+  "task_completion": [
+    {
+      "id": "render_and_pass_settings",
+      "description": "Configure Cycles samples, render passes, and mist settings.",
+      "points": 15,
+      "visual_evidence": "In the Properties panel: Render tab should show Cycles with Max Samples set to 64. View Layer tab should have 'Ambient Occlusion' and 'Mist' checked under Passes. World tab should have Mist Pass Start set to 5.0m and Depth set to 25.0m."
+    },
+    {
+      "id": "glare_and_color_balance_nodes",
+      "description": "Add and configure Glare and Color Balance nodes in the Compositor.",
+      "points": 20,
+      "visual_evidence": "In the Compositor editor, a Glare node (set to 'Fog Glow') and a Color Balance node should be present in the main image pipeline. The Color Balance node should show the 'Lift' (shadows) color wheel shifted towards blue/cyan (cool) and the 'Gain' (highlights) color wheel shifted towards red/yellow (warm)."
+    },
+    {
+      "id": "mist_map_value_node",
+      "description": "Process the Mist pass using a Map Value node.",
+      "points": 20,
+      "visual_evidence": "In the Compositor editor, the 'Mist' output socket from the Render Layers node must be connected to the input of a Map Value node."
+    },
+    {
+      "id": "mix_color_haze",
+      "description": "Blend the atmospheric haze using the depth mask.",
+      "points": 20,
+      "visual_evidence": "In the Compositor editor, a Mix (or Mix Color) node should combine the color-graded image with a solid blue-grey color swatch. The 'Factor' (Fac) input of this Mix node must be driven by the output of the Map Value (Mist) node."
+    },
+    {
+      "id": "output_routing",
+      "description": "Route the final composited image to Composite and File Output nodes.",
+      "points": 10,
+      "visual_evidence": "In the Compositor editor, the final output socket of the Mix node must be connected to both a 'Composite' node and a 'File Output' node. The File Output node should ideally show the path ending in 'bmw_composited.png'."
+    },
+    {
+      "id": "render_and_save",
+      "description": "Render the image and save the blend file.",
+      "points": 15,
+      "visual_evidence": "An Image Editor or Render window should display the final rendered and composited BMW car scene (showing bloom and haze). The Blender window title bar or a file browser should indicate the file is saved as 'composited_pipeline.blend'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Blender GUI to build the node tree and configure settings.",
+      "visual_evidence": "Screenshots should show the Blender interface, specifically the Compositor workspace with nodes being added and connected, rather than just a terminal running a Python script."
+    },
+    {
+      "id": "use_nodes_enabled",
+      "description": "The 'Use Nodes' checkbox in the Compositor must be enabled.",
+      "visual_evidence": "In the Compositor editor header, the 'Use Nodes' checkbox must be checked; otherwise, the node network is inactive."
+    },
+    {
+      "id": "genuine_render_result",
+      "description": "The render result matches the BMW scene.",
+      "visual_evidence": "The rendered image shown in the UI must be the actual 3D BMW car from the provided scene, not a placeholder image or an empty grid."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring Blender 4.2.4 LTS. Render settings: Cycles, 64 samples. View Layer passes: Ambient Occlusion and Mist enabled. World Mist Pass settings: Start 5.0m, Depth 25.0m. Compositor nodes required: 1) Glare (Fog Glow type, threshold ~0.8, size ~7). 2) Color Balance (Gain/Highlights warm where R>B, Lift/Shadows cool where B>R). 3) Map Value (Size ~0.35) connected to the Mist pass. 4) Mix Color blending the main image with a blue-grey color (B channel > R and G) using the Map Value output as the factor. 5) Output routed to both Composite and File Output nodes. Final files: /home/ga/BlenderProjects/bmw_composited.png and /home/ga/BlenderProjects/composited_pipeline.blend."
+}

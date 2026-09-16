@@ -1,0 +1,59 @@
+{
+  "task_id": "sakila_schema_synchronization_upgrade@1",
+  "task_completion": [
+    {
+      "id": "migration_script_saved",
+      "description": "The migration script is created and saved to the correct path.",
+      "points": 20,
+      "visual_evidence": "A text editor, file manager, or terminal showing a file named 'migration_v2.sql' located in '/home/ga/Documents/exports/' containing SQL statements."
+    },
+    {
+      "id": "customer_schema_updated",
+      "description": "The customer table in the sakila database is updated with the loyalty_tier column.",
+      "points": 15,
+      "visual_evidence": "A database client or terminal showing the schema of the 'customer' table in the 'sakila' database with the 'loyalty_tier' column present, or a successful query execution adding it."
+    },
+    {
+      "id": "film_schema_updated",
+      "description": "The film table in the sakila database is updated with the streaming_url column.",
+      "points": 15,
+      "visual_evidence": "A database client or terminal showing the schema of the 'film' table in the 'sakila' database with the 'streaming_url' column present, or a successful query execution adding it."
+    },
+    {
+      "id": "payment_index_added",
+      "description": "The payment table in the sakila database has the new idx_payment_date_amount index.",
+      "points": 15,
+      "visual_evidence": "A database client or terminal showing the indexes of the 'payment' table in the 'sakila' database including 'idx_payment_date_amount', or a successful query execution creating it."
+    },
+    {
+      "id": "audit_log_table_added",
+      "description": "The rental_audit_log table is created in the sakila database.",
+      "points": 15,
+      "visual_evidence": "A database client or terminal showing the 'rental_audit_log' table exists in the 'sakila' database, or a successful query execution creating it."
+    },
+    {
+      "id": "data_preservation_confirmed",
+      "description": "Data in the modified tables is preserved using ALTER TABLE instead of dropping tables.",
+      "points": 20,
+      "visual_evidence": "Terminal output or script contents showing 'ALTER TABLE' was used for existing tables, or SELECT queries showing the data is still present (e.g., 599 customers, 1000 films)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_connection",
+      "description": "The agent actually connected to the MySQL database to apply the changes.",
+      "visual_evidence": "Screenshots show interaction with a MySQL CLI prompt or a database GUI client executing the SQL commands."
+    },
+    {
+      "id": "no_destructive_commands",
+      "description": "The agent did not drop existing tables to recreate them.",
+      "visual_evidence": "The migration script and executed commands do not contain 'DROP TABLE customer', 'DROP TABLE film', or 'DROP TABLE payment'."
+    },
+    {
+      "id": "authentic_script_creation",
+      "description": "The migration script was genuinely created by the agent.",
+      "visual_evidence": "The agent is seen writing the SQL commands in an editor or generating them via a tool, rather than just downloading or copying a pre-existing complete script from outside the environment."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database: 'sakila'. Reference database: 'sakila_next'. Expected schema changes in 'sakila': 'customer' table must have 'loyalty_tier' column, 'film' table must have 'streaming_url' column, 'payment' table must have 'idx_payment_date_amount' index, and 'rental_audit_log' table must exist. The migration script must be saved to '/home/ga/Documents/exports/migration_v2.sql'. The 'customer' table must have at least 599 rows and the 'film' table at least 1000 rows to prove data was preserved."
+}

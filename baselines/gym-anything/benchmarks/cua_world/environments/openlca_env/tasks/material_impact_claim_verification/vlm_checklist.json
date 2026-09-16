@@ -1,0 +1,59 @@
+{
+  "task_id": "material_impact_claim_verification@1",
+  "task_completion": [
+    {
+      "id": "import_databases",
+      "description": "Import the USLCI database and TRACI 2.1 LCIA methods into the LCA software.",
+      "points": 10,
+      "visual_evidence": "The LCA software (e.g., openLCA) navigation pane shows the USLCI database active and TRACI 2.1 listed under LCIA methods or indicators."
+    },
+    {
+      "id": "open_target_process",
+      "description": "Locate and open the 'Aluminum, primary ingot, at plant' process.",
+      "points": 15,
+      "visual_evidence": "The main editor window of the LCA software displays the process 'Aluminum, primary ingot, at plant' (or closely matching keywords) from the USLCI database."
+    },
+    {
+      "id": "run_lcia_calculation",
+      "description": "Calculate the LCIA results for the aluminum process using the TRACI 2.1 method.",
+      "points": 25,
+      "visual_evidence": "A calculation setup or results window is visible, showing that the TRACI 2.1 method was applied to the 'Aluminum, primary ingot, at plant' process, displaying impact categories like 'Global Warming Air'."
+    },
+    {
+      "id": "create_output_file",
+      "description": "Create the required output text file at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal shows a file named 'claim_verification.txt' being edited or saved in the '~/LCA_Results/' directory."
+    },
+    {
+      "id": "write_gwp_value",
+      "description": "Write the calculated Global Warming Air (GWP) impact value on the first line of the text file.",
+      "points": 20,
+      "visual_evidence": "The first line of 'claim_verification.txt' contains a numerical value (expected to be between 4.0 and 20.0)."
+    },
+    {
+      "id": "write_verdict",
+      "description": "Write the correct verdict on the second line of the text file.",
+      "points": 20,
+      "visual_evidence": "The second line of 'claim_verification.txt' contains exactly the text 'VERDICT: REJECTED'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_lca_software",
+      "description": "The agent actually used LCA software (like openLCA) to perform the analysis.",
+      "visual_evidence": "Screenshots show interaction with the GUI of an LCA software, not just terminal commands or text editors."
+    },
+    {
+      "id": "genuine_calculation_result",
+      "description": "The GWP value written to the text file matches the calculation result in the LCA software.",
+      "visual_evidence": "The numerical value on the first line of the text file matches the 'Global Warming Air' value shown in the LCA software's results table."
+    },
+    {
+      "id": "no_hardcoded_script",
+      "description": "The agent did not use a script to bypass the software and hardcode the expected answer.",
+      "visual_evidence": "There is no evidence of a python or bash script simply echoing 'VERDICT: REJECTED' and a random number into the file without opening the LCA software."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Global Warming Air (GWP) impact value for US primary aluminum production using TRACI 2.1 is between 4.0 and 20.0 kg CO2 eq/kg. The supplier's claim is 2.0 kg. A 20% tolerance band around the supplier's claim is 1.6 to 2.4 kg. Since the expected US average (4.0-20.0) falls completely outside this 1.6-2.4 range, the correct verdict must be 'VERDICT: REJECTED'. The output file must be located at ~/LCA_Results/claim_verification.txt."
+}

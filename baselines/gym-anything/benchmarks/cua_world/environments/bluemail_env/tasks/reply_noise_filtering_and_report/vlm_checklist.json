@@ -1,0 +1,53 @@
+{
+  "task_id": "reply_noise_filtering_and_report@1",
+  "task_completion": [
+    {
+      "id": "folder_created",
+      "description": "Verify that a folder named 'Replies-Archive' has been created.",
+      "points": 10,
+      "visual_evidence": "Look for a folder or directory named exactly 'Replies-Archive' in the left-hand sidebar or folder list of the email client."
+    },
+    {
+      "id": "replies_moved",
+      "description": "Verify that emails with subjects starting with 'Re:' or 'RE:' have been moved to the 'Replies-Archive' folder.",
+      "points": 30,
+      "visual_evidence": "Look at the contents of the 'Replies-Archive' folder to see emails with 'Re:' or 'RE:' at the start of their subjects. The main Inbox should no longer display these emails."
+    },
+    {
+      "id": "remaining_emails_starred",
+      "description": "Verify that the remaining new topic emails in the Inbox are marked as 'Starred' or 'Important'.",
+      "points": 20,
+      "visual_evidence": "Look at the email list in the Inbox. The visible emails (which should not start with 'Re:') must have an active star icon, flag, or important marker next to them."
+    },
+    {
+      "id": "report_email_headers",
+      "description": "Verify that a report email is being composed to the correct recipient with the correct subject.",
+      "points": 20,
+      "visual_evidence": "Look for an email composition window. The 'To' field must contain 'manager@company.com' and the 'Subject' field must be exactly 'Inbox Status'."
+    },
+    {
+      "id": "report_email_body_count",
+      "description": "Verify that the body of the report email states the exact number of new topics found.",
+      "points": 20,
+      "visual_evidence": "Look at the body text of the composed email. It should state the number of new topics (which should be 25, based on the 50/50 split of the 50 total emails)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the email client's graphical user interface to perform the tasks.",
+      "visual_evidence": "Screenshots should show the agent clicking and interacting with an actual email application (e.g., Thunderbird, Evolution), not using terminal commands (like 'mv' or 'grep') to manipulate maildir files directly."
+    },
+    {
+      "id": "genuine_email_composition",
+      "description": "Verify the report email was composed within the email client.",
+      "visual_evidence": "The email composition must appear in the email client's standard 'Write' or 'Compose' window, rather than a generic text editor or terminal."
+    },
+    {
+      "id": "no_hardcoded_count",
+      "description": "Verify the agent didn't just type a guessed number without filtering.",
+      "visual_evidence": "There should be evidence of the agent actually viewing the inbox, sorting/filtering the emails, or selecting them before composing the final report with the count of 25."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected archive folder name is exactly 'Replies-Archive'. The report must be sent to 'manager@company.com'. The 'Starred' or 'Important' status corresponds to the 'F' flag in the backend. There are exactly 50 emails in total, with a 50/50 split of replies and new topics. Therefore, the correct number of new topics to report is 25. Note: The system strictly considers emails as replies ONLY if the subject starts with 'Re:' or 'RE:' (ignoring leading whitespace). Emails containing 'RE:' later in the subject (e.g., '[list] RE: topic') are considered new topics and should remain in the Inbox."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "project_retrospective_documentation@1",
+  "version": "1.0",
+  "env_id": "openproject_env@0.1",
+  "description": "You are logged into OpenProject at http://localhost:8080 as admin (password: Admin1234!). As a Software Developer leading the end-of-sprint retrospective for the 'ecommerce-platform' project, wrap up Sprint 1 ('Sprint 1 - Launch MVP') by closing completed work, documenting lessons, and preparing the next sprint. Update the 'Optimize database queries for category listing' work package to 'Closed' status with the comment: 'Verified in production. N+1 queries eliminated. Average category page load reduced from 2.3s to 0.4s. Closing as resolved.' For the 'Implement product search with Elasticsearch' work package, add the comment 'Carrying over to Sprint 2. Search indexing complete but faceted filtering needs additional 3 days of work. Estimated 70% complete.', log 4 hours of time for today's date with the comment 'Sprint 1 retrospective: code review and documentation of search API endpoints', and move it to a newly created version named 'Sprint 2 - Performance & Search' (Status: Open, Start: 2025-08-01, Due: 2025-08-31). Document the retrospective in a new wiki page titled 'Sprint 1 Retrospective' including what went well (database optimization completed ahead of schedule), what didn't go well (search feature underestimated), action items (improve estimation process, add buffer for complex features), team velocity data, and the carry-over items list.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/project_retrospective_documentation/setup_task.sh",
+    "post_task": "/workspace/tasks/project_retrospective_documentation/export_result.sh"
+  },
+  "metadata": {
+    "project_identifier": "ecommerce-platform",
+    "db_optimize_wp_subject": "Optimize database queries for category listing",
+    "search_wp_subject": "Implement product search with Elasticsearch",
+    "new_version_name": "Sprint 2 - Performance & Search",
+    "wiki_title": "Sprint 1 Retrospective"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_project_retrospective_documentation"
+    }
+  }
+}

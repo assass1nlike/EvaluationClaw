@@ -1,0 +1,32 @@
+{
+  "id": "automate_hepatitis_mortality_script@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Your goal is to automate a mortality review process using Epi Info 7 Classic Analysis. Using the clinical dataset of Hepatitis patients (C:\\Users\\Docker\\Documents\\Data\\hepatitis.csv), create and run an Epi Info script named mortality_filter.pgm in C:\\Users\\Docker\\Documents\\Scripts\\. The script must recode the 'Class' variable (1='Deceased', 2='Alive') into a new 'Outcome' variable, filter the dataset to include only deceased patients, and export the filtered list to C:\\Users\\Docker\\Documents\\Output\\mortality_review_list.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\automate_hepatitis_mortality_script\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\automate_hepatitis_mortality_script\\export_result.ps1"
+  },
+  "metadata": {
+    "data_source": "UCI Machine Learning Repository - Hepatitis",
+    "input_path": "C:\\Users\\Docker\\Documents\\Data\\hepatitis.csv",
+    "script_path": "C:\\Users\\Docker\\Documents\\Scripts\\mortality_filter.pgm",
+    "output_path": "C:\\Users\\Docker\\Documents\\Output\\mortality_review_list.csv",
+    "expected_death_count": 32,
+    "total_records": 155,
+    "class_die_value": 1,
+    "class_live_value": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hepatitis_script"
+    }
+  }
+}

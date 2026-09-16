@@ -1,0 +1,53 @@
+{
+  "task_id": "radiometric_indices_suite@1",
+  "task_completion": [
+    {
+      "id": "load_multispectral_imagery",
+      "description": "Verify that the Landsat multispectral imagery is loaded into SNAP Desktop.",
+      "points": 10,
+      "visual_evidence": "SNAP Desktop is open and 'landsat_multispectral' is visible in the Product Explorer window."
+    },
+    {
+      "id": "derive_spectral_indices",
+      "description": "Verify that four distinct spectral indices (vegetation vigor, water presence, soil exposure, soil-adjusted vegetation) have been derived.",
+      "points": 30,
+      "visual_evidence": "The Product Explorer shows at least four new bands or virtual bands added to the product, with names indicating the required indices (e.g., NDVI, NDWI, BSI, SAVI, or similar variations)."
+    },
+    {
+      "id": "create_classified_map",
+      "description": "Verify the creation of a classified land cover map with at least three thematic classes.",
+      "points": 30,
+      "visual_evidence": "An image view or band list shows a classification result (e.g., a discrete color-coded map) with a legend or class list indicating at least three distinct thematic classes (e.g., Water, Vegetation, Soil)."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Verify the analysis product is saved in BEAM-DIMAP format to the specified directory.",
+      "points": 15,
+      "visual_evidence": "A save dialog, file manager, or terminal window shows 'land_surface_analysis.dim' and its corresponding '.data' folder located in '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Verify the analysis product is exported as a GeoTIFF to the specified directory.",
+      "points": 15,
+      "visual_evidence": "An export dialog, file manager, or terminal window shows 'land_surface_analysis.tif' located in '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the SNAP Desktop GUI to perform the analysis.",
+      "visual_evidence": "Screenshots should show active interaction with SNAP Desktop menus, dialogs, and tools (e.g., Band Maths, Classification tools) rather than just running a pre-written script in the terminal."
+    },
+    {
+      "id": "genuine_classification_patterns",
+      "description": "Ensure the classified map is derived from the imagery and not mocked.",
+      "visual_evidence": "The classified map displayed in SNAP should show complex, realistic spatial patterns corresponding to geographical features (rivers, fields, bare land), not a solid color, random noise, or manually drawn shapes."
+    },
+    {
+      "id": "file_creation_integrity",
+      "description": "Ensure output files were genuinely exported from SNAP and not faked.",
+      "visual_evidence": "The VLM should not see terminal commands like 'touch /home/ga/snap_exports/land_surface_analysis.dim' being used to create empty dummy files to bypass the export process."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is a 4-band GeoTIFF (band_1: SWIR1, band_2: NIR, band_3: Red, band_4: Green) located at /home/ga/snap_data/landsat_multispectral.tif, sourced from opengeos/data. The agent must process this specific file in SNAP Desktop."
+}

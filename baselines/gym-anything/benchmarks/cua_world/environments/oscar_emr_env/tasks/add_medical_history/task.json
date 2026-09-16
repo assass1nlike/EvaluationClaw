@@ -1,0 +1,42 @@
+{
+  "id": "add_medical_history@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Log into Oscar EMR (http://localhost:8080/oscar/login.jsp) using username 'oscardoc', password 'oscar', and PIN '1117'. For patient Maria Santos (DOB: 1985-07-22), add 'Cholecystectomy 2018' and 'Pneumonia hospitalization 2020' to the Past Medical History (PMHx) section of her Cumulative Patient Profile (CPP). Ensure the entries are saved and persist in the record.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_medical_history/setup_task.sh",
+    "post_task": "/workspace/tasks/add_medical_history/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Maria",
+    "patient_lname": "Santos",
+    "patient_dob": "1985-07-22",
+    "required_entries": [
+      {
+        "keyword": "cholecystectomy",
+        "description": "Cholecystectomy 2018"
+      },
+      {
+        "keyword": "pneumonia",
+        "description": "Pneumonia hospitalization 2020"
+      }
+    ],
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_medical_history"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "simplify_participant_interface@1",
+  "task_completion": [
+    {
+      "id": "open_config_file",
+      "description": "The agent opens the Jitsi Meet configuration file for editing.",
+      "points": 10,
+      "visual_evidence": "A terminal showing a command like 'nano /home/ga/.jitsi-meet-cfg/web/config.js' or 'vim /home/ga/.jitsi-meet-cfg/web/config.js', followed by the text editor interface displaying the file contents."
+    },
+    {
+      "id": "locate_toolbar_config",
+      "description": "The agent navigates to the toolbar buttons configuration section within the file.",
+      "points": 10,
+      "visual_evidence": "The text editor is scrolled to the section defining the toolbar buttons (typically an array named 'toolbarButtons' or 'TOOLBAR_BUTTONS')."
+    },
+    {
+      "id": "add_audio_video_buttons",
+      "description": "The agent ensures the microphone and camera buttons are included in the toolbar configuration.",
+      "points": 20,
+      "visual_evidence": "The strings 'microphone' and 'camera' are visible as elements inside the toolbar buttons array."
+    },
+    {
+      "id": "add_chat_hangup_buttons",
+      "description": "The agent ensures the chat and hangup buttons are included in the toolbar configuration.",
+      "points": 20,
+      "visual_evidence": "The strings 'chat' and 'hangup' are visible as elements inside the toolbar buttons array."
+    },
+    {
+      "id": "remove_forbidden_buttons",
+      "description": "The agent removes all other default buttons from the toolbar configuration to create the minimal kiosk mode.",
+      "points": 30,
+      "visual_evidence": "The toolbar buttons array contains ONLY the four required buttons. All other default buttons (e.g., 'desktop', 'fullscreen', 'settings', 'profile') are completely deleted or explicitly commented out."
+    },
+    {
+      "id": "save_config_file",
+      "description": "The agent successfully saves the modified configuration file.",
+      "points": 10,
+      "visual_evidence": "The terminal shows the text editor being closed and returning to the command prompt, or a status message indicating the file was successfully written/saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_file_path",
+      "description": "Verifies the agent edits the correct configuration file rather than a copy or a file in a different directory.",
+      "visual_evidence": "The file path visible in the editor header or terminal command is exactly '/home/ga/.jitsi-meet-cfg/web/config.js'."
+    },
+    {
+      "id": "valid_javascript_syntax",
+      "description": "Verifies the agent maintains valid syntax when modifying the configuration array.",
+      "visual_evidence": "The modified toolbar buttons array has proper JavaScript syntax, including correct quotation marks around strings, commas between items, and a closing bracket."
+    },
+    {
+      "id": "no_unrelated_modifications",
+      "description": "Verifies the agent does not delete or alter other critical configuration settings outside of the toolbar buttons array.",
+      "visual_evidence": "Other configuration blocks visible in the editor remain intact and are not accidentally deleted or corrupted during the edit."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration file is '/home/ga/.jitsi-meet-cfg/web/config.js'. The agent must modify the toolbar buttons configuration array (typically named 'toolbarButtons'). The required buttons are exactly: 'microphone', 'camera', 'chat', and 'hangup'. All other buttons (such as 'desktop', 'fullscreen', 'settings', 'profile', 'raisehand', etc.) must be removed from this array. The test meeting URL is 'http://localhost:8080/YogaClass' (if the agent chooses to verify changes in the browser)."
+}

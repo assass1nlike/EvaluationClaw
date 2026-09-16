@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_travel_time_reliability@1",
+  "task_completion": [
+    {
+      "id": "run_sumo_simulations",
+      "description": "Run SUMO simulations with the specified configuration, seeds, and depart offset.",
+      "points": 20,
+      "visual_evidence": "Terminal showing execution of 'sumo' or a script running 'sumo' with '-c /home/ga/SUMO_Scenarios/bologna_acosta/run.sumocfg', '--seed' (for 1001 to 1005), and '--random-depart-offset 120'."
+    },
+    {
+      "id": "verify_tripinfo_generation",
+      "description": "Generate tripinfo XML outputs for each of the 5 runs.",
+      "points": 15,
+      "visual_evidence": "Terminal output (e.g., 'ls ~/SUMO_Output/') or file explorer showing 5 tripinfo XML files generated in the '/home/ga/SUMO_Output/' directory."
+    },
+    {
+      "id": "calculate_metrics",
+      "description": "Calculate total completed trips, mean trip duration, and 95th percentile trip duration from the XML files.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a script (e.g., Python) or interactive session reading the XML files, extracting 'duration' values, and calculating the required metrics."
+    },
+    {
+      "id": "create_json_report",
+      "description": "Save the calculated metrics to a JSON file.",
+      "points": 15,
+      "visual_evidence": "Terminal command or script saving the output to '/home/ga/SUMO_Output/reliability_report.json'."
+    },
+    {
+      "id": "verify_json_content",
+      "description": "Verify the contents of the final JSON report match the expected schema and values.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the contents of 'reliability_report.json' (e.g., via 'cat') containing 'total_trips': 43895, 'mean_duration' around 279.04, and 'p95_duration': 507.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify the agent actually executed the SUMO simulations.",
+      "visual_evidence": "Terminal output showing SUMO simulation progress, step logs, or loading messages, rather than just creating mock XML files."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Verify the agent calculated the metrics from the generated data.",
+      "visual_evidence": "Presence of a script or command sequence that parses the XML files and computes the math, rather than just printing hardcoded numbers."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent did not bypass the task by directly writing the expected final JSON.",
+      "visual_evidence": "The agent does not use a simple 'echo' or text editor to write the final JSON string without prior steps showing data extraction and calculation."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct parameters for the SUMO simulation are seeds [1001, 1002, 1003, 1004, 1005] and a depart offset of 120. The final JSON report must be saved to /home/ga/SUMO_Output/reliability_report.json. The expected values in the JSON are: total_trips: 43895, mean_duration: approximately 279.04, and p95_duration: 507.0."
+}

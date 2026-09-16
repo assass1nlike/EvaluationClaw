@@ -1,0 +1,53 @@
+{
+  "task_id": "mbr_wiped_partition_recovery@1",
+  "task_completion": [
+    {
+      "id": "extract_recovered_volume",
+      "description": "Extract the hidden partition to the specified recovered volume path",
+      "points": 20,
+      "visual_evidence": "Terminal window showing a successful extraction command (e.g., using 'dd' with a skip value) or a file manager/terminal showing the existence of '/home/ga/evidence/recovered_volume.dd'."
+    },
+    {
+      "id": "create_forensic_case",
+      "description": "Create a forensic case with the correct name and case number",
+      "points": 15,
+      "visual_evidence": "A forensic analysis tool (such as Autopsy) open with the case name 'MBR_Recovery_2026' and case number 'INV-MBR-001' clearly visible in the UI or case creation wizard."
+    },
+    {
+      "id": "load_data_source",
+      "description": "Load the recovered volume into the forensic case for analysis",
+      "points": 15,
+      "visual_evidence": "The forensic tool's data source tree or dashboard showing 'recovered_volume.dd' successfully loaded and parsed as an NTFS volume."
+    },
+    {
+      "id": "create_recovery_report",
+      "description": "Document findings in the partition recovery report",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/Reports/partition_recovery_report.txt'. It must include the evidence file name, partition offset (2048), partition type (NTFS), recovered image filename, and the total count of allocated and deleted files."
+    },
+    {
+      "id": "export_root_inventory",
+      "description": "Export a pipe-delimited inventory of the root directory",
+      "points": 25,
+      "visual_evidence": "A text editor, spreadsheet, or terminal showing the contents of '/home/ga/Reports/root_inventory.csv' starting with the exact header 'FILENAME|FILE_TYPE|SIZE_BYTES|ALLOCATION_STATUS' followed by pipe-delimited rows of file data."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_partition_extraction",
+      "description": "Verify the agent actually extracted the partition using appropriate tools rather than creating an empty or dummy file.",
+      "visual_evidence": "Look for terminal commands like 'mmls', 'fdisk', 'parted', or 'dd' (e.g., 'dd if=wiped_drive.raw of=recovered_volume.dd skip=2048') being executed to calculate the offset and extract the data."
+    },
+    {
+      "id": "genuine_forensic_tool_usage",
+      "description": "Verify the agent used a genuine forensic tool to analyze the volume and count files.",
+      "visual_evidence": "Screenshots should show the UI of a forensic application (e.g., Autopsy) or Sleuth Kit command-line tools (e.g., 'fls') actively processing the recovered volume, rather than the agent just guessing the file counts."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "Verify the reports contain actual data derived from the image.",
+      "visual_evidence": "The file names and counts in the text report and CSV inventory should match the files visible in the forensic tool's directory listing."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected partition offset is exactly 2048 sectors. The partition type is NTFS. The forensic case must be named 'MBR_Recovery_2026' with case number 'INV-MBR-001'. The recovered volume must be saved to '/home/ga/evidence/recovered_volume.dd'. The recovery report must be at '/home/ga/Reports/partition_recovery_report.txt' and the inventory at '/home/ga/Reports/root_inventory.csv' with the exact pipe-delimited header: FILENAME|FILE_TYPE|SIZE_BYTES|ALLOCATION_STATUS."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "proximity_network@1",
+  "task_completion": [
+    {
+      "id": "schema_class_created",
+      "description": "Create the 'NearBy' edge class extending 'E'",
+      "points": 15,
+      "visual_evidence": "Look for OrientDB Studio's schema page showing a new class 'NearBy' with superclass 'E', or a terminal/script containing the command 'CREATE CLASS NearBy EXTENDS E'."
+    },
+    {
+      "id": "schema_properties_created",
+      "description": "Define 'Distance' and 'City' properties for the 'NearBy' class",
+      "points": 15,
+      "visual_evidence": "Look for OrientDB Studio showing properties 'Distance' (Type: DOUBLE) and 'City' (Type: STRING) under the 'NearBy' class, or terminal/script commands like 'CREATE PROPERTY NearBy.Distance DOUBLE'."
+    },
+    {
+      "id": "haversine_calculation_logic",
+      "description": "Implement the Haversine formula to calculate distance",
+      "points": 20,
+      "visual_evidence": "Look for a script (e.g., Python, JavaScript, or OrientDB function) in a text editor or terminal that implements the Haversine math formula using R=6371 (or 6371.0) to calculate the distance between coordinates."
+    },
+    {
+      "id": "edge_creation_logic",
+      "description": "Create edges between Hotels and Restaurants in the same city",
+      "points": 20,
+      "visual_evidence": "Look for a script or database query that matches Hotel and Restaurant records by city and executes an 'CREATE EDGE NearBy FROM ... TO ...' command (or equivalent API call), setting the Distance and City properties."
+    },
+    {
+      "id": "report_content_and_format",
+      "description": "Export the formatted proximity report to /home/ga/proximity_report.txt",
+      "points": 30,
+      "visual_evidence": "Look for a text editor or terminal output showing the contents of '/home/ga/proximity_report.txt'. The file must contain lines formatted exactly as '{City} | {Hotel} -> {Restaurant} | {Distance} km' and end with a line 'Total pairs: {N}'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Agent actually interacted with the demodb database to fetch records",
+      "visual_evidence": "Look for evidence of the agent connecting to OrientDB (via Studio, console, or a script using a database driver) to query Hotels and Restaurants, rather than hallucinating or hardcoding names."
+    },
+    {
+      "id": "programmatic_calculation",
+      "description": "Distances were calculated programmatically",
+      "visual_evidence": "Look for a script or query performing the math. The agent should not just print a pre-calculated or fabricated list of distances."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The report was saved to the correct file path",
+      "visual_evidence": "Look for commands like 'with open(\"/home/ga/proximity_report.txt\", \"w\")' in a script, or terminal commands redirecting output to that specific file path, rather than just printing to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an edge class 'NearBy' with properties 'Distance' (DOUBLE) and 'City' (STRING) in OrientDB. The Haversine formula must use R=6371 km. The final report must be saved to /home/ga/proximity_report.txt. There are approximately 11-14 valid Hotel-Restaurant pairs in the synthetic database across shared cities (e.g., Rome, Berlin, Paris, London, New York). The report must exactly match the format '{City} | {Hotel} -> {Restaurant} | {Distance} km' with a final line 'Total pairs: {N}'."
+}

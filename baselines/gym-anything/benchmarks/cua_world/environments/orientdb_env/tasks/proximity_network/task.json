@@ -1,0 +1,31 @@
+{
+  "id": "proximity_network@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Create a geographic proximity network in the 'demodb' database. Define a new edge class 'NearBy' (extending E) with properties 'Distance' (DOUBLE) and 'City' (STRING). For all pairs of Hotels and Restaurants located in the same city, create a 'NearBy' edge from the Hotel to the Restaurant. Calculate the distance between them in kilometers using the Haversine formula (R=6371 km) and store the result in the 'Distance' property and the city name in the 'City' property. Export a report to /home/ga/proximity_report.txt with each edge formatted as '{City} | {Hotel} -> {Restaurant} | {Distance} km' and a final line 'Total pairs: {N}'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/proximity_network/setup_task.sh",
+    "post_task": "/workspace/tasks/proximity_network/export_result.sh"
+  },
+  "metadata": {
+    "expected_edge_class": "NearBy",
+    "expected_properties": [
+      "Distance",
+      "City"
+    ],
+    "report_path": "/home/ga/proximity_report.txt",
+    "earth_radius_km": 6371
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_proximity_network"
+    }
+  }
+}

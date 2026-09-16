@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_index_contours_elevation@1",
+  "task_completion": [
+    {
+      "id": "load_input_raster",
+      "description": "Load the specified elevation raster into the GIS software.",
+      "points": 10,
+      "visual_evidence": "The layer 'srtm_41_19' is visible in the layers panel or the map canvas displays the digital elevation model."
+    },
+    {
+      "id": "open_contour_tool",
+      "description": "Open the contour extraction tool.",
+      "points": 10,
+      "visual_evidence": "A dialog box for contour extraction (e.g., 'Contour' or 'GDAL Contour') is open on the screen."
+    },
+    {
+      "id": "configure_contour_parameters",
+      "description": "Set the contour interval to 20 meters and the elevation attribute to 'ELEV'.",
+      "points": 20,
+      "visual_evidence": "In the contour dialog, the interval field is set to '20' and the attribute name field is set to 'ELEV'."
+    },
+    {
+      "id": "filter_index_contours",
+      "description": "Extract or filter only the index contours (elevations that are multiples of 100 meters).",
+      "points": 30,
+      "visual_evidence": "An expression builder, filter dialog, or attribute table selection showing a modulo operation (e.g., \"ELEV\" % 100 = 0) or a query selecting multiples of 100."
+    },
+    {
+      "id": "export_geojson_result",
+      "description": "Export the filtered index contours as a GeoJSON file to the specified path.",
+      "points": 30,
+      "visual_evidence": "A 'Save Vector Layer as...' or export dialog showing the format selected as 'GeoJSON' and the file path ending in '/home/ga/GIS_Data/exports/index_contours.geojson'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_check",
+      "description": "Verify the agent used the GIS software GUI rather than just executing terminal commands.",
+      "visual_evidence": "Screenshots should show the GIS application interface (like QGIS) with active dialog boxes, not just a terminal window running gdal_contour or python scripts."
+    },
+    {
+      "id": "genuine_data_display",
+      "description": "Verify the map canvas actually displays the raster or generated contour lines.",
+      "visual_evidence": "The main map area should show visual representations of the terrain or vector lines, indicating real data processing rather than blind file manipulation."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "Verify the agent did not simply create an empty or hardcoded file to bypass the task.",
+      "visual_evidence": "The export process must stem from the GIS software's export dialog containing the processed contour layer, not a text editor or terminal 'touch' command."
+    }
+  ],
+  "privileged_info_for_vlm": "Input raster: /home/ga/GIS_Data/raster/srtm_41_19.tif. Expected output: /home/ga/GIS_Data/exports/index_contours.geojson. Contour interval: 20m. Index interval: 100m. The actual elevation range of the data is 4m to 1699m. A correct extraction will yield 18 distinct index contour elevations (0, 100, 200, ..., 1700m)."
+}

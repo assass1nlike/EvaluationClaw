@@ -1,0 +1,53 @@
+{
+  "task_id": "scholarship_format_rescue@1",
+  "task_completion": [
+    {
+      "id": "setup_structure",
+      "description": "The agent sets up the required 9 columns for the financial aid data.",
+      "points": 15,
+      "visual_evidence": "Spreadsheet headers or script definitions showing exactly these columns: Transaction_ID, Date, Category, Description, Amount, Monthly_Amount, Semester_Total, Needs_Based, Source."
+    },
+    {
+      "id": "format_dates_and_numbers",
+      "description": "The agent formats dates to YYYY-MM-DD and cleans the Amount column to proper numeric values.",
+      "points": 25,
+      "visual_evidence": "Dates are visible in the YYYY-MM-DD format. The Amount column contains clean numeric values without text characters or parentheses for negative values."
+    },
+    {
+      "id": "standardize_categories",
+      "description": "The agent standardizes the Category column to the allowed taxonomy.",
+      "points": 15,
+      "visual_evidence": "The Category column contains standardized values such as Tuition, Housing, Educational Materials, Transportation, Healthcare, or Miscellaneous."
+    },
+    {
+      "id": "calculate_derived_fields",
+      "description": "The agent calculates Monthly_Amount, Semester_Total, and Needs_Based.",
+      "points": 25,
+      "visual_evidence": "Spreadsheet formulas or script logic calculating Monthly_Amount (Amount/12), Semester_Total (Monthly_Amount*4), and Needs_Based (Yes if Source is Grant or Scholarship, No otherwise)."
+    },
+    {
+      "id": "export_compliant_csv",
+      "description": "The agent exports the final dataset to the required location.",
+      "points": 20,
+      "visual_evidence": "A save dialog, file manager, or terminal command showing the file being saved as 'formatted_financial_aid.csv' in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_transformation",
+      "description": "The agent used spreadsheet tools (like LibreOffice Calc) or a script (like Python/Pandas) to transform the data.",
+      "visual_evidence": "Screenshots show the agent actively using spreadsheet functions, formatting tools, or writing a script, rather than just echoing a pre-computed string."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "The agent used formulas, find-and-replace, or scripts to calculate fields and format data.",
+      "visual_evidence": "Evidence of bulk operations, formulas, or code execution rather than manually typing the answers row by row."
+    },
+    {
+      "id": "correct_output_format",
+      "description": "The agent actually saved the file as a CSV.",
+      "visual_evidence": "The save dialog or export settings explicitly show the CSV format being selected, not just an ODS or XLSX file renamed with a .csv extension."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires transforming 15 rows of messy financial aid data into a 9-column CSV: Transaction_ID, Date, Category, Description, Amount, Monthly_Amount, Semester_Total, Needs_Based, Source. Dates must be YYYY-MM-DD. Categories must be one of: Tuition, Housing, Educational Materials, Transportation, Healthcare, Miscellaneous. Calculated fields: Monthly_Amount = Amount/12, Semester_Total = Monthly_Amount*4, Needs_Based = Yes if Source is Grant or Scholarship (otherwise No). The final file must be saved to /home/ga/Documents/formatted_financial_aid.csv."
+}

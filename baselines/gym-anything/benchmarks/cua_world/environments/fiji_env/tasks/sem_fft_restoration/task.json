@@ -1,0 +1,36 @@
+{
+  "id": "sem_fft_restoration@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "A scanning electron microscope (SEM) image of a eutectic alloy (~/Fiji_Data/raw/sem_noise/alloy_noisy.tif) has been corrupted by diagonal periodic noise. Restore the image using Frequency Domain (FFT) filtering in Fiji by removing the periodic noise spikes in the frequency spectrum while preserving the central DC component and structural frequencies. The goal is to remove the stripes while preserving the sharp edges of the alloy microstructure without using a simple Gaussian blur. Save the restored result to ~/Fiji_Data/results/sem_restoration/alloy_restored.tif.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sem_fft_restoration/setup_task.sh",
+    "post_task": "/workspace/tasks/sem_fft_restoration/export_result.sh"
+  },
+  "metadata": {
+    "input_path": "/home/ga/Fiji_Data/raw/sem_noise/alloy_noisy.tif",
+    "output_path": "/home/ga/Fiji_Data/results/sem_restoration/alloy_restored.tif",
+    "ground_truth_path": "/var/lib/fiji/ground_truth/alloy_clean.tif",
+    "min_ssim_improvement": 0.05,
+    "min_detail_preservation": 0.02
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sem_fft_restoration"
+    }
+  },
+  "tags": [
+    "image-processing",
+    "fft",
+    "restoration",
+    "microscopy",
+    "sem"
+  ]
+}

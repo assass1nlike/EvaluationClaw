@@ -1,0 +1,36 @@
+{
+  "id": "configure_advanced_atm_stop_strategy@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Create an Advanced Trade Management (ATM) strategy template in NinjaTrader 8 named 'Scalp_Protector'. The strategy must be configured with an initial stop loss of 20 ticks and an initial profit target of 40 ticks. Include an auto-breakeven strategy triggered at 10 ticks profit with a 1-tick plus offset. Also, configure an auto-trail strategy with a step 1 profit trigger of 15 ticks, a 5-tick stop loss, and a frequency of 1 tick. Save the final configuration as the 'Scalp_Protector' template.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_advanced_atm_stop_strategy\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_advanced_atm_stop_strategy\\export_result.ps1"
+  },
+  "metadata": {
+    "template_name": "Scalp_Protector",
+    "stop_loss": 20,
+    "profit_target": 40,
+    "auto_breakeven": {
+      "trigger": 10,
+      "plus": 1
+    },
+    "auto_trail": {
+      "trigger": 15,
+      "stop": 5,
+      "freq": 1
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_advanced_atm_stop_strategy"
+    }
+  }
+}

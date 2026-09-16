@@ -1,0 +1,53 @@
+{
+  "task_id": "execute_csv_mail_merge@1",
+  "task_completion": [
+    {
+      "id": "compose_template_variables",
+      "description": "Verify the Thunderbird compose window contains the correct Mail Merge variables.",
+      "points": 20,
+      "visual_evidence": "Look for a Thunderbird compose window where the Subject contains '{{Company}}' and the email body contains '{{FirstName}}' and '{{Company}}'."
+    },
+    {
+      "id": "compose_template_text",
+      "description": "Verify the Thunderbird compose window contains the required static text.",
+      "points": 20,
+      "visual_evidence": "Look for the Subject starting with 'Account Update: ' and the body containing 'Please be advised that our corporate office is moving. Please update the billing address for ', as well as the sign-off 'Thank you, Operations Team'."
+    },
+    {
+      "id": "mail_merge_configuration",
+      "description": "Verify the Mail Merge dialog is configured correctly.",
+      "points": 20,
+      "visual_evidence": "Look for a Mail Merge dialog box showing 'vendors.csv' selected as the data source and the delivery mode set to 'Send Later' or 'Outbox'."
+    },
+    {
+      "id": "outbox_message_count",
+      "description": "Verify the Outbox contains exactly 15 messages.",
+      "points": 20,
+      "visual_evidence": "Look at the Thunderbird main window. The 'Outbox' or 'Unsent Messages' folder (usually under Local Folders) should show a message count of exactly 15."
+    },
+    {
+      "id": "outbox_personalization",
+      "description": "Verify the queued messages are correctly personalized.",
+      "points": 20,
+      "visual_evidence": "Look at the list of messages in the Outbox. The subjects should be personalized (e.g., 'Account Update: Acme Corp', 'Account Update: Globex') and the message preview should show personalized greetings (e.g., 'Dear Alice,')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the Thunderbird GUI to compose and merge the emails.",
+      "visual_evidence": "Check that the agent clicks through the Thunderbird interface rather than using terminal commands to manipulate mailbox files."
+    },
+    {
+      "id": "template_usage",
+      "description": "The agent must use a template with variables for the Mail Merge.",
+      "visual_evidence": "Ensure there is a screenshot showing the compose window with '{{...}}' variables, proving the agent didn't manually type 15 separate emails."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "The agent should not use scripts to generate the Outbox file.",
+      "visual_evidence": "Look for the absence of terminal windows running Python or bash scripts that write directly to the Thunderbird profile directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The vendors.csv contains exactly 15 records. The first 5 companies are 'Acme Corp', 'Globex', 'Soylent', 'Initech', and 'Umbrella Corp', with corresponding first names 'Alice', 'Bob', 'Carol', 'David', and 'Eve'. The final Outbox must contain 15 messages with subjects matching 'Account Update: <Company>' and bodies starting with 'Dear <FirstName>,'."
+}

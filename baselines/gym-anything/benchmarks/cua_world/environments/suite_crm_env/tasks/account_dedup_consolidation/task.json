@@ -1,0 +1,31 @@
+{
+  "id": "account_dedup_consolidation@1",
+  "version": "1.0",
+  "env_id": "suite_crm_env@0.1",
+  "description": "As CRM Administrator for an aerospace manufacturing company, consolidate duplicate account records in SuiteCRM resulting from a botched data migration. Merge records representing the same organization into canonical accounts, ensuring all related contacts, opportunities, and cases are preserved and duplicate entries are removed. Do not merge accounts that represent distinct companies despite similar names or naming variations.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/account_dedup_consolidation/setup_task.sh",
+    "post_task": "/workspace/tasks/account_dedup_consolidation/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "CRM Administrator",
+    "industry": "Aerospace Manufacturing",
+    "num_duplicate_accounts": 4,
+    "num_contacts_to_reassign": 3,
+    "num_opps_to_reassign": 2,
+    "num_cases_to_reassign": 1,
+    "contamination_account": "Johnson Controls International"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_account_dedup_consolidation"
+    }
+  }
+}

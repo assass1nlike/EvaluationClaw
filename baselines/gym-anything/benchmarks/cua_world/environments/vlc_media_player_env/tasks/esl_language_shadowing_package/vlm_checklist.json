@@ -1,0 +1,53 @@
+{
+  "task_id": "esl_language_shadowing_package@1",
+  "task_completion": [
+    {
+      "id": "audio_files_created",
+      "description": "Verify that the 5 extracted audio files (phrase_01.mp3 through phrase_05.mp3) are saved in the correct output directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window or terminal 'ls' output showing phrase_01.mp3, phrase_02.mp3, phrase_03.mp3, phrase_04.mp3, and phrase_05.mp3 inside /home/ga/Music/shadowing_package/."
+    },
+    {
+      "id": "audio_speed_and_pitch_processed",
+      "description": "Verify that the audio phrases were slowed down to 0.8x speed while preserving pitch, matching the expected durations.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing audio processing commands (e.g., ffmpeg with 'atempo=0.8' filter), an audio editor (like Audacity) showing the 'Change Tempo' effect applied, OR file properties/media player showing the final file durations as approximately 5.0s, 6.25s, 7.5s, 10.0s, and 3.75s."
+    },
+    {
+      "id": "playlist_file_created",
+      "description": "Verify that the M3U playlist file named shadowing_practice.m3u was created in the output directory.",
+      "points": 10,
+      "visual_evidence": "A file manager window or terminal output showing shadowing_practice.m3u exists in /home/ga/Music/shadowing_package/."
+    },
+    {
+      "id": "playlist_phrases_ordered",
+      "description": "Verify that the playlist contents include the 5 extracted phrases in the correct sequential order.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal 'cat' output showing the contents of shadowing_practice.m3u, listing phrase_01.mp3 through phrase_05.mp3 in ascending order (using relative or absolute paths)."
+    },
+    {
+      "id": "playlist_silence_interleaved",
+      "description": "Verify that the 3-second silence track is interleaved after each of the 5 phrases in the playlist.",
+      "points": 20,
+      "visual_evidence": "The contents of the shadowing_practice.m3u file showing the path to silence_3s.mp3 (either relative or absolute, e.g., /home/ga/Videos/esl_materials/silence_3s.mp3) immediately following each of the 5 phrase entries."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_audio_processing",
+      "description": "Ensure the agent actually processed the audio using appropriate software rather than renaming or copying dummy files.",
+      "visual_evidence": "Screenshots should show terminal commands invoking an audio tool (like ffmpeg) or an open GUI audio editor (like Audacity) being used to slice and stretch the audio."
+    },
+    {
+      "id": "genuine_playlist_authoring",
+      "description": "Ensure the agent manually or programmatically authored the playlist contents.",
+      "visual_evidence": "Screenshots showing a text editor (nano, vim, gedit) or terminal commands (echo, cat, shell scripts) actively writing the file paths into the .m3u file."
+    },
+    {
+      "id": "valid_file_sizes",
+      "description": "Ensure the generated MP3 files are actual audio files and not empty dummy files.",
+      "visual_evidence": "File manager or terminal 'ls -l' output should show file sizes greater than zero bytes for the generated .mp3 files."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output directory is /home/ga/Music/shadowing_package/. The 5 extracted phrases (phrase_01.mp3 to phrase_05.mp3) must have durations of approximately 5.0s, 6.25s, 7.5s, 10.0s, and 3.75s respectively (tolerance of 0.4s). The playlist must interleave these phrases with the silence track located at /home/ga/Videos/esl_materials/silence_3s.mp3."
+}

@@ -1,0 +1,97 @@
+{
+  "dataset_id": "5e0d67ff",
+  "name": "Mathematical Textbook Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 42,
+  "description": "A visual question answering dataset built from textbook figures, where each sample pairs an image with a multiple-choice question and a short answer. It evaluates reasoning over academic/STEM diagrams, charts, and other instructional visuals.",
+  "card_text": "Mathematical Textbook VQA is a small multimodal dataset containing 42 samples of textbook-style visual question answering. Each item links an image file (e.g., diagrams, charts, or food webs) with a natural-language question that embeds multiple-choice options, a generic answering prompt, and a short textual answer. Questions require interpreting visual information such as graphs, histograms, and ecological diagrams, then selecting the correct option. The dataset mixes mathematical and scientific topics, so models must handle domain-specific notation and diagrammatic reasoning. Answers are typically single words or True/False, and no separate options field is provided; choices appear inside the question text.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "educational STEM textbook QA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic instruction that tells the model to answer the question based on the provided image and to select one option from the given choices. It sets the task format for each sample.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The core question about the image, including the problem statement and candidate choices embedded as a list at the end. It asks the model to reason over visual content and select the correct answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold answer, typically a single word, a short phrase, or True/False, corresponding to the selected option for the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "Reference to a textbook figure such as a chart, histogram, technical diagram, or food web. The visual content is the primary source of information needed to answer the question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference (input.image_file), a generic answering prompt (input.prompt), a natural-language question (input.question) that embeds multiple-choice options, and a short gold answer (output.text). The question is grounded in the referenced image, and the answer selects one of the choices listed in the question text. There is no separate passage, dialog, or bounding-box annotation."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/mathematical_textbook_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "mathematical textbook vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Mathematics"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Mathematics"
+    ]
+  }
+}

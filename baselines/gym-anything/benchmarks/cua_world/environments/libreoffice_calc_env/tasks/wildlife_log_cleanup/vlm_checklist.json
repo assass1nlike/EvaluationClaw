@@ -1,0 +1,53 @@
+{
+  "task_id": "wildlife_log_cleanup@1",
+  "task_completion": [
+    {
+      "id": "spreadsheet_opened",
+      "description": "Open the spreadsheet containing the raw wildlife observation data",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open and displays the raw wildlife observation data with mixed date formats and unstandardized species names."
+    },
+    {
+      "id": "dates_standardized",
+      "description": "Standardize the date formats across all observations",
+      "points": 20,
+      "visual_evidence": "The date column shows a single, uniform date format for all 20 rows, replacing the previously mixed formats (M/DD/YY, MM-DD-YYYY, Month DD YYYY)."
+    },
+    {
+      "id": "species_standardized_via_lookup",
+      "description": "Standardize species names using lookup formulas",
+      "points": 25,
+      "visual_evidence": "A column displays standardized species names. The formula bar should ideally show a lookup formula (e.g., VLOOKUP, XLOOKUP, INDEX/MATCH) referencing the species reference table."
+    },
+    {
+      "id": "plausibility_flagged",
+      "description": "Flag entries with implausible observation counts",
+      "points": 25,
+      "visual_evidence": "A new column or indicator flags implausible counts. Specifically, the rows for 'squirrel' with a count of 12 and 'deer' with a count of 50 must be visibly flagged or marked as exceeding the maximum expected count."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Save the standardized dataset to the specified path and filename",
+      "points": 20,
+      "visual_evidence": "The spreadsheet application's title bar shows 'standardized_wildlife_data.xlsx', or a file manager/terminal window confirms the file exists in the /home/ga/Documents/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the spreadsheet GUI to perform the task",
+      "visual_evidence": "Screenshots show the agent clicking through menus, selecting cells, and typing in the spreadsheet application rather than exclusively using terminal commands."
+    },
+    {
+      "id": "formula_usage",
+      "description": "The agent used actual formulas for lookups and flagging",
+      "visual_evidence": "The formula bar shows spreadsheet formulas being used for standardizing species or flagging counts, proving the agent didn't just manually type the expected answers."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent did not use a script to bypass the manual spreadsheet work",
+      "visual_evidence": "There is no evidence of the agent writing or running a Python/Pandas script in the terminal to automatically generate the final .xlsx file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 20 observations. There are 3 initial date formats that need to be standardized. The reference table contains 10 species, each with a 'Max_Expected_Count'. Exactly 2 entries should be flagged for implausible counts: a squirrel observation with a count of 12 (max is 10) and a deer observation with a count of 50 (max is 5). The final file must be saved as 'standardized_wildlife_data.xlsx' in /home/ga/Documents/."
+}

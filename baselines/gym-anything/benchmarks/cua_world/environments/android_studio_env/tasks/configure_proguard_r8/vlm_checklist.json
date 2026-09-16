@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_proguard_r8@1",
+  "task_completion": [
+    {
+      "id": "enable_minify",
+      "description": "Enable minification for the release build type",
+      "points": 20,
+      "visual_evidence": "Screenshot of the app-level build.gradle.kts file showing 'isMinifyEnabled = true' inside the 'release' block of the 'buildTypes' configuration."
+    },
+    {
+      "id": "enable_shrink_resources",
+      "description": "Enable resource shrinking for the release build type",
+      "points": 20,
+      "visual_evidence": "Screenshot of the app-level build.gradle.kts file showing 'isShrinkResources = true' inside the 'release' block of the 'buildTypes' configuration."
+    },
+    {
+      "id": "proguard_rule_model_classes",
+      "description": "Add ProGuard rule to preserve all classes in the data.model package",
+      "points": 15,
+      "visual_evidence": "Screenshot of proguard-rules.pro showing a rule like '-keep class com.example.weathernow.data.model.** { *; }'."
+    },
+    {
+      "id": "proguard_rule_serialized_name",
+      "description": "Add ProGuard rule to preserve fields annotated with @SerializedName",
+      "points": 15,
+      "visual_evidence": "Screenshot of proguard-rules.pro showing a rule to keep class members annotated with SerializedName, such as '-keepclassmembers class * { @com.google.gson.annotations.SerializedName <fields>; }'."
+    },
+    {
+      "id": "proguard_rule_weather_api_service",
+      "description": "Add ProGuard rule to preserve the WeatherApiService interface",
+      "points": 15,
+      "visual_evidence": "Screenshot of proguard-rules.pro showing a rule like '-keep class com.example.weathernow.data.api.WeatherApiService { *; }' or '-keep interface com.example.weathernow.data.api.WeatherApiService { *; }'."
+    },
+    {
+      "id": "successful_release_build",
+      "description": "Verify the project builds successfully using assembleRelease",
+      "points": 15,
+      "visual_evidence": "Terminal screenshot showing the execution of './gradlew assembleRelease' and ending with a 'BUILD SUCCESSFUL' message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "The agent modified the actual build.gradle.kts and proguard-rules.pro files in an IDE or text editor",
+      "visual_evidence": "The files are seen open in Android Studio, VS Code, or a terminal-based editor (like nano/vim), not just mocked in a standalone text file."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "The build command was actually executed in a terminal",
+      "visual_evidence": "The terminal shows genuine Gradle execution output (e.g., task execution list, build time, daemon status) rather than just a manually typed 'BUILD SUCCESSFUL' string."
+    },
+    {
+      "id": "correct_project_directory",
+      "description": "The agent worked in the correct WeatherNow project directory",
+      "visual_evidence": "The terminal prompt or IDE file explorer shows the path '/home/ga/AndroidStudioProjects/WeatherNow'."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/AndroidStudioProjects/WeatherNow. The project uses Kotlin DSL (build.gradle.kts). To enable minification and resource shrinking in AGP 8.1.1 with Kotlin DSL, the properties must be 'isMinifyEnabled = true' and 'isShrinkResources = true'. The ProGuard rules must target the package 'com.example.weathernow.data.model', the annotation 'SerializedName' (typically 'com.google.gson.annotations.SerializedName'), and the interface 'com.example.weathernow.data.api.WeatherApiService'."
+}

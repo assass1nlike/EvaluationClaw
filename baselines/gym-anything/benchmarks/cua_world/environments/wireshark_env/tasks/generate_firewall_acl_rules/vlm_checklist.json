@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_firewall_acl_rules@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "The agent opened the target PCAP file to analyze the network traffic.",
+      "points": 10,
+      "visual_evidence": "Wireshark or a similar network analysis tool is open and displaying the contents of 'smtp.pcap'."
+    },
+    {
+      "id": "identify_client_ip",
+      "description": "The agent identified the correct Client IP address that sent the HELO/EHLO command.",
+      "points": 20,
+      "visual_evidence": "The agent has selected, filtered, or highlighted the SMTP packet containing the EHLO/HELO command, showing the source IP address 10.10.1.4."
+    },
+    {
+      "id": "generate_cisco_rule",
+      "description": "The agent generated a Cisco IOS standard access list rule to block the identified IP.",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal, or Wireshark's Firewall ACL Rules window showing a Cisco IOS rule targeting the IP (e.g., 'access-list <number> deny host 10.10.1.4')."
+    },
+    {
+      "id": "save_cisco_rule",
+      "description": "The agent saved the Cisco IOS rule to the specified file path.",
+      "points": 15,
+      "visual_evidence": "A text editor saving the file as 'cisco_block_rule.txt' in the Documents folder, or a terminal command writing the rule to '~/Documents/cisco_block_rule.txt'."
+    },
+    {
+      "id": "generate_iptables_rule",
+      "description": "The agent generated a Netfilter (iptables) rule to block the identified IP.",
+      "points": 20,
+      "visual_evidence": "A text editor, terminal, or Wireshark's Firewall ACL Rules window showing an iptables rule targeting the IP (e.g., 'iptables -A INPUT -s 10.10.1.4/32 -j DROP')."
+    },
+    {
+      "id": "save_iptables_rule",
+      "description": "The agent saved the iptables rule to the specified file path.",
+      "points": 15,
+      "visual_evidence": "A text editor saving the file as 'iptables_block_rule.txt' in the Documents folder, or a terminal command writing the rule to '~/Documents/iptables_block_rule.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pcap_analysis",
+      "description": "The agent actually analyzed the PCAP file to find the IP, rather than guessing or hardcoding it from external knowledge.",
+      "visual_evidence": "Screenshots should show Wireshark or a terminal command (like tshark) actively parsing 'smtp.pcap' to reveal the IP 10.10.1.4 before the rules are generated."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent saved the files to the exact requested paths without taking shortcuts.",
+      "visual_evidence": "The file paths '~/Documents/cisco_block_rule.txt' and '~/Documents/iptables_block_rule.txt' should be clearly visible in save dialogs, text editor titles, or terminal commands."
+    },
+    {
+      "id": "rule_accuracy",
+      "description": "The generated rules specifically target the identified client IP and not a generic placeholder.",
+      "visual_evidence": "The saved text files or generated rules must explicitly contain the IP address '10.10.1.4' rather than placeholders like '<IP>'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target PCAP file is 'smtp.pcap'. The correct Client IP address (sender of the EHLO/HELO command) is 10.10.1.4. The expected Cisco IOS rule format is 'access-list <NUMBER> deny host 10.10.1.4'. The expected Netfilter (iptables) rule format is 'iptables -A INPUT -s 10.10.1.4/32 -j DROP'. The output files must be named 'cisco_block_rule.txt' and 'iptables_block_rule.txt' and saved in the ~/Documents/ directory."
+}

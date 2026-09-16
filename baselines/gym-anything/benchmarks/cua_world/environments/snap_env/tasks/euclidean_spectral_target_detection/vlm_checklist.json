@@ -1,0 +1,53 @@
+{
+  "task_id": "euclidean_spectral_target_detection@1",
+  "task_completion": [
+    {
+      "id": "open_input_image",
+      "description": "Open the input Landsat multispectral image in the GIS software (SNAP).",
+      "points": 10,
+      "visual_evidence": "The Product Explorer or main window shows 'landsat_multispectral' loaded from '/home/ga/snap_data/landsat_multispectral.tif'."
+    },
+    {
+      "id": "create_spectral_distance_band",
+      "description": "Create a new band named 'spectral_distance' calculating the 4D Euclidean distance to the target signature.",
+      "points": 30,
+      "visual_evidence": "A Band Maths dialog showing the creation of a band named 'spectral_distance' with an expression calculating Euclidean distance using the values 180, 130, 100, and 85 (e.g., sqrt((band_1-180)^2 + ...)), or the new band visible in the product tree."
+    },
+    {
+      "id": "create_target_outcrop_band",
+      "description": "Create a boolean mask band named 'target_outcrop' where the spectral distance is less than 25.",
+      "points": 30,
+      "visual_evidence": "A Band Maths dialog showing the creation of a band named 'target_outcrop' with an expression like 'spectral_distance < 25', or the new band visible in the product tree."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the resulting product with all bands as a BEAM-DIMAP file.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' dialog or file manager showing the file 'target_detection.dim' being saved to or existing in '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the resulting product as a GeoTIFF file.",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog for GeoTIFF or a file manager showing the file 'target_detection.tif' being saved to or existing in '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the application GUI to perform the band math and exports.",
+      "visual_evidence": "Screenshots show interaction with SNAP (Sentinel Application Platform) or a similar GIS GUI, rather than using terminal commands (like 'gpt') to bypass the interface."
+    },
+    {
+      "id": "genuine_computation",
+      "description": "The agent actually entered the mathematical expressions into the software's Band Maths tool.",
+      "visual_evidence": "The Band Maths expression editor is visible with the correct formulas, rather than the agent just typing the formulas into a text editor or terminal."
+    },
+    {
+      "id": "no_file_mocking",
+      "description": "The agent did not mock the output files using terminal commands.",
+      "visual_evidence": "The output files (.dim, .data folder, and .tif) are generated via the GIS software's save/export progress bars or dialogs, not by using 'touch' or 'cp' in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/snap_data/landsat_multispectral.tif. Target signature values for the Euclidean distance formula: band_1=180, band_2=130, band_3=100, band_4=85. Distance threshold for the boolean mask: < 25. Expected output paths: /home/ga/snap_exports/target_detection.dim (BEAM-DIMAP format) and /home/ga/snap_exports/target_detection.tif (GeoTIFF format)."
+}

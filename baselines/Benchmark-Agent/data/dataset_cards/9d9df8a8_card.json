@@ -1,0 +1,91 @@
+{
+  "dataset_id": "9d9df8a8",
+  "name": "Text Manipulation Classification",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates whether a model can detect text manipulation in images, given a text prompt asking to judge if the text shown in the image is tampered or untampered. Each sample pairs one image with a short instruction and a binary label as the output.",
+  "card_text": "This is a binary image-text classification dataset of 200 samples about detecting manipulated (tampered) versus authentic (untampered) text in images. Each sample contains a single image referenced by file name, a short instruction-style prompt asking the model to 'recognize text manipulation in the image' and return either 'tampered' or 'untampered', and a one-word textual output that serves as the ground-truth label. The images carry rendered text, some of which has been digitally altered, so the model must inspect the visual text content and decide whether it has been edited. The data is small, fully labeled, and packaged in a flat JSON structure with nested input/output objects. It tests fine-grained visual inspection and content-recognition ability rather than open-ended language generation, and the task is framed as an ethics/forensics-flavored recognition problem.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "image forensics / text manipulation detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The image is the primary content the model must inspect. It contains rendered text that may or may not have been digitally manipulated, and it is the evidence on which the tampered/untampered judgment is based.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "A single image file reference (e.g. 'tmc_0429.jpg') that holds the text whose authenticity is being judged. It is the only visual input and is paired with the instruction and the binary output label.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short fixed instruction telling the model to recognize text manipulation in the provided image and return either 'tampered' or 'untampered'. It defines the classification task and the exact expected label vocabulary.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth label for the sample, a single word that is either 'tampered' or 'untampered', indicating whether the text in the associated image has been manipulated.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample is a flat JSON object with an 'input' block and an 'output' block. The 'input' block contains an 'image_file' path pointing to a single image (the context to be inspected) and a 'prompt' string that acts as the instruction/question, asking the model to classify text manipulation and return 'tampered' or 'untampered'. The 'output' block contains a single 'text' field holding the binary label answer. The question constrains the answer vocabulary, and the image supplies the visual evidence the label depends on."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/TextManipulationClassification/text_manipulation_classification.json",
+    "existing_tags": {
+      "task": "Text Manipulation Classification",
+      "type": "image comprehension",
+      "skill": "Object Recognition",
+      "domain": "Ethics",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Ethics"
+  }
+}

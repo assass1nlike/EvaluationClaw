@@ -1,0 +1,53 @@
+{
+  "task_id": "repair_orphaned_patient_records@1",
+  "task_completion": [
+    {
+      "id": "identify_orphans",
+      "description": "Identify the orphaned patient records in the database.",
+      "points": 20,
+      "visual_evidence": "Terminal or MySQL client showing a SQL query that finds records in 'fchpat' missing from 'IndexNomPrenom', or output showing the 3 orphaned records (DUPONT, BERNARD, MOREAU)."
+    },
+    {
+      "id": "read_helper_file",
+      "description": "Read the helper CSV file to map GUIDs to first names.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like 'cat /home/ga/orphan_firstnames.csv' or a Python/Bash script opening and reading this file."
+    },
+    {
+      "id": "insert_repaired_records",
+      "description": "Insert the missing patient entries into the IndexNomPrenom table.",
+      "points": 30,
+      "visual_evidence": "Terminal or MySQL client showing INSERT statements into 'IndexNomPrenom' (with UPPERCASE last names and type 'Dossier'), or the successful execution of a script performing these database insertions."
+    },
+    {
+      "id": "report_records_written",
+      "description": "Write the reconciliation report with a header and the repaired records.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat /home/ga/orphan_repair_report.txt') showing the file contains a header line and exactly 3 lines of repaired patient data (GUID, Last Name, First Name)."
+    },
+    {
+      "id": "report_summary_written",
+      "description": "Include a summary line in the reconciliation report.",
+      "points": 20,
+      "visual_evidence": "The same report file showing a final summary line that explicitly states the total count of repaired records is 3."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent must interact with the MySQL database to find and insert records.",
+      "visual_evidence": "Look for actual 'mysql' CLI commands, database GUI usage, or a script containing database connection code (e.g., using mysql.connector or pymysql) rather than just guessing the names."
+    },
+    {
+      "id": "genuine_report_generation",
+      "description": "The agent should generate the report based on data, not by blindly hardcoding the final text.",
+      "visual_evidence": "The agent should execute queries or a script that processes the data before writing the report, rather than just opening an editor and typing the final expected output from scratch without querying."
+    },
+    {
+      "id": "correct_report_path",
+      "description": "The report must be saved to the exact requested file path.",
+      "visual_evidence": "The terminal or editor must show the file being saved specifically to '/home/ga/orphan_repair_report.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is named 'DrTuxTest'. There are exactly 3 orphaned records that need to be repaired. The orphaned patients' last names are DUPONT, BERNARD, and MOREAU. The helper file is located at '/home/ga/orphan_firstnames.csv'. The final report must be saved to '/home/ga/orphan_repair_report.txt' and must indicate exactly 3 repaired records in its summary."
+}

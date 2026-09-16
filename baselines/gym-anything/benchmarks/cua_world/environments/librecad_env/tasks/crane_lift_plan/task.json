@@ -1,0 +1,41 @@
+{
+  "id": "crane_lift_plan@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a critical lift plan site view for a mobile crane operation in LibreCAD using meters as the unit. The drawing must include the following layers and elements:\n- 'CRANE_SETUP' (Red): A 6.4m x 7.4m outrigger base rectangle centered at (0,0) and a 3.6m radius tail swing circle centered at (0,0).\n- 'BUILDING' (White/Black): A vertical wall line from (6.0, -10.0) to (6.0, 15.0).\n- 'LOAD_PATH' (Green): 0.5m radius circles for the 'Pick Point' at (-10.0, 5.0) and 'Set Point' at (12.0, 8.0), with a line connecting their centers to show the swing path.\n- 'ANNOTATIONS' (Yellow): Text labels 'CRANE CENTER', 'PICK', 'SET', and 'WALL' placed near their respective objects.\nSave the completed drawing to /home/ga/Documents/LibreCAD/crane_lift_plan.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/crane_lift_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/crane_lift_plan/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "crane_lift_plan.dxf",
+    "required_layers": [
+      "CRANE_SETUP",
+      "BUILDING",
+      "LOAD_PATH",
+      "ANNOTATIONS"
+    ],
+    "crane_radius": 3.6,
+    "wall_x": 6.0,
+    "pick_point": [
+      -10.0,
+      5.0
+    ],
+    "set_point": [
+      12.0,
+      8.0
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_crane_lift_plan"
+    }
+  }
+}

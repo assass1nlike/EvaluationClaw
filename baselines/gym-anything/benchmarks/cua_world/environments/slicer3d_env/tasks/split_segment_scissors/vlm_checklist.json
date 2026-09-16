@@ -1,0 +1,59 @@
+{
+  "task_id": "split_segment_scissors@1",
+  "task_completion": [
+    {
+      "id": "multiple_segments",
+      "description": "Verify that the original segmentation has been split into multiple distinct segments.",
+      "points": 25,
+      "visual_evidence": "In the Segment Editor or Data module, the segment list shows more than one segment instead of a single 'Liver_Complete' segment."
+    },
+    {
+      "id": "proper_naming",
+      "description": "Verify the newly created segments are named correctly.",
+      "points": 5,
+      "visual_evidence": "The segment list explicitly displays the names 'Liver_Right' and 'Liver_Left'."
+    },
+    {
+      "id": "visual_confirmation",
+      "description": "Verify visually that the liver segmentation is divided into two distinct regions.",
+      "points": 10,
+      "visual_evidence": "The 3D viewer or 2D slice viewers show the liver rendered in two different colors representing the left and right lobes."
+    },
+    {
+      "id": "reasonable_split",
+      "description": "Verify that each segment is roughly 25-75% of the original volume.",
+      "points": 25,
+      "visual_evidence": "Visually in the 3D/2D views, or quantitatively in a Segment Statistics table, neither segment appears to be a tiny sliver; both represent a substantial portion (at least 1/4) of the total liver volume."
+    },
+    {
+      "id": "volume_conservation",
+      "description": "Verify that the combined volume of the two new segments approximately equals the original volume.",
+      "points": 20,
+      "visual_evidence": "The outer boundary of the combined segments matches the original smooth anatomical shape of the liver, with no massive missing chunks, gaps, or unnatural additions."
+    },
+    {
+      "id": "minimal_overlap",
+      "description": "Verify that the two segments do not significantly overlap each other.",
+      "points": 15,
+      "visual_evidence": "The interface between the 'Liver_Right' and 'Liver_Left' segments is a sharp, clean boundary (e.g., a clear cut) without z-fighting (flickering/mixed colors) in the 3D view."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the 3D Slicer GUI to perform the split.",
+      "visual_evidence": "Screenshots show the 3D Slicer interface, specifically the Segment Editor module and tools like 'Scissors' being selected or used, rather than just terminal commands."
+    },
+    {
+      "id": "genuine_software_use",
+      "description": "Verify the results are displayed within the actual 3D Slicer application.",
+      "visual_evidence": "The 3D and 2D viewers show the actual loaded medical imaging data (CT/MRI scans) and segmentations, not a mock-up, image editor, or text file."
+    },
+    {
+      "id": "no_ground_truth_loading",
+      "description": "Verify the agent did not simply load a pre-computed ground truth file.",
+      "visual_evidence": "The agent's trajectory shows the active process of cutting/splitting the segment (e.g., drawing a cut line) rather than just using the 'Add Data' dialog to load files from a 'ground_truth_dir'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses patient 5 from the 3D-IRCADb-01 dataset. The agent must split the 'Liver_Complete' segmentation into 'Liver_Right' and 'Liver_Left'. A successful split will show two distinct, cleanly separated segments that together form the original liver shape, with neither segment being smaller than 25% of the total volume."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "batch_edge_creation@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "In OrientDB Studio (http://localhost:2480/studio/index.html), connect to the 'demodb' database (user: root, pass: GymAnything123!). The database contains 'Hotels' and 'Restaurants' vertex classes, which both have a 'City' property. Create a new edge class named 'IsNearby' that extends the base class 'E' and includes a String property named 'Type'. Establish 'IsNearby' edges from every Hotel to every Restaurant located in the same City, setting the 'Type' property of these edges to 'same_city'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/batch_edge_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/batch_edge_creation/export_result.sh"
+  },
+  "metadata": {
+    "db_name": "demodb",
+    "edge_class": "IsNearby",
+    "required_property": "Type",
+    "required_value": "same_city"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_batch_edge_creation"
+    }
+  }
+}

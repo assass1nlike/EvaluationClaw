@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_container_lifecycle_issues@1",
+  "task_completion": [
+    {
+      "id": "access_project_directory",
+      "description": "Navigate to the target project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal prompt or file manager showing the current path as '/home/ga/Documents/docker-projects/order-processor/'."
+    },
+    {
+      "id": "edit_infrastructure_config",
+      "description": "Open the Docker configuration files for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) open, displaying the contents of 'docker-compose.yml' or 'Dockerfile'."
+    },
+    {
+      "id": "configure_log_streaming",
+      "description": "Modify the configuration to ensure Python logs stream in real-time without buffering.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the addition of an environment variable like 'PYTHONUNBUFFERED=1' (or 'PYTHONUNBUFFERED: 1' in YAML) or modifying the command to use 'python -u'."
+    },
+    {
+      "id": "configure_graceful_shutdown",
+      "description": "Modify the configuration to include an init process to handle system signals for graceful shutdown.",
+      "points": 20,
+      "visual_evidence": "The text editor shows the addition of 'init: true' in docker-compose.yml, or the installation/usage of an init system like 'tini' or 'dumb-init' in the Dockerfile."
+    },
+    {
+      "id": "apply_docker_configuration",
+      "description": "Rebuild or recreate the Docker container to apply the new infrastructure configurations.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of commands like 'docker compose up -d', 'docker compose up --force-recreate', or 'docker compose build' completing successfully."
+    },
+    {
+      "id": "verify_container_lifecycle",
+      "description": "Test the container to ensure it shuts down quickly and logs stream properly.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'docker compose down' or 'docker stop order-processor' completing in just a few seconds, and/or 'docker logs -f order-processor' showing streaming output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_python_script_modification",
+      "description": "Ensure the agent did not modify the legacy Python script to solve the issue.",
+      "visual_evidence": "The agent should not open or edit any .py files (e.g., app.py, main.py) to add signal handlers or sys.stdout.flush(). All changes must be in Dockerfile or docker-compose.yml."
+    },
+    {
+      "id": "genuine_docker_commands",
+      "description": "Ensure the agent actually applied the changes using Docker CLI.",
+      "visual_evidence": "Look for actual execution of 'docker' or 'docker compose' commands in the terminal, rather than just editing files without applying them."
+    },
+    {
+      "id": "correct_directory_used",
+      "description": "Ensure the agent modified the files in the correct project directory.",
+      "visual_evidence": "The file paths in the editor or terminal commands must point to '/home/ga/Documents/docker-projects/order-processor/'."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is '/home/ga/Documents/docker-projects/order-processor'. Container name is 'order-processor'. The agent must configure an init process (e.g., 'init: true' in docker-compose.yml) for graceful shutdown and unbuffered Python execution (e.g., 'PYTHONUNBUFFERED=1' or 'python -u') for real-time logs. A successful shutdown takes under 4.0 seconds; taking 9.0 seconds or more is considered a timeout."
+}

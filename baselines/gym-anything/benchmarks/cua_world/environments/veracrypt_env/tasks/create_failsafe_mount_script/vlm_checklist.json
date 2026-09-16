@@ -1,0 +1,59 @@
+{
+  "task_id": "create_failsafe_mount_script@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Create the shell script at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (like nano, vim, or gedit) or a terminal command (like cat or echo) showing the creation or contents of a file named '/home/ga/Documents/safe_log_entry.sh'."
+    },
+    {
+      "id": "password_argument",
+      "description": "The script accepts the volume password as the first argument.",
+      "points": 10,
+      "visual_evidence": "Look for the script using '$1' to capture the password, either by assigning it to a variable (e.g., PASSWORD=$1) or using it directly in the mount command."
+    },
+    {
+      "id": "mount_command",
+      "description": "The script contains the command to mount the VeraCrypt volume.",
+      "points": 20,
+      "visual_evidence": "Look for a 'veracrypt' command in the script that targets the volume '/home/ga/Volumes/audit_volume.hc' and uses the password variable/argument."
+    },
+    {
+      "id": "append_date_time",
+      "description": "The script appends the current date and time to the audit log.",
+      "points": 20,
+      "visual_evidence": "Look for a command like 'date' being redirected with '>>' to a file named 'audit_log.txt' located within the mounted volume's directory."
+    },
+    {
+      "id": "failsafe_trap_mechanism",
+      "description": "The script implements a safety mechanism to guarantee dismount.",
+      "points": 20,
+      "visual_evidence": "Look for the 'trap' command in the script, configured to execute a dismount function or command upon signals like EXIT, SIGINT, SIGTERM, or ERR."
+    },
+    {
+      "id": "dismount_command",
+      "description": "The script contains the command to dismount the VeraCrypt volume.",
+      "points": 20,
+      "visual_evidence": "Look for a 'veracrypt -d' or 'veracrypt --dismount' command inside the script, particularly within the trap handler or at the end of the script."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "password_not_hardcoded",
+      "description": "The agent must not hardcode the password in the script.",
+      "visual_evidence": "Check the script contents to ensure the string 'SecureAudit2024!' is NOT hardcoded as the password. It must use the first argument ($1)."
+    },
+    {
+      "id": "script_actually_written",
+      "description": "The agent must write the commands into the script file, not just execute them in the terminal.",
+      "visual_evidence": "Verify that the commands (veracrypt, date >>, trap) are visible inside a text editor or a script file output, rather than just being run as standalone commands in the terminal prompt."
+    },
+    {
+      "id": "no_manual_bypassing",
+      "description": "The agent did not manually append the date to the log file to fake success.",
+      "visual_evidence": "Ensure there are no terminal commands where the agent manually mounts the volume, runs 'date >> audit_log.txt', and dismounts it without putting these steps into the required shell script."
+    }
+  ],
+  "privileged_info_for_vlm": "The target script must be located at '/home/ga/Documents/safe_log_entry.sh'. The VeraCrypt volume is at '/home/ga/Volumes/audit_volume.hc'. The log file inside the volume is 'audit_log.txt'. The script must accept the password as the first argument (do not hardcode 'SecureAudit2024!')."
+}

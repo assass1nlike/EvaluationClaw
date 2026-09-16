@@ -1,0 +1,59 @@
+{
+  "task_id": "rename_local_repository@1",
+  "task_completion": [
+    {
+      "id": "artifactory_login",
+      "description": "Verify the agent has logged into the Artifactory web interface.",
+      "points": 10,
+      "visual_evidence": "The Artifactory web interface is visible, showing the dashboard or welcome screen, indicating successful login with the provided credentials."
+    },
+    {
+      "id": "navigate_to_repositories",
+      "description": "Verify the agent navigates to the Repositories administration page or Artifacts tree.",
+      "points": 10,
+      "visual_evidence": "The Artifactory interface shows the Administration -> Repositories page or the Application -> Artifactory -> Artifacts tree view."
+    },
+    {
+      "id": "new_repo_created",
+      "description": "Verify the new local repository 'module-core-local' is created.",
+      "points": 20,
+      "visual_evidence": "The repository 'module-core-local' is listed in the local repositories list or the Artifacts tree view."
+    },
+    {
+      "id": "select_artifacts_to_move",
+      "description": "Verify the agent initiates the move operation for the artifacts.",
+      "points": 10,
+      "visual_evidence": "A dialog or action menu is open showing the 'org' folder in 'legacy-dev-local' being selected for a 'Move' operation."
+    },
+    {
+      "id": "artifacts_moved",
+      "description": "Verify the 'org' folder structure is successfully moved to the new repository.",
+      "points": 30,
+      "visual_evidence": "The Artifacts tree view shows the 'org' folder expanded or present under the 'module-core-local' repository."
+    },
+    {
+      "id": "old_repo_deleted",
+      "description": "Verify the original 'legacy-dev-local' repository is deleted.",
+      "points": 20,
+      "visual_evidence": "The repositories list or Artifacts tree view is shown, and the 'legacy-dev-local' repository is clearly absent from the list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Artifactory web GUI to perform the actions.",
+      "visual_evidence": "Screenshots should show interaction with the Artifactory web interface in a browser, rather than terminal windows executing curl or API commands."
+    },
+    {
+      "id": "genuine_repo_creation",
+      "description": "Verify the repository creation and deletion happened within the actual application.",
+      "visual_evidence": "The Artifactory UI should look genuine, with correct menus, sidebars, and dialogs, not mocked in a text editor or manipulated via browser developer tools."
+    },
+    {
+      "id": "genuine_move_operation",
+      "description": "Verify the move operation was performed using Artifactory's built-in functionality.",
+      "visual_evidence": "The screenshots should show Artifactory's native 'Move' dialog or tree manipulation, rather than local filesystem file manager windows."
+    }
+  ],
+  "privileged_info_for_vlm": "The source repository is 'legacy-dev-local' and the target repository is 'module-core-local'. The artifact that must be moved is located at 'org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar'. The agent must use the Artifactory web interface with credentials admin / password to create the new repository, move the 'org' folder, and delete the old repository."
+}

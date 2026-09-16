@@ -1,0 +1,32 @@
+{
+  "id": "create_techdraw_section_view@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a technical drawing for the T8 Housing Bracket from ~/Documents/FreeCAD/T8_housing_bracket.FCStd. The drawing should include a standard view and a section view showing the internal details of the bracket body. Save the result to ~/Documents/FreeCAD/housing_drawing.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_techdraw_section_view/setup_task.sh",
+    "post_task": "/workspace/tasks/create_techdraw_section_view/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/housing_drawing.FCStd",
+    "input_file": "T8_housing_bracket.FCStd",
+    "min_file_size_kb": 10,
+    "required_objects": [
+      "TechDraw::DrawPage",
+      "TechDraw::DrawViewPart",
+      "TechDraw::DrawViewSection"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_techdraw_section_view"
+    }
+  }
+}
