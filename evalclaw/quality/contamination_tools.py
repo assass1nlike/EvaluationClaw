@@ -12,9 +12,16 @@ from urllib.parse import urlsplit
 
 from ..diagnostics import redact_secrets, write_json
 from ..protocols.tool import ToolCall, ToolResult, ToolSpec, object_schema, validate_tool_call
-from ..research.backends import download_url_file, fetch_url_links, fetch_url_text, web_search
+from ..research.backends import (
+    SearchError,
+    download_url_file,
+    fetch_url_links,
+    fetch_url_text,
+    web_search,
+)
 from ..research.documents import ResourceArchive
 from ..research.documents import document_text as _document_text
+from ..research.tools import search_failure_result
 from ..types import BenchmarkConfig, BenchmarkItem, ContaminationItemResult, ContaminationMatch
 from .laaj import _item_payload
 from .laaj_tools import _declared_text
@@ -213,6 +220,8 @@ class ContaminationResearchTools:
             return ToolResult(tool_call_id=call.id, name=call.name, content=json.dumps(redact_secrets(payload), ensure_ascii=False))
         except CancelledError:
             raise
+        except SearchError as exc:
+            return search_failure_result(call, exc)
         except Exception as exc:
             return ToolResult(tool_call_id=call.id, name=call.name, error="research_tool_error",
                               content=str(redact_secrets(f"{type(exc).__name__}: {exc}")))

@@ -31,8 +31,15 @@ from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_openai,
     evalclaw_tool_result_to_openai_response_input,
 )
-from ..research.authoritative import load_source, search_sources
-from ..research.backends import fetch_url_text, web_search
+from ..research.authoritative import (
+    AUTHORITATIVE_TOOLS,
+    load_source,
+    search_sources,
+    source_ref_parts,
+)
+from ..research.backends import SearchError, fetch_url_text, web_search
+from ..research.documents import page_payload
+from ..research.tools import search_failure_result
 from ..types import (
     AgentEnvironmentType,
     BenchmarkConfig,
@@ -213,56 +220,6 @@ _PLANNER_TOOLS: list[ToolSpec] = [
 ]
 
 
-_AUTHORITATIVE_TOOLS: list[ToolSpec] = [
-    ToolSpec(
-        name="search_sources",
-        description=(
-            "Search a fixed catalog of authoritative sources (curated benchmarks, HuggingFace "
-            "datasets, Wikipedia, arXiv) for material relevant to a benchmark-design query. "
-            "Returns candidates each with a ref, title, and short description."
-        ),
-        parameters={
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "Focused search query."},
-                "max_results": {
-                    "type": "integer",
-                    "description": "Maximum number of candidates to return.",
-                },
-            },
-            "required": ["query"],
-            "additionalProperties": False,
-        },
-    ),
-    ToolSpec(
-        name="load_source",
-        description=(
-            "Read raw content from one source ref returned by search_sources. For "
-            "hf://datasets/{id} it returns raw dataset rows; for a Wikipedia or arXiv URL it "
-            "returns the raw article text or abstract."
-        ),
-        parameters={
-            "type": "object",
-            "properties": {
-                "ref": {
-                    "type": "string",
-                    "description": (
-                        "Source ref from search_sources (e.g. hf://datasets/{id}, "
-                        "https://en.wikipedia.org/wiki/{title}, https://arxiv.org/abs/{id})."
-                    ),
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Maximum number of rows to return for a dataset.",
-                },
-            },
-            "required": ["ref"],
-            "additionalProperties": False,
-        },
-    ),
-]
-
-
 def _plan_tool_keys(simplified: bool) -> str:
     return "objective, dimensions" if simplified else "objective, constraints, planner_notes, dimensions"
 
@@ -326,7 +283,7 @@ def _planner_tool_list(
 ) -> list[ToolSpec]:
     """Select the Planner's tool set based on the configured research mode."""
     if config.ablation_authoritative_research:
-        return [*_AUTHORITATIVE_TOOLS, read_tool, write_tool]
+        return [*AUTHORITATIVE_TOOLS, read_tool, write_tool]
     web_enabled = bool(config.use_web_research) and str(config.search_backend).lower() != "none"
     if web_enabled:
         return [*_PLANNER_TOOLS, read_tool, write_tool]
@@ -380,6 +337,13 @@ def _execute_planner_tool(
     document_path: str = "",
 ) -> ToolResult:
     try:
+        if not config.use_web_research and call.name in {"search_sources", "load_source"}:
+            return ToolResult(tool_call_id=call.id, name=call.name,
+                              content="External research is disabled.", error="research_disabled")
+        if config.ablation_authoritative_research and call.name in {"search_web", "fetch_url"}:
+            return ToolResult(tool_call_id=call.id, name=call.name,
+                              content="Use search_sources and load_source in restricted-source mode.",
+                              error="research_mode_restricted")
         if call.name in ("read_plan", "update_plan"):
             if not document_path:
                 return ToolResult(
@@ -457,7 +421,7 @@ def _execute_planner_tool(
                     content="Web search is disabled by benchmark configuration.",
                     error="search_disabled",
                 )
-            result = web_search(query, backend=config.search_backend)
+            result = web_search(query, backend=config.search_backend, raise_on_error=True)
             if result is None:
                 return ToolResult(
                     tool_call_id=call.id,
@@ -524,11 +488,19 @@ def _execute_planner_tool(
             if not ref:
                 raise ValueError("ref must be non-empty")
             limit = _bounded_int(call.arguments.get("limit"), default=5, minimum=1, maximum=20)
-            content = load_source(ref, limit=limit)
+            offset = int(call.arguments.get("offset", 0))
+            if offset < 0:
+                raise ValueError("offset must be nonnegative")
+            if offset:
+                content = source_materials[ref].content
+            else:
+                content = load_source(ref, limit=limit)
+                source_materials[ref] = ResearchSourceMaterial(url=ref, content=content)
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
-                content=json.dumps({"ref": ref, "content": content}, ensure_ascii=False)[:max_chars],
+                content=page_payload(content[offset:], offset, max_chars=max_chars,
+                                     has_more=False, ref=ref, total_characters=len(content)),
             )
         return ToolResult(
             tool_call_id=call.id,
@@ -536,6 +508,8 @@ def _execute_planner_tool(
             content=f"Unknown tool: {call.name}",
             error="unknown_tool",
         )
+    except SearchError as exc:
+        return search_failure_result(call, exc)
     except Exception as exc:
         return ToolResult(
             tool_call_id=call.id,
@@ -690,6 +664,8 @@ def _audit_plan(
     max_task_count: int | None = None,
     expected_effort_distribution: dict[ChallengeEffort, float] | None = None,
     simplified: bool = False,
+    authoritative_research: bool = False,
+    use_web_research: bool = True,
 ) -> list[str]:
     issues: list[str] = []
     if not plan.dimensions:
@@ -804,6 +780,16 @@ def _audit_plan(
                         issues.append(
                             f"{design_prefix}: Builder resource URL must use HTTP(S): {url!r}."
                         )
+                if authoritative_research:
+                    for ref in [*source_urls, *design.builder_resource_urls]:
+                        try:
+                            source_ref_parts(ref)
+                        except ValueError as exc:
+                            issues.append(f"{design_prefix}: {exc}")
+                if not use_web_research and (
+                    source_strategy != "generated" or source_urls or source_queries or design.builder_resource_urls
+                ):
+                    issues.append(f"{design_prefix}: research is disabled; use generated tasks without external source or assistance URLs or queries.")
 
 
     planned_task_count = sum(
@@ -906,6 +892,8 @@ def _parse_plan_response(
             config.challenge_effort_distribution
         ),
         simplified=simplified,
+        authoritative_research=config.ablation_authoritative_research,
+        use_web_research=config.use_web_research,
     )
     for dimension in plan.dimensions:
         for design in dimension.task_designs:
@@ -942,6 +930,7 @@ def _run_planner(
         BENCHMARK_PLANNER_SYSTEM_PROMPT,
         simplified=config.ablation_simplified_contract,
         authoritative_research=config.ablation_authoritative_research,
+        use_web_research=config.use_web_research,
     )
     base_resources = _planner_resources(instruction)
     debug_root = Path(config.planner_debug_dir).expanduser() if config.planner_debug_dir else None

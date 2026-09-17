@@ -1455,6 +1455,14 @@ HTML_TEMPLATE = """<!doctype html>
         section.append(node("p", {class: "empty"}, "No LaaJ evaluation configured."));
         return;
       }
+      section.append(node("h3", {}, "Main run"));
+      renderLaajReport(section, report);
+      Object.entries(report.iteration_reports || {}).sort((a, b) => Number(a[0]) - Number(b[0])).forEach(([iteration, result]) => {
+        section.append(node("h3", {}, `Iteration ${iteration}`));
+        renderLaajReport(section, result);
+      });
+    }
+    function renderLaajReport(section, report) {
       section.append(node("p", {class: "small"},
         `Judge: ${report.model}; evaluated items: ${(report.evaluated_item_ids || []).length}/${report.total_item_count}`));
       const names = ["clarity", "correctness", "faithfulness", "diversity", "systematicness", "credibility"];
@@ -1464,6 +1472,17 @@ HTML_TEMPLATE = """<!doctype html>
         markdownNode(report[name].reasoning || "-"),
       ]);
       section.append(table(["Criterion", "Score (1-5)", "Reasoning"], rows));
+      if ((report.item_results || []).length) {
+        section.append(node("p", {}, "Clarity, correctness, and faithfulness are equally weighted per-task means. Diversity and the Analyser metrics are overall judgments."));
+        const details = node("details");
+        details.append(node("summary", {}, "Per-task quality judgments"));
+        details.append(table(["Task", "Criterion", "Score (1-5)", "Reasoning"],
+          report.item_results.flatMap(item => ["clarity", "correctness", "faithfulness"].map(name => [
+            item.item_id, humanLabel(name), item[name].score,
+            markdownNode(item[name].reasoning || "-"),
+          ]))));
+        section.append(details);
+      }
       const contamination = report.contamination;
       if (contamination) {
         section.append(node("h3", {}, "Contamination Resistance"));

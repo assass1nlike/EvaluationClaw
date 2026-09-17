@@ -41,6 +41,8 @@ def run_python_sandbox(
             "--read-only",
             "--tmpfs",
             "/tmp:rw,noexec,nosuid,size=64m",
+            "--workdir",
+            "/tmp",
             image,
             "python",
             "-I",

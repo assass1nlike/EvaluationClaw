@@ -60,6 +60,35 @@ def _target() -> TargetModelConfig:
     return TargetModelConfig(provider="openai", model="gpt-5", api_key="k")
 
 
+@pytest.mark.parametrize("caller", ["builder", "environment"])
+def test_scoring_service_failure_does_not_reject_task(monkeypatch, tmp_path, caller):
+    import json
+
+    from evalclaw.construction import suite
+    from evalclaw.execution import environment_claw
+    from evalclaw.execution.errors import EvaluationExecutionError
+
+    def blocked(*args, **kwargs):
+        raise EvaluationExecutionError("Judge response validation failed")
+
+    monkeypatch.setattr(harness_module, "preflight_harness_environments", blocked)
+    item = _item()
+    task = TaskDefinition(id=item.id, dimension_id=item.dimension_id, task_type=TaskType.agent,
+        title="Task", prompt=item.prompt, environment=item.metadata["agent_env"])
+    report = environment_claw.EnvironmentClawReport(enabled=True)
+    with pytest.raises(EvaluationExecutionError):
+        if caller == "builder":
+            suite._preflight_builder_environments([task],
+                dimension=EvalDimension(id="d1", name="Work", description="Work", approach="Work"),
+                blueprint=TaskBlueprint(id="b1", dimension_id="d1", title="Work"),
+                resources=[], config=BenchmarkConfig(), trace_dir=tmp_path)
+        else:
+            environment_claw._preflight_executable_items(report, [item], BenchmarkConfig(), trace_dir=tmp_path)
+    assert not report.blocked_item_ids
+    failure = json.loads(next(tmp_path.rglob("failure.json")).read_text())
+    assert failure["status"] == "evaluation_blocked"
+
+
 @pytest.mark.parametrize("phase", ["construction", "execution"])
 @pytest.mark.parametrize("fail_last", [False, True])
 def test_pipeline_preflights_every_selected_harness(monkeypatch, tmp_path, phase, fail_last):

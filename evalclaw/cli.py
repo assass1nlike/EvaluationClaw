@@ -271,7 +271,7 @@ def generate(
     ablation_authoritative_research: bool = typer.Option(
         False,
         "--ablation-authoritative-research/--no-ablation-authoritative-research",
-        help="Restrict Planner research to fixed authoritative sources with raw content (ablation).",
+        help="Restrict Planner and Builder research to catalog sources with raw content (ablation).",
     ),
     ablation_no_builder_harness: bool = typer.Option(
         False,

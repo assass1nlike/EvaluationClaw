@@ -120,6 +120,8 @@ Fields:
   research_synthesizer.
 - system_prompt: concise system prompt for the task-specific agent. It should
   state the evaluation role, non-disclosure rules, and high-level turn policy.
+  Role instructions govern the message sent to the target, not the framework's
+  JSON transport. The framework handles wrapping the turn and signalling done.
   Do not encode repository files, test suites, command protocols, score tables,
   or large environment state in system_prompt; put those in structured fields.
 - initial_content: initial scenario/state. For code or repository tasks, include
@@ -168,6 +170,9 @@ Fields:
   hidden_files, setup_commands, test_command, timeout, and resource_limits in
   metadata.agent_env. Setup-only server/application assets belong in
   runtime_files; hidden_files are injected only while the evaluator runs.
+  For Docker tasks, provide readiness_checks for fast, read-only checks of essential
+  inputs and services as the target user after setup; these must not consume budgets.
+  preflight_commands run functional self-checks only in a disposable preflight instance.
   Choose a common official runtime image when the requirement is clear, or set
   image to "auto" / leave it empty so EvaluationClaw can select a suitable
   Docker image from task files and commands before execution.

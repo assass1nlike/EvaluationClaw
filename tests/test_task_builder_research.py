@@ -538,7 +538,7 @@ def test_planner_suggested_urls_are_available_without_an_extra_search() -> None:
     sources = _select_blueprint_sources(
         dimension,
         blueprint,
-        BenchmarkConfig(use_web_research=False),
+        BenchmarkConfig(),
     )
 
     assert [source.uri for source in sources] == ["https://example.com/reference"]
@@ -1669,13 +1669,32 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
         [blueprint],
         BenchmarkConfig(
             **dummy_config_kwargs(),
-            use_web_research=False,
+            use_web_research=True,
         ),
     )
 
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E2
     assert captured["include_source_tools"] is True
     assert captured["payload"]["task_plan"]["builder_job_id"] == "research_blueprint"
+
+
+def test_saved_candidate_is_revalidated_without_another_builder_call(monkeypatch, tmp_path):
+    dimension = EvalDimension(id="d", name="Arithmetic", description="Arithmetic", approach="Compute")
+    blueprint = make_blueprint("saved", "d", "Arithmetic", task_type=TaskType.fill_blank,
+                               challenge_effort=ChallengeEffort.E2)
+    candidate = {"tasks": [{"title": "Sum", "prompt": "What is 2 + 3?", "expected_texts": ["5"],
+        "challenge_effort": "E2", "metadata": {"challenge_effort_self_assessment": {
+            "requested_effort": "E2", "meets_requested_effort": True, "rationale": "Compute the sum."}}}]}
+    def unexpected(*args, **kwargs):
+        pytest.fail("A valid saved candidate must not trigger another Builder call")
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", unexpected)
+    suite = build_task_suite(
+        EvalSpec(objective="Arithmetic", dimensions=[dimension], task_types=[TaskType.fill_blank]),
+        [blueprint], BenchmarkConfig(**dummy_config_kwargs(), output_dir=str(tmp_path)),
+        initial_candidates={"saved": candidate},
+    )
+    assert len(suite.tasks) == 1
+    assert suite.tasks[0].expected_texts == ["5"]
 
 
 def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None:

@@ -1,19 +1,77 @@
-"""Fixed authoritative-source research for the Planner research ablation.
+"""Restricted-source research shared by Planner and Builder.
 
-When ``ablation_authoritative_research`` is enabled, the Planner's research
-tools switch from web search (a summary + citation-URL backend) to a fixed
-catalog of authoritative sources, returning raw content instead of a
-synthesized summary. The catalog is: a curated benchmark list, HuggingFace
-datasets, Wikipedia, and arXiv.
+Search curated benchmarks, HuggingFace datasets, Wikipedia, and arXiv;
+load original material rather than an LLM-generated research summary.
 """
 from __future__ import annotations
 
 import json
 import re
 import xml.etree.ElementTree as ET
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 import httpx
+
+from ..protocols.tool import ToolSpec, object_schema
+
+AUTHORITATIVE_TOOLS = [
+    ToolSpec(
+        name="search_sources",
+        description="Search curated benchmarks, HuggingFace datasets, English Wikipedia, and arXiv. Returns source refs, titles, and source-provided descriptions, not an LLM research summary.",
+        parameters=object_schema({
+            "query": {"type": "string"},
+            "max_results": {"type": "integer", "minimum": 1, "maximum": 20},
+        }, required=["query"]),
+    ),
+    ToolSpec(
+        name="load_source",
+        description="Read original material at a supported ref: sampled HuggingFace rows, Wikipedia text, or the author's arXiv abstract (not the full paper). Returns the source ref and raw content; excerpts are not complete datasets or articles. Follow next_offset to continue reading the same retained content without refetching.",
+        parameters=object_schema({
+            "ref": {"type": "string"},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 20,
+                      "description": "Maximum dataset rows; ignored for articles."},
+            "offset": {"type": "integer", "minimum": 0,
+                       "description": "Character offset into a previously loaded source; start at 0."},
+        }, required=["ref"]),
+    ),
+]
+
+RESEARCH_POLICY = """Research is restricted to curated benchmarks, HuggingFace datasets,
+English Wikipedia, and arXiv. Use search_sources to discover refs and load_source to read
+original material. Results are sampled dataset rows, Wikipedia text, or the author's
+arXiv abstract, not an LLM-generated research summary or necessarily complete content.
+Keep source refs/URLs as identifiers and provenance. Do not use open-web research,
+external research models, or custom code to bypass this source policy. Installing
+ordinary runtime dependencies is still allowed; it does not supply benchmark source material.
+"""
+
+NO_RESEARCH_POLICY = """This run disables external research and construction source material.
+Construct tasks from the evaluation request and your own knowledge. Use generated for
+every source_plan.strategy, with empty suggested_urls, search_queries, and builder_resource_urls.
+No search, source-reading, web-fetch, or resource-download tools are available. Do not
+retrieve benchmark material through custom code or container commands. Ordinary runtime
+dependency installation and local task construction, validation, and environment tools
+remain available.
+"""
+
+
+def source_ref_parts(ref: str) -> tuple[str, str]:
+    """Validate a catalog ref before retrieving or passing it downstream."""
+    parsed = urlsplit(ref.strip())
+    path = parsed.path
+    if parsed.scheme == "hf" and parsed.netloc == "datasets" and path.strip("/"):
+        return "hf_dataset", path.strip("/")
+    if (
+        parsed.scheme in {"https", "http"}
+        and not parsed.username and not parsed.password
+        and parsed.port in {None, 80, 443}
+    ):
+        if parsed.hostname == "en.wikipedia.org" and path.startswith("/wiki/") and path[6:]:
+            return "wikipedia", unquote(path[6:])
+        if parsed.hostname == "arxiv.org" and path.startswith("/abs/") and path[5:]:
+            return "arxiv", path[5:]
+    raise ValueError(f"Unsupported source ref: {ref!r}")
+
 
 _ARXIV_API = "https://export.arxiv.org/api/query"
 _WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
@@ -210,7 +268,7 @@ def _hf_dataset_rows(dataset_id: str, limit: int) -> str:
             )
         except Exception:
             continue
-    return f"Could not load raw rows for hf://datasets/{dataset_id}."
+    raise RuntimeError(f"Could not load raw rows for hf://datasets/{dataset_id}.")
 
 
 def _wikipedia_text(title: str, max_chars: int = 4000) -> str:
@@ -236,7 +294,7 @@ def _wikipedia_text(title: str, max_chars: int = 4000) -> str:
                 return re.sub(r"\s+", " ", text).strip()[:max_chars]
     except Exception:
         pass
-    return f"Could not load the Wikipedia article for {title!r}."
+    raise RuntimeError(f"Could not load the Wikipedia article for {title!r}.")
 
 
 def _arxiv_abstract(arxiv_id: str, max_chars: int = 4000) -> str:
@@ -258,21 +316,17 @@ def _arxiv_abstract(arxiv_id: str, max_chars: int = 4000) -> str:
             return f"Title: {title}\n\nAbstract: {summary}"[:max_chars]
     except Exception:
         pass
-    return f"Could not load the arXiv abstract for {arxiv_id!r}."
+    raise RuntimeError(f"Could not load the arXiv abstract for {arxiv_id!r}.")
 
 
 def load_source(ref: str, *, limit: int = 5) -> str:
     """Load raw content from one source ref returned by :func:`search_sources`."""
-    ref = (ref or "").strip()
-    if ref.startswith("hf://datasets/"):
-        return _hf_dataset_rows(ref[len("hf://datasets/") :], limit)
-    if "en.wikipedia.org/wiki/" in ref:
-        title = unquote(ref.rstrip("/").rsplit("/", 1)[-1])
-        return _wikipedia_text(title)
-    if "arxiv.org/abs/" in ref:
-        arxiv_id = ref.rstrip("/").rsplit("/", 1)[-1]
-        return _arxiv_abstract(arxiv_id)
-    raise ValueError(f"Unsupported source ref: {ref!r}")
+    kind, identifier = source_ref_parts(ref)
+    if kind == "hf_dataset":
+        return _hf_dataset_rows(identifier, limit)
+    if kind == "wikipedia":
+        return _wikipedia_text(identifier)
+    return _arxiv_abstract(identifier)
 
 
 __all__ = ["CURATED_DATASETS", "load_source", "search_sources"]

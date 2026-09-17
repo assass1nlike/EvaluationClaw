@@ -9,7 +9,7 @@ import time
 import re
 import random
 import argparse
-from copy import deepcopy
+from difficulty import difficulty_bands
 from utils import *
 from filelock import FileLock
 def get_faith(s):
@@ -140,22 +140,7 @@ def main_1_single(model,ability_des,dataset_name,ability,DataSize,DemoNum,DiverN
                     print("!!!Not Found:  "+dir_name_ + "/raw_data/{}###{}###{}/attrs/attr3.json".format(major_subject, subject, keykey))
                     continue
 
-                dif_bank = [[{},1]]
-                for key_ in attr4.keys():
-                    dif_bank_new = []
-                    for t in attr4[key_]:
-                        for cand in dif_bank:
-                            new_cand = deepcopy(cand)
-                            new_cand[1]=new_cand[1]+t[1]
-                            new_cand[0][key_]=t[0]
-                            dif_bank_new.append(new_cand)
-                    dif_bank=dif_bank_new
-                dif_bank = sorted(dif_bank,key=lambda x:x[1])
-                dif_bank=[t[0] for t in dif_bank]
-                dif_bank = dif_bank[len(dif_bank)//2:]
-                dif_banks=[]
-                for i in range(10):
-                    dif_banks.append(dif_bank[int(i/10*len(dif_bank)):int((i+1)/10*len(dif_bank))])
+                dif_banks = difficulty_bands(attr4)
 
                 for tem in attr2:
                     if tem['attribute'] == 'Difficulty':

@@ -831,11 +831,11 @@ def test_gemini_backend_uses_configured_base_url(monkeypatch) -> None:
         def json():
             return {"candidates": [{"content": {"parts": [{"text": "answer"}]}}]}
 
-    def fake_post(url, **kwargs):
+    def fake_post(self, url, **kwargs):
         captured["url"] = url
         return FakeResponse()
 
-    monkeypatch.setattr(backends.httpx, "post", fake_post)
+    monkeypatch.setattr(backends.httpx.Client, "post", fake_post)
 
     result = GeminiBackend(api_key="k").search_or_raise("q")
 
@@ -868,14 +868,14 @@ def test_gemini_search_retries_transient_timeout(monkeypatch) -> None:
     monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
     calls = 0
 
-    def fake_post(url, **kwargs):
+    def fake_post(self, url, **kwargs):
         nonlocal calls
         calls += 1
         if calls == 1:
             raise backends.httpx.TimeoutException("timeout")
         return _success_response()
 
-    monkeypatch.setattr(backends.httpx, "post", fake_post)
+    monkeypatch.setattr(backends.httpx.Client, "post", fake_post)
 
     result = backends.GeminiBackend(api_key="k").search_or_raise("q")
 
@@ -887,14 +887,14 @@ def test_gemini_search_retries_429_then_succeeds(monkeypatch) -> None:
     monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
     calls = 0
 
-    def fake_post(url, **kwargs):
+    def fake_post(self, url, **kwargs):
         nonlocal calls
         calls += 1
         if calls == 1:
             raise _http_error(429)
         return _success_response()
 
-    monkeypatch.setattr(backends.httpx, "post", fake_post)
+    monkeypatch.setattr(backends.httpx.Client, "post", fake_post)
 
     result = backends.GeminiBackend(api_key="k").search_or_raise("q")
 
@@ -906,12 +906,12 @@ def test_gemini_search_does_not_retry_permanent_error(monkeypatch) -> None:
     monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
     calls = 0
 
-    def fake_post(url, **kwargs):
+    def fake_post(self, url, **kwargs):
         nonlocal calls
         calls += 1
         raise _http_error(400)
 
-    monkeypatch.setattr(backends.httpx, "post", fake_post)
+    monkeypatch.setattr(backends.httpx.Client, "post", fake_post)
 
     with pytest.raises(SearchBackendError, match="400"):
         backends.GeminiBackend(api_key="k").search_or_raise("q")
@@ -922,16 +922,16 @@ def test_gemini_search_gives_up_after_retries(monkeypatch) -> None:
     monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
     calls = 0
 
-    def fake_post(url, **kwargs):
+    def fake_post(self, url, **kwargs):
         nonlocal calls
         calls += 1
         raise _http_error(429)
 
-    monkeypatch.setattr(backends.httpx, "post", fake_post)
+    monkeypatch.setattr(backends.httpx.Client, "post", fake_post)
 
     with pytest.raises(SearchBackendError):
         backends.GeminiBackend(api_key="k").search_or_raise("q")
-    assert calls == 3
+    assert calls == 8
 
 
 def test_web_search_graceful_without_any_key(monkeypatch) -> None:

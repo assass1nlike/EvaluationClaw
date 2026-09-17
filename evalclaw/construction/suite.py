@@ -18,6 +18,7 @@ from ..core.task_summary import compact_task_content_summary
 from ..diagnostics import _io_path, error_record, write_json
 from ..execution.agent_envs import build_agent_environment
 from ..execution.docker import require_docker_available
+from ..execution.errors import EvaluationExecutionError
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -34,6 +35,7 @@ from ..prompts.task_builder import (
     task_builder_document_template,
 )
 from ..protocols.assets import replace_non_agent_asset_references
+from ..research.authoritative import NO_RESEARCH_POLICY, RESEARCH_POLICY, source_ref_parts
 from ..types import (
     AgentEnvironmentType,
     BenchmarkConfig,
@@ -235,6 +237,12 @@ def _preflight_builder_environments(
             outcome = preflight()
             if item_trace_dir is not None:
                 write_json(item_trace_dir / "result.json", outcome.as_dict())
+        except EvaluationExecutionError as exc:
+            if item_trace_dir is not None:
+                write_json(item_trace_dir / "failure.json", {
+                    "status": "evaluation_blocked", "item_id": task.id, **error_record(exc),
+                })
+            raise
         except Exception as exc:
             failed_ids.add(task.id)
             issues.append(
@@ -555,6 +563,21 @@ def _task_builder_payload(
     if direct:
         payload["task_definition_schema"] = TaskDefinition.model_json_schema()
         payload["task_resource_schema"] = TaskResource.model_json_schema()
+    if config is not None and not config.use_web_research:
+        if (blueprint.source_strategy != "generated" or blueprint.source_plan.suggested_urls
+                or blueprint.source_plan.search_queries or task_design.builder_resource_urls):
+            raise ValueError("Research is disabled; construct generated tasks without external sources or assistance URLs.")
+        payload["resources"]["research_policy"] = NO_RESEARCH_POLICY
+    if config is not None and config.ablation_authoritative_research:
+        refs = {*blueprint.source_plan.suggested_urls, *task_design.builder_resource_urls}
+        for ref in refs:
+            source_ref_parts(ref)
+        payload["resources"]["research_policy"] = RESEARCH_POLICY
+        payload["resources"]["source_material_index"] = [
+            {"url": material.url, "title": material.title, "characters": len(material.content)}
+            for material in (config.research_brief.source_materials if config.research_brief else [])
+            if material.url in refs
+        ]
     if config is not None and config.task_models:
         payload["available_models"] = {
             "models": [
@@ -660,6 +683,7 @@ def build_task_suite(
     log: Callable[[str], None] | None = None,
     checkpoint_dir: str | Path | None = None,
     checkpoint_namespace: str = "initial",
+    initial_candidates: dict[str, dict[str, object]] | None = None,
 ) -> TaskSuite:
     progress_lock = Lock()
 
@@ -1050,6 +1074,7 @@ def build_task_suite(
             _source_context(
                 source_candidates,
                 config.research_brief if blueprint.source_strategy != "generated" else None,
+                authoritative_research=config.ablation_authoritative_research,
             ),
             job_revision,
             task_file_path=initial_task_path,
@@ -1100,9 +1125,11 @@ def build_task_suite(
                 has_builder_resources=bool(
                     blueprint.task_designs[0].builder_resource_urls
                 ),
+                authoritative_research=config.ablation_authoritative_research,
                 include_image_tools=(
                     blueprint.environment_type == AgentEnvironmentType.docker_workspace
                 ),
+                use_web_research=config.use_web_research,
                 include_vm_image_tools=(
                     blueprint.environment_type == AgentEnvironmentType.vm
                 ),
@@ -1114,8 +1141,10 @@ def build_task_suite(
             )
             tool_kwargs = {
                 "include_source_tools": (
-                    blueprint.source_strategy != "generated"
-                    or bool(blueprint.task_designs[0].builder_resource_urls)
+                    config.use_web_research and (
+                        blueprint.source_strategy != "generated"
+                        or bool(blueprint.task_designs[0].builder_resource_urls)
+                    )
                 ),
                 "stop_event": stop_event,
                 **debug_kwargs,
@@ -1513,7 +1542,12 @@ def build_task_suite(
             parsed_keys: list[str] = []
             response_received = False
             try:
-                raw = call_task_builder(call_payload)
+                candidate = (initial_candidates or {}).get(blueprint.id) if attempt == 0 else None
+                if candidate is not None:
+                    emit(f"  Task builder: revalidating saved candidate for {label}.")
+                    raw = json.dumps(candidate, ensure_ascii=False)
+                else:
+                    raw = call_task_builder(call_payload)
                 response_received = True
                 persist_builder_debug(
                     attempt=attempt,

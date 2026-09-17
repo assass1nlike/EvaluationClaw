@@ -1,11 +1,12 @@
 """Run the original attribute, generation, and decoding stages locally."""
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
 import random
-import subprocess
+import resource
 import sys
 
 from dotenv import load_dotenv
@@ -58,8 +59,8 @@ def main():
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
     sys.dont_write_bytecode = True
     import nltk
-    for resource in ("punkt", "punkt_tab", "stopwords"):
-        nltk.download(resource, download_dir=os.environ["NLTK_DATA"], raise_on_error=True)
+    for nltk_resource in ("punkt", "punkt_tab", "stopwords"):
+        nltk.download(nltk_resource, download_dir=os.environ["NLTK_DATA"], raise_on_error=True)
     if not args.resume:
         (run / "prompts").symlink_to(ROOT / "upstream/prompts", target_is_directory=True)
     sys.path.append(str(ROOT / "upstream"))
@@ -74,9 +75,13 @@ def main():
         "model": model,
         "api": {k: v for k, v in os.environ.items()
                 if k.startswith("BENCHMAKER_") and k != "BENCHMAKER_API_KEY"},
-        "upstream_commit": subprocess.check_output(
-            ["git", "-C", str(ROOT / "upstream"), "rev-parse", "HEAD"], text=True
-        ).strip(),
+        "upstream_commit": "8aaa2b6c644d52580a640c67f3ee024f217eb240",
+        "difficulty_implementation": "exact_rank_lookup",
+        "address_space_limit_bytes": resource.getrlimit(resource.RLIMIT_AS)[0],
+        "source_sha256": {
+            name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+            for name in ("upstream/difficulty.py", "upstream/final_LLMasBenchmarkGenerator_1.py")
+        },
     }
     if args.resume:
         with (run / "resumes.jsonl").open("a") as stream:
@@ -85,8 +90,10 @@ def main():
         (run / "config.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n")
     benchmark = config["benchmark_name"]
     for ability, description in config["abilities"].items():
+        os.environ["BENCHMAKER_STAGE"] = "attributes"
         print(f"Generating attributes: {ability}", flush=True)
         main_0_single(model, description, benchmark, ability)
+        os.environ["BENCHMAKER_STAGE"] = "questions"
         print(f"Generating questions: {ability}", flush=True)
         main_1_single(model, description, benchmark, ability,
                       config["NumberPerAbility"], config["DemoNum"],

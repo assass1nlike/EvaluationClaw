@@ -41,7 +41,7 @@ def _compact_answer_text(text: str, max_chars: int) -> str:
 
 def web_search(
     query: str,
-    model: str = "openai/responses/gpt-5.4",
+    model: Optional[str] = None,
     force_search: bool = True,
     search_context_size: str = "medium",
     image_paths: Optional[List[str]] = None,
@@ -57,8 +57,10 @@ def web_search(
 
     tool_choice = "required" if force_search else "auto"
 
+    from utils.model_config import get_tool_model
+
     ret = llm_call_json(
-        model=model,
+        model=model or get_tool_model("web_search"),
         system_prompt=(
             "You are a careful web research assistant. "
             "Use web search. "

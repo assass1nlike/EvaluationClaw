@@ -17,6 +17,7 @@ from .docker_images import (
     docker_image_build_requested,
     inspect_docker_image,
 )
+from .errors import EvaluationExecutionError
 from .harness_compatibility import external_harness_issues
 from .installers import package_list
 from .vm_materializer import (
@@ -420,6 +421,12 @@ def _preflight_executable_items(
                     },
                 )
             )
+        except EvaluationExecutionError as exc:
+            if trace_dir is not None:
+                write_json(trace_dir / safe_name(item.id) / "failure.json", {
+                    "status": "evaluation_blocked", "item_id": item.id, **error_record(exc),
+                })
+            raise
         except Exception as exc:
             detail = f"Task {item.id} failed executable preflight: {exc}"
             report.probes.append(

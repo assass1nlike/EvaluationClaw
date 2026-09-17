@@ -235,7 +235,7 @@ def test_judge_uses_selected_judge_model(monkeypatch) -> None:
 
     def fake_call_llm(*args, **kwargs):
         captured.update(kwargs)
-        return '{"score_raw":5,"score_normalized":1.0,"reasoning":"correct"}'
+        return '{"score_raw":5,"score_max":5,"reasoning":"correct"}'
 
     monkeypatch.setattr(execution_runner, "call_llm", fake_call_llm)
 

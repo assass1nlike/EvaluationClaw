@@ -376,7 +376,7 @@ def _message_dicts(messages: list[Message], system: Optional[str] = None) -> lis
     return result
 
 
-def _extract_litellm_content(response: object) -> str:
+def _extract_litellm_content(response: object, *, allow_empty: bool = False) -> str:
     choices = getattr(response, "choices", None)
     if choices is None and isinstance(response, dict):
         choices = response.get("choices")
@@ -391,6 +391,14 @@ def _extract_litellm_content(response: object) -> str:
         content = message.get("content")
     if isinstance(content, str):
         return content
+    finish_reason = first.get("finish_reason") if isinstance(first, dict) else getattr(first, "finish_reason", None)
+    role = message.get("role") if isinstance(message, dict) else getattr(message, "role", None)
+    tools = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
+    has_content = "content" in message if isinstance(message, dict) else hasattr(message, "content")
+    nontext = any(message.get(k) if isinstance(message, dict) else getattr(message, k, None)
+                  for k in ("function_call", "refusal", "audio"))
+    if allow_empty and has_content and content is None and role == "assistant" and finish_reason == "stop" and not tools and not nontext:
+        return ""
     if isinstance(content, list):
         parts: list[str] = []
         for part in content:
@@ -971,7 +979,7 @@ def _call_litellm(
                 raw_response=_jsonable(chunks),
             )
         try:
-            content = _extract_litellm_content(response)
+            content = _extract_litellm_content(response, allow_empty=True)
         except ValueError as exc:
             _write_llm_trace(
                 trace_path,
@@ -1257,7 +1265,7 @@ def _call_llm_once(
                     raw_response=raw_response,
                 )
             try:
-                content = _extract_litellm_content(response)
+                content = _extract_litellm_content(response, allow_empty=True)
             except ValueError as exc:
                 _write_llm_trace(
                     trace_path,

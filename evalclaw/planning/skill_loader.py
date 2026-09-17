@@ -4,6 +4,8 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
+from ..research.authoritative import NO_RESEARCH_POLICY, RESEARCH_POLICY
+
 _SKILL_DIR = Path(__file__).parent / "skills" / "design-benchmark-blueprints"
 
 
@@ -56,15 +58,47 @@ reference format, pure JSON only.
 """
 
 
-_AUTHORITATIVE_RESEARCH_NOTE = """\
-<RESEARCH_MODE>
-This run grounds the design in a fixed catalog of authoritative sources instead of open web search.
-Your research tools are search_sources (find datasets/articles) and load_source (read raw content:
-dataset rows, article text, or abstracts). For a HuggingFace dataset, set source_plan.strategy to
-"imported_dataset" and put "hf://datasets/{id}" in source_plan.suggested_urls. For a Wikipedia or
-arXiv source, use "reused" or "adapted" and put the article URL in source_plan.suggested_urls.
-Do not over-fetch.
-</RESEARCH_MODE>"""
+_AUTHORITATIVE_RESEARCH_GUIDANCE = """\
+Use research when grounding is needed, when the request involves unfamiliar content,
+or when the requested task count makes adequate coverage and variation difficult to plan.
+Inspect raw material before relying on it; source titles and descriptions are discovery
+metadata, not evidence. The framework retains loaded material for the Builder to read.
+Use the exact supported ref in source_plan.suggested_urls: hf://datasets/{id},
+https://en.wikipedia.org/wiki/{title}, or https://arxiv.org/abs/{id}.
+Use imported_dataset for imported dataset examples, and adapted or reused when
+transforming or reusing source content. Use generated when creating tasks independently.
+Keep generated source_plan URLs and queries empty. Source queries search only the same
+restricted catalog. For optional builder_resource_urls, use supported Wikipedia or arXiv
+refs only, primarily for agent tasks and only for unfamiliar material likely to help the
+Builder. For other task types, recommend such aids only when they may materially improve
+construction efficiency or difficulty. These aids do not change task provenance.
+Do not recommend unsupported repositories, downloads, or open-web research.
+Stop when the plan is complete.
+"""
+
+
+def _research_sections(skill: str, authoritative: bool, enabled: bool = True) -> str:
+    for tag, replacement in (
+        ("RESEARCH_TOOLS", RESEARCH_POLICY),
+        ("RESEARCH_GUIDANCE", _AUTHORITATIVE_RESEARCH_GUIDANCE),
+        ("RESEARCH_ASSISTANCE", """builder_resource_urls is independent of source_plan and may
+be nonempty for generated tasks. Recommend only supported Wikipedia or arXiv refs for
+obscure or unfamiliar material the Builder is likely not to know even as a frontier LLM.
+Use these aids primarily for agent tasks; for other types, require a concrete expected
+gain in construction efficiency or difficulty. The Builder reads raw material through
+load_source or read_research_source, not an unrestricted web or file-download tool.
+These aids establish provenance only if also declared under a source-backed strategy."""),
+    ):
+        before, marker, rest = skill.partition(f"<{tag}>")
+        if not marker:
+            continue
+        original, end, after = rest.partition(f"</{tag}>")
+        if not end:
+            raise ValueError(f"Unclosed Planner prompt section: {tag}")
+        if not enabled:
+            replacement = NO_RESEARCH_POLICY if tag == "RESEARCH_TOOLS" else ""
+        skill = before + (replacement if authoritative or not enabled else original.strip()) + after
+    return skill
 
 
 def benchmark_planner_system_prompt(
@@ -72,6 +106,7 @@ def benchmark_planner_system_prompt(
     *,
     simplified: bool = False,
     authoritative_research: bool = False,
+    use_web_research: bool = True,
 ) -> str:
     """Place the base Planner prompt before the active Skill and its reference."""
     if simplified:
@@ -79,7 +114,7 @@ def benchmark_planner_system_prompt(
         format_path = "reference/universal_format_ablation.json"
         format_text = load_benchmark_plan_format_ablation()
     else:
-        skill = load_benchmark_planner_skill()
+        skill = _research_sections(load_benchmark_planner_skill(), authoritative_research, use_web_research)
         format_path = "reference/universal_format.json"
         format_text = load_benchmark_plan_format()
     text = (
@@ -91,8 +126,10 @@ def benchmark_planner_system_prompt(
         + format_text
         + "\n</REFERENCE_FILE>"
     )
-    if authoritative_research:
-        text += "\n\n" + _AUTHORITATIVE_RESEARCH_NOTE
+    if authoritative_research and simplified:
+        text += "\n\n" + RESEARCH_POLICY
+    elif not use_web_research and simplified:
+        text += "\n\n" + NO_RESEARCH_POLICY
     return text
 
 

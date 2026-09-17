@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import json
 import shlex
+import subprocess
 import uuid
 
 from .docker import docker_subprocess_env, resolve_docker_executable
+from .errors import EvaluationExecutionError
 from .process import run_bounded
 from .resource_guard import DockerResourceGuard
 
@@ -76,9 +78,32 @@ class JudgeSandbox:
             raise
 
     def command(self, command: str, timeout: int = 120):
-        return self.docker_call([
-            "exec", "--user", "0:0", "--workdir", self.workdir, self.name, "sh", "-lc", command,
-        ], timeout=timeout, check=False)
+        token = uuid.uuid4().hex
+        try:
+            return self.docker_call([
+                "exec", "--user", "0:0", "--workdir", self.workdir,
+                "--env", f"EVALCLAW_JUDGE_COMMAND_ID={token}", self.name, "sh", "-lc", command,
+            ], timeout=timeout, check=False)
+        except subprocess.TimeoutExpired:
+            # Killing the Docker client does not kill the guest command. Its unique
+            # inherited environment marker identifies its descendants without touching
+            # services started by review setup or another command.
+            cleanup = r'''
+pids=""
+for entry in /proc/[0-9]*/environ; do
+    if tr '\000' '\n' < "$entry" 2>/dev/null | grep -Fqx "EVALCLAW_JUDGE_COMMAND_ID=$1"; then
+        pid=${entry#/proc/}; pid=${pid%/environ}
+        if kill -STOP "$pid" 2>/dev/null; then pids="$pids $pid"; fi
+    fi
+done
+for pid in $pids; do kill -KILL "$pid" 2>/dev/null || true; done
+'''
+            try:
+                self.docker_call(["exec", "--user", "0:0", self.name,
+                                  "sh", "-c", cleanup, "cleanup", token], timeout=30)
+            except Exception as exc:
+                raise EvaluationExecutionError("Failed to stop a timed-out judge command") from exc
+            raise
 
     def __exit__(self, *_):
         if self.guard is not None:

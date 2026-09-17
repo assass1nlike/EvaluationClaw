@@ -282,10 +282,13 @@ def test_container_asset_filenames_must_be_unique(tmp_path) -> None:
     assert any("filenames must be unique" in issue for issue in task_structure_issues(task))
 
 
+@pytest.mark.parametrize("scoring_failure", [False, True])
 def test_builder_environment_preflight_reports_item_failure_and_cleans_up(
     monkeypatch,
     tmp_path,
+    scoring_failure,
 ) -> None:
+    from evalclaw.execution.errors import EvaluationExecutionError
     dimension = EvalDimension(
         id="dimension_1",
         name="Code execution",
@@ -311,6 +314,8 @@ def test_builder_environment_preflight_reports_item_failure_and_cleans_up(
 
     class BrokenEnvironment:
         def preflight(self):
+            if scoring_failure:
+                raise EvaluationExecutionError("Scoring service unavailable")
             raise RuntimeError("missing_evaluator.py does not exist")
 
         def state(self):
@@ -328,14 +333,25 @@ def test_builder_environment_preflight_reports_item_failure_and_cleans_up(
         lambda item, config: BrokenEnvironment(),
     )
 
-    issues, failed_ids = _preflight_builder_environments(
-        [task],
-        dimension=dimension,
-        blueprint=blueprint,
-        resources=[],
-        config=BenchmarkConfig(),
-        trace_dir=tmp_path,
-    )
+    def preflight():
+        return _preflight_builder_environments(
+            [task],
+            dimension=dimension,
+            blueprint=blueprint,
+            resources=[],
+            config=BenchmarkConfig(),
+            trace_dir=tmp_path,
+        )
+
+    if scoring_failure:
+        with pytest.raises(EvaluationExecutionError):
+            preflight()
+        failure = json.loads(next(tmp_path.rglob("failure.json")).read_text())
+        assert failure["status"] == "evaluation_blocked"
+        assert cleaned is True
+        return
+
+    issues, failed_ids = preflight()
 
     assert failed_ids == {task.id}
     assert "missing_evaluator.py does not exist" in issues[0]
