@@ -61,7 +61,19 @@ from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_openai,
     evalclaw_tool_result_to_openai_response_input,
 )
-from ..research.backends import download_url_file, fetch_url_links, fetch_url_text, web_search
+from ..research.authoritative import (
+    AUTHORITATIVE_TOOLS,
+    load_source,
+    search_sources,
+    source_ref_parts,
+)
+from ..research.backends import (
+    SearchError,
+    download_url_file,
+    fetch_url_links,
+    fetch_url_text,
+    web_search,
+)
 from ..research.documents import (
     extract_archive,
     list_archive,
@@ -69,6 +81,7 @@ from ..research.documents import (
     page_payload,
     read_document,
 )
+from ..research.tools import search_failure_result
 from ..types import AgentEnvironmentSpec, BenchmarkConfig, Message
 from .runtime import BuilderRuntime
 
@@ -1075,6 +1088,44 @@ def _execute_task_builder_tool(
     args = call.arguments if isinstance(call.arguments, dict) else {}
     state = tool_state if tool_state is not None else {}
     try:
+        if not config.use_web_research and call.name in {
+            "read_research_source", "search_sources", "load_source", "fetch_url", "list_url_links", "download_files",
+        }:
+            return ToolResult(tool_call_id=call.id, name=call.name,
+                              content="External research is disabled.", error="research_disabled")
+        if config.ablation_authoritative_research and call.name in {
+            "search_web", "fetch_url", "list_url_links", "download_files",
+        }:
+            return ToolResult(tool_call_id=call.id, name=call.name,
+                              content="Use search_sources, load_source, or read_research_source in restricted-source mode.",
+                              error="research_mode_restricted")
+        if call.name in {"search_sources", "load_source"}:
+            if not config.ablation_authoritative_research:
+                raise ValueError("Restricted-source tools require restricted-source research mode.")
+            if call.name == "search_sources":
+                query = str(args.get("query") or "").strip()
+                if not query:
+                    raise ValueError("query must be non-empty")
+                value = search_sources(query, limit=_bounded_int(
+                    args.get("max_results"), default=8, minimum=1, maximum=20,
+                ))
+            else:
+                ref = str(args.get("ref") or "").strip()
+                offset = int(args.get("offset", 0))
+                if offset < 0:
+                    raise ValueError("offset must be nonnegative")
+                if offset:
+                    content = state["source_materials"][ref]
+                else:
+                    content = load_source(ref, limit=_bounded_int(
+                        args.get("limit"), default=5, minimum=1, maximum=20,
+                    ))
+                    state.setdefault("source_materials", {})[ref] = content
+                return ToolResult(tool_call_id=call.id, name=call.name,
+                                  content=page_payload(content[offset:], offset, max_chars=max_chars,
+                                                       has_more=False, ref=ref, total_characters=len(content)))
+            return ToolResult(tool_call_id=call.id, name=call.name,
+                              content=_tool_content(value, max_chars=max_chars))
         if call.name in ("read_candidate", "update_candidate"):
             if not document_path:
                 return ToolResult(
@@ -1684,6 +1735,8 @@ def _execute_task_builder_tool(
 
         if call.name == "read_research_source":
             url = str(args.get("url") or "").strip()
+            if config.ablation_authoritative_research:
+                source_ref_parts(url)
             brief = config.research_brief
             material = next(
                 (
@@ -1693,7 +1746,10 @@ def _execute_task_builder_tool(
                 ),
                 None,
             )
-            if material is None:
+            content = state.get("source_materials", {}).get(url)
+            if content is None and material is not None:
+                content = material.content
+            if content is None:
                 return ToolResult(
                     tool_call_id=call.id,
                     name=call.name,
@@ -1710,9 +1766,9 @@ def _execute_task_builder_tool(
                 tool_call_id=call.id,
                 name=call.name,
                 content=page_payload(
-                    material.content[offset:offset + requested_chars], offset,
-                    max_chars=max_chars, has_more=offset + requested_chars < len(material.content),
-                    url=material.url, title=material.title, total_characters=len(material.content),
+                    content[offset:offset + requested_chars], offset,
+                    max_chars=max_chars, has_more=offset + requested_chars < len(content),
+                    url=url, title=material.title if material else "", total_characters=len(content),
                 ),
             )
 
@@ -1727,7 +1783,7 @@ def _execute_task_builder_tool(
                     content="Web search is disabled by benchmark configuration.",
                     error="search_disabled",
                 )
-            result = web_search(query, backend=config.search_backend)
+            result = web_search(query, backend=config.search_backend, raise_on_error=True)
             if result is None:
                 return ToolResult(
                     tool_call_id=call.id,
@@ -1836,6 +1892,8 @@ def _execute_task_builder_tool(
             content=f"Unknown TaskBuilder tool: {call.name}",
             error="unknown_tool",
         )
+    except SearchError as exc:
+        return search_failure_result(call, exc)
     except Exception as exc:
         return ToolResult(
             tool_call_id=call.id,
@@ -2009,8 +2067,11 @@ def run_task_builder_tools(
         tools.extend(TASK_BUILDER_IMAGE_TOOLS)
     if include_vm_image_tools:
         tools.extend(TASK_BUILDER_VM_IMAGE_TOOLS)
-    if include_source_tools:
-        tools.extend(TASK_BUILDER_SOURCE_TOOLS)
+    if include_source_tools and config.use_web_research:
+        tools.extend(
+            [TASK_BUILDER_SOURCE_TOOLS[0], *AUTHORITATIVE_TOOLS]
+            if config.ablation_authoritative_research else TASK_BUILDER_SOURCE_TOOLS
+        )
     settings = role_model_settings(config, "task_builder")
     messages: list[dict[str, Any]] = [
         {

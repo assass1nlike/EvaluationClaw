@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from ..models.roles import role_model_settings
-from ..research.authoritative import load_source
+from ..research.authoritative import load_source, search_sources, source_ref_parts
 from ..research.backends import (
     SearchError,
     SearchResult,
@@ -30,6 +30,8 @@ _SOURCE_SEARCH_MAX_ATTEMPTS = 3
 def _source_context(
     sources: list[BenchmarkSource],
     research_brief: ResearchBrief | None = None,
+    *,
+    authoritative_research: bool = False,
 ) -> str:
     if not sources:
         return "No external sources. Generate from the spec and clearly label source as self_generated."
@@ -41,6 +43,16 @@ def _source_context(
     }
     parts: list[str] = []
     for source in sources:
+        if authoritative_research:
+            source_ref_parts(source.uri)
+        retained = retained_by_url.get(source.uri)
+        if retained is not None:
+            parts.append(f"--- {source.title or source.uri} ---\nURI: {source.uri}\n{retained[:3000]}")
+            continue
+        if authoritative_research:
+            content = load_source(source.uri, limit=3)
+            parts.append(f"--- {source.title or source.uri} ---\nURI: {source.uri}\n{content}")
+            continue
         if source.kind == SourceKind.hf_dataset:
             content = source.notes
             if source.uri.startswith("hf://datasets/"):
@@ -121,6 +133,11 @@ def _select_blueprint_sources(
 ) -> list[BenchmarkSource]:
     if blueprint.source_strategy == "generated":
         return []
+    if not config.use_web_research:
+        raise ValueError("Research is disabled; source-backed construction is not allowed.")
+    if config.ablation_authoritative_research:
+        for ref in blueprint.source_plan.suggested_urls:
+            source_ref_parts(ref)
     sources = [
         BenchmarkSource(
             kind=(
@@ -136,19 +153,35 @@ def _select_blueprint_sources(
     ]
     if len(sources) >= config.max_research_sources:
         return sources
-    settings = role_model_settings(config, "research")
     if not dimension.needs_research or not config.use_web_research:
         return sources
-    if not settings.configured:
-        raise RuntimeError(
-            "Task Builder source search was required, but the Research role has no API key."
-        )
     queries = blueprint.resource_queries or dimension.research_queries
     if not queries:
         queries = [
             f"{dimension.name} {blueprint.title} benchmark task resources",
             f"{dimension.name} {blueprint.description} benchmark dataset",
         ]
+    if config.ablation_authoritative_research:
+        seen = {source.uri for source in sources}
+        for query in queries[:2]:
+            for candidate in search_sources(query, limit=config.max_research_sources):
+                ref = candidate["ref"]
+                kind, _ = source_ref_parts(ref)
+                if ref in seen:
+                    continue
+                seen.add(ref)
+                sources.append(BenchmarkSource(
+                    kind=SourceKind.hf_dataset if kind == "hf_dataset" else SourceKind.web,
+                    uri=ref, title=candidate["title"], notes=candidate.get("description", ""),
+                ))
+                if len(sources) >= config.max_research_sources:
+                    return sources
+        return sources
+    settings = role_model_settings(config, "research")
+    if not settings.configured:
+        raise RuntimeError(
+            "Task Builder source search was required, but the Research role has no API key."
+        )
     seen: set[str] = {source.uri for source in sources}
     for query in queries[:2]:
         result = _search_source_query(

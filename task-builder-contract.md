@@ -143,6 +143,8 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `pull_image` | `bool` | 否 | `true` | 是否拉取镜像 |
 | `pull_timeout` | `int` | 否 | `300` | 拉取超时（秒） |
 | `setup_commands` | `list[str]` | 否 | `[]` | 环境初始化命令 |
+| `readiness_checks` | `list[str]` | 否 | `[]` | Docker 初始化后以目标身份执行的只读就绪检查；非零退出阻止启动 |
+| `preflight_commands` | `list[str]` | 否 | `[]` | 只在独立 Docker 预检实例执行的功能自检；非零退出表示环境不合格 |
 | `test_command` | `str` | Docker 脚本或混合评分必填 | `""` | 显式评分命令，放在 environment 下 |
 | `max_steps` | `int` | 否 | `8` | 最大交互步数 |
 | `timeout` | `int` | 否 | `20` | 单步超时 |
@@ -162,6 +164,8 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `notes` | `str` | 否 | `""` | 备注 |
 
 外部 shell harness 共用同一套题目初始化、运行检查和评分流程。`setup_commands` 和评分器以 root 执行，目标以非 root 用户执行；初始化时可使用 `EVALCLAW_TARGET_UID`、`EVALCLAW_TARGET_GID` 为需要目标修改的文件设置所有权。声明结构化评分时，即使尚无作答也必须返回合法分数，不能把评分器异常当作答错。
+
+镜像预置的 `/workspace` 内容保留后，再覆盖声明的 `visible_files`；资源文件不能与已有文件冲突。为关键输入和服务提供 `readiness_checks`，验证目标可读、可访问及必要服务已就绪；检查应快速、只读，不消费任务预算。需要实际请求、断连后重连或验证参考路径时，使用 `preflight_commands`，它只作用于随后丢弃的预检实例。不要把题目故意安排的后续故障自动修复，也不要用“尚无目标产物所以得 0 分”代替环境健康检查。
 
 `environment.judge` 包含 `mode`（`judge` 或 `hybrid`）、`instructions` 和非空 `criteria`。每项 criterion 包含唯一 `id`、描述 0–1 分锚点及证据要求的 `rubric`，以及正数 `weight`（默认 1）。Builder 从可用 task models 中选择一个，写入 `metadata.task_model_id`；模型连接由运行配置提供。Judge 分数是各项分数的加权平均，必须附带理由和所引用的审阅工具调用 ID。
 
@@ -228,4 +232,6 @@ Builder 可用 `read_document` 分页读取工作目录内的 UTF-8 文本、PDF
 - **fill_blank**：`expected_texts` 为可接受答案列表，任一命中即正确；评分用精确匹配（忽略首尾空白）。prompt 里说清楚限制或枚举所有正确答案，确保列表之外不可能有正确答案。
 - **generation**：提供正确、自包含的 `reference_answer` 和具体 `rubric`；可选 `judge_tools` 请求 `python_tests` 做外部验证，Judge 把工具结果当证据，不直接给分。
 - **multi_turn**：顶层 `interaction` 对象，`interaction.max_turns` 在 1–5；scripted 用 `interaction.user_turns`（1–5 个非空字符串）、adaptive 用 `interaction.followup_instruction`（别名如 `scripted_user_turns`/`turns`/`follow_up_policy` 非法）；提供针对性的转写评分标准；`prompt` 是发给目标的第一段完整内容，`system_prompt` 单独作为对话模拟器 prompt。
+
+对话模拟器的角色设定只约束其发送给目标的消息内容；框架单独管理 JSON 传输和结束标记。`generation` 与 `multi_turn` 声明的 `python_tests` 都实际执行：`{model_output}` 分别替换为目标回复字符串、完整对话 JSON 字符串（按顺序排列的 `role`、`content` 对象数组），序列化标记不是目标回复正文。工具输出作为评分证据保存。rubric 应明确满分和聚合规则，评分器返回同一尺度的所得分与满分，由框架计算二者之比；不固定将题目的原始得分除以 5。
 - **agent**：提供可执行环境、输出契约、确定性检查或针对结果的 rubric，并给出一条可行但非唯一的 `reference_trajectory`；单任务多阶段时提供 `workflow.stages`（显式 stage id、kind、prompts、context、环境生命周期、文件交接、evaluation 阶段），只引用前置阶段的输出，并定义 `workflow.score_stage` 和 `metrics`。

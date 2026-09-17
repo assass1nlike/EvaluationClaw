@@ -19,7 +19,9 @@ import hashlib
 import html as _html
 import mimetypes
 import os
+import random
 import re
+import ssl
 import threading
 import time
 import xml.etree.ElementTree as ET
@@ -37,7 +39,6 @@ GEMINI_API_BASE = os.environ.get(
 )
 DEFAULT_SEARCH_MODEL = "gemini-2.5-flash-lite"
 
-_GEMINI_SEARCH_RETRIES = 3
 _GEMINI_TRANSIENT_STATUS = {429, 500, 502, 503, 504}
 
 ARXIV_API = "https://export.arxiv.org/api/query"
@@ -68,13 +69,27 @@ class SearchResult:
 class SearchError(RuntimeError):
     """A search backend failed for a reason callers may need to surface."""
 
+    retryable: bool | None = None
+
+    def __init__(
+        self, message: str, *, retryable: bool | None = None, attempts: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        if retryable is not None:
+            self.retryable = retryable
+        self.attempts = attempts
+
 
 class SearchConfigurationError(SearchError):
     """The selected search backend cannot run with the current configuration."""
 
+    retryable = False
+
 
 class SearchTimeoutError(SearchError, TimeoutError):
     """A search request timed out and may be retried by the caller."""
+
+    retryable = True
 
 
 class SearchBackendError(SearchError):
@@ -360,7 +375,7 @@ class NoneBackend(SearchBackend):
 class GeminiBackend(SearchBackend):
     """Gemini Google-Search grounding backend.
 
-    Ported unchanged from the original ``search.py`` implementation:
+    Uses Google Search grounding:
       - POST to generateContent with tools=[{google_search:{}}]
       - Extract AI-synthesized content + groundingChunks citations
       - Follow citation redirect URLs to resolve final URLs
@@ -374,10 +389,25 @@ class GeminiBackend(SearchBackend):
         api_key: str | None = None,
         model: str = DEFAULT_SEARCH_MODEL,
         resolve_redirects: bool = True,
+        max_attempts: int | None = None,
+        retry_max_delay_s: float | None = None,
     ) -> None:
         self.api_key = api_key
         self.model = model
         self.resolve_redirects = resolve_redirects
+        try:
+            self.max_attempts = (
+                int(os.environ.get("GEMINI_SEARCH_MAX_ATTEMPTS", "8"))
+                if max_attempts is None else max_attempts
+            )
+            self.retry_max_delay_s = (
+                float(os.environ.get("GEMINI_SEARCH_RETRY_MAX_DELAY_S", "30"))
+                if retry_max_delay_s is None else retry_max_delay_s
+            )
+            if self.max_attempts < 1 or not 0 < self.retry_max_delay_s < float("inf"):
+                raise ValueError("retry limits must be positive and finite")
+        except ValueError as exc:
+            raise SearchConfigurationError(f"Invalid Gemini search retry configuration: {exc}") from exc
 
     @staticmethod
     def _resolve_redirect_url(url: str, client: httpx.Client) -> str:
@@ -410,38 +440,9 @@ class GeminiBackend(SearchBackend):
             "tools": [{"google_search": {}}],
         }
 
-        last_error: Exception | None = None
-        for attempt in range(_GEMINI_SEARCH_RETRIES):
-            try:
-                resp = httpx.post(
-                    endpoint,
-                    headers={"Content-Type": "application/json", "x-goog-api-key": key},
-                    json=payload,
-                    timeout=30.0,
-                )
-                resp.raise_for_status()
-                data = resp.json()
-                break
-            except httpx.TimeoutException as exc:
-                last_error = exc
-            except httpx.HTTPStatusError as exc:
-                if exc.response.status_code not in _GEMINI_TRANSIENT_STATUS:
-                    raise SearchBackendError(f"Gemini search failed: {exc}") from exc
-                last_error = exc
-            except httpx.TransportError as exc:
-                last_error = exc
-            except Exception as exc:
-                raise SearchBackendError(f"Gemini search failed: {exc}") from exc
-            if attempt + 1 < _GEMINI_SEARCH_RETRIES:
-                print(
-                    f"  [search] Gemini attempt {attempt + 1}/{_GEMINI_SEARCH_RETRIES} "
-                    f"failed ({type(last_error).__name__}); retrying."
-                )
-                time.sleep(2**attempt)
-        else:
-            if isinstance(last_error, httpx.TimeoutException):
-                raise SearchTimeoutError("Gemini search timed out.") from last_error
-            raise SearchBackendError(f"Gemini search failed: {last_error}") from last_error
+        # Reuse the client across retries, and close it even if all attempts fail.
+        with httpx.Client(timeout=30.0) as client:
+            data = self._request(client, endpoint, payload, key)
 
         if "error" in data:
             message = data["error"].get("message", data["error"])
@@ -477,6 +478,57 @@ class GeminiBackend(SearchBackend):
             citations = raw_citations
 
         return SearchResult(content=content, citations=citations)
+
+    def _request(self, client: httpx.Client, endpoint: str, payload: dict, key: str) -> dict:
+        delay_cap = min(2.0, self.retry_max_delay_s)
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                resp = client.post(
+                    endpoint,
+                    headers={"Content-Type": "application/json", "x-goog-api-key": key},
+                    json=payload,
+                )
+                resp.raise_for_status()
+                return resp.json()
+            except httpx.TimeoutException as exc:
+                last_error = exc
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code not in _GEMINI_TRANSIENT_STATUS:
+                    raise SearchBackendError(
+                        f"Gemini search failed: {exc}", retryable=False, attempts=attempt,
+                    ) from exc
+                last_error = exc
+            except (httpx.NetworkError, httpx.RemoteProtocolError) as exc:
+                cause: BaseException | None = exc
+                while cause is not None:
+                    if isinstance(cause, ssl.SSLCertVerificationError):
+                        raise SearchBackendError(
+                            f"Gemini TLS certificate verification failed: {cause}",
+                            retryable=False, attempts=attempt,
+                        ) from exc
+                    cause = cause.__cause__ or cause.__context__
+                last_error = exc
+            except Exception as exc:
+                raise SearchBackendError(
+                    f"Gemini search failed: {exc}", attempts=attempt,
+                ) from exc
+            if attempt == self.max_attempts:
+                error_type = (
+                    SearchTimeoutError if isinstance(last_error, httpx.TimeoutException)
+                    else SearchBackendError
+                )
+                raise error_type(
+                    f"Gemini search failed after {attempt} attempts: {last_error}",
+                    retryable=True, attempts=attempt,
+                ) from last_error
+            delay = random.uniform(delay_cap / 2, delay_cap)
+            print(
+                f"  [search] Gemini attempt {attempt}/{self.max_attempts} failed "
+                f"({type(last_error).__name__}); retrying in {delay:.1f}s."
+            )
+            time.sleep(delay)
+            delay_cap = min(delay_cap * 2, self.retry_max_delay_s)
+        raise AssertionError("search retry loop terminated unexpectedly")
 
 
 class KeylessBackend(SearchBackend):

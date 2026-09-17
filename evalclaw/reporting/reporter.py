@@ -306,6 +306,22 @@ def build_report(
                 "",
             ]
         )
+        if laaj.item_results:
+            lines.extend([
+                "Clarity, correctness, and faithfulness are equally weighted per-task means. "
+                "Diversity and the Analyser metrics are overall judgments.",
+                "",
+                _markdown_table(
+                    ["Task", "Criterion", "Score (1-5)", "Reasoning"],
+                    [
+                        [item.item_id, name.capitalize(), str(getattr(item, name).score),
+                         _escape_cell(getattr(item, name).reasoning, 320)]
+                        for item in laaj.item_results
+                        for name in ("clarity", "correctness", "faithfulness")
+                    ],
+                ),
+                "",
+            ])
 
     if laaj is not None and laaj.contamination is not None:
         contamination = laaj.contamination
@@ -349,6 +365,32 @@ def build_report(
             lines.extend(f"- Unresolved lead: {url}" for url in item.unresolved_urls)
             lines.extend(f"- Limitation: {limitation}" for limitation in item.limitations)
             lines.append("")
+
+    if laaj is not None and laaj.iteration_reports:
+        lines.extend(["### Iteration Quality Evaluation", "",
+                      "Each iteration is evaluated separately against the original user goal. "
+                      "Contamination scores are conditional on confirmed matches.", ""])
+        for number, result in sorted(laaj.iteration_reports.items()):
+            rows = [
+                [name.capitalize(), f"{getattr(result, name).score:.2f}",
+                 _escape_cell(getattr(result, name).reasoning, 320)]
+                for name in ("clarity", "correctness", "faithfulness", "diversity")
+            ]
+            contamination = result.contamination
+            if contamination is not None:
+                score = contamination.conditional_score
+                rows.append([
+                    "Contamination resistance", f"{score:.2f}" if score is not None else "Not assigned",
+                    f"Assessed {len(contamination.items)}/{contamination.total_item_count} items; "
+                    f"confirmed overlap in {sum(bool(item.matches) for item in contamination.items)}; "
+                    f"failed assessments: {sum(item.status == 'failed' for item in contamination.items)}. "
+                    "No confirmed match does not establish absence of contamination.",
+                ])
+            lines.extend([
+                f"#### Iteration {number}", "",
+                f"Evaluated items: {len(result.evaluated_item_ids)}/{result.total_item_count}", "",
+                _markdown_table(["Criterion", "Score (1-5)", "Reasoning"], rows), "",
+            ])
 
     recommendations = _recommendations(run)
     lines.extend(["## Recommendations", ""])

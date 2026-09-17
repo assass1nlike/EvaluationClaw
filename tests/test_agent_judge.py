@@ -120,7 +120,7 @@ def test_judge_failure_does_not_become_target_zero(monkeypatch, tmp_path, answer
     sandbox = FakeSandbox()
     monkeypatch.setattr(module, "JudgeSandbox", lambda *_: sandbox)
     monkeypatch.setattr(module, "call_orchestrator_with_tools", lambda *a, **kw: _response(content=json.dumps(answer)))
-    with pytest.raises((ValueError, RuntimeError)):
+    with pytest.raises(module.EvaluationExecutionError):
         module.score_with_agent(_item(), _config(), "original", {}, lambda: (1, ""), artifact_dir=tmp_path)
     record = json.loads((tmp_path / "review.json").read_text())
     assert record["status"] == "failed" and "score" not in record
@@ -132,7 +132,7 @@ def test_contract_validation_and_model_selection(tmp_path):
         AgentJudgeSpec.model_validate(_item("hybrid").metadata["agent_env"]["judge"])
     with pytest.raises(ValidationError):
         AgentEnvironmentSpec.model_validate({**_item().metadata["agent_env"], "type": "vm"})
-    with pytest.raises(ValueError, match="task-model"):
+    with pytest.raises(module.EvaluationExecutionError, match="task-model"):
         module.score_with_agent(_item(), BenchmarkConfig(), "unused", {}, lambda: (0, ""), artifact_dir=tmp_path)
     item = _item()
     item.metadata["task_model_id"] = "unknown"
@@ -244,13 +244,174 @@ def test_image_results_are_attached_to_the_judge_turn(monkeypatch, tmp_path):
             return _response(calls=[ToolCall(id="image", name="view_image", arguments={"path": "result.png"})])
         parts = messages[-1]["content"]
         assert any(part.get("type") == "image_url" for part in parts)
+        image_result = json.loads(next(m["content"] for m in messages if m.get("role") == "tool"))
         return _response(content=json.dumps({"status": "scored", "criteria": [
-            {"id": "quality", "score": 0.8, "reasoning": "Inspected the image.", "evidence": ["image"]},
+            {"id": "quality", "score": 0.8, "reasoning": "Inspected the image.", "evidence": [image_result["evidence_id"]]},
         ]}))
 
     monkeypatch.setattr(module, "call_orchestrator_with_tools", model)
     score, _ = module.score_with_agent(_item(), _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
     assert score == 0.8 and list((tmp_path / "images").glob("*.png"))
+
+
+def test_judge_can_page_and_cite_using_only_tool_result_text(monkeypatch, tmp_path):
+    import uuid
+
+    sandbox = FakeSandbox()
+    sandbox.command = lambda *a: subprocess.CompletedProcess(a, 0, "x" * 20000, "")
+    monkeypatch.setattr(module, "JudgeSandbox", lambda *_: sandbox)
+    turns = 0
+    source_id = None
+
+    def model(messages, **kwargs):
+        nonlocal turns, source_id
+        turns += 1
+        if turns == 1:
+            return _response(calls=[ToolCall(id=uuid.uuid4().hex, name="review_command",
+                                             arguments={"command": "cat large-result.txt"})])
+        # Only result bodies are available to this simulated model; protocol ids are not.
+        body = json.loads([m["content"] for m in messages if m.get("role") == "tool"][-1])
+        if turns == 2:
+            source_id = body["evidence_id"]
+            assert body["next_offset"] is not None
+            return _response(calls=[ToolCall(id=uuid.uuid4().hex, name="read_review_output",
+                arguments={"call_id": source_id, "offset": body["next_offset"]})])
+        assert body["source_evidence_id"] == source_id and body["next_offset"] is None
+        return _response(content=json.dumps({"status": "scored", "criteria": [
+            {"id": "quality", "score": 0.8, "reasoning": "Read both pages.",
+             "evidence": [source_id, body["evidence_id"]]},
+        ]}))
+
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", model)
+    score, _ = module.score_with_agent(_item(), _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    assert score == 0.8 and turns == 3
+
+
+def test_invalid_citation_feedback_exposes_valid_ids(monkeypatch, tmp_path):
+    monkeypatch.setattr(module, "JudgeSandbox", FakeSandbox)
+    turns = 0
+
+    def model(messages, **kwargs):
+        nonlocal turns
+        turns += 1
+        if turns == 1:
+            return _response(calls=[ToolCall(id="opaque", name="review_command", arguments={"command": "ls"})])
+        refs = ["made-up"]
+        if turns == 3:
+            feedback = json.loads(messages[-1]["content"])
+            assert feedback["invalid_evidence_ids"] == refs
+            refs = feedback["valid_evidence_ids"]
+        return _response(content=json.dumps({"status": "scored", "criteria": [
+            {"id": "quality", "score": 0.8, "reasoning": "Inspected files.", "evidence": refs},
+        ]}))
+
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", model)
+    score, _ = module.score_with_agent(_item(), _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    assert score == 0.8 and turns == 3
+
+
+def test_model_failure_is_an_evaluation_error_with_evidence(monkeypatch, tmp_path):
+    monkeypatch.setattr(module, "JudgeSandbox", FakeSandbox)
+    def unavailable(*args, **kwargs):
+        raise ConnectionError("service unavailable")
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", unavailable)
+    with pytest.raises(module.EvaluationExecutionError) as error:
+        module.score_with_agent(_item(), _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    assert isinstance(error.value.__cause__, ConnectionError)
+    assert error.value.execution_evidence["stage"] == "evaluation"
+    assert json.loads((tmp_path / "review.json").read_text())["status"] == "failed"
+
+
+def test_command_timeout_keeps_partial_evidence_and_allows_recovery(monkeypatch, tmp_path):
+    sandbox = FakeSandbox()
+
+    def command(command, timeout=120):
+        if command == "wide search":
+            raise subprocess.TimeoutExpired(command, timeout, output=b"partial", stderr=b"unfinished")
+        return subprocess.CompletedProcess(command, 0, "submitted", "")
+
+    sandbox.command = command
+    monkeypatch.setattr(module, "JudgeSandbox", lambda *_: sandbox)
+    turns = 0
+
+    def model(messages, **kwargs):
+        nonlocal turns
+        turns += 1
+        if turns == 1:
+            return _response(calls=[ToolCall(id="timeout", name="review_command",
+                arguments={"command": "wide search", "timeout_seconds": 1})])
+        if turns == 2:
+            body = module.extract_json(messages[-1]["content"])
+            assert body["error"] == "command_timeout" and "evidence_id" not in body
+            assert json.loads(body["content"])["stdout"] == "partial"
+            return _response(calls=[
+                ToolCall(id="partial", name="read_review_output", arguments={"call_id": body["output_id"]}),
+                ToolCall(id="inspect", name="review_command", arguments={"command": "cat answer.txt"}),
+            ])
+        if turns == 3:
+            body = json.loads([m["content"] for m in messages if m.get("tool_call_id") == "partial"][0])
+            assert json.loads(body["content"])["complete"] is False
+            refs = ["timeout"]
+        else:
+            feedback = json.loads(messages[-1]["content"])
+            assert feedback["invalid_evidence_ids"] == ["timeout"]
+            assert set(feedback["valid_evidence_ids"]) == {"partial", "inspect"}
+            refs = ["inspect"]
+        return _response(content=json.dumps({"status": "scored", "criteria": [
+            {"id": "quality", "score": 0.8, "reasoning": "Checked submitted file.", "evidence": refs},
+        ]}))
+
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", model)
+    score, _ = module.score_with_agent(_item(), _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    assert score == 0.8 and turns == 4
+    record = json.loads((tmp_path / "review.json").read_text())
+    assert record["status"] == "scored"
+    assert record["tools"][0]["output"]["stderr"] == "unfinished"
+    assert record["tools"][0]["result"]["error"] == "command_timeout"
+
+
+def test_timeout_cleanup_failure_blocks_evaluation(monkeypatch):
+    monkeypatch.setattr("evalclaw.execution.judge_sandbox.resolve_docker_executable", lambda _: "docker")
+    sandbox = JudgeSandbox("docker", "original", "/workspace")
+    calls = []
+
+    def docker_call(args, **kwargs):
+        calls.append(args)
+        if len(calls) == 1:
+            raise subprocess.TimeoutExpired(args, 1)
+        raise RuntimeError("container unreachable")
+
+    monkeypatch.setattr(sandbox, "docker_call", docker_call)
+    with pytest.raises(module.EvaluationExecutionError, match="Failed to stop"):
+        sandbox.command("sleep 60", 1)
+    assert len(calls) == 2
+
+
+@pytest.mark.skipif(os.environ.get("EVALCLAW_DOCKER_TESTS") != "1", reason="requires local Docker")
+def test_real_timeout_cleans_children_and_preserves_other_review_processes():
+    env = build_agent_environment(_item(), _config())
+    try:
+        env.step({"action": "write_file", "args": {"path": "answer.txt", "content": "submitted"}})
+        with JudgeSandbox(_config().docker_executable, env._container_name, "/workspace") as sandbox:
+            sandbox.command("sleep 300 >/dev/null 2>&1 & echo $! > /tmp/service.pid")
+            with pytest.raises(subprocess.TimeoutExpired) as error:
+                sandbox.command("echo $$ > /tmp/parent.pid; sleep 300 & echo $! > /tmp/child.pid; echo partial; wait", 2)
+            assert "partial" in error.value.stdout
+            result = sandbox.command("""python3 - <<'PY'
+from pathlib import Path
+import os
+for name in ('parent', 'child'):
+    pid = Path('/tmp/' + name + '.pid').read_text().strip()
+    status = Path('/proc/' + pid + '/stat')
+    assert not status.exists() or status.read_text().split()[2] == 'Z'
+os.kill(int(Path('/tmp/service.pid').read_text()), 0)
+print(Path('answer.txt').read_text())
+PY""")
+            assert result.returncode == 0, result.stderr
+            assert result.stdout.strip() == "submitted"
+        assert env.run_external_command("cat answer.txt", 10).stdout == "submitted"
+    finally:
+        env.cleanup()
 
 
 @pytest.mark.skipif(os.environ.get("EVALCLAW_DOCKER_TESTS") != "1", reason="requires local Docker")

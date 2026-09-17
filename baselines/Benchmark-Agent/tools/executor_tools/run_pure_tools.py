@@ -6,6 +6,7 @@ from typing import Any, Dict
 from cv2 import add
 
 from utils.llm_caller import llm_call_json
+from utils.model_config import get_tool_model
 import json
 
 _LLM_TIMEOUT_S = int(os.getenv("LLM_TIMEOUT_S", "90"))
@@ -442,7 +443,7 @@ def _llm_plan_pure_call(
     resources: Dict[str, Any],
     step: Dict[str, Any],
     tool_spec: Dict[str, Any],
-    model: str = "gpt-5.1",
+    model: str = None,
 ) -> Dict[str, Any]:
 
     # Defensive: this should ALWAYS be a dict built from PureToolSpec.
@@ -465,7 +466,7 @@ def _llm_plan_pure_call(
     resp = llm_call_json(
         system_prompt="You are a meticulous and precise tool invocation planner. Always follow the instructions exactly.",
         user_prompt=user_prompt,
-        model=model,
+        model=model or get_tool_model("pure_tool_planner"),
         extra_create_params={
             "timeout": _LLM_TIMEOUT_S,
             "request_timeout": _LLM_TIMEOUT_S,

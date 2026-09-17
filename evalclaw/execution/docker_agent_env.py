@@ -25,6 +25,7 @@ from .docker_images import (
     build_docker_image_if_requested,
     inspect_docker_image,
 )
+from .environment_checks import run_environment_checks
 from .evaluation import EvaluatorResult, parse_evaluator_result
 
 
@@ -58,6 +59,8 @@ class DockerWorkspaceAgentEnvironment:
     runtime_files: dict[str, str] = field(default_factory=dict)
     input_assets: dict[str, Path] = field(default_factory=dict)
     setup_commands: list[str] = field(default_factory=list)
+    readiness_checks: list[str] = field(default_factory=list)
+    preflight_commands: list[str] = field(default_factory=list)
     test_command: str = "pytest -q"
     max_steps: int = 8
     timeout: int = 20
@@ -82,6 +85,7 @@ class DockerWorkspaceAgentEnvironment:
     done: bool = False
     last_test: dict[str, Any] | None = None
     evaluator_runs: list[dict[str, Any]] = field(default_factory=list)
+    environment_checks: list[dict[str, Any]] = field(default_factory=list)
     test_runs: int = 0
     last_command: dict[str, Any] | None = None
     final_answer: str = ""
@@ -150,6 +154,8 @@ class DockerWorkspaceAgentEnvironment:
             hidden_files={str(path): str(content) for path, content in hidden.items()},
             input_assets=dict(input_assets or {}),
             setup_commands=setup_commands,
+            readiness_checks=list(config.get("readiness_checks") or []),
+            preflight_commands=list(config.get("preflight_commands") or []),
             test_command=str(config.get("test_command") or "pytest -q"),
             max_steps=max(1, int(config.get("max_steps") or 8)),
             timeout=max(1, int(config.get("timeout") or 20)),
@@ -387,6 +393,7 @@ class DockerWorkspaceAgentEnvironment:
             for command in self.setup_commands:
                 self._require_ok(self._exec_shell(command, timeout=self.timeout), f"setup command {command!r}")
             self._setup_browser_runtime()
+            self.environment_checks.extend(run_environment_checks(self.readiness_checks, self._exec_shell))
         except Exception:
             self.cleanup()
             raise
@@ -649,6 +656,7 @@ class DockerWorkspaceAgentEnvironment:
 
     def preflight(self) -> EvaluatorResult:
         """Verify setup and evaluator materialization in an isolated container."""
+        self.environment_checks.extend(run_environment_checks(self.preflight_commands, self._exec_shell))
         if self.judge_evaluator is not None:
             self.evaluate_with_evidence({
                 "termination": {"status": "preflight"},
@@ -859,6 +867,7 @@ class DockerWorkspaceAgentEnvironment:
     def state(self) -> dict[str, Any]:
         return {
             "environment": self.environment_kind,
+            "environment_checks": self.environment_checks,
             "image": self.image,
             "container_name": self._container_name,
             "visible_files": self._list_visible_files(),

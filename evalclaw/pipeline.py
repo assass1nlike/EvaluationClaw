@@ -41,6 +41,7 @@ from .reporting.viewer import build_report_viewer_html
 from .research.backends import reset_network_state
 from .research.deep_research import render_brief_markdown
 from .types import (
+    AnalysisReport,
     BenchmarkConfig,
     BenchmarkPackage,
     BenchmarkPlan,
@@ -71,6 +72,52 @@ def _load_model(path: Path, model_type: type) -> object | None:
         return model_type.model_validate(payload)
     except (TypeError, ValueError):
         return None
+
+
+def _evaluate_iteration_quality(
+    goal: str,
+    analysis: AnalysisReport,
+    laaj: LaajReport,
+    config: BenchmarkConfig,
+    *,
+    debug_run_dir: Path | None,
+    resuming: bool,
+    log: Callable[[str], None],
+) -> None:
+    for iteration in analysis.iterations:
+        suite = iteration.suite
+        if suite is None or not suite.tasks:
+            continue
+        root = (
+            debug_run_dir / "analysis" / f"iteration-{iteration.iteration:02d}"
+            if debug_run_dir is not None else None
+        )
+        report = None
+        if resuming:
+            report = _load_model(root / "laaj.json", LaajReport) if root is not None else None
+            report = report or laaj.iteration_reports.get(iteration.iteration)
+        if report is None:
+            log(f"\n[LaaJ] Evaluating iteration {iteration.iteration} ({len(suite.tasks)} tasks)...")
+            report = evaluate_with_laaj(
+                goal, suite, None, config,
+                run=iteration.run, qc_report=iteration.qc_report,
+                artifact_dir=root,
+                trace_dir=root / "laaj" if root is not None else None,
+            )
+        laaj.iteration_reports[iteration.iteration] = report
+        if root is not None:
+            write_json(root / "laaj.json", report.model_dump(mode="json"))
+            write_json(debug_run_dir / "laaj.json", laaj.model_dump(mode="json"))
+        if config.contamination_enabled and report.contamination is None:
+            log(f"\n[Contamination] Evaluating iteration {iteration.iteration}...")
+            report.contamination = evaluate_contamination(
+                goal, suite, config, artifact_dir=root,
+                trace_dir=root / "contamination" if root is not None else None,
+                log=log,
+            )
+            if root is not None:
+                write_json(root / "laaj.json", report.model_dump(mode="json"))
+                write_json(debug_run_dir / "laaj.json", laaj.model_dump(mode="json"))
 
 
 def _write_run_state(
@@ -781,6 +828,14 @@ def _run_pipeline(
         if debug_run_dir is not None:
             write_json(debug_run_dir / "laaj.json", laaj.model_dump(mode="json"))
         mark_stage("contamination", "done")
+
+    if laaj is not None and analysis is not None and analysis.iterations:
+        mark_stage("iteration_laaj")
+        _evaluate_iteration_quality(
+            goal, analysis, laaj, config,
+            debug_run_dir=debug_run_dir, resuming=resuming, log=log,
+        )
+        mark_stage("iteration_laaj", "done")
 
     mark_stage("reporting")
     log("\n[Reporter] Building Markdown report...")

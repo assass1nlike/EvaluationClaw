@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import subprocess
 import uuid
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable
@@ -15,6 +16,7 @@ from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_orchestrator_with_tools
 from ..models.roles import resolve_task_model
 from ..protocols.tool import ToolResult, ToolSpec
 from ..types import AgentJudgeSpec, BenchmarkConfig, BenchmarkItem
+from .errors import EvaluationExecutionError
 from .evidence import execution_failure, redact_evidence
 from .judge_sandbox import JudgeSandbox
 
@@ -36,14 +38,22 @@ as an empty submission against the same rubric. This is an evaluator check, not 
 Read relevant task files and full evidence using pagination as needed. Commands and their full
 captured outputs are saved; read_review_output retrieves additional pages without re-execution.
 Use view_image to inspect screenshots or image artifacts in the review copy when relevant.
+Framework execution records are available through read_evidence(kind="episode"); they need
+not exist as files inside the review copy. Inspect declared task paths first. Avoid searching
+pseudo-filesystems such as /proc, /sys, or /dev for task artifacts. If a command times out,
+its output is incomplete: narrow the search or use another tool. A reviewer command timeout
+is not evidence of a target failure, nor proof that a file or event is absent.
 
-Score every criterion in [0,1] using its anchors. Cite successful tool-call ids in each finding.
+Score every criterion in [0,1] using its anchors. Each successful tool result includes an
+evidence_id in its JSON body. Copy those exact values into each finding's evidence list.
+For read_review_output, pass the review_command result's evidence_id as call_id.
+Do not invent ids or use commands, filenames, or ordinal numbers as evidence ids.
 The framework applies weights and any script gate; do not change them or return your own total.
 If essential evidence is unavailable and a defensible score is impossible, return
 {"status":"ungradable","reason":"..."}; do not turn judge failures into target mistakes.
 Otherwise return JSON only:
 {"status":"scored","criteria":[{"id":"...","score":0.0,"reasoning":"...",
-"evidence":["tool-call-id"]}]}
+"evidence":["evidence_id from a tool result"]}]}
 """
 
 TOOLS = [
@@ -105,7 +115,7 @@ def score_with_agent(
         return deterministic()
     model = resolve_task_model(config, item)
     if model is None:
-        raise ValueError("Judge-agent scoring requires a configured --task-model.")
+        raise EvaluationExecutionError("Judge-agent scoring requires a configured --task-model.")
     selected = str(item.metadata.get("task_model_id") or "")
     if selected and selected != model.id:
         raise ValueError(f"Unknown task_model_id for judge scoring: {selected}")
@@ -152,37 +162,47 @@ def score_with_agent(
             inspected = False
             used, repairs = 0, 0
             while True:
-                response = call_orchestrator_with_tools(
-                    messages, system_prompt=JUDGE_PROMPT, model=model.model, provider=model.provider,
-                    api_key=model.api_key, base_url=model.base_url, extra_body=model.extra_body,
-                    backend=config.llm_backend, tools=TOOLS if used < config.agent_judge_tool_max_calls else [],
-                    max_tokens=DEFAULT_MAX_OUTPUT_TOKENS, retry_on_truncation=True,
-                    expect_json=used >= config.agent_judge_tool_max_calls,
-                    trace_dir=root / "llm", trace_name="agent-judge", failover=config.failover_endpoint,
-                )
+                try:
+                    response = call_orchestrator_with_tools(
+                        messages, system_prompt=JUDGE_PROMPT, model=model.model, provider=model.provider,
+                        api_key=model.api_key, base_url=model.base_url, extra_body=model.extra_body,
+                        backend=config.llm_backend, tools=TOOLS if used < config.agent_judge_tool_max_calls else [],
+                        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS, retry_on_truncation=True,
+                        expect_json=used >= config.agent_judge_tool_max_calls,
+                        trace_dir=root / "llm", trace_name="agent-judge", failover=config.failover_endpoint,
+                    )
+                except Exception as exc:
+                    raise EvaluationExecutionError(f"Judge model call failed: {exc}") from exc
                 if not response.tool_calls:
                     try:
                         data = extract_json(response.content)
                         if not isinstance(data, dict):
                             raise ValueError("Return a JSON object.")
                         if data.get("status") == "ungradable":
-                            raise RuntimeError(f"Judge could not grade: {data.get('reason', '')}")
+                            raise EvaluationExecutionError(f"Judge could not grade: {data.get('reason', '')}")
                         findings = [Finding.model_validate(value) for value in data.get("criteria", [])]
                         if data.get("status") != "scored" or len(findings) != len(spec.criteria) or {
                             f.id for f in findings
                         } != {c.id for c in spec.criteria}:
                             raise ValueError("Return exactly one finding for every declared criterion.")
-                        if not inspected or any(set(f.evidence) - valid_ids for f in findings):
-                            raise ValueError("Inspect the environment and cite successful tool-call ids for each finding.")
+                        if not inspected:
+                            raise ValueError("Inspect the environment with review_command or view_image before scoring.")
+                        invalid_ids = sorted({ref for f in findings for ref in f.evidence} - valid_ids)
+                        if invalid_ids:
+                            raise ValueError(json.dumps({
+                                "error": "Unknown evidence ids; copy evidence_id from successful tool results.",
+                                "invalid_evidence_ids": invalid_ids,
+                                "valid_evidence_ids": sorted(valid_ids),
+                            }))
                         break
-                    except ValueError as exc:
+                    except (ValueError, TypeError) as exc:
                         if repairs >= 2:
-                            raise
+                            raise EvaluationExecutionError(f"Judge response validation failed: {exc}") from exc
                         repairs += 1
                         messages.extend([response.assistant_message, {"role": "user", "content": str(exc)}])
                         continue
                 if used >= config.agent_judge_tool_max_calls:
-                    raise RuntimeError("Judge requested tools after exhausting its scoring budget.")
+                    raise EvaluationExecutionError("Judge requested tools after exhausting its scoring budget.")
                 results = []
                 for call in response.tool_calls:
                     try:
@@ -225,12 +245,28 @@ def score_with_agent(
                                 value = value[int(key)] if isinstance(value, list) else value[key]
                             value = _page(value, int(args.get("offset", 0)))
                         elif call.name == "read_review_output":
-                            value = _page(outputs[args["call_id"]], int(args.get("offset", 0)))
+                            output_id = args["call_id"]
+                            if output_id not in outputs:
+                                raise ValueError(json.dumps({"error": "Unknown review output id",
+                                    "valid_output_ids": list(outputs)}))
+                            value = _page(outputs[output_id], int(args.get("offset", 0)))
+                            value["source_evidence_id"] = output_id
                         else:
                             raise ValueError("Unknown judge tool")
                         valid_ids.add(call.id)
+                        value["evidence_id"] = call.id
                         result = ToolResult(tool_call_id=call.id, name=call.name,
                                             content=json.dumps(clean(value), ensure_ascii=False), raw=image_raw)
+                    except subprocess.TimeoutExpired as exc:
+                        failure = execution_failure(exc)
+                        outputs[call.id] = {"status": "timeout", "complete": False,
+                            "timeout_seconds": exc.timeout,
+                            "stdout": failure["stdout"], "stderr": failure["stderr"]}
+                        value = {**_page(outputs[call.id]), "output_id": call.id,
+                            "error": "command_timeout",
+                            "instruction": "Output is partial. Narrow the command or use read_evidence; this is not a target failure."}
+                        result = ToolResult(tool_call_id=call.id, name=call.name,
+                            content=json.dumps(clean(value), ensure_ascii=False), error="command_timeout")
                     except (ValueError, KeyError, TypeError, IndexError) as exc:
                         result = ToolResult(tool_call_id=call.id, name=call.name, content=str(exc), error="invalid_request")
                     record["tools"].append({"call": call.model_dump(mode="json"), "result": result.model_dump(mode="json"),

@@ -27,6 +27,7 @@ from ..execution.docker_images import (
     apply_docker_image_selection,
     build_docker_image_if_requested,
 )
+from ..execution.environment_checks import run_environment_checks
 from ..execution.evaluation import parse_evaluator_result
 from ..execution.evidence import EVALUATOR_EVIDENCE_SCHEMA, execution_failure, redact_evidence
 from ..execution.harness_compatibility import external_harness_issues
@@ -157,16 +158,19 @@ class HarnessContext:
         )
 
 
-@dataclass(frozen=True)
+@dataclass
 class DockerWorkspaceBackend:
     """The Docker environment backend used by manifest-based CLI harnesses."""
 
     item: BenchmarkItem
     config: BenchmarkConfig
     kind: str = "docker_workspace"
+    prepared_image: str = ""
 
     def prepare(self) -> tuple[str, Path]:
-        return prepare_docker_task(self.item, self.config)
+        image, workdir = prepare_docker_task(self.item, self.config)
+        self.prepared_image = image
+        return image, workdir
 
     def evaluate(
         self,
@@ -198,7 +202,7 @@ class DockerWorkspaceBackend:
         )
 
     def cleanup(self, workdir: Path) -> None:
-        shutil.rmtree(workdir, ignore_errors=True)
+        _cleanup_seeded_workspace(workdir, self.prepared_image, self.config)
 
 
 def environment_backend(item: BenchmarkItem, config: BenchmarkConfig) -> EnvironmentBackend:
@@ -556,10 +560,82 @@ def prepare_docker_task(item: BenchmarkItem, config: BenchmarkConfig) -> tuple[s
                 raise ValueError(f"Task asset does not exist or is not a file: {source}.")
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
-    except Exception:
+        seeded = _seed_image_workspace(image, workdir, config)
+    finally:
         shutil.rmtree(workdir, ignore_errors=True)
+    return image, seeded
+
+
+def _seed_image_workspace(image: str, overlay: Path, config: BenchmarkConfig) -> Path:
+    """Preserve image file ownership and modes; overlay explicit public files."""
+    docker = resolve_docker_executable(config.docker_executable)
+    if not docker:
+        raise RuntimeError("Docker is unavailable for workspace preparation.")
+    env = docker_subprocess_env(config.docker_executable)
+    name = "evalclaw-workspace-" + uuid.uuid4().hex[:12]
+    workdir = Path(tempfile.mkdtemp(prefix="evalclaw-harness-"))
+    guard = DockerResourceGuard(docker, env)
+    try:
+        guard.register("container", name)
+        script = ["set -eu", "if [ -e /workspace ]; then cp -a /workspace/. /evalclaw-seed/; fi"]
+        for source in sorted(overlay.rglob("*")):
+            relative = source.relative_to(overlay).as_posix()
+            destination = PurePosixPath("/evalclaw-seed") / relative
+            # Never follow an image symlink while applying declared overrides.
+            for path in [*reversed(destination.parents), destination]:
+                script.append(f"test ! -L {shlex.quote(str(path))} || {{ echo 'Overlay path contains an image symlink' >&2; exit 1; }}")
+            if source.is_dir():
+                path = shlex.quote(str(destination))
+                script.append(f"if [ ! -e {path} ]; then mkdir {path}; chown {_target_container_user()} {path}; fi")
+                continue
+            script.extend([
+                f"mkdir -p {shlex.quote(str(destination.parent))}",
+                f"rm -f {shlex.quote(str(destination))}",
+                f"cp -p {shlex.quote('/evalclaw-overlay/' + relative)} {shlex.quote(str(destination))}",
+                f"chown {_target_container_user()} {shlex.quote(str(destination))}",
+            ])
+        # The mount root remains the framework-owned writable worktree. Children
+        # retain image permissions; explicit files retain overlay permissions.
+        script.extend([f"chown {_target_container_user()} /evalclaw-seed", "chmod 0700 /evalclaw-seed"])
+        result = _run_bounded([
+            docker, "run", "--name", name, "--network", "none", "--user", "0:0",
+            "-v", f"{overlay}:/evalclaw-overlay:ro", "-v", f"{workdir}:/evalclaw-seed",
+            "--entrypoint", "sh", image, "-c", "\n".join(script),
+        ], timeout=600, env=env)
+        if result.returncode:
+            raise RuntimeError(f"Image workspace preparation failed: {result.stderr or result.stdout}")
+        return workdir
+    except BaseException:
+        _cleanup_seeded_workspace(workdir, image, config)
         raise
-    return image, workdir
+    finally:
+        guard.close()
+
+
+def _cleanup_seeded_workspace(workdir: Path, image: str, config: BenchmarkConfig) -> None:
+    shutil.rmtree(workdir, ignore_errors=True)
+    if not workdir.exists():
+        return
+    # Seeded root-owned directories may not be removable by the host user.
+    # Only the concrete framework-created workdir is mounted for cleanup.
+    if workdir.is_symlink() or workdir.parent != Path(tempfile.gettempdir()) or not workdir.name.startswith("evalclaw-harness-"):
+        raise ValueError("Refusing privileged cleanup of a non-framework workspace")
+    docker = resolve_docker_executable(config.docker_executable)
+    env = docker_subprocess_env(config.docker_executable)
+    name = "evalclaw-workspace-cleanup-" + uuid.uuid4().hex[:12]
+    guard = DockerResourceGuard(docker, env)
+    try:
+        guard.register("container", name)
+        result = _run_bounded([
+            docker, "run", "--name", name, "--network", "none", "--user", "0:0",
+            "-v", f"{workdir}:/evalclaw-cleanup", "--entrypoint", "sh", image,
+            "-c", f"find /evalclaw-cleanup -mindepth 1 -delete && chown {os.getuid()}:{os.getgid()} /evalclaw-cleanup && chmod 0700 /evalclaw-cleanup",
+        ], timeout=120, env=env)
+        if result.returncode:
+            raise RuntimeError(f"Workspace cleanup failed: {result.stderr or result.stdout}")
+        workdir.rmdir()
+    finally:
+        guard.close()
 
 
 def score_docker_task(
@@ -1022,6 +1098,10 @@ class ManifestHarnessRunner:
                         "tool_call_count": None,
                     },
                     "actors": actor_evidence,
+                    "environment_checks": {
+                        "readiness": launch_capture.get("readiness_checks", []),
+                        "preflight": launch_capture.get("environment_checks", []),
+                    },
                     "interventions": launch_capture.get("interventions", []),
                     "timing": {
                         "started_at": started_at.isoformat(),
@@ -1435,7 +1515,7 @@ class ManifestHarnessRunner:
                     _container_exec_command(
                         resolved,
                         container_name,
-                        f"chown -R {_target_container_user()} /workspace",
+                        f"chown {_target_container_user()} /workspace",
                         user="0:0",
                     ),
                     timeout=min(episode_timeout, 120),
@@ -1499,7 +1579,19 @@ class ManifestHarnessRunner:
             lifecycle["preflight"] = self._preflight(
                 HarnessContext(item, target, config, image, workdir), container_name, prefix,
             )
+            def check_environment(command):
+                return _run_bounded(
+                    _container_exec_command(resolved, container_name, command, user=_target_container_user()),
+                    timeout=min(episode_timeout, 120), env=docker_env,
+                )
+
+            lifecycle["readiness_checks"] = run_environment_checks(
+                env.get("readiness_checks", []), check_environment,
+            )
             if preflight_only:
+                lifecycle["environment_checks"] = run_environment_checks(
+                    env.get("preflight_commands", []), check_environment,
+                )
                 return ""
             interventions = [
                 dict(intervention)

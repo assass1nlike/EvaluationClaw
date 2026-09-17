@@ -199,6 +199,22 @@ page text, and retained Planner text support pagination. Local processing is
 available without web research. PDF text extraction requires Poppler's
 `pdftotext`; scanned-page OCR is not included.
 
+LaaJ judges each sampled task in a separate conversation, scoring clarity,
+correctness, and faithfulness together. Their reported scores are arithmetic
+means with equal weight per task. Per-task scores and reasons are retained in
+`laaj.item_results` and, when debug traces are enabled, `laaj/items/`.
+Agent tasks retain private environment exploration. A separate overall judgment
+scores diversity and, when analysis is available, the Analyser's systematicness
+and credibility. Failed item judgments are retried; exhausted failures stop the
+evaluation rather than becoming zero scores or disappearing from the average.
+The main benchmark and every Analyser iteration receive separate quality and
+contamination evaluations, both in standard runs and the similar-tasks ablation.
+Iteration judgments use the original user goal and are stored in
+`laaj.iteration_reports` and `analysis/iteration-NN/laaj.json`; their traces stay
+inside the corresponding iteration directory. Completed round evaluations are
+reused on resume. Analyser systematicness and credibility are evaluated once
+for the complete analysis, and LaaJ scores do not feed back into construction.
+
 With LaaJ configured, a separate contamination evaluation runs by default;
 disable it with `--no-contamination`. It searches every constructed item unless
 `--contamination-sample-size` sets a stratified sample. A research agent searches,
@@ -210,7 +226,15 @@ tool calls, at most 100 queries and 200 distinct source URLs, configurable with
 `--contamination-max-sources`. Search, navigation, inspection, and match
 confirmation all consume the shared tool budget.
 Search uses `--search-backend` (Gemini requires `GEMINI_API_KEY`), independently
-of construction's `--web-research` switch. The LaaJ model drives the research
+of construction's `--web-research` switch. Gemini retries temporary connection
+failures, timeouts, and HTTP 429/500/502/503/504 responses up to 8 total attempts,
+using exponential backoff with jitter capped at 30 seconds. Configure these with
+`GEMINI_SEARCH_MAX_ATTEMPTS` and `GEMINI_SEARCH_RETRY_MAX_DELAY_S`. It uses the
+standard HTTP proxy environment variables and keeps TLS certificate verification
+enabled. Failed searches retain the query, failure reason, attempt count, and
+retryability in tool evidence; they are distinct from successful empty searches.
+These settings also apply to Planner and Builder research.
+The LaaJ model drives the research
 agent and, in a separate call, judges confirmed overlaps on a 1–5 resistance
 scale. Agent environment and file inspection tools are available at both stages.
 Only contiguous passages verified against both the task and retrieved original
@@ -242,12 +266,25 @@ evalclaw generate \
   --analysis-iterations 1
 ```
 
-Paper ablations use `--ablation-authoritative-research` for fixed-source
+Paper ablations use `--ablation-authoritative-research` for restricted-source
 research, `--no-web-research` for no research, and
 `--ablation-no-builder-harness` for direct construction of the complete task
 representation without Builder tools or repair feedback.
 The similarity-based Analyzer baseline is selected with
 `--ablation-analyser similar-tasks`; the default `none` is hypothesis-driven.
+
+Restricted-source research uses curated benchmarks, Hugging Face datasets,
+English Wikipedia, and arXiv throughout planning and construction. Planner and
+Builder use catalog search and raw-content loading, retaining source identifiers
+and original material instead of receiving an LLM-generated research summary.
+Planner snapshots are available to Builder without refetching. Source discovery
+remains demand-driven within these channels; this does not freeze a collection
+of materials in advance. Ordinary runtime dependency installation remains available.
+
+`--no-web-research` constructs generated tasks without external source material or
+Builder-assistance URLs. It disables source search, reading, fetching, and downloading
+during construction while retaining local construction tools and runtime dependency
+installation. LaaJ contamination detection, when enabled, still performs its own searches.
 
 When a role uses a different provider or endpoint, configure that role's
 `--*-provider`, `--*-api-key`, and `--*-base-url` explicitly.

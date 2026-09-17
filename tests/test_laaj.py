@@ -273,6 +273,7 @@ def test_laaj_image_tool_limits_access_to_declared_assets_and_run(tmp_path) -> N
 
 def test_laaj_uses_tool_loop_for_agent_tasks(monkeypatch) -> None:
     suite = _suite()
+    suite.tasks = suite.tasks[:1]
     item = suite.tasks[0]
     item.task_type = TaskType.agent
     item.metadata["agent_env"] = {
@@ -412,6 +413,7 @@ def test_laaj_analyser_with_artifacts_exposes_run_evidence_tools(monkeypatch, tm
         )
 
     monkeypatch.setattr(laaj_module, "call_orchestrator_with_tools", fake_call)
+    monkeypatch.setattr(laaj_module, "call_llm", lambda *args, **kwargs: _response())
     suite = _suite()
     report = laaj_module.evaluate_with_laaj(
         suite.objective,
@@ -430,7 +432,7 @@ def test_laaj_analyser_with_artifacts_exposes_run_evidence_tools(monkeypatch, tm
 
 
 def test_laaj_retries_invalid_judgments(monkeypatch) -> None:
-    responses = iter(["{}", "not json", _response()])
+    responses = iter(["{}", "not json", _response(), _response(), _response(), _response()])
     monkeypatch.setattr(laaj_module, "call_llm", lambda *args, **kwargs: next(responses))
 
     report = laaj_module.evaluate_with_laaj(
