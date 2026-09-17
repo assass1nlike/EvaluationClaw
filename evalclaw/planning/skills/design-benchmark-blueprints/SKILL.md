@@ -20,16 +20,22 @@ Use the following information together:
 - Constraints such as the total task count specified by the user and the available task types; also see `resources/instruction.md`.
 ## Tools
 
-You have two web-research tools to ground the design in real, current material, plus a write tool to commit the plan progressively:
+<RESEARCH_TOOLS>
+You have two web-research tools to ground the design in real, current material:
 
 - `search_web(query)` returns a backend-generated summary of results plus citation URLs. Write the query yourself — it should target the specific dimension, failure mode, task shape, or source material you need next.
 - `fetch_url(url)` returns the readable text of one citation URL so you can inspect it before committing it as a source.
+</RESEARCH_TOOLS>
+
+Use these tools to commit the plan progressively:
 - `read_plan(path?)` reads the working plan file — no path returns the full document, a dot path (e.g. `dimensions.0`) returns just that node.
 - `update_plan(operations)` edits the working plan file (top-level keys `objective`, `constraints`, `planner_notes`, `dimensions`). Each operation is `{"op": "set"|"remove"|"append", "path": "dot.path", "value": ...}`; list items are indexed from 0. It returns the updated plan summary (dimension names + task_designs counts).
 
 Commit your finished parts as you go instead of reproducing the whole plan at the end: set plan-level fields once decided, then `append` each dimension, then `set` its `task_designs`. Use `read_plan` before `set` when you need to see a field's current value, and `remove` to drop a dimension you no longer want.
 
-Use search/fetch when the evaluation request needs domain grounding, current facts, or authoritative sources for source-backed tasks. You may also use them to help plan and design the benchmark when the request involves content you do not understand well enough, or when the requested number of tasks is large enough that you are unsure how to design adequate coverage and variation. When a fetched URL is a candidate source, place it in the relevant TaskDesign's `source_plan.suggested_urls`. When populating `source_plan.suggested_urls` or `builder_resource_urls`, prefer a URL that is, or directly leads to, a download link for the original content or a downloadable artifact over a search-result page, index page, opaque interactive landing page, or other URL that makes it inconvenient for the Builder to obtain useful content. Treat `builder_resource_urls` primarily as support for agent-task construction, especially E2/E3 agent tasks: look for public documentation, starter repositories, templates, protocols, or other resources that would materially simplify the Builder's work or raise the attainable task difficulty. For non-agent TaskDesigns, normally leave `builder_resource_urls` empty; use it only in the uncommon case where the TaskDesign and the specific resource give a concrete reason to expect that inspecting it may materially improve construction efficiency or attainable difficulty. These are construction aids, not task sources: they do not change `source_plan.strategy`, establish provenance, or require the resulting task to cite or reuse their content. Do not add ceremonial or merely topical URLs. When the plan is complete, stop (return no further tool calls).
+<RESEARCH_GUIDANCE>
+Use search/fetch when the evaluation request needs domain grounding, current facts, or authoritative sources for source-backed tasks. You may also use them to help plan and design the benchmark when the request involves content you do not understand well enough, or when the requested number of tasks is large enough that you are unsure how to design adequate coverage and variation. When a fetched URL is a candidate source, place it in the relevant TaskDesign's `source_plan.suggested_urls`. When populating `source_plan.suggested_urls` or `builder_resource_urls`, prefer a URL that is, or directly leads to, a download link for the original content or a downloadable artifact over a search-result page, index page, opaque interactive landing page, or other URL that makes it inconvenient for the Builder to obtain useful content. Provide `builder_resource_urls` only when the resources cover obscure or unfamiliar subject matter that you judge the Builder is likely not to know even as a frontier LLM; otherwise leave this field empty. Treat `builder_resource_urls` primarily as support for agent-task construction, especially E2/E3 agent tasks: look for public documentation, starter repositories, templates, protocols, or other resources that would materially simplify the Builder's work or raise the attainable task difficulty. For non-agent TaskDesigns, normally leave `builder_resource_urls` empty; use it only in the uncommon case where the TaskDesign and the specific resource give a concrete reason to expect that inspecting it may materially improve construction efficiency or attainable difficulty. These are construction aids, not task sources: they do not change `source_plan.strategy`, establish provenance, or require the resulting task to cite or reuse their content. Do not add ceremonial or merely topical URLs. When the plan is complete, stop (return no further tool calls).
+</RESEARCH_GUIDANCE>
 
 ## Workflow
 
@@ -67,6 +73,12 @@ Use only these task types:
 - `generation`: an open response scored by a Judge against a rubric. When useful, the Judge may use registered external-verification tools such as Python tests.
 - `multi_turn`: a scripted or response-adaptive dialogue scored over the complete transcript.
 - `agent`: a task in which the target acts through tools in an executable, resettable environment and is scored from the resulting state, artifacts, answer, or trajectory.
+
+Choose task types according to what the evaluation goal requires. You do not need to assign tasks to every task-type category merely to cover all categories.
+
+In particular, when the evaluation goal inherently requires interaction or actions within an environment, do not assign task types that clearly cannot meaningfully evaluate the requested capabilities. If a task type is a less natural fit but can still provide meaningful evaluation, you may include a small number of such tasks to improve the benchmark’s diversity.
+
+Conversely, for evaluation goals that primarily call for paper-and-pencil assessment, you do not need to allocate many agent tasks.
 
 This says "each task group" rather than "each task" because one description may either describe one task relatively concretely or cover multiple similar tasks as a whole. For example, it may describe one complex and difficult agent task in some detail, or it may require ten multiple-choice questions about a certain knowledge point. Ultimately, every task must belong to a "group" described at a level of detail suitable for guiding construction according to the task's complexity.
 
@@ -106,7 +118,9 @@ Choose exactly one `source_plan.strategy` for every TaskDesign:
 
 For `adapted`, `reused`, and `imported_dataset`, provide at least one usable URL in `suggested_urls`. Formatting or packaging changes are not content-level changes. When only a source's format or style matters, express those requirements directly in the TaskDesign and use `generated` without a URL.
 
-`builder_resource_urls` is independent of `source_plan`. Use it mainly for agent tasks and only for concrete HTTP(S) resources that can reduce construction work or enable a harder construction, such as official setup documentation, a reusable software fixture, or a protocol specification. For non-agent tasks, leave it empty unless there is a concrete reason to expect that inspecting the resource may provide such a benefit. It may be non-empty for `generated` tasks. The Builder can fetch or download these URLs, but must not treat them as benchmark provenance unless the same material is separately declared by a source-backed strategy.
+<RESEARCH_ASSISTANCE>
+`builder_resource_urls` is independent of `source_plan`. Populate it only for obscure or unfamiliar subject matter that you judge the Builder is likely not to know even as a frontier LLM; otherwise leave it empty. Use it mainly for agent tasks and only for concrete HTTP(S) resources that can reduce construction work or enable a harder construction, such as official setup documentation, a reusable software fixture, or a protocol specification. For non-agent tasks, leave it empty unless there is a concrete reason to expect that inspecting the resource may provide such a benefit. It may be non-empty for `generated` tasks. The Builder can fetch or download these URLs, but must not treat them as benchmark provenance unless the same material is separately declared by a source-backed strategy.
+</RESEARCH_ASSISTANCE>
 
 At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`.
 

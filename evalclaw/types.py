@@ -592,6 +592,8 @@ class AgentEnvironmentSpec(BaseModel):
     pull_image: StrictBool = True
     pull_timeout: StrictInt = 300
     setup_commands: list[StrictStr] = Field(default_factory=list)
+    readiness_checks: list[StrictStr] = Field(default_factory=list)
+    preflight_commands: list[StrictStr] = Field(default_factory=list)
     test_command: StrictStr = ""
     max_steps: StrictInt = 8
     timeout: StrictInt = 20
@@ -617,6 +619,10 @@ class AgentEnvironmentSpec(BaseModel):
 
     @model_validator(mode="after")
     def validate_actors(self) -> "AgentEnvironmentSpec":
+        if (self.readiness_checks or self.preflight_commands) and self.type != AgentEnvironmentType.docker_workspace:
+            raise ValueError("Command-based environment checks require docker_workspace.")
+        if any(not command.strip() for command in [*self.readiness_checks, *self.preflight_commands]):
+            raise ValueError("Environment checks must be nonempty commands.")
         if self.judge:
             if self.type != AgentEnvironmentType.docker_workspace:
                 raise ValueError("Environment judge agents currently require docker_workspace.")
@@ -1089,6 +1095,17 @@ class ContaminationReport(BaseModel):
         return sum(scores) / len(scores) if scores else None
 
 
+class LaajItemMetric(LaajMetric):
+    score: StrictInt = Field(ge=1, le=5)
+
+
+class LaajItemResult(BaseModel):
+    item_id: str
+    clarity: LaajItemMetric
+    correctness: LaajItemMetric
+    faithfulness: LaajItemMetric
+
+
 class LaajReport(BaseModel):
     model: str
     clarity: LaajMetric
@@ -1098,8 +1115,10 @@ class LaajReport(BaseModel):
     systematicness: Optional[LaajMetric] = None
     credibility: Optional[LaajMetric] = None
     contamination: ContaminationReport | None = None
+    item_results: list[LaajItemResult] = Field(default_factory=list)
     evaluated_item_ids: list[str] = Field(default_factory=list)
     total_item_count: int = 0
+    iteration_reports: dict[int, LaajReport] = Field(default_factory=dict)
     created_at: str = Field(default_factory=utc_now)
 
 

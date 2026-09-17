@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 
+from ..research.authoritative import NO_RESEARCH_POLICY, RESEARCH_POLICY
 from ..types import TaskType
 
 _COMMON_FIELDS = {
@@ -426,6 +427,8 @@ def build_task_builder_tool_prompt(
     *,
     source_backed: bool,
     has_builder_resources: bool = False,
+    authoritative_research: bool = False,
+    use_web_research: bool = True,
     include_image_tools: bool = False,
     include_vm_image_tools: bool = False,
 ) -> str:
@@ -450,8 +453,8 @@ def build_task_builder_tool_prompt(
         "executable permissions without running files. Returned file paths can be used as assets or "
         "build_image context_files sources; context_files target paths preserve the desired Docker layout. "
         "If the extraction response omits file entries, read its manifest_path for the complete list. "
-        "Follow next_offset with offset to page through documents, archive listings, fetch_url text, "
-        "and retained read_research_source text; the latter can only expose what the Planner retained. "
+        "Follow next_offset with offset when a tool response offers more content, including documents, archive listings, "
+        "and retained read_research_source text; the latter exposes saved source snapshots. "
         "These helpers avoid writing custom parsing or extraction code. PDFs need pdftotext (Poppler); "
         "scanned PDFs without text need OCR, which read_document does not provide.",
     ]
@@ -470,12 +473,24 @@ def build_task_builder_tool_prompt(
             "When generate_image is available, save the PNG inside the Builder directory and verify its "
             "visible content."
         )
-    if source_backed:
+    if not use_web_research:
+        parts.append(NO_RESEARCH_POLICY)
+    elif authoritative_research:
+        parts.append(RESEARCH_POLICY)
+        if source_backed or has_builder_resources:
+            parts.append(
+                "Use read_research_source first to read retained Planner material by its exact ref; "
+                "resources.source_material_index lists available snapshots. Use load_source for other "
+                "supported refs and search_sources for additional candidates within the catalog. "
+                "Do not claim grounding from a source title alone. Optional builder_assistance refs "
+                "are aids, not provenance unless the source strategy requires it."
+            )
+    elif source_backed:
         parts.append(
             "Use read_research_source, search_web, fetch_url, list_url_links, or download_files to inspect source "
             "material. Do not claim source grounding from a title or URL alone."
         )
-    if has_builder_resources:
+    if has_builder_resources and use_web_research and not authoritative_research:
         parts.append(
             "Use fetch_url, list_url_links, or download_files to inspect the optional URLs in "
             "resources.builder_assistance when they simplify construction. These URLs are construction "

@@ -298,48 +298,75 @@ ensure_redmine_logged_in() {
 
   # Step 5: Fill login form via xdotool
   # Coordinates (1920x1080): username=(996,398), password=(996,467), Login btn=(996,510)
-  # Focus the Firefox window first
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool windowfocus --sync "$wid" 2>/dev/null || true
-  sleep 0.5
+  submit_login() {
+    # Focus the Firefox window first
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool windowfocus --sync "$wid" 2>/dev/null || true
+    sleep 0.5
 
-  # Click username field
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool mousemove --sync 996 398 2>/dev/null || true
-  sleep 0.3
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool click 1 2>/dev/null || true
-  sleep 0.5
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers ctrl+a 2>/dev/null || true
-  sleep 0.2
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool type --delay 50 --clearmodifiers "admin" 2>/dev/null || true
-  sleep 0.5
+    # Click username field
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool mousemove --sync 996 398 2>/dev/null || true
+    sleep 0.3
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool click 1 2>/dev/null || true
+    sleep 0.5
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers ctrl+a 2>/dev/null || true
+    sleep 0.2
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool type --delay 50 --clearmodifiers "admin" 2>/dev/null || true
+    sleep 0.5
 
-  # Click password field
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool mousemove --sync 996 467 2>/dev/null || true
-  sleep 0.3
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool click 1 2>/dev/null || true
-  sleep 0.5
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool type --delay 50 --clearmodifiers "Admin1234!" 2>/dev/null || true
-  sleep 0.5
+    # Click password field
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool mousemove --sync 996 467 2>/dev/null || true
+    sleep 0.3
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool click 1 2>/dev/null || true
+    sleep 0.5
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool type --delay 50 --clearmodifiers "Admin1234!" 2>/dev/null || true
+    sleep 0.5
 
-  # Press Return to submit (more reliable than clicking Login button)
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers Return 2>/dev/null || true
-  sleep 6
-
-  log "Login submitted, navigating to: $target_url"
+    # Press Return to submit (more reliable than clicking Login button)
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers Return 2>/dev/null || true
+    sleep 6
+  }
 
   # Step 6: Navigate to target URL via address bar
-  wid=$(get_firefox_window_id)
-  if [ -n "$wid" ]; then
-    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool windowfocus --sync "$wid" 2>/dev/null || true
+  navigate_to_target() {
+    wid=$(get_firefox_window_id)
+    if [ -n "$wid" ]; then
+      DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool windowfocus --sync "$wid" 2>/dev/null || true
+      sleep 0.3
+    fi
+    # Click the address bar rather than sending ctrl+l: the keyboard shortcut does
+    # not always take focus on a freshly started Firefox, and when it misses the URL
+    # is typed into the page instead and never navigates.
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool mousemove --sync 1000 127 2>/dev/null || true
     sleep 0.3
-  fi
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers ctrl+l 2>/dev/null || true
-  sleep 0.3
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers ctrl+a 2>/dev/null || true
-  sleep 0.2
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool type --delay 20 --clearmodifiers "$target_url" 2>/dev/null || true
-  sleep 0.3
-  DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers Return 2>/dev/null || true
-  sleep 5
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool click 1 2>/dev/null || true
+    sleep 0.5
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers ctrl+a 2>/dev/null || true
+    sleep 0.2
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool type --delay 20 --clearmodifiers "$target_url" 2>/dev/null || true
+    sleep 0.5
+    DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool key --clearmodifiers Return 2>/dev/null || true
+    sleep 5
+  }
+
+  # The address-bar focus is racy on a freshly started Firefox: the target URL can
+  # land in the login form instead, which fails the login and leaves the session on
+  # the login page. The login page is the only Redmine page whose window title is
+  # the bare application name, so use it to detect that and retry.
+  submit_login
+  navigate_to_target
+
+  local attempt title
+  for attempt in 1 2; do
+    wid=$(get_firefox_window_id)
+    title=""
+    if [ -n "$wid" ]; then
+      title=$(DISPLAY=:1 XAUTHORITY=/home/ga/.Xauthority xdotool getwindowname "$wid" 2>/dev/null || true)
+    fi
+    [ "$title" != "Redmine — Mozilla Firefox" ] && break
+    log "WARNING: still on the login page after attempt $attempt, retrying login"
+    submit_login
+    navigate_to_target
+  done
 
   log "Navigated to $target_url"
   return 0

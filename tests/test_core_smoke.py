@@ -562,7 +562,7 @@ def test_task_builder_repairs_missing_external_source_binding(
         [blueprint],
         BenchmarkConfig(
             **dummy_config_kwargs(),
-            use_web_research=False,
+            use_web_research=True,
             task_builder_max_workers=1,
             task_builder_repair_attempts=1,
         ),
@@ -714,7 +714,7 @@ def test_task_builder_preserves_resource_bindings_when_shared_urls_are_deduplica
         blueprints,
         BenchmarkConfig(
             **dummy_config_kwargs(),
-            use_web_research=False,
+            use_web_research=True,
             task_builder_max_workers=1,
         ),
     )
@@ -3006,7 +3006,7 @@ def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch
         [
             json.dumps({"done": False, "turn": "Please revise it to be shorter."}),
             json.dumps({"done": True}),
-            json.dumps({"score_raw": 4, "score_normalized": 0.8, "reasoning": "Good revision."}),
+            json.dumps({"score_raw": 4, "score_max": 5, "reasoning": "Good revision."}),
         ]
     )
 
@@ -3057,7 +3057,8 @@ def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch
     assert result.score == 0.8
     assert "task_agent_judge" in (result.judge_reasoning or "")
     assert task_agent_models == ["mock-task-agent", "mock-task-agent", "mock-task-agent"]
-    assert all(system == "You are the per-task user simulator. Return JSON only." for system in task_agent_systems)
+    assert task_agent_systems[0] == task_agent_systems[1]
+    assert task_agent_systems[2] != task_agent_systems[0]
 
 
 def test_static_qc_treats_challenge_effort_as_builder_guidance() -> None:
@@ -3552,8 +3553,10 @@ def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
 
     result = run_item(item, config)
 
-    assert result.error == "Judge returned invalid JSON after retry."
-    assert result.judge_reasoning == "Judge returned invalid JSON after retry."
+    assert result.error
+    assert result.execution["stage"] == "evaluation"
+    assert result.judge_reasoning is None
+    assert result.raw_response == "A plausible answer."
 
 
 def test_python_tests_tool_supplies_evidence_to_generation_judge(monkeypatch) -> None:
@@ -3574,7 +3577,7 @@ def test_python_tests_tool_supplies_evidence_to_generation_judge(monkeypatch) ->
 
     def fake_call_llm(messages, **kwargs):
         captured.update(json.loads(messages[0].content))
-        return json.dumps({"score_normalized": 1.0, "reasoning": "Verified by tests."})
+        return json.dumps({"score_raw": 1.0, "score_max": 1.0, "reasoning": "Verified by tests."})
 
     monkeypatch.setattr("evalclaw.execution.runner.call_llm", fake_call_llm)
     item = BenchmarkItem(
