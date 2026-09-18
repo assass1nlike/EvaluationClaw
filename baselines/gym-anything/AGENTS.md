@@ -21,7 +21,7 @@ core APIs.
    lifecycle, and task/verifier structure.
 2. Read the public entry point, the test that covers it, and one nearby real
    example. Default reading order is in `contributing/index.mdx`.
-3. Work on a branch, not `main`.
+3. Work on `main`, following this repository's single-branch convention.
 
 ## Contracts you must not break
 
