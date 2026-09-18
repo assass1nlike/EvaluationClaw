@@ -1,4 +1,4 @@
-"""Run ten isolated official five-seed proposer jobs and retain their evidence."""
+"""Run ten isolated ten-seed proposer jobs and retain their evidence."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -116,6 +116,7 @@ def job_main(job, resume_phase=0):
         '--software', config['software'], '--env-dir', config['env'],
         '--workspace', str(workspace), '--stage', 'propose',
         '--output-dir', str(job / 'generation'),
+        '--timeout-sec', str(config['timeout_per_phase']),
         '--claude-bin', '/home/zangyihe/.local/bin/claude', *resume_args,
     ])
 
@@ -130,7 +131,8 @@ def prepare(batch, item):
         clone_args = ['--reference', str(reference), '--dissociate'] if reference.exists() else []
         subprocess.run(['git', 'clone', '--quiet', *clone_args, UPSTREAM_URL, str(workspace)], check=True)
         subprocess.run(['git', 'checkout', '--quiet', '-b', 'seed-generation', UPSTREAM_COMMIT], cwd=workspace, check=True)
-    for rel in ['src/gym_anything/runtime/runners/docker.py', 'local/generate.py']:
+    for rel in ['src/gym_anything/runtime/runners/docker.py', 'local/generate.py',
+                'extras/research/task_generation/propose_and_amplify/pipeline/propose_cc.py']:
         destination = workspace / rel
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, destination)
@@ -144,7 +146,7 @@ def prepare(batch, item):
     env_dir = workspace / 'benchmarks/cua_world/environments' / env_name
     config = {'goal': goal, 'software': software, 'env': env_name, 'runner': runner,
               'seed': 42, 'model': 'deepseek-flash', 'base_url': 'https://api.deepseek.com',
-              'count': 5, 'timeout_per_phase': 7200, 'task_type': 'enterprise',
+              'count': 10, 'timeout_per_phase': 36000, 'task_type': 'enterprise',
               'original_tasks': sorted(p.name for p in (env_dir / 'tasks').iterdir() if p.is_dir())}
     write_json(job / 'config.json', config)
     shutil.copy2(ROOT / 'benchmarks/cua_world/environments' / env_name / 'env.json', job / 'original_env.json')
@@ -233,6 +235,7 @@ def main():
         'upstream_commit': UPSTREAM_COMMIT,
         'jobs': JOBS, 'seed': 42, 'parallel_jobs': 10, 'stage': 'propose',
         'remote_seed': None, 'image': IMAGE, 'cli_version': '2.1.229',
+        'count_per_software': 10, 'timeout_per_phase': 36000,
         'proposer_sampling': 'CLI/provider defaults; no sampling override',
         'execution_policy': 'upstream run_claude; normal CLI and MCP discovery; observation only',
     })
@@ -248,4 +251,7 @@ def main():
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    raise SystemExit(
+        'Disabled: this entry runs model-issued commands without a verified host boundary. '
+        'See local/isolation/security.md before running another batch.'
+    )

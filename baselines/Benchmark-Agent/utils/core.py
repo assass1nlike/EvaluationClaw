@@ -35,7 +35,7 @@ from utils.constant import  API_BASE_URL, NOT_SUPPORT_SENDER, MUST_ADD_USER, NOT
 
 #######
 from utils.constant import API_KEY
-from utils.model_config import get_api_key as get_config_api_key, get_api_base_url as get_config_api_base_url
+from utils.model_config import get_api_key as get_config_api_key, get_api_base_url as get_config_api_base_url, get_max_tokens, get_request_timeout
 from copy import deepcopy
 
 #######
@@ -171,6 +171,10 @@ class MetaChain:
         if tools and create_params['model'].startswith("gpt"):
             create_params["parallel_tool_calls"] = agent.parallel_tool_calls
 
+        if (budget := get_max_tokens(create_params["model"], config_path=self._model_config_path)) is not None:
+            create_params["max_tokens"] = budget
+        if (timeout := get_request_timeout(create_params["model"], config_path=self._model_config_path)) is not None:
+            create_params.update(timeout=timeout, request_timeout=timeout)
         return completion(**create_params)
 
     def handle_function_result(self, result, debug) -> Result:
@@ -419,6 +423,10 @@ class MetaChain:
 
             if tools and create_params['model'].startswith("gpt"):
                 create_params["parallel_tool_calls"] = agent.parallel_tool_calls
+            if (budget := get_max_tokens(create_params["model"], config_path=self._model_config_path)) is not None:
+                create_params["max_tokens"] = budget
+            if (timeout := get_request_timeout(create_params["model"], config_path=self._model_config_path)) is not None:
+                create_params.update(timeout=timeout, request_timeout=timeout)
             completion_response = await acompletion(**create_params)
             # debug_print(debug, "Received completion:", completion_response, log_path=log_path, title="Received Completion", color="blue")
             print("finished")
@@ -452,6 +460,10 @@ class MetaChain:
                 "base_url": self._base_url,
                 "api_key": self._api_key,
             }
+            if (budget := get_max_tokens(create_params["model"], config_path=self._model_config_path)) is not None:
+                create_params["max_tokens"] = budget
+            if (timeout := get_request_timeout(create_params["model"], config_path=self._model_config_path)) is not None:
+                create_params.update(timeout=timeout, request_timeout=timeout)
             completion_response = await acompletion(**create_params)
             last_message = [{"role": "assistant", "content": completion_response.choices[0].message.content}]
             converted_message = convert_non_fncall_messages_to_fncall_messages(last_message, tools)
