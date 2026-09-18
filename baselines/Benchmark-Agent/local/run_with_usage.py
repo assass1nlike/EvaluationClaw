@@ -1,6 +1,7 @@
 """Run the official CLI with observational token accounting."""
 
 import json
+import hashlib
 import sys
 import threading
 from contextlib import contextmanager
@@ -50,7 +51,7 @@ class UsageRecorder:
         except Exception as exc:
             self._logging_error(exc)
 
-    def record(self, source, model, response=None, error=None):
+    def record(self, source, model, response=None, error=None, api_key=None):
         with self.lock:
             try:
                 usage = getattr(response, "usage", None)
@@ -58,9 +59,15 @@ class UsageRecorder:
                     usage = usage.model_dump()
                 if not isinstance(usage, dict):
                     usage = None
+                # Keep original provider usage; normalize only the aggregate field names.
+                normalized = dict(usage or {})
+                if "prompt_tokens" not in normalized and "input_tokens" in normalized:
+                    normalized["prompt_tokens"] = normalized["input_tokens"]
+                if "completion_tokens" not in normalized and "output_tokens" in normalized:
+                    normalized["completion_tokens"] = normalized["output_tokens"]
                 counts = {
                     key: value for key in TOKEN_FIELDS
-                    if type(value := (usage or {}).get(key)) is int and value >= 0
+                    if type(value := normalized.get(key)) is int and value >= 0
                 }
                 event = {
                     "time_utc": datetime.now(timezone.utc).isoformat(),
@@ -71,6 +78,24 @@ class UsageRecorder:
                     "error_type": type(error).__name__ if error is not None else None,
                     "usage": usage,
                 }
+                if source.endswith("request_response"):
+                    event["credential_id"] = hashlib.sha256(api_key.encode()).hexdigest()[:12] if api_key else None
+                    http_response = getattr(error, "response", None)
+                    event["http_status"] = getattr(error, "status_code", 200 if response is not None else None)
+                    event["error_code"] = getattr(error, "code", None)
+                    event["request_id"] = getattr(error, "request_id", None) or getattr(response, "_request_id", None)
+                    event["rate_limit_headers"] = {
+                        k: v for k, v in (http_response.headers.items() if http_response is not None else [])
+                        if k.lower().startswith(("retry-after", "x-ratelimit-", "x-ms-ratelimit-", "x-ms-retry-after"))
+                    }
+                if getattr(response, "object", None) == "response":
+                    event["response_status"] = response.status
+                    event["incomplete_details"] = (
+                        response.incomplete_details.model_dump() if response.incomplete_details else None
+                    )
+                    event["web_search_calls"] = [item.model_dump() for item in response.output
+                                                 if item.type == "web_search_call"]
+                    event["tool_usage"] = getattr(response, "tool_usage", None)
                 self.summary["finished_calls"] += 1
                 self.summary["failed_calls"] += int(error is not None)
                 self.summary["calls_with_incomplete_usage"] += int(len(counts) != len(TOKEN_FIELDS))
@@ -100,9 +125,9 @@ def observe_sync(call, recorder, source):
         try:
             response = call(*args, **kwargs)
         except BaseException as exc:
-            recorder.record(source, kwargs.get("model"), error=exc)
+            recorder.record(source, kwargs.get("model"), error=exc, api_key=kwargs.get("api_key"))
             raise
-        recorder.record(source, kwargs.get("model"), response=response)
+        recorder.record(source, kwargs.get("model"), response=response, api_key=kwargs.get("api_key"))
         return response
     return wrapped
 
@@ -122,12 +147,13 @@ def observe_async(call, recorder, source):
 
 @contextmanager
 def observe_calls(recorder):
-    from utils import core, llm_caller
+    from utils import core, llm_caller, native_responses
 
     targets = (
         (core, "completion", observe_sync),
         (core, "acompletion", observe_async),
         (llm_caller, "completion", observe_sync),
+        (native_responses, "request_response", observe_sync),
     )
     originals = []
     try:

@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from ...specs import EnvSpec
+from .qemu_ssh import ssh_credentials
 from .qemu_apptainer import QemuApptainerRunner, _check_kvm, QEMU_CACHE, BASE_QCOW2_URL
 
 # UEFI firmware for aarch64 (shipped with Homebrew QEMU)
@@ -200,12 +201,12 @@ class QemuNativeRunner(QemuApptainerRunner):
         width, height = self.resolution
         firmware = _find_aarch64_firmware()
 
-        port_forwards = f"hostfwd=tcp::{ssh_port}-:22"
+        port_forwards = f"hostfwd=tcp:127.0.0.1:{ssh_port}-:22"
         if self.is_windows:
-            port_forwards += f",hostfwd=tcp::{self.pyautogui_port}-:5555"
+            port_forwards += f",hostfwd=tcp:127.0.0.1:{self.pyautogui_port}-:5555"
         fast_input_host_port = getattr(self, "_fast_input_host_port", None)
         if self._fast_uinput_keyboard_enabled() and fast_input_host_port:
-            port_forwards += f",hostfwd=tcp::{fast_input_host_port}-:{self._fast_input_guest_port}"
+            port_forwards += f",hostfwd=tcp:127.0.0.1:{fast_input_host_port}-:{self._fast_input_guest_port}"
 
         netdev_options = f"user,id=net0,{port_forwards}"
         if getattr(getattr(getattr(self, "spec", None), "resources", None), "net", None) is False:
@@ -224,7 +225,7 @@ class QemuNativeRunner(QemuApptainerRunner):
             "-drive", f"file={disk_abs},format=qcow2,if=virtio",
             # Display
             "-device", "virtio-gpu-pci",
-            "-vnc", f":{vnc_display},password=on",
+            "-vnc", f"127.0.0.1:{vnc_display},password=on",
             "-display", "none",
             "-monitor", "stdio",
             # Network
@@ -249,7 +250,7 @@ class QemuNativeRunner(QemuApptainerRunner):
             client = _paramiko.SSHClient()
             client.set_missing_host_key_policy(_paramiko.AutoAddPolicy())
             client.connect("localhost", port=port, username=self._ssh_user,
-                          password=self._ssh_password, timeout=15, look_for_keys=False)
+                          timeout=15, **ssh_credentials(self.is_windows, self._ssh_password))
             sftp = client.open_sftp()
 
             src_path = Path(host_src.rstrip("/."))
@@ -302,12 +303,12 @@ class QemuNativeRunner(QemuApptainerRunner):
             raise RuntimeError(f"Failed to download base image from {BASE_QCOW2_URL}")
 
         from .build_base_qcow2_nodocker import (
-            CLOUD_INIT_USER_DATA,
+            get_cloud_init_user_data,
             get_cloud_init_meta_data,
         )
 
         # Insert before the final_message line
-        cloud_init = CLOUD_INIT_USER_DATA.replace(
+        cloud_init = get_cloud_init_user_data().replace(
             "\nfinal_message:",
             NETPLAN_FIXUP + "\nfinal_message:",
         )
