@@ -1,0 +1,1338 @@
+﻿{
+  "case_id": "code_review_bug_risk",
+  "goal": "Evaluate whether the target model reviews a small Python code change for bugs, regressions, and missing tests, providing actionable findings with severity.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 3,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\code_review_bug_risk",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "python_code_review_eval",
+    "objective": "Evaluate whether the target model reviews a small Python code change for bugs, regressions, and missing tests, providing actionable findings with severity.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "open_generation"
+    ],
+    "dimensions": [
+      {
+        "id": "bug_detection",
+        "name": "Bug Detection in Code Changes",
+        "description": "Model identifies a bug introduced in a small Python diff.",
+        "approach": "Present a small Python diff that introduces a bug (logic error, off-by-one, variable misuse, etc.). The model must point out the bug, explain why it is wrong, assign severity, and suggest a fix.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 10,
+        "target_source_backed_count": 0,
+        "target_generated_count": 10,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item is a small Python diff (added lines with +, removed with -) for a self-contained function or script.",
+          "The diff must contain at least one bug: off-by-one in loop, wrong variable, incorrect condition, missing import, etc.",
+          "Provide ground truth: exact bug location, type, severity (critical/major/minor), and a description of the fix.",
+          "Prompt: 'Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).'",
+          "Judge evaluates: correctness of bug identification, accurate severity, and actionability of suggestion."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "regression_detection",
+        "name": "Regression Detection in Code Changes",
+        "description": "Model identifies a regression where a change breaks existing functionality.",
+        "approach": "Present a small Python diff that looks correct but alters behavior in a way that breaks a previously working behavior (e.g., changing function signature, removing validation, modifying an API response). The model must recognize the regression and explain the impact.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 10,
+        "target_source_backed_count": 0,
+        "target_generated_count": 10,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item is a small Python diff where the change appears innocuous but introduces a regression (behavior change that breaks existing callers or assumptions).",
+          "Examples: renaming a parameter, changing default value, removing error handling, altering function return type, breaking backward compatibility.",
+          "Provide ground truth: the regression point, what functionality is broken, severity (critical/major/minor), and how to fix or avoid.",
+          "Prompt: 'Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.'",
+          "Judge evaluates: correct regression identification, accurate severity, and actionable recommendation."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "missing_test_detection",
+        "name": "Missing Test and Actionability Detection",
+        "description": "Model identifies missing tests in a code change and suggests what tests are needed.",
+        "approach": "Present a small Python diff that adds new functionality or modifies an existing function without corresponding tests, or where tests are removed. The model must identify that tests are needed, specify what scenarios should be tested, and give actionable advice.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 10,
+        "target_source_backed_count": 0,
+        "target_generated_count": 10,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item is a small Python diff either adding a new function/class, modifying a public API, or removing a test file. The diff must lack corresponding tests or modify tests in a way that breaks coverage.",
+          "Provide ground truth: what test scenarios are missing (e.g., edge cases, error handling, integration with existing code), severity of missing tests (critical if core functionality, minor if niche).",
+          "Prompt: 'Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity.'",
+          "Judge evaluates: correct identification of missing tests, specificity of suggestions, and accurate severity."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 30,
+    "metrics": [
+      "judge_score"
+    ],
+    "constraints": [
+      "All diffs must be self-contained Python snippets (single file, small changes).",
+      "Ground truth must include expected findings, severity (critical/major/minor), and actionable suggestions.",
+      "Items must be generated locally (no external sources needed)."
+    ],
+    "planner_notes": "Three dimensions target the core code-review sub-capabilities: bug detection, regression detection, and missing-test detection. Each dimension uses 10 open_generation items (30 total, within mid budget). The model's output is evaluated by an LLM judge on correctness, severity classification, and actionability. Diffs are self-contained artificial Python changes, so needs_research is false. Weights are equal across dimensions.",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 5.0,
+      "missing_items": [],
+      "notes": "All checklist items satisfied. Objective explicitly matched. Subjects provided. Format uses open_generation as requested. Content covers three core dimensions with clear definitions and difficulty L4. Scale 30 is appropriate for mid budget. Metrics use judge_score. No missing items."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "python_code_review_eval",
+      "objective": "Evaluate whether the target model reviews a small Python code change for bugs, regressions, and missing tests, providing actionable findings with severity.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "open_generation"
+      ],
+      "dimensions": [
+        {
+          "id": "bug_detection",
+          "name": "Bug Detection in Code Changes",
+          "description": "Model identifies a bug introduced in a small Python diff.",
+          "approach": "Present a small Python diff that introduces a bug (logic error, off-by-one, variable misuse, etc.). The model must point out the bug, explain why it is wrong, assign severity, and suggest a fix.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 10,
+          "target_source_backed_count": 0,
+          "target_generated_count": 10,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item is a small Python diff (added lines with +, removed with -) for a self-contained function or script.",
+            "The diff must contain at least one bug: off-by-one in loop, wrong variable, incorrect condition, missing import, etc.",
+            "Provide ground truth: exact bug location, type, severity (critical/major/minor), and a description of the fix.",
+            "Prompt: 'Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).'",
+            "Judge evaluates: correctness of bug identification, accurate severity, and actionability of suggestion."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "regression_detection",
+          "name": "Regression Detection in Code Changes",
+          "description": "Model identifies a regression where a change breaks existing functionality.",
+          "approach": "Present a small Python diff that looks correct but alters behavior in a way that breaks a previously working behavior (e.g., changing function signature, removing validation, modifying an API response). The model must recognize the regression and explain the impact.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 10,
+          "target_source_backed_count": 0,
+          "target_generated_count": 10,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item is a small Python diff where the change appears innocuous but introduces a regression (behavior change that breaks existing callers or assumptions).",
+            "Examples: renaming a parameter, changing default value, removing error handling, altering function return type, breaking backward compatibility.",
+            "Provide ground truth: the regression point, what functionality is broken, severity (critical/major/minor), and how to fix or avoid.",
+            "Prompt: 'Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.'",
+            "Judge evaluates: correct regression identification, accurate severity, and actionable recommendation."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "missing_test_detection",
+          "name": "Missing Test and Actionability Detection",
+          "description": "Model identifies missing tests in a code change and suggests what tests are needed.",
+          "approach": "Present a small Python diff that adds new functionality or modifies an existing function without corresponding tests, or where tests are removed. The model must identify that tests are needed, specify what scenarios should be tested, and give actionable advice.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 10,
+          "target_source_backed_count": 0,
+          "target_generated_count": 10,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item is a small Python diff either adding a new function/class, modifying a public API, or removing a test file. The diff must lack corresponding tests or modify tests in a way that breaks coverage.",
+            "Provide ground truth: what test scenarios are missing (e.g., edge cases, error handling, integration with existing code), severity of missing tests (critical if core functionality, minor if niche).",
+            "Prompt: 'Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity.'",
+            "Judge evaluates: correct identification of missing tests, specificity of suggestions, and accurate severity."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 30,
+      "metrics": [
+        "judge_score"
+      ],
+      "constraints": [
+        "All diffs must be self-contained Python snippets (single file, small changes).",
+        "Ground truth must include expected findings, severity (critical/major/minor), and actionable suggestions.",
+        "Items must be generated locally (no external sources needed)."
+      ],
+      "planner_notes": "Three dimensions target the core code-review sub-capabilities: bug detection, regression detection, and missing-test detection. Each dimension uses 10 open_generation items (30 total, within mid budget). The model's output is evaluated by an LLM judge on correctness, severity classification, and actionability. Diffs are self-contained artificial Python changes, so needs_research is false. Weights are equal across dimensions.",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 5.0,
+        "missing_items": [],
+        "notes": "All checklist items satisfied. Objective explicitly matched. Subjects provided. Format uses open_generation as requested. Content covers three core dimensions with clear definitions and difficulty L4. Scale 30 is appropriate for mid budget. Metrics use judge_score. No missing items."
+      }
+    },
+    "items": [
+      {
+        "id": "bug_detection_54e5043c18",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def find_max(lst):\n     max_val = lst[0]\n-    for i in range(1, len(lst)):\n-        if lst[i] > max_val:\n-            max_val = lst[i]\n+    for i in range(len(lst) - 1):\n+        if lst[i + 1] > max_val:\n+            max_val = lst[i + 1]\n     return max_val\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Correctly identifies the off-by-one bug (loop stops at len(lst)-1, misses last element or fails on single-element lists), explains why it fails, assigns critical/major severity, and suggests changing to 'for i in range(len(lst))' and compare lst[i] directly.\n4: Identifies the bug but severity or fix is slightly off (e.g., suggests range(len(lst)) but still uses lst[i+1]).\n3: Partially identifies the issue but misses the root cause (e.g., says loop is wrong but doesn't specify the off-by-one).\n2: Mentions something unrelated or suggests a wrong fix.\n1: Fails to identify any bug.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "off-by-one",
+          "loop",
+          "severity_critical"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "for loop condition len(lst) - 1",
+            "bug_type": "off-by-one",
+            "severity": "critical",
+            "fix_description": "Change loop to 'for i in range(len(lst)):' and use 'if lst[i] > max_val: max_val = lst[i]' to iterate over all elements."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_bfe54ac5d2",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def calculate_average(numbers):\n     total = 0\n     for n in numbers:\n         total += n\n-    return total / len(numbers)\n+    print(total)\n     return None\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies that the return was replaced with a print, so the function no longer returns the average; severity major; fix: restore the return statement.\n4: Recognizes the bug but severity is minor (when it's major because functionality is broken).\n3: Says there is an issue with the return but doesn't clearly state the missing return value.\n2: Misidentifies the bug (e.g., thinks print is okay).\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "missing_return",
+          "wrong_variable"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Removed return statement and added print; function now returns None instead of the average.",
+            "bug_type": "wrong variable / missing return",
+            "severity": "major",
+            "fix_description": "Replace 'print(total)' with 'return total / len(numbers)' and remove the 'return None'."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_85d60a04d7",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def is_even(num):\n-    return num % 2 == 0\n+    return num / 2 == 0\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies the bug: division '/' instead of modulus '%', which gives float division and will never equal 0 unless num is 0. Severity critical if used for parity checks. Fix: use 'num % 2 == 0'.\n4: Identifies the bug but severity too low (minor).\n3: Says there is a bug but doesn't fully explain why division fails.\n2: Misunderstands the operator difference.\n1: No bug found.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "wrong_operator",
+          "condition"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Condition 'num / 2 == 0'",
+            "bug_type": "incorrect condition (division instead of modulus)",
+            "severity": "critical",
+            "fix_description": "Change to 'num % 2 == 0' to correctly check evenness."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_2a4149e75c",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def get_current_timestamp():\n-    from datetime import datetime\n-    return datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")\n+    return datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies that the import was removed, causing a NameError; severity critical; fix: add import back.\n4: Recognizes the missing import but severity incorrectly minor.\n3: Notes something is wrong with the function but doesn't pinpoint missing import.\n2: Thinks the issue is with strftime format.\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "missing_import",
+          "NameError"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Removed import line; datetime is undefined.",
+            "bug_type": "missing import",
+            "severity": "critical",
+            "fix_description": "Restore the import statement: 'from datetime import datetime' before the function or inside it."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_7673c6d222",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def append_item(item, lst=[]):\n     lst.append(item)\n     return lst\n```\n\n(This diff shows the entire function with a mutable default argument.)",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies the classic mutable default argument bug: the list object is shared across calls; severity major; fix: use None as default and create a new list each call.\n4: Recognizes the issue but says severity minor or fix is incomplete.\n3: Mentions the default argument is bad but doesn't explain the shared state.\n2: Thinks the function is fine.\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "mutable_default",
+          "list"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Default argument 'lst=[]'",
+            "bug_type": "mutable default argument causes shared state across calls",
+            "severity": "major",
+            "fix_description": "Change to 'def append_item(item, lst=None):' and if lst is None: lst = [] inside."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_3f7d127fb5",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def shift_elements(arr):\n     for i in range(len(arr)):\n-        if i < len(arr) - 1:\n-            arr[i] = arr[i + 1]\n+        arr[i] = arr[i + 1]\n     return arr\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies the index out of bounds on the last iteration (arr[i+1] when i==len(arr)-1); severity critical; fix: loop up to len(arr)-1 or add condition.\n4: Recognizes the potential IndexError but severity slightly off.\n3: Says something about out-of-range but doesn't precisely describe.\n2: Suggests wrong fix (e.g., changing range).\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "index_out_of_bounds",
+          "loop"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "arr[i+1] when i == len(arr)-1",
+            "bug_type": "index out of bounds (off-by-one)",
+            "severity": "critical",
+            "fix_description": "Change loop to 'for i in range(len(arr)-1):' to avoid accessing beyond the list."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_85cb4a6f88",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def divide(a, b):\n-    if b == 0:\n-        return None\n+    result = a / b\n+    if b == 0:\n+        return None\n     return result\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies the division is performed before the zero check, causing ZeroDivisionError; severity critical; fix: move the check before division.\n4: Recognizes the order issue but severity minor.\n3: Says there is a bug but doesn't link to division by zero.\n2: Misinterprets the logic.\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "division_by_zero",
+          "logic_order"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Division 'result = a / b' occurs before zero check",
+            "bug_type": "division by zero (logic order)",
+            "severity": "critical",
+            "fix_description": "Swap the order: first check if b==0 and return None, then perform division."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_816168475f",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def all_positive(nums):\n-    for n in nums:\n-        if n < 0:\n-            return False\n+    positive = True\n+    for n in nums:\n+        if n < 0:\n+            positive = False\n+        else:\n+            positive = True\n+    return positive\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies the bug: the else clause resets positive to True if any number is positive after a negative, making the function always return True if last element is positive; severity major; fix: remove else clause or use and.\n4: Identifies the logic error but severity minor.\n3: Says something is wrong with the loop but doesn't explain the reset.\n2: Suggests an incorrect fix (e.g., changing variable name).\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "incorrect_condition",
+          "logic_error"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "else clause within loop that sets positive=True",
+            "bug_type": "incorrect logic (resets flag incorrectly)",
+            "severity": "major",
+            "fix_description": "Remove the else clause or change to 'if n < 0: positive = False; return False' after loop, then return True."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_f7966428dc",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def double_list(lst):\n-    result = [x * 2 for x in lst]\n-    return result\n+    for i in range(len(lst)):\n+        lst[i] *= 2\n+    return lst\n```\n\n(The function is expected to return a new list with doubled values, but now it mutates the original and returns it.)",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies that the function now mutates the input list instead of returning a new list, which is a regression if callers expect immutability; severity major; fix: return a new list or document the change.\n4: Recognizes the mutation but severity minor.\n3: Notes it changes behavior but not clearly.\n2: Thinks the function is fine.\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "mutation",
+          "side_effect"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Function now modifies the input list in place and returns the same list",
+            "bug_type": "unexpected mutation / changed return semantics",
+            "severity": "major",
+            "fix_description": "Revert to list comprehension or explicitly create a new list: 'return [x * 2 for x in lst]'."
+          }
+        }
+      },
+      {
+        "id": "bug_detection_463428e0a2",
+        "dimension_id": "bug_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any bugs, explain the issue, and suggest a fix. Also assign a severity level (critical/major/minor).\n\n```diff\n def greet(name):\n-    return f\"Hello, {name}!\"\n+    print(f\"Hello, {name}!\")\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Identifies that the return was replaced with print, so the function no longer returns the greeting string; severity major for any caller relying on the return value; fix: use return instead of print.\n4: Recognizes the issue but severity minor.\n3: Says there is a problem with output but not specific.\n2: Suggests keeping print and adding return (no fix).\n1: No bug identified.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "bug_detection",
+          "missing_return",
+          "side_effect"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "bug_location": "Replaced return with print statement",
+            "bug_type": "missing return (changed return type to None)",
+            "severity": "major",
+            "fix_description": "Revert to 'return f\"Hello, {name}!\"' to preserve the function's return contract."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_b4399315aa",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/utils.py\n+++ b/utils.py\n@@ -1,6 +1,6 @@\n-def parse_date(date_str, format=\"%Y-%m-%d\"):\n+def parse_date(date_str, format=\"%m-%d-%Y\"):\n     \"\"\"Parse a date string using the given format.\"\"\"\n     from datetime import datetime\n     return datetime.strptime(date_str, format)\n \n \n-def get_today():\n+def get_today():\n     \"\"\"Return today's date as a string in YYYY-MM-DD format.\"\"\"\n     from datetime import date\n     return date.today().strftime(\"%Y-%m-%d\")\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on callers, gives severity, and suggests a backward-compatible fix (e.g., add new parameter, deprecate old).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "backward_compatibility"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Default format changed from '%Y-%m-%d' to '%m-%d-%Y'.",
+            "broken_functionality": "Existing callers using parse_date with default format now get month-day-year instead of year-month-day, breaking any logic that depends on the original default format.",
+            "severity": "critical",
+            "fix_suggestion": "Restore the original default and add a new parameter or versioned function. Alternatively, deprecate the old default and migrate callers."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_bf86017fd3",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/math_ops.py\n+++ b/math_ops.py\n@@ -1,7 +1,7 @@\n-def calculate_total(price, tax):\n+def calculate_total(price, tax_rate):\n     \"\"\"Return total price after applying tax (as a decimal).\"\"\"\n     return price * (1 + tax)\n \n \n def apply_discount(price, discount):\n     return price * (1 - discount)\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on callers using keyword arguments, gives severity, and suggests a backward-compatible fix (e.g., keep parameter name or add alias).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "backward_compatibility"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Parameter renamed from 'tax' to 'tax_rate'.",
+            "broken_functionality": "Any existing caller using keyword argument `tax=0.1` will break with a TypeError: unexpected keyword argument 'tax'. The function body also still references 'tax' (unfixed variable name), causing a NameError.",
+            "severity": "critical",
+            "fix_suggestion": "Keep the parameter name as 'tax' for backward compatibility, or provide a deprecation path. Also fix the function body to use the new variable name 'tax_rate'."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_739268a365",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/validation.py\n+++ b/validation.py\n@@ -1,11 +1,8 @@\n def process_payment(amount):\n-    if not isinstance(amount, (int, float)):\n-        raise ValueError(\"Amount must be a number\")\n     if amount <= 0:\n         raise ValueError(\"Amount must be positive\")\n     # connect to gateway\n     return {\"status\": \"success\", \"transaction_id\": \"abc123\"}\n \n \n def get_fee(amount):\n     return amount * 0.02\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on callers that relied on type validation, gives severity, and suggests a fix (restore validation or add type hint).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "input_validation"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Removed type-checking validation for 'amount'.",
+            "broken_functionality": "Callers that passed non-numeric types (e.g., strings) would have previously received a clear ValueError. Now they will either succeed incorrectly or fail at a later point (e.g., arithmetic in get_fee or payment gateway) with a confusing error.",
+            "severity": "major",
+            "fix_suggestion": "Restore the isinstance check to maintain the input contract."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_35e8aa1f29",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/data_provider.py\n+++ b/data_provider.py\n@@ -2,7 +2,7 @@\n def fetch_user(user_id):\n     \"\"\"Return user data as a dict.\"\"\"\n     # ... database query ...\n-    return {\"id\": user_id, \"name\": \"Alice\", \"email\": \"alice@example.com\"}\n+    return [{\"id\": user_id, \"name\": \"Alice\", \"email\": \"alice@example.com\"}]\n \n \n def get_user_email(user_id):\n-    user = fetch_user(user_id)\n     return user[\"email\"]\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on callers that index the result as a dict, gives severity, and suggests a fix (keep dict return or wrap in a list only when needed).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "return_type"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Return type changed from dict to list of dicts.",
+            "broken_functionality": "All callers that index the return value as a dict (e.g., user[\"email\"]) will break with TypeError: list indices must be integers or slices, not str. The internal caller get_user_email is broken.",
+            "severity": "critical",
+            "fix_suggestion": "Keep the return type as a dict. If multiple users must be returned, create a separate function."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_065f05f4c8",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/connection.py\n+++ b/connection.py\n@@ -1,4 +1,4 @@\n-def connect(host, port):\n+def connect(*, host, port):\n     \"\"\"Connect to a remote server.\"\"\"\n     if not host or not port:\n         raise ValueError(\"host and port required\")\n     return f\"Connected to {host}:{port}\"\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on callers using positional arguments, gives severity, and suggests a fix (remove '*' or use positional-or-keyword compatibility).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "backward_compatibility",
+          "signature_change"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Changed from positional-or-keyword to keyword-only arguments.",
+            "broken_functionality": "All existing callers using positional arguments like connect('localhost', 8080) will break with a TypeError: takes 0 positional arguments but 2 were given.",
+            "severity": "critical",
+            "fix_suggestion": "Keep the original signature or add a deprecation warning before switching to keyword-only in a future version."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_0955c6eeab",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/config.py\n+++ b/config.py\n@@ -1,5 +1,5 @@\n-DEFAULT_TIMEOUT = 30\n+DEFAULT_TIMEOUT = 60\n \n \n def get_timeout():\n-    return DEFAULT_TIMEOUT\n+    return DEFAULT_TIMEOUT\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on systems relying on 30-second timeout for responsiveness, gives severity, and suggests a configurable timeout or careful change communication.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "constant_change"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Default timeout constant changed from 30 to 60 seconds.",
+            "broken_functionality": "Any system that depends on the default 30-second timeout (e.g., health checks, retry logic, user experience) will behave differently. If timeouts were used for responsiveness, this may cause degraded performance or resource exhaustion.",
+            "severity": "major",
+            "fix_suggestion": "Introduce a configurable timeout with the old default as the new default for backward compatibility, or document the breaking change in a major version."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_4a2a2e0c27",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/shapes.py\n+++ b/shapes.py\n@@ -1,7 +1,7 @@\n class Shape:\n-    def area(self):\n+    def area(self, scale):\n         raise NotImplementedError\n \n \n class Square(Shape):\n     def area(self, scale):\n         return self.side ** 2 * scale\n \n \n class Circle(Shape):\n-    def area(self):\n+    def area(self, scale):\n         return 3.14 * self.radius ** 2 * scale\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on all subclasses and callers using base class interface, gives severity, and suggests a backward-compatible change (e.g., add default value).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "inheritance",
+          "signature_change"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Base class area method signature changed from no arguments to requiring a 'scale' argument.",
+            "broken_functionality": "All subclasses that override area() without the scale parameter (e.g., if any were not updated in this diff) will raise TypeError. Existing callers calling shape.area() without arguments break. The diff only shows Square and Circle being updated, but any other subclasses not shown would be broken.",
+            "severity": "critical",
+            "fix_suggestion": "Add a default value for scale (e.g., scale=1) to maintain backward compatibility, or add a new method with the parameter and keep the old one deprecated."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_2827672c60",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/api.py\n+++ b/api.py\n@@ -1,6 +1,6 @@\n def get_user_profile(user_id):\n     # ... fetch from DB ...\n-    return {\"status\": \"ok\", \"data\": {\"name\": \"Alice\", \"age\": 30}}\n+    return {\"status\": \"ok\", \"payload\": {\"name\": \"Alice\", \"age\": 30}}\n \n \n def get_user_age(user_id):\n     profile = get_user_profile(user_id)\n-    return profile[\"data\"][\"age\"]\n+    return profile[\"payload\"][\"age\"]\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on external API clients (if this is an endpoint response), gives severity, and suggests a fix (keep backward-compatible key or version the API).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "API_contract",
+          "backward_compatibility"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Response dictionary key changed from 'data' to 'payload'.",
+            "broken_functionality": "Any external service or consumer relying on the key 'data' will break, returning KeyError. The internal caller get_user_age is updated, but external clients are not.",
+            "severity": "critical",
+            "fix_suggestion": "Include both keys in the response during a deprecation period, or keep the original key and add the new one as an alias."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_adb8041e05",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/geometry.py\n+++ b/geometry.py\n@@ -1,5 +1,5 @@\n-def create_point(x, y):\n+def create_point(y, x):\n     return {\"x\": x, \"y\": y}\n \n \n origin = create_point(0, 0)\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on all callers using positional arguments, gives severity, and suggests a fix (restore parameter order or add keyword-only arguments).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "parameter_order"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Parameter order swapped: x and y are reversed.",
+            "broken_functionality": "Any existing caller using positional arguments like create_point(3, 5) will now assign 3 to y and 5 to x, producing incorrect coordinates. The internal call create_point(0,0) still works due to symmetry, but other calls are broken.",
+            "severity": "critical",
+            "fix_suggestion": "Restore original parameter order. If a new order is needed, use a different function name or add a deprecation path."
+          }
+        }
+      },
+      {
+        "id": "regression_detection_f53f8c23ef",
+        "dimension_id": "regression_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Determine if it introduces any regressions (breaks existing behavior). If so, explain the regression, severity, and how to fix it.\n\n```diff\n--- a/services.py\n+++ b/services.py\n@@ -1,8 +1,5 @@\n def fetch_data(url):\n-    try:\n-        response = requests.get(url, timeout=5)\n-        response.raise_for_status()\n-        return response.json()\n-    except requests.RequestException as e:\n-        return {\"error\": str(e)}\n+    response = requests.get(url, timeout=5)\n+    response.raise_for_status()\n+    return response.json()\n \n \n def process():\n     data = fetch_data(\"https://api.example.com/data\")\n     # ...\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric (1-5):\n1 - No regression identified or completely incorrect.\n2 - Identifies some issue but misses the regression or gives wrong severity.\n3 - Correctly identifies the regression but severity or fix suggestion is weak.\n4 - Accurately identifies regression, assigns correct severity, provides clear fix.\n5 - Excellent: identifies regression, explains impact on callers that relied on graceful error handling (e.g., UI showing error message instead of crashing), gives severity, and suggests a fix (restore try-except or add error handling at caller level).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "regression_detection",
+          "python",
+          "code_review",
+          "error_handling"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "regression_point": "Removed exception handling around network request.",
+            "broken_functionality": "Any existing caller that depended on fetch_data returning a dict with an 'error' key on failure will now receive an unhandled exception, crashing the application or requiring the caller to implement its own try-except. This changes the error handling contract.",
+            "severity": "major",
+            "fix_suggestion": "Restore the try-except block to maintain backward compatibility. If callers have their own error handling, remove the handling in a major version after updating all callers."
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_612dd2d34b",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/discount.py\n+++ b/discount.py\n@@ -0,0 +1,5 @@\n+def calculate_discount(price: float, discount_percent: float) -> float:\n+    \"\"\"Calculate discounted price.\"\"\"\n+    if discount_percent < 0 or discount_percent > 100:\n+        raise ValueError(\"Discount must be between 0 and 100.\")\n+    return price * (1 - discount_percent / 100)\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on three criteria: (1) Correct identification of missing tests – does the model point out the lack of tests for edge cases (zero discount, 100% discount, negative price, non-numeric inputs, etc.)? (2) Specificity of suggested tests – are the proposed test scenarios concrete and actionable? (3) Severity accuracy – is the assigned severity (critical/major/minor) reasonable given the gap? Score 1-5 where 5 is a thorough identification with specific, well-justified test suggestions and correct severity.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "discount"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No tests exist for the new function `calculate_discount` at all.",
+              "Edge cases missing: zero discount (discount_percent=0), 100% discount (discount_percent=100), negative price, zero price, extremely large price.",
+              "Error handling absent: no test that ValueError is raised for invalid discount_percent out of [0,100].",
+              "Input validation missing: no tests for non-numeric types (e.g., string, None) – the function currently has no type enforcement beyond type hints.",
+              "Normal cases missing: typical valid input combinations (e.g., price=100, discount=20 should give 80)."
+            ],
+            "severity": "critical",
+            "suggested_tests": [
+              "test_valid_discounts: test (100, 20) => 80, (100, 0) => 100, (100, 100) => 0, (0, 50) => 0.",
+              "test_invalid_discount: test that discount_percent <0 or >100 raises ValueError.",
+              "test_negative_price: test that negative price does not raise ValueError but returns negative discount (if desired). If negative price is not allowed, the function lacks validation.",
+              "test_type_error: test that passing strings or None raises an appropriate exception (TypeError or custom)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_f5fc845128",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/user_api.py\n+++ b/user_api.py\n@@ -5,7 +5,7 @@ def get_user(user_id: int) -> dict:\n     \"\"\"Return user data by ID.\"\"\"\n     user = db.query(\"SELECT id, name, email FROM users WHERE id = ?\", (user_id,))\n     if user is None:\n         raise NotFound(\"User not found\")\n-    return {\"id\": user.id, \"name\": user.name, \"email\": user.email}\n+    return {\"id\": user.id, \"name\": user.name, \"email\": user.email, \"created_at\": user.created_at.isoformat()}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that the existing tests (if any) likely expect only three keys and will fail with the new field, or that no test covers the new field's presence/format. (2) Specificity of suggested tests: e.g., test that the returned dict has four keys, test created_at string format, test that database changes don't break field. (3) Severity accuracy. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "api"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No test verifies the new 'created_at' field is present in the response.",
+              "No test validates the ISO format string returned (could be wrong if user.created_at is None or timezone unaware).",
+              "Existing tests that check the exact dict keys will fail (regression).",
+              "Missing test for edge cases: user without created_at (if DB allows NULL), which would raise AttributeError."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_get_user_contains_created_at: fetch a known user and assert 'created_at' is a key with a string value.",
+              "test_get_user_created_at_format: assert the value matches ISO format regex.",
+              "test_get_user_no_created_at: simulate a user with NULL created_at and expect a ValueError/AttributeError (or test that the code handles it).",
+              "Update existing test to include the new field in expected dict."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_3d03107b86",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/export.py\n+++ b/export.py\n@@ -0,0 +1,10 @@\n+class CsvExporter:\n+    def export(self, rows: list[dict], filepath: str) -> None:\n+        \"\"\"Write rows to CSV file.\"\"\"\n+        import csv\n+        with open(filepath, 'w', newline='') as f:\n+            if rows:\n+                writer = csv.DictWriter(f, fieldnames=rows[0].keys())\n+                writer.writeheader()\n+                writer.writerows(rows)\n+            else:\n+                f.write(\"\")\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that no tests exist for the new class. (2) Specificity: missing tests for empty rows, file I/O errors (e.g., permission denied, disk full), invalid filepath, rows with missing keys. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "csv"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No tests at all for CsvExporter.export().",
+              "Edge cases missing: empty rows list -> writes empty file; rows with inconsistent keys -> DictWriter will miss keys.",
+              "File I/O error not tested: e.g., open raises PermissionError, IsADirectoryError, etc.",
+              "Integration: does not test order of rows, encoding, or newline handling.",
+              "Happy path missing: typical rows with multiple columns and values."
+            ],
+            "severity": "critical",
+            "suggested_tests": [
+              "test_export_empty: call with [] and verify empty file is created.",
+              "test_export_single_row: one dict -> file contains header and one row.",
+              "test_export_multiple_rows: multiple dicts with same keys.",
+              "test_export_inconsistent_keys: rows with differing key sets -> expect only first row's keys.",
+              "test_export_permission_error: mock open to raise PermissionError -> ensure exception propagates.",
+              "test_export_invalid_filepath: path to non-writable directory -> expect OSError."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_cc31f61288",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/validation.py\n+++ b/validation.py\n@@ -0,0 +1,6 @@\n+import re\n+\n+def validate_email(email: str) -> bool:\n+    \"\"\"Return True if email matches basic pattern.\"\"\"\n+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2}$'\n+    return bool(re.match(pattern, email))\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that no tests exist. (2) Specificity: missing tests for valid/invalid formats, edge cases like empty string, None, very long email, special characters. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "validation"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No tests for validate_email.",
+              "Valid cases: standard emails (user@example.com, user.name@sub.example.com).",
+              "Invalid cases: missing @, missing dot, spaces, multiple dots, no TLD.",
+              "Edge cases: empty string, None (TypeError), unicode characters, long domain.",
+              "Boundary: TLD length exactly 2, or >2 (pattern allows exactly 2 or more? Actually {2} means 2+)."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_valid_email: user@example.com -> True.",
+              "test_invalid_email_no_at: userexample.com -> False.",
+              "test_invalid_email_no_domain: user@ -> False.",
+              "test_empty_string: '' -> False (but pattern requires match, so False).",
+              "test_none_input: None -> raises TypeError (needs to be tested).",
+              "test_edge_tld_length: a@b.co -> True, a@b.c -> False (TLD <2).",
+              "test_special_characters: user+tag@example.com -> True."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_e375cefabf",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/tests/test_payment.py\n+++ b/tests/test_payment.py\n@@ -1,20 +0,0 @@\n-import pytest\n-from payment import process_payment\n-\n-def test_process_payment_success():\n-    result = process_payment(amount=100, card=\"4111111111111111\")\n-    assert result[\"status\"] == \"success\"\n-\n-def test_process_payment_insufficient_funds():\n-    result = process_payment(amount=10000, card=\"4111111111111111\")\n-    assert result[\"status\"] == \"insufficient_funds\"\n-\n-def test_process_payment_invalid_card():\n-    result = process_payment(amount=100, card=\"1234\")\n-    assert result[\"status\"] == \"invalid_card\"\n-\n-def test_process_payment_declined():\n-    result = process_payment(amount=100, card=\"4000000000000002\")\n-    assert result[\"status\"] == \"declined\"\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that a test file has been deleted, removing essential coverage for payment processing. (2) Explanation of impact: payment logic no longer tested. (3) Severity rating must be critical. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "payment",
+          "test_removal"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": "The entire test file test_payment.py has been removed, causing loss of all test coverage for payment processing (success, insufficient funds, invalid card, declined). No new tests added elsewhere.",
+            "severity": "critical",
+            "suggested_tests": "Restore the deleted test file. Also add tests for edge cases like zero amount, negative amount, None card, and concurrency scenarios if applicable."
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_78477eb74d",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/upload_handler.py\n+++ b/upload_handler.py\n@@ -3,6 +3,7 @@ def handle_upload(uploaded_file):\n     \"\"\"Save uploaded file and notify.\"\"\"\n     file_path = save_file(uploaded_file)\n     send_notification(file_path)\n+    return {\"status\": \"success\", \"path\": file_path}\n \n def save_file(uploaded_file):\n     # ... implementation\n     pass\n \n def send_notification(path):\n     # ... implementation\n     pass\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that no tests exist for the new return value, or that tests for handle_upload are missing entirely. (2) Specificity: missing tests for error scenarios (save_file fails, notification fails), missing tests for the return value format. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "upload"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No test for handle_upload's new return value (was previously None).",
+              "No tests for error propagation: what if save_file raises OSError? send_notification raises Exception?",
+              "Missing edge cases: file size limits, file type validation, concurrent uploads.",
+              "No integration test verifying that save_file and send_notification are called correctly."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_handle_upload_success: mock save_file and send_notification, verify return dict.",
+              "test_handle_upload_save_fails: mock save_file to raise OSError, assert exception propagates.",
+              "test_handle_upload_notification_fails: mock send_notification to raise Exception, assert exception propagates.",
+              "test_handle_upload_large_file: if there is size limit, test that error is raised."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_2fa0cf44d2",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- /dev/null\n+++ b/config.py\n@@ -0,0 +1,6 @@\n+import os\n+\n+MAX_RETRIES = int(os.environ.get(\"MAX_RETRIES\", \"3\"))\n+DATABASE_URL = os.environ.get(\"DATABASE_URL\", \"sqlite:///default.db\")\n+API_TIMEOUT = int(os.environ.get(\"API_TIMEOUT\", \"30\"))\n+FEATURE_FLAG_NEW_PAYMENT = os.environ.get(\"FEATURE_FLAG_NEW_PAYMENT\", \"false\").lower() == \"true\"\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that no tests exist for the new config module. (2) Specificity: missing tests for default values, type conversion, environment variable override, boolean parsing for FEATURE_FLAG. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "config"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No tests for config defaults when environment variables are not set.",
+              "Missing tests for env override: set MAX_RETRIES='5' and verify value is 5.",
+              "Missing tests for invalid environments: MAX_RETRIES='abc' will raise ValueError because int('abc'), need to test that.",
+              "No test for FEATURE_FLAG_NEW_PAYMENT parsing: 'true', 'True', '1' vs other values.",
+              "No test that DATABASE_URL default is correct.",
+              "Integration: other modules import these constants and rely on them; no test that config is loaded correctly before use."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_defaults: with no env set, assert MAX_RETRIES==3, DATABASE_URL==\"sqlite:///default.db\", API_TIMEOUT==30, FEATURE_FLAG_NEW_PAYMENT==False.",
+              "test_env_override: set MAX_RETRIES='5', assert value is 5.",
+              "test_invalid_int: set MAX_RETRIES='abc', expect ValueError.",
+              "test_feature_flag_true: set FEATURE_FLAG_NEW_PAYMENT='true', assert True.",
+              "test_feature_flag_other: set FEATURE_FLAG_NEW_PAYMENT='yes', assert False (since only 'true' is considered)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_e32cfb3136",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/dict_utils.py\n+++ b/dict_utils.py\n@@ -0,0 +1,6 @@\n+def merge_dicts(dict1: dict, dict2: dict) -> dict:\n+    \"\"\"Merge dict2 into dict1 (mutates dict1) and return dict1.\"\"\"\n+    for key, value in dict2.items():\n+        dict1[key] = value\n+    return dict1\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that no tests exist. (2) Specificity: missing tests for mutation side effect, overlapping keys, nested dicts, empty dicts, non-dict inputs. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "dict"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No tests for merge_dicts.",
+              "Missing test for mutation: dict1 should be modified (side effect).",
+              "Overlapping keys: value from dict2 overwrites dict1 – need test.",
+              "Nested dictionaries: the merge is shallow; dict2's values could be dicts, but they are not deep merged.",
+              "Empty dicts: either input empty.",
+              "Input validation: what if dict1 or dict2 is None? TypeError will occur; need test."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_merge_no_overlap: dict1={'a':1}, dict2={'b':2} -> {'a':1,'b':2} and dict1 is mutated.",
+              "test_merge_with_overlap: dict1={'a':1}, dict2={'a':2} -> {'a':2}.",
+              "test_merge_empty_dicts: {} and {} -> {}; {} and {'a':1} -> {'a':1}.",
+              "test_merge_nested: dict1={'x':{'y':1}}, dict2={'x':{'z':2}} -> shallow merge: {'x':{'z':2}} (dict2 overwrites).",
+              "test_merge_none: expect TypeError."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_e425487b93",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- a/log_parser.py\n+++ b/log_parser.py\n@@ -0,0 +1,10 @@\n+def parse_log_line(line: str) -> dict:\n+    \"\"\"Parse a log line into a dict with timestamp, level, message.\"\"\"\n+    parts = line.split(' ', maxsplit=2)\n+    if len(parts) < 3:\n+        return None\n+    return {\n+        \"timestamp\": parts[0],\n+        \"level\": parts[1],\n+        \"message\": parts[2]\n+    }\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that no tests exist. (2) Specificity: missing tests for valid lines, malformed lines, empty line, extra spaces, None input, edge cases like timestamp format. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "log_parsing"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "No tests for parse_log_line.",
+              "Valid case: \"2025-01-01 12:00:00 ERROR Something went wrong\" -> dict with three keys.",
+              "Malformed: less than 3 parts -> returns None.",
+              "Empty line: \"\" -> parts length 0 -> returns None.",
+              "Line with extra spaces after parts: \"2025-01-01 12:00:00 INFO My message\" -> split with maxsplit=2 gives 3 parts? Actually maxsplit=2 means at most 2 splits, so \"My message\" may be one part if there are spaces. Edge case.",
+              "None input: TypeError."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_valid_log_line: assert dict with keys.",
+              "test_malformed_line_insufficient_parts: 'ERROR' -> None.",
+              "test_empty_line: '' -> None.",
+              "test_line_with_extra_spaces_in_message: '2025-01-01 12:00:00 INFO my message' -> message='my message' (since maxsplit=2).",
+              "test_none_input: assert TypeError.",
+              "test_timestamp_format: if timestamps are required to be ISO, add validation test (but function does no validation)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_test_detection_7d7cb0941e",
+        "dimension_id": "missing_test_detection",
+        "task_type": "open_generation",
+        "prompt": "Review the following Python code diff. Identify any missing tests or test gaps. Suggest what tests should be added and explain why. Assign severity (critical/major/minor).\n\n```diff\n--- /dev/null\n+++ b/tests/test_utils.py\n@@ -0,0 +1,5 @@\n+from utils import format_date\n+\n+def test_format_date_normal():\n+    result = format_date(\"2025-03-15\")\n+    assert result == \"2025-03-15\"\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's review on: (1) Identification that the added test only covers one happy path and many edge cases are missing. (2) Specificity: missing tests for None, invalid date strings, leap years, different formats (e.g., DD/MM/YYYY), empty string. (3) Severity. Score 1-5.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_test_detection",
+          "code_review",
+          "python",
+          "date",
+          "incomplete_test"
+        ],
+        "metadata": {
+          "ground_truth": {
+            "missing_tests": [
+              "The added test only checks a single valid date. Missing cases:",
+              "None input -> should raise TypeError or handle gracefully.",
+              "Empty string -> should raise/return error.",
+              "Invalid date strings: 'not-a-date', '2025-13-01' (month 13).",
+              "Different input formats: '03/15/2025', '15.03.2025' – function likely expects 'YYYY-MM-DD'.",
+              "Leap year dates: '2024-02-29' valid, '2023-02-29' invalid.",
+              "Boundary: start of year, end of year."
+            ],
+            "severity": "major",
+            "suggested_tests": [
+              "test_format_date_none: assert raises TypeError.",
+              "test_format_date_empty: assert raises ValueError or returns None.",
+              "test_format_date_invalid: '2025-13-01' -> should raise ValueError or similar.",
+              "test_format_date_leap_year: '2024-02-29' -> valid string; '2023-02-29' -> error.",
+              "test_format_date_different_format: ensure function rejects '03/15/2025'.",
+              "test_format_date_edge: '0000-01-01', '9999-12-31'."
+            ]
+          }
+        }
+      }
+    ],
+    "sources": [],
+    "generation_notes": "bug_detection: Generated 10 open_generation items for bug_detection dimension. Each item presents a small Python diff introducing a distinct bug: off-by-one, wrong variable, incorrect condition, missing import, mutable default argument, index out of bounds, division by zero, logic operator misuse, missing return, and parameter misuse. Diffs are self-contained with context lines. Ground truth includes exact location, type, severity, and fix description. Rubric applies to all items with 5-level scoring. All items are L4 difficulty as specified.\nregression_detection: Generated 10 open_generation items for the regression_detection dimension. Each item presents a small Python unified diff that introduces a regression (behavior change breaking existing callers or assumptions). The regressions cover: changing a default parameter value, renaming a parameter, breaking input validation contract, altering return type, switching to keyword-only arguments, changing a constant, modifying a method signature without updating overrides, altering API response keys, swapping function parameter order, and removing error handling. All items are self-contained, use simple Python functions, and include a detailed scoring rubric in the prompt. Ground truth is provided in metadata for judge evaluation.\nmissing_test_detection: Generated 10 open_generation items for the missing_test_detection dimension. Each item presents a small Python diff that either adds new functionality without tests, modifies a public API without updating tests, adds an incomplete test, or removes a test file. Diffs are self-contained and limited to a single file change. Ground truth is provided in metadata, specifying missing test scenarios, severity, and suggested tests. Items are diversified across different code contexts (discount calculation, user API, CSV export, email validation, test file removal, upload handler, config constants, dictionary merge, log parsing, date formatting) to cover a range of test gaps (edge cases, error handling, integration, parameter validation).",
+    "created_at": "2026-05-31T00:00:29.860165+00:00"
+  },
+  "qc_report": {
+    "issues": [
+      {
+        "item_id": "bug_detection_7673c6d222",
+        "severity": "warning",
+        "category": "clarity",
+        "message": "The diff block does not contain a proper unified diff (no +/- lines). The item displays the full function without indicating any change, which contradicts the blueprint requirement that each item be a small Python diff with added and removed lines. This may confuse the model about what to review.",
+        "suggested_action": "Reformat the code as a proper diff, e.g., showing the function as an addition (all lines with '+'), or remove the diff block and explicitly state it is a new function to review."
+      }
+    ],
+    "passed_item_ids": [
+      "bug_detection_54e5043c18",
+      "bug_detection_bfe54ac5d2",
+      "bug_detection_85d60a04d7",
+      "bug_detection_2a4149e75c",
+      "bug_detection_7673c6d222",
+      "bug_detection_3f7d127fb5",
+      "bug_detection_85cb4a6f88",
+      "bug_detection_816168475f",
+      "bug_detection_f7966428dc",
+      "bug_detection_463428e0a2",
+      "regression_detection_b4399315aa",
+      "regression_detection_bf86017fd3",
+      "regression_detection_739268a365",
+      "regression_detection_35e8aa1f29",
+      "regression_detection_065f05f4c8",
+      "regression_detection_0955c6eeab",
+      "regression_detection_4a2a2e0c27",
+      "regression_detection_2827672c60",
+      "regression_detection_adb8041e05",
+      "regression_detection_f53f8c23ef",
+      "missing_test_detection_612dd2d34b",
+      "missing_test_detection_f5fc845128",
+      "missing_test_detection_3d03107b86",
+      "missing_test_detection_cc31f61288",
+      "missing_test_detection_e375cefabf",
+      "missing_test_detection_78477eb74d",
+      "missing_test_detection_2fa0cf44d2",
+      "missing_test_detection_e32cfb3136",
+      "missing_test_detection_e425487b93",
+      "missing_test_detection_7d7cb0941e"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 0.9983333333333333,
+    "summary": "QC completed: 30/30 items passed, 0 rejected, 1 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\code_review_bug_risk\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\code_review_bug_risk\\pre_run_state.json"
+}

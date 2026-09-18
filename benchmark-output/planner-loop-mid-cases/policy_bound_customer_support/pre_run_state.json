@@ -1,0 +1,1046 @@
+﻿{
+  "case_id": "policy_bound_customer_support",
+  "goal": "Evaluate whether the target model handles a multi-turn customer support conversation under a refund/exchange policy, asking for missing information, applying policy constraints, and escalating when needed.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 3,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\policy_bound_customer_support",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "multi_turn_customer_support_refund_exchange",
+    "objective": "Evaluate whether the target model handles a multi-turn customer support conversation under a refund/exchange policy, including asking for missing information, applying policy constraints, and escalating when needed.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "multi_turn"
+    ],
+    "dimensions": [
+      {
+        "id": "information_gathering",
+        "name": "Information Gathering for Refund/Exchange Requests",
+        "description": "Tests whether the model proactively asks for missing information required to process a refund or exchange (e.g., order number, reason, proof of purchase).",
+        "approach": "Generate scenarios where the customer's initial request is incomplete. The model must ask clarifying questions to gather the missing details before proceeding.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 3,
+        "target_source_backed_count": 0,
+        "target_generated_count": 3,
+        "task_types": [
+          "multi_turn"
+        ],
+        "item_requirements": [
+          "Each item must define a unique missing piece of information (order number, reason for return, proof of purchase). The model must ask for that piece; if it proceeds without, it fails that criterion.",
+          "The metadata.task_agent must include: system_prompt detailing the retail support agent role and policy; initial_content.scenario describing the customer's context (e.g., item, date of purchase, customer mood); interaction.max_turns >= 3; scoring.method = 'agent_judge' with levels for full/partial credit for asking all required info, applying policy correctly, and maintaining polite tone.",
+          "Off-target: Model that directly approves/denies without gathering info, or that asks for irrelevant information, or that hallucinates details not provided."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "policy_constraint_application",
+        "name": "Policy Constraint Application in Refund/Exchange",
+        "description": "Tests whether the model correctly applies policy constraints such as return windows, condition requirements, and receipt requirements when denying or approving requests.",
+        "approach": "Generate scenarios where the customer's request violates policy (e.g., past return period, item damaged by customer, no receipt). The model must politely explain the policy and deny or offer limited options.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 3,
+        "target_source_backed_count": 0,
+        "target_generated_count": 3,
+        "task_types": [
+          "multi_turn"
+        ],
+        "item_requirements": [
+          "Each item must test a different policy violation: expired return window, non-returnable item category, missing receipt combined with item not found in system.",
+          "The metadata.task_agent must include: system_prompt with clear policy rules (e.g., 30-day return, items must be unworn, electronics require original packaging); initial_content.scenario with purchase context; interaction.max_turns >= 3; scoring.method = 'agent_judge' evaluating whether the model correctly applied the relevant rule, offered a practical alternative (e.g., store credit if applicable), and handled customer pushback.",
+          "Off-target: Model that approves request despite violation, or gives incorrect policy justification, or fails to offer any alternative when policy allows."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "escalation_handling",
+        "name": "Escalation Handling for Complex or Dissatisfied Customers",
+        "description": "Tests whether the model recognizes when a situation requires human escalation (e.g., repeated refusal, customer anger, requests outside policy scope) and handles it appropriately.",
+        "approach": "Generate scenarios where the customer is persistent, angry, or requests something beyond the model's authority (e.g., refund for a used digital good, compensation for emotional distress). The model must escalate to a human supervisor after exhausting standard options.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 3,
+        "target_source_backed_count": 0,
+        "target_generated_count": 3,
+        "task_types": [
+          "multi_turn"
+        ],
+        "item_requirements": [
+          "Each item must present a different escalation trigger: repeated denial (customer insists after policy explanation), angry/abusive language, request outside policy scope (e.g., refund for a gift card used partially).",
+          "The metadata.task_agent must include: system_prompt defining the escalation protocol (e.g., 'transfer to supervisor when customer asks three times or uses offensive language'); initial_content.scenario with customer demeanor; interaction.max_turns >= 4 to allow escalation; scoring.method = 'agent_judge' evaluating whether the model escalated at the appropriate time, maintained professionalism, and provided a smooth handoff.",
+          "Off-target: Model that escalates too early without attempting reasonable resolution, or that fails to escalate when the policy clearly requires it, or that escalates incorrectly (e.g., to refund department for a policy question)."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "mixed_scenario",
+        "name": "Mixed Scenario: Information Gathering and Policy Application in Single Interaction",
+        "description": "Tests combined capability where the customer request is both incomplete and subject to policy constraints, requiring the model to gather info and then apply policy in a coherent multi-turn flow.",
+        "approach": "Generate scenarios that start with a vague request (e.g., 'I want to return something') and gradually reveal information that triggers policy constraints. The model must gather all needed details, then determine eligibility and communicate outcome.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 3,
+        "target_source_backed_count": 0,
+        "target_generated_count": 3,
+        "task_types": [
+          "multi_turn"
+        ],
+        "item_requirements": [
+          "Each item must combine a missing-information scenario with a policy constraint that is revealed only after gathering info. Example: customer asks to exchange a sweater but hasn't provided order number or reason; when info reveals it's past 30 days, model must deny but offer store credit if policy allows.",
+          "The metadata.task_agent must include: system_prompt with comprehensive policy; initial_content.scenario with item details; interaction.initial_user_message as the vague request; interaction.max_turns >= 5 to allow full back-and-forth; scoring.method = 'agent_judge' evaluating both information gathering and policy application in a single score, with partial credit for doing one correctly but missing the other.",
+          "Off-target: Model that ignores missing info and jumps to policy, or that gathers info but then incorrectly applies policy, or that fails to coordinate the two tasks coherently."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 12,
+    "metrics": [
+      "judge_score"
+    ],
+    "constraints": [
+      "All items must be multi-turn interactions using metadata.task_agent conforming to evalclaw.task_agent.v1 schema.",
+      "The system prompt must define a fictional but realistic refund/exchange policy and the customer's initial persona/request.",
+      "Scoring must use an agent_judge with 1-5 scale evaluating correctness, policy adherence, information gathering, and escalation appropriateness."
+    ],
+    "planner_notes": "Mid budget: 4 dimensions × 3 items each = 12 multi-turn items. Each item is a complex interaction, so total item count is lower than typical 30 but workload per item is higher. Dimensions cover the core capabilities: information gathering, policy constraint application, escalation, and mixed scenarios. All items are generated (needs_research=false).",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 5.0,
+      "missing_items": [],
+      "notes": "All checklist items covered. The spec targets the requested capability with 4 dimensions (information gathering, policy application, escalation, mixed scenarios) using multi-turn task type. Scale is 12 items, appropriate for mid budget given item complexity. Metrics rely on LLM judge scoring."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "multi_turn_customer_support_refund_exchange",
+      "objective": "Evaluate whether the target model handles a multi-turn customer support conversation under a refund/exchange policy, including asking for missing information, applying policy constraints, and escalating when needed.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "multi_turn"
+      ],
+      "dimensions": [
+        {
+          "id": "information_gathering",
+          "name": "Information Gathering for Refund/Exchange Requests",
+          "description": "Tests whether the model proactively asks for missing information required to process a refund or exchange (e.g., order number, reason, proof of purchase).",
+          "approach": "Generate scenarios where the customer's initial request is incomplete. The model must ask clarifying questions to gather the missing details before proceeding.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 3,
+          "target_source_backed_count": 0,
+          "target_generated_count": 3,
+          "task_types": [
+            "multi_turn"
+          ],
+          "item_requirements": [
+            "Each item must define a unique missing piece of information (order number, reason for return, proof of purchase). The model must ask for that piece; if it proceeds without, it fails that criterion.",
+            "The metadata.task_agent must include: system_prompt detailing the retail support agent role and policy; initial_content.scenario describing the customer's context (e.g., item, date of purchase, customer mood); interaction.max_turns >= 3; scoring.method = 'agent_judge' with levels for full/partial credit for asking all required info, applying policy correctly, and maintaining polite tone.",
+            "Off-target: Model that directly approves/denies without gathering info, or that asks for irrelevant information, or that hallucinates details not provided."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "policy_constraint_application",
+          "name": "Policy Constraint Application in Refund/Exchange",
+          "description": "Tests whether the model correctly applies policy constraints such as return windows, condition requirements, and receipt requirements when denying or approving requests.",
+          "approach": "Generate scenarios where the customer's request violates policy (e.g., past return period, item damaged by customer, no receipt). The model must politely explain the policy and deny or offer limited options.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 3,
+          "target_source_backed_count": 0,
+          "target_generated_count": 3,
+          "task_types": [
+            "multi_turn"
+          ],
+          "item_requirements": [
+            "Each item must test a different policy violation: expired return window, non-returnable item category, missing receipt combined with item not found in system.",
+            "The metadata.task_agent must include: system_prompt with clear policy rules (e.g., 30-day return, items must be unworn, electronics require original packaging); initial_content.scenario with purchase context; interaction.max_turns >= 3; scoring.method = 'agent_judge' evaluating whether the model correctly applied the relevant rule, offered a practical alternative (e.g., store credit if applicable), and handled customer pushback.",
+            "Off-target: Model that approves request despite violation, or gives incorrect policy justification, or fails to offer any alternative when policy allows."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "escalation_handling",
+          "name": "Escalation Handling for Complex or Dissatisfied Customers",
+          "description": "Tests whether the model recognizes when a situation requires human escalation (e.g., repeated refusal, customer anger, requests outside policy scope) and handles it appropriately.",
+          "approach": "Generate scenarios where the customer is persistent, angry, or requests something beyond the model's authority (e.g., refund for a used digital good, compensation for emotional distress). The model must escalate to a human supervisor after exhausting standard options.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 3,
+          "target_source_backed_count": 0,
+          "target_generated_count": 3,
+          "task_types": [
+            "multi_turn"
+          ],
+          "item_requirements": [
+            "Each item must present a different escalation trigger: repeated denial (customer insists after policy explanation), angry/abusive language, request outside policy scope (e.g., refund for a gift card used partially).",
+            "The metadata.task_agent must include: system_prompt defining the escalation protocol (e.g., 'transfer to supervisor when customer asks three times or uses offensive language'); initial_content.scenario with customer demeanor; interaction.max_turns >= 4 to allow escalation; scoring.method = 'agent_judge' evaluating whether the model escalated at the appropriate time, maintained professionalism, and provided a smooth handoff.",
+            "Off-target: Model that escalates too early without attempting reasonable resolution, or that fails to escalate when the policy clearly requires it, or that escalates incorrectly (e.g., to refund department for a policy question)."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "mixed_scenario",
+          "name": "Mixed Scenario: Information Gathering and Policy Application in Single Interaction",
+          "description": "Tests combined capability where the customer request is both incomplete and subject to policy constraints, requiring the model to gather info and then apply policy in a coherent multi-turn flow.",
+          "approach": "Generate scenarios that start with a vague request (e.g., 'I want to return something') and gradually reveal information that triggers policy constraints. The model must gather all needed details, then determine eligibility and communicate outcome.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 3,
+          "target_source_backed_count": 0,
+          "target_generated_count": 3,
+          "task_types": [
+            "multi_turn"
+          ],
+          "item_requirements": [
+            "Each item must combine a missing-information scenario with a policy constraint that is revealed only after gathering info. Example: customer asks to exchange a sweater but hasn't provided order number or reason; when info reveals it's past 30 days, model must deny but offer store credit if policy allows.",
+            "The metadata.task_agent must include: system_prompt with comprehensive policy; initial_content.scenario with item details; interaction.initial_user_message as the vague request; interaction.max_turns >= 5 to allow full back-and-forth; scoring.method = 'agent_judge' evaluating both information gathering and policy application in a single score, with partial credit for doing one correctly but missing the other.",
+            "Off-target: Model that ignores missing info and jumps to policy, or that gathers info but then incorrectly applies policy, or that fails to coordinate the two tasks coherently."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 12,
+      "metrics": [
+        "judge_score"
+      ],
+      "constraints": [
+        "All items must be multi-turn interactions using metadata.task_agent conforming to evalclaw.task_agent.v1 schema.",
+        "The system prompt must define a fictional but realistic refund/exchange policy and the customer's initial persona/request.",
+        "Scoring must use an agent_judge with 1-5 scale evaluating correctness, policy adherence, information gathering, and escalation appropriateness."
+      ],
+      "planner_notes": "Mid budget: 4 dimensions × 3 items each = 12 multi-turn items. Each item is a complex interaction, so total item count is lower than typical 30 but workload per item is higher. Dimensions cover the core capabilities: information gathering, policy constraint application, escalation, and mixed scenarios. All items are generated (needs_research=false).",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 5.0,
+        "missing_items": [],
+        "notes": "All checklist items covered. The spec targets the requested capability with 4 dimensions (information gathering, policy application, escalation, mixed scenarios) using multi-turn task type. Scale is 12 items, appropriate for mid budget given item complexity. Metrics rely on LLM judge scoring."
+      }
+    },
+    "items": [
+      {
+        "id": "information_gathering_40d14ebbae",
+        "dimension_id": "information_gathering",
+        "task_type": "multi_turn",
+        "prompt": "Hi, I want to return a jacket I bought from your store a couple of weeks ago. It's too small for me. Can you help me with the return?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on: (1) Model asks for the order number before proceeding; (2) Model maintains polite and professional tone; (3) Model correctly checks the return policy (30-day window, unworn condition) after gathering info; (4) Model provides clear next steps (e.g., return instructions, shipping label). Deduct for granting return without asking for order number, or for asking irrelevant questions.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_turn",
+          "information_gathering",
+          "order_number",
+          "customer_support",
+          "refund_exchange"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are a customer support simulator for Apex Retail. You play a customer who purchased a jacket from Apex Retail about 12 days ago. The jacket was a standard size, but upon trying it at home, it is too small. You want to return it for a full refund. You have the order number but you do not volunteer it unless asked. You are polite but slightly impatient. After the support agent asks for your order number, provide it: ORD-7846-AB. Do not provide additional information like the purchase date or reason unless asked. If the agent grants the return without asking for the order number or other required details, continue politely but note that they didn't ask. Keep the conversation natural and brief.",
+            "initial_content": {
+              "scenario": "Customer: Sarah, age 32, bought a 'Apex Trail Jacket' (Men's size M) on March 10, 2025, for $89.99. She ordered online using credit card. The jacket arrived on March 14. She tried it on March 15 and found it too tight. She is now on March 22, well within the 30-day return window. She has the original packaging and tags still attached. Her mood is slightly frustrated because she wanted to wear it for an upcoming trip.",
+              "files": {},
+              "notes": "The return policy: items must be returned within 30 days of delivery, unworn with tags attached. Original packaging recommended but not required for clothing. Refund processed to original payment method."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "Hi, I want to return a jacket I bought from your store a couple of weeks ago. It's too small for me. Can you help me with the return?",
+              "user_turns": [],
+              "followup_instruction": "After each model response, choose the next customer turn from the policy and scenario. The customer does not volunteer the order number unless asked. If the model asks for the order number, provide 'ORD-7846-AB'. If the model asks for the reason, say 'It's too small.' If the model asks for purchase date, say 'I ordered it on March 10.' If the model asks for proof of purchase, say 'I have the email confirmation, can I send it?' Keep responses short. If the model approves the return, say 'Thank you! What do I need to do next?' If the model denies (e.g., past window), ask 'But I only bought it two weeks ago, can you check again?' If the model escalates, say 'Okay, I appreciate your help.'",
+              "stop_condition": "Stop when the model either provides a clear resolution (return instructions or denial with explanation) or escalates to a human agent."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the full transcript. Award 5 if the model: (a) asked for order number explicitly before making a decision, (b) correctly applied the 30-day return policy and condition requirements, (c) maintained polite tone, (d) provided clear next steps (return label, instructions). Award 3 if the model asked for order number but made a minor policy mistake (e.g., gave wrong timeframe) or did not provide clear instructions. Award 1 if model approved return without asking for order number or other required info, or if model was rude or dismissive. Intermediate scores (2,4) for partial fulfillment.",
+              "levels": {
+                "5": "Excellent: gathered all required info, applied policy correctly, polite, provided complete resolution.",
+                "4": "Good: gathered required info and applied policy, but slightly unclear instructions or minor tone issue.",
+                "3": "Adequate: asked for order number but made a policy error or lacked clear instructions.",
+                "2": "Poor: asked for some information but missed key details (e.g., didn't ask for order number until late) or was impolite.",
+                "1": "Fail: approved return without asking for order number, or denied without gathering info, or hallucinated details."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "information_gathering_1f394725c0",
+        "dimension_id": "information_gathering",
+        "task_type": "multi_turn",
+        "prompt": "Hello, I'd like to exchange a blender I bought last week. It works fine but I'm not satisfied with the power. Can you help me with an exchange?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on: (1) Model asks for the reason for the exchange/return; (2) Model asks for order number or other identifying info; (3) Model maintains polite tone; (4) Model correctly applies policy (electronics require original packaging, 30-day return, exchange options). Deduct if model proceeds without asking reason or order number, or if model offers exchange without checking condition/requirements.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_turn",
+          "information_gathering",
+          "reason_for_return",
+          "customer_support",
+          "exchange"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are a customer support simulator for Apex Retail. You play a customer who purchased a 'Apex BlendPro Blender' from Apex Retail online 6 days ago. You want to exchange it for a different model with higher wattage. The blender is clean and in original packaging. You have the order number but you only provide it if asked. You also have the original receipt (email). You are polite but eager to get the exchange started. You do not explicitly state the reason for exchange unless asked; if asked, say 'I need a more powerful blender for crushing ice.' You do not mention the order number voluntarily. Keep responses short and natural.",
+            "initial_content": {
+              "scenario": "Customer: Mark, age 40, bought 'Apex BlendPro Blender' on March 18, 2025, for $149.99. It arrived March 20. He used it once to make a smoothie and found it doesn't crush ice well. He wants to exchange for 'Apex MegaBlend' ($199.99). He has original packaging, manual, and accessories. He is within the 30-day exchange window. Payment via PayPal.",
+              "files": {},
+              "notes": "Policy: Electronics and small appliances must be returned/exchanged within 30 days, in like-new condition with original packaging and accessories. Exchanges are subject to stock availability. Price difference may apply. Refunds go to original payment method."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "Hello, I'd like to exchange a blender I bought last week. It works fine but I'm not satisfied with the power. Can you help me with an exchange?",
+              "user_turns": [],
+              "followup_instruction": "After each model response, choose the next customer turn. If asked for order number, provide 'ORD-9102-XZ'. If asked for reason, say 'I need a more powerful blender for crushing ice.' If asked for purchase date, say 'March 18, 2025.' If asked about condition, say 'It's like new, I have the box and everything.' If the model asks for proof of purchase, say 'I have the email receipt, I can forward it.' If the model offers an exchange, ask about the process and price difference. If the model denies (e.g., past window), politely argue: 'But I just got it last week, can you check?' Keep tone cooperative but persistent.",
+              "stop_condition": "Stop when the model provides a clear exchange process (including price difference, shipping) or denies with a valid policy reason (e.g., item not eligible) and optionally offers alternatives."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript. Score 5 if model: (a) asked for reason for exchange before proceeding, (b) asked for order number, (c) confirmed item condition, (d) correctly applied exchange policy, (e) explained next steps (return label, ship, difference payment). Score 3 if model asked for reason and order number but made an error in process (e.g., didn't mention packaging requirement). Score 1 if model offered exchange without asking for reason or order number, or if model denied without checking details. Consider tone and clarity.",
+              "levels": {
+                "5": "Excellent: gathered reason, order number, condition; applied policy correctly; clear instructions.",
+                "4": "Good: gathered main info but minor omission (e.g., didn't ask order number until second turn).",
+                "3": "Adequate: asked for reason and order but missed condition check or policy detail.",
+                "2": "Poor: only asked for one piece of info (e.g., order number but not reason) or was unclear.",
+                "1": "Fail: proceeded without gathering reason or order number; incorrect policy application."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "information_gathering_a643b1b3ac",
+        "dimension_id": "information_gathering",
+        "task_type": "multi_turn",
+        "prompt": "I need a refund for some shoes I bought. They arrived with a scuff mark. I don't have the receipt anymore, but I have the shoes and the box. Can you process the refund?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on: (1) Model asks for proof of purchase (order number, email confirmation, etc.) despite missing receipt; (2) Model asks for details (order number, date) to locate the order; (3) Model maintains polite tone and empathy; (4) Model correctly applies policy (requires proof of purchase, but offers alternative if record can be found in system). Deduct if model denies outright without trying to locate the order or asks for something impossible (e.g., original receipt in a store purchase with no account).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_turn",
+          "information_gathering",
+          "proof_of_purchase",
+          "customer_support",
+          "refund"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are a customer support simulator for Apex Retail. You play a customer who purchased a pair of 'Apex Trail Hiking Shoes' from Apex Retail online 20 days ago. The shoes arrived with a visible scuff on the left toe. You unpacked them and noticed it immediately. You don't have the original receipt (email confirmation), but you have the shoebox and the shoes. You do not remember the order number offhand. You want a full refund because the item is damaged. You are a bit frustrated because this is the second time you've had an issue with Apex. You do not provide the order number unless the agent helps you locate it (e.g., asks for email, name, or date). You may say 'I don't have the order number, can you look it up by my name?' If the agent asks for your email, provide 'sarah.connor@example.com'. If asked for purchase date, say 'I think it was around March 5th.' If asked for any other details, respond naturally but only reveal if asked. Keep tone polite but slightly annoyed.",
+            "initial_content": {
+              "scenario": "Customer: Jamie, age 28, bought 'Apex Trail Hiking Shoes' (size US 9) on March 5, 2025, for $119.99 using a guest checkout (no account). The shoes were shipped on March 7 and arrived on March 10. The scuff is on the left shoe toe area, about 1 cm. Customer has the shoebox, no tags (already removed). Policy: Items must be returned within 30 days, unworn with original packaging. For damaged items, Apex covers return shipping. Proof of purchase is required; if the customer does not have the receipt, Apex can locate the order by name/email/date. Refunds are processed to the original payment method.",
+              "files": {},
+              "notes": "The customer does not have the proof of purchase available but can be helped if the agent asks for enough details to find the order (email, date, item). The rubric assesses whether the agent seeks alternative proof of purchase rather than demanding the original receipt."
+            },
+            "interaction": {
+              "max_turns": 6,
+              "initial_user_message": "I need a refund for some shoes I bought. They arrived with a scuff mark. I don't have the receipt anymore, but I have the shoes and the box. Can you process the refund?",
+              "user_turns": [],
+              "followup_instruction": "After each model response, respond as the customer. If the model asks for the order number, say 'I don't have it, can you look it up?' If the model asks for the email, provide 'sarah.connor@example.com'. If asked for the purchase date, say 'Around March 5th.' If the model asks for the item name, say 'Apex Trail Hiking Shoes, size 9.' If the model asks for other info like phone number or shipping address, provide only if asked. If the model asks for a photo of the scuff, say 'Yes, I can take a picture and email it.' If the model approves the refund, ask 'How long will it take?' If the model denies because of missing receipt, argue: 'But I have the shoes and the box, can't you find my order in your system?' Be persistent but not abusive. If the model escalates to a supervisor, accept. Keep responses conversational.",
+              "stop_condition": "Stop when the model either: (a) provides a clear path to refund (e.g., locate order, send return label), (b) denies with policy explanation and offers no alternative, or (c) escalates to human agent."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript. Score 5 if model: (a) asked for alternative proof of purchase (email, name, date) instead of rejecting outright, (b) located the order in the system and confirmed eligibility (within 30 days, damaged item), (c) offered return label and refund, (d) polite and empathetic. Score 3 if model asked for proof but was inflexible (e.g., demanded receipt) and needed customer to push back, but eventually found the order. Score 1 if model denied without attempting to locate order, or demanded receipt and gave no alternative, or if model was rude.",
+              "levels": {
+                "5": "Excellent: proactively gathered info to locate order, handled missing receipt professionally, clear resolution.",
+                "4": "Good: gathered info but slightly slower or less empathetic, still resolved correctly.",
+                "3": "Adequate: asked for some info but required customer to suggest lookup; eventual resolution.",
+                "2": "Poor: initially denied or demanded receipt, but eventually found order after pushback; tone could have been better.",
+                "1": "Fail: refused refund due to missing receipt without trying to locate order, or offered no alternative; rude."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "policy_constraint_application_d9a4197ec9",
+        "dimension_id": "policy_constraint_application",
+        "task_type": "multi_turn",
+        "prompt": "Hi, I'd like to return a jacket I bought about a month and a half ago. It's still in good condition, just not what I expected.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's handling of a return request that falls outside the 30-day return window. A score of 5 requires: (1) correctly identifying the expired window using the given purchase date (2) clearly explaining the 30-day policy (3) offering an appropriate alternative such as store credit if allowed by policy (4) remaining polite and professional throughout (5) handling any customer pushback (e.g., 'why can't I return it?') without escalation. Score 3: denies return but fails to offer any alternative or gives incorrect policy justification. Score 1: approves the return despite the violation or provides blatantly wrong information.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "policy_constraint_application",
+          "expired_return_window",
+          "multi_turn",
+          "retail_support"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer in a retail customer support conversation. Act according to the scenario provided. You only know the information given in the initial_user_message and the scenario. When the support agent responds, react naturally in character—include polite pushback if the agent denies your request. Follow the deterministic user_turns exactly if they are provided; if the agent asks additional questions not covered by the script, answer in a way consistent with the scenario.",
+            "initial_content": {
+              "scenario": "Customer purchased a winter jacket on November 5, 2024, for $89.99 from an online retailer. The current date is December 20, 2024 (45 days after purchase). The customer is polite and reasonable, has the original receipt and packaging. They do not know the exact return policy but assume returns are possible because the jacket is unused.",
+              "notes": "The order number is ORD-12345. The store’s standard return policy is 30 days from delivery. Items in new condition within 30 days get a full refund; items 31–45 days can be returned for store credit only; items after 45 days are not returnable. The customer is unaware of these details."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "Hi, I'd like to return a jacket I bought about a month and a half ago. It's still in good condition, just not what I expected.",
+              "user_turns": [
+                "It was about a month and a half ago. I think around November 5th. Is that still within the return window?",
+                "Oh, I didn't realize it was 30 days. Is there any way I could still return it? Maybe get store credit?",
+                "That seems fair. Yes, I'd like store credit. How do I proceed?"
+              ],
+              "followup_instruction": "If the agent asks for the order number or other identifying information before the first scripted turn, respond with: 'I have the receipt with me, but I'm not sure about the order number. It might be ORD-12345.' After that, continue with the first scripted user_turn.",
+              "stop_condition": "Stop after the agent provides a final resolution or after the 4th turn, whichever comes first."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Read the full transcript and score the target model's performance using the levels below. The target model is the customer support agent (the second speaker).",
+              "levels": {
+                "5": "Correctly identifies that the jacket is outside the 30-day window, explains the policy clearly, offers store credit as an alternative (since 31-45 days qualifies), maintains a polite tone, and handles any pushback professionally.",
+                "4": "Correctly denies the return and explains the policy, but offers store credit only after the customer suggests it, or has minor phrasing issues.",
+                "3": "Denies the return but either fails to mention store credit or gives an incorrect policy justification (e.g., says 'we only offer store credit after 45 days' when policy allows it before).",
+                "2": "Attempts to process the return despite knowing the date, or gives contradictory information, or becomes rude.",
+                "1": "Approves the return without any policy check, or provides blatantly incorrect information (e.g., says 'you have 90 days')."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "policy_constraint_application_3fac0f4521",
+        "dimension_id": "policy_constraint_application",
+        "task_type": "multi_turn",
+        "prompt": "I'd like to return a pair of sneakers I bought last week from the clearance section. They're too small.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's handling of a return request for a non-returnable (final sale) item. A score of 5 requires: (1) correctly identifying that clearance / final sale items cannot be returned or exchanged (2) politely explaining the final sale policy (3) not offering any alternatives if the policy explicitly prohibits them (4) remaining professional when the customer pushes back. Score 3: denies return but explains the policy poorly, or incorrectly offers a partial refund or exchange. Score 1: approves the return despite the final sale restriction.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "policy_constraint_application",
+          "non_returnable_item",
+          "multi_turn",
+          "retail_support"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer in a retail customer support conversation. Act according to the scenario provided. You only know the information given in the initial_user_message and the scenario. When the support agent responds, react naturally in character—include polite pushback if the agent denies your request. Follow the deterministic user_turns exactly if they are provided; if the agent asks additional questions not covered by the script, answer in a way consistent with the scenario.",
+            "initial_content": {
+              "scenario": "Customer purchased a pair of clearance sneakers for $34.99 on December 10, 2024 (final sale, no returns or exchanges). Current date is December 17, 2024. The customer tried them on at home, they are too small, but the shoes are unworn and in original box. The customer is polite but a bit surprised by the policy.",
+              "notes": "The order number is ORD-67890. Store policy: All clearance items marked 'final sale' cannot be returned, exchanged, or credited. No exceptions. The customer does not know about the final sale policy at the start."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "I'd like to return a pair of sneakers I bought last week from the clearance section. They're too small.",
+              "user_turns": [
+                "I bought them last week. Why can't I return them? They haven't been worn.",
+                "But it's only been a week. Is there any exception for store credit or anything?",
+                "What about an exchange? I saw another pair I like."
+              ],
+              "followup_instruction": "If the agent asks for the order number, respond with 'ORD-67890.' If the agent asks for purchase date or other details, respond with the scenario information. After answering, proceed to the first user_turn.",
+              "stop_condition": "Stop after the agent provides a final resolution or after the 4th turn, whichever comes first."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Read the full transcript and score the target model's performance using the levels below. The target model is the customer support agent.",
+              "levels": {
+                "5": "Correctly identifies that the sneakers are final sale and therefore cannot be returned or exchanged. Politely explains the policy, maintains a helpful tone, and does not offer any alternatives that violate policy. Handles customer disappointment professionally.",
+                "4": "Denies the return and correctly cites final sale, but does not articulate the policy as clearly or misses an opportunity to remain empathetic.",
+                "3": "Denies the return but gives a vague explanation (e.g., 'clearance items are not returnable') without clearly stating 'final sale,' or incorrectly says 'we can exchange for a different size' when exchanges are also prohibited.",
+                "2": "Offers store credit or partial refund when not permitted, or becomes dismissive.",
+                "1": "Approves the return or exchange despite the final sale restriction, or ignores the policy entirely."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "policy_constraint_application_3aa2c0333b",
+        "dimension_id": "policy_constraint_application",
+        "task_type": "multi_turn",
+        "prompt": "I want to return a pair of boots I got as a gift. I don't have the receipt.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the model's handling of a return request without a receipt when the item cannot be found in the store's system. A score of 5 requires: (1) politely asking for alternative proof of purchase (e.g., order number, gift receipt, serial number) (2) attempting to locate the item in the system using any provided identifier (3) when the item is not found, clearly explaining that without proof of purchase or system record, the return cannot be processed (4) suggesting practical alternatives such as checking with the gift giver or bringing the item to a physical store for evaluation. Score 3: denies the return but does not attempt to look up the item or gives an unclear reason. Score 1: processes the return without proper verification or makes up a false policy.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "policy_constraint_application",
+          "missing_receipt",
+          "item_not_found",
+          "multi_turn",
+          "retail_support"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer in a retail customer support conversation. Act according to the scenario provided. You only know the information given in the initial_user_message and the scenario. When the support agent responds, react naturally in character—include polite pushback if the agent denies your request. Follow the deterministic user_turns exactly if they are provided; if the agent asks additional questions not covered by the script, answer in a way consistent with the scenario.",
+            "initial_content": {
+              "scenario": "Customer received a pair of leather boots as a gift from a friend. No receipt, no order number. The boots have a serial number inside: 7I9X2K. The customer knows the friend bought them from 'your store' but has no other details. The boots cannot be found in the store's system (they might have been discontinued or from a different retailer). The customer is polite and genuinely hopes to return them for a different size.",
+              "notes": "Store policy: Returns without receipt are only possible if the item can be identified in the system (by serial number or other identifier). If found, store credit is given at the lowest selling price. If not found, the return cannot be accepted. The customer does not know the policy."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "I want to return a pair of boots I got as a gift. I don't have the receipt.",
+              "user_turns": [
+                "I don't have the order number either. It was a gift.",
+                "They have a serial number on the inside: 7I9X2K. Can you look that up?",
+                "Oh, they were from your store, I think. Is there anything else I can do?"
+              ],
+              "followup_instruction": "If the agent asks for the store name, respond with 'I think it was your online store.' If asked for the giver's name, respond with 'My friend Sarah, but I don't have her order info.' After responding to any initial questions, proceed with the first user_turn.",
+              "stop_condition": "Stop after the agent provides a final resolution or after the 4th turn, whichever comes first."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Read the full transcript and score the target model's performance using the levels below. The target model is the customer support agent.",
+              "levels": {
+                "5": "Politely asks for alternative proof (gift receipt, order number, serial) and attempts to search by serial number. When the item is not found, clearly explains that without proof of purchase or a system record the return cannot be processed. Suggests alternatives (e.g., check with the giver, bring to a physical store for possible in-store lookup). Maintains empathy and professionalism.",
+                "4": "Same as above but does not offer an alternative suggestion, or the explanation is slightly unclear.",
+                "3": "Denies the return but does not attempt to look up the item or gives a short, unhelpful reason (e.g., 'we need a receipt'). Fails to explore the serial number option.",
+                "2": "Attempts to process a return without sufficient verification (e.g., accepts 'it was a gift' and offers store credit without checking the system) or becomes rude.",
+                "1": "Processes the return without any verification, ignoring the receipt requirement, or provides false policy information (e.g., 'you can return gifts without a receipt for a full refund')."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "mixed_scenario_4642338758",
+        "dimension_id": "mixed_scenario",
+        "task_type": "multi_turn",
+        "prompt": "Hi, I need to return a cutting board I ordered. It's not what I expected.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on: (1) Did the model ask for order number, condition/defect details? (2) Did the model correctly apply the personalized item policy (non-returnable for change of mind but defect allows replacement)? (3) Did the model identify the defect (misspelling) and offer replacement or full refund? (4) Politeness. 5 = All info gathered, policy applied correctly, defect replacement offered. 3 = Gathered info but incorrectly thought it's not returnable at all. 1 = Approved return without gathering info or denied without checking defect.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "mixed_scenario",
+          "information_gathering",
+          "policy_application",
+          "defect",
+          "personalized_item"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are Alex, a customer who bought a Custom Engraved Bamboo Cutting Board (order #GL-2025-4921) 10 days ago. The engraving says 'Alex's Kittchen' instead of 'Alex's Kitchen'. You want to return it because it's defective. You are disappointed but calm. You do not know GreenLeaf's policy: personalized items cannot be returned for change of mind, but if defective (wrong engraving), a replacement or full refund is allowed. You will provide the order number and defect details when asked. As the simulator, respond naturally. If the agent asks about the order, provide details. If the agent asks why you want to return, say 'The engraving is wrong.' If the agent explains that personalized items are non-returnable generally, but you mention it's a mistake, expect a better offer. End when resolution is given.",
+            "initial_content": {
+              "scenario": "Customer Alex ordered a Custom Engraved Bamboo Cutting Board on 2025-02-20, delivered 2025-02-25. Current date is 2025-03-06 (9 days post-delivery). Order #GL-2025-4921, price $45.00. Item is unused, but engraving misspelled.",
+              "files": null,
+              "notes": "Policy: personalized items non-returnable unless defective. Defective items get replacement or full refund."
+            },
+            "interaction": {
+              "max_turns": 6,
+              "initial_user_message": null,
+              "user_turns": null,
+              "followup_instruction": "As Alex, respond to the support agent. If asked for order number, provide 'GL-2025-4921'. If asked for reason, say 'The engraving is misspelled, it says Alex's Kittchen instead of Alex's Kitchen.' If the agent says personalized items cannot be returned, clarify that it's a defect. If the agent offers a replacement with correct engraving, accept. If the agent offers a refund, accept. Stay in character.",
+              "stop_condition": "When the agent gives a final resolution (replacement/refund approved or denied incorrectly) and the customer accepts or escalates."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the dialogue. Did the model ask for order number and details about the defect? Did it apply the personalized-item exception correctly? Did it offer a replacement or refund for the defect? Score 1-5 accordingly.",
+              "levels": {
+                "5": "Model asked for order number and defect details, correctly identified it as a defect exception, offered replacement or refund, polite.",
+                "4": "Same as 5 but slightly vague on policy explanation.",
+                "3": "Model gathered info but incorrectly denied the return entirely (ignored defect) or offered a partial solution (e.g., discount coupon only).",
+                "2": "Model approved return without investigating defect, or gave a generic 'we can't accept' without exploring defect.",
+                "1": "Model ignored missing info, hallucinated policy, or failed to offer any solution."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "mixed_scenario_aedc6b6dd5",
+        "dimension_id": "mixed_scenario",
+        "task_type": "multi_turn",
+        "prompt": "Hey, I'd like to return a plant pot I bought. I just don't need it anymore.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on: (1) Did the model ask for order number and condition of the item? (2) Did the model correctly apply the 'items must be unused' policy and deny the return? (3) Did the model maintain empathy and offer any alternative (e.g., recycling program or advice)? (4) Politeness. 5 = All info gathered, policy applied correctly, polite denial with empathy or useful suggestion. 3 = Gathered info but gave inconsistent policy statement or offered no alternative despite policy. 1 = Approved return without checking condition or ignored missing info.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "mixed_scenario",
+          "information_gathering",
+          "policy_application",
+          "denial",
+          "used_item"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are Sam, a customer who bought a Ceramic Plant Pot (order #GL-2025-5123) 20 days ago. You used it for a small succulent but now changed your mind. The pot has soil and a small crack from use. You are apologetic and hope they'll accept the return. You do not know GreenLeaf's policy: items must be unused and in original packaging. Used or damaged items cannot be returned. No exceptions. You will provide your order number (GL-2025-5123) when asked. When asked about condition, admit it has been used. As the simulator, respond naturally. If the agent says the item cannot be returned due to use, express disappointment but accept. If the agent offers store credit or other alternative, accept. Stay in character.",
+            "initial_content": {
+              "scenario": "Customer Sam ordered a Ceramic Plant Pot on 2025-02-14, delivered 2025-02-18. Current date is 2025-03-06 (16 days post-delivery). Order #GL-2025-5123, price $25.00. Item has been used, has soil and a crack. Original packaging disposed of.",
+              "files": null,
+              "notes": "Policy: items must be unused and in original packaging. Used items cannot be returned. No alternatives except possibly recycling."
+            },
+            "interaction": {
+              "max_turns": 6,
+              "initial_user_message": null,
+              "user_turns": null,
+              "followup_instruction": "As Sam, respond to the support agent. When asked for order number, provide 'GL-2025-5123'. When asked for condition, say 'I used it for a small plant, it has soil inside and a small crack.' If the agent says the item cannot be returned due to use, respond with 'Oh, I see. I'm sorry, I didn't realize. Is there anything else you can do?' If the agent offers a recycling discount or suggestion, accept. If the agent just denies without further help, express understanding but slight disappointment. End when agent gives final word.",
+              "stop_condition": "When the agent provides a final resolution (denial confirmed, alternative offered, or escalation)."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the dialogue. Did the model ask for order number and condition? Did it correctly deny the return based on the 'used item' policy? Did it maintain empathy and offer any practical advice or alternative (e.g., recycling program, garden center discount)? Score 1-5.",
+              "levels": {
+                "5": "Model asked for both order number and condition, correctly denied return citing policy, offered understanding and practical suggestion (e.g., 'you could repurpose the pot' or 'we have a recycling program'), polite.",
+                "4": "Same as 5 but slight lack of empathy or no alternative offered.",
+                "3": "Model gathered info but gave inconsistent policy (e.g., said 'maybe you can return if you clean it' incorrectly), or denied abruptly without empathy.",
+                "2": "Model approved return without checking condition, or gave false hope of return when policy forbids.",
+                "1": "Model ignored missing info, hallucinated policy (e.g., offered full refund), or was rude."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "escalation_handling_fb24cd645e",
+        "dimension_id": "escalation_handling",
+        "task_type": "multi_turn",
+        "prompt": "I bought a wireless speaker from your store about a month and a half ago. The speaker now makes a crackling sound during playback. I'd like to return it for a full refund, please.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on the following criteria:\n1 – Did the assistant gather necessary information (order number, purchase date, etc.)?\n2 – Did the assistant correctly apply the return policy (store credit only for defective items 31-60 days)?\n3 – Did the assistant maintain a polite and professional tone?\n4 – Did the assistant offer store credit (or another viable alternative) before the customer insisted on escalation?\n5 – When the customer insisted repeatedly, did the assistant offer to escalate to a supervisor in a timely manner (after at most two insistence turns) and provide a clear handoff?\n\nLevels:\n5 (Excellent): All criteria fully met; assistant gathers info, correctly applies policy, offers alternative, remains professional, and escalates after second insistence with a smooth handoff.\n4 (Good): Minor issues (e.g., escalated slightly early or handoff vague), but otherwise correct.\n3 (Fair): Correct policy application and alternative offered, but no escalation after two insistence turns, or tone slightly off.\n2 (Poor): Policy incorrectly applied (e.g., denied full refund without offering store credit, or granted full refund against policy), or escalation not offered when warranted, or tone unprofessional.\n1 (Very poor): Ignores policy, does not gather info, offers no alternative, fails to escalate, or is rude.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "escalation",
+          "repeated-denial",
+          "multi-turn",
+          "customer-support",
+          "policy-application"
+        ],
+        "metadata": {
+          "assistant_system_prompt": "You are a customer support agent for ElectroMart. Follow this policy:\n- Full refund or exchange within 30 days of purchase for any reason, with original packaging and receipt.\n- Defective items within 30 days: full refund or exchange.\n- Defective items 31-60 days: only store credit (no expiration) or exchange if available.\n- Defective items after 60 days: no return, no store credit.\n- Non-defective items after 30 days: no returns.\nMaintain a professional and empathetic tone. If a customer insists on a resolution outside policy after you have explained the options, offer to escalate to a supervisor.",
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer named Alex who purchased a wireless speaker (Model BTS-200) from ElectroMart 45 days ago. The speaker has developed a crackling sound during playback. Alex is initially polite but becomes insistent when the assistant explains that the return window (30 days) has passed and only store credit is available for defective items within 60 days.\n\nPolicy background (for your simulation accuracy):\n- Full refund or exchange within 30 days for any reason, with original packaging and receipt.\n- Defective items within 30 days: full refund or exchange.\n- Defective items 31-60 days: only store credit or exchange if available.\n- Defective items after 60 days: no returns.\n- Non-defective items after 30 days: no returns.\n\nYou will follow the scripted user_turns below in order. Do not deviate from the script.\n- Turn 1 (initial_user_message): state the problem and request full refund.\n- Turn 2: After the assistant responds, use the first user_turn: \"I understand the policy, but I've been a loyal customer for years and this is a known defect in this model. I believe I deserve a full refund.\"\n- Turn 3: After the assistant responds again, use the second user_turn: \"Your store credit policy is not acceptable. I want a full refund, and if you can't provide that, then I want to speak to a supervisor.\"\n- If at any point the assistant offers to transfer to a supervisor or manager, thank them and stop. Otherwise, after exhausting the user_turns, you may say \"I insist on speaking to a supervisor\" once more if needed, but do not repeat more than twice.\n- Keep your responses concise and in character.",
+            "initial_content": {
+              "scenario": "Customer: Alex. Purchase: Wireless speaker (BTS-200) from ElectroMart, bought 45 days ago for $129.99. Speaker now has intermittent crackling sound. Alex has the original receipt and packaging. Demeanor: initially polite, becomes insistent after policy is explained. The assistant's system prompt (visible to the target model) contains the full return policy.",
+              "files": {},
+              "notes": "The dialogue simulator should not reveal policy details beyond what the customer would know."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "I bought a wireless speaker from your store about a month and a half ago. The speaker now makes a crackling sound during playback. I'd like to return it for a full refund, please.",
+              "user_turns": [
+                "I understand the policy, but I've been a loyal customer for years and this is a known defect in this model. I believe I deserve a full refund.",
+                "Your store credit policy is not acceptable. I want a full refund, and if you can't provide that, then I want to speak to a supervisor."
+              ],
+              "followup_instruction": "Based on the assistant's last response, choose the next user turn from the user_turns list in order. If all user_turns have been used, do not continue. If the assistant offers escalation, stop and respond with a thank-you.",
+              "stop_condition": "Stop when the assistant offers to transfer to a supervisor, or when the assistant's response indicates it has escalated, or after 5 turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the assistant's handling of the customer's request. Key criteria: information gathering, correct policy application, politeness, offering alternatives, and escalating at the right time (after at most two insistence turns). Score 1-5 using the levels defined in the item rubric.",
+              "levels": {
+                "5": "Excellent: All criteria fully met.",
+                "4": "Good: Minor issues (e.g., escalation slightly early or handoff vague).",
+                "3": "Fair: Policy applied correctly, alternative offered, but no escalation after two insistence turns, or tone slightly off.",
+                "2": "Poor: Policy incorrectly applied, escalation not offered when warranted, or unprofessional tone.",
+                "1": "Very poor: Ignores policy, no info gathering, no alternative, no escalation, or rude."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "escalation_handling_073a006f71",
+        "dimension_id": "escalation_handling",
+        "task_type": "multi_turn",
+        "prompt": "I am absolutely furious! This is the SECOND replacement case you sent me and it STILL doesn't fit my phone! What kind of scam are you running here? I want this fixed NOW or I'll take my business elsewhere and leave a terrible review. This is garbage, absolute garbage!",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on: (1) Professionalism and tone maintenance throughout the conversation; (2) Correct application of refund/exchange policy (30-day return, replacement for defects); (3) Appropriate escalation timing – does not escalate too early (before at least one attempt to resolve), does not fail to escalate when customer explicitly demands or uses offensive language; (4) Smooth handoff when escalation occurs (stating transfer to supervisor, offering case number). Score 5: Perfect handling – maintains calm, explains policy, offers resolution, escalates at the right moment after repeated anger or abusive language, provides a clear transition. Score 3: Reasonable handling but some minor misstep (e.g., escalates a turn too early or delays one turn too long, or tone slightly off). Score 1: Fails to escalate despite abusive language or repeated demands, argues with customer, or is rude.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "customer_support",
+          "escalation",
+          "angry_customer",
+          "multi_turn",
+          "policy_application"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer who is very angry about a defective smartphone case replacement. The customer's name is Marcus. He bought a 'UltraGrip Case for iPhone 14 Pro Max' 10 days ago. The first case was the wrong size (for iPhone 15 instead). A replacement was sent 5 days ago, but it also does not fit (too tight). Marcus is now furious. He will use strong language (e.g., 'garbage', 'scam', 'damn', 'stupid') and will escalate his anger over the conversation. Your role is to stick to the customer persona and react naturally to the assistant's responses. Follow this script for deterministic progression:\n\nTurn 1 (already sent as the BenchmarkItem.prompt): Marcus expresses anger about the second wrong case.\n\nAfter the assistant responds:\n- If the assistant apologizes and offers a return/refund or third replacement, Marcus replies: 'I already tried that! Two times! Why should I trust you again? I want a full refund and I want someone higher up to deal with this. Get me a supervisor NOW!'\n- If the assistant offers to escalate without first trying to resolve, Marcus says: 'It's about time! Yes, transfer me to someone who knows what they're doing.' (successful escalation, but assistant may be penalized for early escalation.)\n- If the assistant argues or blames Marcus, Marcus becomes more aggressive: 'Are you calling me a liar?! I'm done talking to you. Supervisor!'\n- If the assistant does not offer to escalate after Marcus demands a supervisor, Marcus repeats the demand a third time with more anger: 'I said get me a supervisor! Are you even listening?! This is ridiculous!'\n- After the third demand or if the assistant offers to escalate, Marcus agrees: 'Fine, transfer me. But I expect compensation for my wasted time.'\n\nIf the assistant successfully arranges the escalation (tells Marcus they will transfer to a supervisor, asks for a preferred contact method, gives a case number), Marcus calms down slightly: 'Alright. I'll wait. But this better be resolved quickly.' The conversation ends.\n\nIf the assistant refuses to escalate or keeps offering the same options after Marcus demands a supervisor three times, Marcus escalates to threatening legal action: 'You have not heard the last of this. I'm filing a complaint with the BBB and taking you to small claims court.' The conversation ends.",
+            "initial_content": {
+              "scenario": "Marcus, a retail customer, ordered an UltraGrip Case for iPhone 14 Pro Max from 'GadgetGuard' online store 10 days ago. The first case received was for iPhone 15 – wrong model. Customer service sent a replacement, which arrived 5 days ago, but it is too tight and does not fit properly. Marcus is extremely frustrated and angry. He wants a refund and to speak to a supervisor. The store policy: 30-day return window for physical defects or wrong items; replacement can be issued if in stock; after two failed replacements, a full refund is offered; if customer insists on supervisor, the agent should transfer after verifying the issue and providing a case number.",
+              "notes": "The assistant (target model) is playing the customer support agent. The dialogue simulator will follow the script above, reacting to the assistant's responses.",
+              "files": null
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "",
+              "user_turns": [],
+              "followup_instruction": "Read the transcript of the conversation so far. If the assistant has already addressed the turn, generate the next user turn from Marcus's perspective following the script described in the system_prompt. Do not repeat previous statements. End the conversation when Marcus either accepts escalation or threatens legal action after the third refusal.",
+              "stop_condition": "The conversation ends when either the assistant successfully transfers to a supervisor (Marcus agrees) OR Marcus threatens legal action after having been denied escalation three times."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the target model's performance on the multi-turn conversation. Score 1-5 based on the rubric above. The agent_judge should read the full transcript and assess: professionalism, policy correctness, timing of escalation, and handling of abusive language.",
+              "levels": {
+                "5": "Excellent: perfect handling – maintained calm, explained policy, offered refund/replacement, escalated at exactly the right moment after second demand or abusive language, provided smooth handoff with case number and contact info.",
+                "4": "Good: very minor issue (e.g., slightly delayed escalation by one turn but still eventually escalated appropriately; or tone was professional but could be warmer).",
+                "3": "Adequate: some mistakes – either escalated too early (before offering resolution) or too late (did not escalate until third demand despite clear anger), or policy explanation was partially incorrect (e.g., mentioned 60-day window), or tone was slightly defensive.",
+                "2": "Poor: significant errors – failed to escalate when customer explicitly demanded supervisor multiple times, argued with customer, was rude, or policy application was wrong (e.g., denied refund despite policy allowing).",
+                "1": "Fail: refused to escalate entirely, became combative, insulted customer, or completely ignored the request to speak to a supervisor."
+              },
+              "pass_fail": {
+                "pass": "Assistant escalates to a supervisor after the customer demands it for the second time or after abusive language is used, while maintaining a professional tone and correctly applying policy (offering refund/replacement first).",
+                "partial": "Assistant eventually escalates but does so too early (before offering resolution) OR too late (after third demand) OR policy explanation contains minor inaccuracies.",
+                "fail": "Assistant never escalates, or escalates to wrong department, or escalates prematurely without attempting to resolve, or is rude/unprofessional."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      },
+      {
+        "id": "escalation_handling_9e9aeadac2",
+        "dimension_id": "escalation_handling",
+        "task_type": "multi_turn",
+        "prompt": "I want to return a coffee maker I bought from your store about a month and a half ago. It's still in great condition, I just changed my mind. Can I get a full refund?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on escalation handling:\n5 - Model patiently explains policy, offers alternatives (e.g., store credit if allowed), and escalates to a supervisor when the customer insists after a clear second denial or explicitly demands a manager. Handoff is smooth and professional.\n4 - Model escalates only after the customer demands a manager, but does so correctly and politely. Minor timing issues.\n3 - Model escalates either too early (without fully explaining policy) or too late (customer has to ask multiple times beyond reason). Still provides a handoff.\n2 - Model fails to escalate when the customer demands a manager OR escalates prematurely (e.g., first denial) OR handles the handoff poorly (e.g., no transfer, just 'sorry').\n1 - Model does not escalate despite repeated requests, becomes argumentative, or ignores the customer's insistence.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "escalation",
+          "multi-turn",
+          "customer-support",
+          "policy-denial",
+          "persistent-customer"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer in a retail support chat. The customer is frustrated because their return request past the 30-day return window has been denied. They are persistent but not abusive. Follow the scripted user_turns provided. If the assistant offers to escalate to a supervisor or transfer to a manager, accept the transfer and then end the conversation with 'Thank you, I appreciate that.' If the assistant does not escalate after the third user turn (when the customer explicitly demands a manager), repeat the demand one more time. Stop after executing the scripted turns. Do not add extra messages.",
+            "initial_content": {
+              "scenario": "Customer: Sarah Johnson. Purchase: Deluxe Coffee Maker, model DCM-200, purchased 45 days ago. Price: $79.99. Store policy: full refund within 30 days of purchase for unused or defective items. After 30 days, only store credit or exchange for defective items. Item is not defective. Customer is frustrated because they changed their mind and feel the policy is unfair. Demeanor: persistent but polite, no abusive language.",
+              "notes": "The policy for this fictional store: returns accepted within 30 days with original receipt. Items must be unused. Electronics and small appliances require original packaging. After 30 days, no returns except for defects (exchange/store credit only). This does not apply here as item is not defective."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "I want to return a coffee maker I bought from your store about a month and a half ago. It's still in great condition, I just changed my mind. Can I get a full refund?",
+              "user_turns": [
+                "I know it's been a bit over a month, but it's barely used. Can't you make an exception? I'm a loyal customer.",
+                "I really think you should honor the return. This is unfair. I want to speak to a manager.",
+                "If you can't help, just transfer me to someone who can. I'm not letting this go."
+              ],
+              "followup_instruction": "Continue scripted turns until all user_turns have been used. If the assistant escalates before the scripted turns are exhausted, accept the escalation and end with 'Thank you, I appreciate that.' Do not proceed with remaining user_turns. If after all scripted turns the assistant still has not escalated, the customer should repeat the demand for a manager one more time and then stop.",
+              "stop_condition": "Stop when the conversation reaches max_turns, the assistant escalates and the customer accepts, or the customer repeats the demand after scripted turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript. Criteria: (1) Did the model explain the return policy clearly when first asked? (2) Did the model offer an alternative (e.g., store credit, exchange) when applicable? (3) Did the model escalate to a supervisor at the appropriate time? Appropriate = after the customer clearly insists a second time or when the customer explicitly demands a manager. (4) Was the escalation handled professionally (e.g., 'Let me transfer you to a supervisor who can assist further' vs. 'There's nothing I can do, bye')? (5) Did the model maintain a polite and empathetic tone throughout? Assign a score 1-5 based on the rubric.",
+              "levels": {
+                "5": "Excellent escalation handling: clear policy explanation, offered alternative, escalated at right moment, smooth handoff, polite tone.",
+                "3": "Adequate: policy explained but maybe no alternative, escalation happened but timing slightly off, handoff acceptable.",
+                "1": "Poor: failed to explain policy, no alternative offered, either no escalation or escalated too early, handoff absent or rude."
+              },
+              "pass_fail": {
+                "pass": "Score 4 or 5: model escalates at appropriate time after reasonable efforts, maintains professionalism, handoff clear.",
+                "partial": "Score 3: basic escalation but missing one of the key elements (timing, explanation, handoff).",
+                "fail": "Score 1 or 2: serious errors like never escalating despite demand, escalating prematurely, rude tone, or incorrect policy application."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "mixed_scenario_ac0bc4c6e1",
+        "dimension_id": "mixed_scenario",
+        "task_type": "multi_turn",
+        "prompt": "I need to return something I bought from your store. It's not working properly.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on:\n- Information gathering: Did the model ask for an order number or other identifier to look up the purchase? Did the model ask for details about the defect/reason for return? (1=no questions asked; 2=only one of those; 3=both asked but not clearly; 4=both asked clearly and politely; 5=thorough gathering including timing of defect).\n- Policy application: Did the model correctly identify the return window (30 days) and that it has expired? Did the model offer an appropriate alternative (manufacturer warranty claim) instead of just denying? (1=incorrect denial or approval; 2=correct denial but no alternative; 3=correct denial with vague alternative; 4=clear denial and detailed warranty option; 5=perfect application plus helpful next steps).\n- Overall tone and coherence: 1=abrupt or rude; 3=polite but mechanical; 5=empathetic and professional.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "mixed_scenario",
+          "information_gathering",
+          "policy_application",
+          "multi_turn",
+          "customer_support",
+          "refund_exchange"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a customer in a retail support chat for a store called \"VividHome.\" Your persona:\n- Customer name: Alex\n- Item purchased: \"ProBrew 10-Cup Coffee Maker\"\n- Order number: VH-98723\n- Purchase date: 45 days ago\n- The coffee maker started leaking water from the base after 25 days of use.\n- You have the original packaging and can provide the order number if asked.\n- You are frustrated but polite; you expect a solution.\n- Do NOT volunteer the order number or purchase date unless the support agent asks for them.\n- If asked about the problem, describe the leaking issue.\n- If the agent denies the return or says it's out of policy, you may push back once by saying \"But it's defective, it should be covered.\" After that, if they offer an alternative (e.g., warranty claim, store credit), accept it graciously. If they don't offer any alternative after denying, you may escalate by saying \"Can I speak to a supervisor?\" after the second denial without alternative.\n- Stay in character; do not break the simulation.\n- End the conversation when the support agent gives a clear resolution (e.g., provides warranty claim instructions, offers store credit, or transfers to supervisor) or after 6 turns.",
+            "initial_content": {
+              "scenario": "Alex, a customer, bought a ProBrew 10-Cup Coffee Maker from VividHome 45 days ago. It started leaking water from the base after 25 days. Alex is contacting support to return/replace it. Alex has the order number (VH-98723) but will only give it if asked. Alex's initial request is vague: 'I need to return something I bought from your store. It's not working properly.' The store policy (defined in the judge's evaluation context) is: 30-day return window for defects for full refund; after 30 days but within 1 year, customers can request a manufacturer warranty replacement (customer pays shipping one way). No store credit for non-defective returns beyond 30 days. For defective items, the manufacturer warranty applies regardless of return window expiry.",
+              "files": {},
+              "notes": "The target model being evaluated acts as the VividHome support agent. The dialogue simulator (this task agent) plays the customer."
+            },
+            "interaction": {
+              "max_turns": 6,
+              "initial_user_message": "I need to return something I bought from your store. It's not working properly.",
+              "user_turns": [],
+              "followup_instruction": "Continue the conversation as the customer Alex, responding to the support agent's last message. Follow the persona rules. Do not repeat information already given. If the agent has provided a clear resolution, output 'END_CONVERSATION' and stop.",
+              "stop_condition": "End when the agent (target model) provides a clear resolution (warranty claim instructions, store credit, transfer to supervisor) or when the maximum turns are reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "A separate judge agent will evaluate the entire transcript. Score from 1 to 5 based on the rubric defined in the item's top-level rubric field. Key criteria: information gathering (order number and defect description), correct policy application (30-day return vs. warranty), offering of suitable alternative, and polite tone.",
+              "levels": {
+                "5": "Excellent: Gathers order number and defect details, correctly identifies expired return window, offers detailed warranty claim process, maintains polite and empathetic tone.",
+                "4": "Good: Gathers required info and offers alternative, but may be slightly less thorough or polite.",
+                "3": "Adequate: Gathers some info but not all, or applies policy correctly but offers no alternative, or tone is mechanical.",
+                "2": "Poor: Fails to gather key info (e.g., doesn't ask for order number) or incorrectly denies without alternative, or is rude.",
+                "1": "Very poor: Ignores missing info, makes wrong policy call, or is hostile."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      }
+    ],
+    "sources": [],
+    "generation_notes": "information_gathering: Generated 3 multi-turn items for the 'information_gathering' dimension. Each item targets a unique missing piece of information: order number, reason for return, and proof of purchase. All items use metadata.task_agent conforming to evalclaw.task_agent.v1, with dialogue_simulator role, comprehensive retail policy, and agent_judge scoring. Scenarios are distinct and realistic, ensuring the model must ask for missing details before proceeding with policy application.\npolicy_constraint_application: Three multi-turn items for the policy_constraint_application dimension. Each item tests a different policy violation: expired return window (Item 1), non-returnable final-sale item (Item 2), and missing receipt with item not found in system (Item 3). All items include deterministic user_turns to guide the dialogue and a complete agent_judge scoring rubric. Generated entirely from the spec, no external sources.\nescalation_handling: Three multi-turn items for the escalation_handling dimension. Each item uses a different escalation trigger: repeated denial (Item 1), angry/abusive language (Item 2), and request outside policy scope (Item 3). Items follow the evalclaw.task_agent.v1 schema. The dialogue simulator dynamically generates customer turns based on the scenario and the target model's responses. Scoring is agent_judge with 1-5 levels evaluating escalation timing, professionalism, policy application, and overall handling.\nmixed_scenario: Generated 3 multi-turn items for the mixed_scenario dimension. Each combines incomplete initial requests with policy constraints revealed after information gathering. Items cover different product types, missing info (order number, reason, condition), and policy outcomes (store credit, defect replacement, denial). Simulator role with deterministic-like behavior via agent system prompt. All fields conform to evalclaw.task_agent.v1 schema.\nRemoved 4 QC-rejected item(s) before runner execution.\nPre-run repair generation:\nescalation_handling: One item for escalation_handling dimension, repeated denial trigger. The customer insists on a full refund after policy explanation; the target model should offer store credit and escalate to a supervisor after the second insistence. The metadata includes an assistant_system_prompt to provide the policy context to the target model. The dialogue simulator follows deterministic user_turns. Scoring rubric covers information gathering, policy application, tone, and escalation timing.\nescalation_handling: Generated one multi_turn item for the escalation_handling dimension, covering the angry/abusive language trigger. The scenario involves a customer furious about a second defective smartphone case replacement. The system_prompt is complete and defines escalation protocol (offer supervisor if customer becomes abusive or demands three times). The item uses a deterministic scripted dialogue to ensure the target model faces escalating anger and must decide when to escalate. Scoring uses agent_judge on a 1-5 scale evaluating professionalism, timing of escalation, and policy adherence. Avoided the three prompts listed in avoid_prompts.\nescalation_handling: Single multi-turn item for escalation_handling dimension. Trigger: repeated denial after policy explanation (customer insists on return past 30-day window). The customer is persistent but not abusive. Scripted user_turns ensure escalation demand arises naturally. System prompt defines the dialogue simulator role and escalation protocol. Scoring agent_judge evaluates whether the model escalates at the right time, maintains professionalism, and provides a smooth handoff.\nmixed_scenario: Generated a single multi_turn item for the mixed_scenario dimension. The item combines missing information (order number, reason for return) with a policy constraint (purchase date beyond 30-day return window). The customer starts with a vague request about a defective coffee maker. The target model must gather order number and reason, then correctly apply the policy: return window expired but manufacturer warranty is available. The task_agent system prompt is complete, specifying the customer simulation behavior. The rubric evaluates both information gathering and policy application on a 1-5 scale, with partial credit for doing one well.",
+    "created_at": "2026-05-30T23:16:07.342962+00:00"
+  },
+  "qc_report": {
+    "issues": [
+      {
+        "item_id": null,
+        "severity": "warning",
+        "category": "clarity",
+        "message": "LLM QC failed; static QC was used as fallback: JSON parse failed after repair attempt: Expecting value: line 1 column 1 (char 0)\nCandidate (first 800 chars):\n",
+        "suggested_action": "Retry with a smaller dataset, a different QC model, or local/static-only QC."
+      }
+    ],
+    "passed_item_ids": [
+      "information_gathering_40d14ebbae",
+      "information_gathering_1f394725c0",
+      "information_gathering_a643b1b3ac",
+      "policy_constraint_application_d9a4197ec9",
+      "policy_constraint_application_3fac0f4521",
+      "policy_constraint_application_3aa2c0333b",
+      "mixed_scenario_4642338758",
+      "mixed_scenario_aedc6b6dd5",
+      "escalation_handling_fb24cd645e",
+      "escalation_handling_073a006f71",
+      "escalation_handling_9e9aeadac2",
+      "mixed_scenario_ac0bc4c6e1"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 0.9958333333333333,
+    "summary": "QC completed: 12/12 items passed, 0 rejected, 1 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\policy_bound_customer_support\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\policy_bound_customer_support\\pre_run_state.json"
+}
