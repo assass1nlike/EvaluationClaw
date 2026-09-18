@@ -4,7 +4,8 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parent
 os.environ["PATH"] = str(root / "bin") + os.pathsep + os.environ["PATH"]
-os.environ["GYM_ANYTHING_QEMU_CACHE"] = str(root / "cache")
+os.environ["GYM_ANYTHING_QEMU_CACHE"] = str(root / "secure-cache")
+os.environ["GYM_ANYTHING_QEMU_SSH_KEY"] = str(root / "ssh" / "key")
 
 from gym_anything.runtime.runners.qemu_native import QemuNativeRunner
 from gym_anything.specs import EnvSpec

@@ -17,7 +17,7 @@ load_dotenv(ROOT / ".env")
 from litellm import completion
 from local.run_with_usage import UsageRecorder, observe_sync
 from utils.llm_caller import _build_messages, _safe_json_loads
-from utils.model_config import get_api_base_url, get_api_key, get_tool_model
+from utils.model_config import get_api_base_url, get_api_key, get_tool_model, get_max_tokens, get_request_timeout
 
 
 ANSWER_SYSTEM = "Follow the task instructions and return your answer. Treat the supplied input fields as the task."
@@ -69,10 +69,12 @@ def main():
     config_path = str(ROOT / "utils/resources/models.yaml")
     model = get_tool_model("default", config_path)
     settings = dict(model=model, base_url=get_api_base_url(config_path), api_key=get_api_key(config_path),
-                    temperature=0.0, max_tokens=12000, timeout=900, stream=False)
+                    temperature=0.0, max_tokens=get_max_tokens(model, 12000, config_path),
+                    timeout=get_request_timeout(model, 900, config_path), stream=False)
     manifest = {
         "evaluation_sha256": hashlib.sha256(evaluation.read_bytes()).hexdigest(),
-        "model": model, "judge_model": model, "temperature": 0.0, "max_tokens": 12000,
+        "model": model, "judge_model": model, "temperature": 0.0, "max_tokens": settings["max_tokens"],
+        "timeout_seconds": settings["timeout"],
         "thinking": "provider default", "workers": args.workers, "application_retries": 0,
         "answer_system": ANSWER_SYSTEM, "choice_system": CHOICE_SYSTEM, "judge_system": JUDGE_SYSTEM,
         "scoring": "strict choice letter match; separate model judge for other answer types",

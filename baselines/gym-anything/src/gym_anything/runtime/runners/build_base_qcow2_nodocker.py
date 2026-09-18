@@ -24,6 +24,8 @@ import tempfile
 import time
 from pathlib import Path
 
+from .qemu_ssh import SSHD_CONFIG, public_key_for_provisioning
+
 QEMU_CACHE = Path(os.environ.get("GYM_ANYTHING_QEMU_CACHE", "~/.cache/gym-anything/qemu")).expanduser()
 QEMU_CONTAINER = os.environ.get("GYM_ANYTHING_QEMU_CONTAINER", "docker://ghcr.io/dockur/windows:latest")
 
@@ -41,10 +43,16 @@ users:
     # Password: password123 (hashed)
     passwd: $6$rounds=4096$saltsalt$IxDD3jeSOb5eB1CX5LBsqZFVkJdkC.MNMOzWMPF5GEKzNK.3ZaVQiAjqAJ8Lz5Y5Yh9TUCm7ZhimP3h8BmKbq0
     ssh_authorized_keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICKDhcvuOFDk9Qi2iJD66SVhla3xUcUQQjvm1ablzi2l gym-anything-qemu
+      - __GYM_SSH_PUBLIC_KEY__
 
-# CRITICAL: Enable SSH password authentication
-ssh_pwauth: true
+# Desktop login remains available; SSH requires a public key.
+ssh_pwauth: false
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/00-gym-anything.conf
+    permissions: '0600'
+    content: |
+__GYM_SSHD_CONFIG__
 chpasswd:
   expire: false
   list:
@@ -98,20 +106,8 @@ runcmd:
   - locale-gen en_US.UTF-8
   - update-locale LANG=en_US.UTF-8
   
-  # Enable SSH with password and public key authentication
-  - mkdir -p /etc/ssh/sshd_config.d
-  - |
-    cat > /etc/ssh/sshd_config.d/00-gym-anything.conf << 'SSHEOF'
-    PasswordAuthentication yes
-    PubkeyAuthentication yes
-    AuthorizedKeysFile .ssh/authorized_keys
-    PermitRootLogin yes
-    ChallengeResponseAuthentication no
-    UsePAM yes
-    SSHEOF
-  - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-  - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-  - sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  # Validate key-only SSH configuration before starting the service.
+  - /usr/sbin/sshd -t
   - systemctl enable ssh
   - systemctl restart ssh
   
@@ -427,13 +423,19 @@ def download_cloud_image(cloud_img: Path):
     print(f"[build] Downloaded: {cloud_img}")
 
 
+def get_cloud_init_user_data() -> str:
+    return CLOUD_INIT_USER_DATA.replace(
+        "__GYM_SSH_PUBLIC_KEY__", public_key_for_provisioning()
+    ).replace("__GYM_SSHD_CONFIG__", "\n".join("      " + line for line in SSHD_CONFIG.splitlines()))
+
+
 def create_cloud_init_iso(work_dir: Path) -> Path:
     """Create cloud-init ISO with provisioning config."""
     ci_dir = work_dir / "cloud-init"
     ci_dir.mkdir(exist_ok=True)
     
     # Write user-data
-    (ci_dir / "user-data").write_text(CLOUD_INIT_USER_DATA)
+    (ci_dir / "user-data").write_text(get_cloud_init_user_data())
     
     # Write meta-data
     (ci_dir / "meta-data").write_text(get_cloud_init_meta_data())
