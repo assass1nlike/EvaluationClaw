@@ -6,6 +6,39 @@ api:
   api_key: ""
   base_url: "https://api.deepseek.com"
 
+# Shared generation budget for reasoning and final answers.
+max_tokens:
+  openai/deepseek-flash: 300000
+
+request_timeout_seconds:
+  openai/deepseek-flash: 7200
+
+transform_no_progress_timeout_seconds: 86400
+
+# Independent endpoint for the provider-hosted native web search tool.
+web_search_api:
+  base_url: "https://api.fangcunleap.com/azure-gateway/v1"
+  api_key_envs: ["WEB_SEARCH_API_KEY", "WEB_SEARCH_API_KEY_2", "WEB_SEARCH_API_KEY_3", "WEB_SEARCH_API_KEY_4"]
+  rate_limit_attempts: 6
+  retry_base_seconds: 2
+  retry_max_seconds: 60
+  retry_budget_seconds: 180
+  timeout_attempts: 6
+  global_concurrency: 1
+  queue_dir: cache/runtime/luna
+  stop_on_api_error: true
+  fallback:
+    base_url: "https://api.sudocode.chat/v1"
+    api_key_env: "WEB_SEARCH_FALLBACK_API_KEY"
+    timeout_attempts: 6
+    rate_limit_attempts: 6
+    retry_base_seconds: 2
+    retry_max_seconds: 60
+    retry_budget_seconds: 180
+    global_concurrency: 1
+    queue_dir: cache/runtime/luna
+    stop_on_api_error: true
+
 # Agent Models (used by Agent instances for decision-making)
 agents:
   analyst: "openai/deepseek-flash"       # Analyst Agent
@@ -35,7 +68,7 @@ tools:
   transform_stage1: "openai/deepseek-flash"  # Stage 1: Sample-level planning
   transform_stage2: "openai/deepseek-flash"  # Stage 2: Execute transformation
   pure_tool_planner: "openai/deepseek-flash"
-  web_search: "openai/deepseek-flash"
+  web_search: "openai/responses/gpt-5.6-luna"
   
   # Verification
   verify: "openai/deepseek-flash"            # Verify transformed samples

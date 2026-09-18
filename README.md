@@ -299,6 +299,14 @@ installation. LaaJ contamination detection, when enabled, still performs its own
 When a role uses a different provider or endpoint, configure that role's
 `--*-provider`, `--*-api-key`, and `--*-base-url` explicitly.
 
+### Standalone benchmark construction Harness
+
+The `evalclaw-harness` command exposes TaskDesign-driven construction, Builder
+tools, task packaging, QC, and agent-environment preflight without invoking the
+Planner, target-model runner, Analyser, or Reporter. It accepts versioned JSON
+from a person or another benchmark framework and emits a reusable task package.
+See [`harness/README.md`](harness/README.md) for the interface and examples.
+
 An Anthropic-compatible Claude/Claude Code endpoint can be used for any role
 with its native `/v1/messages` protocol. Configure each required role explicitly:
 

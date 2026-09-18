@@ -40,6 +40,7 @@ from ...config.presets import is_android_preset, is_windows_preset
 from ...security import wrap_posix_command_with_env, wrap_powershell_command_with_env
 from ...specs import EnvSpec
 from .base import BaseRunner
+from .qemu_ssh import SSH_OPTIONS, ssh_credentials, ssh_key_path
 from .vnc_utils import VNCConnectionPool
 from .windows_pyautogui_client import PyAutoGUIClient, PyAutoGUIClientError
 
@@ -67,7 +68,7 @@ def _find_free_port(start: int = 5900) -> int:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind(("0.0.0.0", port))
+                s.bind(("127.0.0.1", port))
                 return port
         except OSError:
             continue
@@ -85,7 +86,7 @@ def _find_free_qemu_hostfwd_port(start: int = 45500) -> int:
             port = start + (i % 300)
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("0.0.0.0", port))
+                s.bind(("127.0.0.1", port))
                 return port
         except OSError:
             continue
@@ -1085,14 +1086,14 @@ class QemuApptainerRunner(BaseRunner):
 
         # Build netdev with port forwards
         if self.is_android:
-            port_forwards = f"hostfwd=tcp::{self.adb_port}-:{self._adb_guest_port}"
+            port_forwards = f"hostfwd=tcp:127.0.0.1:{self.adb_port}-:{self._adb_guest_port}"
         else:
-            port_forwards = f"hostfwd=tcp::{ssh_port}-:22"
+            port_forwards = f"hostfwd=tcp:127.0.0.1:{ssh_port}-:22"
             if self.is_windows:
-                port_forwards += f",hostfwd=tcp::{self.pyautogui_port}-:5555"
+                port_forwards += f",hostfwd=tcp:127.0.0.1:{self.pyautogui_port}-:5555"
             fast_input_host_port = getattr(self, "_fast_input_host_port", None)
             if self._fast_uinput_keyboard_enabled() and fast_input_host_port:
-                port_forwards += f",hostfwd=tcp::{fast_input_host_port}-:{self._fast_input_guest_port}"
+                port_forwards += f",hostfwd=tcp:127.0.0.1:{fast_input_host_port}-:{self._fast_input_guest_port}"
 
         netdev_options = f"user,id=net0,{port_forwards}"
         if getattr(getattr(getattr(self, "spec", None), "resources", None), "net", None) is False:
@@ -1120,7 +1121,7 @@ class QemuApptainerRunner(BaseRunner):
                 "-drive", f"file={disk_abs},format=qcow2,if=virtio",
                 "-cdrom", str(iso_path),
                 "-device", f"virtio-vga,xres={width},yres={height}",
-                "-vnc", f":{vnc_display},password=on",
+                "-vnc", f"127.0.0.1:{vnc_display},password=on",
                 "-display", display_backend,
                 "-monitor", "stdio",
                 "-device", "virtio-net-pci,netdev=net0",
@@ -1162,7 +1163,7 @@ class QemuApptainerRunner(BaseRunner):
                 "-drive", f"file={disk_abs},format=qcow2,if=virtio",
                 # Display with virtio-vga
                 "-device", "virtio-vga",
-                "-vnc", f":{vnc_display},password=on",
+                "-vnc", f"127.0.0.1:{vnc_display},password=on",
                 "-display", display_backend,
                 "-monitor", "stdio",
                 # Network with virtio
@@ -1184,7 +1185,7 @@ class QemuApptainerRunner(BaseRunner):
             cmd.extend([
                 "-drive", f"file={disk_abs},format=qcow2,if=virtio",
                 "-device", display_device,
-                "-vnc", f":{vnc_display},password=on",
+                "-vnc", f"127.0.0.1:{vnc_display},password=on",
                 "-display", display_backend,
                 "-monitor", "stdio",
                 "-device", "virtio-net-pci,netdev=net0",
@@ -1368,9 +1369,8 @@ class QemuApptainerRunner(BaseRunner):
                 "localhost",
                 port=self.ssh_port,
                 username=self._ssh_user,
-                password=self._ssh_password,
                 timeout=10,
-                look_for_keys=False
+                **ssh_credentials(self.is_windows, self._ssh_password)
             )
             # Auth succeeded - try a simple command
             stdin, stdout, stderr = client.exec_command("echo ok", timeout=10)
@@ -1987,12 +1987,12 @@ class QemuApptainerRunner(BaseRunner):
 
     def _run_ssh_cmd(self, port: int, cmd: str, timeout: int = 120) -> subprocess.CompletedProcess:
         """Run SSH command to specific port using key or password auth."""
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
+        ssh_key = ssh_key_path()
         user = self._ssh_user
         password = self._ssh_password
 
-        # For Windows or if SSH key doesn't exist, prefer paramiko with password auth
-        if self.is_windows or not ssh_key.exists():
+        # Windows uses its configured credentials.
+        if self.is_windows:
             try:
                 import paramiko
                 client = paramiko.SSHClient()
@@ -2018,7 +2018,7 @@ class QemuApptainerRunner(BaseRunner):
         full_cmd = [
             "ssh",
             "-t", "-t",  # Force TTY allocation for sudo/su compatibility
-            "-i", str(ssh_key),
+            "-i", str(ssh_key), *SSH_OPTIONS,
             "-o", "StrictHostKeyChecking=no",
             "-o", "UserKnownHostsFile=/dev/null",
             "-o", "ConnectTimeout=10",
@@ -2035,33 +2035,17 @@ class QemuApptainerRunner(BaseRunner):
             print(f"[QemuApptainer] SSH cmd timed out: {cmd[:50]}...")
             return subprocess.CompletedProcess(full_cmd, 1, b"", b"timeout")
         except Exception as e:
-            # Try paramiko fallback with password
-            try:
-                import paramiko
-                client = paramiko.SSHClient()
-                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                client.connect("localhost", port=port, username=user,
-                              password=password, timeout=10, look_for_keys=False)
-                stdin, stdout, stderr = client.exec_command(cmd, timeout=timeout, get_pty=True)
-                exit_code = stdout.channel.recv_exit_status()
-                out = stdout.read()
-                err = stderr.read()
-                client.close()
-                if exit_code != 0:
-                    print(f"[QemuApptainer] SSH cmd failed: {err.decode()[:500]}")
-                return subprocess.CompletedProcess([], exit_code, out, err)
-            except Exception as pe:
-                print(f"[QemuApptainer] SSH error: {pe}")
-                return subprocess.CompletedProcess([], 1, b"", str(pe).encode())
-    
+            print(f"[QemuApptainer] SSH error: {e}")
+            return subprocess.CompletedProcess(full_cmd, 1, b"", str(e).encode())
+
     def _scp_to_vm(self, port: int, host_src: str, vm_dst: str) -> bool:
         """Copy file/directory to VM via SCP or SFTP."""
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
+        ssh_key = ssh_key_path()
         user = self._ssh_user
         password = self._ssh_password
 
-        # For Windows or if SSH key doesn't exist, use paramiko SFTP
-        if self.is_windows or not ssh_key.exists():
+        # Windows uses paramiko SFTP.
+        if self.is_windows:
             try:
                 import paramiko
                 client = paramiko.SSHClient()
@@ -2097,7 +2081,7 @@ class QemuApptainerRunner(BaseRunner):
         # Linux with SSH key - use native scp
         cmd = [
             "scp", "-r",
-            "-i", str(ssh_key),
+            "-i", str(ssh_key), *SSH_OPTIONS,
             "-o", "StrictHostKeyChecking=no",
             "-o", "UserKnownHostsFile=/dev/null",
             "-P", str(port),
@@ -3430,7 +3414,7 @@ class QemuApptainerRunner(BaseRunner):
     # === Exec via SSH ===
     
     def _ssh_command(self, cmd: str, capture: bool = True, timeout: int = 600, use_pty: bool = True) -> subprocess.CompletedProcess:
-        """Run SSH command with key-based auth, falling back to password via paramiko.
+        """Run SSH commands with public keys on Linux and configured credentials on Windows.
 
         Args:
             cmd: Command to execute
@@ -3456,13 +3440,13 @@ class QemuApptainerRunner(BaseRunner):
             return result
 
         # SSH key path (generated for gym-anything)
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
+        ssh_key = ssh_key_path()
 
         # Try SSH with key first (if key exists) - Linux only
         if ssh_key.exists():
             full_cmd = [
                 "ssh",
-                "-i", str(ssh_key),
+                "-i", str(ssh_key), *SSH_OPTIONS,
                 "-o", "StrictHostKeyChecking=no",
                 "-o", "UserKnownHostsFile=/dev/null",
                 "-o", "ConnectTimeout=10",
@@ -3482,7 +3466,7 @@ class QemuApptainerRunner(BaseRunner):
                     self._consecutive_ssh_failures = 0
                     return result
                 # Key auth failed, fall through to paramiko
-                print(f"[QemuApptainer] SSH key auth failed (code {result.returncode}), trying paramiko with password...")
+                print(f"[QemuApptainer] SSH key auth failed (code {result.returncode}), trying paramiko with the same key...")
             except subprocess.TimeoutExpired:
                 print(f"[QemuApptainer] SSH command timed out: {cmd[:50]}...")
                 self._consecutive_ssh_failures += 1
@@ -3494,7 +3478,7 @@ class QemuApptainerRunner(BaseRunner):
             except Exception as e:
                 print(f"[QemuApptainer] SSH error: {e}, trying paramiko...")
 
-        # Fallback to paramiko with password
+        # Fallback to paramiko with the same key
         result = self._ssh_with_paramiko(cmd, capture, timeout, use_pty)
         self._track_ssh_result(result)
         return result
@@ -3511,7 +3495,7 @@ class QemuApptainerRunner(BaseRunner):
                 )
 
     def _ssh_with_paramiko(self, cmd: str, capture: bool, timeout: int, use_pty: bool = True) -> subprocess.CompletedProcess:
-        """Fallback SSH using Python's paramiko with key or password authentication.
+        """SSH using paramiko with public keys on Linux and configured credentials on Windows.
 
         Connection setup is retried: back-to-back SSH sessions (hooks, exec,
         screenshots, verifier copies) can trip sshd MaxStartups throttling or
@@ -3523,25 +3507,13 @@ class QemuApptainerRunner(BaseRunner):
             print("[QemuApptainer] Warning: paramiko not available, SSH commands may fail")
             return subprocess.CompletedProcess([], 1, b"", b"paramiko not available")
 
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
         last_err = None
         for attempt in range(4):
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             try:
-                # For Windows, use password auth directly with configured credentials
-                if self.is_windows:
-                    client.connect("localhost", port=self.ssh_port, username=self._ssh_user,
-                                  password=self._ssh_password, timeout=15, look_for_keys=False)
-                else:
-                    # Try key-based auth first for Linux
-                    try:
-                        client.connect("localhost", port=self.ssh_port, username="ga",
-                                      key_filename=str(ssh_key), timeout=15, look_for_keys=False)
-                    except Exception:
-                        # Fallback to password
-                        client.connect("localhost", port=self.ssh_port, username=self._ssh_user,
-                                      password=self._ssh_password, timeout=15, look_for_keys=False)
+                client.connect("localhost", port=self.ssh_port, username=self._ssh_user,
+                               timeout=15, **ssh_credentials(self.is_windows, self._ssh_password))
             except Exception as e:
                 last_err = e
                 try:
@@ -3696,13 +3668,13 @@ class QemuApptainerRunner(BaseRunner):
             self._sftp_copy_to(host_src, container_dst)
             return
 
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
+        ssh_key = ssh_key_path()
 
         # Linux: Try SCP with key first
         if ssh_key.exists():
             cmd = [
                 "scp", "-r",
-                "-i", str(ssh_key),
+                "-i", str(ssh_key), *SSH_OPTIONS,
                 "-o", "StrictHostKeyChecking=no",
                 "-o", "UserKnownHostsFile=/dev/null",
                 "-P", str(self.ssh_port),
@@ -3718,7 +3690,7 @@ class QemuApptainerRunner(BaseRunner):
         self._sftp_copy_to(host_src, container_dst)
 
     def _sftp_copy_to(self, host_src: str, container_dst: str) -> None:
-        """Copy file/directory to VM using paramiko SFTP with password auth."""
+        """Copy file/directory to VM using paramiko SFTP."""
         try:
             client = self._sftp_connect()
 
@@ -3786,13 +3758,13 @@ class QemuApptainerRunner(BaseRunner):
             self._sftp_copy_from(container_src, host_dst)
             return
 
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
+        ssh_key = ssh_key_path()
 
         # Linux: Try SCP with key first
         if ssh_key.exists():
             cmd = [
                 "scp", "-r",
-                "-i", str(ssh_key),
+                "-i", str(ssh_key), *SSH_OPTIONS,
                 "-o", "StrictHostKeyChecking=no",
                 "-o", "UserKnownHostsFile=/dev/null",
                 "-P", str(self.ssh_port),
@@ -3801,7 +3773,7 @@ class QemuApptainerRunner(BaseRunner):
             result = subprocess.run(cmd, capture_output=True)
             if result.returncode == 0:
                 return
-            print(f"[QemuApptainer] SCP copy_from failed, trying SFTP with password...")
+            print(f"[QemuApptainer] SCP copy_from failed, trying SFTP with the same key...")
 
         # Fallback to SFTP via paramiko
         self._sftp_copy_from(container_src, host_dst)
@@ -3814,25 +3786,15 @@ class QemuApptainerRunner(BaseRunner):
         surfaces as 'Error reading SSH protocol banner'. Retry briefly.
         """
         import paramiko
-        ssh_key = Path.home() / ".ssh" / "ga_qemu_key"
 
         last_err = None
         for attempt in range(4):
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             try:
-                # Windows: Use configured credentials directly
-                if self.is_windows:
-                    client.connect("localhost", port=self.ssh_port, username=self._ssh_user,
-                                  password=self._ssh_password, timeout=30, look_for_keys=False)
-                else:
-                    # Linux: Try key first, then password
-                    try:
-                        client.connect("localhost", port=self.ssh_port, username="ga",
-                                      key_filename=str(ssh_key), timeout=10, look_for_keys=False)
-                    except Exception:
-                        client.connect("localhost", port=self.ssh_port, username="ga",
-                                      password="password123", timeout=10, look_for_keys=False)
+                client.connect("localhost", port=self.ssh_port, username=self._ssh_user,
+                               timeout=30 if self.is_windows else 10,
+                               **ssh_credentials(self.is_windows, self._ssh_password))
                 return client
             except Exception as e:
                 last_err = e
@@ -3846,7 +3808,7 @@ class QemuApptainerRunner(BaseRunner):
         raise last_err
 
     def _sftp_copy_from(self, container_src: str, host_dst: str) -> None:
-        """Copy file/directory from VM using paramiko SFTP with password auth."""
+        """Copy file/directory from VM using paramiko SFTP."""
         try:
             client = self._sftp_connect()
 

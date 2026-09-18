@@ -84,3 +84,13 @@
 supervisor PID=3207308；knowledge PID=3207310、data-analysis PID=3207311、instruction-following PID=3207312。状态及退出码写入 runs/batch-50/status.json，每组日志为 runs/<名称>.log，逐次请求及累计用量分别为 runs/<名称>/requests.jsonl、usage.json。三组启动时均约 212 MiB RSS，当前状态为运行中；完成情况以状态文件和通过验证后导出的 benchmark.json 为准。
 
 本轮之前有一次启动检查因记录资源限制时的变量名冲突退出，发生于任何模型请求之前，未产生 token 用量；其日志与目录位于 `runs/archive/batch-50-startup/`。已修正变量名，新运行目录重新创建。
+
+
+2026-09-17 09:22 UTC 完成情况核查：knowledge 于 04:20:52 UTC 正常退出，data-analysis 于 04:56:29 UTC 正常退出，均导出 50 道不同题目，每题 10 次作答记录。instruction-following 于 04:23:32 UTC 退出码 1：上游生成并解码了 50 道不同题目，但本地四选一标签检查失败，未生成最终 benchmark.json 链接。解码 idx=15、29、39（生成序号 37、47、33）的答案分别为 E、F、E，对应候选确实超出了 A–D，违反 OptionNum=4；这 50 题也都有 10 次作答记录。原始和解码数据保留，本次仅核查，未修改或重跑。证据见 runs/batch-50/completion-check.json。
+
+本轮累计 token：knowledge 输入 1748881、输出 3486295、总计 5235176；data-analysis 输入 4684615、输出 7307914、总计 11992529；instruction-following 输入 3455395、输出 4712738、总计 8168133。三组合计 25395838 tokens，与前轮归档用量分开。
+
+
+2026-09-17 费用核算：按当日 DeepSeek 官方价格页 https://api-docs.deepseek.com/zh-cn/quick_start/pricing ，Flash 空闲时段每百万 token 缓存命中输入 0.02 元、未命中输入 1 元、输出 4 元，高峰翻倍；高峰为工作日 UTC 01:00–04:00、06:00–10:00。逐请求按实际 usage 的缓存命中/未命中及输出数量计费，thinking 已包含在输出 token，不另加。按请求开始时刻估算，本轮 knowledge 26.55 元、data-analysis 48.85 元、instruction-following 36.58 元，共 111.99 元；12 个请求跨越峰谷边界，若按完成时刻归档，合计为 111.17 元，故报告约 112 元，不能视为服务商账单。
+
+本轮输入 9888891、输出 15506947、总计 25395838 tokens，其中 reasoning_tokens=13446690。包含之前冒烟测试、中止那轮及预检后，全部已记录输入 10185779、输出 16448091、总计 26633870 tokens。冒烟测试没有逐请求时间戳，其费用按峰谷两档给出范围，结合跨界请求的不确定性，全部已记录调用约 115.08–118.33 元。未返回 usage 的中止/失败请求不在本地统计内，实际扣款需以服务商账单为准。计算明细见 runs/batch-50/cost.json。

@@ -4,12 +4,15 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parent
 os.environ["PATH"] = str(root / "bin") + os.pathsep + os.environ["PATH"]
-os.environ["GYM_ANYTHING_QEMU_CACHE"] = str(root / "cache")
+os.environ["GYM_ANYTHING_QEMU_CACHE"] = str(root / "secure-cache")
+os.environ["GYM_ANYTHING_QEMU_SSH_KEY"] = str(root / "ssh" / "key")
+if not (root / "secure-cache" / "READY").exists():
+    raise SystemExit("Run secure_image.py verification before the desktop smoke test")
 from gym_anything.runtime.runners.qemu_native import QemuNativeRunner
 from gym_anything.specs import EnvSpec
 
 output = root.parents[1] / "outputs" / "qemu_setup"
-runner = QemuNativeRunner(EnvSpec.from_dict({"id": "base_image_smoke", "vnc": {"password": "password"}, "recording": {"enable": False, "output_dir": str(output)}}))
+runner = QemuNativeRunner(EnvSpec.from_dict({"id": "base_image_smoke", "resources": {"net": False, "cpu": 2, "mem_gb": 3}, "vnc": {"password": "password"}, "recording": {"enable": False, "output_dir": str(output)}}))
 assert runner.enable_kvm, "KVM permission missing; run with sg kvm"
 try:
     runner.start(seed=42)

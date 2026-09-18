@@ -1,20 +1,25 @@
-本目录提供 Ubuntu 22.04 的原生 QEMU 6.2.0（6.2+dfsg-2ubuntu6.31），用于 Gym-Anything 的虚拟机环境。二进制和依赖从单独的 Ubuntu 容器安装、导出，放在 rootfs；bin 中的启动脚本指定动态库、模块和固件路径。官方运行器代码未修改。
+本目录提供 Ubuntu 22.04 的原生 QEMU 6.2.0，二进制和依赖位于 rootfs，bin 中的脚本指定动态库、模块和固件路径。宿主用户通过 kvm 组访问 /dev/kvm，无需宿主安装 QEMU 软件包。
 
-宿主用户 `zangyihe` 已加入 `kvm` 组（GID 109），使进程可以读写 `/dev/kvm`；无需宿主安装 QEMU 软件包。现有会话需要用 `sg kvm -c '<命令>'` 启动生成或验证进程，新登录会话自动继承该组。bin 中的 python/python3 入口在 `GYM_ANYTHING_RUNNER=qemu` 时自动使用该组，并把六个软件的虚拟机工作目录分别放到 `local/q/1` 至 `local/q/6`，避免 Unix socket 路径过长。1–6 分别对应 ERPNext、Moodle、Redmine、Nuxeo Platform、WordPress、Rancher。Docker 进程直接使用共享虚拟环境。复现命令（在 gym-anything 根目录执行）：
+Linux QEMU 的 SSH 使用独立公钥，客户端不回退密码；来宾 SSH 禁止密码、交互式认证及 root 登录。QEMU 的 SSH、VNC 和其它管理转发端口仅监听 127.0.0.1。此为运行基础设施适配，不改变提题、构建或评分流程。Windows SSH 凭据尚未迁移，本轮软件使用 Linux。
+
+私钥位于 ssh/key（目录 0700、文件 0600，Git 忽略），使用 `GYM_ANYTHING_QEMU_SSH_KEY` 指定。来宾只收到公钥。桌面账户密码保留，不能用于 SSH 登录。
+
+安全镜像使用独立的 secure-cache；cache 中的旧基础镜像及旧任务快照保留原样，不能作为加固后的镜像恢复。现有实验启动入口继续禁用，旧批次工作副本不包含本次修改，不能恢复运行。
+
+在 gym-anything 根目录运行 `.venv/bin/python local/runtime/qemu/secure_image.py` 仅准备公钥配置、写时复制磁盘和 cloud-init ISO，不启动 VM。经用户同意后，执行：
+
+```bash
+sg kvm -c '.venv/bin/python -u local/runtime/qemu/secure_image.py --run'
+```
+
+该命令先以 2 核、3 GiB 内存、无网卡的临时 VM 配置副本，再用官方运行器启动验证 VM；验证期间设置 `resources.net=false`，QEMU restrict=on，管理端口仅监听回环地址。两次启动均不运行模型、不挂载宿主目录；结束或失败时关闭相应 VM。检查公钥登录、拒绝密码、服务端认证列表、文件传输、VNC 截图及实际监听地址，通过后写 secure-cache/READY 和 verification.json。已有加固镜像可用 `--verify` 单独复查。READY 仅代表这些 SSH 检查通过，不代表实验隔离已经完成。
+
+后续运行器需要设置：
 
 ```bash
 export PATH="$PWD/local/runtime/qemu/bin:$PATH"
-export GYM_ANYTHING_QEMU_CACHE="$PWD/local/runtime/qemu/cache"
-export GYM_ANYTHING_QEMU_WORK_DIR="$PWD/local/q/1"
-export GYM_ANYTHING_RUNNER=qemu
-sg kvm -c '.venv/bin/python -u local/runtime/qemu/build_base.py'
-local/runtime/qemu/bin/qemu-img check local/runtime/qemu/cache/base_ubuntu_gnome.qcow2
-sg kvm -c '.venv/bin/python -u local/runtime/qemu/smoke.py'
-sha256sum -c local/outputs/qemu_setup/base.sha256
+export GYM_ANYTHING_QEMU_CACHE="$PWD/local/runtime/qemu/secure-cache"
+export GYM_ANYTHING_QEMU_SSH_KEY="$PWD/local/runtime/qemu/ssh/key"
 ```
 
-运行进程需要把本目录的绝对 `bin` 路径加入 PATH，并设置 `GYM_ANYTHING_QEMU_CACHE` 为本目录的绝对 `cache` 路径。每个并行工作副本分别设置 `GYM_ANYTHING_QEMU_WORK_DIR`，共享只读基础镜像，使用独立写时复制磁盘。基础镜像由官方代码和官方 cloud-init 配置生成。
-
-安装与构建日志在 `local/outputs/qemu_setup/`。`cache/READY` 仅在基础镜像和实际启动验证完成后创建。
-
-2026-09-16 实测：官方基础镜像构建1195秒，文件6956777472字节，qemu-img完整性检查无错误；官方QemuNativeRunner以KVM启动后，SSH命令、X11、1920×1080 VNC桌面及截图均正常。截图与检查日志保存于 `local/outputs/qemu_setup/`，基础镜像 SHA256 为 `a6caf767e214781120b53d8477bb5f59ea91fc65d74e92a4c09e87f5e090c939`，也保存在其中 `base.sha256`。此验证仅覆盖共享基础系统，具体软件的安装和任务验证由各自官方提题agent执行。
+2026-09-18 验证通过：SSH 仅提供 publickey，拒绝旧密码；公钥登录、SFTP/SCP 往返、1920×1080 桌面截图均正常。SSH 2250 和 VNC 6063 实际仅监听 127.0.0.1，测试结束后临时 VM 已关闭，两个端口及告警端口 2267 均无监听。镜像完整性检查通过，测试套件 317 passed、22 skipped、7 subtests passed。没有修改宿主 SSH 服务。2026-09-16 的原始环境检查日志位于 local/outputs/qemu_setup，仅证明当时旧基础镜像的功能可用。

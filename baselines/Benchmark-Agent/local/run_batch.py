@@ -1,24 +1,46 @@
-"""Run three independent official pipelines, then evaluate the resulting items."""
+"""Run independent official pipelines, then evaluate the resulting items."""
 
+import argparse
 import json
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 TOPICS = ("knowledge_50", "data_analysis_50", "instruction_following_50")
 
 
 def main():
-    batch = ROOT / sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("batch", type=Path)
+    parser.add_argument("--topics", nargs="+", default=TOPICS)
+    args = parser.parse_args()
+    batch = ROOT / args.batch
     batch.mkdir(parents=True, exist_ok=True)
+    if (batch / "batch.json").exists():
+        raise ValueError("Use a fresh batch directory")
+    topics = args.topics
+    queries = {topic: json.loads((ROOT / "user_queries" / f"{topic}.json").read_text()) for topic in topics}
+    configuration = batch / "configuration"
+    configuration.mkdir()
+    for name in ("models.yaml", "dataset_cards.yaml"):
+        shutil.copy2(ROOT / "utils/resources" / name, configuration / name)
+    for topic in topics:
+        shutil.copy2(ROOT / "user_queries" / f"{topic}.json", configuration / f"{topic}.json")
+    config = yaml.safe_load((ROOT / "utils/resources/models.yaml").read_text())
     manifest = {
         "started_utc": datetime.now(timezone.utc).isoformat(),
-        "model": "openai/deepseek-flash",
-        "framework_concurrency": 3,
-        "api_concurrency": "official defaults; no additional limit",
-        "target_size_per_topic": 50,
+        "model": config["tools"]["default"],
+        "search_model": config["tools"]["web_search"],
+        "search_base_url": config.get("web_search_api", {}).get("base_url"),
+        "framework_concurrency": len(topics),
+        "api_concurrency": {"deepseek": "no additional limit; official worker pools",
+                            "luna_global": config.get("web_search_api", {}).get("global_concurrency")},
+        "target_sizes": {topic: query["target_size"] for topic, query in queries.items()},
         "replenishment": "disabled as in official release",
         "runs": {},
     }
@@ -30,7 +52,7 @@ def main():
         temporary.replace(path)
 
     jobs = []
-    for topic in TOPICS:
+    for topic in topics:
         command = [sys.executable, "local/run_with_usage.py", "--topic_id", f"user_queries/{topic}",
                    "--dataset_card_config", "utils/resources/dataset_cards.yaml",
                    "--cache_path", str(batch) + "/",
@@ -47,9 +69,9 @@ def main():
         save()
 
     jobs = []
-    for topic in TOPICS:
+    for topic in topics:
         run = batch / "user_queries" / topic
-        if not (run / "evaluation.json").exists():
+        if manifest["runs"][topic]["generation_exit_code"] != 0 or not (run / "evaluation.json").exists():
             continue
         command = [sys.executable, "local/self_evaluate.py", "--run-dir", str(run)]
         with (batch / f"{topic}.selftest.log").open("w") as log:
