@@ -176,3 +176,31 @@ Qwen 用量 106,716 tokens（输入 94,370、输出 12,346）；DeepSeek 裁判�
 固定八组第一轮题目评测 gpt-5.6-sol。复用 `runs/batch-20260917T172122472021Z/` 八组第一轮共 1,725 题及参考答案，题目副本、SHA-256 和原始提示保存在独立评测目录。被测接口 https://www.rightapi.ai/v1，模型 gpt-5.6-sol，最大并发 8（重试也占用同一并发槽），temperature=0.01、max_tokens=50、n=1、seed=42，不附加供应商专有 thinking 参数。裁判沿用 deepseek-flash（https://api.deepseek.com），并发 8，temperature=0、max_tokens=3000、n=1、seed=42、thinking disabled。作答提示、判分提示和解析逻辑同前次 Qwen 固定题集评测。Python、NumPy、PyTorch、CUDA 与 Python 哈希种子通过现有 seed_everything 和启动逻辑固定为 42。
 
 配置 `configs/gpt-first-round.json`，入口 `evaluate_fixed.py`，命令 `.venv/bin/python -u evaluate_fixed.py configs/gpt-first-round.json`。单请求超时 300 秒；传输错误或 HTTP 408/409/429/5xx 最多 3 次尝试（2 次重试），等待 1、2 秒；无效裁判判定不重试。首题先验证作答及判分，再并发执行其余题目。tmux 会话 autobencher-gpt-first-round，日志 runs/gpt-first-round.log。凭据在被 Git 忽略且权限为 0600 的 .env，产物、完整请求响应和用量写入独立 runs/eval-<UTC时间>/ 目录。
+
+固定第一轮 GPT 评测全部完成，产物目录 `runs/eval-20260918T193453712545Z`。
+
+八组第一轮固定题集，1,725 题。裁判均为 deepseek-flash，准确率沿用官方规则，仅 true 计为答对。
+
+| 组别 | 题量 | GPT 答对数 | gpt-5.6-sol | qwen3.8-27b | deepseek-flash |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 知识 | 195 | 184 | 94.36% | 90.77% | 95.90% |
+| 推理 | 195 | 133 | 68.21% | 57.95% | 66.67% |
+| 数学 | 225 | 207 | 92.00% | 86.22% | 88.89% |
+| 计算机科学 | 225 | 199 | 88.44% | 84.00% | 88.89% |
+| 数据分析 | 225 | 174 | 77.33% | 76.89% | 80.44% |
+| 指令遵循 | 225 | 212 | 94.22% | 89.78% | 93.33% |
+| 长上下文 | 225 | 208 | 92.44% | 88.00% | 92.44% |
+| 多语言 | 210 | 173 | 82.38% | 69.52% | 78.57% |
+| 合计 | 1725 | 1490 | 86.38% | 80.70% | 85.86% |
+
+本次无效裁判回复 1 条，原文保留在 summary.json，按官方规则计入未答对。
+
+GPT 请求通过 https://www.rightapi.ai/v1，model=gpt-5.6-sol，并发上限 8，单请求最多 3 次尝试；temperature=0.01、max_tokens=50、n=1、seed=42，未指定 reasoning_effort 或供应商 thinking 参数。接口返回的用量包含推理 token，部分请求的 completion_tokens 超过 50；这里记录的是该接口在所提交参数下的实际结果。
+
+裁判参数：deepseek-flash，temperature=0、max_tokens=3000、n=1、seed=42、thinking disabled、并发上限 8。两次因裁判代理连接失败暂停后复用缓存续跑，第二次在 NO_PROXY 加入 api.deepseek.com，使裁判请求直连；模型及评测参数未变。
+
+实际调用统计：{"target": {"attempts": 1731, "http_status": {"200": 1725, "0": 6}, "max_observed_concurrent_requests": 8, "finish_reasons": {"stop": 1725}, "reasoning_tokens": 152556, "reported_completion_tokens_over_50": 831}, "judge": {"attempts": 1760, "http_status": {"200": 1725, "0": 35}, "max_observed_concurrent_requests": 7, "finish_reasons": {"stop": 1725}, "reasoning_tokens": 0, "reported_completion_tokens_over_50": 334}}
+
+Token 用量（包含日志中有用量的所有请求）：{"target": {"prompt_tokens": 373198, "completion_tokens": 207057, "total_tokens": 580255}, "judge": {"prompt_tokens": 570990, "completion_tokens": 63069, "total_tokens": 634059}}
+
+已核验 1,725 题、原题副本及源文件 SHA-256、逐条题目/作答/判分/参考答案对应关系、实际请求及响应模型名。请求时间区间计算得到的已记录最大并发均不超过 8。两次续跑状态快照和原因见 archive/ 与 resumes.jsonl；不重复已有成功作答或判分。官方源码未修改。
