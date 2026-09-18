@@ -1,0 +1,38 @@
+{
+  "schema_version": "evalclaw.harness.request.v1",
+  "id": "example_reasoning_benchmark",
+  "objective": "Evaluate whether a model can reconcile conflicting operational evidence.",
+  "constraints": [
+    "Each task must be independently answerable from its supplied evidence."
+  ],
+  "dimensions": [
+    {
+      "id": "evidence_reconciliation",
+      "name": "Evidence reconciliation",
+      "measurement_target": "Correctly reconcile records that differ in reliability and recency.",
+      "boundary": "Do not require private or unstated domain knowledge.",
+      "approach": "Construct self-contained generation tasks with auditable evidence and scoring.",
+      "task_designs": [
+        {
+          "id": "reconcile_records",
+          "task_type": "generation",
+          "task_count": 2,
+          "challenge_effort": "E2",
+          "content_design": {
+            "description": "Reconcile several operational records and explain the supported conclusion."
+          },
+          "output_requirements": {
+            "format": "A concise conclusion followed by cited evidence."
+          },
+          "scoring_contract": {
+            "method": "rubric",
+            "requirements": [
+              "The conclusion must follow the most reliable and recent evidence.",
+              "The response must identify the conflicting evidence."
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
