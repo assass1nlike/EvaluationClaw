@@ -155,7 +155,7 @@ are required for the main pipeline; QC, LaaJ, Research, and the Analyser are opt
 LLM QC is enabled by default when a QC model is configured; use `--no-llm-qc` to disable it.
 Use `--planner-*`, `--task-builder-*`, `--qc-*`, `--research-*`, and
 `--analyser-*` to configure them independently. Configure `--laaj-*` to score
-benchmark clarity, correctness, faithfulness, and diversity on a 1–5 scale; when
+benchmark correctness, faithfulness, and diversity on a 1–5 scale; when
 Analysis runs, it also scores systematicness and credibility. Task-specific judges and dialogue
 simulators are selected with repeated `--task-model` or `--task-config` options.
 
@@ -199,14 +199,24 @@ page text, and retained Planner text support pagination. Local processing is
 available without web research. PDF text extraction requires Poppler's
 `pdftotext`; scanned-page OCR is not included.
 
-LaaJ judges each sampled task in a separate conversation, scoring clarity,
-correctness, and faithfulness together. Their reported scores are arithmetic
+LaaJ judges each sampled task in a separate conversation, scoring correctness
+and faithfulness together. Correctness covers task content, theoretical solvability
+under the target's available information and permissions, and the accuracy of
+reference answers or trajectories and scoring. Their reported scores are arithmetic
 means with equal weight per task. Per-task scores and reasons are retained in
 `laaj.item_results` and, when debug traces are enabled, `laaj/items/`.
+Within each round, per-task LaaJ judgments run concurrently, with one worker
+per sampled task and no fixed concurrency cap. The contamination stage likewise
+runs one independent research agent per sampled task concurrently. Results retain
+sample order and separate per-task evidence; tool steps within each agent remain
+sequential when they depend on earlier results.
 Agent tasks retain private environment exploration. A separate overall judgment
 scores diversity and, when analysis is available, the Analyser's systematicness
 and credibility. Failed item judgments are retried; exhausted failures stop the
 evaluation rather than becoming zero scores or disappearing from the average.
+Malformed final judgments receive field or JSON parsing errors in the same
+conversation, with up to three format repairs using the existing evidence and
+no further exploration tools. Exhausted format repairs do not restart exploration.
 The main benchmark and every Analyser iteration receive separate quality and
 contamination evaluations, both in standard runs and the similar-tasks ablation.
 Iteration judgments use the original user goal and are stored in

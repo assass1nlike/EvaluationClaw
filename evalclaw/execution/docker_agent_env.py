@@ -21,12 +21,14 @@ from .docker_browser import (
     docker_browser_tool_specs,
 )
 from .docker_images import (
+    DEFAULT_DOCKER_BUILD_TIMEOUT_S,
     apply_docker_image_selection,
     build_docker_image_if_requested,
     inspect_docker_image,
 )
 from .environment_checks import run_environment_checks
 from .evaluation import EvaluatorResult, parse_evaluator_result
+from .image_acquisition import acquire_image, image_pull_options
 
 
 @dataclass
@@ -122,7 +124,8 @@ class DockerWorkspaceAgentEnvironment:
             docker_executable=str(config.get("docker_executable") or "docker"),
             timeout_s=max(
                 1,
-                int(config.get("build_timeout") or config.get("image_build_timeout") or image_build.get("build_timeout") or 600),
+                int(config.get("build_timeout") or config.get("image_build_timeout")
+                    or image_build.get("build_timeout") or DEFAULT_DOCKER_BUILD_TIMEOUT_S),
             ),
         )
         visible = config.get("visible_files")
@@ -351,7 +354,9 @@ class DockerWorkspaceAgentEnvironment:
         self.input_assets = input_assets
 
         try:
-            if self.pull_image:
+            self.image = acquire_image(self.image, docker_executable=self.docker_executable,
+                                       timeout_s=self.pull_timeout, allow_pull=self.pull_image)
+            if self.pull_image and not image_pull_options():
                 probe = inspect_docker_image(
                     self.image,
                     docker_executable=self.docker_executable,
@@ -362,7 +367,7 @@ class DockerWorkspaceAgentEnvironment:
                         self._run_docker(["pull", self.image], timeout=max(self.pull_timeout, self.timeout)),
                         "pull",
                     )
-            create = ["create", "--name", self._container_name, "--workdir", self.workdir, "--network", self.network]
+            create = ["create", *image_pull_options(), "--name", self._container_name, "--workdir", self.workdir, "--network", self.network]
             create.extend(
                 [
                     "--cap-drop",

@@ -44,7 +44,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `metadata` | `dict` | 是 | 附加元数据（`task_design_id`、`task_model_id` 等） |
 | `content_summary` | `str` | 否 | 任务内容摘要（默认空串） |
 | `description` | `str` | 否 | 详细描述（默认空串） |
-| `assets` | `list[TaskAsset]` | 否 | 附加资源文件（`TaskAsset.path`） |
+| `assets` | `list[TaskAsset]` | 否 | 附加资源文件（`TaskAsset.path`）；正文内的文本表格不需要附件，明确要求的文件输入仍须提供 |
 | `tags` | `list[str]` | 否 | 标签 |
 
 ### 3.2 框架注入字段（Builder 不写，由框架生成）
@@ -134,8 +134,8 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 |---|---|---|---|---|
 | `type` | `docker_workspace` \| `vm` | 是 | `docker_workspace` | 环境类别 |
 | `visible_files` | `dict[str,str]` | 否 | `{}` | 解题前可见的文件（path→内容） |
-| `runtime_files` | `dict[str,str]` | 否 | `{}` | 运行时文件 |
-| `hidden_files` | `dict[str,str]` | 否 | `{}` | 评分用的隐藏文件（如测试） |
+| `runtime_files` | `dict[str,str]` | 否 | `{}` | 原生运行时的私有支持文件；外部 harness 不支持，初始化支持材料放入 `image_build`，目标可见材料放入 `visible_files` |
+| `hidden_files` | `dict[str,str]` | 否 | `{}` | 仅在评分时注入的隐藏文件（如测试）；setup 不可依赖它们，评测文件初始化放入 `test_command`，不向目标暴露 |
 | `image` | `str` | 否 | `""` | Docker 镜像（空则自动选） |
 | `auto_select_image` | `bool` | 否 | `true` | 是否按任务文本自动选镜像 |
 | `image_selection` | `dict` | 否 | `{}` | 镜像选择元数据 |

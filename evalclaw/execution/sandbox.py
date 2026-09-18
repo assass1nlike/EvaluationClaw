@@ -5,6 +5,7 @@ import json
 import subprocess
 
 from .docker import docker_status, docker_subprocess_env, resolve_docker_executable
+from .image_acquisition import acquire_image, image_pull_options
 
 
 def run_python_sandbox(
@@ -24,10 +25,12 @@ def run_python_sandbox(
     executable = resolve_docker_executable(docker_executable)
     if not executable:
         raise RuntimeError(f"Docker executable {docker_executable!r} could not be resolved.")
+    image = acquire_image(image, docker_executable=docker_executable)
     proc = subprocess.run(
         [
             executable,
             "run",
+            *image_pull_options(),
             "--rm",
             "-i",
             "--network",

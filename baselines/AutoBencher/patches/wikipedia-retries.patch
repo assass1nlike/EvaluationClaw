@@ -1,0 +1,41 @@
+--- a/tool_util.py
++++ b/tool_util.py
+@@ -1,6 +1,11 @@
+ import copy
+ import re
+ import requests
++from requests.adapters import HTTPAdapter
++from urllib3.util.retry import Retry
++
++_wiki_session = requests.Session()
++_wiki_session.mount("https://", HTTPAdapter(max_retries=Retry(total=5, backoff_factor=1)))
+ import os, argparse, ast, json, tqdm
+ from pydantic import BaseModel, Extra, root_validator
+ from typing import Any, Callable, Dict, List, Optional, Union, Tuple
+@@ -144,7 +149,7 @@
+     url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={search_query}&format=json&cmlimit=max"
+ 
+     # Making the request
+-    response = requests.get(url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"})
++    response = _wiki_session.get(url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}, timeout=30)
+ 
+     # Checking if request was successful
+     if response.status_code == 200:
+@@ -171,7 +176,7 @@
+     # Construct the API URL with the appropriate parameters
+     url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/{page_title}/daily/{start_date}/{end_date}"
+     # Make the HTTP GET request to the API
+-    response = requests.get(url, headers=headers)
++    response = _wiki_session.get(url, headers=headers, timeout=30)
+     # Check if the request was successful
+     if response.status_code == 200:
+         # Parse the JSON response
+@@ -204,7 +209,7 @@
+ def search_step(entity, output_more=False):
+     entity_ = entity.replace(" ", "+")
+     search_url = f"https://en.wikipedia.org/w/index.php?search={entity_}"
+-    response_text = requests.get(search_url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}).text
++    response_text = _wiki_session.get(search_url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}, timeout=30).text
+     soup = BeautifulSoup(response_text, features="html.parser")
+     result_divs = soup.find_all("div", {"class": "mw-search-result-heading"})
+     if result_divs:  # mismatch

@@ -40,12 +40,12 @@ def test_failed_item_is_not_scored_zero(monkeypatch, tmp_path):
             trace_dir=tmp_path,
         )
     assert not (tmp_path / "result.json").exists()
-    assert json.loads((tmp_path / "error.json").read_text())["attempts"] == 3
+    assert json.loads((tmp_path / "error.json").read_text())["attempts"] == 1
 
 
 def test_per_item_means_are_computed_and_overall_cannot_override_them(monkeypatch, tmp_path):
     requests = []
-    scores = {"item_1": (1, 2, 3), "item_2": (3, 4, 5), "item_3": (5, 1, 1)}
+    scores = {"item_1": (2, 3), "item_2": (4, 5), "item_3": (1, 1)}
 
     def judge(messages, **kwargs):
         assert len(messages) == 1
@@ -55,7 +55,7 @@ def test_per_item_means_are_computed_and_overall_cannot_override_them(monkeypatc
             assert "analyser_output" not in request
             return json.dumps({
                 name: {"score": score, "reasoning": request["item"]["id"] + " evidence"}
-                for name, score in zip(("clarity", "correctness", "faithfulness"),
+                for name, score in zip(("correctness", "faithfulness"),
                                        scores[request["item"]["id"]])
             })
         assert "analyser_output" in request
@@ -70,7 +70,8 @@ def test_per_item_means_are_computed_and_overall_cannot_override_them(monkeypatc
     assert len(requests) == 4
     assert {r["item"]["id"] for r in requests[:-1]} == set(scores)
     assert len(requests[-1]["benchmark"]["items"]) == 3
-    assert report.clarity.score == 3
+    assert "clarity" not in report.model_dump()
+    assert all("clarity" not in item.model_dump() for item in report.item_results)
     assert report.correctness.score == pytest.approx(7 / 3)
     assert report.faithfulness.score == 3
     assert report.diversity.score == 3
@@ -116,9 +117,9 @@ def test_exhausted_item_failure_does_not_produce_partial_average(monkeypatch, tm
             "Goal", _suite(), None, BenchmarkConfig(laaj_model="judge", laaj_api_key="test"),
             trace_dir=tmp_path,
         )
-    assert len(calls) == 4
+    assert len(calls) == 9
     assert len(list((tmp_path / "items").glob('*/result.json'))) == 1
-    assert len(list((tmp_path / "items").glob('*/error.json'))) == 1
+    assert len(list((tmp_path / "items").glob('*/error.json'))) == 2
 
 
 @pytest.mark.parametrize("score", [0, 6, 2.5, True, "4"])
@@ -129,7 +130,7 @@ def test_invalid_item_score_is_retried_instead_of_averaged(monkeypatch, score):
         calls.append(True)
         data = json.loads(_response())
         if len(calls) == 1:
-            data["clarity"]["score"] = score
+            data["correctness"]["score"] = score
         return json.dumps(data)
 
     monkeypatch.setattr(laaj, "call_llm", judge)
@@ -139,7 +140,7 @@ def test_invalid_item_score_is_retried_instead_of_averaged(monkeypatch, score):
         "Goal", suite, BenchmarkConfig(laaj_model="judge", laaj_api_key="test"), trace_dir=None,
     )
     assert len(calls) == 2
-    assert result.clarity.score == 5
+    assert result.correctness.score == 4
 
 
 def test_single_item_image_is_available_to_judge(monkeypatch, tmp_path):

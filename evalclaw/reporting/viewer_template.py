@@ -1465,7 +1465,7 @@ HTML_TEMPLATE = """<!doctype html>
     function renderLaajReport(section, report) {
       section.append(node("p", {class: "small"},
         `Judge: ${report.model}; evaluated items: ${(report.evaluated_item_ids || []).length}/${report.total_item_count}`));
-      const names = ["clarity", "correctness", "faithfulness", "diversity", "systematicness", "credibility"];
+      const names = ["correctness", "faithfulness", "diversity", "systematicness", "credibility"];
       const rows = names.filter(name => report[name]).map(name => [
         humanLabel(name),
         Number(report[name].score).toFixed(1),
@@ -1473,11 +1473,11 @@ HTML_TEMPLATE = """<!doctype html>
       ]);
       section.append(table(["Criterion", "Score (1-5)", "Reasoning"], rows));
       if ((report.item_results || []).length) {
-        section.append(node("p", {}, "Clarity, correctness, and faithfulness are equally weighted per-task means. Diversity and the Analyser metrics are overall judgments."));
+        section.append(node("p", {}, "Correctness and faithfulness are equally weighted per-task means. Diversity and the Analyser metrics are overall judgments."));
         const details = node("details");
         details.append(node("summary", {}, "Per-task quality judgments"));
         details.append(table(["Task", "Criterion", "Score (1-5)", "Reasoning"],
-          report.item_results.flatMap(item => ["clarity", "correctness", "faithfulness"].map(name => [
+          report.item_results.flatMap(item => ["correctness", "faithfulness"].map(name => [
             item.item_id, humanLabel(name), item[name].score,
             markdownNode(item[name].reasoning || "-"),
           ]))));

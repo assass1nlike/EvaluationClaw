@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import json
 import tempfile
-from concurrent.futures import CancelledError
+from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Callable
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..diagnostics import redact_secrets, write_json
+from ..execution.memory_budget import memory_job
 from ..models.llm import extract_json
 from ..types import (
     BenchmarkConfig,
@@ -136,7 +137,7 @@ def evaluate_contamination(
         max_tool_calls_per_item=config.contamination_max_tool_calls,
         min_overlap_chars=config.contamination_min_overlap_chars,
     )
-    for index, item in enumerate(items, 1):
+    def evaluate_item(index, item):
         log(f"  [Contamination] Item {index}/{len(items)}: {item.id}")
         item_dir = trace_dir / f"item-{index:04d}" if trace_dir is not None else None
         result = ContaminationItemResult(item_id=item.id, status="no_confirmed_match")
@@ -196,7 +197,23 @@ def evaluate_contamination(
                 write_json(item_dir / "result.json", result.model_dump(mode="json"), redact=True)
             if temporary is not None:
                 temporary.cleanup()
-        report.items.append(result)
-        if trace_dir is not None:
-            write_json(trace_dir / "report.json", report.model_dump(mode="json"), redact=True)
+        return result
+
+    if not items:
+        return report
+    def admitted_item(index, item):
+        with memory_job(config, item=item):
+            return evaluate_item(index, item)
+
+    with ThreadPoolExecutor(max_workers=len(items), thread_name_prefix="contamination") as executor:
+        futures = {executor.submit(admitted_item, index, item): index
+                   for index, item in enumerate(items, 1)}
+        completed = {}
+        for future in as_completed(futures):
+            completed[futures[future]] = future.result()
+            # Only this thread writes the shared report; preserve sample order even
+            # when later items finish first, and persist each completion immediately.
+            report.items = [completed[index] for index in sorted(completed)]
+            if trace_dir is not None:
+                write_json(trace_dir / "report.json", report.model_dump(mode="json"), redact=True)
     return report

@@ -351,7 +351,8 @@ def test_builder_environment_preflight_reports_item_failure_and_cleans_up(
         assert cleaned is True
         return
 
-    issues, failed_ids = preflight()
+    issues, failed_ids, blocked = preflight()
+    assert not blocked
 
     assert failed_ids == {task.id}
     assert "missing_evaluator.py does not exist" in issues[0]
@@ -466,6 +467,26 @@ def test_external_harness_incompatibility_is_structurally_rejected() -> None:
         "runtime_files" in issue
         for issue in task_structure_issues(_task(TaskType.agent, environment=environment))
     )
+
+
+@pytest.mark.parametrize("harnesses", [[], ["openclaw"], ["codex", "claude-code"]])
+@pytest.mark.parametrize("setup", [
+    "chmod +x /workspace/run_tests.sh",
+    "chmod +x ./run_tests.sh",
+    "# evaluator/pristine/run_tests.sh is injected only during grading\ntrue",
+    "test ! -e evaluator/pristine/run_tests.sh",
+    "printf '%s\\n' 'sh evaluator/pristine/run_tests.sh' > grade_later.sh",
+])
+def test_setup_mentions_do_not_imply_hidden_file_dependencies(harnesses, setup):
+    task = _task(TaskType.agent, environment=AgentEnvironmentSpec(
+        type=AgentEnvironmentType.docker_workspace,
+        visible_files={"run_tests.sh": "exit 0\n"},
+        hidden_files={"evaluator/pristine/run_tests.sh": "exit 0\n"},
+        setup_commands=[setup],
+        test_command="sh evaluator/pristine/run_tests.sh",
+    ))
+
+    assert task_structure_issues(task, target_harnesses=harnesses) == []
 
 
 def test_external_harness_accepts_both_environment_serializations() -> None:
@@ -1545,6 +1566,30 @@ def test_task_design_file_inputs_require_assets(tmp_path) -> None:
 
     assert any("must provide assets" in issue for issue in task_structure_issues(missing, task_design=design))
     assert task_structure_issues(valid, task_design=design) == []
+
+
+@pytest.mark.parametrize("modalities", [["text", "table"], ["table"], ["text", "code"]])
+def test_inline_input_formats_do_not_require_assets(modalities):
+    design = TaskDesign(id="inline", task_type=TaskType.generation, task_count=1,
+                        input_requirements={"modalities": modalities})
+    task = _task(TaskType.generation, rubric="The total is 7.")
+    task.prompt = "Compute the total.\n| A | B |\n|---|---|\n| 3 | 4 |"
+
+    assert task_structure_issues(task, task_design=design) == []
+
+
+@pytest.mark.parametrize("requirements", [
+    {"modalities": ["image"]},
+    {"modalities": ["files"]},
+    {"modalities": ["text", "table"],
+     "asset_requirements": [{"asset_ref": "table_scan", "visibility": "task_visible"}]},
+])
+def test_declared_file_inputs_still_require_assets(requirements):
+    design = TaskDesign(id="file", task_type=TaskType.generation, task_count=1,
+                        input_requirements=requirements)
+    task = _task(TaskType.generation, rubric="Score correctness.")
+
+    assert task_structure_issues(task, task_design=design)
 
 
 def test_task_design_runner_private_assets_do_not_require_visible_files() -> None:

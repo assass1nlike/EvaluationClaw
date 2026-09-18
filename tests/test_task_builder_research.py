@@ -1312,7 +1312,8 @@ def test_task_builder_view_image_rejects_files_outside_job(tmp_path) -> None:
     assert "inside the job directory" in result.content
 
 
-def test_task_builder_build_image_persists_context_and_returns_relative_reference(monkeypatch, tmp_path) -> None:
+@pytest.mark.parametrize("timeout,expected", [(None, 3600), (5400, 5400), (9000, 7200)])
+def test_task_builder_build_image_persists_context_and_returns_relative_reference(monkeypatch, tmp_path, timeout, expected) -> None:
     dockerfile = tmp_path / "custom.Dockerfile"
     dockerfile.write_text("FROM python:3.11-slim\nCOPY requirements.txt /tmp/requirements.txt\n", encoding="utf-8")
     requirements = tmp_path / "requirements.txt"
@@ -1348,6 +1349,7 @@ def test_task_builder_build_image_persists_context_and_returns_relative_referenc
                     }
                 ],
                 "tag": "evalclaw-builder:test",
+                **({"timeout_s": timeout} if timeout is not None else {}),
             },
         ),
         BenchmarkConfig(output_dir=str(tmp_path)),
@@ -1359,6 +1361,7 @@ def test_task_builder_build_image_persists_context_and_returns_relative_referenc
     payload = json.loads(result.content)
     context_dir = captured["context_dir"]
     assert result.error is None
+    assert captured["kwargs"]["timeout_s"] == expected
     assert payload["image"] == "evalclaw-builder:test"
     assert payload["image_build"]["context_dir"] == ".image-build/build-01"
     assert (context_dir / "Dockerfile").read_text(encoding="utf-8").startswith("FROM python")
@@ -1898,7 +1901,8 @@ def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
     assert captured["include_vm_image_tools"] is True
 
 
-def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -> None:
+@pytest.mark.parametrize("judge_blocked", [False, True])
+def test_preflight_repairs_task_defects_but_excludes_judge_failures(monkeypatch, judge_blocked) -> None:
     payloads: list[dict] = []
 
     def fake_tools(payload, **kwargs):
@@ -1939,7 +1943,7 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
                 "tasks": [
                     task(
                         "First executable task",
-                        include_environment=len(payloads) > 1,
+                        include_environment=judge_blocked or len(payloads) > 1,
                     ),
                     task("Second executable task"),
                 ],
@@ -1954,11 +1958,16 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
         nonlocal preflight_calls
         preflight_calls += 1
         preflight_task_counts.append(len(tasks))
+        if judge_blocked:
+            return [], set(), {
+                task.id: "Missing criterion: safety" for task in tasks
+                if task.id == "execution_task_task_1"
+            }
         if preflight_calls == 1:
             return [f"task #1 ({tasks[0].id}): environment preflight failed: missing evaluator"], {
                 tasks[0].id
-            }
-        return [], set()
+            }, {}
+        return [], set(), {}
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     monkeypatch.setattr("evalclaw.construction.suite.require_docker_available", lambda **kwargs: None)
@@ -1985,14 +1994,20 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
             dimensions=[dimension],
             task_types=[TaskType.agent],
         ),
-        [blueprint],
+        [blueprint, blueprint.model_copy(update={"id": "other_job"})] if judge_blocked else [blueprint],
         BenchmarkConfig(
             **dummy_config_kwargs(),
-            task_builder_max_workers=1,
+            task_builder_max_workers=2 if judge_blocked else 1,
             task_builder_repair_attempts=1,
         ),
     )
 
+    if judge_blocked:
+        assert {task.id for task in suite.tasks} == {
+            "execution_task_task_2", "other_job_task_1", "other_job_task_2",
+        }
+        assert len(payloads) == 2 and preflight_calls == 2
+        return
     assert len(suite.tasks) == 2
     assert len(payloads) == 2
     assert "task_file" in payloads[0]

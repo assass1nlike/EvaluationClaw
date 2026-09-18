@@ -1,0 +1,20 @@
+--- a/tool_util.py
++++ b/tool_util.py
+@@ -144,7 +144,7 @@
+     url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={search_query}&format=json&cmlimit=max"
+ 
+     # Making the request
+-    response = requests.get(url)
++    response = requests.get(url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"})
+ 
+     # Checking if request was successful
+     if response.status_code == 200:
+@@ -204,7 +204,7 @@
+ def search_step(entity, output_more=False):
+     entity_ = entity.replace(" ", "+")
+     search_url = f"https://en.wikipedia.org/w/index.php?search={entity_}"
+-    response_text = requests.get(search_url).text
++    response_text = requests.get(search_url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}).text
+     soup = BeautifulSoup(response_text, features="html.parser")
+     result_divs = soup.find_all("div", {"class": "mw-search-result-heading"})
+     if result_divs:  # mismatch
