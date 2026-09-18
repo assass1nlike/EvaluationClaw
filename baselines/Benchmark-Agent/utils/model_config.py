@@ -89,6 +89,16 @@ def load_model_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     return config
 
 
+def get_max_tokens(model: str, default=None, config_path: Optional[str] = None):
+    """Return the configured output budget for an exact model ID."""
+    return load_model_config(config_path).get("max_tokens", {}).get(model, default)
+
+
+def get_request_timeout(model: str, default=None, config_path: Optional[str] = None):
+    """Return the configured request timeout in seconds for an exact model ID."""
+    return load_model_config(config_path).get("request_timeout_seconds", {}).get(model, default)
+
+
 def get_agent_model(agent_name: str, config_path: Optional[str] = None) -> str:
     """
     Get model for a specific agent.
