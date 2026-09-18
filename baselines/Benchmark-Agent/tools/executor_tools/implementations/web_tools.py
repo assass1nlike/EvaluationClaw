@@ -57,7 +57,28 @@ def web_search(
 
     tool_choice = "required" if force_search else "auto"
 
-    from utils.model_config import get_tool_model
+    from utils.model_config import get_tool_model, load_model_config
+
+    api = load_model_config().get("web_search_api", {})
+    api_params = {}
+    if api:
+        names = api.get("api_key_envs") or [api["api_key_env"]]
+        keys = [os.environ.get(name) for name in names]
+        missing = [name for name, key in zip(names, keys) if not key]
+        if missing:
+            raise RuntimeError(f"Missing web search credentials: {', '.join(missing)}")
+        api_params = {"base_url": api["base_url"], "api_key": keys[0], "api_keys": keys,
+                      "retry_config": api}
+        fallback = api.get("fallback")
+        if fallback:
+            fallback_key = os.environ.get(fallback.get("api_key_env", ""))
+            if not fallback_key:
+                raise RuntimeError(f"Missing web search credentials: {fallback.get('api_key_env')}")
+            api_params["fallback"] = {
+                "base_url": fallback["base_url"],
+                "api_key": fallback_key,
+                "retry_config": fallback,
+            }
 
     ret = llm_call_json(
         model=model or get_tool_model("web_search"),
@@ -83,6 +104,7 @@ def web_search(
         ),
         images=image_paths or None,
         extra_create_params={
+            **api_params,
             "timeout": _WEB_SEARCH_TIMEOUT_S,
             "request_timeout": _WEB_SEARCH_TIMEOUT_S,
             "tools": [

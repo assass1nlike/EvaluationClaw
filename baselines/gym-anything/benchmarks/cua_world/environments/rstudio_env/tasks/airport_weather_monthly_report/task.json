@@ -1,0 +1,38 @@
+{
+  "id": "airport_weather_monthly_report@1",
+  "version": "1.0",
+  "env_id": "rstudio_env@0.1",
+  "difficulty": "hard",
+  "description": "You are an aviation operations analyst preparing the 2013 weather review for the three New York airports. The data is the NOAA hourly surface observation record for EWR, JFK and LGA, shipped in the nycflights13 project's data-raw/weather.csv and already downloaded to /home/ga/RProjects/datasets/nyc_weather_2013.csv (26,115 hourly rows; columns include origin, year, month, day, hour, temp, wind_speed, precip).\n\nSTEP BUDGET: you have a hard budget of 18 agent steps. Reading the screen costs steps just like clicking does, so there is no room for interactive trial-and-error. Plan the whole job before you touch the keyboard.\n\nDeliverables — write all of them into /home/ga/RProjects/output/:\n\n1. monthly_station_stats.csv\n   One row per (origin, month) pair, i.e. 36 rows. Columns in this exact order:\n     origin,month,n_hours,mean_temp_f,mean_wind_speed_mph,total_precip_in,n_adverse_hours\n   - n_hours = number of hourly records for that station and month\n   - mean_temp_f and mean_wind_speed_mph = the mean of that column over the group; ignore missing (NA) measurements\n   - total_precip_in = the sum of precip over the group\n   - n_adverse_hours = number of hours in the group meeting the adverse condition below\n   Sort rows by origin, then month, both ascending. Do not write row names. Report the means and sums unrounded (full double precision is fine).\n\n2. adverse_hours.csv\n   One row per adverse hour, with exactly these columns: origin,month,day,hour\n   ADVERSE means wind_speed >= 25 mph OR precip >= 0.25 inches. A missing measurement does not make an hour adverse. Row order does not matter.\n\n3. report_summary.json\n   A JSON object with exactly these keys:\n     total_hours, adverse_hours_total, n_station_months, mean_temp_f_all\n   - total_hours = hourly records in the whole file\n   - adverse_hours_total = adverse hours across all three airports\n   - n_station_months = number of (origin, month) rows in deliverable 1\n   - mean_temp_f_all = mean temperature over the whole file, rounded to 2 decimal places\n\n4. figures/ — one PNG per station and month, 36 files in total, named {ORIGIN}_{MM}.png with the month zero-padded, e.g. EWR_01.png, JFK_07.png, LGA_12.png. Each is a bar chart of that station-month's daily mean temperature by day of month (x = day 1..31, y = mean temp in F). Label each figure with its station and month.\n\nThe review goes out as-is, so every one of the 36 figures has to exist and be a real chart.\n\nLogin: username=ga, password=password123.",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 18,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/airport_weather_monthly_report/setup_task.sh",
+    "post_task": "/workspace/tasks/airport_weather_monthly_report/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "dataset": "NOAA hourly surface observations 2013 for EWR/JFK/LGA, via tidyverse/nycflights13 data-raw/weather.csv (26,115 rows; real observations, not generated)",
+    "dataset_source": "downloaded by setup_task.sh from the nycflights13 repository to /home/ga/RProjects/datasets/nyc_weather_2013.csv; setup fails if the download is short",
+    "ground_truth_path": "/tmp/airport_weather_monthly_report_gt.json",
+    "dataset_path": "/home/ga/RProjects/datasets/nyc_weather_2013.csv",
+    "output_dir": "/home/ga/RProjects/output",
+    "expected_stats_csv": "/home/ga/RProjects/output/monthly_station_stats.csv",
+    "expected_adverse_csv": "/home/ga/RProjects/output/adverse_hours.csv",
+    "expected_summary_json": "/home/ga/RProjects/output/report_summary.json",
+    "expected_figure_dir": "/home/ga/RProjects/output/figures",
+    "figure_count": 36,
+    "adverse_rule": "wind_speed >= 25 mph OR precip >= 0.25 in",
+    "occupation": "Atmospheric and Space Scientists (O*NET 19-2021.00), aviation weather reporting",
+    "budget_note": "Hard step budget of 18. One R script that loops over the 36 groups and writes all 36 charts costs a few steps; producing the figures through the GUI plot-and-export dialog costs far more than 18 on its own."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_airport_weather_monthly_report"
+    }
+  }
+}

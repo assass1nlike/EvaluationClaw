@@ -1,0 +1,38 @@
+{
+  "id": "diamond_segment_audit@1",
+  "version": "1.0",
+  "env_id": "rstudio_env@0.1",
+  "difficulty": "hard",
+  "description": "You are a pricing analyst preparing the annual segment review for a diamond wholesaler. The reference price list is the 53,940-record `diamonds` dataset that ships with the ggplot2 package (already installed). It has also been exported for convenience to /home/ga/RProjects/datasets/diamonds.csv.\n\nSTEP BUDGET: you have a hard budget of 25 agent steps. Reading the screen costs steps just like clicking does, so there is no room for interactive trial-and-error. Plan the whole job before you touch the keyboard.\n\nDeliverables — write all four into /home/ga/RProjects/output/:\n\n1. segment_report.csv\n   A segment is one distinct combination of cut, color and clarity. Work on valid records only (see the screen below). Columns, in this exact order:\n     cut,color,clarity,n,median_price,median_price_per_carat,iqr_price_per_carat\n   - n = number of valid records in the segment\n   - median_price = median of price\n   - median_price_per_carat = median of (price / carat)\n   - iqr_price_per_carat = interquartile range of (price / carat), i.e. the 75th percentile minus the 25th percentile\n   Round the three statistics to 2 decimal places. Report only segments with at least 150 valid records. Sort rows by cut, then color, then clarity, all ascending alphabetically. Do not write row names.\n\n2. excluded_records.csv\n   Every record rejected by the screen below, keeping the original columns: carat,cut,color,clarity,depth,table,price,x,y,z. Row order does not matter.\n\n3. audit_summary.json\n   A JSON object with exactly these keys:\n     total_records, excluded_records, valid_records, segments_total, segments_reported,\n     records_in_reported_segments, share_in_reported_segments\n   - segments_total = number of distinct cut/color/clarity combinations present among valid records\n   - segments_reported = those meeting the 150-record reporting threshold\n   - records_in_reported_segments = sum of n over the reported segments\n   - share_in_reported_segments = records_in_reported_segments / valid_records, rounded to 4 decimal places\n\n4. price_per_carat_by_segment.png\n   A bar chart of median_price_per_carat for the 20 segments with the highest median_price_per_carat, tallest bar first, each labelled with the segment as cut-color-clarity.\n\nSCREEN: a record is invalid if any of its x, y or z dimensions (length, width, depth in mm) is 0 — a physically impossible measurement. Invalid records are excluded before any segment statistics are computed.\n\nLogin: username=ga, password=password123.",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/diamond_segment_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/diamond_segment_audit/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "dataset": "diamonds (ggplot2 R package, 53,940 records; a real retail price list, not generated)",
+    "dataset_source": "ggplot2::diamonds; exported to /home/ga/RProjects/datasets/diamonds.csv by setup_task.sh",
+    "ground_truth_path": "/tmp/diamond_segment_audit_gt.json",
+    "dataset_path": "/home/ga/RProjects/datasets/diamonds.csv",
+    "output_dir": "/home/ga/RProjects/output",
+    "expected_report_csv": "/home/ga/RProjects/output/segment_report.csv",
+    "expected_excluded_csv": "/home/ga/RProjects/output/excluded_records.csv",
+    "expected_summary_json": "/home/ga/RProjects/output/audit_summary.json",
+    "expected_plot_png": "/home/ga/RProjects/output/price_per_carat_by_segment.png",
+    "segment_columns": ["cut", "color", "clarity"],
+    "report_threshold_n": 150,
+    "occupation": "Financial Quantitative Analysts (O*NET 13-2099.01), hedonic price modelling",
+    "budget_note": "Hard step budget of 25. The reference solution writes one R script and sources it; a step-per-operation GUI walkthrough of the 117 reported segments cannot fit."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_diamond_segment_audit"
+    }
+  }
+}

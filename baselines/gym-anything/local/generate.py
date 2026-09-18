@@ -19,7 +19,16 @@ README_MODULE = (
 
 
 def requirement_prompt(text):
-    return "\n\n## User evaluation requirement\n\n" + text
+    return (
+        "\n\n## User evaluation requirement\n\n"
+        "Construct tasks for the user evaluation requirement below. "
+        "Use the capabilities and constraints described in the requirement as "
+        "the task design objectives, and ensure that the task scenarios, initial "
+        "states, and success criteria test them. Follow the official construction "
+        "workflow and quality requirements. Use existing software examples as "
+        "references for implementation; they must not replace the user's "
+        "evaluation objective.\n\n"
+    ) + text
 
 
 def run_readme_stage(requirement_file, argv):

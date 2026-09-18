@@ -13,6 +13,9 @@ import ast
 import base64
 import mimetypes
 from litellm import completion
+from openai import RateLimitError
+from utils.native_responses import responses_completion
+from utils.model_config import get_max_tokens, get_request_timeout
 import litellm
 
 # Configure litellm
@@ -352,6 +355,10 @@ def llm_call(payload: Dict[str, Any]) -> Dict[str, Any]:
     # Apply extra params last, allowing override of response_format if needed
     if extra_create_params:
         base_create_params.update(extra_create_params)
+    if (budget := get_max_tokens(model, config_path=_config_path)) is not None:
+        base_create_params["max_tokens"] = budget
+    if (timeout := get_request_timeout(model, config_path=_config_path)) is not None:
+        base_create_params.update(timeout=timeout, request_timeout=timeout)
 
     last_error = None
     last_content = ""
@@ -369,8 +376,19 @@ def llm_call(payload: Dict[str, Any]) -> Dict[str, Any]:
                 create_params["temperature"] = 0.3
             
             
-            resp = completion(**create_params)
-            content = resp.choices[0].message.content or ""
+            if model.startswith("openai/responses/"):
+                resp = responses_completion(**create_params)
+                if resp.status != "completed":
+                    raise RuntimeError(f"Responses request {resp.status}: {resp.incomplete_details}")
+                if create_params.get("tool_choice") == "required" and not any(
+                    item.type == "web_search_call" and item.status == "completed"
+                    for item in resp.output
+                ):
+                    raise RuntimeError("Required native web search was not completed")
+                content = resp.output_text or ""
+            else:
+                resp = completion(**create_params)
+                content = resp.choices[0].message.content or ""
 
             if mode == "text":
                 return {
@@ -404,6 +422,9 @@ def llm_call(payload: Dict[str, Any]) -> Dict[str, Any]:
 
         except Exception as e:
             last_error = f"{type(e).__name__}: {e}"
+            if model.startswith("openai/responses/") and isinstance(e, RateLimitError):
+                # The transport has already waited and exhausted its bounded 429 retries.
+                return {"raw_text": last_content, "json": {}, "ok": False, "error": last_error}
 
     # All retries failed; still return last_content so caller can try to use it
     return {
@@ -478,4 +499,3 @@ def llm_call_json(
         "images": images,
         **kwargs
     })
-

@@ -11,7 +11,8 @@ from utils.registry import register_tool
 import copy
 from utils.llm_caller import llm_call_json
 from tools.executor_tools.run_pure_tools import run_pure_step, build_pure_tool_registry
-from utils.model_config import get_tool_model
+from utils.model_config import get_tool_model, load_model_config
+from utils.search_queue import progress_clock
 from tools.shared.choice_question import stable_seed, normalize_and_shuffle_choice_question
 from tools.shared.media_paths import resolve_image_paths
 from tools.shared.primitives import _safe_int
@@ -55,7 +56,10 @@ LLM_TIMEOUT_S = int(os.getenv("LLM_TIMEOUT_S", "90"))
 # Kill the process if a transform batch makes no sample-level progress for too long.
 # This is intentionally process-level because a hung provider request inside a worker
 # thread cannot be safely interrupted from the parent thread on Windows.
-NO_PROGRESS_TIMEOUT_S = int(os.getenv("TRANSFORM_NO_PROGRESS_TIMEOUT_S", "480"))
+NO_PROGRESS_TIMEOUT_S = int(os.getenv(
+    "TRANSFORM_NO_PROGRESS_TIMEOUT_S",
+    str(load_model_config().get("transform_no_progress_timeout_seconds", 480)),
+))
 
 # Diagnostics: print per-sample timing + heartbeat for stuck futures.
 # Enable via env var: TRANSFORM_DIAG=1
@@ -2603,7 +2607,7 @@ def transform_samples_iterative(
             (did, idx): time.time()
             for _, did, _, _, idx, _ in all_sample_jobs
         }
-        last_progress_ts = time.time()
+        last_progress_ts = progress_clock()
         pending = set(future_to_info.keys())
 
         while pending:
@@ -2618,7 +2622,7 @@ def transform_samples_iterative(
             if not done:
                 now = time.time()
                 pending_keys = [future_to_info[pf][1:] for pf in pending if pf in future_to_info]
-                stalled_s = now - last_progress_ts
+                stalled_s = progress_clock() - last_progress_ts
                 if NO_PROGRESS_TIMEOUT_S > 0 and stalled_s >= NO_PROGRESS_TIMEOUT_S:
                     msg = (
                         f"[TransformTimeout] no completed samples for {stalled_s:.1f}s "
@@ -2668,7 +2672,7 @@ def transform_samples_iterative(
                 continue
 
             for f in done:
-                last_progress_ts = time.time()
+                last_progress_ts = progress_clock()
                 pair_fallback, did_fallback, idx_fallback = future_to_info.get(f, ({}, "unknown", None))
                 t0 = start_ts_by_key.get((did_fallback, idx_fallback), None)
                 try:

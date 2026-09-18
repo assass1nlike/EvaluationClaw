@@ -270,7 +270,7 @@ class QemuDbusFastIoTests(unittest.TestCase):
         self.assertIn("qemu-xhci,id=fastio_xhci", cmd)
         self.assertIn("usb-kbd,id=fastio_kbd,bus=fastio_xhci.0", cmd)
         self.assertIn("usb-tablet,id=fastio_tablet,bus=fastio_xhci.0", cmd)
-        self.assertIn("user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::45678-:5599", cmd)
+        self.assertIn("user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22,hostfwd=tcp:127.0.0.1:45678-:5599", cmd)
 
     def test_linux_non_fast_io_qemu_command_keeps_legacy_input_devices(self) -> None:
         runner = self._runner()
