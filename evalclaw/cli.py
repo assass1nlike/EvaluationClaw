@@ -174,7 +174,6 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
 
     if pkg.laaj is not None:
         scores = {
-            "clarity": pkg.laaj.clarity.score,
             "correctness": pkg.laaj.correctness.score,
             "faithfulness": pkg.laaj.faithfulness.score,
             "diversity": pkg.laaj.diversity.score,
@@ -253,6 +252,7 @@ def generate(
     laaj_reasoning_effort: Optional[str] = typer.Option(None, "--laaj-reasoning-effort", help="Reasoning effort passed to the LaaJ model."),
     laaj_extra_body: Optional[str] = typer.Option(None, "--laaj-extra-body", help="JSON extra request body for the LaaJ model."),
     laaj_sample_size: int = typer.Option(50, "--laaj-sample-size", help="Maximum number of stratified benchmark items evaluated by LaaJ."),
+    laaj_evaluate_analyser: bool = typer.Option(True, "--laaj-evaluate-analyser/--no-laaj-evaluate-analyser", help="Include Analyser quality metrics in LaaJ; benchmark quality metrics are unaffected."),
     laaj_tool_calls_per_item: int = typer.Option(200, "--laaj-tool-calls-per-item", min=1, help="LaaJ evidence and exploration budget per sampled item; pooled across the assessment."),
     analyser_tool_max_calls: int = typer.Option(500, "--analyser-tool-max-calls", min=1, help="Evidence tool calls per Analyser decision or review."),
     agent_judge_tool_max_calls: int = typer.Option(500, "--agent-judge-tool-max-calls", min=1, help="Exploration tool calls per agent-task scoring judge."),
@@ -429,7 +429,7 @@ def generate(
     task_builder_max_workers: int = typer.Option(
         4,
         "--task-builder-workers",
-        help="Maximum concurrent task-builder LLM calls.",
+        help="Maximum concurrent Builder jobs; 0 admits all jobs subject to a shared memory budget.",
     ),
     task_builder_repair_attempts: int = typer.Option(
         4,
@@ -468,8 +468,12 @@ def generate(
     runner_max_workers: int = typer.Option(
         4,
         "--runner-workers",
-        help="Maximum concurrent independent target-item executions.",
+        help="Maximum concurrent target-item executions; 0 uses memory-budget admission only.",
     ),
+    memory_budget_gib: Optional[int] = typer.Option(None, "--memory-budget-gib", min=1, help="Shared admission budget in GiB; no sudo required. Add --memory-cgroup for a provisioned kernel hard limit."),
+    memory_cgroup: str = typer.Option("", "--memory-cgroup", help="Absolute /sys/fs/cgroup path of the shared slice containing this process."),
+    memory_job_gib: int = typer.Option(16, "--memory-job-gib", min=1, help="Minimum memory reservation per concurrent job; does not change task memory limits."),
+    memory_headroom_gib: int = typer.Option(16, "--memory-headroom-gib", min=1, help="Budget held back for framework, builders and estimation error."),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one text-response judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto or litellm."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
@@ -636,8 +640,8 @@ def generate(
     if search_backend.lower() not in {"auto", "gemini", "ablation-keyless", "none"}:
         console.print("[red]--search-backend must be one of: gemini, ablation-keyless, auto, none.[/red]")
         raise typer.Exit(1)
-    if task_builder_max_workers < 1:
-        console.print("[red]--task-builder-workers must be at least 1.[/red]")
+    if task_builder_max_workers < 0:
+        console.print("[red]--task-builder-workers must be non-negative.[/red]")
         raise typer.Exit(1)
     if task_builder_repair_attempts < 0:
         console.print("[red]--task-builder-repair-attempts cannot be negative.[/red]")
@@ -648,8 +652,8 @@ def generate(
     if task_builder_truncation_retries < 0:
         console.print("[red]--task-builder-truncation-retries cannot be negative.[/red]")
         raise typer.Exit(1)
-    if runner_max_workers < 1:
-        console.print("[red]--runner-workers must be at least 1.[/red]")
+    if runner_max_workers < 0:
+        console.print("[red]--runner-workers must be non-negative.[/red]")
         raise typer.Exit(1)
     if live_port < 1 or live_port > 65535:
         console.print("[red]--live-port must be between 1 and 65535.[/red]")
@@ -801,6 +805,7 @@ def generate(
         **failover_config,
         task_models=task_models,
         laaj_sample_size=laaj_sample_size,
+        laaj_evaluate_analyser=laaj_evaluate_analyser,
         laaj_tool_calls_per_item=laaj_tool_calls_per_item,
         analyser_tool_max_calls=analyser_tool_max_calls,
         contamination_enabled=contamination_enabled,
@@ -838,6 +843,10 @@ def generate(
         builder_memory_mb=builder_memory_mb,
         builder_pids_limit=builder_pids_limit,
         runner_max_workers=runner_max_workers,
+        memory_budget_gib=memory_budget_gib,
+        memory_cgroup=memory_cgroup,
+        memory_job_gib=memory_job_gib,
+        memory_headroom_gib=memory_headroom_gib,
         judge_double_pass=not single_pass_judge,
         agent_judge_tool_max_calls=agent_judge_tool_max_calls,
         llm_backend=llm_backend,

@@ -31,6 +31,7 @@ from ..execution.environment_checks import run_environment_checks
 from ..execution.evaluation import parse_evaluator_result
 from ..execution.evidence import EVALUATOR_EVIDENCE_SCHEMA, execution_failure, redact_evidence
 from ..execution.harness_compatibility import external_harness_issues
+from ..execution.image_acquisition import acquire_image, image_pull_options
 from ..execution.interventions import InterventionController
 from ..execution.process import run_bounded
 from ..execution.resource_guard import DockerResourceGuard
@@ -543,9 +544,12 @@ def prepare_docker_task(item: BenchmarkItem, config: BenchmarkConfig) -> tuple[s
         env,
         task_text=task_text,
         docker_executable=config.docker_executable,
-        timeout_s=600,
     )
-    image = str(env.get("image") or "python:3.11-slim")
+    image = acquire_image(
+        str(env.get("image") or "python:3.11-slim"),
+        docker_executable=config.docker_executable, timeout_s=config.docker_pull_timeout_s,
+        allow_pull=bool(env.get("pull_image", True)),
+    )
     workdir = Path(tempfile.mkdtemp(prefix="evalclaw-harness-"))
     try:
         visible = env.get("visible_files")
@@ -598,7 +602,7 @@ def _seed_image_workspace(image: str, overlay: Path, config: BenchmarkConfig) ->
         # retain image permissions; explicit files retain overlay permissions.
         script.extend([f"chown {_target_container_user()} /evalclaw-seed", "chmod 0700 /evalclaw-seed"])
         result = _run_bounded([
-            docker, "run", "--name", name, "--network", "none", "--user", "0:0",
+            docker, "run", *image_pull_options(), "--name", name, "--network", "none", "--user", "0:0",
             "-v", f"{overlay}:/evalclaw-overlay:ro", "-v", f"{workdir}:/evalclaw-seed",
             "--entrypoint", "sh", image, "-c", "\n".join(script),
         ], timeout=600, env=env)
@@ -627,7 +631,7 @@ def _cleanup_seeded_workspace(workdir: Path, image: str, config: BenchmarkConfig
     try:
         guard.register("container", name)
         result = _run_bounded([
-            docker, "run", "--name", name, "--network", "none", "--user", "0:0",
+            docker, "run", *image_pull_options(), "--name", name, "--network", "none", "--user", "0:0",
             "-v", f"{workdir}:/evalclaw-cleanup", "--entrypoint", "sh", image,
             "-c", f"find /evalclaw-cleanup -mindepth 1 -delete && chown {os.getuid()}:{os.getgid()} /evalclaw-cleanup && chmod 0700 /evalclaw-cleanup",
         ], timeout=120, env=env)
@@ -667,9 +671,12 @@ def score_docker_task(
     evaluator_timeout = _evaluation_timeout(item)
     try:
         if owned_container:
+            image = acquire_image(image, docker_executable=config.docker_executable,
+                                  timeout_s=config.docker_pull_timeout_s)
             create_args = [
                 resolved,
                 "create",
+                *image_pull_options(),
                 "--name",
                 container_name,
                 "-v",
@@ -829,6 +836,14 @@ def _docker(
     env = docker_subprocess_env(docker)
     if extra_env:
         env.update(extra_env)
+    if (args[:2] == ["network", "create"] and env.get("EVALCLAW_DOCKER_NETWORK_POOL")
+            and not any(a.split("=", 1)[0] == "--subnet" for a in args[2:])):
+        from ..execution.docker_networks import create_network
+
+        return create_network(
+            [docker], args, env["EVALCLAW_DOCKER_NETWORK_POOL"],
+            capture_output=True, text=True, check=check, env=env, timeout=120,
+        )
     return subprocess.run(
         [docker, *args],
         capture_output=True,
@@ -890,6 +905,7 @@ def _start_model_gateway(
     internal network (where the harness will run) and is also bridged so it can
     reach the model API; the harness container gets only the internal network.
     """
+    gateway_image = acquire_image(_MODEL_GATEWAY_IMAGE, docker_executable=docker, allow_pull=False)
     tag = uuid.uuid4().hex[:8]
     network = f"evalclaw-harness-{tag}"
     gateway = f"evalclaw-gateway-{tag}"
@@ -907,9 +923,9 @@ def _start_model_gateway(
         _docker(
             docker,
             [
-                "run", "-d", "--name", gateway, "--network", network,
+                "run", *image_pull_options(), "-d", "--name", gateway, "--network", network,
                 "-e", "EVALCLAW_UPSTREAM_API_KEY",
-                _MODEL_GATEWAY_IMAGE,
+                gateway_image,
                 "--upstream", upstream,
                 "--provider", provider,
                 "--model", model,
@@ -969,7 +985,7 @@ def preflight_model_gateways(config: BenchmarkConfig) -> None:
         try:
             # Probe from a second container on the same isolated network as targets.
             _docker(docker, [
-                "run", "--rm", "--name", probe, "--network", network,
+                "run", *image_pull_options(), "--rm", "--name", probe, "--network", network,
                 "--entrypoint", "python", _MODEL_GATEWAY_IMAGE, "-c",
                 "import urllib.request,urllib.error,sys\n"
                 "try: urllib.request.urlopen(sys.argv[1], timeout=10)\n"
@@ -1346,9 +1362,10 @@ class ManifestHarnessRunner:
             pass
         return identity
 
-    def _mount_tool_image(self, run_args: list[str]) -> None:
+    def _mount_tool_image(self, run_args: list[str], *, docker_executable: str = "docker") -> None:
         tool_image = self._tool_image()
         if tool_image:
+            tool_image = acquire_image(tool_image, docker_executable=docker_executable, allow_pull=False)
             run_args += [
                 "--mount",
                 f"type=image,src={tool_image},dst=/opt/harness,readonly",
@@ -1452,7 +1469,7 @@ class ManifestHarnessRunner:
                 self._manifest.run.format(**quoted, config_args=shlex.join(config_tokens))
             )
             create_args: list[str] = [
-                resolved, "create",
+                resolved, "create", *image_pull_options(),
                 "--name", container_name,
                 "-v", f"{workdir}:/workspace",
                 "-w", "/workspace",
@@ -1463,7 +1480,7 @@ class ManifestHarnessRunner:
                 ),
                 "-e", "HOME=/tmp",
             ]
-            self._mount_tool_image(create_args)
+            self._mount_tool_image(create_args, docker_executable=config.docker_executable)
             if actor_session is not None:
                 create_args += ["-v", actor_session.mount]
             if gateway_network is not None:

@@ -246,3 +246,57 @@ print(open('report.json').read())
     evidence = runner._judge_tool_evidence(task, transcript, config())
     assert evidence[0]["returncode"] == 0, evidence[0]["stderr"]
     assert json.loads(evidence[0]["stdout"]) == {"satisfied": 3, "total": 3}
+
+
+@pytest.mark.skipif(os.environ.get("EVALCLAW_DOCKER_TESTS") != "1", reason="requires local Docker")
+@pytest.mark.parametrize("external", [False, True])
+@pytest.mark.parametrize("needs_hidden", [False, True])
+def test_real_setup_dependencies_are_checked_without_hidden_files(external, needs_hidden):
+    from evalclaw.construction.packaging import pack_task_item
+    from evalclaw.construction.suite import _preflight_builder_environments
+    from evalclaw.construction.validation import task_structure_issues
+    from evalclaw.types import AgentEnvironmentSpec, EvalDimension, TaskDefinition
+    from tests.blueprint_factory import make_blueprint
+
+    dimension = EvalDimension(id="d", name="d", description="d", approach="d")
+    blueprint = make_blueprint("setup", "d", "Setup", task_type=TaskType.agent)
+    task = TaskDefinition(
+        id="setup", dimension_id="d", title="Setup dependencies", task_type=TaskType.agent,
+        prompt="Work in the prepared workspace.",
+        environment=AgentEnvironmentSpec(
+            type="docker_workspace", image="alpine:3.21.5", auto_select_image=False,
+            pull_image=False, network="none",
+            visible_files={"run_tests.sh": "exit 0\n"},
+            hidden_files={"evaluator/pristine/run_tests.sh": "echo '{\"score\": 0}'\n"},
+            setup_commands=[
+                "chmod +x /workspace/run_tests.sh" if external else "cat /workspace/run_tests.sh",
+                "test ! -e /workspace/evaluator/pristine/run_tests.sh",
+                # Indirect lookup proves preflight checks real dependencies,
+                # without guessing which path a command string refers to.
+                'p=evaluator/pristine; f=run_tests.sh; cat "$p/$f"' if needs_hidden else "true",
+            ],
+            test_command="sh evaluator/pristine/run_tests.sh",
+            evaluation={"result_format": "json_on_stdout"},
+        ),
+    )
+    cfg = config()
+    assert task_structure_issues(task, target_harnesses=["fixture"] if external else []) == []
+    if external:
+        harness = ManifestHarnessRunner(ManifestHarness(name="fixture", run="true", model_env={}))
+        benchmark_item = pack_task_item(task, dimension, resource_by_id={})
+        if needs_hidden:
+            with pytest.raises(RuntimeError, match="evaluator/pristine/run_tests.sh"):
+                harness.preflight(benchmark_item, cfg.targets[0], cfg)
+        else:
+            outcome = harness.preflight(benchmark_item, cfg.targets[0], cfg)
+            assert outcome["status"] == "passed"
+            assert outcome["baseline_score"] == 0
+    else:
+        issues, failed, blocked = _preflight_builder_environments(
+            [task], dimension=dimension, blueprint=blueprint, resources=[], config=cfg,
+        )
+        assert not blocked
+        assert bool(issues) == needs_hidden
+        assert failed == ({task.id} if needs_hidden else set())
+        if needs_hidden:
+            assert "evaluator/pristine/run_tests.sh" in issues[0]

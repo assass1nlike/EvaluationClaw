@@ -322,6 +322,51 @@ def test_model_failure_is_an_evaluation_error_with_evidence(monkeypatch, tmp_pat
     assert json.loads((tmp_path / "review.json").read_text())["status"] == "failed"
 
 
+@pytest.mark.parametrize("returned", [["quality"], ["quality", "unknown"], ["quality", "quality"]])
+def test_criterion_feedback_identifies_missing_unknown_and_duplicate_ids(monkeypatch, tmp_path, returned):
+    monkeypatch.setattr(module, "JudgeSandbox", FakeSandbox)
+    turns = 0
+
+    def model(messages, **kwargs):
+        nonlocal turns
+        turns += 1
+        if turns == 1:
+            return _response(calls=[ToolCall(id="inspect", name="review_command", arguments={"command": "ls"})])
+        ids = returned
+        if turns == 3:
+            feedback = json.loads(messages[-1]["content"])
+            assert feedback["expected_criterion_ids"] == ["quality", "safety"]
+            assert feedback["missing_criterion_ids"] == ["safety"]
+            assert feedback["unexpected_criterion_ids"] == (["unknown"] if "unknown" in returned else [])
+            assert feedback["duplicate_criterion_ids"] == (["quality"] if returned.count("quality") == 2 else [])
+            ids = feedback["expected_criterion_ids"]
+        return _response(content=json.dumps({"status": "scored", "criteria": [
+            {"id": key, "score": 0.8, "reasoning": "Inspected work.", "evidence": ["inspect"]}
+            for key in ids
+        ]}))
+
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", model)
+    task = _item(criteria=[{"id": key, "rubric": "0: fails; 1: passes"} for key in ["quality", "safety"]])
+    score, _ = module.score_with_agent(task, _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    assert score == 0.8 and turns == 3
+
+
+def test_exhausted_judge_repair_is_an_item_failure(monkeypatch, tmp_path):
+    monkeypatch.setattr(module, "JudgeSandbox", FakeSandbox)
+    requests = []
+
+    def model(messages, **kwargs):
+        requests.append(list(messages))
+        return _response(content='{"status":"scored","criteria":[]}')
+
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", model)
+    with pytest.raises(module.JudgeResponseError):
+        module.score_with_agent(_item(), _config(), "original", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    assert len(requests) == 3
+    record = json.loads((tmp_path / "review.json").read_text())
+    assert record["status"] == "failed" and "score" not in record
+
+
 def test_command_timeout_keeps_partial_evidence_and_allows_recovery(monkeypatch, tmp_path):
     sandbox = FakeSandbox()
 

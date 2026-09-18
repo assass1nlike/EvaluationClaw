@@ -18,7 +18,8 @@ from ..core.task_summary import compact_task_content_summary
 from ..diagnostics import _io_path, error_record, write_json
 from ..execution.agent_envs import build_agent_environment
 from ..execution.docker import require_docker_available
-from ..execution.errors import EvaluationExecutionError
+from ..execution.errors import EvaluationExecutionError, JudgeResponseError
+from ..execution.memory_budget import memory_job, worker_count
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -197,12 +198,13 @@ def _preflight_builder_environments(
     resources: list[TaskResource],
     config: BenchmarkConfig,
     trace_dir: Path | None = None,
-) -> tuple[list[str], set[str]]:
+) -> tuple[list[str], set[str], dict[str, str]]:
     if not config.environment_preflight:
-        return [], set()
+        return [], set(), {}
     resource_by_id = {resource.id: resource for resource in resources}
     issues: list[str] = []
     failed_ids: set[str] = set()
+    blocked: dict[str, str] = {}
     for index, task in enumerate(tasks, 1):
         if task.environment is None or task.environment.type != AgentEnvironmentType.docker_workspace:
             continue
@@ -242,7 +244,9 @@ def _preflight_builder_environments(
                 write_json(item_trace_dir / "failure.json", {
                     "status": "evaluation_blocked", "item_id": task.id, **error_record(exc),
                 })
-            raise
+            if not isinstance(exc, JudgeResponseError):
+                raise
+            blocked[task.id] = str(exc)
         except Exception as exc:
             failed_ids.add(task.id)
             issues.append(
@@ -266,7 +270,7 @@ def _preflight_builder_environments(
             cleanup = getattr(environment, "cleanup", None)
             if callable(cleanup):
                 cleanup()
-    return issues, failed_ids
+    return issues, failed_ids, blocked
 
 
 def _capability_payload(dimension: EvalDimension) -> dict[str, object]:
@@ -560,6 +564,8 @@ def _task_builder_payload(
         },
         "task_builder_contract": contract,
     }
+    if config is not None and config.builder_environment_notes:
+        payload["construction_environment_notes"] = config.builder_environment_notes
     if direct:
         payload["task_definition_schema"] = TaskDefinition.model_json_schema()
         payload["task_resource_schema"] = TaskResource.model_json_schema()
@@ -1436,6 +1442,7 @@ def build_task_suite(
         retained_tasks: dict[str, TaskDefinition] = {}
         retained_resources: dict[str, TaskResource] = {}
         retained_notes: list[str] = []
+        blocked_tasks: dict[str, str] = {}
         structural_repair_path: Path | None = None
 
         def prepare_structural_repair_file() -> Path:
@@ -1604,7 +1611,7 @@ def build_task_suite(
                     error=exc,
                 )
                 break
-            except CancelledError:
+            except (CancelledError, EvaluationExecutionError):
                 raise
             except Exception as exc:
                 last_failure_is_output = response_received
@@ -1630,8 +1637,8 @@ def build_task_suite(
                     continue
                 break
             if attempt_result.valid_tasks:
-                environment_issues, failed_task_ids = _preflight_builder_environments(
-                    attempt_result.valid_tasks,
+                environment_issues, failed_task_ids, blocked = _preflight_builder_environments(
+                    [task for task in attempt_result.valid_tasks if task.id not in blocked_tasks],
                     dimension=dimension,
                     blueprint=blueprint,
                     resources=attempt_result.resources,
@@ -1644,6 +1651,18 @@ def build_task_suite(
                         else None
                     ),
                 )
+                blocked_tasks.update(blocked)
+                for task_id, reason in blocked.items():
+                    retained_tasks.pop(task_id, None)
+                    note = f"{task_id}: evaluation_blocked; excluded after judge failure: {reason}"
+                    result_notes.append(note)
+                    emit(f"  Task builder: {note}")
+                attempt_result.tasks = [
+                    task for task in attempt_result.tasks if task.id not in blocked_tasks
+                ]
+                attempt_result.valid_tasks = [
+                    task for task in attempt_result.valid_tasks if task.id not in blocked_tasks
+                ]
                 if environment_issues:
                     attempt_result.validation_issues.extend(environment_issues)
                     attempt_result.valid_tasks = [
@@ -1718,7 +1737,7 @@ def build_task_suite(
         if retained_tasks:
             # Repair tools share the asset directory. Recheck the retained environments
             # against the final files rather than trusting an earlier successful preflight.
-            environment_issues, failed_task_ids = _preflight_builder_environments(
+            environment_issues, failed_task_ids, blocked = _preflight_builder_environments(
                 list(retained_tasks.values()),
                 dimension=dimension,
                 blueprint=blueprint,
@@ -1726,9 +1745,13 @@ def build_task_suite(
                 config=config,
                 trace_dir=debug_job_dir / "environment-preflight" / "retained" if debug_job_dir else None,
             )
-            for task_id in failed_task_ids:
+            for task_id in failed_task_ids | blocked.keys():
                 retained_tasks.pop(task_id, None)
             result_notes.extend(environment_issues)
+            result_notes.extend(
+                f"{task_id}: evaluation_blocked; excluded after judge failure: {reason}"
+                for task_id, reason in blocked.items()
+            )
         if retained_tasks:
             retained_resource_ids = {
                 resource_id
@@ -1783,18 +1806,22 @@ def build_task_suite(
             notes=result_notes,
         )
 
-    max_workers = max(1, int(getattr(config, "task_builder_max_workers", 4) or 1))
+    def build_with_memory(job):
+        with memory_job(config, builder=True, cancel=stop_event):
+            return build_blueprint_job(job)
+
+    max_workers = worker_count(config.task_builder_max_workers, len(jobs))
     completed_jobs = 0
     if len(jobs) <= 1 or max_workers == 1:
         for job in jobs:
-            build_results_by_order[job.order] = build_blueprint_job(job)
+            build_results_by_order[job.order] = build_with_memory(job)
             completed_jobs += 1
             emit(f"  Task builder: completed {completed_jobs}/{len(all_jobs)} - {job_label(job)}.")
     else:
         executor = ThreadPoolExecutor(max_workers=min(max_workers, len(jobs)))
         futures = {}
         try:
-            futures = {executor.submit(build_blueprint_job, job): job for job in jobs}
+            futures = {executor.submit(build_with_memory, job): job for job in jobs}
             for future in as_completed(futures):
                 result = future.result()
                 build_results_by_order[result.order] = result

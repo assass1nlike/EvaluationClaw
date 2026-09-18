@@ -67,7 +67,7 @@ def test_laaj_exploration_is_available_and_always_closed(monkeypatch, tmp_path, 
             laaj_module.evaluate_with_laaj("goal", _suite(), None, config, trace_dir=tmp_path)
     else:
         report = laaj_module.evaluate_with_laaj("goal", _suite(), None, config, trace_dir=tmp_path)
-        assert (report.clarity.score, report.correctness.score, report.faithfulness.score, report.diversity.score) == (5, 4, 5, 3)
+        assert (report.correctness.score, report.faithfulness.score, report.diversity.score) == (4, 5, 3)
     assert budgets == [600] * len(closed)
     assert len(closed) == (laaj_module.LAAJ_MAX_ATTEMPTS if fail else 2)
 

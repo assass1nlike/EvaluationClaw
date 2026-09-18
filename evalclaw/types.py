@@ -1101,14 +1101,12 @@ class LaajItemMetric(LaajMetric):
 
 class LaajItemResult(BaseModel):
     item_id: str
-    clarity: LaajItemMetric
     correctness: LaajItemMetric
     faithfulness: LaajItemMetric
 
 
 class LaajReport(BaseModel):
     model: str
-    clarity: LaajMetric
     correctness: LaajMetric
     faithfulness: LaajMetric
     diversity: LaajMetric
@@ -1188,6 +1186,7 @@ class BenchmarkConfig(BaseModel):
     laaj_reasoning_effort: Optional[str] = None
     laaj_extra_body: dict[str, Any] = Field(default_factory=dict)
     laaj_sample_size: int = Field(default=50, ge=1)
+    laaj_evaluate_analyser: bool = True
     laaj_tool_calls_per_item: int = Field(default=200, ge=1)
     contamination_enabled: bool = True
     contamination_sample_size: int | None = Field(default=None, ge=1)
@@ -1254,18 +1253,23 @@ class BenchmarkConfig(BaseModel):
     use_web_research: bool = True
     search_backend: str = "gemini"  # gemini | ablation-keyless | auto | none
     research_brief: Optional[ResearchBrief] = None
-    task_builder_max_workers: int = 4
+    task_builder_max_workers: int = Field(default=4, ge=0)
     task_builder_repair_attempts: int = 4
     task_builder_call_retries: int = 5
     task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = Field(default=2000, ge=1)
     task_builder_tool_max_chars: int = 50_000
     builder_sandbox_image: str = "python:3.11-slim"
+    builder_environment_notes: str = ""
     builder_memory_mb: int = Field(default=8192, ge=128)
     builder_pids_limit: int = Field(default=512, ge=16)
     planner_tool_max_calls: int = Field(default=500, ge=1)
     planner_tool_max_chars: int = 50_000
-    runner_max_workers: int = 4
+    runner_max_workers: int = Field(default=4, ge=0)
+    memory_budget_gib: int | None = Field(default=None, ge=1)
+    memory_cgroup: str = ""
+    memory_job_gib: int = Field(default=16, ge=1)
+    memory_headroom_gib: int = Field(default=16, ge=1)
     judge_double_pass: bool = True
     agent_judge_tool_max_calls: int = Field(default=500, ge=1)
     llm_backend: Literal["auto", "litellm"] = "auto"
@@ -1300,6 +1304,13 @@ class BenchmarkConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_ablation_modes(self) -> "BenchmarkConfig":
+        if self.memory_cgroup and self.memory_budget_gib is None:
+            raise ValueError("memory_cgroup requires memory_budget_gib.")
+        if self.memory_budget_gib is not None:
+            if self.memory_job_gib + self.memory_headroom_gib > self.memory_budget_gib:
+                raise ValueError("The memory budget must fit one job plus headroom.")
+        elif self.task_builder_max_workers == 0 or self.runner_max_workers == 0:
+            raise ValueError("Automatic concurrency (0 workers) requires a shared memory budget.")
         if self.ablation_simplified_contract and self.ablation_no_builder_harness:
             raise ValueError(
                 "ablation_simplified_contract and ablation_no_builder_harness are mutually exclusive."

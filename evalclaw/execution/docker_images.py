@@ -14,11 +14,14 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .docker import docker_subprocess_env, resolve_docker_executable
+from .errors import EvaluationExecutionError
+from .image_acquisition import acquire_image, image_pull_options
 from .installers import apt_packages, render_install_commands
 from .process import run_bounded
 from .resource_guard import DockerResourceGuard
 
 DEFAULT_DOCKER_IMAGE = "python:3.11-slim"
+DEFAULT_DOCKER_BUILD_TIMEOUT_S = 3600
 DOCKER_IMAGE_SELECTION_STRATEGY = "evalclaw_builtin_rules.v1"
 DOCKER_IMAGE_BUILD_STRATEGY = "evalclaw_dockerfile_build.v1"
 DOCKER_BUILD_AUTO_IMAGES = {"build://auto", "auto://build", "evalclaw:build"}
@@ -26,6 +29,18 @@ DOCKER_BUILD_DIR_ENV_VAR = "EVALCLAW_DOCKER_BUILD_DIR"
 DOCKER_HTTP_PROXY_ENV_VAR = "EVALCLAW_DOCKER_HTTP_PROXY"
 DOCKER_HTTPS_PROXY_ENV_VAR = "EVALCLAW_DOCKER_HTTPS_PROXY"
 DOCKER_NO_PROXY_ENV_VAR = "EVALCLAW_DOCKER_NO_PROXY"
+
+
+class DockerBuildExecutionError(EvaluationExecutionError):
+    """An image build timed out or its execution infrastructure failed."""
+
+
+class DockerImageBuildError(RuntimeError):
+    """A completed build failed; the Builder may repair its inputs."""
+
+    def __init__(self, image: str, detail: str):
+        self.image = image
+        super().__init__(detail)
 
 
 @dataclass(frozen=True)
@@ -428,12 +443,67 @@ def _build_tag(env_config: dict[str, Any], dockerfile: str, *, task_text: str = 
     return f"evalclaw-{slug}:{digest}"
 
 
+def _run_image_build(command: list[str], *, image: str, docker_executable: str, timeout_s: int) -> str:
+    log_root = _build_context_root() / "logs"
+    log_root.mkdir(parents=True, exist_ok=True)
+    log_dir = Path(tempfile.mkdtemp(prefix="build-", dir=log_root))
+    env = docker_subprocess_env(docker_executable)
+    record = {"image": image, "timeout_s": timeout_s, "exit_code": None, "timed_out": False}
+    fatal = ""
+    cause = None
+    stdout = stderr = ""
+    try:
+        proc = subprocess.run(
+            command, text=True, encoding="utf-8", errors="replace", capture_output=True,
+            check=False, timeout=max(1, timeout_s), env=env,
+        )
+        stdout, stderr = proc.stdout or "", proc.stderr or ""
+        record["exit_code"] = proc.returncode
+        if proc.returncode < 0:
+            fatal = f"Build process terminated by signal {-proc.returncode}."
+        elif proc.returncode:
+            # A build exit code alone cannot distinguish bad inputs from a lost daemon.
+            health = subprocess.run(
+                [command[0], "info"], text=True, encoding="utf-8", errors="replace",
+                capture_output=True, check=False, timeout=30, env=env,
+            )
+            record["daemon_check"] = {
+                "exit_code": health.returncode, "stdout": health.stdout, "stderr": health.stderr,
+            }
+            if health.returncode:
+                fatal = "Docker daemon availability check failed after the build failure."
+    except subprocess.TimeoutExpired as exc:
+        cause = exc
+        if record["exit_code"] is None:
+            record["timed_out"] = True
+            stdout, stderr = exc.stdout or "", exc.stderr or ""
+            fatal = f"Docker image build timed out after {timeout_s}s."
+        else:
+            fatal = "Docker daemon availability check timed out after the build failure."
+    except OSError as exc:
+        cause = exc
+        fatal = f"Could not execute Docker: {exc}"
+    stdout = stdout.decode("utf-8", errors="replace") if isinstance(stdout, bytes) else stdout
+    stderr = stderr.decode("utf-8", errors="replace") if isinstance(stderr, bytes) else stderr
+    record["execution_error"] = fatal
+    (log_dir / "stdout.log").write_text(stdout, encoding="utf-8")
+    (log_dir / "stderr.log").write_text(stderr, encoding="utf-8")
+    (log_dir / "result.json").write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    output = "\n".join(part for part in (stdout, stderr) if part).strip()
+    detail = f"Image: {image}. Build logs: {log_dir}\n{output[-8000:]}"
+    if fatal:
+        raise DockerBuildExecutionError(f"{fatal}\n{detail}") from cause
+    if record["exit_code"]:
+        raise DockerImageBuildError(image, f"Docker image build failed. {detail}")
+    return output
+
+
 def build_docker_image_if_requested(
     env_config: dict[str, Any],
     *,
     task_text: str = "",
     docker_executable: str = "docker",
-    timeout_s: int = 600,
+    timeout_s: int = DEFAULT_DOCKER_BUILD_TIMEOUT_S,
 ) -> tuple[dict[str, Any], DockerImageBuildResult | None]:
     """Build a task-specific Docker image when image_build is requested."""
     if not _image_build_requested(env_config):
@@ -456,7 +526,7 @@ def build_docker_image_if_requested(
     tag = _build_tag(env, dockerfile, task_text=task_text)
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
-        raise RuntimeError(f"Docker executable {docker_executable!r} not found; cannot build task image {tag}.")
+        raise DockerBuildExecutionError(f"Docker executable {docker_executable!r} not found; cannot build task image {tag}.")
 
     rebuild = bool(build_config.get("rebuild"))
     if not rebuild:
@@ -490,19 +560,9 @@ def build_docker_image_if_requested(
     for key, value in _docker_build_args(build_config).items():
         command.extend(["--build-arg", f"{key}={value}"])
     command.extend(["-t", tag, str(context_dir)])
-    proc = subprocess.run(
-        command,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        capture_output=True,
-        check=False,
-        timeout=max(1, timeout_s),
-        env=docker_subprocess_env(docker_executable),
+    output = _run_image_build(
+        command, image=tag, docker_executable=docker_executable, timeout_s=timeout_s,
     )
-    output = (proc.stdout or proc.stderr or "").strip()
-    if proc.returncode != 0:
-        raise RuntimeError(f"Docker build failed for {tag}: {output}")
     env["image"] = tag
     env["pull_image"] = False
     env["image_build"] = {
@@ -544,7 +604,7 @@ def build_docker_image_from_context(
     build_args: dict[str, Any] | None = None,
     network: str = "default",
     docker_executable: str = "docker",
-    timeout_s: int = 600,
+    timeout_s: int = DEFAULT_DOCKER_BUILD_TIMEOUT_S,
 ) -> DockerImageBuildResult:
     """Build an image from a framework-managed, already materialized context."""
     context_root = context_dir.expanduser().resolve()
@@ -558,7 +618,7 @@ def build_docker_image_from_context(
         raise ValueError("Docker image build network must be 'default' or 'none'.")
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
-        raise RuntimeError("Docker executable is not available for image construction.")
+        raise DockerBuildExecutionError("Docker executable is not available for image construction.")
     image_tag = str(tag or f"evalclaw-builder:{_context_digest(context_root)}").strip()
     if not image_tag:
         raise ValueError("Docker image tag must not be empty.")
@@ -567,23 +627,9 @@ def build_docker_image_from_context(
     for key, value in _docker_build_args(build_config).items():
         command.extend(["--build-arg", f"{key}={value}"])
     command.extend(["-t", image_tag, str(context_root)])
-    try:
-        proc = subprocess.run(
-            command,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            capture_output=True,
-            check=False,
-            timeout=max(1, int(timeout_s)),
-            env=docker_subprocess_env(docker_executable),
-        )
-    except subprocess.TimeoutExpired as exc:
-        detail = (str(exc.stderr or exc.stdout or "Docker image build timed out.")).strip()
-        raise RuntimeError(f"Docker image build timed out for {image_tag}: {detail[-4000:]}") from exc
-    output = "\n".join(part for part in (proc.stdout, proc.stderr) if part).strip()
-    if proc.returncode != 0:
-        raise RuntimeError(f"Docker image build failed for {image_tag}: {output[-8000:]}")
+    output = _run_image_build(
+        command, image=image_tag, docker_executable=docker_executable, timeout_s=int(timeout_s),
+    )
     return DockerImageBuildResult(
         image=image_tag,
         built=True,
@@ -604,6 +650,7 @@ def run_docker_image_check(
     timeout_s: int = 60,
     memory_mb: int = 8192,
     pids_limit: int = 512,
+    allow_pull: bool = True,
 ) -> DockerImageCheckResult:
     """Run one bounded, disposable check inside an image without host mounts."""
     image_name = str(image or "").strip()
@@ -617,6 +664,7 @@ def run_docker_image_check(
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
         raise RuntimeError("Docker executable is not available for image checks.")
+    image_name = acquire_image(image_name, docker_executable=docker_executable, allow_pull=allow_pull)
     container = "evalclaw-check-" + uuid.uuid4().hex[:12]
     guard = DockerResourceGuard(resolved, docker_subprocess_env(docker_executable))
     guard.register("container", container)
@@ -633,6 +681,7 @@ def run_docker_image_check(
     command_args = [
         resolved,
         "run",
+        *(image_pull_options() if allow_pull else ["--pull", "never"]),
         "--rm",
         "--name", container, "--init",
         "--memory", f"{memory_mb}m", "--memory-swap", f"{memory_mb}m",
@@ -715,6 +764,7 @@ def start_inspection_container(
     pids_limit: int = 512,
     workspace: Path | None = None,
     resource_guard: Any = None,
+    allow_pull: bool = True,
 ) -> DockerInspectResult:
     """Start a long-lived disposable container for interactive environment probing.
 
@@ -731,6 +781,7 @@ def start_inspection_container(
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
         raise RuntimeError("Docker executable is not available for inspection containers.")
+    image_name = acquire_image(image_name, docker_executable=docker_executable, timeout_s=timeout_s, allow_pull=allow_pull)
     container = f"evalclaw-inspect-{uuid.uuid4().hex[:12]}"
     if resource_guard is not None:
         resource_guard.register("container", container)
@@ -746,6 +797,7 @@ def start_inspection_container(
     command = [
         resolved,
         "run",
+        *(image_pull_options() if allow_pull else ["--pull", "never"]),
         "-d",
         "--name",
         container,

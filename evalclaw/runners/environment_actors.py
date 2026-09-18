@@ -18,6 +18,7 @@ from typing import Any
 
 from ..diagnostics import write_json
 from ..execution.docker import docker_subprocess_env, resolve_docker_executable
+from ..execution.image_acquisition import acquire_image, image_pull_options
 from ..models.llm import TargetToolModelResponse, call_target_model_with_tools
 from ..models.providers import infer_provider
 from ..protocols.tool import ToolCall, ToolResult, ToolSpec, object_schema, validate_tool_call
@@ -378,6 +379,7 @@ class ActorToolExecutor:
         docker = resolve_docker_executable(self.config.docker_executable)
         if not docker:
             raise RuntimeError(f"Docker executable {self.config.docker_executable!r} not found.")
+        image = acquire_image(self.image, docker_executable=docker, timeout_s=self.config.docker_pull_timeout_s)
         name = f"evalclaw-actor-tool-{uuid.uuid4().hex[:12]}"
         network = "bridge" if self.toolset.get("network") == "internet" else "none"
         limits = (
@@ -388,6 +390,7 @@ class ActorToolExecutor:
         args = [
             docker,
             "run",
+            *image_pull_options(),
             "--rm",
             "--name",
             name,
@@ -409,7 +412,7 @@ class ActorToolExecutor:
         for key, flag in (("memory", "--memory"), ("cpus", "--cpus")):
             if limits.get(key):
                 args += [flag, str(limits[key])]
-        args += [self.image, "sh", "-lc", command]
+        args += [image, "sh", "-lc", command]
         with self._lock:
             if self._closed:
                 raise RuntimeError("The actor tool session has ended.")

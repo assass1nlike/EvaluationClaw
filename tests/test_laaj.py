@@ -61,7 +61,6 @@ def _response(*, analyser: bool = False) -> str:
     data = {
         name: {"score": score, "reasoning": f"{name} evidence"}
         for name, score in (
-            ("clarity", 5),
             ("correctness", 4),
             ("faithfulness", 5),
             ("diversity", 3),
@@ -99,7 +98,7 @@ def test_laaj_scores_benchmark_with_stratified_sample(monkeypatch) -> None:
     )
 
     assert report.model == "judge-model"
-    assert report.clarity.score == 5
+    assert "clarity" not in report.model_dump()
     assert report.systematicness is None
     assert report.evaluated_item_ids == ["item_1", "item_3"]
     assert report.total_item_count == 3
@@ -340,7 +339,8 @@ def test_laaj_uses_tool_loop_for_agent_tasks(monkeypatch) -> None:
     assert "brief.txt" in calls[1]["messages"][-1]["content"]
 
 
-def test_laaj_scores_analyser_and_renders_report(monkeypatch) -> None:
+@pytest.mark.parametrize("evaluate_analyser", [True, False])
+def test_laaj_scores_analyser_and_renders_report(monkeypatch, evaluate_analyser) -> None:
     monkeypatch.setattr(laaj_module, "call_llm", lambda *args, **kwargs: _response(analyser=True))
     suite = _suite()
     analysis = AnalysisReport(analysis="The model has two supported failure categories.")
@@ -348,7 +348,7 @@ def test_laaj_scores_analyser_and_renders_report(monkeypatch) -> None:
         suite.objective,
         suite,
         analysis,
-        BenchmarkConfig(laaj_model="judge", laaj_api_key="key"),
+        BenchmarkConfig(laaj_model="judge", laaj_api_key="key", laaj_evaluate_analyser=evaluate_analyser),
     )
     run = EvalRun(suite=suite, qc_report=QcReport(passed_item_ids=[item.id for item in suite.tasks]))
     report = build_report(run, analysis=analysis, laaj=laaj)
@@ -363,10 +363,13 @@ def test_laaj_scores_analyser_and_renders_report(monkeypatch) -> None:
         report=report,
     )
 
-    assert laaj.systematicness is not None
-    assert laaj.credibility is not None
+    assert (laaj.systematicness is not None) == evaluate_analyser
+    assert (laaj.credibility is not None) == evaluate_analyser
+    assert len(laaj.item_results) == 3
+    assert laaj.diversity.score == 3
+    assert package.analysis is analysis
     assert "LLM-as-a-Judge Quality Evaluation" in report.markdown
-    assert "Analyser credibility" in report.markdown
+    assert ("Analyser credibility" in report.markdown) == evaluate_analyser
     assert '"laaj"' in build_report_viewer_html(package)
 
 
@@ -487,6 +490,7 @@ def test_cli_configures_laaj_and_analyser_ablation(monkeypatch) -> None:
             "key",
             "--laaj-sample-size",
             "7",
+            "--no-laaj-evaluate-analyser",
             "--ablation-analyser",
             "similar-tasks",
         ],
@@ -495,4 +499,5 @@ def test_cli_configures_laaj_and_analyser_ablation(monkeypatch) -> None:
     assert result.exit_code == 0
     assert captured["config"].laaj_model == "judge"
     assert captured["config"].laaj_sample_size == 7
+    assert captured["config"].laaj_evaluate_analyser is False
     assert captured["config"].ablation_analyser == "similar_tasks"
